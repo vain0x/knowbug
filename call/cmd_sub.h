@@ -9,7 +9,7 @@
 #include "axcmd.h"
 
 #include "CCall.h"
-#include "CFunctor.h"
+#include "Functor.h"
 #include "cmd_call.h"
 
 #include "CPrmInfo.h"
@@ -41,6 +41,6 @@ bool numrg(T const& val, T const& min, T const& max)
 }
 
 // ˆø”æ“¾
-extern CFunctor code_get_functor();
+extern functor_t code_get_functor();
 
 #endif

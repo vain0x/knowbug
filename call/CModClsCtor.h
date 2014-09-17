@@ -3,7 +3,7 @@
 #ifndef IG_CLASS_MODCLS_CONSTRUCTOR_H
 #define IG_CLASS_MODCLS_CONSTRUCTOR_H
 
-#include "IFunctorEx.h"
+#include "IFunctor.h"
 
 class CModClsCtor;
 using modctor_t = CModClsCtor*;
@@ -12,7 +12,7 @@ struct STRUCTDAT;
 struct STRUCTPRM;
 
 class CModClsCtor
-	: public IFunctorEx
+	: public IFunctor
 {
 	// ÉÅÉìÉoïœêî
 private:

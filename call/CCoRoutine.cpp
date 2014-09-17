@@ -4,7 +4,7 @@
 
 #include "CCall.h"
 #include "CCaller.h"
-#include "CFunctor.h"
+#include "Functor.h"
 #include "CPrmInfo.h"
 
 using namespace hpimod;

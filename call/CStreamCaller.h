@@ -6,7 +6,7 @@
 // 「呼び出しの途中」を保存するオブジェクト
 
 #include "hsp3plugin_custom.h"
-#include "IFunctorEx.h"
+#include "IFunctor.h"
 
 class CCaller;
 class CStreamCaller;
@@ -14,7 +14,7 @@ class CStreamCaller;
 using stream_t = CStreamCaller*;
 
 class CStreamCaller
-	: public IFunctorEx
+	: public IFunctor
 {
 	// メンバ変数
 private:

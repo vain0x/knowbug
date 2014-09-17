@@ -8,7 +8,7 @@
 
 #include "CCall.h"
 #include "CCaller.h"
-#include "CFunctor.h"
+#include "Functor.h"
 
 #include "CHspCode.h"
 
@@ -32,7 +32,7 @@ myfunc_t CLambda::New()
 // ç\íz
 //------------------------------------------------
 CLambda::CLambda()
-	: IFunctorEx()
+	: IFunctor()
 	, mpBody(nullptr)
 	, mpPrmInfo(nullptr)
 	, mpArgCloser(nullptr)

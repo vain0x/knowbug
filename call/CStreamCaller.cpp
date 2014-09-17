@@ -23,11 +23,9 @@ stream_t CStreamCaller::New()
 // ç\íz
 //------------------------------------------------
 CStreamCaller::CStreamCaller()
-	: IFunctorEx()
+	: IFunctor()
 	, mpCaller( new CCaller )
-{
-	;
-}
+{ }
 
 //------------------------------------------------
 // îjä¸

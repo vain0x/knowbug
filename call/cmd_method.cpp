@@ -57,23 +57,25 @@ static void Method_replace_proc(int vt)
 // @prm p2 = str : メソッド名称 (or default)
 // @prm p3 = def : 定義 (ラベル + 仮引数リスト, axcmd)
 //------------------------------------------------
-void Method_add(void)
+void Method_add()
 {
-	int         vt   = code_get_vartype();
-	std::string name = code_gets();
+	vartype_t const vtype = code_get_vartype();
+	std::string const name = code_gets();
 
 	// 呼び出し先 or ラベル関数宣言の取得
-	CFunctor&& functor = code_get_functor();
+	functor_t&& functor = code_get_functor();
 
+#if 0
 	// ラベル => 仮引数リストを受け取る
 	if ( functor.getType() == FuncType_Label ) {
 		CPrmInfo::prmlist_t&& prmlist = code_get_prmlist();
 		prmlist.insert( prmlist.begin(), PRM_TYPE_VAR );		// 先頭に var this を追加
 		DeclarePrmInfo( functor.getLabel(), std::move(CPrmInfo(&prmlist)) );
 	}
+#endif
 
 	// CMethod に追加
-	CMethod* const pMethod = g_pMethodlist->get( vt );
+	CMethod* const pMethod = g_pMethodlist->get( vtype );
 
 	if ( pMethod ) {
 		pMethod->add( name, functor );

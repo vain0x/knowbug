@@ -71,7 +71,7 @@ enum DebugNotice
 // functions
 
 // 短縮名
-static HspVarProc* getHvp(vartype_t flag) { return exinfo->HspFunc_getproc(flag); }
+static HspVarProc* getHvp(vartype_t vtype) { return exinfo->HspFunc_getproc(vtype); }
 static HspVarProc* seekHvp(char const* name) { return exinfo->HspFunc_seekproc(name); }
 
 // ax ファイルへのアクセス
@@ -178,13 +178,13 @@ static size_t PVal_cntElems(PVal const* pval) {
 	return cnt;
 }
 
-static void* PVal_getPtr(PVal* pval) { return getHvp(pval->flag)->GetPtr(pval); }
-static void const* PVal_getPtr(PVal const* pval) {
+static PDAT* PVal_getPtr(PVal* pval) { return getHvp(pval->flag)->GetPtr(pval); }
+static PDAT const* PVal_getPtr(PVal const* pval) {
 	// 実体ポインタを得るだけなのでおそらく安全
 	return PVal_getPtr(const_cast<PVal*>(pval));
 }
 template<typename TPVal>
-static auto PVal_getPtr(TPVal* pval, APTR aptr) -> detail::const_iff_t<void, std::is_const<TPVal>::value>*
+static auto PVal_getPtr(TPVal* pval, APTR aptr) -> detail::const_iff_t<PDAT, std::is_const<TPVal>::value>*
 {
 	static_assert(std::is_same<std::remove_cv_t<TPVal>, PVal>::value, "typename TPVal must be PVal or PVal const.");
 
@@ -200,20 +200,17 @@ static auto PVal_getPtr(TPVal* pval, APTR aptr) -> detail::const_iff_t<void, std
 // HSP的論理値
 static int const HspTrue = 1;
 static int const HspFalse = 0;
-inline int HspBool(bool b) { return b ? HspTrue : HspFalse; }
+static inline int HspBool(bool b) { return b ? HspTrue : HspFalse; }
 
-#if 0
-// 型の実体型
-template<vartype_t vtype> struct vartype_instance;
-template<> struct vartype_instance<HSPVAR_FLAG_LABEL>  { using type = label_t; };
-template<> struct vartype_instance<HSPVAR_FLAG_STR>    { using type = char*; };
-template<> struct vartype_instance<HSPVAR_FLAG_DOUBLE> { using type = double; };
-template<> struct vartype_instance<HSPVAR_FLAG_INT>    { using type = int; };
-template<> struct vartype_instance<HSPVAR_FLAG_STRUCT> { using type = FlexValue; };
+// 値の持ち運び
+struct HspValue
+{
+	PDAT* pdat;
+	vartype_t vtype;
+public:
+	HspValue() : pdat(nullptr), vtype(HSPVAR_FLAG_NONE) { }
+};
 
-#endif
-
-}; // namespace hpimod
-
+} // namespace hpimod
 
 #endif

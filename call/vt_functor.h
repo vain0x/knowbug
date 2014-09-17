@@ -5,27 +5,36 @@
 
 #include "hsp3plugin_custom.h"
 #include "mod_func_result.h"
+#include "vp_template.h"
 
-#include "CFunctor.h"
+#include "Functor.h"
 
-// 変数宣言
-extern vartype_t HSPVAR_FLAG_FUNCTOR;
-extern HspVarProc* g_pHvpFunctor;
+// 変数
+extern vartype_t g_vtFunctor;
+extern HspVarProc* g_hvpFunctor;
 
-// 関数宣言
+// 関数
 extern void HspVarFunctor_init(HspVarProc* vp);
 
-// PVal::pt に配列状に管理されるオブジェクト
-using functor_t = CFunctor;
+// vartype tag
+struct functor_tag
+	: public NativeVartypeTag<functor_t>
+{
+	static vartype_t vartype() { return g_vtFunctor; }
+};
+
+// VtTraits<> の特殊化
+namespace hpimod
+{
+	template<> struct VtTraits<functor_tag> : public VtTraitsBase<functor_tag>
+	{
+	};
+}
+
+using FunctorTraits = hpimod::VtTraits<functor_tag>;
 
 // 返値設定関数
 extern functor_t g_resFunctor;		// 終了時、静的変数などより先に解体する
-static int SetReffuncResult( void** ppResult, functor_t const& src )
-{
-	g_resFunctor = src;
-	*ppResult = &g_resFunctor;
-	return HSPVAR_FLAG_FUNCTOR;
-}
-//FTM_SetReffuncResult( functor_t, HSPVAR_FLAG_FUNCTOR );
+static int SetReffuncResult( void** ppResult, functor_t const& src );
 
 #endif

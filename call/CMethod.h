@@ -12,13 +12,13 @@
 #include <string>
 #include "hsp3plugin_custom.h"
 
-#include "CFunctor.h"
+#include "Functor.h"
 #include "cmd_call.h"
 
 class CMethod
 {
 private:
-	typedef std::map<std::string, CFunctor> methodlist_t;
+	typedef std::map<std::string, functor_t> methodlist_t;
 
 	//############################################
 	//    メンバ変数
@@ -42,7 +42,7 @@ public:
 	//--------------------------------------------
 	// メソッドを追加
 	//--------------------------------------------
-	void add( const std::string& name, CFunctor const& functor );
+	void add( const std::string& name, functor_t const& functor );
 
 	//--------------------------------------------
 	// メソッドを呼び出す

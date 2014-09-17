@@ -1,7 +1,7 @@
 // prmstack 生成クラス
 
-#ifndef IG_CLASS_PARAMETER_STACK_H
-#define IG_CLASS_PARAMETER_STACK_H
+#ifndef IG_CLASS_PARAMETER_STACK_CREATOR_H
+#define IG_CLASS_PARAMETER_STACK_CREATOR_H
 
 /**
 @summary:
@@ -61,7 +61,6 @@ private:
 	void* end() const { return ptr_ + usingSize_; }
 
 private:
-	// 封印
 	CPrmStkCreator( CPrmStkCreator const& obj ) = delete;
 	CPrmStkCreator& operator = ( CPrmStkCreator const& obj ) = delete;
 };
@@ -87,5 +86,23 @@ T* CPrmStkCreator::pushValue()
 	usingSize_ += sizeof(T);
 	return p;
 }
+
+//------------------------------------------------
+// バッファ所有バージョン
+//------------------------------------------------
+class CPrmStkCreatorWithBuffer
+	: public CPrmStkCreator
+{
+public:
+	CPrmStkCreatorWithBuffer(size_t size)
+		: CPrmStkCreator(hspmalloc(size), size)
+	{ }
+	~CPrmStkCreatorWithBuffer()
+	{
+		void* const ptr = getptr();
+		assert(!!ptr);
+		hspfree(ptr);
+	}
+};
 
 #endif

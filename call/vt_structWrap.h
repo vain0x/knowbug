@@ -5,9 +5,9 @@
 
 #include <map>
 #include "hsp3plugin_custom.h"
+#include "Functor.h"
 
 using namespace hpimod;
-class CFunctor;
 
 // HspVarProc(struct) の処理関数はすべて置き換える。
 // @ HSP本体との互換性は維持する。
@@ -29,7 +29,7 @@ extern void HspVarStructWrap_Dup( FlexValue* result, FlexValue* fv );
 
 namespace ModCls {
 
-using OpFuncDefs   = std::map<int, CFunctor>;	// 演算関数の連想配列 (添字: OpId_*)
+using OpFuncDefs   = std::map<int, functor_t>;	// 演算関数の連想配列 (添字: OpId_*)
 using CModOperator = std::map<int, OpFuncDefs>;	// (モジュールクラス, 演算関数)
 
 // クラスと演算関数の対応を保持するクラス
@@ -42,16 +42,8 @@ extern PVal* getMPVal(vartype_t type);
 // nullmod 変数
 extern PVal const* getNullmod();
 
-namespace VtStruct
-{
-	using value_type = FlexValue*;
-	using valptr_t = FlexValue*;
-	using const_valptr_t = FlexValue const*;
-
-	inline const_valptr_t asValptr(void const* pdat) { return reinterpret_cast<const_valptr_t>(pdat); }
-	inline valptr_t asValptr(void* pdat) { return const_cast<valptr_t>(asValptr(static_cast<void const*>(pdat))); }
-
-}
+// traits
+using StructTraits = VtTraits<struct_tag>;
 
 }
 

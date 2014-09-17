@@ -1,31 +1,22 @@
 // PVal の独自管理
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "mod_makepval.h"
 
 namespace hpimod {
 
-//##########################################################
-//    宣言
-//##########################################################
 static PVal* PVal_initDefault(vartype_t vt);
 
-//##########################################################
-//    関数
-//##########################################################
 //------------------------------------------------
 // PVal構造体の初期化
 // 
 // @ (pval == nullptr) => 何もしない。
 // @prm pval: 不定値でも可
 //------------------------------------------------
-void PVal_init(PVal* pval, vartype_t vflag)
+void PVal_init(PVal* pval, vartype_t vtype)
 {
 	if ( !pval ) return;
 
-	pval->flag = vflag;
+	pval->flag = vtype;
 	pval->mode = HSPVAR_MODE_NONE;
 	PVal_alloc( pval );
 	return;
@@ -35,16 +26,16 @@ void PVal_init(PVal* pval, vartype_t vflag)
 // もっとも簡単で有効なPVal構造体にする
 // 
 // @ (pval == nullptr) => 何もしない。
-// @ (vflag == 無効) => pval->flag の型に初期化する。
+// @ (vtype == 無効) => pval->flag の型に初期化する。
 // @ HspVarCoreDim の代わり (配列添字は指定できないが)。
 //------------------------------------------------
-void PVal_alloc(PVal* pval, PVal* pval2, vartype_t vflag)
+void PVal_alloc(PVal* pval, PVal* pval2, vartype_t vtype)
 {
 	if ( !pval ) return;
-	if ( vflag <= HSPVAR_FLAG_NONE ) vflag = pval->flag;
-	if ( vflag <= HSPVAR_FLAG_NONE ) return;
+	if ( vtype <= HSPVAR_FLAG_NONE ) vtype = pval->flag;
+	if ( vtype <= HSPVAR_FLAG_NONE ) return;
 
-	HspVarProc* const vp = getHvp( vflag );
+	HspVarProc* const vp = getHvp( vtype );
 
 	// pt が確保されている場合、解放する
 	if ( pval->flag != HSPVAR_FLAG_NONE && pval->mode == HSPVAR_MODE_MALLOC ) {
@@ -53,7 +44,7 @@ void PVal_alloc(PVal* pval, PVal* pval2, vartype_t vflag)
 
 	// 確保処理
 	memset( pval, 0x00, sizeof(PVal) );
-	pval->flag     = vflag;
+	pval->flag     = vtype;
 	pval->mode     = HSPVAR_MODE_NONE;
 	pval->support |= vp->support;
 	vp->Alloc( pval, pval2 );
@@ -66,9 +57,9 @@ void PVal_alloc(PVal* pval, PVal* pval2, vartype_t vflag)
 // @ 最も簡単な形で確保される。
 // @ HspVarCoreClear の代わり。
 //------------------------------------------------
-void PVal_clear(PVal* pval, vartype_t vflag)
+void PVal_clear(PVal* pval, vartype_t vtype)
 {
-	PVal_alloc( pval, nullptr, vflag );
+	PVal_alloc( pval, nullptr, vtype );
 }
 
 //------------------------------------------------
@@ -103,13 +94,13 @@ static PVal* PVal_initDefault(vartype_t vt)
 		int cntNew = vt + 1;
 
 		if ( !stt_pDefPVal ) {
-			stt_pDefPVal = (PVal**)hspmalloc( cntNew * sizeof(PVal*) );
+			stt_pDefPVal = reinterpret_cast<PVal**>(hspmalloc( cntNew * sizeof(PVal*) ));
 
 		} else {
-			stt_pDefPVal = (PVal**)hspexpand(
+			stt_pDefPVal = reinterpret_cast<PVal**>(hspexpand(
 				reinterpret_cast<char*>( stt_pDefPVal ),
 				cntNew * sizeof(PVal*)
-			);
+			));
 		}
 
 		// 拡張分を nullptr で初期化する
@@ -122,7 +113,7 @@ static PVal* PVal_initDefault(vartype_t vt)
 
 	// 未初期化の場合は、PVal のメモリを確保し、初期化する
 	if ( !stt_pDefPVal[vt] ) {
-		stt_pDefPVal[vt] = (PVal*)hspmalloc( sizeof(PVal) );
+		stt_pDefPVal[vt] = reinterpret_cast<PVal*>(hspmalloc( sizeof(PVal) ));
 		PVal_init( stt_pDefPVal[vt], vt );
 	}
 	return stt_pDefPVal[vt];
@@ -209,17 +200,15 @@ PDAT* PVal_getptr( PVal* pval, APTR aptr )
 // 
 // @ pval の添字状態を参照する。
 //------------------------------------------------
-void PVal_assign( PVal* pval, void const* pData_, vartype_t vflag )
+void PVal_assign( PVal* pval, PDAT const* data, vartype_t vtype )
 {
-	void* const pData = const_cast<void*>(pData_);
-
 	// 添字あり => ObjectWrite
 	if ( (pval->support & HSPVAR_SUPPORT_NOCONVERT) && (pval->arraycnt != 0) ) {
-		getHvp(pval->flag)->ObjectWrite( pval, pData, vflag );
+		getHvp(pval->flag)->ObjectWrite(pval, data, vtype);
 
 	// 通常の代入
 	} else {
-		code_setva( pval, pval->offset, vflag, pData );
+		code_setva(pval, pval->offset, vtype, data);
 	}
 	return;
 }
@@ -364,14 +353,14 @@ void PVal_clone( PVal* pvDst, PVal* pvSrc, APTR aptrSrc )
 	return;
 }
 
-void PVal_clone( PVal* pval, void* ptr, int flag, int size )
+void PVal_clone( PVal* pval, PDAT* ptr, int vtype, int size )
 {
 	PVal_free( pval );
 
-	HspVarProc* const vp = getHvp(flag);
+	HspVarProc* const vp = getHvp(vtype);
 
-	pval->pt = (char*)ptr;
-	pval->flag = flag;
+	pval->pt   = ptr;
+	pval->flag = vtype;
 	pval->size = size;
 	pval->mode = HSPVAR_MODE_CLONE;
 	pval->len[0] = 1;
@@ -413,7 +402,7 @@ void PVal_cloneVar( PVal* pvDst, PVal* pvSrc, APTR aptrSrc )
 		std::memset( pvDst, 0x00, sizeof(PVal) );
 		pvDst->flag    = pvSrc->flag;
 		pvDst->len[1]  = 1;
-		pvDst->pt      = const_cast<char*>( reinterpret_cast<char const*>(ptr) );
+		pvDst->pt      = const_cast<PDAT*>(ptr);
 		pvDst->size    = vp->GetSize( ptr );
 		pvDst->master  = pvSrc->master;
 	}
@@ -426,27 +415,27 @@ void PVal_cloneVar( PVal* pvDst, PVal* pvSrc, APTR aptrSrc )
 //------------------------------------------------
 // 値をシステム変数に代入する
 //------------------------------------------------
-void SetResultSysvar(void const* pValue, vartype_t vflag)
+void SetResultSysvar(PDAT const* data, vartype_t vtype)
 {
-	if ( !pValue ) return;
+	if ( !data ) return;
 
 	ctx->retval_level = ctx->sublev;
 
-	switch ( vflag ) {
+	switch ( vtype ) {
 		case HSPVAR_FLAG_INT:
-			ctx->stat = *reinterpret_cast<int const*>( pValue );
+			ctx->stat = VtTraits<int>::derefValptr(data);
 			break;
 
 		case HSPVAR_FLAG_STR:
 			strncpy(
 				ctx->refstr,
-				reinterpret_cast<char const*>( pValue ),
+				VtTraits<str_tag>::asValptr(data),
 				HSPCTX_REFSTR_MAX - 1
 			);
 			break;
 
 		case HSPVAR_FLAG_DOUBLE:
-			ctx->refdval = *reinterpret_cast<double const*>( pValue );
+			ctx->refdval = VtTraits<double>::derefValptr(data);
 			break;
 
 		default:

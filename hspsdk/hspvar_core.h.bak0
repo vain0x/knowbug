@@ -1,13 +1,9 @@
-// (2014/09/17) 上大：実体ポインタを表している型(void* や char*)を PDAT* (あるいは PDAT const*) に書き換えた。HspVarProc::*I 系はそのまま。
 
 //
 //	hspvar.cpp header
 //
 #ifndef __hspvar_core_h
 #define __hspvar_core_h
-
-	// 変更点をわかりやすくするためのメタ
-	#define TypeRedefined(TypeModified, TypeOriginal) TypeModified	// 変更点を分かりやすくするため
 
 #define HSPVAR_FLAG_NONE 0
 #define HSPVAR_FLAG_LABEL 1
@@ -46,7 +42,7 @@
 
 #define HSPVAR_SUPPORT_MISCTYPE (HSPVAR_SUPPORT_ARRAYOBJ)
 
-typedef void * PDAT;							// データの実態へのポインタ (例えば int 型なら int* = PDAT*)
+typedef void * PDAT;							// データの実態へのポインタ
 typedef int APTR;								// 配列データへのオフセット値
 
 enum
@@ -80,7 +76,7 @@ typedef struct
 	short	mode;		// mode (0=normal/1=clone/2=alloced)
 	int		len[5];		// length of array 4byte align (dim)
 	int		size;		// size of Val
-	TypeRedefined(PDAT *, char *) pt;		// ptr to array
+	char	*pt;		// ptr to array
 
 	//	Memory Data structure (3.0 compatible)
 	//
@@ -111,13 +107,13 @@ typedef struct
 
 	//		システム参照・型変換用
 	//
-	TypeRedefined(PDAT *, void *) (*Cnv)(TypeRedefined(const PDAT *, const void *) buffer, int flag);
-	TypeRedefined(PDAT *, void *) (*CnvCustom)(TypeRedefined(const PDAT *, const void *) buffer, int flag);
+	void *(*Cnv)( const void *buffer, int flag );
+	void *(*CnvCustom)( const void *buffer, int flag );
 	PDAT *(*GetPtr)( PVal *pval );
 
-	TypeRedefined(PDAT *, void *) (*ArrayObjectRead)(PVal *pval, int *mptype);// 配列要素の指定 (連想配列/読み出し)
+	void *(*ArrayObjectRead)( PVal *pval, int *mptype );// 配列要素の指定 (連想配列/読み出し)
 	void (*ArrayObject)( PVal *pval );							// 配列要素の指定 (連想配列/書き込み準備)
-	void (*ObjectWrite)(PVal *pval, TypeRedefined(const PDAT *, const void *) data, int type);		// HSPVAR_SUPPORT_NOCONVERT指定時の代入
+	void (*ObjectWrite)( PVal *pval, void *data, int type );		// HSPVAR_SUPPORT_NOCONVERT指定時の代入
 	void (*ObjectMethod)( PVal *pval );							// 変数に対するメソッドの指定
 
 	void (*Alloc)( PVal *pval, const PVal *pval2 );		// 変数メモリを確保する
@@ -139,7 +135,7 @@ typedef struct
 
 	//		代入用関数(型の一致が保障されます)
 	//
-	void (*Set)( PVal *pval, PDAT *pdat, TypeRedefined(const PDAT *, const void *) in );
+	void (*Set)( PVal *pval, PDAT *pdat, const void *in );
 
 	//		演算用関数(型の一致が保障されます)
 	//
@@ -251,6 +247,6 @@ inline PDAT *HspVarCorePtrAPTR( PVal *pv, APTR ofs )
 }
 
 
-	#undef TypeRedefined
+
 
 #endif

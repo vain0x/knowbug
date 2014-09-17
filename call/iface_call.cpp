@@ -77,7 +77,7 @@ static int ProcSttmCmd( int cmd )
 		case 0x021: Method_add();       break;	// method_add
 //		case 0x022: Method_cloneThis(); break;	// method_cloneThis
 
-		case 0x030: dimtypeEx( HSPVAR_FLAG_FUNCTOR ); break;	// functor
+		case 0x030: dimtypeEx( g_vtFunctor ); break;	// functor
 
 		case 0x040: CallCmd_sttm();     break;	// callcs
 
@@ -157,7 +157,7 @@ static int ProcFuncCmd( int cmd, void** ppResult )
 static int ProcSysvarCmd( int cmd, void** ppResult )
 {
 	switch ( cmd ) {
-		case 0x030: return SetReffuncResult( ppResult, (int)HSPVAR_FLAG_FUNCTOR );
+		case 0x030: return SetReffuncResult( ppResult, (int)g_vtFunctor );
 
 		case 0x053: return ModCls_Newmod (ppResult, true);	// newmod()
 		case 0x054: return ModCls_Nullmod(ppResult);		// nullmod (delmod)

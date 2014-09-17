@@ -13,7 +13,7 @@
 #include "CCall.h"
 #include "CPrmInfo.h"
 
-#include "CFunctor.h"
+#include "Functor.h"
 #include "CBound.h"
 
 using namespace hpimod;
@@ -61,7 +61,7 @@ void CCaller::call(void)
 //------------------------------------------------
 void CCaller::setFunctor()
 {
-	CFunctor&& functor = code_get_functor();
+	functor_t&& functor = code_get_functor();
 	setFunctor( functor );
 	return;
 }
@@ -69,9 +69,9 @@ void CCaller::setFunctor()
 //------------------------------------------------
 // ジャンプ先を設定する
 // 
-// @ CFunctor を用いる
+// @ functor_t を用いる
 //------------------------------------------------
-void CCaller::setFunctor( CFunctor const& functor )
+void CCaller::setFunctor( functor_t const& functor )
 {
 	mpCall->setFunctor( functor );
 	return;
@@ -257,7 +257,7 @@ PVal* CCaller::getRetVal() const
 // @prm ppResult : 返値への実体ポインタを格納する void*  型の変数へのポインタ
 // @result       : 返値の型タイプ値
 //------------------------------------------------
-vartype_t CCaller::getCallResult(void** ppResult)
+vartype_t CCaller::getCallResult(PDAT** ppResult)
 {
 	if ( !ppResult ) return HSPVAR_FLAG_NONE;
 	*ppResult = nullptr;

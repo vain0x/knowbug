@@ -35,10 +35,10 @@ bool code_getva_ex(PVal** pval, APTR* aptr)
 int code_getds_ex(char** ppStr, char const* defstr)
 {
 	char* pStr = code_getds(defstr);
-	size_t len = strlen(pStr);
+	size_t len = std::strlen(pStr);
 
-	*ppStr = hspmalloc( (len + 1) * sizeof(char) );
-	strncpy( *ppStr, pStr, len );
+	*ppStr = reinterpret_cast<char*>(hspmalloc( (len + 1) * sizeof(char) ));
+	std::strncpy( *ppStr, pStr, len );
 	(*ppStr)[len] = '\0';		// 終端
 	return len;
 }
@@ -94,12 +94,12 @@ int code_get_vartype( int deftype )
 	switch ( mpval->flag ) {
 		// 型タイプ値
 		case HSPVAR_FLAG_INT:
-			return *(int*)(mpval->pt);
+			return VtTraits<int>::derefValptr(mpval->pt);
 
 		// 型名
 		case HSPVAR_FLAG_STR:
 		{
-			auto const vp = seekHvp( mpval->pt );
+			auto const vp = seekHvp( VtTraits<str_tag>::asValptr(mpval->pt) );
 			if ( !vp ) puterror( HSPERR_ILLEGAL_FUNCTION );
 
 			return vp->flag;
@@ -167,12 +167,12 @@ label_t code_getdlb( label_t defLabel )
 //------------------------------------------------
 // インスタンスを取得する
 //------------------------------------------------
-extern FlexValue* code_get_struct()
+FlexValue* code_get_struct()
 {
 	PVal* const pval = code_get_var();
 	if ( pval->flag != HSPVAR_FLAG_STRUCT ) puterror(HSPERR_TYPE_MISMATCH);
 
-	return reinterpret_cast<FlexValue*>(getHvp(HSPVAR_FLAG_STRUCT)->GetPtr(pval));
+	return VtTraits<struct_tag>::asValptr(getHvp(HSPVAR_FLAG_STRUCT)->GetPtr(pval));
 }
 
 //------------------------------------------------
@@ -218,7 +218,7 @@ void code_expand_index_int( PVal* pval, bool bRhs )
 		// 添字の状態を保存
 		HspVarCoreCopyArrayInfo( &tmpPVal, pval );
 
-		int prm = code_getprm();	// パラメーターを取り出す
+		int const prm = code_getprm();
 
 		// エラーチェック
 		if ( prm == PARAM_DEFAULT ) {
@@ -235,7 +235,7 @@ void code_expand_index_int( PVal* pval, bool bRhs )
 		HspVarCoreCopyArrayInfo( pval, &tmpPVal );
 
 		if ( prm != PARAM_DEFAULT ) {
-			n = *(int*)(mpval->pt);
+			n = VtTraits<int>::derefValptr(mpval->pt);
 		}
 
 		code_index_int( pval, n, bRhs );	// 配列要素指定 (int)
@@ -296,14 +296,14 @@ void code_checkarray_obj2( PVal* pval )
 // @prm mptype : 汎用データの型タイプ値を返す
 // @result     : 汎用データへのポインタ
 //------------------------------------------------
-void* code_checkarray_obj( PVal* pval, int* mptype )
+PDAT* code_checkarray_obj1( PVal* pval, int& mptype )
 {
 	HspVarCoreReset( pval );
 
 	if ( *type == TYPE_MARK && *val == '(' ) {
 		code_next();
 
-		void* const pResult = getHvp( pval->flag )->ArrayObjectRead( pval, mptype );
+		PDAT* const pResult = getHvp( pval->flag )->ArrayObjectRead( pval, &mptype );
 
 		if ( !(*type == TYPE_MARK && *val == ')') ) {
 			puterror( HSPERR_BAD_ARRAY_EXPRESSION );
@@ -312,7 +312,7 @@ void* code_checkarray_obj( PVal* pval, int* mptype )
 		return pResult;
 	}
 
-	*mptype = pval->flag;
+	mptype = pval->flag;
 	return PVal_getptr(pval);
 }
 
@@ -344,11 +344,11 @@ void code_expand_index_lhs( PVal* pval )
 	return;
 }
 
-void* code_expand_index_rhs( PVal* pval, int* mptype )
+PDAT* code_expand_index_rhs( PVal* pval, int& mptype )
 {
 	// 連想配列型 => ArrayObjectRead() を呼ぶ
 	if ( pval->support & HSPVAR_SUPPORT_ARRAYOBJ ) {
-		return getHvp( pval->flag )->ArrayObjectRead( pval, mptype );
+		return getHvp( pval->flag )->ArrayObjectRead( pval, &mptype );
 
 	// 通常配列型 => 次元の数だけ要素を取り出す
 	} else {
@@ -363,7 +363,7 @@ void* code_expand_index_rhs( PVal* pval, int* mptype )
 			code_index_int_rhs( pval, idx );
 		}
 
-		*mptype = pval->flag;
+		mptype = pval->flag;
 		return getHvp( pval->flag )->GetPtr( pval );
 	}
 }

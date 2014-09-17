@@ -9,7 +9,7 @@
 #include "CCall.h"
 #include "CCaller.h"
 
-#include "CFunctor.h"
+#include "Functor.h"
 #include "CBound.h"
 #include "CStreamCaller.h"
 #include "CLambda.h"
@@ -186,7 +186,7 @@ void Call_aliasAll()
 //------------------------------------------------
 int Call_thislb(void** ppResult)
 {
-	return SetReffuncResult( ppResult, TopCallStack()->getFunctor().getLabel() );
+	return SetReffuncResult( ppResult, TopCallStack()->getFunctor()->getLabel() );
 }
 
 
@@ -230,7 +230,7 @@ void Call_StreamLabel()
 //------------------------------------------------
 // à¯êîÉXÉgÉäÅ[ÉÄåƒÇ—èoÇµ::í«â¡
 //------------------------------------------------
-void Call_StreamAdd(void)
+void Call_StreamAdd()
 {
 	if ( g_stkStream.empty() ) puterror( HSPERR_NO_DEFAULT );
 
@@ -281,7 +281,7 @@ int Call_NewStreamCaller( void** ppResult )
 	}
 
 	// functor å^Ç∆ÇµÇƒï‘ãpÇ∑ÇÈ
-	return SetReffuncResult( ppResult, functor_t(stream) );
+	return SetReffuncResult( ppResult, functor_t::make(stream) );
 }
 
 
@@ -291,7 +291,7 @@ int Call_NewStreamCaller( void** ppResult )
 void Call_StreamCallerAdd()
 {
 	functor_t&& functor = code_get_functor();
-	stream_t const stream  = functor.safeCastTo<stream_t>();
+	stream_t const stream = functor->safeCastTo<stream_t>();
 
 	stream->getCaller()->setArgAll();		// ëSÇƒÇÃà¯êîÇí«â¡Ç∑ÇÈ
 	return;
@@ -328,15 +328,15 @@ int LabelOf(void** ppResult)
 
 		// axcmd
 		if ( mpval->flag == HSPVAR_FLAG_INT ) {
-			axcmd = *reinterpret_cast<int*>( mpval->pt );
+			axcmd = VtTraits<int>::derefValptr(mpval->pt);
 
 		// label
 		} else if ( mpval->flag == HSPVAR_FLAG_LABEL ) {
-			lb = *reinterpret_cast<label_t*>( mpval->pt );
+			lb = VtTraits<label_t>::derefValptr( mpval->pt );
 
 		// functor
-		} else if ( mpval->flag == HSPVAR_FLAG_FUNCTOR ) {
-			lb = reinterpret_cast<functor_t*>( mpval->pt )->getLabel();
+		} else if ( mpval->flag == g_vtFunctor ) {
+			lb = FunctorTraits::derefValptr(mpval->pt)->getLabel();
 		}
 	}
 
@@ -361,7 +361,7 @@ int LabelOf(void** ppResult)
 //------------------------------------------------
 int Functor_cnv(void** ppResult)
 {
-	HspVarProc* const vp = g_pHvpFunctor;
+	HspVarProc* const vp = g_hvpFunctor;
 
 	int prm = code_getprm();
 	if ( prm <= PARAM_END ) puterror( HSPERR_NO_DEFAULT );
@@ -369,7 +369,7 @@ int Functor_cnv(void** ppResult)
 	// ïœä∑ÇµÇƒäiî[
 	*ppResult = vp->Cnv( mpval->pt, mpval->flag );
 
-	return HSPVAR_FLAG_FUNCTOR;
+	return g_vtFunctor;
 }
 
 //------------------------------------------------
@@ -377,14 +377,14 @@ int Functor_cnv(void** ppResult)
 //------------------------------------------------
 int Functor_argc( void** ppResult )
 {
-	CFunctor&& f = code_get_functor();
-	return SetReffuncResult( ppResult, static_cast<int>( f.getPrmInfo().cntPrms() ) );
+	functor_t&& f = code_get_functor();
+	return SetReffuncResult( ppResult, static_cast<int>( f->getPrmInfo().cntPrms() ) );
 }
 
 int Functor_isFlex( void** ppResult )
 {
-	CFunctor&& f = code_get_functor();
-	return SetReffuncResult( ppResult, f.getPrmInfo().isFlex() ? 1 : 0 );
+	functor_t&& f = code_get_functor();
+	return SetReffuncResult( ppResult, HspBool(f->getPrmInfo().isFlex()) );
 }
 
 //##########################################################
@@ -444,7 +444,7 @@ int ArgBind( void** ppResult )
 	bound->bind();
 
 	// functor å^Ç∆ÇµÇƒï‘ãpÇ∑ÇÈ
-	return SetReffuncResult( ppResult, functor_t(bound) );
+	return SetReffuncResult( ppResult, functor_t::make(bound) );
 }
 
 //------------------------------------------------
@@ -453,10 +453,10 @@ int ArgBind( void** ppResult )
 int UnBind( void** ppResult )
 {
 	if ( code_getprm() <= PARAM_END ) puterror( HSPERR_NO_DEFAULT );
-	if ( mpval->flag != HSPVAR_FLAG_FUNCTOR ) puterror( HSPERR_TYPE_MISMATCH );
+	if ( mpval->flag != g_vtFunctor ) puterror( HSPERR_TYPE_MISMATCH );
 
-	auto const functor = *(functor_t const*)mpval->pt;
-	auto const bound   = functor.safeCastTo<bound_t>();
+	auto const functor = FunctorTraits::derefValptr(mpval->pt);
+	auto const bound   = functor->safeCastTo<bound_t>();
 
 	return SetReffuncResult( ppResult, bound->unbind() );
 }
@@ -467,8 +467,6 @@ int UnBind( void** ppResult )
 void ReleaseBounds()
 {
 	g_resFunctor.clear();
-
-	IFunctorEx::ReleaseAllInstance();
 	return;
 }
 
@@ -483,8 +481,7 @@ int Call_Lambda( void** ppResult )
 
 	lambda->code_get();
 
-	// functor å^Ç∆ÇµÇƒï‘ãpÇ∑ÇÈ
-	return SetReffuncResult( ppResult, functor_t(static_cast<exfunctor_t>(lambda)) );
+	return SetReffuncResult( ppResult, functor_t::make(lambda) );
 }
 
 //------------------------------------------------
@@ -523,7 +520,7 @@ int Call_CoCreate( void** ppResult )
 	caller->setFunctor();		// functor ÇéÛÇØÇÈ
 	caller->setArgAll();
 
-	return SetReffuncResult( ppResult, functor_t(static_cast<exfunctor_t>(coroutine)) );
+	return SetReffuncResult( ppResult, functor_t::make(coroutine) );
 }
 
 //------------------------------------------------

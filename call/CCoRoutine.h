@@ -2,7 +2,7 @@
 
 // 未実装
 
-// IFunctorEx を継承する必要がある。
+// IFunctor を継承する必要がある。
 
 #ifndef IG_CLASS_CO_ROUTINE_H
 #define IG_CLASS_CO_ROUTINE_H
@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "hsp3plugin_custom.h"
-#include "IFunctorEx.h"
-#include "CFunctor.h"
+#include "IFunctor.h"
+#include "Functor.h"
 
 //	#define DBGOUT_CO_ROUTINE_ADDREF_OR_RELEASE	// AddRef, Release を dbgout で報告する
 
@@ -21,12 +21,12 @@ class CCaller;
 using coroutine_t = CCoRoutine*;
 
 class CCoRoutine
-	: public IFunctorEx
+	: public IFunctor
 {
 	// メンバ変数
 private:
 	CCaller* mpCaller;		// 継続している呼び出し
-	CFunctor mNext;			// 次に呼び出すラベル
+	functor_t mNext;			// 次に呼び出すラベル
 
 	CCaller const* mpCallerGiven;	// 実際の呼び出しへの参照
 

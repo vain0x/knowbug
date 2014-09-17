@@ -10,13 +10,13 @@
 #include "CCaller.h"
 #include "CHspCode.h"
 #include "CPrmInfo.h"
-#include "IFunctorEx.h"
+#include "IFunctor.h"
 
 class CLambda;
 using myfunc_t = CLambda*;
 
 class CLambda
-	: public IFunctorEx
+	: public IFunctor
 {
 	// ƒƒ“ƒo•Ï”
 private:

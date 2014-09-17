@@ -4,7 +4,7 @@
 
 #include "hsp3plugin_custom.h"
 
-#include "CFunctor.h"
+#include "Functor.h"
 #include "CModClsCtor.h"
 
 #include "CCall.h"
@@ -41,7 +41,7 @@ modctor_t CModClsCtor::New( int modcls )
 // ç\íz
 //------------------------------------------------
 CModClsCtor::CModClsCtor()
-	: IFunctorEx()
+	: IFunctor()
 	, mpStDat( nullptr )
 	, mpPrmInfo( nullptr )
 {
@@ -49,7 +49,7 @@ CModClsCtor::CModClsCtor()
 }
 
 CModClsCtor::CModClsCtor( stdat_t pStDat )
-	: IFunctorEx()
+	: IFunctor()
 	, mpStDat( pStDat )
 	, mpPrmInfo( nullptr )
 {
@@ -57,7 +57,7 @@ CModClsCtor::CModClsCtor( stdat_t pStDat )
 }
 
 CModClsCtor::CModClsCtor( int modcls )
-	: IFunctorEx()
+	: IFunctor()
 	, mpStDat( nullptr )
 	, mpPrmInfo( nullptr )
 {

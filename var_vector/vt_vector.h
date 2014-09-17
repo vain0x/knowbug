@@ -13,7 +13,7 @@
 
 using namespace hpimod;
 
-using vector_t = Managed< std::vector<ManagedPVal, HspAllocator<ManagedPVal>>, false >;
+using vector_t = Managed< std::vector<ManagedVarData, HspAllocator<ManagedVarData>>, false >;
 
 // vartype tag
 struct vector_tag
@@ -45,7 +45,7 @@ namespace hpimod
 		//------------------------------------------------
 		static PVal* getInnerPVal(PVal* pval, APTR aptr)
 		{
-			return getMaster(pval)->at(aptr).valuePtr();
+			return getMaster(pval)->at(aptr).getPVal();
 		}
 
 		static PVal* getInnerPVal(PVal* pval)

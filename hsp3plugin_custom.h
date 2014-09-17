@@ -11,6 +11,7 @@
 #undef stat	// ‚¢‚­‚Â‚©‚Ì•W€ƒ‰ƒCƒuƒ‰ƒŠ‚ÆÕ“Ë‚µ‚Ä‚µ‚Ü‚¤‚Ì‚Å
 
 #include "./basis.h"
+#include "./vartype_traits.h"
 
 namespace hpimod
 {

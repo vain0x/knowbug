@@ -30,8 +30,6 @@
 
 using namespace hpimod;
 
-class CFunctor;
-
 extern CCall* TopCallStack();
 
 class CCaller
@@ -57,7 +55,7 @@ public:
 	void call();
 
 	void setFunctor();
-	void setFunctor( CFunctor const& functor );
+	void setFunctor( functor_t const& functor );
 
 	void setArgAll();
 	bool setArgNext();
@@ -70,7 +68,7 @@ public:
 	CCall& getCall() const { return *mpCall; }
 
 	PVal* getRetVal() const;
-	vartype_t getCallResult(void** ppResult);
+	vartype_t getCallResult(PDAT** ppResult);
 
 	static PVal* getLastRetVal();
 	static void releaseLastRetVal();

@@ -10,10 +10,10 @@
 
 @role:
 	1. call に関するすべての情報の関連づけ。
-		0. 呼び出し先   CFunctor
+		0. 呼び出し先   functor_t
 			これを設定しないと引数を与えられない。
 		1. 仮引数情報   CPrmInfo
-			CFunctor から間接的に得られる。
+			functor_t から間接的に得られる。
 		2. 実引数データ CArgData
 		3. 返値情報 (省略可)
 			call_retval によって与えられた返値の保存を担当する。
@@ -27,27 +27,19 @@
 using namespace hpimod;
 
 #include "CCall.const.h"
-#include "CFunctor.h"
+#include "Functor.h"
 
 class CCaller;
 class CPrmInfo;
 
-//##############################################################################
-//                宣言部 : CCall
-//##############################################################################
 class CCall
 {
-	//######################################################
-	//    型宣言
-	//######################################################
 private:
 	class CArgData;
 
-	//######################################################
-	//    メンバ変数
-	//######################################################
+	// メンバ変数
 private:
-	CFunctor  mFunctor;		// 関数
+	functor_t  mFunctor;		// 関数
 	CArgData* mpArg;		// 実引数データ
 	PVal*     mpRetVal;		// 返値 (実行中に与えられた返値の保存)
 	bool      mbRetValOwn;	// mpRetVal が、この Call が所有している PVal か否か
@@ -59,9 +51,6 @@ private:
 	// その他
 	bool mbUnCallable;		// 呼び出し不可能か？
 
-	//######################################################
-	//    メンバ関数
-	//######################################################
 public:
 	//--------------------------------------------
 	// 構築・解体
@@ -72,7 +61,7 @@ public:
 	//--------------------------------------------
 	// コマンド処理
 	//--------------------------------------------
-	void  alias( PVal* pval, int iArg ) const;
+	void alias( PVal* pval, int iArg ) const;
 	PVal* getArgv( int iArg ) const;
 
 	//--------------------------------------------
@@ -82,7 +71,7 @@ public:
 	void callLabel( label_t lb );		// ラベル関数の実行動作 (functor からのみ起動可能)
 
 	// 呼び出し関数の設定
-	void setFunctor( CFunctor const& functor );
+	void setFunctor( functor_t const& functor );
 
 	// 実引数データの設定
 	void addArgByVal( void const* val, vartype_t vt );
@@ -114,10 +103,10 @@ private:
 	// 取得
 	//--------------------------------------------
 public:
-	CFunctor const& getFunctor()  const { return mFunctor; }
+	functor_t const& getFunctor()  const { return mFunctor; }
 
 	// 仮引数情報の取得
-	CPrmInfo const& getPrmInfo() const { return mFunctor.getPrmInfo(); }
+	CPrmInfo const& getPrmInfo() const { return mFunctor->getPrmInfo(); }
 	int   getPrmType    ( int iPrm ) const;
 	PVal* getDefaultArg ( int iPrm ) const;
 	void checkCorrectArg( PVal const* pvArg, int iArg, bool bByRef = false ) const;
@@ -133,9 +122,6 @@ public:
 	// 返値データの取得
 	PVal* getRetVal() const;
 
-	//######################################################
-	//    内部メンバ関数
-	//######################################################
 private:
 	// 後始末
 	void freeRetVal();

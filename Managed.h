@@ -1,9 +1,10 @@
 // Managed Value (of hsp) by reference counting
 
 // std::shared_ptr<> に似ているが、nullptr の他に MagicNull という無効値を持つことが異なる。
+// T* をキャストできないなど低機能。
 
 // 派生品
-// assoc (<CAssoc>), vector (<CVector>)
+// assoc (<CAssoc>), vector (<CVector>), functor (<IFunctor>, polymorphism)
 
 #ifndef IG_MANAGED_H
 #define IG_MANAGED_H
@@ -36,12 +37,10 @@ struct DefaultCtorDtor {
 };
 }
 
-template<typename T,
-	// 付随値の型
-	typename TPalam,
+template<typename TValue,
 	// inst_ を nullptr で初期化するかどうか
 	bool bNullCtor,
-	typename DefaultCtorDtor = detail::DefaultCtorDtor<T>
+	typename DefaultCtorDtor = detail::DefaultCtorDtor<TValue>
 >
 class Managed {
 	struct inst_t {
@@ -57,24 +56,23 @@ class Managed {
 	inst_t* inst_;
 
 private:
-	using value_type = T;
-	using self_t = Managed<T, bNullCtor, DefaultCtorDtor>;
-
-	static size_t const valueSize = sizeof(T);
+	using value_type = TValue;
+	using self_t = Managed<value_type, bNullCtor, DefaultCtorDtor>;
+	
 	static size_t const instHeaderSize = sizeof(int)+sizeof(bool)+sizeof(unsigned char)+sizeof(unsigned short);
-	static size_t const instSize = valueSize + instHeaderSize;
 
 	static unsigned short const MagicCode = 0x55AB;
 
 private:
+	template<typename TInit>
 	void initializeHeader()
 	{
 		assert(!inst_ && exinfo && hspmalloc);
-		inst_ = reinterpret_cast<inst_t*>(hspmalloc(instSize));
-		::new(inst_)inst_t { {}, 1, false, '\0', MagicCode, {} };
+		inst_ = reinterpret_cast<inst_t*>(hspmalloc(instHeaderSize + sizeof(TInit)));
+		::new(inst_)inst_t { 1, false, '\0', MagicCode, {} };
 		assert(inst_->cnt_ == 1 && inst_->tmpobj_ == false && inst_->magicCode_ == MagicCode
 			&& static_cast<void const*>(1 + &inst_->magicCode_) == (inst_->value_));
-		// new(inst_->value_) T(...);
+		// new(inst_->value_) TInit(...);
 #if DEBUG_MANAGED_USING_INSTANCE_ID
 		inst_->padding_ = newManagedInstanceId();
 	}
@@ -87,24 +85,26 @@ public:
 	// default ctor
 	Managed() : inst_ { nullptr } {
 		if ( !bNullCtor ) {
-			initializeHeader();
+			initializeHeader<value_type>();
 			DefaultCtorDtor::defaultCtor(valuePtr());
 		}
 	}
 
 	// 実体の生成を伴う factory 関数
-	template<typename ...Args>
+	template<typename TDerived = value_type, typename ...Args>
 	static self_t make(Args&&... args)
 	{
-		self_t self { nullptr }; self.initializeHeader();
-		new(self.valuePtr()) T(std::forward<Args>(args)...);
+		static_assert(std::is_convertible<TDerived*, value_type*>::value, "互換性のない型では初期化できない。");
+
+		self_t self { nullptr }; self.initializeHeader<TDerived>();
+		new(self.valuePtr()) TDerived(std::forward<Args>(args)...);
 		return std::move(self);
 	}
 
 	explicit Managed(nullptr_t) : inst_ { nullptr } {
 		// static_assert
 		assert(instSize == 0 || instSize % 2 == 0);
-		assert(sizeof(self_t) == 4);
+		assert(sizeof(self_t) == sizeof(void*));
 	}
 
 	// copy
@@ -117,11 +117,11 @@ public:
 		: inst_ { rhs.inst_ }
 	{ rhs.inst_ = nullptr; }
 
+#if 0
 	// 値渡しで初期化する factory 関数
-	static self_t ofValue(T&& src)
-	{
-		return make(std::forward<T>(src));
-	}
+	static self_t ofValue(value_type const& src) { return make(src); }
+	static self_t ofValue(value_type&& src) { return make(std::move(src)); }
+#endif
 
 public:
 	// instptr から managed を作成する factory 関数
@@ -135,11 +135,12 @@ private:
 		incRef();
 	}
 
+public:
 	// 実体ポインタから managed を作成する factory 関数 (failure: nullptr)
 	// inst_t::value_ を指しているはずなので、inst_t の先頭を逆算する。
 	static self_t const ofValptr(void const* pdat) {
 		auto const inst = reinterpret_cast<inst_t*>(reinterpret_cast<char*>(pdat) - instHeaderSize);
-		asssert(inst->magicCode_ == MagicCode);
+		assert(inst->magicCode_ == MagicCode);
 		return ofInstptr(inst);
 	};
 	static self_t ofValptr(void* pdat) { return const_cast<self_t&&>(ofValptr(static_cast<void const*>(pdat))); }
@@ -184,8 +185,8 @@ public:
 	int cntRefers() const { return cnt(); }
 	bool isTmpObj() const { return tmpobj(); }
 
-	T* valuePtr() const { return reinterpret_cast<T*>(inst_->value_); }
-	T& value() const { return *valuePtr(); }
+	value_type* valuePtr() const { return reinterpret_cast<value_type*>(inst_->value_); }
+	value_type& value() const { return *valuePtr(); }
 
 	// inst のポインタを返す
 	void* instPtr() const { return inst_; }
@@ -241,8 +242,8 @@ public:
 	self_t& operator=(self_t const& rhs) { this->~Managed(); new(this) Managed(rhs); return *this; }
 	self_t& operator=(self_t&& rhs) { this->~Managed(); new(this) Managed(std::move(rhs)); return *this; }
 
-	T& operator*() const { return value(); }
-	T* operator->() const { return &value(); }
+	value_type& operator*() const { return value(); }
+	value_type* operator->() const { return &value(); }
 
 	bool operator==(self_t const& rhs) const {
 		return (isNull() && rhs.isNull()) || (inst_ == rhs.inst_);

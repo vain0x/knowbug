@@ -6,8 +6,8 @@
 #include "hsp3plugin_custom.h"
 #include <vector>
 
-#include "CFunctor.h"
-#include "IFunctorEx.h"
+#include "Functor.h"
+#include "IFunctor.h"
 
 //	#define DBGOUT_BOUND_ADDREF_OR_RELEASE	// AddRef, Release ‚ğ dbgout ‚Å•ñ‚·‚é
 
@@ -18,7 +18,7 @@ class CBound;
 using bound_t = CBound*;
 
 class CBound
-	: public IFunctorEx
+	: public IFunctor
 {
 	using prmidxAssoc_t = std::vector<int>;
 
@@ -46,7 +46,7 @@ public:
 	int     getAxCmd() const { return getBound().getAxCmd(); }
 	int     getUsing() const { return 1; }
 
-	CFunctor const& unbind() const;
+	functor_t const& unbind() const;
 
 	// “®ì
 	void bind();							// ‘©”›ˆ—
@@ -56,7 +56,7 @@ public:
 	static bound_t New();
 
 private:
-	CFunctor const& getBound() const;		// ”í‘©”›ŠÖ”
+	functor_t const& getBound() const;		// ”í‘©”›ŠÖ”
 
 };
 

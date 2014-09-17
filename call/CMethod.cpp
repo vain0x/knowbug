@@ -29,7 +29,7 @@ CMethod::~CMethod()
 //--------------------------------------------
 // ƒƒ\ƒbƒh‚ð’Ç‰Á
 //--------------------------------------------
-void CMethod::add( const std::string& name, CFunctor const& functor )
+void CMethod::add( const std::string& name, functor_t const& functor )
 {
 	mpMethodlist->insert(
 		methodlist_t::value_type( name, functor )

@@ -61,7 +61,7 @@ void code_dimtype(PVal* pval)
 // @ x(a), y(b), z(c) ... による一次元配列の連続初期化。
 // @ dim 的用法。
 //------------------------------------------------
-int dimtypeEx( vartype_t vflag, DimFunc_t fDim )
+int dimtypeEx( vartype_t vtype, DimFunc_t fDim )
 {
 	// ひたすらループする
 	for ( int i = 0; code_isNextArg(); ++ i ) {
@@ -77,17 +77,17 @@ int dimtypeEx( vartype_t vflag, DimFunc_t fDim )
 				idx[i] = code_getdi(0);
 			}
 			if ( fDim ) {
-				(*fDim)(pval, vflag, 0, idx[0], idx[1], idx[2], idx[3]);
+				(*fDim)(pval, vtype, 0, idx[0], idx[1], idx[2], idx[3]);
 			} else {
-				exinfo->HspFunc_dim(pval, vflag, 0, idx[0], idx[1], idx[2], idx[3]);
+				exinfo->HspFunc_dim(pval, vtype, 0, idx[0], idx[1], idx[2], idx[3]);
 			}
 			break;
 		}
 
 		if ( fDim ) {
-			(*fDim)(pval, vflag, 0, aptr, 0, 0, 0);
+			(*fDim)(pval, vtype, 0, aptr, 0, 0, 0);
 		} else {
-			exinfo->HspFunc_dim(pval, vflag, 0, aptr, 0, 0, 0);
+			exinfo->HspFunc_dim(pval, vtype, 0, aptr, 0, 0, 0);
 		}
 	}
 

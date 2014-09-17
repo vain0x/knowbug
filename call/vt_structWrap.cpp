@@ -12,7 +12,7 @@
 #include "modcls_FlexValue.h"
 
 #include "CCaller.h"
-#include "CFunctor.h"
+#include "Functor.h"
 #include "CPrmInfo.h"
 #include "vt_functor.h"
 
@@ -117,8 +117,7 @@ void HspVarStructWrap_Alloc( PVal* pval, PVal const* pval2 )
 	if ( pval->len[1] < 1 ) pval->len[1] = 1;		// 配列を最低1は確保する
 
 	size_t const size = sizeof(FlexValue) * pval->len[1];
-	char* const pt = hspmalloc( size );
-	auto const fv = VtStruct::asValptr(pt);
+	auto const pt = reinterpret_cast<FlexValue*>(hspmalloc( size ));
 
 	std::memset( pt, 0x00, size );
 
@@ -128,7 +127,7 @@ void HspVarStructWrap_Alloc( PVal* pval, PVal const* pval2 )
 		std::memmove(pt, pval2->pt, sizeof(FlexValue) * pval2->len[1]);
 
 		// pval の方が短い場合、継承できない分を破棄
-		auto const iter2 = VtStruct::asValptr(pval2->pt);
+		auto const iter2 = StructTraits::asValptr(pval2->pt);
 		for ( int i = pval2->len[1]; i < pval->len[1]; ++i ) {
 			FlexValue_Release(iter2[i]);
 		}
@@ -137,7 +136,7 @@ void HspVarStructWrap_Alloc( PVal* pval, PVal const* pval2 )
 	}
 
 	pval->mode   = HSPVAR_MODE_MALLOC;
-	pval->pt     = pt;
+	pval->pt     = StructTraits::asPDAT(pt);
 	pval->size   = size;
 //	pval->master = nullptr;	// 不使用
 	return;
@@ -149,7 +148,7 @@ void HspVarStructWrap_Alloc( PVal* pval, PVal const* pval2 )
 void HspVarStructWrap_Free( PVal* pval )
 {
 	if ( pval->mode == HSPVAR_MODE_MALLOC ) {
-		auto const fv = VtStruct::asValptr(pval->pt);
+		auto const fv = StructTraits::asValptr(pval->pt);
 		for ( int i = 0; i < pval->len[1]; ++ i ) {
 			FlexValue_Release( fv[i] );
 		}
@@ -166,10 +165,10 @@ void HspVarStructWrap_Free( PVal* pval )
 //------------------------------------------------
 // 複写
 //------------------------------------------------
-void HspVarStructWrap_Set( PVal* pval, PDAT* pdat, void const* in )
+void HspVarStructWrap_Set( PVal* pval, PDAT* pdat, PDAT const* in )
 {
-	auto& fv_dst = *VtStruct::asValptr(pdat);
-	auto& fv_src = *VtStruct::asValptr(in);
+	auto& fv_dst = *StructTraits::asValptr(pdat);
+	auto& fv_src = *StructTraits::asValptr(in);
 
 	FlexValue_Copy( fv_dst, fv_src );
 
@@ -188,7 +187,7 @@ void HspVarStructWrap_Set( PVal* pval, PDAT* pdat, void const* in )
 // 
 // @result: 関数子
 //------------------------------------------------
-static CFunctor const& StructWrap_GetMethod( int subid, int opId )
+static functor_t const& StructWrap_GetMethod( int subid, int opId )
 {
 	CModOperator const* const pModOp = getModOperator();
 
@@ -198,9 +197,9 @@ static CFunctor const& StructWrap_GetMethod( int subid, int opId )
 
 	// 実行処理の取得 
 	auto const iterOp = iterCls->second.find( opId );
-	if ( iterOp == iterCls->second.end() || iterOp->second.getUsing() == 0 ) { dbgout("operation #%d is not defined", opId); puterror( HSPERR_UNSUPPORTED_FUNCTION ); }
+	if ( iterOp == iterCls->second.end() || iterOp->second->getUsing() == 0 ) { dbgout("operation #%d is not defined", opId); puterror( HSPERR_UNSUPPORTED_FUNCTION ); }
 
-	CFunctor const& functor = iterOp->second;
+	functor_t const& functor = iterOp->second;
 
 	return functor;
 }
@@ -226,7 +225,7 @@ void HspVarStructWrap_Dup( FlexValue* result, FlexValue* fv )
 	// 呼び出し 
 	{
 		CCaller caller;
-		CFunctor const& functor = StructWrap_GetMethod( FlexValue_SubId(*fv), OpId_Dup );
+		functor_t const& functor = StructWrap_GetMethod( FlexValue_SubId(*fv), OpId_Dup );
 
 		// 呼び出し準備 
 		caller.setFunctor( functor );
@@ -238,7 +237,7 @@ void HspVarStructWrap_Dup( FlexValue* result, FlexValue* fv )
 	}
 
 	if ( pvTmp->flag != HSPVAR_FLAG_STRUCT ) puterror( HSPERR_TYPE_MISMATCH );
-	FlexValue_Move( *result, *VtStruct::asValptr(pvTmp->pt) );
+	FlexValue_Move( *result, *StructTraits::asValptr(pvTmp->pt) );
 
 	PVal_free( pvTmp );
 	return;
@@ -260,15 +259,15 @@ static void HspVarStructWrap_CoreI( PDAT* pdat, void const* val, int opId )
 	bool const bTempOp =
 		(mpval_struct && (void*)mpval_struct->pt == pdat);
 
-	auto const lhs = VtStruct::asValptr(pdat);
-	auto const rhs = VtStruct::asValptr(val);
+	auto const lhs = StructTraits::asValptr(pdat);
+	auto const rhs = StructTraits::asValptr(val);
 	assert(!!lhs && !!rhs);
 
 	// 呼び出し
 	if ( !FlexValue_IsNull(*lhs) ) {
 		CCaller caller;
 
-		CFunctor const& functor = StructWrap_GetMethod( FlexValue_SubId(*lhs), opId );
+		functor_t const& functor = StructWrap_GetMethod( FlexValue_SubId(*lhs), opId );
 
 		// 複製を生成する 
 		if ( bTempOp ) {
@@ -328,8 +327,8 @@ static void HspVarStructWrap_CmpI( PDAT* pdat, void const* val, int opId )
 		puterror( HSPERR_TYPE_MISMATCH );
 	}
 
-	auto const lhs = VtStruct::asValptr(pdat);
-	auto const rhs = VtStruct::asValptr(val);
+	auto const lhs = StructTraits::asValptr(pdat);
+	auto const rhs = StructTraits::asValptr(val);
 
 	// 演算結果
 	int cmp;
@@ -337,7 +336,7 @@ static void HspVarStructWrap_CmpI( PDAT* pdat, void const* val, int opId )
 	// 呼び出し 
 	if ( !FlexValue_IsNull(*lhs) && !FlexValue_IsNull(*rhs) ) {
 		CCaller caller;
-		CFunctor const& functor = StructWrap_GetMethod( FlexValue_SubId(*lhs), OpId_Cmp );
+		functor_t const& functor = StructWrap_GetMethod( FlexValue_SubId(*lhs), OpId_Cmp );
 
 		// 呼び出し準備 
 		caller.setFunctor( functor );
@@ -349,11 +348,11 @@ static void HspVarStructWrap_CmpI( PDAT* pdat, void const* val, int opId )
 		caller.call();
 
 		// 返値を取得 
-		void* result = nullptr;
+		PDAT* result = nullptr;
 		vartype_t const resVt = caller.getCallResult( &result );
 		if ( resVt != HSPVAR_FLAG_INT ) puterror( HSPERR_TYPE_MISMATCH );
 
-		cmp = *(int*)result;
+		cmp = VtTraits<int>::derefValptr(result);
 
 	} else {
 		// どちらかが nullmod のとき、nullmod でない方が大きいということにする
@@ -406,11 +405,11 @@ void HspVarStructWrap_LrI  ( PDAT* pdat, void const* val ) { HspVarStructWrap_Co
 //------------------------------------------------
 // 型変換 (from)
 //------------------------------------------------
-void* HspVarStructWrap_Cnv( void const* buffer, int flag )
+PDAT* HspVarStructWrap_Cnv( PDAT const* buffer, int flag )
 {
 	// 指定型(flag) → struct
 	if ( flag != HSPVAR_FLAG_STRUCT ) puterror( HSPERR_TYPE_MISMATCH );
-	return (void*)buffer;
+	return const_cast<PDAT*>(buffer);
 }
 
 //------------------------------------------------
@@ -418,14 +417,14 @@ void* HspVarStructWrap_Cnv( void const* buffer, int flag )
 // 
 // @ CnvCustom: CnvTo ( struct → 何か )
 //------------------------------------------------
-void* HspVarStructWrap_CnvCustom( void const* buffer, int flag )
+PDAT* HspVarStructWrap_CnvCustom( PDAT const* buffer, int flag )
 {
 	int const opId = OpFlag_CnvTo | flag;
-	auto const fv = VtStruct::asValptr(buffer);
+	auto const fv = StructTraits::asValptr(buffer);
 
-	if ( flag == HSPVAR_FLAG_STRUCT ) return const_cast<FlexValue*>(fv);
+	if ( flag == HSPVAR_FLAG_STRUCT ) return VtTraits<struct_tag>::asPDAT(const_cast<FlexValue*>(fv));
 
-	void* result = nullptr;
+	PDAT* result = nullptr;
 
 	// 呼び出し 
 	if ( !FlexValue_IsNull(*fv) ) {
@@ -442,7 +441,7 @@ void* HspVarStructWrap_CnvCustom( void const* buffer, int flag )
 		// 変換関数を呼び出す
 		{
 			CCaller caller;
-			CFunctor const& functor = StructWrap_GetMethod(FlexValue_SubId(*fv), opId);
+			functor_t const& functor = StructWrap_GetMethod(FlexValue_SubId(*fv), opId);
 
 			caller.setFunctor(functor);
 			caller.addArgByVal(fv, HSPVAR_FLAG_STRUCT);
@@ -466,25 +465,26 @@ void* HspVarStructWrap_CnvCustom( void const* buffer, int flag )
 	} else {	// nullmod → 他
 		static PVal* pval;
 		if ( !pval ) {
-			pval = (PVal*)hspmalloc( sizeof PVal );
+			pval = reinterpret_cast<PVal*>(hspmalloc( sizeof(PVal) ));
 			PVal_init( pval, flag );
 		}
 		switch ( flag ) {
 			case HSPVAR_FLAG_LABEL:
 			{
-				static label_t const lb = nullptr; PVal_assign( pval, &lb, flag ); break;
+				static label_t const lb = nullptr; PVal_assign( pval, VtTraits<label_t>::asPDAT(&lb), flag ); break;
 			}
 			case HSPVAR_FLAG_STR:
 			{
-				static char const* const s = ""; PVal_assign( pval, s, flag ); break;
+				static char const* const s = ""; PVal_assign( pval, VtTraits<str_tag>::asPDAT(s), flag ); break;
 			}
 			case HSPVAR_FLAG_DOUBLE:
 			{
-				static double const r = std::numeric_limits<double>::quiet_NaN(); PVal_assign( pval, &r, flag ); break;
+				static double const r = std::numeric_limits<double>::quiet_NaN();
+				PVal_assign( pval, VtTraits<double>::asPDAT(&r), flag ); break;
 			}
 			case HSPVAR_FLAG_INT:
 			{
-				static int const n = 0; PVal_assign( pval, &n, flag ); break;
+				static int const n = 0; PVal_assign( pval, VtTraits<int>::asPDAT(&n), flag ); break;
 			}
 			default: puterror( HSPERR_UNSUPPORTED_FUNCTION );
 		}
@@ -535,7 +535,7 @@ void HspVarStructWrap_InitCnvWrap()
 }
 
 /*/
-typedef void* (*cnvfunc_t)( void const* buffer, int flag );
+typedef PDAT* (*cnvfunc_t)( PDAT const* buffer, int flag );
 static std::array<cnvfunc_t, HSPVAR_FLAG_USERDEF> g_cnvfunc_impl;	// 元々設定されていた Cnv 関数
 static std::array<cnvfunc_t, HSPVAR_FLAG_USERDEF> g_cnvfunc_wrap;	// ラップする Cnv 関数
 
@@ -556,7 +556,7 @@ FTM_HspVarStructWrap_CnvWrap( Struct, HSPVAR_FLAG_STRUCT );
 #endif
 
 template<vartype_t Type>
-void* HspVarStructWrap_CnvWrap( void const* buffer, int flag )
+PDAT* HspVarStructWrap_CnvWrap( PDAT const* buffer, int flag )
 {
 	return ( flag == HSPVAR_FLAG_STRUCT )
 		? HspVarStructWrap_CnvCustom( buffer, Type )
@@ -599,13 +599,13 @@ void HspVarStructWrap_Method( PVal* pval )
 
 	if ( FlexValue_IsNull(self) ) return;
 
-	CFunctor functorImpl;		// 実際のメソッド
+	functor_t functorImpl;		// 実際のメソッド
 	int const exflg_bak = *exinfo->npexflg;	// 保存
 
 	// 分散関数の呼び出し 
 	{
 		CCaller caller;
-		CFunctor const& functorMethod = StructWrap_GetMethod( FlexValue_SubId(self), OpId_Method );
+		functor_t const& functorMethod = StructWrap_GetMethod( FlexValue_SubId(self), OpId_Method );
 
 		caller.setFunctor( functorMethod );
 		caller.addArgByVal( &self, HSPVAR_FLAG_STRUCT );
@@ -613,10 +613,10 @@ void HspVarStructWrap_Method( PVal* pval )
 
 		caller.call();
 
-		void* result;
+		PDAT* result;
 		vartype_t const resultType = caller.getCallResult( &result );
 
-		functorImpl = *reinterpret_cast<CFunctor*>( g_pHvpFunctor->Cnv( result, resultType ) );
+		functorImpl = *reinterpret_cast<functor_t*>( g_hvpFunctor->Cnv( result, resultType ) );
 	}
 
 	*exinfo->npexflg = exflg_bak;	// restore
@@ -628,7 +628,7 @@ void HspVarStructWrap_Method( PVal* pval )
 		// 呼び出し準備 
 		caller.setFunctor( functorImpl );
 
-		int const prmtype = functorImpl.getPrmInfo().getPrmType(0);
+		int const prmtype = functorImpl->getPrmInfo().getPrmType(0);
 		if ( prmtype == PRM_TYPE_MODVAR || prmtype == PRM_TYPE_VAR
 		  || prmtype == HSPVAR_FLAG_STRUCT || prmtype == PRM_TYPE_ANY
 		 ) {		// 第一引数に modvar を渡せる場合 thismod を渡す

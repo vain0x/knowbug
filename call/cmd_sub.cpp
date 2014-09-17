@@ -11,7 +11,7 @@
 #include "CCaller.h"
 #include "CCall.h"
 #include "CPrmInfo.h"
-#include "CFunctor.h"
+#include "Functor.h"
 
 #include "CBound.h"
 
@@ -50,7 +50,7 @@ CPrmInfo const& GetPrmInfo(label_t lb)
 	auto const& iter = g_prmlistLabel.find(lb);
 	return (iter != g_prmlistLabel.end())
 		? iter->second
-		: CPrmInfo::undeclaredFunc;		// Ç»Çµ
+		: CPrmInfo::undeclaredFunc;
 }
 
 //------------------------------------------------
@@ -77,17 +77,31 @@ CPrmInfo const& GetPrmInfo(stdat_t pStDat)
 //------------------------------------------------
 CPrmInfo code_get_prminfo()
 {
-	CFunctor const&& functor = code_get_functor();
+	{
+		int const chk = code_getprm();
+		if ( chk <= PARAM_END ) puterror(HSPERR_NO_DEFAULT);
+	}
 
-	if ( functor.getType() == FuncType_Label ) {
+	// label
+	if ( mpval->flag == HSPVAR_FLAG_LABEL ) {
+		auto const lb = VtTraits<label_t>::derefValptr(mpval->pt);
 		CPrmInfo::prmlist_t&& prmlist = code_get_prmlist();
 		return CPrmInfo(&prmlist);
 
-	} else if ( functor.getType() == FuncType_Deffid ) {
-		return CPrmInfo::Create(getSTRUCTDAT(AxCmd::getCode(functor.getAxCmd())));
+	// deffid
+	} else if ( mpval->flag == HSPVAR_FLAG_INT ) {
+		int const axcmd = VtTraits<int>::derefValptr(mpval->pt);
+
+		if ( AxCmd::getType(axcmd) != TYPE_MODCMD ) puterror(HSPERR_ILLEGAL_FUNCTION);
+		return CPrmInfo::Create(getSTRUCTDAT(AxCmd::getCode(axcmd)));
+
+	// functor
+	} else if ( mpval->flag == g_vtFunctor ) {
+		return FunctorTraits::derefValptr(mpval->pt)->GetPrmInfo();
 
 	} else {
-		return functor.getPrmInfo();
+		puterror(HSPERR_LABEL_REQUIRED);
+		throw;
 	}
 }
 
@@ -126,12 +140,12 @@ int code_get_prmtype( int deftype )
 	switch ( mpval->flag ) {
 		// êîílÇ»ÇÁÇªÇÃÇ‹Ç‹ï‘Ç∑
 		case HSPVAR_FLAG_INT:
-			return *reinterpret_cast<int*>( mpval->pt );
+			return VtTraits<int>::derefValptr(mpval->pt);
 
 		// ï∂éöóÒ => ì¡éÍï∂éöóÒ or å^ñº( HspVarProc Ç©ÇÁéÊìæ )
 		case HSPVAR_FLAG_STR:
 		{
-			int const prmtype = GetPrmType( mpval->pt );
+			int const prmtype = GetPrmType( VtTraits<str_tag>::derefValptr(mpval->pt) );
 
 			if ( prmtype == PRM_TYPE_NONE ) puterror( HSPERR_ILLEGAL_FUNCTION );
 			return prmtype;
@@ -145,7 +159,7 @@ int code_get_prmtype( int deftype )
 //------------------------------------------------
 // ä÷êîéqÇéÊìæÇ∑ÇÈ
 //------------------------------------------------
-CFunctor code_get_functor()
+functor_t code_get_functor()
 {
 	{
 		int const chk = code_getprm();
@@ -154,7 +168,7 @@ CFunctor code_get_functor()
 
 	// label
 	if ( mpval->flag == HSPVAR_FLAG_LABEL ) {
-		return CFunctor( *reinterpret_cast<label_t*>( mpval->pt ) );
+		return Functor_New( VtTraits<label_t>::derefValptr( mpval->pt ) );
 
 	// deffid
 	} else if ( mpval->flag == HSPVAR_FLAG_INT ) {
@@ -162,12 +176,11 @@ CFunctor code_get_functor()
 
 		if ( AxCmd::getType(axcmd) != TYPE_MODCMD ) puterror( HSPERR_ILLEGAL_FUNCTION );
 
-		return CFunctor(axcmd);
+		return Functor_New(axcmd);
 
 	// functor
-	} else if ( mpval->flag == HSPVAR_FLAG_FUNCTOR ) {
-		functor_t& functor = *reinterpret_cast<functor_t*>( mpval->pt );
-		return functor;
+	} else if ( mpval->flag == g_vtFunctor ) {
+		return FunctorTraits::derefValptr( mpval->pt );
 
 	} else {
 		puterror( HSPERR_LABEL_REQUIRED );

@@ -36,8 +36,8 @@ static CModOperator* g_pModOp;
 const  CModOperator* ModCls::getModOperator() { return g_pModOp; }
 
 // 固有オブジェクトのリスト
-static std::map<stdat_t, CFunctor>* g_pModClsIdentity;
-CFunctor const& getModClsCtor( stdat_t modcls );
+static std::map<stdat_t, functor_t>* g_pModClsIdentity;
+functor_t const& getModClsCtor( stdat_t modcls );
 
 // 返値返却用
 static FlexValue stt_resfv;
@@ -117,7 +117,7 @@ void ModCls_Term()
 
 	// テンポラリ変数が持つ参照を除去する
 	if ( getMPValStruct() ) {
-		FlexValue_DelRef( *VtStruct::asValptr(getMPValStruct()->pt) );
+		FlexValue_DelRef( *StructTraits::asValptr(getMPValStruct()->pt) );
 	}
 
 	// 全ての静的変数が持つ参照を除去する
@@ -126,7 +126,7 @@ void ModCls_Term()
 
 		if ( it->flag == HSPVAR_FLAG_STRUCT ) {
 			for ( int k = 0; k < it->len[1]; ++ k ) {
-				FlexValue_DelRef( VtStruct::asValptr(it->pt)[k] );
+				FlexValue_DelRef( StructTraits::asValptr(it->pt)[k] );
 			}
 		}
 	}
@@ -152,7 +152,7 @@ void ModCls_Register()
 	// 実引数
 	stdat_t const pStDat  = code_get_modcls();
 	int const     opId    = code_geti();
-	CFunctor&&    functor = code_get_functor();
+	functor_t&&    functor = code_get_functor();
 
 	// モジュールクラスを検索
 	auto iter = g_pModOp->find( pStDat->subid );
@@ -231,7 +231,7 @@ APTR code_newstruct( PVal* pval )
 	if ( pval->flag != HSPVAR_FLAG_STRUCT ) return 0;	// ([0] への別の型の代入 → 型変換される)
 
 	size_t const last = pval->len[1];
-	auto const fv = VtStruct::asValptr(mpval->pt);
+	auto const fv = StructTraits::asValptr(mpval->pt);
 
 	for ( size_t i = 0; i < last; ++i ) {
 		if ( fv[i].type == FLEXVAL_TYPE_NONE ) return i;
@@ -248,7 +248,7 @@ FlexValue* code_reserve_modinst( PVal* pval, APTR aptr )
 	// 配列を自動拡張させる
 	code_setva( pval, aptr, HSPVAR_FLAG_STRUCT, g_nullmod->pt );
 
-	auto const fv = VtStruct::asValptr(PVal_getptr( pval, aptr ));
+	auto const fv = StructTraits::asValptr(PVal_getptr( pval, aptr ));
 	assert(fv->type == FLEXVAL_TYPE_NONE && !fv->ptr);
 
 	return fv;
@@ -265,11 +265,11 @@ void ModCls_Delmod()
 	PVal* const pval = code_get_var();
 	if ( pval->flag != HSPVAR_FLAG_STRUCT ) puterror( HSPERR_TYPE_MISMATCH );
 
-	auto const fv = VtStruct::asValptr(PVal_getptr(pval));
+	auto const fv = StructTraits::asValptr(PVal_getptr(pval));
 
 	if ( fv->ptr ) {
 		if ( getMPValStruct() ) {
-			auto const mpval_fv = VtStruct::asValptr(getMPValStruct()->pt);
+			auto const mpval_fv = StructTraits::asValptr(getMPValStruct()->pt);
 			if ( mpval_fv && fv->ptr == mpval_fv->ptr ) FlexValue_DelRef( *mpval_fv );
 		}
 
@@ -304,7 +304,7 @@ void ModCls_Dupmod()
 
 	if ( pvSrc->flag != HSPVAR_FLAG_STRUCT ) puterror( HSPERR_TYPE_MISMATCH );
 
-	auto const src = VtStruct::asValptr(PVal_getptr(pvSrc));
+	auto const src = StructTraits::asValptr(PVal_getptr(pvSrc));
 
 	FlexValue* const dst = code_reserve_modinst( pvDst, pvDst->offset );
 	HspVarStructWrap_Dup( dst, src );
@@ -350,14 +350,14 @@ int ModCls_Identity( void** ppResult )
 	return SetReffuncResult( ppResult, getModClsCtor(modcls) );
 }
 
-CFunctor const& getModClsCtor( stdat_t modcls )
+functor_t const& getModClsCtor( stdat_t modcls )
 {
 	auto const iter = g_pModClsIdentity->find( modcls );
 	if ( iter != g_pModClsIdentity->end() ) {	// キャッシュ済み
 		return iter->second;
 
 	} else {
-		CFunctor functor { static_cast<exfunctor_t>(CModClsCtor::New(modcls)) };
+		functor_t functor { static_cast<exfunctor_t>(CModClsCtor::New(modcls)) };
 		return g_pModClsIdentity->insert({ modcls, functor }).first->second;
 	}
 }

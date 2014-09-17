@@ -23,12 +23,12 @@ extern stprm_t code_get_stprm();
 	// æ‚èo‚µ (expand_index)
 extern void  code_expand_index_int( PVal* pval, bool bRhs );	// ’Êí”z—ñ‚Ì“Yš‚Ìˆ—
 extern void  code_expand_index_lhs( PVal* pval );
-extern void* code_expand_index_rhs( PVal* pval, int* mptype );
+extern PDAT* code_expand_index_rhs( PVal* pval, int& mptype );
 
 extern void  code_checkarray( PVal* pval, int bRhs );
 extern void  code_checkarray1( PVal* pval );	// ‰E
 extern void  code_checkarray2( PVal* pval );	// ¶
-extern void* code_checkarray_obj1( PVal* pval, int* mptype );
+extern PDAT* code_checkarray_obj1( PVal* pval, int& mptype );
 extern void  code_checkarray_obj2( PVal* pval );
 
 	// İ’è (index)

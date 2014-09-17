@@ -5,7 +5,7 @@
 
 #include "CCaller.h"
 #include "CCall.h"
-#include "CFunctor.h"
+#include "Functor.h"
 
 #include "modcls_FlexValue.h"
 #include "vt_structWrap.h"
@@ -122,11 +122,11 @@ void FlexValue_Dtor( FlexValue& self )
 		PVal* const pvTmp = &_pvTmp;
 			pvTmp->flag   = HSPVAR_FLAG_STRUCT;
 			pvTmp->mode   = HSPVAR_MODE_CLONE;
-			pvTmp->pt     = (char*)&self;
+			pvTmp->pt     = ModCls::StructTraits::asPDAT(&self);
 			pvTmp->len[1] = 1;
 
 		CCaller caller;
-		caller.setFunctor( AxCmd::make(TYPE_MODCMD, modcls->otindex) );			// (#modterm)
+		caller.setFunctor(AxCmd::make(TYPE_MODCMD, modcls->otindex));			// (#modterm)
 		caller.addArgByRef( pvTmp );
 		caller.addArgByVal( mpval->pt, mpval->flag );	// 保存するために引数に入れておく (このために、デストラクタは可変長引数扱いにしてある)
 		caller.call();
@@ -290,7 +290,7 @@ FlexValue* code_get_modinst_impl( FlexValue* def, bool const bDefault )
 		puterror( HSPERR_NO_DEFAULT );
 	}
 	if ( mpval->flag != HSPVAR_FLAG_STRUCT ) puterror( HSPERR_TYPE_MISMATCH );
-	return ModCls::VtStruct::asValptr(mpval->pt);
+	return ModCls::StructTraits::asValptr(mpval->pt);
 }
 
 FlexValue* code_get_modinst()

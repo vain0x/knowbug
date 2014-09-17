@@ -37,7 +37,7 @@ bound_t CBound::New()
 // \’z
 //------------------------------------------------
 CBound::CBound()
-	: IFunctorEx()
+	: IFunctor()
 	, mpCaller( new CCaller( CCaller::CallMode::Bind ) )
 	, mpPrmIdxAssoc( new prmidxAssoc_t() )
 {}
@@ -210,7 +210,7 @@ void CBound::call( CCaller& callerRemain )
 // @ ”í‘©”›ŠÖ”‚ª‘©”›ŠÖ”‚È‚ç‚»‚Ì unbind() ‚ğ•Ô‹p‚·‚éB
 // @	‚»‚¤‚Å‚È‚¯‚ê‚Î”í‘©”›ŠÖ”‚ğ•Ô‹p‚·‚éB
 //------------------------------------------------
-CFunctor const& CBound::unbind() const
+functor_t const& CBound::unbind() const
 {
 	auto&      bound  = getBound();
 	auto const casted = bound.castTo<bound_t>();
@@ -225,7 +225,7 @@ CFunctor const& CBound::unbind() const
 //------------------------------------------------
 // ”í‘©”›ŠÖ”
 //------------------------------------------------
-CFunctor const& CBound::getBound() const
+functor_t const& CBound::getBound() const
 {
 	return mpCaller->getCall().getFunctor();
 }

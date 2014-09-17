@@ -98,12 +98,12 @@ PVal* CCall::getArgv(int iArg) const
 //------------------------------------------------
 void CCall::call( CCaller& caller )
 {
-	if ( mFunctor.getType() == FuncType_None || mbUnCallable ) {
+	if ( mFunctor.isNull() || mbUnCallable ) {
 		dbgout("åƒÇ—èoÇµé∏îs\nÇ‡ÇµÇ©ÇµÇƒ: ä÷êîÇ™ñ¢ê›íËÇ» functor, nobind à¯êîÇ™ó^Ç¶ÇÁÇÍÇΩ, etc");
 		puterror( HSPERR_UNSUPPORTED_FUNCTION );
 	}
 
-	mFunctor.call( caller );
+	mFunctor->call( caller );
 	return;
 }
 
@@ -123,7 +123,7 @@ void CCall::callLabel( label_t lb )
 //------------------------------------------------
 // åƒÇ—èoÇ∑ä÷êîÇÃê›íË
 //------------------------------------------------
-void CCall::setFunctor( CFunctor const& functor )
+void CCall::setFunctor( functor_t const& functor )
 {
 	mFunctor = functor;
 
