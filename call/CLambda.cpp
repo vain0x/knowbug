@@ -1,5 +1,5 @@
 // ƒ‰ƒ€ƒ_ŠÖ”ƒNƒ‰ƒX
-
+#if 0
 #include <map>
 #include <vector>
 #include <queue>
@@ -326,3 +326,4 @@ void CLambda::code_get()
 //------------------------------------------------
 
 
+#endif

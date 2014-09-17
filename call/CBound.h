@@ -1,5 +1,5 @@
 // ‘©”›ŠÖ”ƒNƒ‰ƒX
-
+#if 0
 #ifndef IG_CLASS_BOUND_H
 #define IG_CLASS_BOUND_H
 
@@ -60,4 +60,5 @@ private:
 
 };
 
+#endif
 #endif

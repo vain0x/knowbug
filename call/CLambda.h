@@ -1,5 +1,5 @@
 // ƒ‰ƒ€ƒ_ŠÖ”ƒNƒ‰ƒX
-
+#if 0
 #ifndef IG_CLASS_LAMBDA_FUNC_H
 #define IG_CLASS_LAMBDA_FUNC_H
 
@@ -50,3 +50,4 @@ public:
 
 #endif
 
+#endif

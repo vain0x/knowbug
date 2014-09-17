@@ -1,5 +1,5 @@
 // ストリーム呼び出しオブジェクト
-
+#if 0
 #ifndef IG_CLASS_STREAM_CALLER_H
 #define IG_CLASS_STREAM_CALLER_H
 
@@ -39,4 +39,5 @@ public:
 	static stream_t New();
 };
 
+#endif
 #endif

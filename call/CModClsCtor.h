@@ -1,5 +1,5 @@
 // call - ModCls, functor
-
+#if 0
 #ifndef IG_CLASS_MODCLS_CONSTRUCTOR_H
 #define IG_CLASS_MODCLS_CONSTRUCTOR_H
 
@@ -59,4 +59,5 @@ private:
 	CModClsCtor& operator = ( CModClsCtor const& );
 };
 
+#endif
 #endif

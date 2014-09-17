@@ -1,5 +1,5 @@
 // Call(ModCls) - vartype struct
-
+#if 0
 #include <map>
 #include <array>
 #include <limits>
@@ -645,3 +645,4 @@ void HspVarStructWrap_Method( PVal* pval )
 	FlexValue_Release( self );
 	return;
 }
+#endif

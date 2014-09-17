@@ -1,5 +1,6 @@
 // Call(ModCls) - vartype(struct)
 
+#if 0
 #ifndef IG_VARTYPE_STRUCT_WRAP_H
 #define IG_VARTYPE_STRUCT_WRAP_H
 
@@ -8,7 +9,6 @@
 #include "Functor.h"
 
 using namespace hpimod;
-
 // HspVarProc(struct) の処理関数はすべて置き換える。
 // @ HSP本体との互換性は維持する。
 // @ FlexValue::ptr (メンババッファ) は、参照カウンタのために余分に 8[byte] 確保する。
@@ -47,4 +47,5 @@ using StructTraits = VtTraits<struct_tag>;
 
 }
 
+#endif
 #endif

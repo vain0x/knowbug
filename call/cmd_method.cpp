@@ -1,5 +1,5 @@
 // Call(Method) - Command
-
+#if 0
 #include <vector>
 #include <map>
 #include <string>
@@ -11,42 +11,39 @@
 #include "CCall.h"
 #include "CPrmInfo.h"
 
-#include "CMethod.h"
-#include "CMethodlist.h"
+using methods_t = std::map<std::string, functor_t>;
+static std::map<vartype_t, methods_t> g_distribute;
 
-//################################################
-//    グローバル変数
-//################################################
-static auto g_pMethodlist = (new CMethodlist);
-
-//################################################
-//    グローバル関数
-//################################################
 static void ObjectMethodCustom(PVal* pval);
-
-static void Method_replace_proc(int vt);
 
 //------------------------------------------------
 // メソッド呼び出し関数のすり替え
 // 
 // @prm p1 = vt : 型タイプ値
 //------------------------------------------------
-void Method_replace(void)
+static void Method_replaceProc(vartype_t vtype)
 {
-	int const vt = code_get_vartype();
-	Method_replace_proc(vt);
-	return;
-}
-
-static void Method_replace_proc(int vt)
-{
-	HspVarProc* const vp = getHvp( vt );
+	HspVarProc* const vp = getHvp( vtype );
 
 	// メンバの持つ関数ポインタを書き換える
 	vp->ObjectMethod = ObjectMethodCustom;
 
 	// 空のメソッドクラスを作り、登録しておく
-	g_pMethodlist->set( vt );
+	auto const iter = g_distribute.find(vtype);
+	if ( iter == g_distribute.end() ) {
+		g_distribute.insert({ vtype, methods_t {} });
+
+	} else {
+		dbgout("型 %s のメソッドは既にすり替えられている。", vp->vartype_name);
+		puterror(HSPERR_ILLEGAL_FUNCTION);
+	}
+	return;
+}
+
+void Method_replace()
+{
+	int const vt = code_get_vartype();
+	Method_replaceProc(vt);
 	return;
 }
 
@@ -65,27 +62,24 @@ void Method_add()
 	// 呼び出し先 or ラベル関数宣言の取得
 	functor_t&& functor = code_get_functor();
 
-#if 0
 	// ラベル => 仮引数リストを受け取る
 	if ( functor.getType() == FuncType_Label ) {
 		CPrmInfo::prmlist_t&& prmlist = code_get_prmlist();
 		prmlist.insert( prmlist.begin(), PRM_TYPE_VAR );		// 先頭に var this を追加
 		DeclarePrmInfo( functor.getLabel(), std::move(CPrmInfo(&prmlist)) );
 	}
-#endif
 
 	// CMethod に追加
-	CMethod* const pMethod = g_pMethodlist->get( vtype );
+	auto const iter = g_distribute.find(vtype);
+	if ( iter != g_distribute.end() ) {
+		auto& methods = iter->second;
 
-	if ( pMethod ) {
-		pMethod->add( name, functor );
+		methods.insert({ name, functor });
 
 	} else {
-		// エラータイプが変
 		dbgout("Method_replace されていません！");
-		puterror( HSPERR_UNSUPPORTED_FUNCTION );
+		puterror(HSPERR_UNSUPPORTED_FUNCTION);
 	}
-
 	return;
 }
 
@@ -109,16 +103,39 @@ void Method_cloneThis()
 //------------------------------------------------
 static void ObjectMethodCustom(PVal* pval)
 {
-	int const vt = pval->flag;
+	vartype_t const vtype = pval->flag;
 	std::string const name = code_gets();
 
-	CMethod* const pMethod = g_pMethodlist->get( vt );
+	auto const iter = g_distribute.find(vtype);
+	if ( iter == g_distribute.end() ) {
+		auto& methods = iter->second;
+		
+		auto const iter = methods.find(name);
+		if ( iter != methods.end() ) {
+			auto& functor = iter->second;
 
-	if ( pMethod ) {
-		pMethod->call( name, pval );
+			dbgout("未実装");
+#if 0
+			// 呼び出し
+			{
+				CCaller caller;
+				caller.setFunctor(functor);
+
+				// this 引数を追加する
+				caller.addArgByRef(pvThis, pvThis->offset);
+
+				caller.setArgAll();
+				caller.call();
+			}
+#endif
+		} else {
+			puterror(HSPERR_UNSUPPORTED_FUNCTION);
+		}
+
 	} else {
 		// Method_replace していない型のメソッド
 		puterror( HSPERR_UNSUPPORTED_FUNCTION );
 	}
 	return;
 }
+#endif

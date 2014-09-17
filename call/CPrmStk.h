@@ -31,6 +31,9 @@ private:
 	// 現在、追加された実引数の個数 (flex は除く)
 	size_t cntArgs_;
 
+	// 末尾の引数、local と flex が追加されたか否か
+	bool finalized_;
+
 public:
 	CPrmStk(CPrmInfo const& prminfo)
 		: CPrmStkCreator(hspmalloc(prminfo.getStackSize()), prminfo.getStackSize())
@@ -81,6 +84,7 @@ public:
 
 	void* getPtr() const { return CPrmStkCreator::getptr(); }
 	size_t cntArgs() const { return cntArgs_; }
+	bool hasFinalized() const { return finalized_; }
 
 public:
 	//------------------------------------------------
@@ -129,29 +133,26 @@ public:
 		return;
 	}
 
-	// 可変長引数
-	vector_t& pushFlex()
+	// push locals and flex
+	PVal* pushFianlize()
 	{
 		assert(prminfo_.cntPrms() == cntArgs());
-		vector_t* const vec = allocValue<vector_t>();
-		new(vec)vector_t();
-		return *vec;
-	}
+		assert(!hasFinalized());
 
-	// push local
-	PVal* pushLocal() // shadowing
-	{
-		PVal* const pval = CPrmStkCreator::allocLocal();
-		hpimod::PVal_init(pval, HSPVAR_FLAG_INT);
-		return pval;
-	}
-
-	// push local all
-	PVal* pushLocalAll()
-	{
+		// locals
 		for ( size_t i = 0; i < prminfo_.cntLocals(); ++i ) {
-			pushLocal();
+			PVal* const pval = CPrmStkCreator::allocLocal();
+			hpimod::PVal_init(pval, HSPVAR_FLAG_INT);
 		}
+
+		// flex
+		if ( prminfo_.isFlex() ) {
+			vector_t* const vec = allocValue<vector_t>();
+			new(vec)vector_t();
+		}
+
+		finalized_ = true;
+		return;
 	}
 
 	// push (prmtype) byVal
@@ -248,16 +249,17 @@ public:
 	// 実引数値の peek 各種
 	//------------------------------------------------
 
-	void* getPtrAt(size_t idx) const
+	void* getArgPtrAt(size_t idx) const
 	{
-		assert(idx < cntArgs());
+		assert(idx < cntArgs() || (hasFinalized() && idx < cntPrms() + cntLocals()));
 		return &reinterpret_cast<char*>(getPtr())[ prminfo_.getStackOffset(idx) ];
 	}
-	void* getPtrFlex() const
+
+	vector_t peekFlex() const
 	{
-		return ( prminfo_.isFlex() )
-			? &reinterpret_cast<char*>(getPtr())[ prminfo_.getStackSize() - sizeof(vector_t) ]
-			: nullptr;
+		assert( prminfo_.isFlex() && hasFinalized() );
+		void* const ptr = &reinterpret_cast<char*>(getPtr())[ prminfo_.getStackSize() - sizeof(vector_t) ];
+		return vector_t::ofValptr( ptr );
 	}
 
 	/*

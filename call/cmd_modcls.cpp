@@ -1,5 +1,5 @@
 // Call(ModCls) - Command
-
+#if 0
 #include <array>
 #include <map>
 #include <string>
@@ -410,3 +410,4 @@ int ModCls_This( void** ppResult )
 //------------------------------------------------
 // 
 //------------------------------------------------
+#endif

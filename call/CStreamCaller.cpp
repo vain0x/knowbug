@@ -1,5 +1,5 @@
 // ストリーム呼び出しクラス
-
+#if 0
 #include "CStreamCaller.h"
 
 #include "CCall.h"
@@ -125,3 +125,4 @@ int             CStreamCaller::getUsing()   const { return 1; }
 //------------------------------------------------
 // 
 //------------------------------------------------
+#endif

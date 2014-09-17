@@ -1,5 +1,5 @@
 // コルーチンクラス
-
+#if 0
 #include "CCoRoutine.h"
 
 #include "CCall.h"
@@ -75,3 +75,4 @@ CPrmInfo const& CCoRoutine::getPrmInfo() const
 // 
 //------------------------------------------------
 
+#endif

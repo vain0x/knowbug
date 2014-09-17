@@ -1,5 +1,5 @@
 // Call(ModCls) - FlexValue
-
+#if 0
 #include "hsp3plugin_custom.h"
 #include "mod_makePVal.h"
 
@@ -361,3 +361,4 @@ bool FlexValue_IsTmp( FlexValue const& self )
 {
 	return ( FlexValueEx_Valid(self) ? FlexValueEx_TmpFlag(self) > 0 : false );
 }
+#endif

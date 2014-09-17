@@ -40,7 +40,7 @@ extern bool FlexValueEx_Valid( FlexValue const& self );
 
 static char const* ModCls_Name( stdat_t modcls )
 {
-	return ( modcls ? &ctx->mem_mds[ modcls->nameidx ] : "#nullmod" );
+	return ( modcls ? hpimod::STRUCTDAT_getName(modcls) : "#nullmod" );
 }
 
 int const FLEXVAL_COUNTER_DTORING = (-1);	// デストラクタ起動中

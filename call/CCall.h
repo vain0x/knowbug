@@ -1,5 +1,5 @@
 // call ƒNƒ‰ƒX
-
+#if 0
 #ifndef IG_CLASS_CALL_H
 #define IG_CLASS_CALL_H
 
@@ -131,5 +131,7 @@ private:
 	CCall( CCall const& );
 	CCall& operator = ( CCall const& );
 };
+
+#endif
 
 #endif

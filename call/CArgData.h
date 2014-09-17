@@ -1,5 +1,5 @@
 // CArgData - header
-
+#if 0
 #ifndef IG_CLASS_ARGDATA_H
 #define IG_CLASS_ARGDATA_H
 
@@ -76,4 +76,5 @@ private:
 
 };
 
+#endif
 #endif

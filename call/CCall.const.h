@@ -1,5 +1,5 @@
 // CCall - const
-
+#if 0
 #ifndef IG_CLASS_CALL_CONST_H
 #define IG_CLASS_CALL_CONST_H
 
@@ -23,4 +23,5 @@ enum ARGINFOID
 	ARGINFOID_MAX
 };
 
+#endif
 #endif

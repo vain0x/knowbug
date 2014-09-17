@@ -1,5 +1,5 @@
 // CCall::CArgData
-
+#if 0
 #include <cstring>
 
 #include "hsp3plugin_custom.h"
@@ -348,6 +348,4 @@ void CCall::CArgData::freeArgPVal(void)
 //#########################################################
 //        â∫êøÇØä÷êîåQ
 //#########################################################
-
-
-
+#endif

@@ -61,6 +61,7 @@ static int ProcSttmCmd( int cmd )
 {
 	switch ( cmd ) {
 		case 0x000: Call();             break;	// call
+#if 0
 		case 0x001: Call_alias();       break;	// call_alias
 		case 0x002: Call_aliasAll();    break;	// call_aliasAll
 		case CallCmdId::RetVal:
@@ -95,6 +96,7 @@ static int ProcSttmCmd( int cmd )
 	//	case 0x064: Call_CoExit();      break;	// co_exit
 
 		case CallCmdId::LambdaBody: Call_LambdaBody(); break;	// lambda が内部で呼ぶ命令
+#endif
 #ifdef _DEBUG
 		case 0x0FF: CallHpi_test(); break;
 #endif
@@ -112,6 +114,7 @@ static int ProcFuncCmd( int cmd, void** ppResult )
 {
 	switch ( cmd ) {
 		case 0x000:	return Call          (ppResult);	// call()
+#if 0
 		case 0x013: return Call_StreamEnd(ppResult);	// call_stream()
 		case 0x030: return Functor_cnv   (ppResult);	// functor()
 		case 0x040: return CallCmd_func  (ppResult);	// callcf()
@@ -143,7 +146,7 @@ static int ProcFuncCmd( int cmd, void** ppResult )
 		case 0x15C: return ModInst_Identify(ppResult);	// modinst_identify
 
 		case 0x140: return Call_CoCreate(ppResult);	// co_create
-
+#endif
 		default:
 			puterror( HSPERR_UNSUPPORTED_FUNCTION );
 	}
@@ -157,14 +160,14 @@ static int ProcFuncCmd( int cmd, void** ppResult )
 static int ProcSysvarCmd( int cmd, void** ppResult )
 {
 	switch ( cmd ) {
-		case 0x030: return SetReffuncResult( ppResult, (int)g_vtFunctor );
-
+		case 0x030: return SetReffuncResult( ppResult, static_cast<int>(g_vtFunctor) );
+#if 0
 		case 0x053: return ModCls_Newmod (ppResult, true);	// newmod()
 		case 0x054: return ModCls_Nullmod(ppResult);		// nullmod (delmod)
 
 		case 0x200:	return Call_thislb( ppResult );		// call_thislb
 		case 0x250: return ModCls_This( ppResult );		// modcls_thismod
-
+#endif
 		case CallCmdId::ByRef: //
 	//	case CallCmdId::ByThismod:
 		case CallCmdId::ByDef:
@@ -195,6 +198,7 @@ static int termfunc(int option)
 // str, double, int をシステム変数として使えるようにする
 // 
 // @ それぞれ対応する型タイプ値を返却する。
+// @ かなり遅くなるのでやらない。
 //------------------------------------------------
 static void*(*reffunc_intfunc_impl)(int*, int);
 

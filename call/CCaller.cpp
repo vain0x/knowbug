@@ -1,5 +1,5 @@
 // CCaller
-
+#if 0
 #include <map>
 
 #include "iface_call.h"		// plugin-type, CallCmdId ‚ª—~‚µ‚¢‚Ì‚Å
@@ -319,3 +319,4 @@ CCall* TopCallStack()
 
 	return g_stkCall.top();
 }
+#endif

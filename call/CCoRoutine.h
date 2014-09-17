@@ -1,7 +1,5 @@
 // コルーチンクラス
-
-// 未実装
-
+#if 0
 // IFunctor を継承する必要がある。
 
 #ifndef IG_CLASS_CO_ROUTINE_H
@@ -58,3 +56,4 @@ public:
 
 #endif
 
+#endif
