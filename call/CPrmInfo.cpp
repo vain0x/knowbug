@@ -113,22 +113,27 @@ int CPrmInfo::getPrmType( size_t index ) const
 // 
 // @ 可変長引数は無視する。
 //-----------------------------------------------
-int CPrmInfo::getStackSize() const
+size_t CPrmInfo::getStackSize() const
 {
-	int sum = 0;
-
-	for ( size_t i = 0; i < mcntPrms; ++ i ) {
-		sum += PrmType_Size( getPrmType(i) );
-	}
-
-	sum += PrmType_Size( PRM_TYPE_LOCAL ) * mcntLocals;
-	return sum;
+	return getStackOffset(mcntPrms)
+		+ cntLocals() * PrmType_Size(PRM_TYPE_LOCAL)
+		+ isFlex() * PrmType_Size(PRM_TYPE_FLEX);
 }
 
 // 可変長引数込み (cntFlex: 可変長部分の個数)
-int CPrmInfo::getStackSizeWithFlex( size_t cntFlex ) const
+size_t CPrmInfo::getStackSizeWithFlex( size_t cntFlex ) const
 {
 	return getStackSize() + (PrmType_Size(PRM_TYPE_ANY) * cntFlex);
+}
+
+size_t CPrmInfo::getStackOffset(size_t idx) const
+{
+	size_t sum = 0;
+
+	for ( size_t i = 0; i < idx; ++ i ) {
+		sum += PrmType_Size( getPrmType(i) );
+	}
+	return sum;
 }
 
 //-----------------------------------------------
@@ -277,7 +282,7 @@ bool PrmType_IsRef(int prmtype)
 //------------------------------------------------
 // 仮引数タイプが prmstack に要求するサイズ
 //------------------------------------------------
-int PrmType_Size(int prmtype)
+size_t PrmType_Size(int prmtype)
 {
 	switch ( prmtype ) {
 		case HSPVAR_FLAG_LABEL:  return sizeof(label_t);

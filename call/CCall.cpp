@@ -335,7 +335,7 @@ void* CCall::newPrmStack( CCall* const pCall, char*(*pfAllocator)(int) )
 
 			switch ( prmtype ) {
 				case HSPVAR_FLAG_LABEL:		// HSP‘¤‚Å‚Í–¢À‘•‚¾‚ª
-					prmstk.pushValue( *reinterpret_cast<label_t*>(pval->pt) );
+					prmstk.pushValue( VtTraits<label_t>::derefValptr(pval->pt) );
 					break;
 
 				case HSPVAR_FLAG_STR:
@@ -378,7 +378,7 @@ void* CCall::newPrmStack( CCall* const pCall, char*(*pfAllocator)(int) )
 		// ƒ[ƒJƒ‹•Ï”‚ğÏ‚Ş
 		size_t const cntLocals = prminfo.cntLocals();
 		for ( size_t i = 0; i < cntLocals; ++ i ) {
-			pCall->addLocal( prmstk.pushLocal() );
+			pCall->addLocal( prmstk.allocLocal() );
 		}
 
 		return prmstk.getptr();

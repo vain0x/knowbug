@@ -31,21 +31,15 @@ using functor_t = Managed<IFunctor, true>;
 #include "CModClsCtor.h"
 //*/
 
-static functor_t Functor_New(label_t lb)
+namespace Functor
 {
-	return functor_t::make<CLabelFunc>(lb);
-}
+	extern functor_t const& New(int axcmd);
+	extern functor_t const& New(label_t lb);
 
-static functor_t Functor_New(int axcmd)
-{
-	assert(AxCmd::isOk(axcmd));
+	template<typename TFunctor, typename ...Args>
+	static functor_t New(Args&&... args) { return functor_t::make<TFunctor>(std::forward<Args>(args)...); }
 
-	switch ( AxCmd::getType(axcmd) ) {
-		case TYPE_LABEL: return functor_t::make<CLabelFunc>(axcmd);
-		case TYPE_MODCMD: return functor_t::make<CDeffunc>(axcmd);
-		default:
-			puterror(HSPERR_TYPE_MISMATCH);
-	}
+	extern void Terminate();
 }
 
 #endif

@@ -68,5 +68,6 @@ extern void  HspVarVector_Init( HspVarProc* p );
 extern int SetReffuncResult( void** ppResult, vector_t self );
 
 extern void* Vector_indexRhs( vector_t self, int* mptype );
+extern vector_t code_get_vector_of_sequence();
 
 #endif

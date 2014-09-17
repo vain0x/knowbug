@@ -71,10 +71,10 @@ template<typename VartypeTag>
 struct VtTraitsBase
 	: public VartypeTag
 {
-	using value_t = typename VartypeTag::value_t;
-	using valptr_t = typename VartypeTag::valptr_t;
+	using value_t        = typename VartypeTag::value_t;
+	using valptr_t       = typename VartypeTag::valptr_t;
 	using const_valptr_t = typename VartypeTag::const_valptr_t;
-	using master_t = typename VartypeTag::master_t;
+	using master_t       = typename VartypeTag::master_t;
 
 	static int const basesize = VartypeTag::basesize;
 
@@ -113,6 +113,17 @@ template<typename VartypeTag>
 struct VtTraits
 	: public VtTraitsBase<VartypeTag>
 { };
+
+// str の特殊化
+template<>
+struct VtTraits<str_tag> : public VtTraitsBase<str_tag>
+{
+	// 実体ポインタの脱参照
+	static inline const_valptr_t derefValptr(PDAT const* pdat)
+	{ return asValptr(pdat); }
+	static inline valptr_t derefValptr(PDAT* pdat)
+	{ return asValptr(pdat); }
+};
 
 // 略記のための特殊化
 

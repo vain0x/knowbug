@@ -51,9 +51,9 @@ void CCoRoutine::call( CCaller& callerGiven )
 		// 次の呼び出し先を再設定する
 		if ( stt_pvNextVar ) {
 			if ( stt_pvNextVar->flag != HSPVAR_FLAG_LABEL ) puterror( HSPERR_TYPE_MISMATCH );
-			label_t const lb = *(label_t*)stt_pvNextVar->pt;
+			label_t const lb = VtTraits<label_t>::derefValptr(stt_pvNextVar->pt);
 
-			mpCaller->setFunctor( lb );		// 次の呼び出し先を確定
+			mpCaller->setFunctor(Functor::New(lb));		// 次の呼び出し先を確定
 			stt_pvNextVar = nullptr;
 		}
 

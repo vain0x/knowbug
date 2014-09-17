@@ -28,7 +28,7 @@ int const PRM_TYPE_ANY    = (-5);	// any   指定
 int const PRM_TYPE_LOCAL  = (-6);	// local 指定 ( 引数不要 )
 
 extern bool PrmType_IsRef(int prmtype);
-extern int PrmType_Size(int prmtype);
+extern size_t PrmType_Size(int prmtype);
 extern int PrmType_FromMPType(int mptype);
 
 //##############################################################################
@@ -76,8 +76,10 @@ public:
 	size_t cntLocals() const;
 	bool   isFlex() const;
 	int  getPrmType( size_t idx ) const;
-	int  getStackSize() const;							// prmstack で必要となるサイズ (可変長引数を除く)
-	int  getStackSizeWithFlex( size_t cntFlex ) const;	// 〃 (可変長引数込み)
+
+	size_t getStackSize() const;							// prmstack で必要となるサイズ (可変長引数を除く)
+	size_t getStackSizeWithFlex( size_t cntFlex ) const;	// 〃 (可変長引数込み)
+	size_t getStackOffset(size_t idx) const;
 
 	//--------------------------------------------
 	// その他

@@ -9,7 +9,8 @@
 
 #include "hsp3plugin_custom.h"
 #include "Functor.h"
-#include "CPrmStkCreator.h"
+#include "CPrmStk.h"
+#include "ManagedPVal.h"
 
 class CFuncCaller;
 
@@ -21,35 +22,36 @@ class CFuncCaller
 	// メンバ変数
 private:
 	functor_t functor_;
-	CPrmInfo& prminfo_;
-	CPrmStkCreatorWithBuffer prmstk_;
+	CPrmStk prmstk_;
 
 	// 構築
 private:
 	CFuncCaller() = delete;
 	CFuncCaller(functor_t f)
 		: functor_ { std::move(f) }
-		, prminfo_ { f->getPrmInfo() }
-		, prmstk_(f->getPrmInfo().getStackSize() + sizeof(void*))
+		, prmstk_(f->getPrmInfo())
 	{ }
 	~CFuncCaller() { }
 
 	CFuncCaller(CFuncCaller const&) = delete;
 
 public:
-	void call(CCaller& caller) {
-		functor_->call();
+	// IFunctor の実装
+	void call(CCaller& caller) override
+	{
+		functor_->call(caller);
 		return;
 	}
 
-	label_t   getLabel() const override { return functor_.getLabel(); }
-	int       getAxCmd() const override { return functor_.getAxCmd(); }
-	int       getUsing() const override { return functor_.getUsing(); }
+	label_t   getLabel() const override { return functor_->getLabel(); }
+	int       getAxCmd() const override { return functor_->getAxCmd(); }
+	int       getUsing() const override { return functor_->getUsing(); }
+	CPrmInfo const& getPrmInfo() const override { return functor_->getPrmInfo(); }
 
-	CPrmInfo const& getPrmInfo() const override { return prminfo_; }
+	CPrmStk& getPrmStk() { return prmstk_; }
 
 	// ラッパー
-	static funcCaller_t New(functor_t f) { return new CFuncCaller(f); }
+	static functor_t New(functor_t f) { return functor_t::make<CFuncCaller>(std::move(f)); }
 };
 
 #endif

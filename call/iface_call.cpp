@@ -183,6 +183,7 @@ static int ProcSysvarCmd( int cmd, void** ppResult )
 //------------------------------------------------
 static int termfunc(int option)
 {
+	Functor::Terminate();
 	ReleaseBounds();
 	Call_Term();
 //	Proto_Term();

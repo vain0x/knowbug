@@ -42,8 +42,8 @@ public:
 	CPrmInfo& getPrmInfo() const { return *mpRemains; }
 
 	// Œp³
-	label_t getLabel() const { return getBound().getLabel(); }
-	int     getAxCmd() const { return getBound().getAxCmd(); }
+	label_t getLabel() const { return getBound()->getLabel(); }
+	int     getAxCmd() const { return getBound()->getAxCmd(); }
 	int     getUsing() const { return 1; }
 
 	functor_t const& unbind() const;

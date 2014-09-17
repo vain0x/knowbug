@@ -26,12 +26,12 @@ public:
 	~CPrmStkCreator() { }
 
 	// 取得
-	void*  getptr()       const { return ptr_; }
-	size_t getBufSize()   const { return bufSize_; }
-	size_t getUsingSize() const { return usingSize_; }
+	void*  getptr()   const { return ptr_; }
+//	size_t capacity() const { return bufSize_; }
+	size_t size()     const { return usingSize_; }
 
 	// 格納
-	template<typename T> T* pushValue();		// コピーなし
+	template<typename T> T* allocValue();		// 領域だけ確保、初期化はしない
 	template<typename T> void pushValue( T&& value );
 
 	void pushPVal( PVal* pval, APTR aptr ) {
@@ -45,9 +45,8 @@ public:
 		pushValue(MPModVarData { idStDat, MODVAR_MAGICCODE, pval, aptr });
 	}
 
-	PVal* pushLocal() {
-		// 初期化しない
-		return pushValue<PVal>();
+	PVal* allocLocal() {
+		return allocValue<PVal>();
 	}
 
 private:
@@ -73,13 +72,13 @@ void CPrmStkCreator::pushValue(T&& value)
 {
 	using value_type = std::decay_t<T>;
 
-	value_type* const p = pushValue<value_type>();
+	value_type* const p = allocValue<value_type>();
 	*p = std::forward<T>(value);
 	return;
 }
 
 template<typename T>
-T* CPrmStkCreator::pushValue()
+T* CPrmStkCreator::allocValue()
 {
 	needSize(sizeof(T));
 	T* const p = reinterpret_cast<T*>(end());
