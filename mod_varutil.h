@@ -1,4 +1,4 @@
-// •Ï”ŠÖ˜A utility
+ï»¿// å¤‰æ•°é–¢é€£ utility
 
 #ifndef IG_MODULE_VARIABLE_UTILITY_H
 #define IG_MODULE_VARIABLE_UTILITY_H
@@ -7,7 +7,7 @@
 
 namespace hpimod {
 
-// •Ï”î•ñ‚Ìæ“¾
+// å¤‰æ•°æƒ…å ±ã®å–å¾—
 extern int code_varinfo(PVal* pval);
 enum VarInfo {
 	VarInfo_Flag = 0,
@@ -22,12 +22,12 @@ enum VarInfo {
 	VarInfo_Master
 };
 
-// •Ï”‚Ìì¬
+// å¤‰æ•°ã®ä½œæˆ
 extern void code_dimtype(PVal* pval, vartype_t vtype);
 typedef void(*DimFunc_t)(PVal*, vartype_t, int, int, int, int, int);
-extern int code_dimtypeEx( vartype_t vt, DimFunc_t fDim = nullptr );		// fDim = nullptr => ’Êí‚Ì dim ‚ğ—p‚¢‚é
+extern int code_dimtypeEx( vartype_t vt, DimFunc_t fDim = nullptr );		// fDim = nullptr => é€šå¸¸ã® dim ã‚’ç”¨ã„ã‚‹
 
-// APTR ŠÖŒW
+// APTR é–¢ä¿‚
 extern APTR CreateAptrFromIndex(PVal const* pval, int idx[ArrayDimMax]);
 extern void GetIndexFromAptr   (PVal const* pval, APTR aptr, int ret[ArrayDimMax]);
 

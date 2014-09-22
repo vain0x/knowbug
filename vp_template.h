@@ -1,4 +1,4 @@
-// HspVarProc ‚Ì‚Ğ‚ÈŒ`
+ï»¿// HspVarProc ã®ã²ãªå½¢
 
 #ifndef IG_HSPVARPROC_TEMPLATE_H
 #define IG_HSPVARPROC_TEMPLATE_H
@@ -14,32 +14,32 @@ namespace hpimod
 {
 
 //------------------------------------------------
-// À‘Ìƒ|ƒCƒ“ƒ^‚ğ“¾‚é
+// å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿ã‚’å¾—ã‚‹
 //
-// @ pt ‚ª value[] ‚Å‚ ‚éê‡
+// @ pt ãŒ value[] ã§ã‚ã‚‹å ´åˆ
 //------------------------------------------------
 template<typename vtTag>
 static PDAT* HspVarTemplate_GetPtr(PVal* pval)
 {
-	static_assert(VtTraits::isNativeVartype<vtTag>::value, "valptr_t = value_t[] ‚Å‚ ‚é•Ï”Œ^‚Å‚Ì‚İg—p‚Å‚«‚éB");
+	static_assert(VtTraits::isNativeVartype<vtTag>::value, "valptr_t = value_t[] ã§ã‚ã‚‹å¤‰æ•°å‹ã§ã®ã¿ä½¿ç”¨ã§ãã‚‹ã€‚");
 	assert(PVal_supportArray(pval));
 	return VtTraits::asPDAT<vtTag>( VtTraits::getValptr<vtTag>(pval) );
 }
 
 //------------------------------------------------
-// ‰Â•Ï’·Œ^‚É“Á—L‚ÌŠÖ”‚ÌAŒÅ’è’·Œ^‚Ìê‡
+// å¯å¤‰é•·å‹ã«ç‰¹æœ‰ã®é–¢æ•°ã®ã€å›ºå®šé•·å‹ã®å ´åˆ
 //------------------------------------------------
 template<typename vtTag>
 static int HspVarTemplate_GetSize(PDAT const* pdat)
 {
-	static_assert(VtTraits::isFixed<vtTag>::value, "ŒÅ’è’·‚Ì•Ï”Œ^‚Å‚Ì‚İg—p‚Å‚«‚éB");
+	static_assert(VtTraits::isFixed<vtTag>::value, "å›ºå®šé•·ã®å¤‰æ•°å‹ã§ã®ã¿ä½¿ç”¨ã§ãã‚‹ã€‚");
 	return VtTraits::basesize<vtTag>::value;
 }
 
 template<typename vtTag>
 static void* HspVarTemplate_GetBlockSize(PVal* pval, PDAT* pdat, int* size)
 {
-	static_assert(VtTraits::isFixed<vtTag>::value, "ŒÅ’è’·‚Ì•Ï”Œ^‚Å‚Ì‚İg—p‚Å‚«‚éB");
+	static_assert(VtTraits::isFixed<vtTag>::value, "å›ºå®šé•·ã®å¤‰æ•°å‹ã§ã®ã¿ä½¿ç”¨ã§ãã‚‹ã€‚");
 	*size = VtTraits::basesize<vtTag>::value * PVal_cntElems(pval);
 	return pdat;
 }
@@ -47,13 +47,13 @@ static void* HspVarTemplate_GetBlockSize(PVal* pval, PDAT* pdat, int* size)
 template<typename vtTag>
 static void HspVarTemplate_AllocBlock(PVal* pval, PDAT* pdat, int size)
 {
-	static_assert(VtTraits::isFixed<vtTag>::value, "ŒÅ’è’·‚Ì•Ï”Œ^‚Å‚Ì‚İg—p‚Å‚«‚éB");
+	static_assert(VtTraits::isFixed<vtTag>::value, "å›ºå®šé•·ã®å¤‰æ•°å‹ã§ã®ã¿ä½¿ç”¨ã§ãã‚‹ã€‚");
 	// do nothing
 	return;
 }
 
 //------------------------------------------------
-// ‰‰Z—pŠÖ”‚ÌŒ^•ÏŠ·
+// æ¼”ç®—ç”¨é–¢æ•°ã®å‹å¤‰æ›
 //------------------------------------------------
 using typeRedefinedOperator_t = void(*)(PDAT*, PDAT const*);
 
@@ -63,10 +63,10 @@ static operator_t HspVarProcOperatorCast(typeRedefinedOperator_t op)
 }
 
 //------------------------------------------------
-// ”äŠrŠÖ”‚Ì‹ï‘Ì‰»
+// æ¯”è¼ƒé–¢æ•°ã®å…·ä½“åŒ–
 //
-// @ HspVar**_CmpI ‚Æ‚¢‚¤1‚Â‚ÌŠÖ”‚©‚ç‰‰ZŠÖ”‚ğ¶¬‚·‚éB
-// @ aftertype ‚Í‚»‚Ì’†‚Åİ’è‚·‚é•K—v‚ª‚ ‚éB
+// @ HspVar**_CmpI ã¨ã„ã†1ã¤ã®é–¢æ•°ã‹ã‚‰æ¼”ç®—é–¢æ•°ã‚’ç”Ÿæˆã™ã‚‹ã€‚
+// @ aftertype ã¯ãã®ä¸­ã§è¨­å®šã™ã‚‹å¿…è¦ãŒã‚ã‚‹ã€‚
 //------------------------------------------------
 using compare_func_t = int(*)(PDAT* pdat, PDAT const* val);
 
@@ -84,7 +84,7 @@ static void HspVarTemplate_CmpI(PDAT* pdat, PDAT const* val)
 }
 }
 
-// “¯’l«‚Ì‚İ’è‹`‚·‚é
+// åŒå€¤æ€§ã®ã¿å®šç¾©ã™ã‚‹
 template<compare_func_t CmpI>
 static void HspVarTemplate_InitCmpI_Equality(HspVarProc* hvp)
 {
@@ -93,7 +93,7 @@ static void HspVarTemplate_InitCmpI_Equality(HspVarProc* hvp)
 	return;
 }
 
-// ”äŠrŠÖ”‚ğ‚·‚×‚Ä’è‹`‚·‚é
+// æ¯”è¼ƒé–¢æ•°ã‚’ã™ã¹ã¦å®šç¾©ã™ã‚‹
 template<compare_func_t CmpI>
 static void HspVarTemplate_InitCmpI_Full(HspVarProc* hvp)
 {

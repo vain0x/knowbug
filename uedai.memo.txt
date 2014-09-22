@@ -1,40 +1,40 @@
+﻿
+・HSP3.x 向け拡張ランタイムの作成
 
-�EHSP3.x �����g�������^�C���̍쐬
+動かないので、草案ということで……。
 
-�����Ȃ��̂ŁA���ĂƂ������ƂŁc�c�B
-
-��OpenHSP�̃R�[�h�𗬗p���܂�
-1	�K�v�ȃt�@�C�����v���W�F�N�g�ɒǉ�
-	�E�v���O�C���̃\�[�X
-		��ӂȃt�@�C�����ɒ���( **_main �Ȃǂɂ��Ă����Ɗy )
-	�Ehsp3plugin.cpp ����� .h
+★OpenHSPのコードを流用します
+1	必要なファイルをプロジェクトに追加
+	・プラグインのソース
+		一意なファイル名に直す( **_main などにしておくと楽 )
+	・hsp3plugin.cpp および .h
 	
-2	�g���v���O�C���Ɏg�p�����R�[�h���C��
-	DllMain()�֐��͍폜����B
-	EXPORT����Ă���֐����Ahsp3typeinit_** �Ɖ������AEXPORT �� WINAPI ���O���B
-	�@�܂��Amain.h �̕��� extern �Ńv���g�^�C�v�錾��ǉ��B
-	�@extern void hsp3typeinit_**(HSP3TYPEINFO *info);
-	main.h �ɂ́A�W���w�b�_�� hsp3code.h �� include �����ɂ���B
-	�K�v�ȃ��m�́Amain.cpp �� cmd.h �Ɉړ��B
-	�@hsp3plugin.h �́Acpp��include���邱�ƁI�I
-	OpenHSP ������p�����֐����폜���Ă����̂�Y��Ȃ��B
+2	拡張プラグインに使用したコードを修正
+	DllMain()関数は削除する。
+	EXPORTされている関数を、hsp3typeinit_** と改名し、EXPORT や WINAPI を外す。
+	　また、main.h の方に extern でプロトタイプ宣言を追加。
+	　extern void hsp3typeinit_**(HSP3TYPEINFO *info);
+	main.h には、標準ヘッダと hsp3code.h の include だけにする。
+	必要なモノは、main.cpp か cmd.h に移動。
+	　hsp3plugin.h は、cppでincludeすること！！
+	OpenHSP から引用した関数を削除しておくのを忘れない。
 	
-	hsp3sdk_init ��W�J����B
+	hsp3sdk_init を展開する。
 		ctx    = info->hspctx;
 		exinfo = info->hspexinfo;
 		type   = exinfo->nptype;
 		val    = exinfo->npval;
 	
-3	OpenHSP �̕��̃\�[�X���A�኱����
-	hsp3struct.h �� #define ���ꕔ�ύX�B
-		�v���O�C���p�̔ԍ����`���Ă����B( #define TYPE_** 18 )
-		TYPE_USERDEF �� 19 �ɁB
-	hsp3code.cpp �ŁAmain.h �� hsp3int.h �̎��� include�B
-	code_init�֐��� hsp3typeinit_** �֐��̗���Ɍ�����ׂ�B
+3	OpenHSP の方のソースを、若干改変
+	hsp3struct.h の #define を一部変更。
+		プラグイン用の番号を定義しておく。( #define TYPE_** 18 )
+		TYPE_USERDEF を 19 に。
+	hsp3code.cpp で、main.h を hsp3int.h の次に include。
+	code_init関数の hsp3typeinit_** 関数の羅列に肩を並べる。
 	
-4	�������������āA�v���W�F�N�g�̐ݒ�
-	�E�o�̓t�@�C�����̕ύX�B
+4	少し落ち着いて、プロジェクトの設定
+	・出力ファイル名の変更。
 	
-5	�R���p�C��
-6	���s�e�X�g
-	�����܂���B�B�B
+5	コンパイル
+6	実行テスト
+	動きません。。。

@@ -1,4 +1,4 @@
-// reference - Command header
+ï»¿// reference - Command header
 
 #ifndef IG_REFERENCE_COMMAND_H
 #define IG_REFERENCE_COMMAND_H
@@ -7,13 +7,13 @@
 
 extern void ReferenceTerm();
 
-extern void ReferenceNew();		// \’z
-extern void ReferenceDelete();	// ”jŠü
+extern void ReferenceNew();		// æ§‹ç¯‰
+extern void ReferenceDelete();	// ç ´æ£„
 
 extern void ReferenceMemberOf();
 
-// ƒVƒXƒeƒ€•Ï”
+// ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°
 
-// ’è”
+// å®šæ•°
 
 #endif

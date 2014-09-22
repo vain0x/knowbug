@@ -1,19 +1,19 @@
-// macro for cmdlist
+﻿// macro for cmdlist
 
 #ifndef IG_HPIMOD_CMDLIST_MACRO_H
 #define IG_HPIMOD_CMDLIST_MACRO_H
 
-// cmdlist �p�̃}�N��
-// �X�N���v�g���ɒ񋟂���v���O�C���R�}���h�̈ꗗ���A�ȉ��̃}�N�����g���ċL�q���Ă����AC++ ���� HSP ���ŋ��L����B
-// �ǂݍ��ލۂ̃}�N���̒�`�ɂ��A���̈ꗗ����A�e�R�}���h�ɑ΂���R�[�h�𐶐������邱�Ƃ��ł���B
+// cmdlist 用のマクロ
+// スクリプト側に提供するプラグインコマンドの一覧を、以下のマクロを使って記述しておき、C++ 側と HSP 側で共有する。
+// 読み込む際のマクロの定義により、その一覧から、各コマンドに対するコードを生成させることができる。
 
-// S, F, V �͂��ꂼ��A���̃R�}���h�����ߌ`���A�֐��`���A�V�X�e���ϐ��`���Ŏg�p�ł��邱�Ƃ��Ӗ�����B
-// ���ߌ`���Ɗ֐��`���̗����Ŏg�p�����R�}���h�́A������ ppResult ���󂯎�邪�A
-// ���ߌ`���ŌĂ΂ꂽ�Ȃ� ppResult = nullptr �ƂȂ�A�Ԓl�����������B
-// �֐��`���ƃV�X�e���ϐ��`���̗����Ŏg�p�����R�}���h�́A�ǉ��̈��� bSysvar ���󂯎��A���ꂪ�^�̂Ƃ��̓V�X�e���ϐ��`���ł���B
+// S, F, V はそれぞれ、そのコマンドが命令形式、関数形式、システム変数形式で使用できることを意味する。
+// 命令形式と関数形式の両方で使用されるコマンドは、引数に ppResult を受け取るが、
+// 命令形式で呼ばれたなら ppResult = nullptr となり、返値が無視される。
+// 関数形式とシステム変数形式の両方で使用されるコマンドは、追加の引数 bSysvar を受け取り、これが真のときはシステム変数形式である。
 
-// S, F, V �̂�����ł��g���Ȃ��R�}���h�Ƃ́Abyref �̂悤�ȒP�Ȃ�L�[���[�h�ł���B
-// �g�p��� cmd_call.(h|cpp) ���Q�Ƃ̂��ƁB
+// S, F, V のいずれでも使えないコマンドとは、byref のような単なるキーワードである。
+// 使用例は cmd_call.(h|cpp) を参照のこと。
 
 #ifdef _CmdlistModeProcess
 # define HpiCmdlistBegin switch ( cmd ) {

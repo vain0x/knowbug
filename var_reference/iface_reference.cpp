@@ -1,4 +1,4 @@
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+ï»¿/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
  |
  *		hsp plugin interface (reference)
  |
@@ -13,7 +13,7 @@
 #include "hsp3plugin_custom.h"
 #include "mod_func_result.h"
 
-// ŠÖ”éŒ¾
+// é–¢æ•°å®£è¨€
 static int  hpi_cmdfunc( int cmd );
 static int hpi_termfunc( int option );
 
@@ -21,27 +21,27 @@ static int   ProcFuncCmd( int cmd, void** ppResult );
 static int ProcSysvarCmd( int cmd, void** ppResult );
 
 //##########################################################
-//        HPIˆ—
+//        HPIå‡¦ç†
 //##########################################################
 //------------------------------------------------
-// HPI“o˜^ŠÖ”
+// HPIç™»éŒ²é–¢æ•°
 //------------------------------------------------
 EXPORT void WINAPI hsp3typeinfo_reference( HSP3TYPEINFO* info )
 {
-	hsp3sdk_init( info );			// SDK‚Ì‰Šú‰»(Å‰‚És‚È‚Á‚Ä‰º‚³‚¢)
+	hsp3sdk_init( info );			// SDKã®åˆæœŸåŒ–(æœ€åˆã«è¡Œãªã£ã¦ä¸‹ã•ã„)
 	
 	HSPVAR_COREFUNC corefunc = HspVarReference_Init;
-	registvar( -1, corefunc );		// V‹KŒ^‚ğ’Ç‰Á
+	registvar( -1, corefunc );		// æ–°è¦å‹ã‚’è¿½åŠ 
 	
-	info->cmdfunc  = hpi_cmdfunc;		// ÀsŠÖ”(cmdfunc)‚Ì“o˜^
-	info->reffunc  = hpi_reffunc<&ProcFuncCmd, &ProcSysvarCmd>;		// QÆŠÖ”(reffunc)‚Ì“o˜^
-	info->termfunc = hpi_termfunc;		// I—¹ŠÖ”(termfunc)‚Ì“o˜^
+	info->cmdfunc  = hpi_cmdfunc;		// å®Ÿè¡Œé–¢æ•°(cmdfunc)ã®ç™»éŒ²
+	info->reffunc  = hpi_reffunc<&ProcFuncCmd, &ProcSysvarCmd>;		// å‚ç…§é–¢æ•°(reffunc)ã®ç™»éŒ²
+	info->termfunc = hpi_termfunc;		// çµ‚äº†é–¢æ•°(termfunc)ã®ç™»éŒ²
 	
 	return;
 }
 
 //------------------------------------------------
-// I—¹
+// çµ‚äº†æ™‚
 //------------------------------------------------
 static int hpi_termfunc(int option)
 {
@@ -49,10 +49,10 @@ static int hpi_termfunc(int option)
 }
 
 //##########################################################
-//        ƒRƒ}ƒ“ƒhˆ—
+//        ã‚³ãƒãƒ³ãƒ‰å‡¦ç†
 //##########################################################
 //------------------------------------------------
-// –½—ß
+// å‘½ä»¤
 //------------------------------------------------
 static int hpi_cmdfunc( int cmd )
 {
@@ -70,7 +70,7 @@ static int hpi_cmdfunc( int cmd )
 }
 
 //------------------------------------------------
-// ŠÖ”
+// é–¢æ•°
 //------------------------------------------------
 static int ProcFuncCmd( int cmd, void** ppResult )
 {
@@ -85,7 +85,7 @@ static int ProcFuncCmd( int cmd, void** ppResult )
 }
 
 //------------------------------------------------
-// ƒVƒXƒeƒ€•Ï”
+// ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°
 //------------------------------------------------
 static int ProcSysvarCmd( int cmd, void** ppResult )
 {

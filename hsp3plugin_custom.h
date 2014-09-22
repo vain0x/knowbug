@@ -1,4 +1,4 @@
-// hsp3plugin Šg’£ƒwƒbƒ_ (for ue_dai)
+ï»¿// hsp3plugin æ‹¡å¼µãƒ˜ãƒƒãƒ€ (for ue_dai)
 
 #ifndef IG_HSP3PLUGIN_CUSTOM_H
 #define IG_HSP3PLUGIN_CUSTOM_H
@@ -8,7 +8,7 @@
 #undef min
 
 #include "../hspsdk/hsp3plugin.h"
-#undef stat	// ‚¢‚­‚Â‚©‚Ì•W€ƒ‰ƒCƒuƒ‰ƒŠ‚ÆÕ“Ë‚µ‚Ä‚µ‚Ü‚¤‚Ì‚Å
+#undef stat	// ã„ãã¤ã‹ã®æ¨™æº–ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã¨è¡çªã—ã¦ã—ã¾ã†ã®ã§
 #undef puterror
 
 #define puterror(err) do { exinfo->HspFunc_puterror(err); throw err; } while(false)
@@ -19,7 +19,7 @@
 namespace hpimod
 {
 
-// var ˆø”‚ğæ‚èo‚· (code_getva() ‚Æ“¯‚¶‚¾‚ª aptr ’l‚Å‚Í‚È‚­ PVal* ‚ğ•Ô‚·)
+// var å¼•æ•°ã‚’å–ã‚Šå‡ºã™ (code_getva() ã¨åŒã˜ã ãŒ aptr å€¤ã§ã¯ãªã PVal* ã‚’è¿”ã™)
 static PVal* code_get_var()
 {
 	PVal* pval;
@@ -27,9 +27,9 @@ static PVal* code_get_var()
 	return pval;
 }
 
-// ƒvƒ‰ƒOƒCƒ“EƒCƒ“ƒ^[ƒtƒF[ƒX—p‚ÌŠÖ”ƒeƒ“ƒvƒŒ[ƒg
+// ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ãƒ»ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ç”¨ã®é–¢æ•°ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆ
 //------------------------------------------------
-// –½—ßƒRƒ}ƒ“ƒhŒÄ‚Ño‚µŠÖ”
+// å‘½ä»¤ã‚³ãƒãƒ³ãƒ‰å‘¼ã³å‡ºã—é–¢æ•°
 //------------------------------------------------
 template<int(*ProcSttmCmd)(int)>
 static int cmdfunc(int cmd)
@@ -39,7 +39,7 @@ static int cmdfunc(int cmd)
 }
 
 //------------------------------------------------
-// ŠÖ”ƒRƒ}ƒ“ƒhŒÄ‚Ño‚µŠÖ”
+// é–¢æ•°ã‚³ãƒãƒ³ãƒ‰å‘¼ã³å‡ºã—é–¢æ•°
 //------------------------------------------------
 template< int(*ProcFunc  )(int, PDAT**),
           int(*ProcSysvar)(int, PDAT**) >
@@ -54,7 +54,7 @@ static void* reffunc( int* type_res, int cmd )
 	} else {
 		code_next();
 
-		*type_res = ProcFunc( cmd, &pResult );	// ƒRƒ}ƒ“ƒh•ªŠò
+		*type_res = ProcFunc( cmd, &pResult );	// ã‚³ãƒãƒ³ãƒ‰åˆ†å²
 
 		if ( !(*type == TYPE_MARK && *val == ')') ) puterror( HSPERR_INVALID_FUNCPARAM );
 		code_next();

@@ -1,4 +1,4 @@
-// PValRef
+ï»¿// PValRef
 #if 0
 #ifndef IG_PVALREF_H
 #define IG_PVALREF_H
@@ -15,14 +15,14 @@ namespace hpimod
 {
 
 //------------------------------------------------
-// (PVal*) with QÆƒJƒEƒ“ƒ^
+// (PVal*) with å‚ç…§ã‚«ã‚¦ãƒ³ã‚¿
 //------------------------------------------------
 struct PValRef
 {
 	PVal pval;
 private:
-	int cntRefed;			// QÆƒJƒEƒ“ƒ^ (ƒAƒN‹Ö‚³‚ê‚Ä‚È‚¢‚Ì‚Å’ˆÓ‚·‚é‚±‚Æ)
-	int opt1, opt2;			// —\–ñ
+	int cntRefed;			// å‚ç…§ã‚«ã‚¦ãƒ³ã‚¿ (ã‚¢ã‚¯ç¦ã•ã‚Œã¦ãªã„ã®ã§æ³¨æ„ã™ã‚‹ã“ã¨)
+	int opt1, opt2;			// äºˆç´„
 
 	PVALREF_DBGCODE(
 		static int stt_counter;
@@ -32,7 +32,7 @@ public:
 	static PValRef* const MagicNull;
 
 	//-----------------------------------------------
-	// ŠÖ”
+	// é–¢æ•°
 	//-----------------------------------------------
 	static PValRef* New( int vflag = HSPVAR_FLAG_INT );
 	static void Delete( PValRef* pval );
@@ -63,7 +63,7 @@ static int Compare( PValRef const* lhs, PValRef const* rhs )
 			: 1;		// assert(IsNull(bNullRhs) == true)
 	}
 
-	// —v‘f”
+	// è¦ç´ æ•°
 
 	return 0;
 }

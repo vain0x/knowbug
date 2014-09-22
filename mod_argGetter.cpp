@@ -1,4 +1,4 @@
-// ˆø”æ“¾ƒ‚ƒWƒ…[ƒ‹
+ï»¿// å¼•æ•°å–å¾—ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«
 
 #include "hsp3plugin_custom.h"
 #include "mod_argGetter.h"
@@ -8,12 +8,12 @@ namespace hpimod
 {
 
 //##########################################################
-//    ˆø”‚Ìæ“¾
+//    å¼•æ•°ã®å–å¾—
 //##########################################################
 //------------------------------------------------
-// •¶š—ñ‚ğæ“¾‚·‚é (hspmalloc ‚ÅŠm•Û‚·‚é)
+// æ–‡å­—åˆ—ã‚’å–å¾—ã™ã‚‹ (hspmalloc ã§ç¢ºä¿ã™ã‚‹)
 // 
-// @ ‰ğ•ú‹`–±(hspfree)‚ÍŒÄ‚Ño‚µŒ³‚É‚ ‚éB
+// @ è§£æ”¾ç¾©å‹™(hspfree)ã¯å‘¼ã³å‡ºã—å…ƒã«ã‚ã‚‹ã€‚
 //------------------------------------------------
 size_t code_getds_ex(char** ppStr, char const* defstr)
 {
@@ -23,18 +23,18 @@ size_t code_getds_ex(char** ppStr, char const* defstr)
 
 	*ppStr = reinterpret_cast<char*>(hspmalloc(size));
 	strncpy_s( *ppStr, size, pStr, len );
-	(*ppStr)[len] = '\0';		// I’[
+	(*ppStr)[len] = '\0';		// çµ‚ç«¯
 	return len;
 }
 
 #if 0
 //------------------------------------------------
-// •¶š—ñ‚©”’l‚ğæ“¾‚·‚é
+// æ–‡å­—åˆ—ã‹æ•°å€¤ã‚’å–å¾—ã™ã‚‹
 // 
-// @ •¶š—ñ‚È‚ç sbAlloc ‚ÅŠm•ÛA•¶š—ñ‚ğƒRƒs[‚·‚éB
+// @ æ–‡å­—åˆ—ãªã‚‰ sbAlloc ã§ç¢ºä¿ã€æ–‡å­—åˆ—ã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹ã€‚
 // @result = int
-//		*ppStr ‚ª nullptr ‚È‚çA•Ô’l‚ª—LŒøB
-//		‚»‚¤‚Å‚È‚¢ê‡A*ppStr ‚ª—LŒøB
+//		*ppStr ãŒ nullptr ãªã‚‰ã€è¿”å€¤ãŒæœ‰åŠ¹ã€‚
+//		ãã†ã§ãªã„å ´åˆã€*ppStr ãŒæœ‰åŠ¹ã€‚
 //------------------------------------------------
 int code_get_int_or_str( char** ppStr )
 {
@@ -63,11 +63,11 @@ int code_get_int_or_str( char** ppStr )
 #endif
 
 //------------------------------------------------
-// Œ^ƒ^ƒCƒv’l‚ğæ“¾‚·‚é
+// å‹ã‚¿ã‚¤ãƒ—å€¤ã‚’å–å¾—ã™ã‚‹
 // 
-// @ •¶š—ñ or ”’l
-// @error •¶š—ñ‚Å”ñŒ^–¼        => HSPERR_ILLEGAL_FUNCTION
-// @error •¶š—ñ‚Å‚à”’l‚Å‚à‚È‚¢ => HSPERR_TYPE_MISMATCH
+// @ æ–‡å­—åˆ— or æ•°å€¤
+// @error æ–‡å­—åˆ—ã§éå‹å        => HSPERR_ILLEGAL_FUNCTION
+// @error æ–‡å­—åˆ—ã§ã‚‚æ•°å€¤ã§ã‚‚ãªã„ => HSPERR_TYPE_MISMATCH
 //------------------------------------------------
 int code_get_vartype( int deftype )
 {
@@ -76,11 +76,11 @@ int code_get_vartype( int deftype )
 	if ( prm <= PARAM_END ) return HSPVAR_FLAG_NONE;
 
 	switch ( mpval->flag ) {
-		// Œ^ƒ^ƒCƒv’l
+		// å‹ã‚¿ã‚¤ãƒ—å€¤
 		case HSPVAR_FLAG_INT:
 			return VtTraits::derefValptr<vtInt>(mpval->pt);
 
-		// Œ^–¼
+		// å‹å
 		case HSPVAR_FLAG_STR:
 		{
 			auto const vp = seekHvp( VtTraits::asValptr<vtStr>(mpval->pt) );
@@ -94,7 +94,7 @@ int code_get_vartype( int deftype )
 }
 
 //------------------------------------------------
-// Àsƒ|ƒCƒ“ƒ^‚ğæ“¾‚·‚é( ƒ‰ƒxƒ‹AÈ—ª‰Â”\ )
+// å®Ÿè¡Œãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—ã™ã‚‹( ãƒ©ãƒ™ãƒ«ã€çœç•¥å¯èƒ½ )
 //------------------------------------------------
 label_t code_getdlb( label_t defLabel )
 {
@@ -112,21 +112,21 @@ label_t code_getdlb( label_t defLabel )
 	/*
 	label_t lb = nullptr;
 
-	// ƒŠƒeƒ‰ƒ‹( *lb )‚Ìê‡
-	// @ *val ‚É‚Íƒ‰ƒxƒ‹ID ( ctx->mem_ot ‚Ì—v‘f”Ô† )‚ª“ü‚Á‚Ä‚¢‚éB
-	// @ code_getlb() ‚Å“¾‚ç‚ê‚é‚Ì‚Íƒ‰ƒxƒ‹‚ªw‚·Àsƒ|ƒCƒ“ƒ^‚È‚é‚à‚ÌB
-	if ( *type == TYPE_LABEL ) {	// ƒ‰ƒxƒ‹’è”
+	// ãƒªãƒ†ãƒ©ãƒ«( *lb )ã®å ´åˆ
+	// @ *val ã«ã¯ãƒ©ãƒ™ãƒ«ID ( ctx->mem_ot ã®è¦ç´ ç•ªå· )ãŒå…¥ã£ã¦ã„ã‚‹ã€‚
+	// @ code_getlb() ã§å¾—ã‚‰ã‚Œã‚‹ã®ã¯ãƒ©ãƒ™ãƒ«ãŒæŒ‡ã™å®Ÿè¡Œãƒã‚¤ãƒ³ã‚¿ãªã‚‹ã‚‚ã®ã€‚
+	if ( *type == TYPE_LABEL ) {	// ãƒ©ãƒ™ãƒ«å®šæ•°
 		lb = code_getlb();
 
-	// ƒ‰ƒxƒ‹Œ^•Ï”‚Ìê‡
-	// @ code_getlb() ‚Æ“¯‚¶ˆ—, mpval ‚ğXV‚·‚éB
-	// @ ğŒ ( *type == TYPE_VAR ) ‚Å‚ÍAƒ‰ƒxƒ‹Œ^‚ğ•Ô‚·ŠÖ”‚âƒVƒXƒeƒ€•Ï”‚É‘Î‰‚Å‚«‚È‚¢B
+	// ãƒ©ãƒ™ãƒ«å‹å¤‰æ•°ã®å ´åˆ
+	// @ code_getlb() ã¨åŒã˜å‡¦ç†, mpval ã‚’æ›´æ–°ã™ã‚‹ã€‚
+	// @ æ¡ä»¶ ( *type == TYPE_VAR ) ã§ã¯ã€ãƒ©ãƒ™ãƒ«å‹ã‚’è¿”ã™é–¢æ•°ã‚„ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ã«å¯¾å¿œã§ããªã„ã€‚
 	} else {
-		// ƒ‰ƒxƒ‹‚Ìw‚·Àsƒ|ƒCƒ“ƒ^‚ğæ“¾
+		// ãƒ©ãƒ™ãƒ«ã®æŒ‡ã™å®Ÿè¡Œãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
 		if ( code_getprm() <= PARAM_END )         return nullptr;
 		if ( mpval->flag   != HSPVAR_FLAG_LABEL ) return nullptr;
 
-		// ƒ‰ƒxƒ‹‚Ìƒ|ƒCƒ“ƒ^‚ğæ“¾‚·‚é( •Ï”‚ÌÀ‘Ì‚©‚çæ‚èo‚· )
+		// ãƒ©ãƒ™ãƒ«ã®ãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—ã™ã‚‹( å¤‰æ•°ã®å®Ÿä½“ã‹ã‚‰å–ã‚Šå‡ºã™ )
 		lb = *(label_t*)( mpval->pt );
 	}
 
@@ -135,7 +135,7 @@ label_t code_getdlb( label_t defLabel )
 }
 
 //------------------------------------------------
-// ƒ‰ƒxƒ‹Àsƒ|ƒCƒ“ƒ^‚ğæ“¾‚·‚é
+// ãƒ©ãƒ™ãƒ«å®Ÿè¡Œãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—ã™ã‚‹
 // @ ???
 //------------------------------------------------
 //pExec_t code_getlb2(void)
@@ -147,7 +147,7 @@ label_t code_getdlb( label_t defLabel )
 //}
 
 //------------------------------------------------
-// ƒCƒ“ƒXƒ^ƒ“ƒX‚ğæ“¾‚·‚é
+// ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’å–å¾—ã™ã‚‹
 //------------------------------------------------
 FlexValue* code_get_struct()
 {
@@ -158,7 +158,7 @@ FlexValue* code_get_struct()
 }
 
 //------------------------------------------------
-// ƒ‚ƒWƒ…[ƒ‹ƒNƒ‰ƒX¯•Êq‚ğæ“¾
+// ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚¯ãƒ©ã‚¹è­˜åˆ¥å­ã‚’å–å¾—
 //------------------------------------------------
 stdat_t code_get_modcls()
 {
@@ -168,7 +168,7 @@ stdat_t code_get_modcls()
 }
 
 //------------------------------------------------
-// \‘¢‘Ìƒpƒ‰ƒ[ƒ^‚ğæ“¾
+// æ§‹é€ ä½“ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’å–å¾—
 //------------------------------------------------
 stprm_t code_get_stprm()
 {
@@ -180,9 +180,9 @@ stprm_t code_get_stprm()
 }
 
 //------------------------------------------------
-// 1‚Â‚Ìš‹å‚©‚ç‚È‚é®‚ğó‚¯æ‚é
+// 1ã¤ã®å­—å¥ã‹ã‚‰ãªã‚‹å¼ã‚’å—ã‘å–ã‚‹
 //
-// @ ‚»‚Ìš‹å‚Ì’l©‘Ì‚Íæ“Ç‚İ (type, val) ‚ÅŠù‚Éæ“¾‚Å‚«‚Ä‚¢‚éB
+// @ ãã®å­—å¥ã®å€¤è‡ªä½“ã¯å…ˆèª­ã¿ (type, val) ã§æ—¢ã«å–å¾—ã§ãã¦ã„ã‚‹ã€‚
 //------------------------------------------------
 int code_get_singleToken()
 {
@@ -192,7 +192,7 @@ int code_get_singleToken()
 //	int const type_bak = *type, val_bak = *val;
 	code_next();
 
-	// Ÿ‚ª•¶“ª‚â®“ª‚Å‚Í‚È‚­A')' ‚Å‚à‚È‚¢ ¨ —^‚¦‚ç‚ê‚½ˆø”®‚ª2š‹åˆÈã‚Å‚Å‚«‚Ä‚¢‚é
+	// æ¬¡ãŒæ–‡é ­ã‚„å¼é ­ã§ã¯ãªãã€')' ã§ã‚‚ãªã„ â†’ ä¸ãˆã‚‰ã‚ŒãŸå¼•æ•°å¼ãŒ2å­—å¥ä»¥ä¸Šã§ã§ãã¦ã„ã‚‹
 	if ( *exinfo->npexflg & (EXFLG_1 | EXFLG_2) || (*type == TYPE_MARK && *val == ')') ) {
 		*exinfo->npexflg &= ~EXFLG_2;
 		return (*type == TYPE_MARK && *val == ')')
@@ -204,27 +204,27 @@ int code_get_singleToken()
 }
 
 //##########################################################
-//    ”z—ñ“Yš‚Ì‰ğŒˆ
+//    é…åˆ—æ·»å­—ã®è§£æ±º
 //##########################################################
 //------------------------------------------------
-// “Yš‚Ìæ‚èo‚µ (’Êí”z—ñ)
+// æ·»å­—ã®å–ã‚Šå‡ºã— (é€šå¸¸é…åˆ—)
 // 
-// @ '(' ‚ğæ‚èo‚µ‚½’¼Œã‚Ìó‘Ô‚ÅŒÄ‚Ô
+// @ '(' ã‚’å–ã‚Šå‡ºã—ãŸç›´å¾Œã®çŠ¶æ…‹ã§å‘¼ã¶
 //------------------------------------------------
 void code_expand_index_int( PVal* pval, bool bRhs )
 {
-	HspVarCoreReset(pval);	// ”z—ñ“Yš‚Ìî•ñ‚ğ‰Šú‰»‚·‚é
+	HspVarCoreReset(pval);	// é…åˆ—æ·»å­—ã®æƒ…å ±ã‚’åˆæœŸåŒ–ã™ã‚‹
 
 	int n = 0;
 	PVal tmpPVal;
 
 	for (;;) {
-		// “Yš‚Ìó‘Ô‚ğ•Û‘¶
+		// æ·»å­—ã®çŠ¶æ…‹ã‚’ä¿å­˜
 		HspVarCoreCopyArrayInfo( &tmpPVal, pval );
 
 		int const prm = code_getprm();
 
-		// ƒGƒ‰[ƒ`ƒFƒbƒN
+		// ã‚¨ãƒ©ãƒ¼ãƒã‚§ãƒƒã‚¯
 		if ( prm == PARAM_DEFAULT ) {
 			n = 0;
 
@@ -235,21 +235,21 @@ void code_expand_index_int( PVal* pval, bool bRhs )
 			puterror( HSPERR_TYPE_MISMATCH );
 		}
 
-		// “Yš‚Ìó‘Ô‚ğ–ß‚·
+		// æ·»å­—ã®çŠ¶æ…‹ã‚’æˆ»ã™
 		HspVarCoreCopyArrayInfo( pval, &tmpPVal );
 
 		if ( prm != PARAM_DEFAULT ) {
 			n = VtTraits::derefValptr<vtInt>(mpval->pt);
 		}
 
-		code_index_int( pval, n, bRhs );	// ”z—ñ—v‘fw’è (int)
+		code_index_int( pval, n, bRhs );	// é…åˆ—è¦ç´ æŒ‡å®š (int)
 		if ( prm == PARAM_SPLIT ) break;
 	}
 	return;
 }
 
 //------------------------------------------------
-// “YšŠ‡ŒÊ‚Ìæ‚èo‚µ (’Êí”z—ñ)
+// æ·»å­—æ‹¬å¼§ã®å–ã‚Šå‡ºã— (é€šå¸¸é…åˆ—)
 //------------------------------------------------
 static void code_checkarray( PVal* pval, bool bRhs )
 {
@@ -263,7 +263,7 @@ static void code_checkarray( PVal* pval, bool bRhs )
 		}
 		code_next();
 
-	// “Yš‚ª‚È‚¯‚ê‚Î‰Šú‰»‚¾‚¯‚·‚é
+	// æ·»å­—ãŒãªã‘ã‚Œã°åˆæœŸåŒ–ã ã‘ã™ã‚‹
 	} else {
 		HspVarCoreReset( pval );
 	}
@@ -274,7 +274,7 @@ void code_checkarray2( PVal* pval ) { code_expand_index_int( pval, false ); }
 void code_checkarray1( PVal* pval ) { code_expand_index_int( pval, true  ); }
 
 //------------------------------------------------
-// “YšŠ‡ŒÊ‚Ìæ‚èo‚µ (˜A‘z”z—ñ, ¶)
+// æ·»å­—æ‹¬å¼§ã®å–ã‚Šå‡ºã— (é€£æƒ³é…åˆ—, å·¦)
 //------------------------------------------------
 void code_checkarray_obj2( PVal* pval )
 {
@@ -283,7 +283,7 @@ void code_checkarray_obj2( PVal* pval )
 	if ( *type == TYPE_MARK && *val == '(' ) {
 		code_next();
 
-		getHvp(pval->flag)->ArrayObject( pval );	// “YšQÆ
+		getHvp(pval->flag)->ArrayObject( pval );	// æ·»å­—å‚ç…§
 
 		if ( !(*type == TYPE_MARK && *val == ')') ) {
 			puterror( HSPERR_BAD_ARRAY_EXPRESSION );
@@ -294,11 +294,11 @@ void code_checkarray_obj2( PVal* pval )
 }
 
 //------------------------------------------------
-// “YšŠ‡ŒÊ‚Ìæ‚èo‚µ (˜A‘z”z—ñ, ‰E)
+// æ·»å­—æ‹¬å¼§ã®å–ã‚Šå‡ºã— (é€£æƒ³é…åˆ—, å³)
 // 
-// @prm pval   : “Yšw’è‚³‚ê‚é”z—ñ•Ï”
-// @prm mptype : ”Ä—pƒf[ƒ^‚ÌŒ^ƒ^ƒCƒv’l‚ğ•Ô‚·
-// @result     : ”Ä—pƒf[ƒ^‚Ö‚Ìƒ|ƒCƒ“ƒ^
+// @prm pval   : æ·»å­—æŒ‡å®šã•ã‚Œã‚‹é…åˆ—å¤‰æ•°
+// @prm mptype : æ±ç”¨ãƒ‡ãƒ¼ã‚¿ã®å‹ã‚¿ã‚¤ãƒ—å€¤ã‚’è¿”ã™
+// @result     : æ±ç”¨ãƒ‡ãƒ¼ã‚¿ã¸ã®ãƒã‚¤ãƒ³ã‚¿
 //------------------------------------------------
 PDAT* code_checkarray_obj1( PVal* pval, int& mptype )
 {
@@ -321,17 +321,17 @@ PDAT* code_checkarray_obj1( PVal* pval, int& mptype )
 }
 
 //------------------------------------------------
-// “Yš‚Ìæ‚èo‚µ (’Êí/˜A‘z, ’†g‚¾‚¯)
+// æ·»å­—ã®å–ã‚Šå‡ºã— (é€šå¸¸/é€£æƒ³, ä¸­èº«ã ã‘)
 // 
-// @ '(' ‚ğæ‚èo‚µ‚½’¼Œã‚ÉŒÄ‚Î‚ê‚éB
+// @ '(' ã‚’å–ã‚Šå‡ºã—ãŸç›´å¾Œã«å‘¼ã°ã‚Œã‚‹ã€‚
 //------------------------------------------------
 void code_expand_index_lhs( PVal* pval )
 {
-	// ˜A‘z”z—ñŒ^ => ArrayObject() ‚ğŒÄ‚Ô
+	// é€£æƒ³é…åˆ—å‹ => ArrayObject() ã‚’å‘¼ã¶
 	if ( pval->support & HSPVAR_SUPPORT_ARRAYOBJ ) {
 		getHvp( pval->flag )->ArrayObject( pval );
 
-	// ’Êí”z—ñŒ^ => ŸŒ³‚Ì”‚¾‚¯—v‘f‚ğæ‚èo‚·
+	// é€šå¸¸é…åˆ—å‹ => æ¬¡å…ƒã®æ•°ã ã‘è¦ç´ ã‚’å–ã‚Šå‡ºã™
 	} else {
 		PVal pvalTemp;
 		HspVarCoreReset( pval );
@@ -350,11 +350,11 @@ void code_expand_index_lhs( PVal* pval )
 
 PDAT* code_expand_index_rhs( PVal* pval, int& mptype )
 {
-	// ˜A‘z”z—ñŒ^ => ArrayObjectRead() ‚ğŒÄ‚Ô
+	// é€£æƒ³é…åˆ—å‹ => ArrayObjectRead() ã‚’å‘¼ã¶
 	if ( pval->support & HSPVAR_SUPPORT_ARRAYOBJ ) {
 		return getHvp( pval->flag )->ArrayObjectRead( pval, &mptype );
 
-	// ’Êí”z—ñŒ^ => ŸŒ³‚Ì”‚¾‚¯—v‘f‚ğæ‚èo‚·
+	// é€šå¸¸é…åˆ—å‹ => æ¬¡å…ƒã®æ•°ã ã‘è¦ç´ ã‚’å–ã‚Šå‡ºã™
 	} else {
 		PVal pvalTemp;
 		HspVarCoreReset( pval );
@@ -373,35 +373,35 @@ PDAT* code_expand_index_rhs( PVal* pval, int& mptype )
 }
 
 //------------------------------------------------
-// ”z—ñ—v‘f‚Ìİ’è (’Êí”z—ñ, 1‚Â‚¾‚¯, ¶‰E)
+// é…åˆ—è¦ç´ ã®è¨­å®š (é€šå¸¸é…åˆ—, 1ã¤ã ã‘, å·¦å³)
 // 
-// @ ’ÊíŒ^ (int) ‚Ì‚İB
-// @ Reset Œã‚ÉŸŒ³”‚¾‚¯˜A‘±‚ÅŒÄ‚Î‚ê‚éB
+// @ é€šå¸¸å‹ (int) ã®ã¿ã€‚
+// @ Reset å¾Œã«æ¬¡å…ƒæ•°ã ã‘é€£ç¶šã§å‘¼ã°ã‚Œã‚‹ã€‚
 //------------------------------------------------
 void code_index_int( PVal* pval, int offset, bool bRhs )
 {
 	if ( !bRhs ) {
-		code_index_int_lhs( pval, offset );		// ©“®Šg’£‚·‚é
+		code_index_int_lhs( pval, offset );		// è‡ªå‹•æ‹¡å¼µã™ã‚‹
 	} else {
-		code_index_int_rhs( pval, offset );		// ©“®Šg’£‚µ‚È‚¢
+		code_index_int_rhs( pval, offset );		// è‡ªå‹•æ‹¡å¼µã—ãªã„
 	}
 	return;
 }
 
-// ¶•Ó’l‚Æ‚µ‚ÄQÆ
+// å·¦è¾ºå€¤ã¨ã—ã¦å‚ç…§
 void code_index_int_lhs( PVal* pval, int offset )
 {
 	if ( pval->arraycnt >= 5 ) puterror( HSPVAR_ERROR_ARRAYOVER );
 	if ( pval->arraycnt == 0 ) {
-		pval->arraymul = 1;		// ”{—¦‰Šú’l
+		pval->arraymul = 1;		// å€ç‡åˆæœŸå€¤
 	} else {
 		pval->arraymul *= pval->len[pval->arraycnt];
 	}
 	++pval->arraycnt;
 	if ( offset < 0 ) puterror( HSPVAR_ERROR_ARRAYOVER );
-	if ( offset >= pval->len[pval->arraycnt] ) {							// ”z—ñŠg’£‚ª•K—v
-		if ( (pval->arraycnt >= 4 || pval->len[pval->arraycnt + 1] == 0)	// ”z—ñŠg’£‚ª‰Â”\
-			&& (pval->support & HSPVAR_SUPPORT_FLEXARRAY)					// ‰Â•Ï’·”z—ñƒTƒ|[ƒg => ”z—ñ‚ğŠg’£‚·‚é
+	if ( offset >= pval->len[pval->arraycnt] ) {							// é…åˆ—æ‹¡å¼µãŒå¿…è¦
+		if ( (pval->arraycnt >= 4 || pval->len[pval->arraycnt + 1] == 0)	// é…åˆ—æ‹¡å¼µãŒå¯èƒ½
+			&& (pval->support & HSPVAR_SUPPORT_FLEXARRAY)					// å¯å¤‰é•·é…åˆ—ã‚µãƒãƒ¼ãƒˆ => é…åˆ—ã‚’æ‹¡å¼µã™ã‚‹
 		) {
 			exinfo->HspFunc_redim( pval, pval->arraycnt, offset + 1 );
 			pval->offset += offset * pval->arraymul;
@@ -413,7 +413,7 @@ void code_index_int_lhs( PVal* pval, int offset )
 	return;
 }
 
-// ‰E•Ó’l‚Æ‚µ‚ÄQÆ
+// å³è¾ºå€¤ã¨ã—ã¦å‚ç…§
 extern void code_index_int_rhs( PVal* pval, int offset )
 {
 	exinfo->HspFunc_array( pval, offset );
@@ -434,10 +434,10 @@ extern void code_index_int_rhs( PVal* pval, int offset )
 	return;
 }
 
-// “Yš‚Ì‰Šú‰»
+// æ·»å­—ã®åˆæœŸåŒ–
 void code_index_reset(PVal* pval)
 {
-	// •W€”z—ñ‚Ìê‡‚Ì‚İ‰Šú‰»‚·‚é
+	// æ¨™æº–é…åˆ—ã®å ´åˆã®ã¿åˆæœŸåŒ–ã™ã‚‹
 	if ( PVal_supportArray(pval) && !(pval->support & HSPVAR_SUPPORT_ARRAYOBJ) ) {	
 		HspVarCoreReset(pval);
 	}
@@ -449,14 +449,14 @@ void code_index_reset(PVal* pval)
 //------------------------------------------------
 
 //##########################################################
-//    ‘ã“üˆ—ƒGƒ~ƒ…ƒŒ[ƒg
+//    ä»£å…¥å‡¦ç†ã‚¨ãƒŸãƒ¥ãƒ¬ãƒ¼ãƒˆ
 //##########################################################
 
 //------------------------------------------------
-// ˜A‘±‘ã“ü (’Êí”z—ñ)
+// é€£ç¶šä»£å…¥ (é€šå¸¸é…åˆ—)
 // 
-// @ 1‚Â–Ú‚Ì‘ã“ü‚ÍI—¹‚µ‚Ä‚¢‚é‚Æ‚·‚é
-// @ ‘ã“ü‚·‚é’l‚ª‚È‚¢ => do nothing
+// @ 1ã¤ç›®ã®ä»£å…¥ã¯çµ‚äº†ã—ã¦ã„ã‚‹ã¨ã™ã‚‹
+// @ ä»£å…¥ã™ã‚‹å€¤ãŒãªã„ => do nothing
 //------------------------------------------------
 void code_assign_multi( PVal* pval )
 {
@@ -465,24 +465,24 @@ void code_assign_multi( PVal* pval )
 	int const len1 = pval->len[1];
 	assert(len1 > 0);
 
-	// aptr = ˆêŸŒ³–Ú‚Ì“Yš + baseaptr ‚ª¬—§
+	// aptr = ä¸€æ¬¡å…ƒç›®ã®æ·»å­— + baseaptr ãŒæˆç«‹
 	APTR baseaptr = pval->offset % len1;
 	APTR aptr = pval->offset - baseaptr;
 
 	do {
-		int const prm = code_getprm();				// Ÿ‚É‘ã“ü‚·‚é’l‚ğæ“¾
+		int const prm = code_getprm();				// æ¬¡ã«ä»£å…¥ã™ã‚‹å€¤ã‚’å–å¾—
 		if ( prm <= PARAM_END ) puterror( HSPERR_SYNTAX );
 	//	if ( !(pval->support & HSPVAR_SUPPORT_ARRAYOBJ) && pval->flag != mpval->flag ) {
-	//		puterror( HSPERR_INVALID_ARRAYSTORE );	// Œ^•ÏX‚Í‚Å‚«‚È‚¢
+	//		puterror( HSPERR_INVALID_ARRAYSTORE );	// å‹å¤‰æ›´ã¯ã§ããªã„
 	//	}
 
 		baseaptr ++;
 
-		pval->arraycnt = 0;							// ”z—ñw’èƒJƒEƒ“ƒ^‚ğƒŠƒZƒbƒg
+		pval->arraycnt = 0;							// é…åˆ—æŒ‡å®šã‚«ã‚¦ãƒ³ã‚¿ã‚’ãƒªã‚»ãƒƒãƒˆ
 		pval->offset   = aptr;
-		code_index_int_lhs( pval, baseaptr );		// ”z—ñƒ`ƒFƒbƒN
+		code_index_int_lhs( pval, baseaptr );		// é…åˆ—ãƒã‚§ãƒƒã‚¯
 
-		// ‘ã“ü
+		// ä»£å…¥
 		PVal_assign( pval, mpval->pt, mpval->flag );
 	} while ( code_isNextArg() );
 
@@ -490,12 +490,12 @@ void code_assign_multi( PVal* pval )
 }
 
 //##########################################################
-//    ‚»‚Ì‘¼
+//    ãã®ä»–
 //##########################################################
 //------------------------------------------------
-// ˆø”‚ª‘±‚­‚©‚Ç‚¤‚©
+// å¼•æ•°ãŒç¶šãã‹ã©ã†ã‹
 // 
-// @ –½—ßŒ`®AŠÖ”Œ`®‚Ç‚¿‚ç‚Å‚à‚n‚j
+// @ å‘½ä»¤å½¢å¼ã€é–¢æ•°å½¢å¼ã©ã¡ã‚‰ã§ã‚‚ï¼¯ï¼«
 //------------------------------------------------
 bool code_isNextArg()
 {
@@ -503,42 +503,42 @@ bool code_isNextArg()
 }
 
 //------------------------------------------------
-// code_get ‚Ì–`“ª‚Ìˆ—
+// code_get ã®å†’é ­ã®å‡¦ç†
 //------------------------------------------------
 int code_get_procHeader()
 {
 	int& exflg = *exinfo->npexflg;
 
-	// I—¹, or È—ª
-	if ( exflg & EXFLG_1 ) return PARAM_END;	// •¶“ªA‚·‚È‚í‚¿ƒpƒ‰ƒ[ƒ^[I’[
-	if ( exflg & EXFLG_2 ) {					// ƒpƒ‰ƒ[ƒ^[‹æØ‚è(ƒfƒtƒHƒ‹ƒg)
+	// çµ‚äº†, or çœç•¥
+	if ( exflg & EXFLG_1 ) return PARAM_END;	// æ–‡é ­ã€ã™ãªã‚ã¡ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ¼çµ‚ç«¯
+	if ( exflg & EXFLG_2 ) {					// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ¼åŒºåˆ‡ã‚Š(ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆæ™‚)
 		exflg &= ~EXFLG_2;
 		return PARAM_DEFAULT;
 	}
 
 	if ( *type == TYPE_MARK ) {
-		// ƒpƒ‰ƒ[ƒ^[È—ª('?')
+		// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ¼çœç•¥æ™‚('?')
 		if ( *val == 63 ) {
 			code_next();
 			exflg &= ~EXFLG_2;
 			return PARAM_DEFAULT;
 
-			// ŠÖ”“à‚Ìƒpƒ‰ƒ[ƒ^[È—ª
+			// é–¢æ•°å†…ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ¼çœç•¥æ™‚
 		} else if ( *val == ')' ) {
 			exflg &= ~EXFLG_2;
 			return PARAM_ENDSPLIT;
 		}
 	}
 
-	// ®‚Ì–{‘Ì‚ğæ‚èo‚·
+	// å¼ã®æœ¬ä½“ã‚’å–ã‚Šå‡ºã™
 	return PARAM_OK;
 }
 
 //------------------------------------------------
-// Ÿ‚Ìˆø”‚ğ“Ç‚İ”ò‚Î‚·
+// æ¬¡ã®å¼•æ•°ã‚’èª­ã¿é£›ã°ã™
 // 
-// @ exflg ‚ğ‚È‚ñ‚Æ‚©‚µ‚æ‚¤‚Æ‚µ‚Ä‚İ‚éB
-// @ result : PARAM_* (code_getprm ‚Æ“¯‚¶)
+// @ exflg ã‚’ãªã‚“ã¨ã‹ã—ã‚ˆã†ã¨ã—ã¦ã¿ã‚‹ã€‚
+// @ result : PARAM_* (code_getprm ã¨åŒã˜)
 //------------------------------------------------
 int code_skipprm()
 {
@@ -548,8 +548,8 @@ int code_skipprm()
 	}
 	int& exflg = *exinfo->npexflg;
 
-	// ˆø”‚Ì®‚Ì“Ç‚İ”ò‚Î‚µˆ—
-	for ( int lvBracket = 0; ; ) {			// –³ŒÀƒ‹[ƒv
+	// å¼•æ•°ã®å¼ã®èª­ã¿é£›ã°ã—å‡¦ç†
+	for ( int lvBracket = 0; ; ) {			// ç„¡é™ãƒ«ãƒ¼ãƒ—
 		if ( *type == TYPE_MARK ) {
 			if ( *val == '(' ) lvBracket ++;
 			if ( *val == ')' ) lvBracket --;
@@ -557,21 +557,21 @@ int code_skipprm()
 		code_next();
 
 		if ( lvBracket == 0 && (exflg & (EXFLG_1 | EXFLG_2) || (*type == TYPE_MARK && *val == ')')) ) {
-			// Š‡ŒÊ‚Ì’†‚Å‚Í‚È‚­A‚©‚Â®‚ÉŒã‘±‚Ìš‹å‚ªŒ©‚¦‚½‚çI—¹
+			// æ‹¬å¼§ã®ä¸­ã§ã¯ãªãã€ã‹ã¤å¼ã«å¾Œç¶šã®å­—å¥ãŒè¦‹ãˆãŸã‚‰çµ‚äº†
 			break;
 		}
 	}
 
 	if ( exflg ) exflg &= ~EXFLG_2;
 
-	// I—¹
+	// çµ‚äº†
 	return ( *type == TYPE_MARK && *val == ')' )
 		? PARAM_SPLIT
 		: PARAM_OK;
 }
 
 //------------------------------------------------
-// Ÿ‚Ì“Á’è‚ÌƒR[ƒh‚ğ–³‹‚·‚é
+// æ¬¡ã®ç‰¹å®šã®ã‚³ãƒ¼ãƒ‰ã‚’ç„¡è¦–ã™ã‚‹
 //------------------------------------------------
 bool code_next_expect( int expect_type, int expect_val )
 {

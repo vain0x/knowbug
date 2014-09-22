@@ -1,28 +1,28 @@
+﻿
+★プラグインが作れる人限定。
 
-���v���O�C��������l����B
-
-�Ehsp3 ��K���Ȉʒu�ɃR�s�[����B
-�E./win3gui/hsp3.vcproj (�R�s�[�̕�) ��VC++�ŊJ�� (2008�ł̂݊m�F)
-�E�v���W�F�N�g�� hsp3plugin.h �ƁA
-	�v���O�C����o�^����֐���錾���� .h (rtmain.h  �Ɖ���)
-	cmdfunc �Ȃǂ̎���������t�@�C�� .cpp (rtmain.cpp�Ɖ���)
-	���ꂼ��̃R�s�[��ǉ�����B
-�Ehsp3plugin.h ���� extern �t���̕ϐ��錾���폜����B
-�Ehsp3plugin.cpp �ɂ���O���[�o���ϐ��錾�� rtmain.cpp �̏㕔�ɃR�s�[���A���ׂ� static �ɂ���B
-�Ehsp3plugin.cpp �̊֐��錾�� rtmain.cpp �̏㕔�ɁA���������̕��ɁA���ꂼ��R�s�[����B
-�@hsp3plugin.cpp �̓v���W�F�N�g����O���B
-�Ehsp3code.cpp �ɁA
-	#include "rtmain.h" ���㕔�ɒǉ��B( #include �Q�̍Ō�� )
-	(2420�s�ڂ������) code_init �֐��̂Ȃ��ɂ���A hsp3typeinit �Q�ɖ���A�˂�B
-	hsp3typeinit_**( code_gettypeinfo(-1) );	// �֐����� rtmain.h �̂���
-�E�r���h�B
-�Ehsp �̃C���X�g�[������Ă���t�H���_�ɁA�ł��������������^�C�� .exe ���ړ��B
-�E�e�X�g�B���̂悤�� as �t�@�C��������� include
+・hsp3 を適当な位置にコピーする。
+・./win3gui/hsp3.vcproj (コピーの方) をVC++で開く (2008でのみ確認)
+・プロジェクトに hsp3plugin.h と、
+	プラグインを登録する関数を宣言した .h (rtmain.h  と仮定)
+	cmdfunc などの実装があるファイル .cpp (rtmain.cppと仮定)
+	それぞれのコピーを追加する。
+・hsp3plugin.h から extern 付きの変数宣言を削除する。
+・hsp3plugin.cpp にあるグローバル変数宣言を rtmain.cpp の上部にコピーし、すべて static にする。
+・hsp3plugin.cpp の関数宣言を rtmain.cpp の上部に、実装を下の方に、それぞれコピーする。
+　hsp3plugin.cpp はプロジェクトから外す。
+・hsp3code.cpp に、
+	#include "rtmain.h" を上部に追加。( #include 群の最後に )
+	(2420行目あたりの) code_init 関数のなかにある、 hsp3typeinit 群に名を連ねる。
+	hsp3typeinit_**( code_gettypeinfo(-1) );	// 関数名は rtmain.h のもの
+・ビルド。
+・hsp のインストールされているフォルダに、できあがったランタイム .exe を移動。
+・テスト。次のような as ファイルを作って include
 
 <pre>
-#runtime "�����^�C����( �g���q���� )"
+#runtime "ランタイム名( 拡張子除く )"
 #regcmd 18
-#cmd ...	// �L�[���[�h���`
+#cmd ...	// キーワードを定義
 </pre>
 
-���v���O�C����o�^����֐� �c hsp3sdk_init ���Ăяo���Ă���֐��B
+※プラグインを登録する関数 … hsp3sdk_init を呼び出している関数。

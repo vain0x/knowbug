@@ -1,4 +1,4 @@
-// PValHolder
+ï»¿// PValHolder
 #if 0
 #ifndef IG_HPIMOD_PVAL_HOLDER_H
 #define IG_HPIMOD_PVAL_HOLDER_H
@@ -6,7 +6,7 @@
 #include "mod_makePVal.h"
 
 //------------------------------------------------
-// •Ï”ƒzƒ‹ƒ_[
+// å¤‰æ•°ãƒ›ãƒ«ãƒ€ãƒ¼
 //------------------------------------------------
 class PValHolder
 {
@@ -40,7 +40,7 @@ private:
 		PVal_init( get(), type );
 	}
 private:
-	PVal mVar;		// –{‘Ì
+	PVal mVar;		// æœ¬ä½“
 	
 };
 

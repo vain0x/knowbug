@@ -1,4 +1,4 @@
-// ˆø”æ“¾ƒ‚ƒWƒ…[ƒ‹
+ï»¿// å¼•æ•°å–å¾—ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«
 
 #ifndef IG_MODULE_ARGUMENT_GETTER_H
 #define IG_MODULE_ARGUMENT_GETTER_H
@@ -7,7 +7,7 @@
 
 namespace hpimod {
 
-// ˆø”‚Ìæ“¾
+// å¼•æ•°ã®å–å¾—
 //extern bool code_getva_ex(PVal** pval, APTR* aptr);
 extern size_t code_getds_ex(char** ppStr, char const* defstr = "");
 //extern int code_get_int_or_str(char** ppStr);
@@ -20,29 +20,29 @@ extern stdat_t code_get_modcls();
 extern stprm_t code_get_stprm();
 extern int code_get_singleToken();
 
-// ”z—ñ“Yš
-	// æ‚èo‚µ (expand_index)
-extern void  code_expand_index_int( PVal* pval, bool bRhs );	// ’Êí”z—ñ‚Ì“Yš‚Ìˆ—
+// é…åˆ—æ·»å­—
+	// å–ã‚Šå‡ºã— (expand_index)
+extern void  code_expand_index_int( PVal* pval, bool bRhs );	// é€šå¸¸é…åˆ—ã®æ·»å­—ã®å‡¦ç†
 extern void  code_expand_index_lhs( PVal* pval );
 extern PDAT* code_expand_index_rhs( PVal* pval, int& mptype );
 
 extern void  code_checkarray( PVal* pval, int bRhs );
-extern void  code_checkarray1( PVal* pval );	// ‰E
-extern void  code_checkarray2( PVal* pval );	// ¶
+extern void  code_checkarray1( PVal* pval );	// å³
+extern void  code_checkarray2( PVal* pval );	// å·¦
 extern PDAT* code_checkarray_obj1( PVal* pval, int& mptype );
 extern void  code_checkarray_obj2( PVal* pval );
 
-	// İ’è (index)
+	// è¨­å®š (index)
 extern void code_index_int( PVal* pval, int offset, bool bRhs );
 extern void code_index_int_lhs( PVal* pval, int offset );
 extern void code_index_int_rhs( PVal* pval, int offset );
 
 extern void code_index_reset(PVal* pval);
 
-// ”z—ñ‘ã“üƒGƒ~ƒ…ƒŒ[ƒg
+// é…åˆ—ä»£å…¥ã‚¨ãƒŸãƒ¥ãƒ¬ãƒ¼ãƒˆ
 extern void code_assign_multi( PVal* pval );
 
-// ‚»‚Ì‘¼
+// ãã®ä»–
 extern bool code_isNextArg();
 extern int  code_skipprm();
 

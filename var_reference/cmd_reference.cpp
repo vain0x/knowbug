@@ -1,4 +1,4 @@
-// reference - Command code
+ï»¿// reference - Command code
 
 #include "vt_reference.h"
 #include "cmd_reference.h"
@@ -8,10 +8,10 @@
 #include "mod_func_result.h"
 
 //#########################################################
-//        –½—ß
+//        å‘½ä»¤
 //#########################################################
 //------------------------------------------------
-// reference ¶¬
+// reference ç”Ÿæˆ
 //------------------------------------------------
 static void ReferenceNew( PVal* pvDst, PVal* pvSrc )
 {
@@ -22,7 +22,7 @@ static void ReferenceNew( PVal* pvDst, PVal* pvSrc )
 }
 
 //------------------------------------------------
-// \’z (dim)
+// æ§‹ç¯‰ (dim)
 //------------------------------------------------
 void ReferenceNew()
 {
@@ -32,7 +32,7 @@ void ReferenceNew()
 }
 
 //------------------------------------------------
-// ”jŠü
+// ç ´æ£„
 //------------------------------------------------
 void ReferenceDelete()
 {
@@ -51,33 +51,33 @@ void ReferenceMemberOf()
 {
 	PVal* const pvDst = code_getpval();
 	
-	// æ‚èo‚·Œ³‚ÌƒCƒ“ƒXƒ^ƒ“ƒX
+	// å–ã‚Šå‡ºã™å…ƒã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹
 	PVal* const pvInst = code_get_var();
 	if ( pvInst->flag != HSPVAR_FLAG_STRUCT ) puterror( HSPERR_TYPE_MISMATCH );
 	
 	const auto* const fv     = reinterpret_cast<FlexValue*>( GetHvp(HSPVAR_FLAG_STRUCT)->GetPtr(pvInst) );
 	const void* const member = fv->ptr;
 	
-	// ‘Î‰‚·‚éƒƒ“ƒo•Ï”
+	// å¯¾å¿œã™ã‚‹ãƒ¡ãƒ³ãƒå¤‰æ•°
 	const STRUCTPRM* const pStPrm = code_get_stprm();
 //	const STRUCTDAT* const modcls = &ctx->mem_finfo[ pStPrm->subid ];
-	if ( pStPrm->subid != ctx->mem_minfo[ fv->customid ].subid ) puterror( HSPERR_INVALID_STRUCT_SOURCE );	// ƒNƒ‰ƒX‚ªˆá‚¤
+	if ( pStPrm->subid != ctx->mem_minfo[ fv->customid ].subid ) puterror( HSPERR_INVALID_STRUCT_SOURCE );	// ã‚¯ãƒ©ã‚¹ãŒé•ã†
 	
-	assert( pStPrm->mptype == MPTYPE_LOCALVAR );		// modcls ‚Ì stprm ‚Í‚·‚×‚Äƒ[ƒJƒ‹•Ï”
+	assert( pStPrm->mptype == MPTYPE_LOCALVAR );		// modcls ã® stprm ã¯ã™ã¹ã¦ãƒ­ãƒ¼ã‚«ãƒ«å¤‰æ•°
 	PVal* const pvMember = reinterpret_cast<PVal*>( &((char*)member)[ pStPrm->offset ] );
 	
-	// ƒƒ“ƒo•Ï”‚Ì“Yšˆ—
+	// ãƒ¡ãƒ³ãƒå¤‰æ•°ã®æ·»å­—å‡¦ç†
 	if ( *type == TYPE_MARK && *val == '(' ) {
 		code_next();
 		code_expand_index_impl_lhs( pvMember );
 		code_next_expect( TYPE_MARK, ')' );
 	} else {
 		if ( PVal_supportArray(pvMember) && !(pvMember->support & HSPVAR_SUPPORT_ARRAYOBJ) ) {
-			HspVarCoreReset(pvMember);		//@“Yš‰Šú‰»
+			HspVarCoreReset(pvMember);		//ã€€æ·»å­—åˆæœŸåŒ–
 		}
 	}
 	
-	// ƒŠƒtƒ@ƒŒƒ“ƒX‰»
+	// ãƒªãƒ•ã‚¡ãƒ¬ãƒ³ã‚¹åŒ–
 	ReferenceNew( pvDst, pvMember );
 	
 	return;

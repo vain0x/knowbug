@@ -1,4 +1,4 @@
-#ifndef IG_VARTYPE_TRAITS_H
+ï»¿#ifndef IG_VARTYPE_TRAITS_H
 #define IG_VARTYPE_TRAITS_H
 
 #include "hsp3plugin_custom.h"
@@ -7,39 +7,39 @@ namespace hpimod
 {
 
 //------------------------------------------------
-// •Ï”Œ^‚Ì“Á«
+// å¤‰æ•°å‹ã®ç‰¹æ€§
 //------------------------------------------------
 namespace VtTraits
 {
 	namespace Impl
 	{
 		//------------------------------------------------
-		// À‘ÌŒ^
+		// å®Ÿä½“å‹
 		//------------------------------------------------
 		template<typename Tag> struct value_type;
 		template<typename Tag> struct const_value_type;
 		//{ using type = value_type<Tag>::type const; };
 
 		//------------------------------------------------
-		// À‘Ìƒ|ƒCƒ“ƒ^Œ^ (PDAT* ‚ÆŒİŠ·)
+		// å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿å‹ (PDAT* ã¨äº’æ›)
 		//------------------------------------------------
 		template<typename Tag> struct valptr_type;
 		template<typename Tag> struct const_valptr_type;
 
 		//------------------------------------------------
-		// ƒ}ƒXƒ^[Œ^ (PVal::master ‚ÌŒ^‚ÆŒİŠ·)
+		// ãƒã‚¹ã‚¿ãƒ¼å‹ (PVal::master ã®å‹ã¨äº’æ›)
 		//------------------------------------------------
 		template<typename Tag> struct master_type {
 			using type = void*;
 		};
 
 		//------------------------------------------------
-		// ƒx[ƒXƒTƒCƒY
+		// ãƒ™ãƒ¼ã‚¹ã‚µã‚¤ã‚º
 		//------------------------------------------------
 		template<typename Tag> struct basesize;
 
 		//------------------------------------------------
-		// Œ^ƒ^ƒCƒv’l (‚ğ•Ô‚·ŠÖ”)
+		// å‹ã‚¿ã‚¤ãƒ—å€¤ (ã‚’è¿”ã™é–¢æ•°)
 		//------------------------------------------------
 		template<typename Tag> static vartype_t vartype();
 	}
@@ -53,16 +53,16 @@ namespace VtTraits
 	template<typename Tag> using const_valptr_t = typename Impl::const_valptr_type<Tag>::type;
 	template<typename Tag> using master_t       = typename Impl::master_type<Tag>::type;
 
-	template<typename Tag> using basesize = Impl::basesize<Tag>;	// •Ï”ƒeƒ“ƒvƒŒ[ƒg‚ª‚È‚¢‚Ì‚Å ::value ‚ÍŠO‚¹‚È‚¢
+	template<typename Tag> using basesize = Impl::basesize<Tag>;	// å¤‰æ•°ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆãŒãªã„ã®ã§ ::value ã¯å¤–ã›ãªã„
 
 	//------------------------------------------------
-	// value[] ‚ÌŒ^A‚ÌƒCƒ“ƒ^[ƒtƒF[ƒX“I‚È‚à‚Ì
+	// value[] ã®å‹ã€ã®ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹çš„ãªã‚‚ã®
 	//
-	// ‚±‚Ì•û–@‚Å‚ÍAƒ^ƒO‚Í‚X1‚Â‚ÌƒCƒ“ƒ^[ƒtƒF[ƒX‚µ‚©‚Ä‚È‚¢B
-	// ˆê‰‘Îô‚Í‚ ‚é‚ªƒƒ^ƒvƒƒOƒ‰ƒ~ƒ“ƒOƒ‰ƒCƒuƒ‰ƒŠ‚ª•K—v‚É‚È‚é‚Ì‚Å‚ß‚ñ‚Ç‚­‚³‚¢B
-	// using Int = VartypeTag<NativeVartypeTag<Int>, InternalTag<Int>>; ‚Æ‚µ‚Ä‚¨‚¢‚ÄA
-	// •”•ª“Áê‰»‚Í VartypeTag<Attrs...> ‚Åó‚¯A‘Î‰‚·‚é‘®«‚ª Attrs... ‚Ì’†‚É‚ ‚é‚©‚Ç‚¤‚©‚É‚Â‚¢‚Ä SFINAE ‚Åê‡•ª‚¯B
-	// ‚Ü‚½‚±‚ê‚Ì‚¹‚¢‚Å int Œ^‚Ìƒ^ƒO‚ğ int ‚É‚·‚é‚Æ‚¢‚¤‚±‚Æ‚à‚Å‚«‚È‚¢B
+	// ã“ã®æ–¹æ³•ã§ã¯ã€ã‚¿ã‚°ã¯é«˜ã€…1ã¤ã®ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ã—ã‹æŒã¦ãªã„ã€‚
+	// ä¸€å¿œå¯¾ç­–ã¯ã‚ã‚‹ãŒãƒ¡ã‚¿ãƒ—ãƒ­ã‚°ãƒ©ãƒŸãƒ³ã‚°ãƒ©ã‚¤ãƒ–ãƒ©ãƒªãŒå¿…è¦ã«ãªã‚‹ã®ã§ã‚ã‚“ã©ãã•ã„ã€‚
+	// using Int = VartypeTag<NativeVartypeTag<Int>, InternalTag<Int>>; ã¨ã—ã¦ãŠã„ã¦ã€
+	// éƒ¨åˆ†ç‰¹æ®ŠåŒ–ã¯ VartypeTag<Attrs...> ã§å—ã‘ã€å¯¾å¿œã™ã‚‹å±æ€§ãŒ Attrs... ã®ä¸­ã«ã‚ã‚‹ã‹ã©ã†ã‹ã«ã¤ã„ã¦ SFINAE ã§å ´åˆåˆ†ã‘ã€‚
+	// ã¾ãŸã“ã‚Œã®ã›ã„ã§ int å‹ã®ã‚¿ã‚°ã‚’ int ã«ã™ã‚‹ã¨ã„ã†ã“ã¨ã‚‚ã§ããªã„ã€‚
 	//------------------------------------------------
 	template<typename TValue>
 	struct NativeVartypeTag { };
@@ -87,14 +87,14 @@ namespace VtTraits
 	}
 
 	//------------------------------------------------
-	// Œ^‚ÉŠÖ‚·‚éŠeíŠÖ”
+	// å‹ã«é–¢ã™ã‚‹å„ç¨®é–¢æ•°
 	//------------------------------------------------
 
-	// ŒÅ’è’·Œ^‚©H
+	// å›ºå®šé•·å‹ã‹ï¼Ÿ
 	template<typename Tag>
 	struct isFixed { static bool const value = (basesize<Tag>::value >= 0); };
 	
-	// PDAT* ¨ À‘Ìƒ|ƒCƒ“ƒ^
+	// PDAT* â†’ å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿
 	template<typename Tag>
 	static const_valptr_t<Tag> asValptr(PDAT const* pdat) {
 		return reinterpret_cast<const_valptr_t<Tag>>(pdat);
@@ -102,7 +102,7 @@ namespace VtTraits
 	template<typename Tag>
 	static valptr_t<Tag> asValptr(PDAT* pdat) { return const_cast<valptr_t<Tag>>(asValptr<Tag>(static_cast<PDAT const*>(pdat))); }
 
-	// À‘Ìƒ|ƒCƒ“ƒ^ ¨ PDAT*
+	// å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿ â†’ PDAT*
 	template<typename Tag>
 	static PDAT const* asPDAT(const_valptr_t<Tag> p) {
 		return reinterpret_cast<PDAT const*>(p);
@@ -110,8 +110,8 @@ namespace VtTraits
 	template<typename Tag>
 	static PDAT* asPDAT(valptr_t<Tag> p) { return const_cast<PDAT*>(asPDAT<Tag>(static_cast<const_valptr_t<Tag>>(p))); }
 
-	// PVal::master ‚ÌƒLƒƒƒXƒg
-	// todo: const_master_t ‚à•K—vH
+	// PVal::master ã®ã‚­ãƒ£ã‚¹ãƒˆ
+	// todo: const_master_t ã‚‚å¿…è¦ï¼Ÿ
 	template<typename Tag>
 	static master_t<Tag> const& getMaster(PVal const* pval) {
 		return *reinterpret_cast<master_t<Tag> const*>(&pval->master);
@@ -119,7 +119,7 @@ namespace VtTraits
 	template<typename Tag>
 	static master_t<Tag>& getMaster(PVal* pval) { return const_cast<master_t<Tag>&>(getMaster<Tag>(static_cast<PVal const*>(pval))); }
 	
-	// À‘Ìƒ|ƒCƒ“ƒ^‚Ì’EQÆ (valptr_t = value_t* ‚Å‚ ‚éŒ^‚ÉŒÀ‚é)
+	// å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿ã®è„±å‚ç…§ (valptr_t = value_t* ã§ã‚ã‚‹å‹ã«é™ã‚‹)
 	template<typename Tag> static const_value_t<Tag>& derefValptr(PDAT const* pdat) {
 		static_assert(std::is_same<valptr_t<Tag>, value_t<Tag>*>::value, "General 'derefValptr()' can be used for vartypes (valptr_t = value_t*).");
 		return *asValptr<Tag>(pdat);
@@ -128,7 +128,7 @@ namespace VtTraits
 	static value_t<Tag>& derefValptr(PDAT* pdat) { return const_cast<value_t<Tag>&>(derefValptr<Tag>(static_cast<PDAT const*>(pdat))); }
 
 	//------------------------------------------------
-	// ‘g‚İ‚İŒ^‚Ìƒ^ƒO
+	// çµ„ã¿è¾¼ã¿å‹ã®ã‚¿ã‚°
 	//------------------------------------------------
 	namespace InternalVartypeTags
 	{
@@ -141,7 +141,7 @@ namespace VtTraits
 	}
 	using namespace InternalVartypeTags;
 
-	// Œ^ƒ^ƒCƒv’l
+	// å‹ã‚¿ã‚¤ãƒ—å€¤
 	namespace Impl
 	{
 		template<> static vartype_t vartype<vtLabel>()  { return HSPVAR_FLAG_LABEL; }
@@ -151,7 +151,7 @@ namespace VtTraits
 		template<> static vartype_t vartype<vtStruct>() { return HSPVAR_FLAG_STRUCT; }
 	}
 
-	// str Œ^‚Ì“Á«‚Ì’è‹`
+	// str å‹ã®ç‰¹æ€§ã®å®šç¾©
 	namespace Impl
 	{
 		template<> struct value_type<vtStr>  { using type = char*; };
@@ -162,22 +162,22 @@ namespace VtTraits
 		template<> struct basesize<vtStr> { static int const value = -1; };
 	}
 
-	// str Œ^‚ÌƒI[ƒo[ƒ‰ƒCƒh
+	// str å‹ã®ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰
 
-	// À‘Ìƒ|ƒCƒ“ƒ^‚Ì’EQÆ: deref ‚Í¶•Ó’l‚ğ•Ô‚·‚ªAÀ‘Ìƒ|ƒCƒ“ƒ^‚©‚ç¶•Ó’l‚ğ“¾‚ç‚ê‚È‚¢‚Ì‚Å’è‹`‚Å‚«‚È‚¢B
+	// å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿ã®è„±å‚ç…§: deref ã¯å·¦è¾ºå€¤ã‚’è¿”ã™ãŒã€å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿ã‹ã‚‰å·¦è¾ºå€¤ã‚’å¾—ã‚‰ã‚Œãªã„ã®ã§å®šç¾©ã§ããªã„ã€‚
 	//template<> static inline const_value_t<vtStr>& derefValptr<vtStr>(PDAT const* pdat) { };
 } // namespace VtTraits
 
 //------------------------------------------------
-// NativeVartype ê—p‚ÌŠÖ”
+// NativeVartype å°‚ç”¨ã®é–¢æ•°
 //------------------------------------------------
 namespace VtTraits
 {
-	// NativeVartypeTag ‚©‚Ç‚¤‚©
+	// NativeVartypeTag ã‹ã©ã†ã‹
 	template<typename Tag> struct isNativeVartype { static bool const value = false; };
 	template<typename TVal> struct isNativeVartype<NativeVartypeTag<TVal>> { static bool const value = true; };
 
-	// •Ï”‚©‚çÀ‘Ìƒ|ƒCƒ“ƒ^‚ğ“¾‚é
+	// å¤‰æ•°ã‹ã‚‰å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿ã‚’å¾—ã‚‹
 	template<typename Tag> static const_valptr_t<Tag> getValptr(PVal const* pval) {
 		static_assert(isNativeVartype<Tag>::value, "'getValptr' for non-NativeVartype types is undefined.");
 		assert(pval->flag == Impl::vartype<Tag>());

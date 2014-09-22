@@ -1,4 +1,4 @@
-// #module ŠÖŒW
+ï»¿// #module é–¢ä¿‚
 
 #include <cstring>
 
@@ -9,16 +9,16 @@
 namespace hpimod {
 
 //------------------------------------------------
-// ƒ†[ƒU’è‹`ƒRƒ}ƒ“ƒh‚ÌÀˆø”—ñ‚ğæ‚èo‚·
+// ãƒ¦ãƒ¼ã‚¶å®šç¾©ã‚³ãƒãƒ³ãƒ‰ã®å®Ÿå¼•æ•°åˆ—ã‚’å–ã‚Šå‡ºã™
 // 
-// @ ˆø”‚ğ prmstk ‚ÉŠi”[B
+// @ å¼•æ•°ã‚’ prmstk ã«æ ¼ç´ã€‚
 //------------------------------------------------
 void code_expandstruct(void* prmstk, stdat_t stdat, int option)
 {
 	stprm_t pStPrm = getSTRUCTPRM( stdat->prmindex );
 	
 	for ( int i = 0; i < stdat->prmmax; ++ i, ++ pStPrm ) {
-		char* const out = reinterpret_cast<char*>(prmstk) + pStPrm->offset;	// ƒXƒ^ƒbƒN‚ÌŸ‚Ìƒ|ƒCƒ“ƒ^
+		char* const out = reinterpret_cast<char*>(prmstk) + pStPrm->offset;	// ã‚¹ã‚¿ãƒƒã‚¯ã®æ¬¡ã®ãƒã‚¤ãƒ³ã‚¿
 		
 		switch ( pStPrm->mptype ) {
 			// int, double, label
@@ -40,19 +40,19 @@ void code_expandstruct(void* prmstk, stdat_t stdat, int option)
 			{
 				auto const var = reinterpret_cast<MPModVarData*>(out);
 				
-				var->magic = MODVAR_MAGICCODE;		// ƒ}ƒWƒbƒNƒR[ƒh
-				var->subid = pStPrm->subid;			// modvar ‚Ìí—Ş Id
+				var->magic = MODVAR_MAGICCODE;		// ãƒã‚¸ãƒƒã‚¯ã‚³ãƒ¼ãƒ‰
+				var->subid = pStPrm->subid;			// modvar ã®ç¨®é¡ Id
 				var->aptr  = code_getva( &var->pval );
 				break;
 			}
-			// modinit, modterm => ƒGƒ~ƒ…ƒŒ[ƒg•s‰Â”\
+			// modinit, modterm => ã‚¨ãƒŸãƒ¥ãƒ¬ãƒ¼ãƒˆä¸å¯èƒ½
 			case MPTYPE_IMODULEVAR:
 			case MPTYPE_TMODULEVAR:
 				puterror( HSPERR_UNSUPPORTED_FUNCTION );
 			//	*(MPModVarData *)out = modvar_init;
 				break;
 				
-			// QÆ(var, array)
+			// å‚ç…§(var, array)
 			case MPTYPE_SINGLEVAR:
 			case MPTYPE_ARRAYVAR:
 			{
@@ -60,28 +60,28 @@ void code_expandstruct(void* prmstk, stdat_t stdat, int option)
 				var->aptr = code_getva( &var->pval );
 				break;
 			}
-			// ƒ[ƒJƒ‹•Ï”(local)
+			// ãƒ­ãƒ¼ã‚«ãƒ«å¤‰æ•°(local)
 			case MPTYPE_LOCALVAR:
 			{
 				PVal* const pval = reinterpret_cast<PVal*>(out);
 				
-				// ƒ[ƒJƒ‹•Ï”‚Ì€”õ‚às‚¤ê‡ (‚¢‚í‚ä‚é variant ˆø”)
+				// ãƒ­ãƒ¼ã‚«ãƒ«å¤‰æ•°ã®æº–å‚™ã‚‚è¡Œã†å ´åˆ (ã„ã‚ã‚†ã‚‹ variant å¼•æ•°)
 				if ( option & CODE_EXPANDSTRUCT_OPT_LOCALVAR ) {
 					int const prm = code_getprm();
 					
-					if ( prm > PARAM_END ) {	// ¬Œ÷
-						PVal_init( pval, mpval->flag );		// Å¬ƒTƒCƒY‚ğŠm•Û
+					if ( prm > PARAM_END ) {	// æˆåŠŸ
+						PVal_init( pval, mpval->flag );		// æœ€å°ã‚µã‚¤ã‚ºã‚’ç¢ºä¿
 						PVal_assign( pval, mpval->pt, mpval->flag );
 						break;
 					}
-				//	else	// È—ª
+				//	else	// çœç•¥æ™‚
 				}
 				
-				PVal_init( pval, HSPVAR_FLAG_INT );	// ‰¼‚ÌŒ^‚Å‰Šú‰»
+				PVal_init( pval, HSPVAR_FLAG_INT );	// ä»®ã®å‹ã§åˆæœŸåŒ–
 				break;
 			}
 			
-			// \‘¢‘Ìƒ^ƒO
+			// æ§‹é€ ä½“ã‚¿ã‚°
 		//	case MPTYPE_STRUCTTAG: break;
 				
 			default:
@@ -92,14 +92,14 @@ void code_expandstruct(void* prmstk, stdat_t stdat, int option)
 }
 
 //------------------------------------------------
-// prmstack ‚ğ‰ğ‘Ì‚·‚é
+// prmstack ã‚’è§£ä½“ã™ã‚‹
 // 
 // @cf. openhsp: hsp3code.cpp/customstack_delete
 //------------------------------------------------
 void customstack_delete( stdat_t stdat, void* prmstk )
 {
 	stprm_t pStPrm = getSTRUCTPRM( stdat->prmindex );
-	for ( int i = 0; i < stdat->prmmax; ++ i, ++ pStPrm ) {		// ƒpƒ‰ƒ[ƒ^[‚ğæ“¾
+	for ( int i = 0; i < stdat->prmmax; ++ i, ++ pStPrm ) {		// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ¼ã‚’å–å¾—
 		char* const out = reinterpret_cast<char*>(prmstk) + pStPrm->offset;
 		
 		switch ( pStPrm->mptype ) {

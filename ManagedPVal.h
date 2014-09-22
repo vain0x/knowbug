@@ -1,4 +1,4 @@
-#ifndef IG_MANAGED_PVAL_H
+ï»¿#ifndef IG_MANAGED_PVAL_H
 #define IG_MANAGED_PVAL_H
 
 #include "hsp3plugin_custom.h"
@@ -21,9 +21,9 @@ namespace detail {
 using ManagedPVal = Managed<PVal, false, detail::PValDefaultCtorDtor>;
 
 // PVal with APTR
-// Šî–{“I‚É‚Í©‘O‚Å PVal ‚ğ¶¬‚µ‚ÄŠ—L‚·‚éB
-// —^‚¦‚ç‚ê‚½ PVal* ‚ÌQÆ(var, array ˆø”‚È‚Ç‚Ì‚½‚ß)‚Æ‚µ‚Ä‚àg‚¦‚éB
-// Remark: ‚±‚ÌƒNƒ‰ƒX©‘Ì‚Í Managed<> ‚Å‚Í‚È‚¢‚µA¶ƒ|ƒCƒ“ƒ^‚ÌŒ`‚Åg‚¦‚È‚¢B
+// åŸºæœ¬çš„ã«ã¯è‡ªå‰ã§ PVal ã‚’ç”Ÿæˆã—ã¦æ‰€æœ‰ã™ã‚‹ã€‚
+// ä¸ãˆã‚‰ã‚ŒãŸ PVal* ã®å‚ç…§(var, array å¼•æ•°ãªã©ã®ãŸã‚)ã¨ã—ã¦ã‚‚ä½¿ãˆã‚‹ã€‚
+// Remark: ã“ã®ã‚¯ãƒ©ã‚¹è‡ªä½“ã¯ Managed<> ã§ã¯ãªã„ã—ã€ç”Ÿãƒã‚¤ãƒ³ã‚¿ã®å½¢ã§ä½¿ãˆãªã„ã€‚
 class ManagedVarData
 {
 private:
@@ -64,6 +64,6 @@ public:
 
 } // namespace hpimod
 
-// —Ìˆæ‚ğŠm•Û‚·‚é“_‚Å‚»‚ê‚ªŠ—LPVal‚È‚Ì‚© view PVal ‚È‚Ì‚©‚í‚©‚é‚Ì‚ÅA‚»‚ê‚Åg‚¢•ª‚¯‚é‚Æ‚¢‚¤•û–@‚à‚ ‚éB
+// é ˜åŸŸã‚’ç¢ºä¿ã™ã‚‹æ™‚ç‚¹ã§ãã‚ŒãŒæ‰€æœ‰PValãªã®ã‹ view PVal ãªã®ã‹ã‚ã‹ã‚‹ã®ã§ã€ãã‚Œã§ä½¿ã„åˆ†ã‘ã‚‹ã¨ã„ã†æ–¹æ³•ã‚‚ã‚ã‚‹ã€‚
 
 #endif

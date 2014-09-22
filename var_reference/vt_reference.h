@@ -1,36 +1,36 @@
-// reference - VarProc header
+ï»¿// reference - VarProc header
 
 #ifndef IG_REFERENCE_VARPROC_H
 #define IG_REFERENCE_VARPROC_H
 
 #include "hsp3plugin_custom.h"
 
-// ƒOƒ[ƒoƒ‹•Ï”‚ÌéŒ¾
+// ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã®å®£è¨€
 extern short g_vtReference;
 extern HspVarProc* g_pHvpReference;
 
-// ŠÖ”‚ÌéŒ¾
+// é–¢æ•°ã®å®£è¨€
 extern void HspVarReference_Init( HspVarProc* );
 
 extern PVal* code_get_reference();
 
-// ’è”
+// å®šæ•°
 
-// ƒ}ƒNƒ
+// ãƒã‚¯ãƒ­
 
-// ’è‹`
+// å®šç¾©
 namespace VtReference
 {
-	struct PValAfterMaster {		// PVal::master ˆÈ~‚Ìƒƒ“ƒo
-		void	*master;			// QÆ‚·‚é PVal* ‚Æ‚µ‚Äg‚¤
+	struct PValAfterMaster {		// PVal::master ä»¥é™ã®ãƒ¡ãƒ³ãƒ
+		void	*master;			// å‚ç…§ã™ã‚‹ PVal* ã¨ã—ã¦ä½¿ã†
 		unsigned short	support;
 		short	arraycnt;
 		int		offset;
-		int		arraymul;			// QÆ‚·‚é•Ï”‚É•R•t‚¢‚½ APTR ‚Æ‚µ‚Äg‚¤ (˜A‘z”z—ñƒTƒ|[ƒg‚Ìê‡‚±‚±‚Í‘‚«Š·‚í‚ç‚È‚¢‚İ‚½‚¢‚È‚Ì‚Å)
+		int		arraymul;			// å‚ç…§ã™ã‚‹å¤‰æ•°ã«ç´ä»˜ã„ãŸ APTR ã¨ã—ã¦ä½¿ã† (é€£æƒ³é…åˆ—ã‚µãƒãƒ¼ãƒˆã®å ´åˆã“ã“ã¯æ›¸ãæ›ã‚ã‚‰ãªã„ã¿ãŸã„ãªã®ã§)
 	};
 	
 	typedef PValAfterMaster value_t;
-	typedef value_t* valptr_t;		// Ì PDAT*
+	typedef value_t* valptr_t;		// â‡” PDAT*
 	const int basesize = sizeof(value_t);
 	const int IdxDummy = 0x11235813;
 	

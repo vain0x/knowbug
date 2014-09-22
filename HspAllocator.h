@@ -1,4 +1,4 @@
-// allocator to use memory buffer of hsp-runtime
+ï»¿// allocator to use memory buffer of hsp-runtime
 
 #ifndef IG_HSP_ALLOCATOR_H
 #define IG_HSP_ALLOCATOR_H
@@ -7,8 +7,8 @@
 #include <numeric>
 #include "hsp3plugin.h"
 
-// ƒCƒ“ƒ^[ƒtƒF[ƒX‚É‚È‚¢‚Ì‚ÅAhspexpand ‚Íg—p‚³‚ê‚È‚¢B
-// ƒvƒ‰ƒOƒCƒ“‚ª“o˜^‚³‚ê‚½Œã‚Å‚È‚¢‚Æg—p‚Å‚«‚È‚¢B
+// ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ã«ãªã„ã®ã§ã€hspexpand ã¯ä½¿ç”¨ã•ã‚Œãªã„ã€‚
+// ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ãŒç™»éŒ²ã•ã‚ŒãŸå¾Œã§ãªã„ã¨ä½¿ç”¨ã§ããªã„ã€‚
 
 namespace hpimod
 {
@@ -50,7 +50,7 @@ public:
 	}
 };
 
-// ”äŠr‰‰Zq
+// æ¯”è¼ƒæ¼”ç®—å­
 template<typename T, typename U>
 bool operator==(HspAllocator<T> const&, HspAllocator<U> const&) { return true; }
 

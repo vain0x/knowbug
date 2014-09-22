@@ -1,4 +1,4 @@
-// reference - iface
+﻿// reference - iface
 
 #ifndef IG_REFERENCE_IFACE_H
 #define IG_REFERENCE_IFACE_H

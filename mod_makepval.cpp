@@ -1,4 +1,4 @@
-// PVal ‚Ì“Æ©ŠÇ—
+ï»¿// PVal ã®ç‹¬è‡ªç®¡ç†
 
 #include "mod_makepval.h"
 
@@ -7,10 +7,10 @@ namespace hpimod {
 static PVal* PVal_initDefault(vartype_t vt);
 
 //------------------------------------------------
-// PVal\‘¢‘Ì‚Ì‰Šú‰»
+// PValæ§‹é€ ä½“ã®åˆæœŸåŒ–
 // 
-// @ (pval == nullptr) => ‰½‚à‚µ‚È‚¢B
-// @prm pval: •s’è’l‚Å‚à‰Â
+// @ (pval == nullptr) => ä½•ã‚‚ã—ãªã„ã€‚
+// @prm pval: ä¸å®šå€¤ã§ã‚‚å¯
 //------------------------------------------------
 void PVal_init(PVal* pval, vartype_t vtype)
 {
@@ -23,11 +23,11 @@ void PVal_init(PVal* pval, vartype_t vtype)
 }
 
 //------------------------------------------------
-// ‚à‚Á‚Æ‚àŠÈ’P‚Å—LŒø‚ÈPVal\‘¢‘Ì‚É‚·‚é
+// ã‚‚ã£ã¨ã‚‚ç°¡å˜ã§æœ‰åŠ¹ãªPValæ§‹é€ ä½“ã«ã™ã‚‹
 // 
-// @ (pval == nullptr) => ‰½‚à‚µ‚È‚¢B
-// @ (vtype == –³Œø) => pval->flag ‚ÌŒ^‚É‰Šú‰»‚·‚éB
-// @ HspVarCoreDim ‚Ì‘ã‚í‚è (”z—ñ“Yš‚Íw’è‚Å‚«‚È‚¢‚ª)B
+// @ (pval == nullptr) => ä½•ã‚‚ã—ãªã„ã€‚
+// @ (vtype == ç„¡åŠ¹) => pval->flag ã®å‹ã«åˆæœŸåŒ–ã™ã‚‹ã€‚
+// @ HspVarCoreDim ã®ä»£ã‚ã‚Š (é…åˆ—æ·»å­—ã¯æŒ‡å®šã§ããªã„ãŒ)ã€‚
 //------------------------------------------------
 void PVal_alloc(PVal* pval, PVal* pval2, vartype_t vtype)
 {
@@ -37,12 +37,12 @@ void PVal_alloc(PVal* pval, PVal* pval2, vartype_t vtype)
 
 	HspVarProc* const vp = getHvp( vtype );
 
-	// pt ‚ªŠm•Û‚³‚ê‚Ä‚¢‚éê‡A‰ğ•ú‚·‚é
+	// pt ãŒç¢ºä¿ã•ã‚Œã¦ã„ã‚‹å ´åˆã€è§£æ”¾ã™ã‚‹
 	if ( pval->flag != HSPVAR_FLAG_NONE && pval->mode == HSPVAR_MODE_MALLOC ) {
 		PVal_free( pval );
 	}
 
-	// Šm•Ûˆ—
+	// ç¢ºä¿å‡¦ç†
 	memset( pval, 0x00, sizeof(PVal) );
 	pval->flag     = vtype;
 	pval->mode     = HSPVAR_MODE_NONE;
@@ -52,10 +52,10 @@ void PVal_alloc(PVal* pval, PVal* pval2, vartype_t vtype)
 }
 
 //------------------------------------------------
-// PVal\‘¢‘Ì‚ğŠÈ’P‚É‰Šú‰»‚·‚é
+// PValæ§‹é€ ä½“ã‚’ç°¡å˜ã«åˆæœŸåŒ–ã™ã‚‹
 // 
-// @ Å‚àŠÈ’P‚ÈŒ`‚ÅŠm•Û‚³‚ê‚éB
-// @ HspVarCoreClear ‚Ì‘ã‚í‚èB
+// @ æœ€ã‚‚ç°¡å˜ãªå½¢ã§ç¢ºä¿ã•ã‚Œã‚‹ã€‚
+// @ HspVarCoreClear ã®ä»£ã‚ã‚Šã€‚
 //------------------------------------------------
 void PVal_clear(PVal* pval, vartype_t vtype)
 {
@@ -63,10 +63,10 @@ void PVal_clear(PVal* pval, vartype_t vtype)
 }
 
 //------------------------------------------------
-// PVal \‘¢‘Ì‚Ì’†g‚ğ‰ğ•ú‚·‚é
+// PVal æ§‹é€ ä½“ã®ä¸­èº«ã‚’è§£æ”¾ã™ã‚‹
 // 
-// @ (pval == nullptr) => ‰½‚à‚µ‚È‚¢B
-// @ pval ƒ|ƒCƒ“ƒ^©‘Ì‚Í”j‰ó‚³‚ê‚È‚¢B
+// @ (pval == nullptr) => ä½•ã‚‚ã—ãªã„ã€‚
+// @ pval ãƒã‚¤ãƒ³ã‚¿è‡ªä½“ã¯ç ´å£Šã•ã‚Œãªã„ã€‚
 //------------------------------------------------
 void PVal_free(PVal* pval)
 {
@@ -75,21 +75,21 @@ void PVal_free(PVal* pval)
 	HspVarProc* const vp = getHvp( pval->flag );
 	vp->Free( pval );
 
-	pval->support &= ~vp->support;		// meta ‚Å‚È‚¢ support ƒtƒ‰ƒO‚ğæ‚èœ‚­
+	pval->support &= ~vp->support;		// meta ã§ãªã„ support ãƒ•ãƒ©ã‚°ã‚’å–ã‚Šé™¤ã
 	return;
 }
 
 //------------------------------------------------
-// Šù’è’l‚ğ•\‚· PVal \‘¢‘Ì‚ğ‰Šú‰»
+// æ—¢å®šå€¤ã‚’è¡¨ã™ PVal æ§‹é€ ä½“ã‚’åˆæœŸåŒ–
 // @private
-// @ vt ‚Í•K‚¸—LŒø‚È’l (str ` int)B
+// @ vt ã¯å¿…ãšæœ‰åŠ¹ãªå€¤ (str ï½ int)ã€‚
 //------------------------------------------------
 static PVal* PVal_initDefault(vartype_t vt)
 {
 	static PVal** stt_pDefPVal   = nullptr;
 	static int    stt_cntDefPVal = 0;
 
-	// stt_pDefPVal ‚ÌŠg’£
+	// stt_pDefPVal ã®æ‹¡å¼µ
 	if ( stt_cntDefPVal <= vt ) {
 		int cntNew = vt + 1;
 
@@ -103,7 +103,7 @@ static PVal* PVal_initDefault(vartype_t vt)
 			));
 		}
 
-		// Šg’£•ª‚ğ nullptr ‚Å‰Šú‰»‚·‚é
+		// æ‹¡å¼µåˆ†ã‚’ nullptr ã§åˆæœŸåŒ–ã™ã‚‹
 		for( int i = stt_cntDefPVal; i < cntNew; ++ i ) {
 			stt_pDefPVal[i] = nullptr;
 		}
@@ -111,7 +111,7 @@ static PVal* PVal_initDefault(vartype_t vt)
 		stt_cntDefPVal = cntNew;
 	}
 
-	// –¢‰Šú‰»‚Ìê‡‚ÍAPVal ‚Ìƒƒ‚ƒŠ‚ğŠm•Û‚µA‰Šú‰»‚·‚é
+	// æœªåˆæœŸåŒ–ã®å ´åˆã¯ã€PVal ã®ãƒ¡ãƒ¢ãƒªã‚’ç¢ºä¿ã—ã€åˆæœŸåŒ–ã™ã‚‹
 	if ( !stt_pDefPVal[vt] ) {
 		stt_pDefPVal[vt] = reinterpret_cast<PVal*>(hspmalloc( sizeof(PVal) ));
 		PVal_init( stt_pDefPVal[vt], vt );
@@ -120,9 +120,9 @@ static PVal* PVal_initDefault(vartype_t vt)
 }
 
 //------------------------------------------------
-// Šù’è’l‚ğ•\‚· PVal \‘¢‘Ì‚Ö‚Ìƒ|ƒCƒ“ƒ^‚ğ“¾‚é
+// æ—¢å®šå€¤ã‚’è¡¨ã™ PVal æ§‹é€ ä½“ã¸ã®ãƒã‚¤ãƒ³ã‚¿ã‚’å¾—ã‚‹
 // 
-// @ vt ‚ª•s³‚Èê‡Anullptr ‚ğ•Ô‚·B
+// @ vt ãŒä¸æ­£ãªå ´åˆã€nullptr ã‚’è¿”ã™ã€‚
 //------------------------------------------------
 PVal* PVal_getDefault( vartype_t vt )
 {
@@ -135,18 +135,18 @@ PVal* PVal_getDefault( vartype_t vt )
 }
 
 //##########################################################
-//        •Ï”î•ñ‚Ìæ“¾
+//        å¤‰æ•°æƒ…å ±ã®å–å¾—
 //##########################################################
 #if 0
-// basis ‚É‚ ‚é
+// basis ã«ã‚ã‚‹
 //------------------------------------------------
-// •Ï”‚Ì—v‘f‚Ì‘”‚ğ•Ô‚·
+// å¤‰æ•°ã®è¦ç´ ã®ç·æ•°ã‚’è¿”ã™
 //------------------------------------------------
 size_t PVal_cntElems( PVal const* pval )
 {
 	int cntElems = 1;
 
-	// —v‘f”‚ğ’²‚×‚é
+	// è¦ç´ æ•°ã‚’èª¿ã¹ã‚‹
 	for ( unsigned int i = 0; i < ArrayDimMax; ++ i ) {
 		if ( pval->len[i + 1] ) {
 			cntElems *= pval->len[i + 1];
@@ -158,11 +158,11 @@ size_t PVal_cntElems( PVal const* pval )
 #endif
 
 //------------------------------------------------
-// •Ï”‚ÌƒTƒCƒY‚ğ•Ô‚·
+// å¤‰æ•°ã®ã‚µã‚¤ã‚ºã‚’è¿”ã™
 // 
-// @ pval->offset ‚ğŒ©‚éB
-// @ ŒÅ’è’·Œ^‚È‚ç HspVarProc::basesize ‚ğA
-// @	‰Â•Ï’·Œ^‚È‚çAw’è—v‘f‚ÌƒTƒCƒY‚ğB
+// @ pval->offset ã‚’è¦‹ã‚‹ã€‚
+// @ å›ºå®šé•·å‹ãªã‚‰ HspVarProc::basesize ã‚’ã€
+// @	å¯å¤‰é•·å‹ãªã‚‰ã€æŒ‡å®šè¦ç´ ã®ã‚µã‚¤ã‚ºã‚’ã€‚
 //------------------------------------------------
 size_t PVal_size( PVal const* pval )
 {
@@ -176,9 +176,9 @@ size_t PVal_size( PVal const* pval )
 }
 
 //------------------------------------------------
-// •Ï”‚©‚çÀ‘Ìƒ|ƒCƒ“ƒ^‚ğ“¾‚é
+// å¤‰æ•°ã‹ã‚‰å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿ã‚’å¾—ã‚‹
 // 
-// @ pval->offset ‚ğŒ©‚éB
+// @ pval->offset ã‚’è¦‹ã‚‹ã€‚
 //------------------------------------------------
 PDAT* PVal_getptr( PVal* pval )
 {
@@ -193,20 +193,20 @@ PDAT* PVal_getptr( PVal* pval, APTR aptr )
 }
 
 //##########################################################
-//        •Ï”‚É‘Î‚·‚é‘€ì
+//        å¤‰æ•°ã«å¯¾ã™ã‚‹æ“ä½œ
 //##########################################################
 //------------------------------------------------
-// PVal‚Ö’l‚ğŠi”[‚·‚é (”Ä—p)
+// PValã¸å€¤ã‚’æ ¼ç´ã™ã‚‹ (æ±ç”¨)
 // 
-// @ pval ‚Ì“Yšó‘Ô‚ğQÆ‚·‚éB
+// @ pval ã®æ·»å­—çŠ¶æ…‹ã‚’å‚ç…§ã™ã‚‹ã€‚
 //------------------------------------------------
 void PVal_assign( PVal* pval, PDAT const* data, vartype_t vtype )
 {
-	// “Yš‚ ‚è => ObjectWrite
+	// æ·»å­—ã‚ã‚Š => ObjectWrite
 	if ( (pval->support & HSPVAR_SUPPORT_NOCONVERT) && (pval->arraycnt != 0) ) {
 		getHvp(pval->flag)->ObjectWrite(pval, data, vtype);
 
-	// ’Êí‚Ì‘ã“ü
+	// é€šå¸¸ã®ä»£å…¥
 	} else {
 		code_setva(pval, pval->offset, vtype, data);
 	}
@@ -214,7 +214,7 @@ void PVal_assign( PVal* pval, PDAT const* data, vartype_t vtype )
 }
 
 //------------------------------------------------
-// ‘ŠŒİ‘ã“ü
+// ç›¸äº’ä»£å…¥
 //------------------------------------------------
 static void PVal_assign_mutual_impl( PVal* pvLhs, PVal* pvRhs, PVal* pvTmp );
 
@@ -240,7 +240,7 @@ void PVal_assign_mutual( PVal* pvLhs, PVal* pvRhs, PVal* pvTmp )
 void PVal_assign_mutual( PVal* pvLhs, PVal* pvRhs, APTR apLhs, APTR apRhs, PVal* pvTmp )
 {
 	if ( pvLhs == pvRhs ) {
-		PVal vLhs = *pvLhs; vLhs.offset = apLhs;		// “Yšó‘Ô‚ğ•Û‘¶‚·‚é‚½‚ß
+		PVal vLhs = *pvLhs; vLhs.offset = apLhs;		// æ·»å­—çŠ¶æ…‹ã‚’ä¿å­˜ã™ã‚‹ãŸã‚
 		PVal vRhs = *pvRhs; vRhs.offset = apRhs;
 		PVal_assign_mutual_impl( &vLhs, &vRhs, pvTmp );
 	} else {
@@ -265,9 +265,9 @@ void PVal_assign_mutual_impl( PVal* pvLhs, PVal* pvRhs, PVal* pvTmp )
 }
 
 //------------------------------------------------
-// PVal‚Ì•¡Ê
+// PValã®è¤‡å†™
 // 
-// @ ‘S—v‘f‚ğ•¡Ê‚·‚éB
+// @ å…¨è¦ç´ ã‚’è¤‡å†™ã™ã‚‹ã€‚
 //------------------------------------------------
 void PVal_copy(PVal* pvDst, PVal* pvSrc)
 {
@@ -275,16 +275,16 @@ void PVal_copy(PVal* pvDst, PVal* pvSrc)
 
 	size_t const cntElems = PVal_cntElems(pvSrc);
 
-	// pvDst ‚ğŠm•Û‚·‚é
+	// pvDst ã‚’ç¢ºä¿ã™ã‚‹
 	exinfo->HspFunc_dim(
 		pvDst, pvSrc->flag, 0, pvSrc->len[1], pvSrc->len[2], pvSrc->len[3], pvSrc->len[4]
 	);
 
-	// ’Pƒ•Ï” => ‘æˆê—v‘f‚ğ‘ã“ü‚·‚é‚Ì‚İ
+	// å˜ç´”å¤‰æ•° => ç¬¬ä¸€è¦ç´ ã‚’ä»£å…¥ã™ã‚‹ã®ã¿
 	if ( cntElems == 1 ) {
 		PVal_assign( pvDst, pvSrc->pt, pvSrc->flag );
 
-	// ˜A‘±‘ã“üˆ— => ‚·‚×‚Ä‚Ì—v‘f‚ğ‘ã“ü‚·‚é
+	// é€£ç¶šä»£å…¥å‡¦ç† => ã™ã¹ã¦ã®è¦ç´ ã‚’ä»£å…¥ã™ã‚‹
 	} else {
 		auto const hvpSrc = getHvp( pvSrc->flag );
 
@@ -300,7 +300,7 @@ void PVal_copy(PVal* pvDst, PVal* pvSrc)
 }
 
 //------------------------------------------------
-// •Ï”’l‚ÌŒğŠ·
+// å¤‰æ•°å€¤ã®äº¤æ›
 //------------------------------------------------
 void PVal_swap( PVal* pvLhs, PVal* pvRhs )
 {
@@ -313,12 +313,12 @@ void PVal_swap( PVal* pvLhs, PVal* pvRhs, APTR apLhs, APTR apRhs )
 	PVal* pvTmp = &vTmp;
 
 	if ( pvLhs->arraycnt != 0 || pvRhs->arraycnt != 0 ) {
-		// @ ˆê•û‚ª”z—ñ—v‘f => ‘ã“ü‚É‚æ‚éŒğŠ·
+		// @ ä¸€æ–¹ãŒé…åˆ—è¦ç´  => ä»£å…¥ã«ã‚ˆã‚‹äº¤æ›
 
 		PVal_assign_mutual( pvLhs, pvRhs, apLhs, apRhs, pvTmp );
 
 	} else {
-		// @ —¼•û‚Æ‚à•Ï” => PVal ©‘Ì‚ÌŒğŠ· (meta ‚È support ƒtƒ‰ƒO‚ÍˆÛ‚·‚é)
+		// @ ä¸¡æ–¹ã¨ã‚‚å¤‰æ•° => PVal è‡ªä½“ã®äº¤æ› (meta ãª support ãƒ•ãƒ©ã‚°ã¯ç¶­æŒã™ã‚‹)
 		int const supportMetaLhs = PVal_supportMeta( pvLhs );
 		int const supportMetaRhs = PVal_supportMeta( pvRhs );
 
@@ -334,9 +334,9 @@ void PVal_swap( PVal* pvLhs, PVal* pvRhs, APTR apLhs, APTR apRhs )
 }
 
 //------------------------------------------------
-// •Ï”‚ğƒNƒ[ƒ“‚É‚·‚é
+// å¤‰æ•°ã‚’ã‚¯ãƒ­ãƒ¼ãƒ³ã«ã™ã‚‹
 // 
-// @ PVal::offset ‚ğQÆ‚·‚éB
+// @ PVal::offset ã‚’å‚ç…§ã™ã‚‹ã€‚
 // @ HspVarCoreDup, HspVarCoreDupPtr
 //------------------------------------------------
 void PVal_clone( PVal* pvDst, PVal* pvSrc, APTR aptrSrc )
@@ -346,10 +346,10 @@ void PVal_clone( PVal* pvDst, PVal* pvSrc, APTR aptrSrc )
 	if ( aptrSrc >= 0 ) pvSrc->offset = aptrSrc;
 	PDAT* const pSrc = vp->GetPtr(pvSrc);
 
-	int size;								// ƒNƒ[ƒ“‚É‚·‚éƒTƒCƒY
+	int size;								// ã‚¯ãƒ­ãƒ¼ãƒ³ã«ã™ã‚‹ã‚µã‚¤ã‚º
 	vp->GetBlockSize( pvSrc, pSrc, &size );
 
-	// À‘Ìƒ|ƒCƒ“ƒ^‚©‚çƒNƒ[ƒ“‚ğì‚é
+	// å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿ã‹ã‚‰ã‚¯ãƒ­ãƒ¼ãƒ³ã‚’ä½œã‚‹
 	PVal_clone( pvDst, pSrc, pvSrc->flag, size );
 	return;
 }
@@ -381,20 +381,20 @@ void PVal_clone( PVal* pval, PDAT* ptr, int vtype, int size )
 }
 
 //------------------------------------------------
-// •Ï”‚ğƒNƒ[ƒ“‚É‚·‚é
+// å¤‰æ•°ã‚’ã‚¯ãƒ­ãƒ¼ãƒ³ã«ã™ã‚‹
 // 
-// @ •Ï”‚É‘Î‚·‚é‚æ‚è‹­—Í‚ÈƒNƒ[ƒ“B
+// @ å¤‰æ•°ã«å¯¾ã™ã‚‹ã‚ˆã‚Šå¼·åŠ›ãªã‚¯ãƒ­ãƒ¼ãƒ³ã€‚
 //------------------------------------------------
 void PVal_cloneVar( PVal* pvDst, PVal* pvSrc, APTR aptrSrc )
 {
 	PVal_free( pvDst );
-	int const supportMeta = pvDst->support;	// meta ‚È support ƒtƒ‰ƒO‚ÍˆÛ‚·‚é (PVal_free ‚É‚æ‚Á‚Ä meta ‚Å‚È‚¢ support ƒtƒ‰ƒO‚Íæ‚èœ‚©‚ê‚Ä‚¢‚é)
+	int const supportMeta = pvDst->support;	// meta ãª support ãƒ•ãƒ©ã‚°ã¯ç¶­æŒã™ã‚‹ (PVal_free ã«ã‚ˆã£ã¦ meta ã§ãªã„ support ãƒ•ãƒ©ã‚°ã¯å–ã‚Šé™¤ã‹ã‚Œã¦ã„ã‚‹)
 
-	// ”z—ñ‚Ö‚ÌƒNƒ[ƒ“
+	// é…åˆ—ã¸ã®ã‚¯ãƒ­ãƒ¼ãƒ³
 	if ( pvSrc->arraycnt == 0 && aptrSrc < 0 ) {
-		*pvDst = *pvSrc;					// ‚Ü‚é‚²‚ÆƒRƒs[
+		*pvDst = *pvSrc;					// ã¾ã‚‹ã”ã¨ã‚³ãƒ”ãƒ¼
 
-	// ’Pˆê—v‘f‚Ö‚ÌƒNƒ[ƒ“
+	// å˜ä¸€è¦ç´ ã¸ã®ã‚¯ãƒ­ãƒ¼ãƒ³
 	} else {
 		if ( aptrSrc >= 0 ) pvSrc->offset = aptrSrc;
 		HspVarProc const* const vp  = getHvp(pvSrc->flag);
@@ -408,13 +408,13 @@ void PVal_cloneVar( PVal* pvDst, PVal* pvSrc, APTR aptrSrc )
 		pvDst->master  = pvSrc->master;
 	}
 
-	pvDst->mode    = HSPVAR_MODE_CLONE;		// ƒNƒ[ƒ“‚Æ‚¢‚¤‚±‚Æ‚É‚·‚é
+	pvDst->mode    = HSPVAR_MODE_CLONE;		// ã‚¯ãƒ­ãƒ¼ãƒ³ã¨ã„ã†ã“ã¨ã«ã™ã‚‹
 	pvDst->support = PVal_supportNotmeta(pvSrc) | supportMeta;
 	return;
 }
 
 //------------------------------------------------
-// ’l‚ğƒVƒXƒeƒ€•Ï”‚É‘ã“ü‚·‚é
+// å€¤ã‚’ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ã«ä»£å…¥ã™ã‚‹
 //------------------------------------------------
 void SetResultSysvar(PDAT const* data, vartype_t vtype)
 {
@@ -444,7 +444,7 @@ void SetResultSysvar(PDAT const* data, vartype_t vtype)
 }
 
 //------------------------------------------------
-// À‘Ìƒ|ƒCƒ“ƒ^‚ğŒ^•ÏŠ·‚·‚é
+// å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿ã‚’å‹å¤‰æ›ã™ã‚‹
 //------------------------------------------------
 PDAT const* Valptr_cnvTo( PDAT const* pValue, vartype_t vtSrc, vartype_t vtDst )
 {
@@ -456,12 +456,12 @@ PDAT const* Valptr_cnvTo( PDAT const* pValue, vartype_t vtSrc, vartype_t vtDst )
 }
 
 //------------------------------------------------
-// meta ‚È support ƒtƒ‰ƒO‚ğæ‚èo‚·
+// meta ãª support ãƒ•ãƒ©ã‚°ã‚’å–ã‚Šå‡ºã™
 // 
-// @ ‚»‚Ì•Ï”‚ÌŒ^‚Ì HspVarProc::support ‚ª‚Á‚Ä‚¢‚éƒtƒ‰ƒO‚Í
-// @	‚»‚Ì•Ï”‚ÉŒÅ—L‚Ìƒtƒ‰ƒO‚Å‚ ‚èA
-// @	‚»‚¤‚Å‚È‚¢ƒtƒ‰ƒO‚Í‚»‚Ì PVal ‚ÉŒÅ—L‚Ìƒtƒ‰ƒO‚Å‚ ‚éA‚Æ‰ğß‚µA
-// @	ŒãÒ‚Ìƒtƒ‰ƒO‚ğumeta ‚È support ƒtƒ‰ƒOv‚ÆŒÄ‚ÔB
+// @ ãã®å¤‰æ•°ã®å‹ã® HspVarProc::support ãŒæŒã£ã¦ã„ã‚‹ãƒ•ãƒ©ã‚°ã¯
+// @	ãã®å¤‰æ•°ã«å›ºæœ‰ã®ãƒ•ãƒ©ã‚°ã§ã‚ã‚Šã€
+// @	ãã†ã§ãªã„ãƒ•ãƒ©ã‚°ã¯ãã® PVal ã«å›ºæœ‰ã®ãƒ•ãƒ©ã‚°ã§ã‚ã‚‹ã€ã¨è§£é‡ˆã—ã€
+// @	å¾Œè€…ã®ãƒ•ãƒ©ã‚°ã‚’ã€Œmeta ãª support ãƒ•ãƒ©ã‚°ã€ã¨å‘¼ã¶ã€‚
 // @ex: HSPVAR_SUPPORT_TEMPVAR
 //------------------------------------------------
 int PVal_supportMeta( PVal* pval )
@@ -475,7 +475,7 @@ int PVal_supportNotmeta( PVal* pval )
 }
 
 //------------------------------------------------
-// ”z—ñƒTƒ|[ƒg‚©”Û‚©
+// é…åˆ—ã‚µãƒãƒ¼ãƒˆã‹å¦ã‹
 //------------------------------------------------
 bool PVal_supportArray( PVal* pval )
 {

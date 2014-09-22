@@ -1,4 +1,4 @@
-#ifndef IG_HPIMOD_BASIS_H
+ï»¿#ifndef IG_HPIMOD_BASIS_H
 #define IG_HPIMOD_BASIS_H
 
 //#include "hsp3plugin.h"
@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-// ƒfƒoƒbƒO—p
+// ãƒ‡ãƒãƒƒã‚°ç”¨
 #include <cassert>
 
 #ifdef _DEBUG
@@ -20,7 +20,7 @@ T hpimod_msgboxf(char const* _curfile, int _curline, char const* _curfunc, char 
 {
 	static char stt_buf[0x800];
 	int const idx =
-		sprintf_s(stt_buf, "ƒtƒ@ƒCƒ‹F%s\r\ns”Ô†F%d\r\nŠÖ”F%s\r\n\r\n", _curfile, _curline, _curfunc, sFormat);
+		sprintf_s(stt_buf, "ãƒ•ã‚¡ã‚¤ãƒ«ï¼š%s\r\nè¡Œç•ªå·ï¼š%d\r\né–¢æ•°ï¼š%s\r\n\r\n", _curfile, _curline, _curfunc, sFormat);
 	assert(idx >= 0);
 	va_list arglist;
 	va_start(arglist, sFormat);
@@ -39,14 +39,14 @@ namespace hpimod
 
 // consts
 
-// ŸŒ³”
+// æ¬¡å…ƒæ•°
 static size_t const ArrayDimMax = 4;
 
-// ”z—ñ‚Ì“Yš‚É—p‚¢‚éŠ‡ŒÊ
+// é…åˆ—ã®æ·»å­—ã«ç”¨ã„ã‚‹æ‹¬å¼§
 #define BracketIdxL "("
 #define BracketIdxR ")"
 
-// Œ^ƒ^ƒCƒv’l
+// å‹ã‚¿ã‚¤ãƒ—å€¤
 static const int HSPVAR_FLAG_COMOBJ = HSPVAR_FLAG_COMSTRUCT;
 static const int HSPVAR_FLAG_VARIANT = 7;
 
@@ -58,23 +58,23 @@ using csptr_t = unsigned short const*;
 using stdat_t = STRUCTDAT const*;
 using stprm_t = STRUCTPRM const*;
 
-using operator_t = void(*)(PDAT*, void const*);		// HspVarProc ‚Ì‰‰ZŠÖ” (redefne ‚³‚ê‚Ä‚È‚¢Œ^)
+using operator_t = void(*)(PDAT*, void const*);		// HspVarProc ã®æ¼”ç®—é–¢æ•° (redefne ã•ã‚Œã¦ãªã„å‹)
 using hsp3DebugFunc_t = BOOL(CALLBACK*)(HSP3DEBUG*, int, int, int);
 
-// ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ö‚Ì’Ê’mID
+// ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã¸ã®é€šçŸ¥ID
 enum DebugNotice
 {
-	DebugNotice_Stop = 0,		// ’â~‚µ‚½‚Æ‚« (stop, wait, await, assert ‚È‚Ç)
-	DebugNotice_Logmes,			// logmes –½—ß‚ªŒÄ‚Î‚ê‚½‚Æ‚« (ctx->stmp ‚Å•¶š—ñ‚ğQÆ‚Å‚«‚é)
+	DebugNotice_Stop = 0,		// åœæ­¢ã—ãŸã¨ã (stop, wait, await, assert ãªã©)
+	DebugNotice_Logmes,			// logmes å‘½ä»¤ãŒå‘¼ã°ã‚ŒãŸã¨ã (ctx->stmp ã§æ–‡å­—åˆ—ã‚’å‚ç…§ã§ãã‚‹)
 };
 
 // functions
 
-// ’Zk–¼
+// çŸ­ç¸®å
 static HspVarProc* getHvp(vartype_t vtype) { return exinfo->HspFunc_getproc(vtype); }
 static HspVarProc* seekHvp(char const* name) { return exinfo->HspFunc_seekproc(name); }
 
-// ax ƒtƒ@ƒCƒ‹‚Ö‚ÌƒAƒNƒZƒX
+// ax ãƒ•ã‚¡ã‚¤ãƒ«ã¸ã®ã‚¢ã‚¯ã‚»ã‚¹
 
 static int getOTPtr(label_t lb) {
 	return lb - ctx->mem_mcs;
@@ -102,7 +102,7 @@ static size_t cntLibs()   { return ctx->hsphed->max_linfo / sizeof(LIBDAT); }
 namespace detail
 {
 	// (failure: -1)
-	// todo: std::search ‚É‹A’…‚Å‚«‚»‚¤H
+	// todo: std::search ã«å¸°ç€ã§ããã†ï¼Ÿ
 	template<class TIter, class TValue>
 	int indexOf(TIter begin, TIter end, TValue const& val)
 	{
@@ -124,41 +124,41 @@ namespace detail
 	using const_iff_t = std::conditional_t<flag, std::add_const_t<T>, std::remove_const_t<T>>;
 }
 
-// Ã“I•Ï”‚ÌŒŸõ (failure: nullptr)
+// é™çš„å¤‰æ•°ã®æ¤œç´¢ (failure: nullptr)
 static PVal* seekSttVar(char const* name)
 {
 	int const iVar = exinfo->HspFunc_seekvar(name);
 	return (iVar >= 0) ? getPVal(iVar) : nullptr;
 }
 
-// ot-index ‚ÌŒŸõ (failure: -1)
+// ot-index ã®æ¤œç´¢ (failure: -1)
 static int findOTIndex(label_t lb)
 {
 	return detail::indexOf(ctx->mem_ot, ctx->mem_ot + cntLabels(), getOTPtr(lb));
 }
 
-// stprm index ‚ÌŒŸõ (failure: -1)
+// stprm index ã®æ¤œç´¢ (failure: -1)
 static int findStPrmIndex(stprm_t stprm)
 {
 	int const i = stprm - ctx->mem_minfo;
 	return (0 <= i && static_cast<size_t>(i) < cntStPrms()) ? i : -1;
 }
 
-// Še\‘¢‘Ì‚É‘Î‚·‚é•Ö—˜ŠÖ”
+// å„æ§‹é€ ä½“ã«å¯¾ã™ã‚‹ä¾¿åˆ©é–¢æ•°
 
 static char const* STRUCTDAT_getName(stdat_t self) { return &ctx->mem_mds[self->nameidx]; }
 static stprm_t STRUCTDAT_getStPrm(stdat_t self) { return getSTRUCTPRM(self->prmindex); }
 static stprm_t STRUCTDAT_getStPrmEnd(stdat_t self) { return STRUCTDAT_getStPrm(self) + self->prmmax; }
 static stdat_t STRUCTPRM_getStDat(stprm_t self) { return getSTRUCTDAT(self->subid); }
 
-static stprm_t FlexValue_getModuleTag(FlexValue const* self) {	// structtag ‚ğ‚Â stprm
+static stprm_t FlexValue_getModuleTag(FlexValue const* self) {	// structtag ã‚’æŒã¤ stprm
 	return getSTRUCTPRM(self->customid); }
-static stdat_t FlexValue_getModule(FlexValue const* self) {	// module ‚Å‚ ‚é stdat
+static stdat_t FlexValue_getModule(FlexValue const* self) {	// module ã§ã‚ã‚‹ stdat
 	return STRUCTPRM_getStDat(FlexValue_getModuleTag(self));
 }
 static bool FlexValue_isClone(FlexValue const* self) { return (self->type == FLEXVAL_TYPE_CLONE); }
 
-// prmstack ‚É‚¨‚¯‚éƒƒ“ƒo stprm ‚Ì—Ìˆæ‚Ö‚Ìƒ|ƒCƒ“ƒ^
+// prmstack ã«ãŠã‘ã‚‹ãƒ¡ãƒ³ãƒ stprm ã®é ˜åŸŸã¸ã®ãƒã‚¤ãƒ³ã‚¿
 template<typename TVoid = void,  bool bConst = std::is_const<TVoid>::value>
 static auto Prmstack_getMemberPtr(TVoid* self, stprm_t stprm) -> detail::const_iff_t<void, bConst>*
 { return static_cast<detail::const_iff_t<char, bConst>*>(self) + stprm->offset; }
@@ -180,7 +180,7 @@ static size_t PVal_cntElems(PVal const* pval) {
 
 static PDAT* PVal_getPtr(PVal* pval) { return getHvp(pval->flag)->GetPtr(pval); }
 static PDAT const* PVal_getPtr(PVal const* pval) {
-	// À‘Ìƒ|ƒCƒ“ƒ^‚ğ“¾‚é‚¾‚¯‚È‚Ì‚Å‚¨‚»‚ç‚­ˆÀ‘S
+	// å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿ã‚’å¾—ã‚‹ã ã‘ãªã®ã§ãŠãã‚‰ãå®‰å…¨
 	return PVal_getPtr(const_cast<PVal*>(pval));
 }
 template<typename TPVal>
@@ -197,12 +197,12 @@ static auto PVal_getPtr(TPVal* pval, APTR aptr) -> detail::const_iff_t<PDAT, std
 	return result;
 }
 
-// HSP“I˜_—’l
+// HSPçš„è«–ç†å€¤
 static int const HspTrue = 1;
 static int const HspFalse = 0;
 static inline int HspBool(bool b) { return b ? HspTrue : HspFalse; }
 
-// ’l‚Ì‚¿‰^‚Ñ
+// å€¤ã®æŒã¡é‹ã³
 struct HspValue
 {
 	PDAT* pdat;

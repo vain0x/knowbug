@@ -1,4 +1,4 @@
-// #module ŠÖŒW‚Ìˆ—
+ï»¿// #module é–¢ä¿‚ã®å‡¦ç†
 
 #ifndef IG_HPIMOD_MODULE_MODULE_DATA_H
 #define IG_HPIMOD_MODULE_MODULE_DATA_H
@@ -10,7 +10,7 @@ namespace hpimod {
 extern void code_expandstruct(void* prmstk, stdat_t stdat, int option);
 extern void customstack_delete(stdat_t stdat, void* prmstk);
 
-// openhsp ‚©‚çˆø—p
+// openhsp ã‹ã‚‰å¼•ç”¨
 #define CODE_EXPANDSTRUCT_OPT_NONE 0
 #define CODE_EXPANDSTRUCT_OPT_LOCALVAR 1
 

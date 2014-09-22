@@ -1,4 +1,4 @@
-// PValRef
+ï»¿// PValRef
 #if 0
 #include "hsp3plugin_custom.h"
 #include "mod_makepval.h"
@@ -7,7 +7,7 @@
 
 namespace hpimod {
 
-// ƒNƒ‰ƒX•Ï”
+// ã‚¯ãƒ©ã‚¹å¤‰æ•°
 PVALREF_DBGCODE(
 	int PValRef::stt_counter = 1;
 )
@@ -15,7 +15,7 @@ PVALREF_DBGCODE(
 PValRef* const PValRef::MagicNull = (PValRef*)HspTrue;
 
 //------------------------------------------------
-// \’z(new & constructor)
+// æ§‹ç¯‰(new & constructor)
 //------------------------------------------------
 PValRef* PValRef::New( int vflag )
 {
@@ -24,14 +24,14 @@ PValRef* PValRef::New( int vflag )
 	self->cntRefed = 0;
 
 	PVALREF_DBGCODE(
-		self->id = PValRef::stt_counter ++;		// ŽQÆƒJƒEƒ“ƒ^•\Ž¦—p‚ÉID’l‚ð‚Â‚¯‚é
+		self->id = PValRef::stt_counter ++;		// å‚ç…§ã‚«ã‚¦ãƒ³ã‚¿è¡¨ç¤ºç”¨ã«IDå€¤ã‚’ã¤ã‘ã‚‹
 		dbgout( "[%d] new!", self->id );
 	)
 	return self;
 }
 
 //------------------------------------------------
-// ‰ð‘Ì(delete & destructor)
+// è§£ä½“(delete & destructor)
 //------------------------------------------------
 void PValRef::Delete( PValRef* pval )
 {
@@ -43,7 +43,7 @@ void PValRef::Delete( PValRef* pval )
 }
 
 //------------------------------------------------
-// ŽQÆƒJƒEƒ“ƒ^‚Ì‘Œ¸
+// å‚ç…§ã‚«ã‚¦ãƒ³ã‚¿ã®å¢—æ¸›
 //------------------------------------------------
 void PValRef::AddRef( PValRef* pval )
 {
@@ -51,7 +51,7 @@ void PValRef::AddRef( PValRef* pval )
 
 	pval->cntRefed ++;
 	PVALREF_DBGCODE(
-		dbgout( "[%d] ++ ¨ %d", pval->id, pval->cntRefed );
+		dbgout( "[%d] ++ â†’ %d", pval->id, pval->cntRefed );
 	)
 	return;
 }
@@ -62,9 +62,9 @@ void PValRef::Release( PValRef* pval )
 
 	pval->cntRefed --;
 	PVALREF_DBGCODE(
-		dbgout( "[%d] -- ¨ %d", pval->id, pval->cntRefed );
+		dbgout( "[%d] -- â†’ %d", pval->id, pval->cntRefed );
 	)
-	// ƒJƒEƒ“ƒ^‚ª 0 ˆÈ‰º => ‰ð•ú
+	// ã‚«ã‚¦ãƒ³ã‚¿ãŒ 0 ä»¥ä¸‹ => è§£æ”¾
 	if ( pval->cntRefed == 0 ) PValRef::Delete( pval );
 	return;
 }

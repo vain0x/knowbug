@@ -1,4 +1,4 @@
-// reference - VarProc code
+ï»¿// reference - VarProc code
 
 #include "for_knowbug.var_reference.h"
 #include "vt_reference.h"
@@ -7,11 +7,11 @@
 #include "mod_makepval.h"
 #include "mod_argGetter.h"
 
-// •Ï”‚Ì’è‹`
+// å¤‰æ•°ã®å®šç¾©
 short g_vtReference;
 HspVarProc* g_pHvpReference;
 
-// ŠÖ”‚ÌéŒ¾
+// é–¢æ•°ã®å®£è¨€
 extern PDAT* HspVarReference_GetPtr         ( PVal* pval) ;
 extern int   HspVarReference_GetSize        ( const PDAT* pdat );
 extern int   HspVarReference_GetUsing       ( const PDAT* pdat );
@@ -25,7 +25,7 @@ extern void  HspVarReference_ObjectWrite    ( PVal* pval, void* data, int vflag 
 extern void  HspVarReference_ObjectMethod   ( PVal* pval);
 
 //------------------------------------------------
-// ƒAƒNƒZƒX—p
+// ã‚¢ã‚¯ã‚»ã‚¹ç”¨
 //------------------------------------------------
 namespace VtReference {
 	valptr_t GetPtr( PVal* pval )
@@ -72,7 +72,7 @@ static int HspVarReference_GetUsing( const PDAT* pdat )
 }
 
 //------------------------------------------------
-// ƒuƒƒbƒNƒƒ‚ƒŠ
+// ãƒ–ãƒ­ãƒƒã‚¯ãƒ¡ãƒ¢ãƒª
 //------------------------------------------------
 static void* HspVarReference_GetBlockSize( PVal* pval, PDAT* pdat, int* size )
 {
@@ -86,42 +86,42 @@ static void HspVarReference_AllocBlock( PVal* pval, PDAT* pdat, int size )
 }
 
 //------------------------------------------------
-// PVal‚Ì•Ï”ƒƒ‚ƒŠ‚ðŠm•Û‚·‚é
+// PValã®å¤‰æ•°ãƒ¡ãƒ¢ãƒªã‚’ç¢ºä¿ã™ã‚‹
 //
-// @ pval ‚Í–¢Šm•Û or ‰ð•úÏ‚Ý‚Ìó‘ÔB
-// @ pval2 != NULL => pval2‚Ì“à—e‚ðŒp³‚·‚éB
+// @ pval ã¯æœªç¢ºä¿ or è§£æ”¾æ¸ˆã¿ã®çŠ¶æ…‹ã€‚
+// @ pval2 != NULL => pval2ã®å†…å®¹ã‚’ç¶™æ‰¿ã™ã‚‹ã€‚
 //------------------------------------------------
 static void HspVarReference_Alloc( PVal* pval, const PVal* pval2 )
 {
-	// ”z—ñ‚Æ‚µ‚ÄŽQÆ‚Å‚«‚é‚ªA”z—ñ‚É‚Í‚Å‚«‚È‚¢
+	// é…åˆ—ã¨ã—ã¦å‚ç…§ã§ãã‚‹ãŒã€é…åˆ—ã«ã¯ã§ããªã„
 	pval->len[1] = 1;
 	pval->len[2] = 0;
 	
-	// Œp³
+	// ç¶™æ‰¿
 	if ( pval2 != NULL ) {
 		pval->master   = pval2->master;
 		pval->arraymul = pval2->arraymul;
 		
 	} else {
 		pval->master   = nullptr;
-		pval->arraymul = 0;		// aptr ‚Æ‚µ‚ÄŽg‚¤
+		pval->arraymul = 0;		// aptr ã¨ã—ã¦ä½¿ã†
 	}
 	
-	// pval ‚ÖÝ’è
-	pval->flag = g_vtReference;		// reference ‚ÌŒ^ƒ^ƒCƒv’l
+	// pval ã¸è¨­å®š
+	pval->flag = g_vtReference;		// reference ã®åž‹ã‚¿ã‚¤ãƒ—å€¤
 	pval->mode = HSPVAR_MODE_MALLOC;
 	pval->size = VtReference::basesize;
-	pval->pt   = (char*)&pval->master;		// •K‚¸Ž©g‚Ì master ‚Ö‚ÌŽQÆ‚Æ‚È‚Á‚Ä‚¢‚é
+	pval->pt   = (char*)&pval->master;		// å¿…ãšè‡ªèº«ã® master ã¸ã®å‚ç…§ã¨ãªã£ã¦ã„ã‚‹
 	return;
 }
 
 //------------------------------------------------
-// PVal‚Ì•Ï”ƒƒ‚ƒŠ‚ð‰ð•ú‚·‚é
+// PValã®å¤‰æ•°ãƒ¡ãƒ¢ãƒªã‚’è§£æ”¾ã™ã‚‹
 //------------------------------------------------
 static void HspVarReference_Free( PVal* pval )
 {
 	if ( pval->mode == HSPVAR_MODE_MALLOC ) {
-		// ƒŠƒ\[ƒX‚ðŽg‚í‚È‚¢
+		// ãƒªã‚½ãƒ¼ã‚¹ã‚’ä½¿ã‚ãªã„
 	}
 	
 	pval->pt     = nullptr;
@@ -131,9 +131,9 @@ static void HspVarReference_Free( PVal* pval )
 }
 
 //------------------------------------------------
-// ‘ã“ü (=)
+// ä»£å…¥ (=)
 // 
-// @ ŽQÆ‹¤—L
+// @ å‚ç…§å…±æœ‰
 //------------------------------------------------
 static void HspVarReference_Set( PVal* pval, PDAT* pdat, const void* in )
 {
@@ -145,14 +145,14 @@ static void HspVarReference_Set( PVal* pval, PDAT* pdat, const void* in )
 }
 
 //------------------------------------------------
-// Reference “o˜^ŠÖ”
+// Reference ç™»éŒ²é–¢æ•°
 //------------------------------------------------
 void HspVarReference_Init( HspVarProc* p )
 {
 	g_pHvpReference = p;
 	g_vtReference   = p->flag;
 	
-	// ŠÖ”ƒ|ƒCƒ“ƒ^‚ð“o˜^
+	// é–¢æ•°ãƒã‚¤ãƒ³ã‚¿ã‚’ç™»éŒ²
 	p->GetPtr       = HspVarReference_GetPtr;
 	p->GetSize      = HspVarReference_GetSize;
 	p->GetUsing     = HspVarReference_GetUsing;
@@ -162,41 +162,41 @@ void HspVarReference_Init( HspVarProc* p )
 	p->GetBlockSize = HspVarReference_GetBlockSize;
 	p->AllocBlock   = HspVarReference_AllocBlock;
 	
-	// ‰‰ŽZŠÖ”
+	// æ¼”ç®—é–¢æ•°
 	p->Set          = HspVarReference_Set;
 //	p->AddI         = HspVarReference_AddI;
 //	p->EqI          = HspVarReference_EqI;
 //	p->NeI          = HspVarReference_NeI;
 	
-	// ˜A‘z”z—ñ—p
-	p->ArrayObjectRead = HspVarReference_ArrayObjectRead;	// ŽQÆ(‰E)
-	p->ArrayObject     = HspVarReference_ArrayObject;		// ŽQÆ(¶)
-	p->ObjectWrite     = HspVarReference_ObjectWrite;		// Ši”[
-//	p->ObjectMethod    = HspVarReference_ObjectMethod;		// ƒƒ\ƒbƒh
+	// é€£æƒ³é…åˆ—ç”¨
+	p->ArrayObjectRead = HspVarReference_ArrayObjectRead;	// å‚ç…§(å³)
+	p->ArrayObject     = HspVarReference_ArrayObject;		// å‚ç…§(å·¦)
+	p->ObjectWrite     = HspVarReference_ObjectWrite;		// æ ¼ç´
+//	p->ObjectMethod    = HspVarReference_ObjectMethod;		// ãƒ¡ã‚½ãƒƒãƒ‰
 	
-	// Šg’£ƒf[ƒ^
+	// æ‹¡å¼µãƒ‡ãƒ¼ã‚¿
 //	p->user         = (char*)HspVarReference_GetMapList;
 	
-	// ‚»‚Ì‘¼Ý’è
-	p->vartype_name = "reference_k";	// ƒ^ƒCƒv–¼ (Õ“Ë‚µ‚È‚¢‚æ‚¤‚É•Ï‚È–¼‘O‚É‚·‚é)
+	// ãã®ä»–è¨­å®š
+	p->vartype_name = "reference_k";	// ã‚¿ã‚¤ãƒ—å (è¡çªã—ãªã„ã‚ˆã†ã«å¤‰ãªåå‰ã«ã™ã‚‹)
 	p->version      = 0x001;			// runtime ver(0x100 = 1.0)
 	
-	p->support							// ƒTƒ|[ƒgó‹µƒtƒ‰ƒO(HSPVAR_SUPPORT_*)
-		= HSPVAR_SUPPORT_STORAGE		// ŒÅ’è’·ƒXƒgƒŒ[ƒW
-	//	| HSPVAR_SUPPORT_FLEXARRAY		// ‰Â•Ï’·”z—ñ
-		| HSPVAR_SUPPORT_ARRAYOBJ		// ˜A‘z”z—ñƒTƒ|[ƒg
-		| HSPVAR_SUPPORT_NOCONVERT		// ObjectWrite‚ÅŠi”[
-		| HSPVAR_SUPPORT_VARUSE			// varuseŠÖ”‚ð“K—p
+	p->support							// ã‚µãƒãƒ¼ãƒˆçŠ¶æ³ãƒ•ãƒ©ã‚°(HSPVAR_SUPPORT_*)
+		= HSPVAR_SUPPORT_STORAGE		// å›ºå®šé•·ã‚¹ãƒˆãƒ¬ãƒ¼ã‚¸
+	//	| HSPVAR_SUPPORT_FLEXARRAY		// å¯å¤‰é•·é…åˆ—
+		| HSPVAR_SUPPORT_ARRAYOBJ		// é€£æƒ³é…åˆ—ã‚µãƒãƒ¼ãƒˆ
+		| HSPVAR_SUPPORT_NOCONVERT		// ObjectWriteã§æ ¼ç´
+		| HSPVAR_SUPPORT_VARUSE			// varuseé–¢æ•°ã‚’é©ç”¨
 		;
-	p->basesize = VtReference::basesize;	// size / —v‘f (byte)
+	p->basesize = VtReference::basesize;	// size / è¦ç´  (byte)
 	return;
 }
 
 //#########################################################
-//        ˜A‘z”z—ñ—p‚ÌŠÖ”ŒQ
+//        é€£æƒ³é…åˆ—ç”¨ã®é–¢æ•°ç¾¤
 //#########################################################
 //------------------------------------------------
-// ˜A‘z”z—ñ::ŽQÆ (¶•Ó’l)
+// é€£æƒ³é…åˆ—::å‚ç…§ (å·¦è¾ºå€¤)
 //------------------------------------------------
 static void HspVarReference_ArrayObject( PVal* pval )
 {
@@ -205,23 +205,23 @@ static void HspVarReference_ArrayObject( PVal* pval )
 	PVal* const pvInner = VtReference::GetPVal( pval );
 	APTR  const apRef   = VtReference::GetAPTR( pval );
 	
-	// ƒ_ƒ~[“YŽš‚ðŽÌ‚Ä‚é
+	// ãƒ€ãƒŸãƒ¼æ·»å­—ã‚’æ¨ã¦ã‚‹
 	if ( code_geti() != VtReference::IdxDummy ) puterror( HSPERR_ARRAY_OVERFLOW );
 	
-	// “à•”•Ï”‚Ì“YŽš‚ðˆ—
-	if ( code_isNextArg() ) {				// “YŽš‚ª‚ ‚éê‡
-		if ( apRef > 0 ) puterror( HSPERR_INVALID_ARRAY );	// ”z—ñ—v‘fŽQÆ => “YŽš‰ßè
+	// å†…éƒ¨å¤‰æ•°ã®æ·»å­—ã‚’å‡¦ç†
+	if ( code_isNextArg() ) {				// æ·»å­—ãŒã‚ã‚‹å ´åˆ
+		if ( apRef > 0 ) puterror( HSPERR_INVALID_ARRAY );	// é…åˆ—è¦ç´ å‚ç…§ => æ·»å­—éŽå‰°
 		code_expand_index_impl_lhs( pvInner );
 		
 	} else {
-		if ( PVal_supportArray(pvInner) && !(pval->support & HSPVAR_SUPPORT_ARRAYOBJ) ) {		// •W€”z—ñƒTƒ|[ƒg
-			HspVarCoreReset( pvInner );								// “YŽšó‘Ô‚Ì‰Šú‰»
-			if ( apRef > 0 ) code_index_int_rhs( pvInner, apRef );	// —v‘f“YŽš
+		if ( PVal_supportArray(pvInner) && !(pval->support & HSPVAR_SUPPORT_ARRAYOBJ) ) {		// æ¨™æº–é…åˆ—ã‚µãƒãƒ¼ãƒˆ
+			HspVarCoreReset( pvInner );								// æ·»å­—çŠ¶æ…‹ã®åˆæœŸåŒ–
+			if ( apRef > 0 ) code_index_int_rhs( pvInner, apRef );	// è¦ç´ æ·»å­—
 		}
 	}
 	
 	/*
-	// pval ‚ð“à•”•Ï”‚ÌƒNƒ[ƒ“‚É‚·‚é
+	// pval ã‚’å†…éƒ¨å¤‰æ•°ã®ã‚¯ãƒ­ãƒ¼ãƒ³ã«ã™ã‚‹
 	PVal_cloneVar( pval, pvInner,
 		(apRef > 0)
 			? apRef
@@ -234,11 +234,11 @@ static void HspVarReference_ArrayObject( PVal* pval )
 }
 
 //------------------------------------------------
-// ˜A‘z”z—ñ::ŽQÆ (‰E•Ó’l)
+// é€£æƒ³é…åˆ—::å‚ç…§ (å³è¾ºå€¤)
 //------------------------------------------------
 static void* HspVarReference_ArrayObjectRead( PVal* pval, int* mptype )
 {
-	// ƒ_ƒ~[“YŽš‚ðŽÌ‚Ä‚é
+	// ãƒ€ãƒŸãƒ¼æ·»å­—ã‚’æ¨ã¦ã‚‹
 	if ( code_geti() != VtReference::IdxDummy ) dbgout("!need dummy idx");//puterror( HSPERR_ARRAY_OVERFLOW );
 	
 	if ( !pval->master ) puterror( HSPERR_VARIABLE_REQUIRED );
@@ -246,15 +246,15 @@ static void* HspVarReference_ArrayObjectRead( PVal* pval, int* mptype )
 	PVal* const pvInner = VtReference::GetPVal( pval );
 	APTR  const apRef   = VtReference::GetAPTR( pval );
 	
-	// “à•”•Ï”‚Ì“YŽš‚ðˆ—
-	if ( code_isNextArg() ) {				// “YŽš‚ª‚ ‚éê‡
-		if ( apRef > 0 ) puterror( HSPERR_INVALID_ARRAY );	// ”z—ñ—v‘fŽQÆ => “YŽš‰ßè
+	// å†…éƒ¨å¤‰æ•°ã®æ·»å­—ã‚’å‡¦ç†
+	if ( code_isNextArg() ) {				// æ·»å­—ãŒã‚ã‚‹å ´åˆ
+		if ( apRef > 0 ) puterror( HSPERR_INVALID_ARRAY );	// é…åˆ—è¦ç´ å‚ç…§ => æ·»å­—éŽå‰°
 		return code_expand_index_impl_rhs( pvInner, mptype );
 		
 	} else {
-		if ( PVal_supportArray(pvInner) && !(pval->support & HSPVAR_SUPPORT_ARRAYOBJ) ) {		// •W€”z—ñƒTƒ|[ƒg
-			HspVarCoreReset( pvInner );								// “YŽšó‘Ô‚Ì‰Šú‰»
-			if ( apRef > 0 ) code_index_int_rhs( pvInner, apRef );	// —v‘f“YŽš
+		if ( PVal_supportArray(pvInner) && !(pval->support & HSPVAR_SUPPORT_ARRAYOBJ) ) {		// æ¨™æº–é…åˆ—ã‚µãƒãƒ¼ãƒˆ
+			HspVarCoreReset( pvInner );								// æ·»å­—çŠ¶æ…‹ã®åˆæœŸåŒ–
+			if ( apRef > 0 ) code_index_int_rhs( pvInner, apRef );	// è¦ç´ æ·»å­—
 		}
 		
 		*mptype = pvInner->flag;
@@ -263,21 +263,21 @@ static void* HspVarReference_ArrayObjectRead( PVal* pval, int* mptype )
 }
 
 //------------------------------------------------
-// ˜A‘z”z—ñ::Ši”[
+// é€£æƒ³é…åˆ—::æ ¼ç´
 //------------------------------------------------
 static void HspVarReference_ObjectWrite( PVal* pval, void* data, int vflag )
 {
 	PVal* const pvInner = VtReference::GetPVal( *VtReference::GetPtr(pval) );
 	
-	// reference ‚Ö‚Ì‘ã“ü
+	// reference ã¸ã®ä»£å…¥
 	if ( !pvInner ) {
-		if ( vflag != g_vtReference ) puterror( HSPERR_INVALID_ARRAYSTORE );	// ‰E•Ó‚ÌŒ^‚ª•sˆê’v
+		if ( vflag != g_vtReference ) puterror( HSPERR_INVALID_ARRAYSTORE );	// å³è¾ºã®åž‹ãŒä¸ä¸€è‡´
 		
 		HspVarReference_Set( pval, (PDAT*)HspVarReference_GetPtr(pval), data );
 		
-	// “à•”•Ï”‚ðŽQÆ‚µ‚Ä‚¢‚éê‡
+	// å†…éƒ¨å¤‰æ•°ã‚’å‚ç…§ã—ã¦ã„ã‚‹å ´åˆ
 	} else {
-		PVal_assign( pvInner, data, vflag );	// “à•”•Ï”‚Ö‚Ì‘ã“üˆ—
+		PVal_assign( pvInner, data, vflag );	// å†…éƒ¨å¤‰æ•°ã¸ã®ä»£å…¥å‡¦ç†
 		code_assign_multi( pvInner );
 	}
 	
@@ -285,16 +285,16 @@ static void HspVarReference_ObjectWrite( PVal* pval, void* data, int vflag )
 }
 
 //------------------------------------------------
-// ƒƒ\ƒbƒhŒÄ‚Ño‚µ
+// ãƒ¡ã‚½ãƒƒãƒ‰å‘¼ã³å‡ºã—
 // 
-// @ “à•”•Ï”‚ÌŒ^‚Å’ñ‹Ÿ‚³‚ê‚Ä‚¢‚éƒƒ\ƒbƒh‚ðŽg‚¤
+// @ å†…éƒ¨å¤‰æ•°ã®åž‹ã§æä¾›ã•ã‚Œã¦ã„ã‚‹ãƒ¡ã‚½ãƒƒãƒ‰ã‚’ä½¿ã†
 //------------------------------------------------
 static void HspVarReference_ObjectMethod(PVal* pval)
 {
 	PVal* const pvInner = VtReference::GetPVal( pval );
 	if ( !pvInner ) puterror( HSPERR_UNSUPPORTED_FUNCTION );
 	
-	// “à•”•Ï”‚Ìˆ—‚É“]‘—
+	// å†…éƒ¨å¤‰æ•°ã®å‡¦ç†ã«è»¢é€
 	GetHvp(pvInner->flag)->ObjectMethod( pvInner );
 	
 	return;

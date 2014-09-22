@@ -1,4 +1,4 @@
-
+﻿
 #include "knowbugForHPI.h"
 
 HMODULE g_hKnowbug;

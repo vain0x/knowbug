@@ -1,4 +1,4 @@
-// knowbug header for hpi
+﻿// knowbug header for hpi
 
 #ifndef IG_KNOWBUG_FOR_HSP_PLUGIN_H
 #define IG_KNOWBUG_FOR_HSP_PLUGIN_H

@@ -1,5 +1,5 @@
-// AxCmd
-// @ HSP’†ŠÔƒR[ƒh‚Ì1’PˆÊ‚Æ“¯‚¶î•ñ—Ê‚ğ‚Â32bit®”’l
+ï»¿// AxCmd
+// @ HSPä¸­é–“ã‚³ãƒ¼ãƒ‰ã®1å˜ä½ã¨åŒã˜æƒ…å ±é‡ã‚’æŒã¤32bitæ•´æ•°å€¤
 
 #ifndef IG_AX_CMD_H
 #define IG_AX_CMD_H
@@ -35,11 +35,11 @@ inline bool isOk(int axcmd)
 };
 
 //------------------------------------------------
-// ®‚©‚ç axcmd ‚ğæ‚èo‚·
+// å¼ã‹ã‚‰ axcmd ã‚’å–ã‚Šå‡ºã™
 //------------------------------------------------
 static inline int code_get_axcmd()
 {
-	int const axcmd = AxCmd::make(*type, *val);		// MagicCode ‚Â‚«
+	int const axcmd = AxCmd::make(*type, *val);		// MagicCode ã¤ã
 	hpimod::code_get_singleToken();
 	return axcmd;
 }

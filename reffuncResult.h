@@ -1,4 +1,4 @@
-// �֐��̕Ԓl�̏���
+﻿// 関数の返値の処理
 
 #ifndef IG_MODULE_HPIMOD_FUNC_RESULT_H
 #define IG_MODULE_HPIMOD_FUNC_RESULT_H
@@ -24,7 +24,7 @@ namespace detail
 }
 
 //------------------------------------------------
-// reffunc �̕Ԓl��ݒ肷��
+// reffunc の返値を設定する
 //-----------------------------------------------
 static inline int SetReffuncResult(PDAT** ppResult, label_t const& src) {
 	return detail::SetReffuncResult<label_t, HSPVAR_FLAG_LABEL>(ppResult, src);

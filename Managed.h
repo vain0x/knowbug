@@ -1,25 +1,25 @@
-// Managed Value (of hsp) by reference counting
+ï»¿// Managed Value (of hsp) by reference counting
 
 /**
 class Managed<T>
 
-QÆƒJƒEƒ“ƒ^•û®‚ÌƒXƒ}[ƒgƒ|ƒCƒ“ƒ^‚ÌˆêíB
-uƒoƒbƒtƒ@‚ğ©‘O‚ÅŠm•Û‚·‚évg‚¢•û‚ÆAŠù‚É‚ ‚é T ‚Ö‚ÌãQÆ‚Æ‚µ‚Ä‚Ìg‚¢•û‚ğ—¼•û‚Å‚«‚éB
-‚Ü‚½AQÆƒJƒEƒ“ƒg‚É‰Á‚¦‚ÄuˆêƒIƒuƒWƒFƒNƒgƒtƒ‰ƒOv‚ğ‚ÂBHSP‚ÌƒXƒ^ƒbƒN‚ÉÏ‚Ü‚ê‚éƒIƒuƒWƒFƒNƒg‚É‚ÍA•K‚¸‚±‚ê‚ğ—§‚Ä‚éB
+å‚ç…§ã‚«ã‚¦ãƒ³ã‚¿æ–¹å¼ã®ã‚¹ãƒãƒ¼ãƒˆãƒã‚¤ãƒ³ã‚¿ã®ä¸€ç¨®ã€‚
+ã€Œãƒãƒƒãƒ•ã‚¡ã‚’è‡ªå‰ã§ç¢ºä¿ã™ã‚‹ã€ä½¿ã„æ–¹ã¨ã€æ—¢ã«ã‚ã‚‹ T ã¸ã®å¼±å‚ç…§ã¨ã—ã¦ã®ä½¿ã„æ–¹ã‚’ä¸¡æ–¹ã§ãã‚‹ã€‚
+ã¾ãŸã€å‚ç…§ã‚«ã‚¦ãƒ³ãƒˆã«åŠ ãˆã¦ã€Œä¸€æ™‚ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãƒ•ãƒ©ã‚°ã€ã‚’æŒã¤ã€‚HSPã®ã‚¹ã‚¿ãƒƒã‚¯ã«ç©ã¾ã‚Œã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã«ã¯ã€å¿…ãšã“ã‚Œã‚’ç«‹ã¦ã‚‹ã€‚
 
-nullptr ‚É‰Á‚¦‚ÄAMagicNull ‚Æ‚¢‚¤–³Œø’l‚ğ‚ÂB
-‚±‚ê‚ÍAManaged<> ‚ğÀ‘Ì‚Æ‚·‚é•Ï”Œ^‚ğg‚¤Û‚ÉA‚»‚Ì”äŠr‰‰Z‚ÌŒ‹‰Ê‚Æ‚µ‚Ä HspBool ‚ğ‘‚«‚Ş•K—v‚ª‚ ‚é‚½‚ßB
+nullptr ã«åŠ ãˆã¦ã€MagicNull ã¨ã„ã†ç„¡åŠ¹å€¤ã‚’æŒã¤ã€‚
+ã“ã‚Œã¯ã€Managed<> ã‚’å®Ÿä½“ã¨ã™ã‚‹å¤‰æ•°å‹ã‚’ä½¿ã†éš›ã«ã€ãã®æ¯”è¼ƒæ¼”ç®—ã®çµæœã¨ã—ã¦ HspBool ã‚’æ›¸ãè¾¼ã‚€å¿…è¦ãŒã‚ã‚‹ãŸã‚ã€‚
 
-’Ç‰Á‚Ìƒeƒ“ƒvƒŒ[ƒgˆø”‚ÅAdefault ctor ‚É‚¨‚¯‚é“®ì‚ğİ’è‚Å‚«‚éB‚à‚Á‚Æ‚¤‚Ü‚¢•û–@‚ª‚æ‚¢B
+è¿½åŠ ã®ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆå¼•æ•°ã§ã€default ctor ã«ãŠã‘ã‚‹å‹•ä½œã‚’è¨­å®šã§ãã‚‹ã€‚ã‚‚ã£ã¨ã†ã¾ã„æ–¹æ³•ãŒã‚ˆã„ã€‚
 
-‚È‚¨ Managed<TDerived> ¨ Managed<TBase> ‚ÌƒAƒbƒvƒLƒƒƒXƒg‚Í‚Å‚«‚È‚¢BÀ‚É•s•ÖB
-‚Ü‚½AManaged<T> ‚É TDerived* ‚ğŠ—L‚³‚¹‚é‚È‚çAT ‚Ì destructor (dtor) ‚ª virtual ‚Å‚ ‚é‚©A
-TDerived ‚Æ‚»‚ÌŠî’êƒNƒ‰ƒX‚Ì‚·‚×‚Ä‚Ì dtor ‚ª trivial ‚Å‚È‚¯‚ê‚Î‚È‚ç‚È‚¢B(ŒãÒ‚Í§–ñ‚Æ‚µ‚ÄƒR[ƒh‚³‚ê‚Ä‚¢‚È‚¢B)
+ãªãŠ Managed<TDerived> â†’ Managed<TBase> ã®ã‚¢ãƒƒãƒ—ã‚­ãƒ£ã‚¹ãƒˆã¯ã§ããªã„ã€‚å®Ÿã«ä¸ä¾¿ã€‚
+ã¾ãŸã€Managed<T> ã« TDerived* ã‚’æ‰€æœ‰ã•ã›ã‚‹ãªã‚‰ã€T ã® destructor (dtor) ãŒ virtual ã§ã‚ã‚‹ã‹ã€
+TDerived ã¨ãã®åŸºåº•ã‚¯ãƒ©ã‚¹ã®ã™ã¹ã¦ã® dtor ãŒ trivial ã§ãªã‘ã‚Œã°ãªã‚‰ãªã„ã€‚(å¾Œè€…ã¯åˆ¶ç´„ã¨ã—ã¦ã‚³ãƒ¼ãƒ‰ã•ã‚Œã¦ã„ãªã„ã€‚)
 
-(sizeof(Managed<T>) == sizeof(void*)) ‚Æ‚¢‚¤§–ñ‚ª‚ ‚éB
-vector_k Œ^‚Í PVal::master ‚Ì—Ìˆæ‚É Managed<> ‚ğ”z’u new ‚·‚éB
+(sizeof(Managed<T>) == sizeof(void*)) ã¨ã„ã†åˆ¶ç´„ãŒã‚ã‚‹ã€‚
+vector_k å‹ã¯ PVal::master ã®é ˜åŸŸã« Managed<> ã‚’é…ç½® new ã™ã‚‹ã€‚
 
-todo: Šw‚Ô
+todo: å­¦ã¶
 
 //*/
 
@@ -50,7 +50,7 @@ struct DefaultCtorDtor {
 }
 
 template<typename TValue,
-	// inst_ ‚ğ nullptr ‚Å‰Šú‰»‚·‚é‚©‚Ç‚¤‚©
+	// inst_ ã‚’ nullptr ã§åˆæœŸåŒ–ã™ã‚‹ã‹ã©ã†ã‹
 	bool bNullCtor,
 	typename DefaultCtorDtor = detail::DefaultCtorDtor<TValue>
 >
@@ -102,20 +102,20 @@ public:
 		}
 	}
 
-	// À‘Ì‚Ì¶¬‚ğ”º‚¤ factory ŠÖ”
+	// å®Ÿä½“ã®ç”Ÿæˆã‚’ä¼´ã† factory é–¢æ•°
 	template<typename TDerived = value_type, typename ...Args>
 	static self_t makeDerived(Args&&... args)
 	{
-		static_assert(std::is_convertible<TDerived*, value_type*>::value, "ŒİŠ·«‚Ì‚È‚¢Œ^‚Å‚Í‰Šú‰»‚Å‚«‚È‚¢B");
+		static_assert(std::is_convertible<TDerived*, value_type*>::value, "äº’æ›æ€§ã®ãªã„å‹ã§ã¯åˆæœŸåŒ–ã§ããªã„ã€‚");
 		static_assert(std::is_same<value_type, TDerived>::value || std::has_virtual_destructor<value_type>::value,
-			"Managed<T> ‚ÍAT ‚ª virtual destructor ‚ğ‚½‚È‚¢‚©‚¬‚èAT ‚Ì”h¶Œ^‚ğŠ—L‚Å‚«‚È‚¢B³í‚É‰ğ•ú‚Å‚«‚È‚¢‚½‚ßB");
+			"Managed<T> ã¯ã€T ãŒ virtual destructor ã‚’æŒãŸãªã„ã‹ãã‚Šã€T ã®æ´¾ç”Ÿå‹ã‚’æ‰€æœ‰ã§ããªã„ã€‚æ­£å¸¸ã«è§£æ”¾ã§ããªã„ãŸã‚ã€‚");
 
 		self_t self { nullptr }; self.initializeHeader<TDerived>();
 		new(self.valuePtr()) TDerived(std::forward<Args>(args)...);
 		return std::move(self);
 	}
 
-	// À‘Ì‚Ì¶¬‚ğ”º‚¤ factory ŠÖ”
+	// å®Ÿä½“ã®ç”Ÿæˆã‚’ä¼´ã† factory é–¢æ•°
 	template<typename ...Args>
 	static self_t make(Args&&... args)
 	{
@@ -138,13 +138,13 @@ public:
 	{ rhs.inst_ = nullptr; }
 
 #if 0
-	// ’l“n‚µ‚Å‰Šú‰»‚·‚é factory ŠÖ”
+	// å€¤æ¸¡ã—ã§åˆæœŸåŒ–ã™ã‚‹ factory é–¢æ•°
 	static self_t ofValue(value_type const& src) { return make(src); }
 	static self_t ofValue(value_type&& src) { return make(std::move(src)); }
 #endif
 
 public:
-	// instptr ‚©‚ç managed ‚ğì¬‚·‚é factory ŠÖ”
+	// instptr ã‹ã‚‰ managed ã‚’ä½œæˆã™ã‚‹ factory é–¢æ•°
 	static self_t const ofInstptr(void const* inst) { return self_t { const_cast<inst_t*>(static_cast<inst_t const*>(inst)) }; };
 	static self_t ofInstptr(void* inst) { return const_cast<self_t&&>(ofInstptr(static_cast<void const*>(inst))); }
 
@@ -156,8 +156,8 @@ private:
 	}
 
 public:
-	// À‘Ìƒ|ƒCƒ“ƒ^‚©‚ç managed ‚ğì¬‚·‚é factory ŠÖ” (failure: nullptr)
-	// inst_t::value_ ‚ğw‚µ‚Ä‚¢‚é‚Í‚¸‚È‚Ì‚ÅAinst_t ‚Ìæ“ª‚ğ‹tZ‚·‚éB
+	// å®Ÿä½“ãƒã‚¤ãƒ³ã‚¿ã‹ã‚‰ managed ã‚’ä½œæˆã™ã‚‹ factory é–¢æ•° (failure: nullptr)
+	// inst_t::value_ ã‚’æŒ‡ã—ã¦ã„ã‚‹ã¯ãšãªã®ã§ã€inst_t ã®å…ˆé ­ã‚’é€†ç®—ã™ã‚‹ã€‚
 	static self_t const ofValptr(value_type const* pdat) {
 		auto const inst = reinterpret_cast<inst_t const*>(reinterpret_cast<char const*>(pdat) - instHeaderSize);
 	//	assert(inst->magicCode_ == MagicCode);
@@ -166,18 +166,18 @@ public:
 	static self_t ofValptr(value_type* pdat) { return const_cast<self_t&&>(ofValptr(static_cast<value_type const*>(pdat))); }
 
 public:
-	// ƒfƒXƒgƒ‰ƒNƒ^
+	// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	~Managed() {
 		decRef();
 	}
 
-	// ‰Šúó‘Ô‚É–ß‚·
+	// åˆæœŸçŠ¶æ…‹ã«æˆ»ã™
 	void reset() {
 		this->~Managed(); new(this) self_t {};
 	}
 
-	// nullptr ‚ÉƒNƒŠƒA‚·‚é
-	// bNullCtor ‚ÉˆË‚ç‚¸ nullptr ‚É‚È‚é‚Ì‚Å’ˆÓ‚µ‚Äg‚¤‚±‚ÆB
+	// nullptr ã«ã‚¯ãƒªã‚¢ã™ã‚‹
+	// bNullCtor ã«ä¾ã‚‰ãš nullptr ã«ãªã‚‹ã®ã§æ³¨æ„ã—ã¦ä½¿ã†ã“ã¨ã€‚
 	void nullify() { decRef(); inst_ = nullptr; }
 
 private:
@@ -189,7 +189,7 @@ private:
 #if DBGOUT_MANAGED_KILLED
 		dbgout("[%d] KILL %d <%d>", instId(), cnt(), tmpobj());
 #endif
-		// ‚±‚ÌƒIƒuƒWƒFƒNƒg‚©‚ç‚ÌQÆ‚ğØ‚èAMagicCode ‚ğÁ‚µ‚Ä‚¨‚­ (’l‚Ì‰ğ‘Ì’†‚É this ‚ªQÆ‚³‚ê‚éÛ‚ÌˆÀ‘S‚Ì‚½‚ß)
+		// ã“ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‹ã‚‰ã®å‚ç…§ã‚’åˆ‡ã‚Šã€MagicCode ã‚’æ¶ˆã—ã¦ãŠã (å€¤ã®è§£ä½“ä¸­ã« this ãŒå‚ç…§ã•ã‚Œã‚‹éš›ã®å®‰å…¨ã®ãŸã‚)
 		const_cast<unsigned short&>(inst_->magicCode_) = 0;
 		const_cast<inst_t*&>(inst_) = nullptr;
 
@@ -198,7 +198,7 @@ private:
 	}
 
 private:
-	// ƒAƒNƒZƒT
+	// ã‚¢ã‚¯ã‚»ã‚µ
 	int& cnt() const { return reinterpret_cast<int&>(inst_->cnt_); }
 	bool& tmpobj() const { return reinterpret_cast<bool&>(inst_->tmpobj_); }
 
@@ -209,11 +209,11 @@ public:
 	value_type* valuePtr() const { return reinterpret_cast<value_type*>(inst_->value_); }
 	value_type& value() const { return *valuePtr(); }
 
-	// inst ‚Ìƒ|ƒCƒ“ƒ^‚ğ•Ô‚·
+	// inst ã®ãƒã‚¤ãƒ³ã‚¿ã‚’è¿”ã™
 	void* instPtr() const { return inst_; }
 
 private:
-	// QÆƒJƒEƒ“ƒ^‚Æ‚µ‚Ä‚Ì‹@”\
+	// å‚ç…§ã‚«ã‚¦ãƒ³ã‚¿ã¨ã—ã¦ã®æ©Ÿèƒ½
 #if DBGOUT_MANAGED_REFCNT
 	void incRefImpl() const { assert( isManaged() );
 		dbgout("[%d] inc(++) %d -> %d <%d>", instId(), cnt(), cnt() + 1, tmpobj());
@@ -230,7 +230,7 @@ public:
 	void incRef() const { if ( isManaged() ) incRefImpl(); }
 	void decRef() const { if ( isManaged() ) decRefImpl(); }
 
-	self_t& beTmpObj() {	// const ‚Å‚à‚¢‚¢‚©‚à
+	self_t& beTmpObj() {	// const ã§ã‚‚ã„ã„ã‹ã‚‚
 		if ( isManaged() ) {
 			assert(!isTmpObj());
 			tmpobj() = true; incRefImpl();
@@ -244,7 +244,7 @@ public:
 	}
 
 public:
-	// ‚»‚Ì‘¼
+	// ãã®ä»–
 	bool isNull() const {
 		int const i = reinterpret_cast<int>(inst_);
 		return (i == HspTrue || i == HspFalse);
@@ -253,13 +253,13 @@ public:
 		return (!isNull() && inst_->magicCode_ == MagicCode);
 	}
 
-	// data ‚ª\‘¢‘Ì Managed<T>::inst_t ‚Ì’†‚Ì value_ ‚ğw‚µ‚Ä‚¢‚é‚©”Û‚©
+	// data ãŒæ§‹é€ ä½“ Managed<T>::inst_t ã®ä¸­ã® value_ ã‚’æŒ‡ã—ã¦ã„ã‚‹ã‹å¦ã‹
 	static bool isManagedValue(value_type const* data) {
 		return (reinterpret_cast<unsigned short const*>(data)[-1] == MagicCode);
 	}
 
 public:
-	// ‰‰Zq
+	// æ¼”ç®—å­
 	self_t& operator=(self_t const& rhs) { this->~Managed(); new(this) Managed(rhs); return *this; }
 	self_t& operator=(self_t&& rhs) { this->~Managed(); new(this) Managed(std::move(rhs)); return *this; }
 

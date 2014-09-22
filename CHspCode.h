@@ -1,4 +1,4 @@
-// hsp code
+ï»¿// hsp code
 
 #ifndef IG_CLASS_HSP_CODE_H
 #define IG_CLASS_HSP_CODE_H
@@ -24,30 +24,30 @@ public:
 	//	, exflg( 0 )
 	{
 		mpCode = (code_t*)hspmalloc( mBufSize * sizeof(code_t) );
-		needDsBuf( 32 / 2 );		// Å¬ 32 ‚ÍŠm•Û‚µ‚Ä‚¨‚­
+		needDsBuf( 32 / 2 );		// æœ€å° 32 ã¯ç¢ºä¿ã—ã¦ãŠã
 		return;
 	}
 
 	~CHspCode()
 	{
 		hspfree( mpCode ); mpCode = nullptr;
-		hspfree( mpDs   ); mpDs   = nullptr;	// g—p’†‚Ì DS ‚Í mDslist ‚ÉŠÜ‚Ü‚È‚¢‚Ì‚Å
+		hspfree( mpDs   ); mpDs   = nullptr;	// ä½¿ç”¨ä¸­ã® DS ã¯ mDslist ã«å«ã¾ãªã„ã®ã§
 
-		// g—pÏ‚İ DS ƒŠƒXƒg‚ğ”jŠü
+		// ä½¿ç”¨æ¸ˆã¿ DS ãƒªã‚¹ãƒˆã‚’ç ´æ£„
 		for each ( auto& it in mDslist ) { hspfree( it ); }
 
 		mDslist.clear();
 		return;
 	}
 
-	// æ“¾Œn
+	// å–å¾—ç³»
 	label_t getlb   () const { return mpCode; }
 	label_t getlbNow() const { return &mpCode[mLen]; }
 
-	// ’Ç‰ÁŒn
+	// è¿½åŠ ç³»
 	void put( int _type, int _code, int _exflg )
 	{
-		needCsBuf( 8 );		// Å‘å 32 [bit] = 8 [byte] —v‚·‚é
+		needCsBuf( 8 );		// æœ€å¤§ 32 [bit] = 8 [byte] è¦ã™ã‚‹
 
 		int const lead = ((_type & CSTYPE) | _exflg);
 
@@ -70,7 +70,7 @@ public:
 	void putVal( char const*   v, int exflg = 0 ) { put( TYPE_STRING, putDsVal(v), exflg ); }
 	void putVal( const double  v, int exflg = 0 ) { put( TYPE_DNUM,   putDsVal(v), exflg ); }
 	void putVar( PVal const*   v, int exflg = 0 ) {
-		// !! v ‚ª ctx->mem_var ‚Ì”{”‚Å‚È‚©‚Á‚½‚ç•s–¡‚¢
+		// !! v ãŒ ctx->mem_var ã®å€æ•°ã§ãªã‹ã£ãŸã‚‰ä¸å‘³ã„
 		put( TYPE_VAR,    v - ctx->mem_var, exflg );
 	}
 
@@ -79,7 +79,7 @@ public:
 	void putReturn() { put( TYPE_PROGCMD, 0x002, EXFLG_1 ); }
 
 private:
-	// CS ƒoƒbƒtƒ@‚ÌŠm•Û—v‹
+	// CS ãƒãƒƒãƒ•ã‚¡ã®ç¢ºä¿è¦æ±‚
 	void needCsBuf( size_t sizeMin )
 	{
 		if ( (mBufSize - mLen) <= sizeMin ) {
@@ -89,11 +89,11 @@ private:
 		return;
 	}
 
-	// DS ƒoƒbƒtƒ@‚ÌŠm•Û—v‹
+	// DS ãƒãƒƒãƒ•ã‚¡ã®ç¢ºä¿è¦æ±‚
 	void needDsBuf( size_t sizeMin )
 	{
 		if ( (mDsSize - mDsUsed) <= sizeMin ) {
-			if ( mpDs ) mDslist.push_back( mpDs );	// g—pÏ‚İ DS ƒŠƒXƒg‚É“o˜^
+			if ( mpDs ) mDslist.push_back( mpDs );	// ä½¿ç”¨æ¸ˆã¿ DS ãƒªã‚¹ãƒˆã«ç™»éŒ²
 			mDsSize = (mDsSize + sizeMin) * 2;
 			mDsUsed = 0;
 			mpDs    = (char*)hspmalloc( mDsSize * sizeof(char) );
@@ -114,7 +114,7 @@ private:
 		return pDst;
 	}
 
-	int putDsVal( char const*  s ) { return putDs(  s, strlen(s) + 1  ) - ctx->mem_mds; }	// ‚±‚Ì’l x ‚Í ( mds[x] == pDst ) ‚ğ–‚½‚·
+	int putDsVal( char const*  s ) { return putDs(  s, strlen(s) + 1  ) - ctx->mem_mds; }	// ã“ã®å€¤ x ã¯ ( mds[x] == pDst ) ã‚’æº€ãŸã™
 	int putDsVal( const double d ) { return putDs( &d, sizeof(double) ) - ctx->mem_mds; }
 
 public:
@@ -125,16 +125,16 @@ public:
 			stprm.subid = subid;
 			stprm.offset = offsetOfPrmstk;
 
-		// getDsNext() ‚Æ ctx->mem_minfo ‚Ì·‚ª sizeof(STRUCTPRM) ‚Ì”{”‚É‚È‚é‚æ‚¤‚É‚·‚é
+		// getDsNext() ã¨ ctx->mem_minfo ã®å·®ãŒ sizeof(STRUCTPRM) ã®å€æ•°ã«ãªã‚‹ã‚ˆã†ã«ã™ã‚‹
 		{
 			int const d = (char*)ctx->mem_minfo - getDsNext();
-			int const r = (d) % sizeof(STRUCTPRM);	// ·‚Ì—]‚è (â‘Î’lÅ¬è—])
+			int const r = (d) % sizeof(STRUCTPRM);	// å·®ã®ä½™ã‚Š (çµ¶å¯¾å€¤æœ€å°å‰°ä½™)
 			putDs( &stprm, abs(r) );
 		//	dbgout("size = %d, dif0 = %d, r = %d, dif1 = %d", sizeof STRUCTPRM, d, r, ((char*)ctx->mem_minfo - getDsNext()) );
 		}
 
 		stprm_t const pStPrm = reinterpret_cast<stprm_t>( putDs(&stprm, sizeof(STRUCTPRM)) );
-		return pStPrm - ctx->mem_minfo;		// &minfo[val] = pStPrm ‚Æ‚È‚é val ‚ğŒvZ
+		return pStPrm - ctx->mem_minfo;		// &minfo[val] = pStPrm ã¨ãªã‚‹ val ã‚’è¨ˆç®—
 	}
 
 private:
@@ -145,7 +145,7 @@ private:
 	char*  mpDs;
 	size_t mDsSize;
 	size_t mDsUsed;
-	dslist_t mDslist;	// mpDs ‚ÌƒŠƒXƒg
+	dslist_t mDslist;	// mpDs ã®ãƒªã‚¹ãƒˆ
 
 //	int exflg;
 
@@ -153,23 +153,23 @@ private:
 
 #endif
 
-// —]‚è‚à‚Ì
+// ä½™ã‚Šã‚‚ã®
 #if 0
 {
 	// (*type == TYPE_STRUCT)
-	// \‘¢‘Ìƒpƒ‰ƒ[ƒ^‚ªÀÛ‚Éw‚µ‚Ä‚¢‚é‚à‚Ì‚ğƒR[ƒh‚É’Ç‰Á‚·‚é
+	// æ§‹é€ ä½“ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãŒå®Ÿéš›ã«æŒ‡ã—ã¦ã„ã‚‹ã‚‚ã®ã‚’ã‚³ãƒ¼ãƒ‰ã«è¿½åŠ ã™ã‚‹
 	auto const pStPrm = &ctx->mem_minfo[ *val ];			
 	char* out = (char*)ctx->prmstack;
 	if ( !out ) puterror( HSPERR_ILLEGAL_FUNCTION );
-	if ( pStPrm->subid != STRUCTPRM_SUBID_STACK ) {		// ƒƒ“ƒo•Ï”
+	if ( pStPrm->subid != STRUCTPRM_SUBID_STACK ) {		// ãƒ¡ãƒ³ãƒå¤‰æ•°
 		auto thismod = (MPModVarData*)out;
 		out = (char*)((FlexValue*)PVal_getptr( thismod->pval, thismod->aptr ))->ptr;
 	}
 	;
-	// ˆø”‚ğ“WŠJ
+	// å¼•æ•°ã‚’å±•é–‹
 	([&body]( char* ptr, int mptype ) {
 		switch ( mptype ) {
-			case MPTYPE_SINGLEVAR:		// •Ï”—v‘f => •Ï”(aptr)‚ÌŒ`‚Åo—Í
+			case MPTYPE_SINGLEVAR:		// å¤‰æ•°è¦ç´  => å¤‰æ•°(aptr)ã®å½¢ã§å‡ºåŠ›
 			{
 				auto vardata = reinterpret_cast<MPVarData*>(ptr);
 				auto pval    = vardata->pval;
@@ -178,10 +178,10 @@ private:
 				if ( vardata->aptr != 0 ) {
 					body.put( TYPE_MARK, '(', 0 );
 					if ( pval->len[2] == 0 ) {
-						// ˆêŸŒ³
+						// ä¸€æ¬¡å…ƒ
 						body.putVal( vardata->aptr );
 					} else {
-						// ‘½ŸŒ³ => APTR•ª‰ğ
+						// å¤šæ¬¡å…ƒ => APTRåˆ†è§£
 						int idx[4] = {0};
 						GetIndexFromAptr( pval, vardata->aptr, idx );
 						for ( int i = 0; i < 4 && idx[i] != 0; ++ i ) {
