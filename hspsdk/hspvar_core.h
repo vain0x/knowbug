@@ -1,4 +1,5 @@
 // (2014/09/17) 上大：実体ポインタを表している型(void* や char*)を PDAT* (あるいは PDAT const*) に書き換えた。HspVarProc::*I 系はそのまま。
+// (2014/09/20) 上大：PDAT 型の実体を void* から「構築できない構造体」にした。unsigned short const* -> PDAT const* の reinterpret_cast に問題を生じていたため。
 
 //
 //	hspvar.cpp header
@@ -46,7 +47,8 @@
 
 #define HSPVAR_SUPPORT_MISCTYPE (HSPVAR_SUPPORT_ARRAYOBJ)
 
-typedef void * PDAT;							// データの実態へのポインタ (例えば int 型なら int* = PDAT*)
+//typedef void * PDAT;							// データの実態へのポインタ (例えば int 型なら int* = PDAT*)
+struct PDAT { PDAT() = delete; };
 typedef int APTR;								// 配列データへのオフセット値
 
 enum

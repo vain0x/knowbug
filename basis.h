@@ -58,7 +58,7 @@ using csptr_t = unsigned short const*;
 using stdat_t = STRUCTDAT const*;
 using stprm_t = STRUCTPRM const*;
 
-using operator_t = void(*)(PDAT*, void const*);		// HspVarProc の演算関数
+using operator_t = void(*)(PDAT*, void const*);		// HspVarProc の演算関数 (redefne されてない型)
 using hsp3DebugFunc_t = BOOL(CALLBACK*)(HSP3DEBUG*, int, int, int);
 
 // デバッグウィンドウへの通知ID

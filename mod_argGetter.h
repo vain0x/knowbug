@@ -9,15 +9,16 @@ namespace hpimod {
 
 // ˆø”‚Ìæ“¾
 //extern bool code_getva_ex(PVal** pval, APTR* aptr);
-extern int  code_getds_ex(char** ppStr, char const* defstr = "");
-//extern int  code_get_int_or_str(char** ppStr);
-extern int  code_get_vartype(int defType = HSPVAR_FLAG_NONE);
+extern size_t code_getds_ex(char** ppStr, char const* defstr = "");
+//extern int code_get_int_or_str(char** ppStr);
+extern int code_get_vartype(int defType = HSPVAR_FLAG_NONE);
 extern label_t code_getdlb(label_t defLabel = nullptr);
 //extern label_t code_getlb2(void);
 extern FlexValue* code_get_struct();
 
 extern stdat_t code_get_modcls();
 extern stprm_t code_get_stprm();
+extern int code_get_singleToken();
 
 // ”z—ñ“Yš
 	// æ‚èo‚µ (expand_index)
@@ -45,6 +46,7 @@ extern void code_assign_multi( PVal* pval );
 extern bool code_isNextArg();
 extern int  code_skipprm();
 
+extern int code_get_procHeader();
 extern bool code_next_expect( int expect_type, int expect_val );
 
 } // namespace hpimod

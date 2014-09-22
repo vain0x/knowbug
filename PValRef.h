@@ -1,5 +1,5 @@
 // PValRef
-
+#if 0
 #ifndef IG_PVALREF_H
 #define IG_PVALREF_H
 
@@ -70,4 +70,5 @@ static int Compare( PValRef const* lhs, PValRef const* rhs )
 
 }	// namespace hpimod
 
+#endif
 #endif

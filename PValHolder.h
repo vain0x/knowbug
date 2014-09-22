@@ -1,5 +1,5 @@
 // PValHolder
-
+#if 0
 #ifndef IG_HPIMOD_PVAL_HOLDER_H
 #define IG_HPIMOD_PVAL_HOLDER_H
 
@@ -44,4 +44,5 @@ private:
 	
 };
 
+#endif
 #endif

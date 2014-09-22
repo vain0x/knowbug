@@ -16,37 +16,40 @@ namespace hpimod
 //------------------------------------------------
 // 実体ポインタを得る
 //
-// @ pt が valptr_array である場合
+// @ pt が value[] である場合
 //------------------------------------------------
-template<typename VartypeTag>
+template<typename vtTag>
 static PDAT* HspVarTemplate_GetPtr(PVal* pval)
 {
+	static_assert(VtTraits::isNativeVartype<vtTag>::value, "valptr_t = value_t[] である変数型でのみ使用できる。");
 	assert(PVal_supportArray(pval));
-	return VtTraits<VartypeTag>::asPDAT( VtTraits<VartypeTag>::asValptr(pval) + pval->offset );
+	return VtTraits::asPDAT<vtTag>( VtTraits::getValptr<vtTag>(pval) );
 }
 
 //------------------------------------------------
 // 可変長型に特有の関数の、固定長型の場合
 //------------------------------------------------
-template<typename VartypeTag>
+template<typename vtTag>
 static int HspVarTemplate_GetSize(PDAT const* pdat)
 {
-	static_assert(VtTraits<VartypeTag>::isFixed_v, "固定長の変数型でのみ使用できる。");
-	return VtTraits<VartypeTag>::basesize;
+	static_assert(VtTraits::isFixed<vtTag>::value, "固定長の変数型でのみ使用できる。");
+	return VtTraits::basesize<vtTag>::value;
 }
 
-template<typename VartypeTag>
+template<typename vtTag>
 static void* HspVarTemplate_GetBlockSize(PVal* pval, PDAT* pdat, int* size)
 {
-	static_assert(VtTraits<VartypeTag>::isFixed_v, "固定長の変数型でのみ使用できる。");
-	*size = VtTraits<VartypeTag>::basesize * PVal_cntElems(pval);
+	static_assert(VtTraits::isFixed<vtTag>::value, "固定長の変数型でのみ使用できる。");
+	*size = VtTraits::basesize<vtTag>::value * PVal_cntElems(pval);
 	return pdat;
 }
 
-template<typename VartypeTag>
+template<typename vtTag>
 static void HspVarTemplate_AllocBlock(PVal* pval, PDAT* pdat, int size)
 {
-	static_assert(VtTraits<VartypeTag>::isFixed_v, "固定長の変数型でのみ使用できる。");
+	static_assert(VtTraits::isFixed<vtTag>::value, "固定長の変数型でのみ使用できる。");
+	// do nothing
+	return;
 }
 
 //------------------------------------------------
@@ -74,7 +77,7 @@ static void HspVarTemplate_CmpI(PDAT* pdat, PDAT const* val)
 {
 	static TCmpFunctor comparer {};
 
-	VtTraits<int>::derefValptr(pdat) = HspBool( comparer(CmpI(pdat, val), 0) );
+	VtTraits::derefValptr<vtInt>(pdat) = HspBool( comparer(CmpI(pdat, val), 0) );
 
 //	myhvp->aftertype = HSPVAR_FLAG_INT;
 	return;

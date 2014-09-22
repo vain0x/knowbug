@@ -336,6 +336,7 @@ void PVal_swap( PVal* pvLhs, PVal* pvRhs, APTR apLhs, APTR apRhs )
 //------------------------------------------------
 // 変数をクローンにする
 // 
+// @ PVal::offset を参照する。
 // @ HspVarCoreDup, HspVarCoreDupPtr
 //------------------------------------------------
 void PVal_clone( PVal* pvDst, PVal* pvSrc, APTR aptrSrc )
@@ -343,7 +344,7 @@ void PVal_clone( PVal* pvDst, PVal* pvSrc, APTR aptrSrc )
 	HspVarProc* const vp = getHvp( pvSrc->flag );
 
 	if ( aptrSrc >= 0 ) pvSrc->offset = aptrSrc;
-	PDAT* const pSrc = vp->GetPtr(pvSrc);		// 実体ポインタ
+	PDAT* const pSrc = vp->GetPtr(pvSrc);
 
 	int size;								// クローンにするサイズ
 	vp->GetBlockSize( pvSrc, pSrc, &size );
@@ -423,25 +424,23 @@ void SetResultSysvar(PDAT const* data, vartype_t vtype)
 
 	switch ( vtype ) {
 		case HSPVAR_FLAG_INT:
-			ctx->stat = VtTraits<int>::derefValptr(data);
+			ctx->stat = VtTraits::derefValptr<vtInt>(data);
 			break;
 
 		case HSPVAR_FLAG_STR:
-			strncpy(
-				ctx->refstr,
-				VtTraits<str_tag>::asValptr(data),
-				HSPCTX_REFSTR_MAX - 1
+			strcpy_s(
+				ctx->refstr, HSPCTX_REFSTR_MAX,
+				VtTraits::asValptr<vtStr>(data)
 			);
 			break;
 
 		case HSPVAR_FLAG_DOUBLE:
-			ctx->refdval = VtTraits<double>::derefValptr(data);
+			ctx->refdval = VtTraits::derefValptr<vtDouble>(data);
 			break;
 
 		default:
 			puterror( HSPERR_TYPE_MISMATCH );
 	}
-	throw;	// 警告抑制
 }
 
 //------------------------------------------------

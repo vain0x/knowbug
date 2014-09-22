@@ -1,5 +1,5 @@
 // PValRef
-
+#if 0
 #include "hsp3plugin_custom.h"
 #include "mod_makepval.h"
 
@@ -70,3 +70,4 @@ void PValRef::Release( PValRef* pval )
 }
 
 }	// namespace hpimod
+#endif

@@ -9,6 +9,9 @@
 
 #include "../hspsdk/hsp3plugin.h"
 #undef stat	// いくつかの標準ライブラリと衝突してしまうので
+#undef puterror
+
+#define puterror(err) do { exinfo->HspFunc_puterror(err); throw err; } while(false)
 
 #include "./basis.h"
 #include "./vartype_traits.h"
@@ -38,18 +41,17 @@ static int cmdfunc(int cmd)
 //------------------------------------------------
 // 関数コマンド呼び出し関数
 //------------------------------------------------
-template< int(*ProcFunc  )(int, void**),
-          int(*ProcSysvar)(int, void**) >
+template< int(*ProcFunc  )(int, PDAT**),
+          int(*ProcSysvar)(int, PDAT**) >
 static void* reffunc( int* type_res, int cmd )
 {
-	void* pResult = nullptr;
+	PDAT* pResult = nullptr;
 
 	if ( !(*type == TYPE_MARK && *val == '(') ) {
 
 		*type_res = ProcSysvar( cmd, &pResult );
 
 	} else {
-	//	if ( !(*type == TYPE_MARK && *val == '(') ) puterror( HSPERR_INVALID_FUNCPARAM );
 		code_next();
 
 		*type_res = ProcFunc( cmd, &pResult );	// コマンド分岐

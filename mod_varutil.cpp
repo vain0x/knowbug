@@ -29,7 +29,7 @@ int code_varinfo(PVal* pval)
 			if ( VarInfo_Len0 <= varinfo && varinfo <= VarInfo_Len4 ) {
 				return pval->len[varinfo - VarInfo_Len0];
 			}
-			puterror(HSPERR_ILLEGAL_FUNCTION); throw;
+			puterror(HSPERR_ILLEGAL_FUNCTION);
 	}
 }
 
@@ -41,9 +41,8 @@ int code_varinfo(PVal* pval)
 //------------------------------------------------
 // dimtype
 //------------------------------------------------
-void code_dimtype(PVal* pval)
+void code_dimtype(PVal* pval, vartype_t vtype)
 {
-	vartype_t const vtype = code_geti();
 	int len[4] {};
 
 	for ( int i = 0; i < ArrayDimMax; ++i ) {
@@ -61,7 +60,7 @@ void code_dimtype(PVal* pval)
 // @ x(a), y(b), z(c) ... による一次元配列の連続初期化。
 // @ dim 的用法。
 //------------------------------------------------
-int dimtypeEx( vartype_t vtype, DimFunc_t fDim )
+int code_dimtypeEx( vartype_t vtype, DimFunc_t fDim )
 {
 	// ひたすらループする
 	for ( int i = 0; code_isNextArg(); ++ i ) {

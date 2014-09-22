@@ -4,12 +4,13 @@
 #ifndef IG_AX_CMD_H
 #define IG_AX_CMD_H
 
-#include "hsp3plugin.h"
+#include "hsp3plugin_custom.h"
+#include "mod_argGetter.h"
 
 namespace AxCmd
 {
 
-static const int MagicCode = 0x20000000;
+static int const MagicCode = 0x20000000;
 
 inline int make( int type, int code )
 {
@@ -36,14 +37,10 @@ inline bool isOk(int axcmd)
 //------------------------------------------------
 // Ž®‚©‚ç axcmd ‚ðŽæ‚èo‚·
 //------------------------------------------------
-inline int code_get_axcmd()
+static inline int code_get_axcmd()
 {
 	int const axcmd = AxCmd::make(*type, *val);		// MagicCode ‚Â‚«
-	code_next();
-
-	// ŽŸ‚ª•¶“ª‚âŽ®“ª‚Å‚Í‚È‚­A')' ‚Å‚à‚È‚¢ ¨ —^‚¦‚ç‚ê‚½ˆø”Ž®‚ª2Žš‹åˆÈã‚Å‚Å‚«‚Ä‚¢‚é
-	if ( !((*exinfo->npexflg & (EXFLG_1 | EXFLG_2)) != 0 || (*type == TYPE_MARK && *val == ')')) )
-		puterror(HSPERR_INVALID_PARAMETER);
+	hpimod::code_get_singleToken();
 	return axcmd;
 }
 

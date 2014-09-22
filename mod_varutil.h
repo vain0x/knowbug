@@ -23,9 +23,9 @@ enum VarInfo {
 };
 
 // •Ï”‚Ìì¬
-extern void code_dimtype(PVal* pval);
+extern void code_dimtype(PVal* pval, vartype_t vtype);
 typedef void(*DimFunc_t)(PVal*, vartype_t, int, int, int, int, int);
-extern int dimtypeEx( vartype_t vt, DimFunc_t fDim = nullptr );		// fDim = nullptr => ’Êí‚Ì dim ‚ğ—p‚¢‚é
+extern int code_dimtypeEx( vartype_t vt, DimFunc_t fDim = nullptr );		// fDim = nullptr => ’Êí‚Ì dim ‚ğ—p‚¢‚é
 
 // APTR ŠÖŒW
 extern APTR CreateAptrFromIndex(PVal const* pval, int idx[ArrayDimMax]);

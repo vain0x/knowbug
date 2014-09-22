@@ -23,6 +23,7 @@ using ManagedPVal = Managed<PVal, false, detail::PValDefaultCtorDtor>;
 // PVal with APTR
 // 基本的には自前で PVal を生成して所有する。
 // 与えられた PVal* の参照(var, array 引数などのため)としても使える。
+// Remark: このクラス自体は Managed<> ではないし、生ポインタの形で使えない。
 class ManagedVarData
 {
 private:
@@ -31,21 +32,38 @@ private:
 
 public:
 	ManagedVarData()
-		: pval_ { }, aptr_ { AptrInvalid }
+		: pval_ { }, aptr_ { 0 }
 	{ }
 
 	ManagedVarData(PVal* pval, APTR aptr)
 		: pval_ { ManagedPVal::ofValptr(pval) }, aptr_ { aptr }
 	{ }
+	ManagedVarData(MPVarData const& vardata)
+		: ManagedVarData(vardata.pval, vardata.aptr)
+	{ }
 
+	ManagedVarData(PDAT const* pdat, vartype_t vtype)
+		: ManagedVarData()
+	{ PVal_assign(getPVal(), pdat, vtype); }
+
+public:
 	PVal* getPVal() const { return pval_.valuePtr(); }
-	APTR  getAPTR() const { return aptr_; }
+	APTR  getAptr() const { return aptr_; }
 
-	static APTR const AptrInvalid = -1;
+	PVal* getVar() const {
+		auto const pval = getPVal();
+		if ( getAptr() > 0 ) {
+			pval->arraycnt = 1;
+			pval->offset = getAptr();
+		} else {
+			HspVarCoreReset(pval);
+		}
+		return pval;
+	}
 };
 
 } // namespace hpimod
 
-// 領域を確保する時点でそれが所有PValなのか view PVal なのかわかるので、それで使い分けるということもできる。
+// 領域を確保する時点でそれが所有PValなのか view PVal なのかわかるので、それで使い分けるという方法もある。
 
 #endif

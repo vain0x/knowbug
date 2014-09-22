@@ -4,41 +4,25 @@
 #include "mod_argGetter.h"
 #include "mod_makepval.h"
 
-namespace hpimod {
-
-//##########################################################
-//    宣言
-//##########################################################
-//static void code_checkarray2( PVal* pval );
+namespace hpimod
+{
 
 //##########################################################
 //    引数の取得
 //##########################################################
-/*
 //------------------------------------------------
-// 変数を取得する
-//------------------------------------------------
-bool code_getva_ex(PVal** pval, APTR* aptr)
-{
-	*pval = &ctx->mem_var[*val];					// グローバル変数のデータから PVal を取り出す
-	if ( code_getprm() <= PARAM_END ) return false;	// 違ったら偽
-	*aptr = (*pval)->offset;
-	return true;
-}
-//*/
-
-//------------------------------------------------
-// 文字列を取得する( hspmalloc で確保する )
+// 文字列を取得する (hspmalloc で確保する)
 // 
-// @ 解放義務は呼び出し元にある。
+// @ 解放義務(hspfree)は呼び出し元にある。
 //------------------------------------------------
-int code_getds_ex(char** ppStr, char const* defstr)
+size_t code_getds_ex(char** ppStr, char const* defstr)
 {
-	char* pStr = code_getds(defstr);
-	size_t len = std::strlen(pStr);
+	char* const pStr = code_getds(defstr);
+	size_t const len = std::strlen(pStr);
+	size_t const size = (len + 1) * sizeof(char);
 
-	*ppStr = reinterpret_cast<char*>(hspmalloc( (len + 1) * sizeof(char) ));
-	std::strncpy( *ppStr, pStr, len );
+	*ppStr = reinterpret_cast<char*>(hspmalloc(size));
+	strncpy_s( *ppStr, size, pStr, len );
 	(*ppStr)[len] = '\0';		// 終端
 	return len;
 }
@@ -94,12 +78,12 @@ int code_get_vartype( int deftype )
 	switch ( mpval->flag ) {
 		// 型タイプ値
 		case HSPVAR_FLAG_INT:
-			return VtTraits<int>::derefValptr(mpval->pt);
+			return VtTraits::derefValptr<vtInt>(mpval->pt);
 
 		// 型名
 		case HSPVAR_FLAG_STR:
 		{
-			auto const vp = seekHvp( VtTraits<str_tag>::asValptr(mpval->pt) );
+			auto const vp = seekHvp( VtTraits::asValptr<vtStr>(mpval->pt) );
 			if ( !vp ) puterror( HSPERR_ILLEGAL_FUNCTION );
 
 			return vp->flag;
@@ -107,7 +91,6 @@ int code_get_vartype( int deftype )
 		default:
 			puterror( HSPERR_TYPE_MISMATCH );
 	}
-	throw;	// 警告抑制
 }
 
 //------------------------------------------------
@@ -124,7 +107,6 @@ label_t code_getdlb( label_t defLabel )
 		}
 
 		puterror( err );
-		throw;		// 警告抑制
 	}
 
 	/*
@@ -172,7 +154,7 @@ FlexValue* code_get_struct()
 	PVal* const pval = code_get_var();
 	if ( pval->flag != HSPVAR_FLAG_STRUCT ) puterror(HSPERR_TYPE_MISMATCH);
 
-	return VtTraits<struct_tag>::asValptr(getHvp(HSPVAR_FLAG_STRUCT)->GetPtr(pval));
+	return VtTraits::asValptr<vtStruct>(getHvp(HSPVAR_FLAG_STRUCT)->GetPtr(pval));
 }
 
 //------------------------------------------------
@@ -192,11 +174,33 @@ stprm_t code_get_stprm()
 {
 	if ( *type != TYPE_STRUCT ) puterror( HSPERR_STRUCT_REQUIRED );
 
-	stprm_t const pStPrm = &ctx->mem_minfo[ *val ];
-	code_next();
-	*exinfo->npexflg &= ~EXFLG_2;
-
+	stprm_t const pStPrm = getSTRUCTPRM(*val);
+	code_get_singleToken();
 	return pStPrm;
+}
+
+//------------------------------------------------
+// 1つの字句からなる式を受け取る
+//
+// @ その字句の値自体は先読み (type, val) で既に取得できている。
+//------------------------------------------------
+int code_get_singleToken()
+{
+	int const chk = code_get_procHeader();
+	if ( chk <= PARAM_END ) return chk;
+
+//	int const type_bak = *type, val_bak = *val;
+	code_next();
+
+	// 次が文頭や式頭ではなく、')' でもない → 与えられた引数式が2字句以上でできている
+	if ( *exinfo->npexflg & (EXFLG_1 | EXFLG_2) || (*type == TYPE_MARK && *val == ')') ) {
+		*exinfo->npexflg &= ~EXFLG_2;
+		return (*type == TYPE_MARK && *val == ')')
+			? PARAM_SPLIT
+			: PARAM_OK;
+	} else {
+		puterror(HSPERR_SYNTAX);
+	}
 }
 
 //##########################################################
@@ -235,7 +239,7 @@ void code_expand_index_int( PVal* pval, bool bRhs )
 		HspVarCoreCopyArrayInfo( pval, &tmpPVal );
 
 		if ( prm != PARAM_DEFAULT ) {
-			n = VtTraits<int>::derefValptr(mpval->pt);
+			n = VtTraits::derefValptr<vtInt>(mpval->pt);
 		}
 
 		code_index_int( pval, n, bRhs );	// 配列要素指定 (int)
@@ -493,23 +497,20 @@ void code_assign_multi( PVal* pval )
 // 
 // @ 命令形式、関数形式どちらでもＯＫ
 //------------------------------------------------
-bool code_isNextArg(void)
+bool code_isNextArg()
 {
 	return !( *exinfo->npexflg & EXFLG_1 || ( *type == TYPE_MARK && *val == ')' ) );
 }
 
 //------------------------------------------------
-// 次の引数を読み飛ばす
-// 
-// @ exflg をなんとかしようとしてみる。
-// @ result : PARAM_* (code_getprm と同じ)
+// code_get の冒頭の処理
 //------------------------------------------------
-int code_skipprm(void)
+int code_get_procHeader()
 {
 	int& exflg = *exinfo->npexflg;
 
 	// 終了, or 省略
-	if ( exflg & EXFLG_1 ) return PARAM_END;	// 文頭、則ちパラメーター終端
+	if ( exflg & EXFLG_1 ) return PARAM_END;	// 文頭、すなわちパラメーター終端
 	if ( exflg & EXFLG_2 ) {					// パラメーター区切り(デフォルト時)
 		exflg &= ~EXFLG_2;
 		return PARAM_DEFAULT;
@@ -522,12 +523,30 @@ int code_skipprm(void)
 			exflg &= ~EXFLG_2;
 			return PARAM_DEFAULT;
 
-		// 関数内のパラメーター省略時
+			// 関数内のパラメーター省略時
 		} else if ( *val == ')' ) {
 			exflg &= ~EXFLG_2;
 			return PARAM_ENDSPLIT;
 		}
 	}
+
+	// 式の本体を取り出す
+	return PARAM_OK;
+}
+
+//------------------------------------------------
+// 次の引数を読み飛ばす
+// 
+// @ exflg をなんとかしようとしてみる。
+// @ result : PARAM_* (code_getprm と同じ)
+//------------------------------------------------
+int code_skipprm()
+{
+	{
+		int const chk = code_get_procHeader();
+		if ( chk <= PARAM_END ) return chk;
+	}
+	int& exflg = *exinfo->npexflg;
 
 	// 引数の式の読み飛ばし処理
 	for ( int lvBracket = 0; ; ) {			// 無限ループ
@@ -537,9 +556,8 @@ int code_skipprm(void)
 		}
 		code_next();
 
-		if ( lvBracket == 0
-			&& ( exflg & EXFLG_1 || exflg & EXFLG_2 || (*type == TYPE_MARK && *val == ')') )
-		) {
+		if ( lvBracket == 0 && (exflg & (EXFLG_1 | EXFLG_2) || (*type == TYPE_MARK && *val == ')')) ) {
+			// 括弧の中ではなく、かつ式に後続の字句が見えたら終了
 			break;
 		}
 	}
@@ -547,12 +565,9 @@ int code_skipprm(void)
 	if ( exflg ) exflg &= ~EXFLG_2;
 
 	// 終了
-	if ( *type == TYPE_MARK && *val == ')' ) {
-		return PARAM_SPLIT;
-
-	} else {
-		return PARAM_OK;
-	}
+	return ( *type == TYPE_MARK && *val == ')' )
+		? PARAM_SPLIT
+		: PARAM_OK;
 }
 
 //------------------------------------------------
