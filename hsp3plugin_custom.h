@@ -7,7 +7,7 @@
 #undef max
 #undef min
 
-#include "../hspsdk/hsp3plugin.h"
+#include "hsp3plugin.h"
 #undef stat	// いくつかの標準ライブラリと衝突してしまうので
 #undef puterror
 

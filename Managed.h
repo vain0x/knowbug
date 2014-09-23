@@ -20,6 +20,7 @@ TDerived とその基底クラスのすべての dtor が trivial でなけれ�
 vector_k 型は PVal::master の領域に Managed<> を配置 new する。
 
 todo: 学ぶ
+memo: header の中にカスタムデリーターを入れておくことも可能
 
 //*/
 
@@ -35,27 +36,28 @@ todo: 学ぶ
 #define DBGOUT_MANAGED_KILLED    FALSE//TRUE
 #define DEBUG_MANAGED_USING_INSTANCE_ID (DBGOUT_MANAGED_REFCNT || DBGOUT_MANAGED_KILLED)
 #if DEBUG_MANAGED_USING_INSTANCE_ID
-static unsigned char newManagedInstanceId() { static unsigned char id_ { 0 }; return id_++; }
+static unsigned char newManagedInstanceId() { static unsigned char id_; return id_++; }
 #endif
 
 namespace hpimod {
 
-namespace detail
-{
-template<typename T>
-struct DefaultCtorDtor {
-	static inline void defaultCtor(T* p) { new(p) T(); }
-	static inline void defaultDtor(T& self) { self.~T(); }
-};
+namespace detail {
+	template<typename T>
+	struct DefaultCtorDtor {
+		void ctor(T* p) { new(p) T(); }
+		void dtor(T& self) { self->~T(); }
+	};
 }
 
 template<typename TValue,
 	// inst_ を nullptr で初期化するかどうか
 	bool bNullCtor,
-	typename DefaultCtorDtor = detail::DefaultCtorDtor<TValue>
+	typename Allocator = HspAllocator<TValue>
+	//typename DefaultCtorDtor = detail::DefaultCtorDtor<TValue>
 >
 class Managed {
 	struct inst_t {
+	//	int paddings_[2];
 		mutable int cnt_;
 		mutable bool tmpobj_;
 		unsigned char padding_;		// (for instance id while debugging)
@@ -69,49 +71,71 @@ class Managed {
 
 private:
 	using value_type = TValue;
-	using self_t = Managed<value_type, bNullCtor, DefaultCtorDtor>;
+	using self_t = Managed<value_type, bNullCtor, Allocator>;
 	
-	static size_t const instHeaderSize = sizeof(int)+sizeof(bool)+sizeof(unsigned char)+sizeof(unsigned short);
-
+	static size_t const instHeaderSize = 3*sizeof(int)+sizeof(bool)+sizeof(unsigned char)+sizeof(unsigned short);
 	static unsigned short const MagicCode = 0x55AB;
 
 private:
+	using CharAllocator = HspAllocator<char>;
+
+	template<typename TAllocator = Allocator>
+	static TAllocator& getAllocator()
+	{
+		static_assert(std::is_empty<TAllocator>::value, "Managed<> can use only stateless alloctor.");
+		static TAllocator stt_allocator {};
+		return stt_allocator;
+	}
+
 	template<typename TInit>
 	void initializeHeader()
 	{
-		assert(!inst_ && exinfo && hspmalloc);
-		inst_ = reinterpret_cast<inst_t*>(hspmalloc(instHeaderSize + sizeof(TInit)));
+		assert(!inst_);
+		inst_ = reinterpret_cast<inst_t*>(
+			std::allocator_traits<CharAllocator>::allocate(getAllocator<CharAllocator>(), instHeaderSize + sizeof(TInit))
+		);
+
 		::new(inst_)inst_t { 1, false, '\0', MagicCode, {} };
+
 		assert(inst_->cnt_ == 1 && inst_->tmpobj_ == false && inst_->magicCode_ == MagicCode
-			&& static_cast<void const*>(&inst_->magicCode_ + 1) == (inst_->value_) && isManagedValue(reinterpret_cast<value_type*>(inst_->value_)));
+			&& static_cast<void const*>(&inst_->magicCode_ + 1) == (inst_->value_)
+			&& isManagedValue(reinterpret_cast<value_type*>(inst_->value_)));
+
 		// new(inst_->value_) TInit(...);
 #if DEBUG_MANAGED_USING_INSTANCE_ID
 		inst_->padding_ = newManagedInstanceId();
 	}
-	int instId() const { return inst_->padding_; }
+	int instId() const { assert(!isNull()); return inst_->padding_; }
 #else
 	}
 #endif
 
 public:
 	// default ctor
-	Managed() : inst_ { nullptr } {
-		if ( !bNullCtor ) {
-			initializeHeader<value_type>();
-			DefaultCtorDtor::defaultCtor(valuePtr());
-		}
+	explicit Managed() : inst_ { nullptr }
+	{
+		static_assert(std::is_default_constructible<value_type>::value, "");
+
+		initializeHeader<value_type>();
+		std::allocator_traits<Allocator>::construct(getAllocator(), valuePtr());
+		//DefaultCtorDtor::ctor(valuePtr());
 	}
 
 	// 実体の生成を伴う factory 関数
 	template<typename TDerived = value_type, typename ...Args>
 	static self_t makeDerived(Args&&... args)
 	{
-		static_assert(std::is_convertible<TDerived*, value_type*>::value, "互換性のない型では初期化できない。");
-		static_assert(std::is_same<value_type, TDerived>::value || std::has_virtual_destructor<value_type>::value,
-			"Managed<T> は、T が virtual destructor を持たないかぎり、T の派生型を所有できない。正常に解放できないため。");
+		static_assert(std::is_class<TDerived>::value && std::is_convertible<TDerived*, value_type*>::value, "互換性のない型では初期化できない。");
+		static_assert(std::is_same<value_type, TDerived>::value || std::has_trivial_destructor<TDerived>::value || std::has_virtual_destructor<value_type>::value,
+			"Managed<T> が T の派生形を所有するためには、その派生型が trivial destructor を持つか、T が virtual な destructor を持たなければならない。正常に解放できないため。");
 
 		self_t self { nullptr }; self.initializeHeader<TDerived>();
-		new(self.valuePtr()) TDerived(std::forward<Args>(args)...);
+
+		// todo: allocator has gone.
+		using rebound_t = std::allocator_traits<Allocator>::rebind_alloc<TDerived>;
+		std::allocator_traits<rebound_t>::construct(getAllocator<rebound_t>(),
+			self.valuePtr(), std::forward<Args>(args)...);
+	//	new(self.valuePtr()) TDerived(std::forward<Args>(args)...);
 		return std::move(self);
 	}
 
@@ -182,7 +206,7 @@ public:
 
 private:
 	void kill() const {
-		assert(!isNull() && cnt() == 0);
+		assert(isManaged() && cnt() == 0);
 		auto* const inst_bak = inst_;
 		auto& value_bak = value();
 
@@ -193,20 +217,23 @@ private:
 		const_cast<unsigned short&>(inst_->magicCode_) = 0;
 		const_cast<inst_t*&>(inst_) = nullptr;
 
-		DefaultCtorDtor::defaultDtor(value_bak);
-		hspfree(inst_bak);
+		std::allocator_traits<Allocator>::destroy(getAllocator(), inst_bak);
+		std::allocator_traits<CharAllocator>::deallocate(getAllocator<CharAllocator>(),
+			reinterpret_cast<char*>(inst_bak), 1);		// HspAllocator<> ignores counts to deallocate.
+		//DefaultCtorDtor::dtor(value_bak);
+		//hspfree(inst_bak);
 	}
 
 private:
 	// アクセサ
-	int& cnt() const { return reinterpret_cast<int&>(inst_->cnt_); }
-	bool& tmpobj() const { return reinterpret_cast<bool&>(inst_->tmpobj_); }
+	int& cnt() const { assert(!isNull()); return reinterpret_cast<int&>(inst_->cnt_); }
+	bool& tmpobj() const { assert(!isNull()); return reinterpret_cast<bool&>(inst_->tmpobj_); }
 
 public:
 	int cntRefers() const { return cnt(); }
 	bool isTmpObj() const { return tmpobj(); }
 
-	value_type* valuePtr() const { return reinterpret_cast<value_type*>(inst_->value_); }
+	value_type* valuePtr() const { assert(!isNull()); return reinterpret_cast<value_type*>(inst_->value_); }
 	value_type& value() const { return *valuePtr(); }
 
 	// inst のポインタを返す

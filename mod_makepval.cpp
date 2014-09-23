@@ -18,7 +18,7 @@ void PVal_init(PVal* pval, vartype_t vtype)
 
 	pval->flag = vtype;
 	pval->mode = HSPVAR_MODE_NONE;
-	PVal_alloc( pval );
+	PVal_alloc( pval, nullptr, vtype );
 	return;
 }
 
