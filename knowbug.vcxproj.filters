@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="class">
+      <UniqueIdentifier>{275ea044-7b87-4f01-a1ec-78305b577e21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="module">
+      <UniqueIdentifier>{0e8e0823-bb97-4d73-81f7-d399e205e61d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
+    </Filter>
+    <Filter Include="WrapCall">
+      <UniqueIdentifier>{8edddfd0-21dc-4014-a397-d3b7bd1f0ef4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="var_extra">
+      <UniqueIdentifier>{91cc624b-f272-4337-8d5b-2ad048d6db7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="module\hpimod">
+      <UniqueIdentifier>{bbb14e3b-4dd2-4d95-a2a6-47582d419246}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="module\hspsdk">
+      <UniqueIdentifier>{17c74d29-3bdd-4bf7-9dc7-6b32e63b3d22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="module\supio">
+      <UniqueIdentifier>{cd734d7f-d06a-49c4-8e72-a35f933343e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="module\hspsdk\hsed3_footy2">
+      <UniqueIdentifier>{7c999e1d-cb21-4a82-8e64-7751fabf60c9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CVarinfoText.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
+    <ClCompile Include="CVarTree.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="SysvarData.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
+    <ClCompile Include="config_mng.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="dialog.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="vartree.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="with_ModPtr.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="WrapCall\type_modcmd.cpp">
+      <Filter>WrapCall</Filter>
+    </ClCompile>
+    <ClCompile Include="WrapCall\WrapCall.cpp">
+      <Filter>WrapCall</Filter>
+    </ClCompile>
+    <ClCompile Include="module\CIni.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="module\strf.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="CVardataString.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
+    <ClCompile Include="module\CStrWriter.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="ExVardataString.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\hpimod\hspsdk\hsp3plugin.cpp">
+      <Filter>module\hspsdk</Filter>
+    </ClCompile>
+    <ClCompile Include="module\supio\supio.cpp">
+      <Filter>module\supio</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CVarinfoText.h">
+      <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="CVarTree.h">
+      <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SysvarData.h">
+      <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="config_mng.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="dialog.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="vartree.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="with_ModPtr.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="CAx.h">
+      <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="WrapCall\ModcmdCallInfo.h">
+      <Filter>WrapCall</Filter>
+    </ClInclude>
+    <ClInclude Include="WrapCall\type_modcmd.h">
+      <Filter>WrapCall</Filter>
+    </ClInclude>
+    <ClInclude Include="WrapCall\WrapCall.h">
+      <Filter>WrapCall</Filter>
+    </ClInclude>
+    <ClInclude Include="module\ptr_cast.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="module\CLogBuf.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="module\CIni.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="module\strf.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="WrapCall\ResultNodeData.h">
+      <Filter>WrapCall</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\MakeHPI\hpimod\var_vector\for_knowbug.var_vector.h">
+      <Filter>var_extra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\MakeHPI\hpimod\var_assoc\for_knowbug.var_assoc.h">
+      <Filter>var_extra</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugInfo.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="CVardataString.h">
+      <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="module\CStrWriter.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="ExVardataString.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpimod\basis.h">
+      <Filter>module\hpimod</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpimod\hsp3plugin_custom.h">
+      <Filter>module\hpimod</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpimod\vartype_traits.h">
+      <Filter>module\hpimod</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpimod\hspsdk\hsp3debug.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpimod\hspsdk\hsp3plugin.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpimod\hspsdk\hsp3struct.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpimod\hspsdk\hspvar_core.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpimod\hspsdk\hspwnd.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpimod\hspsdk\hsed3_footy2\interface.h">
+      <Filter>module\hspsdk\hsed3_footy2</Filter>
+    </ClInclude>
+    <ClInclude Include="module\supio\supio.h">
+      <Filter>module\supio</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="knowbug.rc">
+      <Filter>リソース ファイル</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

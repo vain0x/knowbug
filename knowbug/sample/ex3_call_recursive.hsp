@@ -1,0 +1,51 @@
+// knowbug sample
+
+// 再帰呼び出し
+
+// サンプルは文字列のマージソート(merge sort)
+
+#module
+
+#deffunc test str msg
+	mes msg
+	return
+
+#defcfunc str_mergeSort str _msg, local pair
+	msg = _msg
+	len = strlen(msg)
+	
+	if ( len == 2 ) {
+		return str_merge( strmid(msg, 0, 1), strmid(msg, 1, 1) )
+	} elsif ( len == 1 ) {
+		return msg
+	}
+	
+	pair = strmid(msg, 0, len / 2), strmid(msg, len / 2, len - (len / 2))	// 2分割
+	;mes pair(0) + "    |    " + pair(1)
+	return str_merge( str_mergeSort(pair(0)), str_mergeSort(pair(1)) )
+	
+#defcfunc str_merge str _a, str _b,  local ptr, local c, local result
+	a = _a : b = _b
+	sdim result, strlen(a) + strlen(b) + 1
+	ptr = 0, 0, 0
+	repeat
+		c = peek(a, ptr(0)), peek(b, ptr(1))
+		if ( c(0) == 0 || c(1) == 0 ) { break }
+		if ( c(0) <= c(1) ) {
+			poke result, ptr(2), c(0) : ptr(0) ++
+		} else {
+			poke result, ptr(2), c(1) : ptr(1) ++
+		}
+		ptr(2) ++
+	loop
+	if ( c(0) == 0 ) {
+		result += strmid(b, ptr(1), 0xFF)
+	} else {
+		result += strmid(a, ptr(0), 0xFF)
+	}
+	return result
+	
+#global
+
+	assert
+	test str_mergeSort("EBFCGAD")

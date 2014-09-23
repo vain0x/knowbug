@@ -1,0 +1,45 @@
+// knowbug sample
+
+// モジュールの入れ子
+// 実質的に意味はない
+
+// v@mod1@mod2@mod3 ...
+
+// #mod3 {
+//    #mod2 {
+//       #mod1 {
+//          v
+//       }
+//    }
+// }
+
+#module outer
+
+#deffunc outer_func int a
+	k += a
+	mes "outer_func (" + k + ")"
+	return
+	
+;#defcfunc inner_k
+;	return k@inner		// ← 「k@inner」として解釈される
+	
+#global
+
+#module inner@outer
+
+#deffunc inner_func int a
+	k += a
+	mes "inner_func (" + k + ")"
+	return
+
+#global
+
+	repeat 3, 1
+		outer_func 10 * cnt
+		inner_func  8 * cnt
+	loop
+	
+	mes "k@outer = " + k@outer
+	mes "k@inner = " + k@inner@outer
+	
+	k = 1	// グローバル変数「k@」
