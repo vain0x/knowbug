@@ -1,4 +1,4 @@
-// string ƒNƒ‰ƒXx‰‡ƒ‚ƒWƒ…[ƒ‹
+ï»¿// string ã‚¯ãƒ©ã‚¹æ”¯æ´ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«
 
 #include <cstdio>
 #include <sstream>
@@ -7,7 +7,7 @@
 
 using std::string;
 
-/// ‘®•t‚«•¶š—ñ‚Ì¶¬
+/// æ›¸å¼ä»˜ãæ–‡å­—åˆ—ã®ç”Ÿæˆ
 string vstrf(char const* format, va_list& arglist)
 {
 	static char stt_tmpbuf[0x2000];
@@ -42,7 +42,7 @@ string strf(char const* format, ...)
 }
 
 #if 0
-/// •¶š—ñ‚Ì”½•œ
+/// æ–‡å­—åˆ—ã®åå¾©
 string operator * ( string const& self, size_t n )
 {
 	string newOne = self.c_str();

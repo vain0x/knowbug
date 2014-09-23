@@ -1,4 +1,4 @@
-// VardataString writing functions (for external Dlls)
+﻿// VardataString writing functions (for external Dlls)
 
 #ifndef IG_VARDATA_STRING_EXPORT_H
 #define IG_VARDATA_STRING_EXPORT_H

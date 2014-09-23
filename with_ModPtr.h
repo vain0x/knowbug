@@ -1,4 +1,4 @@
-// with modptr.as
+﻿// with modptr.as
 
 #ifndef IG_WITH_MODPTR_AS_H
 #define IG_WITH_MODPTR_AS_H

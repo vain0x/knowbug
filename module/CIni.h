@@ -1,4 +1,4 @@
-// INIƒtƒ@ƒCƒ‹“Ç‚İ‘‚«ƒNƒ‰ƒX
+ï»¿// INIãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿æ›¸ãã‚¯ãƒ©ã‚¹
 
 #ifndef IG_CLASS_INI_H
 #define IG_CLASS_INI_H
@@ -44,13 +44,13 @@ public:
 private:
 	std::list<std::string> enumImpl(char const* secOrNull);
 
-	// ••ˆó
+	// å°å°
 private:
 	CIni(CIni const& obj) = delete;
 };
 
 //##############################################################################
-//                ƒTƒ“ƒvƒ‹
+//                ã‚µãƒ³ãƒ—ãƒ«
 //##############################################################################
 #if 0
 
@@ -63,7 +63,7 @@ T test()
 	
 	ini.setInt( "Resource/int", "maxnum", 1200 );
 	ini.setString( "Resource/str", "text", "These are pens." );
-	ini.setString( "Resource/str/word", "pen", "–¼,pens,ƒyƒ“" );
+	ini.setString( "Resource/str/word", "pen", "å,pens,ãƒšãƒ³" );
 	
 	std::cout << "exists \"maxnum\" : " << ini.existsKey( "Resource/int", "maxnum" ) << std::endl;
 	std::cout << "exists \"minnum\" : " << ini.existsKey( "Resource/int", "minnum" ) << std::endl;

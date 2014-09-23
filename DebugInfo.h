@@ -1,7 +1,7 @@
-// debug info
+ï»¿// debug info
 
-// ƒOƒ[ƒoƒ‹•Ï”‚Ì”‚ğŒ¸‚ç‚·‚½‚ß‚Ì‚ ‚ê
-// ctx, exinfo ‚ª•¡”‘¶İ‚µ‚Ä¬—‚·‚é‚¾‚¯‚Év‚¦‚é
+// ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã®æ•°ã‚’æ¸›ã‚‰ã™ãŸã‚ã®ã‚ã‚Œ
+// ctx, exinfo ãŒè¤‡æ•°å­˜åœ¨ã—ã¦æ··ä¹±ã™ã‚‹ã ã‘ã«æ€ãˆã‚‹
 
 #ifndef IG_STRUCT_DEBUG_INFO_H
 #define IG_STRUCT_DEBUG_INFO_H
@@ -33,9 +33,9 @@ public:
 		, ax(new CAx())
 	{ }
 
-	// Œ»İÀs‚ÌÀsˆÊ’u‚ğ•\‚·•¶š—ñ (XV‚Í‚µ‚È‚¢)
+	// ç¾åœ¨å®Ÿè¡Œã®å®Ÿè¡Œä½ç½®ã‚’è¡¨ã™æ–‡å­—åˆ— (æ›´æ–°ã¯ã—ãªã„)
 	std::string getCurInfString() const {
-		auto const fname = (debug->fname ? debug->fname : "(ƒtƒ@ƒCƒ‹–¼‚È‚µ)");
+		auto const fname = (debug->fname ? debug->fname : "(ãƒ•ã‚¡ã‚¤ãƒ«åãªã—)");
 	//	return strf("%s\n( line : %d )", fname, debug->line);
 		return strf("#%d \"%s\"", debug->line, fname);
 	}

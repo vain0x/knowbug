@@ -1,4 +1,4 @@
-
+ï»¿
 #include "module/CIni.h"
 #include "module/strf.h"
 
@@ -15,7 +15,7 @@ KnowbugConfig::KnowbugConfig()
 		
 		char drive[5];
 		char dir[MAX_PATH];
-		char _dummy[MAX_PATH];		// ƒ_ƒ~[
+		char _dummy[MAX_PATH];		// ãƒ€ãƒŸãƒ¼
 		
 		_splitpath_s( ownpath, drive, dir, _dummy, _dummy );
 		sprintf_s( ownpath, "%s%s", drive, dir );
@@ -24,38 +24,38 @@ KnowbugConfig::KnowbugConfig()
 	string const ownpath_full = strf("%sknowbug.ini", ownpath);
 	CIni ini { ownpath_full.c_str() };
 	
-	// common ƒtƒHƒ‹ƒ_‚Ö‚ÌƒpƒX
+	// common ãƒ•ã‚©ãƒ«ãƒ€ã¸ã®ãƒ‘ã‚¹
 	commonPath = strf( "%scommon", ownpath );
 	
-	// Å‘å•\¦ƒf[ƒ^—Ê
+	// æœ€å¤§è¡¨ç¤ºãƒ‡ãƒ¼ã‚¿é‡
 	//maxlenVarinfo = ini.getInt( "Varinfo", "maxlen", 0x1000 - 1 );
 	logMaxlen     = ini.getInt( "Log",     "maxlen", 0x20000 );
 	
-	// ƒ^ƒu•¶š•
+	// ã‚¿ãƒ–æ–‡å­—å¹…
 	tabwidth  = ini.getInt( "Interface", "tabwidth", 3 );
 	
-	// ‰E’[‚ÅÜ‚è•Ô‚·‚©”Û‚©
+	// å³ç«¯ã§æŠ˜ã‚Šè¿”ã™ã‹å¦ã‹
 	//bWordwrap = ini.getBool( "Interface", "bWordwrap", false );
 	
-	// Å‘O–ÊƒEƒBƒ“ƒhƒE‚©”Û‚©
+	// æœ€å‰é¢ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‹å¦ã‹
 	bTopMost = ini.getBool( "Window", "bTopMost", false );
 	
-	// ©“®•Û‘¶ƒpƒX
+	// è‡ªå‹•ä¿å­˜ãƒ‘ã‚¹
 	logPath = ini.getString( "Log", "autoSavePath", "" );
 	
-	// •Ô’lƒm[ƒh‚ğg‚¤‚©
+	// è¿”å€¤ãƒãƒ¼ãƒ‰ã‚’ä½¿ã†ã‹
 	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
 
-	// ƒJƒXƒ^ƒ€ƒhƒ[‚·‚é‚©‚Ç‚¤‚©
+	// ã‚«ã‚¹ã‚¿ãƒ ãƒ‰ãƒ­ãƒ¼ã™ã‚‹ã‹ã©ã†ã‹
 	bCustomDraw = ini.getBool( "ColorType", "bCustomDraw", false );
 	
 	if ( bCustomDraw ) {
-		// Œ^‚²‚Æ‚ÌF
+		// å‹ã”ã¨ã®è‰²
 		for ( int i = 0; i < HSPVAR_FLAG_USERDEF; ++i ) {
 			clrText[i] = ini.getInt("ColorType", strf("text#%d", i).c_str(), RGB(0, 0, 0));
 		}
 
-		// ŒÄ‚Ño‚µ‚âŠg’£Œ^‚ÌF
+		// å‘¼ã³å‡ºã—ã‚„æ‹¡å¼µå‹ã®è‰²
 		auto const keys = ini.enumKeys("ColorTypeExtra");
 		for ( auto const& key : keys ) {
 			COLORREF const cref = ini.getInt("ColorTypeExtra", key.c_str());
@@ -64,7 +64,7 @@ KnowbugConfig::KnowbugConfig()
 		}
 	}
 
-	// Šg’£Œ^‚Ì•Ï”ƒf[ƒ^‚ğ•¶š—ñ‰»‚·‚éŠÖ”
+	// æ‹¡å¼µå‹ã®å¤‰æ•°ãƒ‡ãƒ¼ã‚¿ã‚’æ–‡å­—åˆ—åŒ–ã™ã‚‹é–¢æ•°
 	auto keys = ini.enumKeys("VardataString/UserdefTypes");
 	//dbgout(join(keys.begin(), keys.end(), ", ").c_str());
 
@@ -76,29 +76,29 @@ KnowbugConfig::KnowbugConfig()
 			auto const fnameAddVar = ini.getString(stc_sec, strf("%s.addVar", vtname.c_str()).c_str());
 			auto const fAddVar = (addVarUserdef_t)GetProcAddress(hDll, fnameAddVar);
 			if ( fnameAddVar[0] != '\0' && !fAddVar ) {
-				Knowbug::logmesWarning(strf("Šg’£Œ^•\¦—p‚Ì addVar ŠÖ”‚ª“Ç‚İ‚Ü‚ê‚È‚©‚Á‚½B\r\nŒ^–¼F%s, ŠÖ”–¼F%s",
+				Knowbug::logmesWarning(strf("æ‹¡å¼µå‹è¡¨ç¤ºç”¨ã® addVar é–¢æ•°ãŒèª­ã¿è¾¼ã¾ã‚Œãªã‹ã£ãŸã€‚\r\nå‹åï¼š%s, é–¢æ•°åï¼š%s",
 					vtname.c_str(), fnameAddVar).c_str());
 			}
 
 			auto const fnameAddValue = ini.getString(stc_sec, strf("%s.addValue", vtname.c_str()).c_str());
 			auto const fAddValue = (addValueUserdef_t)GetProcAddress(hDll, fnameAddValue);
 			if ( fnameAddValue[0] != '\0' && !fAddValue ) {
-				Knowbug::logmesWarning(strf("Šg’£Œ^•\¦—p‚Ì addValue ŠÖ”‚ª“Ç‚İ‚Ü‚ê‚È‚©‚Á‚½B\r\nŒ^–¼F%s, ŠÖ”–¼F%s",
+				Knowbug::logmesWarning(strf("æ‹¡å¼µå‹è¡¨ç¤ºç”¨ã® addValue é–¢æ•°ãŒèª­ã¿è¾¼ã¾ã‚Œãªã‹ã£ãŸã€‚\r\nå‹åï¼š%s, é–¢æ•°åï¼š%s",
 					vtname.c_str(), fnameAddValue).c_str());
 			}
 
 #ifdef _DEBUG
-			Knowbug::logmes(strf("Œ^ %s ‚ÌŠg’£•\¦î•ñ‚ª“Ç‚İ‚Ü‚ê‚½B\r\nVswInfo { %08X, %08X, %08X }",
+			Knowbug::logmes(strf("å‹ %s ã®æ‹¡å¼µè¡¨ç¤ºæƒ…å ±ãŒèª­ã¿è¾¼ã¾ã‚ŒãŸã€‚\r\nVswInfo { %08X, %08X, %08X }",
 				vtname.c_str(), hDll, fAddVar, fAddValue).c_str());
 #endif
 			vswInfo.insert({ vtname, VswInfo { hDll, fAddVar, fAddValue } });
 		} else {
-			Knowbug::logmesWarning(strf("Šg’£Œ^•\¦—p‚Ì Dll ‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚½B\r\nŒ^–¼F%s, ƒpƒXF%s",
+			Knowbug::logmesWarning(strf("æ‹¡å¼µå‹è¡¨ç¤ºç”¨ã® Dll ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ãŸã€‚\r\nå‹åï¼š%s, ãƒ‘ã‚¹ï¼š%s",
 				vtname.c_str(), dllPath).c_str());
 		}
 	}
 
-	// Ùìƒvƒ‰ƒOƒCƒ“Šg’£Œ^•\¦‚ª‚È‚¯‚ê‚Î’Ç‰Á‚µ‚Ä‚¨‚­
+	// æ‹™ä½œãƒ—ãƒ©ã‚°ã‚¤ãƒ³æ‹¡å¼µå‹è¡¨ç¤ºãŒãªã‘ã‚Œã°è¿½åŠ ã—ã¦ãŠã
 	struct VswInfoForInternal { string vtname; addVarUserdef_t addVar; addValueUserdef_t addValue; };
 	static VswInfoForInternal const stc_vswInfoForInternal[] = {
 #ifdef with_Assoc
@@ -115,7 +115,7 @@ KnowbugConfig::KnowbugConfig()
 #endif
 	};
 	for ( auto vsw2 : stc_vswInfoForInternal ) {
-		// ini ƒtƒ@ƒCƒ‹‚Ìw’è‚ğ—Dæ‚·‚é
+		// ini ãƒ•ã‚¡ã‚¤ãƒ«ã®æŒ‡å®šã‚’å„ªå…ˆã™ã‚‹
 		if ( vswInfo.find(vsw2.vtname) == vswInfo.end() ) {
 			vswInfo.insert({ vsw2.vtname, VswInfo { nullptr, vsw2.addVar, vsw2.addValue } });
 		}

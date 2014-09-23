@@ -1,4 +1,4 @@
-#ifndef IG_MAP_ITERATOR_H
+﻿#ifndef IG_MAP_ITERATOR_H
 #define IG_MAP_ITERATOR_H
 
 #include <iterator>
@@ -34,10 +34,10 @@ public:
 //------------------------------------------------
 // iterator of mapping
 //
-// TFunc �̕Ԓl�� non-const �ւ̎Q�ƌ^�Ȃ�Astd::forward_iterator �ȏ�ɂȂ�B
-// todo: ���̂��߂̃e���v���[�g���ꉻ
-// remark. �֐��q���قȂ��Ă��Ă� base ����������Γ������Ƃ݂Ȃ����B���ӁB
-// �����_�֐�����ʂɔ�r�\�łȂ����߁B
+// TFunc の返値が non-const への参照型なら、std::forward_iterator 以上になる。
+// todo: そのためのテンプレート特殊化
+// remark. 関数子が異なっていても base が等しければ等しいとみなされる。注意。
+// ラムダ関数が一般に比較可能でないため。
 //------------------------------------------------
 template<typename TIter, typename TFunc,
 	typename TIterTag = std::input_iterator_tag,

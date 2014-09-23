@@ -1,4 +1,4 @@
-// knowbug dialogs
+Ôªø// knowbug dialogs
 
 #pragma once
 
@@ -52,7 +52,7 @@ void setEditStyle( HWND hEdit );
 
 } // namespace Dialog
 
-// ÇªÇÃëº
+// „Åù„ÅÆ‰ªñ
 void Edit_SetTabLength( HWND hEdit, const int tabwidth );
 void Edit_EnableWordwrap(HWND hEdit, bool bEnable);
 void Edit_UpdateText(HWND hEdit, char const* s);

@@ -1,4 +1,4 @@
-// •Ï”ƒf[ƒ^ƒeƒLƒXƒg¶¬ƒNƒ‰ƒX
+ï»¿// å¤‰æ•°ãƒ‡ãƒ¼ã‚¿ãƒ†ã‚­ã‚¹ãƒˆç”Ÿæˆã‚¯ãƒ©ã‚¹
 
 #ifndef IG_CLASS_VARINFO_TEXT_H
 #define IG_CLASS_VARINFO_TEXT_H
@@ -20,12 +20,12 @@ namespace WrapCall
 
 class CVarinfoText
 {
-	// ƒƒ“ƒo•Ï”
+	// ãƒ¡ãƒ³ãƒå¤‰æ•°
 private:
 	string buf_;
 	CStrWriter writer_;
 
-	// ƒƒ“ƒoŠÖ”
+	// ãƒ¡ãƒ³ãƒé–¢æ•°
 public:
 	CVarinfoText()
 		: writer_ { getBuf() }

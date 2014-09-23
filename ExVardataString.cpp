@@ -1,10 +1,10 @@
-// ŠO•”Dll—pAVardataString ì¬‹@”\
+ï»¿// å¤–éƒ¨Dllç”¨ã€VardataString ä½œæˆæ©Ÿèƒ½
 
 #include "main.h"
 #include "ExVardataString.h"
 #include "CVardataString.h"
 
-// ƒLƒƒƒXƒg
+// ã‚­ãƒ£ã‚¹ãƒˆ
 static CVardataStrWriter& vswriter(vswriter_t self) {
 	return *reinterpret_cast<CVardataStrWriter*>(self);
 }
@@ -62,7 +62,7 @@ void knowbugVsw_addSysvar(vswriter_t _w, char const* name)
 		vswriter(_w).addSysvar(id);
 
 	} else {
-		Knowbug::logmesWarning(strf("ƒVƒXƒeƒ€•Ï”u%sv‚Í‘¶İ‚µ‚È‚¢B", name).c_str());
+		Knowbug::logmesWarning(strf("ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ã€Œ%sã€ã¯å­˜åœ¨ã—ãªã„ã€‚", name).c_str());
 	}
 }
 
@@ -93,7 +93,7 @@ EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods()
 }
 
 //------------------------------------------------
-// Ùì assoc Œ^‚ÌŠg’£•\¦‚Ì‚½‚ß‚ÌŠÖ”ŒQ
+// æ‹™ä½œ assoc å‹ã®æ‹¡å¼µè¡¨ç¤ºã®ãŸã‚ã®é–¢æ•°ç¾¤
 //------------------------------------------------
 #ifdef with_Assoc
 # include "crouton/src/var_assoc/for_knowbug.var_assoc.h"
@@ -112,19 +112,19 @@ void WINAPI knowbugVsw_addValueAssoc(vswriter_t _w, char const* name, void const
 	auto const hvp = hpimod::seekHvp(assoc_vartype_name);
 	StAssocMapList* const head = (reinterpret_cast<GetMapList_t>(hvp->user))(src);
 
-	// —v‘f‚È‚µ
+	// è¦ç´ ãªã—
 	if ( !head ) {
 		knowbugVsw_catLeafExtra(_w, name, "empty_assoc");
 		return;
 	}
 
-	// ‘SƒL[‚ÌƒŠƒXƒg
+	// å…¨ã‚­ãƒ¼ã®ãƒªã‚¹ãƒˆ
 	knowbugVsw_catNodeBegin(_w, name, "[");
 	{
-		// —ñ‹“
+		// åˆ—æŒ™
 		for ( StAssocMapList* list = head; list != nullptr; list = list->next ) {
 			if ( knowbugVsw_isLineformWriter(_w) ) {
-				// pair: ukey: value...v
+				// pair: ã€Œkey: value...ã€
 				knowbugVsw_catNodeBegin(_w, CStructedStrWriter::stc_strUnused,
 					strf("%s: ", list->key).c_str());
 				knowbugVsw_addVar(_w, CStructedStrWriter::stc_strUnused, list->pval);
@@ -135,7 +135,7 @@ void WINAPI knowbugVsw_addValueAssoc(vswriter_t _w, char const* name, void const
 			//	dbgout("%p: key = %s, pval = %p, next = %p", list, list->key, list->pval, list->next );
 		}
 
-		// ƒŠƒXƒg‚Ì‰ğ•ú
+		// ãƒªã‚¹ãƒˆã®è§£æ”¾
 		for ( StAssocMapList* list = head; list != nullptr; ) {
 			StAssocMapList* const next = list->next;
 			exinfo->HspFunc_free(list);
@@ -148,7 +148,7 @@ void WINAPI knowbugVsw_addValueAssoc(vswriter_t _w, char const* name, void const
 #endif
 
 //------------------------------------------------
-// Ùì vector Œ^‚ÌŠg’£•\¦
+// æ‹™ä½œ vector å‹ã®æ‹¡å¼µè¡¨ç¤º
 //------------------------------------------------
 #ifdef with_Vector
 # include "crouton/src/var_vector/for_knowbug.var_vector.h"
@@ -171,13 +171,13 @@ void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void cons
 	int len;
 	PVal** const pvals = (reinterpret_cast<GetVectorList_t>(hvp->user))(src, &len);
 
-	// —v‘f‚È‚µ
+	// è¦ç´ ãªã—
 	if ( !pvals ) {
 		knowbugVsw_catLeafExtra(_w, name, "empty_vector");
 		return;
 	}
 
-	// ‘SƒL[‚ÌƒŠƒXƒg
+	// å…¨ã‚­ãƒ¼ã®ãƒªã‚¹ãƒˆ
 	knowbugVsw_catNodeBegin(_w, name, "[");
 	{
 		knowbugVsw_catAttribute(_w, "length", strf("%d", len).c_str());
@@ -194,7 +194,7 @@ void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void cons
 #endif
 
 //------------------------------------------------
-// Ùì array Œ^‚ÌŠg’£•\¦
+// æ‹™ä½œ array å‹ã®æ‹¡å¼µè¡¨ç¤º
 //------------------------------------------------
 #ifdef with_Array
 # include "crouton/src/var_array/for_knowbug.var_array.h"
@@ -216,20 +216,20 @@ void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const
 	auto const hvp = hpimod::seekHvp(array_vartype_name);
 	PVal* const pvInner = (reinterpret_cast<GetArray_t>(hvp->user))(src);
 
-	// —v‘f‚È‚µ
+	// è¦ç´ ãªã—
 	if ( !pvInner || pvInner->len[1] == 0 ) {
 		knowbugVsw_catLeafExtra(_w, name, "empty_array");
 		return;
 	}
 
-	// •\¦
+	// è¡¨ç¤º
 	knowbugVsw_addVarArray(_w, name, pvInner);
 	return;
 }
 #endif
 
 //------------------------------------------------
-// Ùì modcmd Œ^‚ÌŠg’£•\¦
+// æ‹™ä½œ modcmd å‹ã®æ‹¡å¼µè¡¨ç¤º
 //------------------------------------------------
 #ifdef with_Modcmd
 

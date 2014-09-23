@@ -1,4 +1,4 @@
-
+ï»¿
 //
 //		HSP debug window support functions for HSP3
 //				onion software/onitama 2005
@@ -41,14 +41,14 @@ DebugInfo* g_dbginfo = nullptr;
 static CVarTree* stt_pSttVarTree = nullptr;
 //static DynTree_t* stt_pDynTree = nullptr;
 
-// ƒ‰ƒ“ƒ^ƒCƒ€‚Æ‚Ì’ÊM
+// ãƒ©ãƒ³ã‚¿ã‚¤ãƒ ã¨ã®é€šä¿¡
 EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 );
 EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 );
 EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 );
 
 static void InvokeThread();
 
-// WrapCall ŠÖ˜A
+// WrapCall é–¢é€£
 #ifdef with_WrapCall
 # include "WrapCall/ModcmdCallInfo.h"
 
@@ -59,7 +59,7 @@ static void OnEndCalling( HWND hwndTree, ModcmdCallInfo const& callinfo, void* p
 #endif
 
 //------------------------------------------------
-// DllƒGƒ“ƒgƒŠ[ƒ|ƒCƒ“ƒg
+// Dllã‚¨ãƒ³ãƒˆãƒªãƒ¼ãƒã‚¤ãƒ³ãƒˆ
 //------------------------------------------------
 int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 {
@@ -79,29 +79,29 @@ int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 }
 
 //##############################################################################
-//        ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE::(runtime ‚©‚çŒÄ‚Î‚ê‚éŠÖ”)
+//        ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦::(runtime ã‹ã‚‰å‘¼ã°ã‚Œã‚‹é–¢æ•°)
 //##############################################################################
 //------------------------------------------------
 // debugini ptr  (type1)
 //------------------------------------------------
 EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
-	// ƒOƒ[ƒoƒ‹•Ï”‚Ì‰Šú‰»
+	// ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°ã®åˆæœŸåŒ–
 //	g_debug = p1;
 	ctx     = p1->hspctx;
 	exinfo  = ctx->exinfo2;
 
 	g_dbginfo = new DebugInfo(p1);
 	
-	// İ’è‚ğ“Ç‚İ‚Ş
+	// è¨­å®šã‚’èª­ã¿è¾¼ã‚€
 	g_config.initialize();
 	
 //	DynTree::g_dbginfo = g_dbginfo;
 	
-	// ƒEƒBƒ“ƒhƒE‚Ì¶¬
+	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ç”Ÿæˆ
 	HWND const hDlg = Dialog::createMain();
 	
-	// ÀsˆÊ’uŒˆ’èƒXƒŒƒbƒh
+	// å®Ÿè¡Œä½ç½®æ±ºå®šã‚¹ãƒ¬ãƒƒãƒ‰
 //	InvokeThread();
 	
 	return 0;
@@ -116,7 +116,7 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
 	switch ( p2 ) {
-		// Às‚ª’â~‚µ‚½ (stop, wait, await, assert ‚È‚Ç)
+		// å®Ÿè¡ŒãŒåœæ­¢ã—ãŸ (stop, wait, await, assert ãªã©)
 		case hpimod::DebugNotice_Stop:
 		{
 			if (Knowbug::continueConditionalRun()) break;
@@ -129,7 +129,7 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 			break;
 		}
 		
-		// logmes –½—ß‚ªŒÄ‚Î‚ê‚½
+		// logmes å‘½ä»¤ãŒå‘¼ã°ã‚ŒãŸ
 		case hpimod::DebugNotice_Logmes:
 			Knowbug::logmes( ctx->stmp );
 			break;
@@ -142,7 +142,7 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 //------------------------------------------------
 EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
-	if ( !g_config->logPath.empty() ) {		// ©“®ƒƒO•Û‘¶
+	if ( !g_config->logPath.empty() ) {		// è‡ªå‹•ãƒ­ã‚°ä¿å­˜
 		Dialog::logSave( g_config->logPath.c_str() );
 	}
 	
@@ -157,16 +157,16 @@ EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 )
 namespace Knowbug
 {
 
-// ƒXƒeƒbƒvÀs’†‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
-// u’Eov“™‚ÌğŒ•t‚«Às‚Íœ‚­B
+// ã‚¹ãƒ†ãƒƒãƒ—å®Ÿè¡Œä¸­ã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚°
+// ã€Œè„±å‡ºã€ç­‰ã®æ¡ä»¶ä»˜ãå®Ÿè¡Œã¯é™¤ãã€‚
 static bool bStepRunning = false;
 bool isStepRunning() { return bStepRunning; }
 
-// ğŒ•t‚«Às‚ÌI—¹ğŒ‚Æ‚È‚é sublev
+// æ¡ä»¶ä»˜ãå®Ÿè¡Œã®çµ‚äº†æ¡ä»¶ã¨ãªã‚‹ sublev
 static int sublevOfGoal = -1;
 
 //------------------------------------------------
-// ƒCƒ“ƒXƒ^ƒ“ƒXƒnƒ“ƒhƒ‹
+// ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ãƒãƒ³ãƒ‰ãƒ«
 //------------------------------------------------
 HINSTANCE getInstance()
 {
@@ -174,7 +174,7 @@ HINSTANCE getInstance()
 }
 
 //------------------------------------------------
-// Àsİ’è
+// å®Ÿè¡Œè¨­å®š
 //------------------------------------------------
 void runStop()
 {
@@ -188,7 +188,7 @@ void run()
 }
 
 void runStepIn() {
-	// –{“–‚ÌƒXƒeƒbƒvÀs‚Å‚Ì‚İƒtƒ‰ƒO‚ª—§‚Â
+	// æœ¬å½“ã®ã‚¹ãƒ†ãƒƒãƒ—å®Ÿè¡Œã§ã®ã¿ãƒ•ãƒ©ã‚°ãŒç«‹ã¤
 	bStepRunning = true;
 
 	g_dbginfo->debug->dbg_set( HSPDEBUG_STEPIN );
@@ -197,10 +197,10 @@ void runStepIn() {
 void runStepOver() { return runStepReturn( ctx->sublev ); }
 void runStepOut()  { return runStepReturn( ctx->sublev - 1 ); }
 
-// ctx->sublev == sublev ‚É‚È‚é‚Ü‚Å step ‚ğŒJ‚è•Ô‚·
+// ctx->sublev == sublev ã«ãªã‚‹ã¾ã§ step ã‚’ç¹°ã‚Šè¿”ã™
 void runStepReturn(int sublev)
 {
-	// ÅŠOü‚Ö‚Ì’Eo = –³§ŒÀ
+	// æœ€å¤–å‘¨ã¸ã®è„±å‡º = ç„¡åˆ¶é™
 	if ( sublev < 0 ) {
 		return run();	
 	}
@@ -211,18 +211,18 @@ void runStepReturn(int sublev)
 }
 
 //------------------------------------------------
-// ğŒ•t‚«Às‚ğ‘±‚¯‚é‚©‚Ç‚¤‚©
+// æ¡ä»¶ä»˜ãå®Ÿè¡Œã‚’ç¶šã‘ã‚‹ã‹ã©ã†ã‹
 //
-// (‚»‚à‚»‚à‚µ‚Ä‚¢‚È‚¢ê‡‚àu‚â‚ß‚év(false)‚ğ•Ô‚·)
+// (ãã‚‚ãã‚‚ã—ã¦ã„ãªã„å ´åˆã‚‚ã€Œã‚„ã‚ã‚‹ã€(false)ã‚’è¿”ã™)
 //------------------------------------------------
 bool continueConditionalRun()
 {
 	if (sublevOfGoal >= 0) {
 		if (ctx->sublev > sublevOfGoal) {
-			g_dbginfo->debug->dbg_set(HSPDEBUG_STEPIN);		// stepin ‚ğŒJ‚è•Ô‚·
+			g_dbginfo->debug->dbg_set(HSPDEBUG_STEPIN);		// stepin ã‚’ç¹°ã‚Šè¿”ã™
 			return true;
 		} else {
-			sublevOfGoal = -1;	// I—¹
+			sublevOfGoal = -1;	// çµ‚äº†
 		//	g_dbginfo->debug->dbg_set( HSPDEBUG_STOP );
 		}
 	}
@@ -230,7 +230,7 @@ bool continueConditionalRun()
 }
 
 //------------------------------------------------
-// ƒƒO‘€ì
+// ãƒ­ã‚°æ“ä½œ
 //------------------------------------------------
 void logmes( char const* msg )
 {
@@ -246,14 +246,14 @@ void logmesWarning(char const* msg)
 
 #ifdef with_WrapCall
 //------------------------------------------------
-// WrapCall ƒƒ\ƒbƒh
+// WrapCall ãƒ¡ã‚½ãƒƒãƒ‰
 //------------------------------------------------
 void bgnCalling(ModcmdCallInfo const& callinfo)
 {
-	// ƒm[ƒh‚Ì’Ç‰Á
+	// ãƒãƒ¼ãƒ‰ã®è¿½åŠ 
 	VarTree::AddCallNode(callinfo);
 
-	// ƒƒOo—Í
+	// ãƒ­ã‚°å‡ºåŠ›
 	if ( Dialog::isLogCallings() ) {
 		string const logText = strf(
 			"[CallBgn] %s\t#%d of \"%s\"]\n",
@@ -268,22 +268,22 @@ void bgnCalling(ModcmdCallInfo const& callinfo)
 
 void endCalling(ModcmdCallInfo const& callinfo, void* ptr, vartype_t vtype)
 {
-	// ÅŒã‚ÌŒÄ‚Ño‚µƒm[ƒh‚ğíœ
+	// æœ€å¾Œã®å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ã‚’å‰Šé™¤
 	VarTree::RemoveLastCallNode();
 
-	// •Ô’lƒm[ƒhƒf[ƒ^‚Ì¶¬
-	// ptr ‚Ì¶‘¶ŠúŒÀ‚ª¡‚¾‚¯‚È‚Ì‚ÅA¡ì‚é‚µ‚©‚È‚¢
+	// è¿”å€¤ãƒãƒ¼ãƒ‰ãƒ‡ãƒ¼ã‚¿ã®ç”Ÿæˆ
+	// ptr ã®ç”Ÿå­˜æœŸé™ãŒä»Šã ã‘ãªã®ã§ã€ä»Šä½œã‚‹ã—ã‹ãªã„
 	auto const pResult =
 		(utilizeResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
 		? std::make_shared<ResultNodeData>(callinfo, ptr, vtype)
 		: nullptr;
 
-	// •Ô’lƒm[ƒh‚Ì’Ç‰Á
+	// è¿”å€¤ãƒãƒ¼ãƒ‰ã®è¿½åŠ 
 	if ( pResult ) {
 		VarTree::AddResultNode(callinfo, pResult);
 	}
 
-	// ƒƒOo—Í
+	// ãƒ­ã‚°å‡ºåŠ›
 	if ( Dialog::isLogCallings() ) {
 		string const logText = strf(
 			"[CallEnd] %s%s\n",
@@ -299,7 +299,7 @@ void endCalling(ModcmdCallInfo const& callinfo, void* ptr, vartype_t vtype)
 }
 
 //------------------------------------------------
-// Ã“I•Ï”ƒŠƒXƒg‚ğæ“¾‚·‚é
+// é™çš„å¤‰æ•°ãƒªã‚¹ãƒˆã‚’å–å¾—ã™ã‚‹
 //------------------------------------------------
 CVarTree* getSttVarTree()
 {
@@ -307,8 +307,8 @@ CVarTree* getSttVarTree()
 		auto const tree = new CStaticVarTree::ModuleNode(CStaticVarTree::ModuleName_Global);
 
 		char name[0x100];
-		char* const p = g_dbginfo->debug->get_varinf( nullptr, 0xFF );	// HSP‘¤‚É–â‚¢‡‚í‚¹
-	//	SortNote( p );		// ƒcƒŠ[ƒrƒ…[‘¤‚Åƒ\[ƒg‚·‚é‚Ì‚Å•s—v
+		char* const p = g_dbginfo->debug->get_varinf( nullptr, 0xFF );	// HSPå´ã«å•ã„åˆã‚ã›
+	//	SortNote( p );		// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼å´ã§ã‚½ãƒ¼ãƒˆã™ã‚‹ã®ã§ä¸è¦
 		strsp_ini();
 		for (;;) {
 			int const chk = strsp_get( p, name, 0, 255 );
@@ -325,10 +325,10 @@ CVarTree* getSttVarTree()
 }
 
 //##############################################################################
-//                ƒXƒNƒŠƒvƒgŒü‚¯‚ÌAPI
+//                ã‚¹ã‚¯ãƒªãƒ—ãƒˆå‘ã‘ã®API
 //##############################################################################
 //------------------------------------------------
-// •Ï”î•ñ•¶š—ñ (refstr ‚Éo—Í)
+// å¤‰æ•°æƒ…å ±æ–‡å­—åˆ— (refstr ã«å‡ºåŠ›)
 //------------------------------------------------
 EXPORT void WINAPI knowbug_getVarinfoString(char const* name, PVal* pval,  char* prefstr)
 {
@@ -339,9 +339,9 @@ EXPORT void WINAPI knowbug_getVarinfoString(char const* name, PVal* pval,  char*
 }
 
 //------------------------------------------------
-// ÅŒã‚ÉŒÄ‚Ño‚³‚ê‚½ŠÖ”‚Ì–¼‘O (refstr ‚Éo—Í)
+// æœ€å¾Œã«å‘¼ã³å‡ºã•ã‚ŒãŸé–¢æ•°ã®åå‰ (refstr ã«å‡ºåŠ›)
 //
-// @prm n : ÅŒã‚Ì n ŒÂ‚Í–³‹‚·‚é
+// @prm n : æœ€å¾Œã® n å€‹ã¯ç„¡è¦–ã™ã‚‹
 //------------------------------------------------
 EXPORT void WINAPI knowbug_getCurrentModcmdName(char const* strNone, int n, char* prefstr)
 {
@@ -361,9 +361,9 @@ EXPORT void WINAPI knowbug_getCurrentModcmdName(char const* strNone, int n, char
 
 #if 0
 //------------------------------------------------
-// ƒXƒŒƒbƒh‹N“®
+// ã‚¹ãƒ¬ãƒƒãƒ‰èµ·å‹•
 //
-// TODO: ì‚è‚©‚¯
+// TODO: ä½œã‚Šã‹ã‘
 //------------------------------------------------
 
 class ExecPtrThread
@@ -388,7 +388,7 @@ void threadFunc()
 		std::map<int, csptr_t>& vec = g_dbginfo->ax->csMap.at( g_dbginfo->debug->fname );
 		mcs = vec[g_dbginfo->debug->line];
 		
-		if ( mcs >= mcs_bak ) {		// ‡i  (!! Å‰‚Ì mcs_bak •s’è’l)
+		if ( mcs >= mcs_bak ) {		// é †é€²  (!! æœ€åˆã® mcs_bak ä¸å®šå€¤)
 			for ( csptr_t p = mcs_bak; p <= mcs; ++ p ) {
 				const int c = *p;
 				int code;
@@ -399,7 +399,7 @@ void threadFunc()
 				}
 				
 				if ( (c & CSTYPE) == TYPE_VAR && !is_var_checked[code] ) {
-					// Ã“I•Ï” code ‚Ì•Ï”’l§–ñ‚ğŠm”F‚·‚é
+					// é™çš„å¤‰æ•° code ã®å¤‰æ•°å€¤åˆ¶ç´„ã‚’ç¢ºèªã™ã‚‹
 					is_var_checked.insert( std::pair<int, bool>(code, true) );
 				}
 			}

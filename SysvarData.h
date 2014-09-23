@@ -1,4 +1,4 @@
-// ƒVƒXƒeƒ€•Ï”ƒf[ƒ^
+ï»¿// ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ãƒ‡ãƒ¼ã‚¿
 
 #ifndef IG_SYSVAR_DATA_H
 #define IG_SYSVAR_DATA_H
@@ -12,9 +12,9 @@ struct StSysvarData
 };
 
 //**********************************************************
-//        ƒVƒXƒeƒ€•Ï”ƒf[ƒ^
+//        ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ãƒ‡ãƒ¼ã‚¿
 //**********************************************************
-// SysvarId ‚É‘Î‰‚·‚é
+// SysvarId ã«å¯¾å¿œã™ã‚‹
 static StSysvarData const SysvarData[]
 = {
 	{ "stat",    HSPVAR_FLAG_INT },
@@ -40,7 +40,7 @@ static StSysvarData const SysvarData[]
 
 static size_t const SysvarCount = ( sizeof(SysvarData) / sizeof(SysvarData[0]) );
 
-// SysvarData ‚É‘Î‰‚·‚é
+// SysvarData ã«å¯¾å¿œã™ã‚‹
 enum SysvarId
 {
 	SysvarId_Stat = 0,		// stat
@@ -67,7 +67,7 @@ enum SysvarId
 };
 
 //**********************************************************
-//        ŠÖ”éŒ¾
+//        é–¢æ•°å®£è¨€
 //**********************************************************
 extern SysvarId Sysvar_seek( char const* name );
 

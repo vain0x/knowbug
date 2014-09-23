@@ -1,18 +1,18 @@
-// VarTree
+ï»¿// VarTree
 
 #include "CVarTree.h"
 
 string const CStaticVarTree::ModuleName_Global = "@";
 
 //------------------------------------------------
-// qƒm[ƒh‚Æ‚µ‚ÄA•Ï”ƒm[ƒh‚ğ’Ç‰Á‚·‚é
+// å­ãƒãƒ¼ãƒ‰ã¨ã—ã¦ã€å¤‰æ•°ãƒãƒ¼ãƒ‰ã‚’è¿½åŠ ã™ã‚‹
 //------------------------------------------------
 void CStaticVarTree::ModuleNode::pushVar(char const* name)
 {
-	// ‘SƒXƒR[ƒv‰ğŒˆ‚ğ‹‚ß‚é
+	// å…¨ã‚¹ã‚³ãƒ¼ãƒ—è§£æ±ºã‚’æ±‚ã‚ã‚‹
 	char const* const pModname = std::strchr(name, '@');
 
-	// ƒXƒR[ƒv‰ğŒˆ‚ª‚ ‚é => qƒm[ƒh‚Ìƒ‚ƒWƒ…[ƒ‹‚É‘®‚·
+	// ã‚¹ã‚³ãƒ¼ãƒ—è§£æ±ºãŒã‚ã‚‹ => å­ãƒãƒ¼ãƒ‰ã®ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã«å±ã™
 	if ( pModname ) {
 		auto& child = insertChildModule(pModname);
 		child.insertChildImpl<VarNode>(name);
@@ -24,19 +24,19 @@ void CStaticVarTree::ModuleNode::pushVar(char const* name)
 }
 
 //------------------------------------------------
-// qƒm[ƒh‚ÌAw’è‚µ‚½–¼‘O‚Ìƒ‚ƒWƒ…[ƒ‹Eƒm[ƒh‚ğæ“¾‚·‚é
-// ‚È‚¯‚ê‚Î‘}“ü‚·‚é
+// å­ãƒãƒ¼ãƒ‰ã®ã€æŒ‡å®šã—ãŸåå‰ã®ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ»ãƒãƒ¼ãƒ‰ã‚’å–å¾—ã™ã‚‹
+// ãªã‘ã‚Œã°æŒ¿å…¥ã™ã‚‹
 //------------------------------------------------
 CStaticVarTree::ModuleNode& CStaticVarTree::ModuleNode::insertChildModule(char const* pModname)
 {
 	assert(pModname[0] == '@');
 
-	// '@' ‚ğ’T‚· (Œã‚ë—DæAæ“ª‚É‚Íƒ}ƒbƒ`‚µ‚È‚¢)
+	// '@' ã‚’æ¢ã™ (å¾Œã‚å„ªå…ˆã€å…ˆé ­ã«ã¯ãƒãƒƒãƒã—ãªã„)
 	char const* const pModnameLast = std::strrchr(&pModname[1], '@');
 
-	// ƒXƒR[ƒv‰ğŒˆ‚ª‚ ‚éê‡‚ÍA‚»‚Ìƒ‚ƒWƒ…[ƒ‹Eƒm[ƒh‚Ìqƒm[ƒh‚©‚çŒŸõ‚·‚é
+	// ã‚¹ã‚³ãƒ¼ãƒ—è§£æ±ºãŒã‚ã‚‹å ´åˆã¯ã€ãã®ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ»ãƒãƒ¼ãƒ‰ã®å­ãƒãƒ¼ãƒ‰ã‹ã‚‰æ¤œç´¢ã™ã‚‹
 	if ( pModnameLast ) {
-		// ÅŒã‚ÌƒXƒR[ƒv‰ğŒˆ1‚Â‚ğæ‚èœ‚¢‚½•”•ª
+		// æœ€å¾Œã®ã‚¹ã‚³ãƒ¼ãƒ—è§£æ±º1ã¤ã‚’å–ã‚Šé™¤ã„ãŸéƒ¨åˆ†
 		auto const modname2 = string(pModname, pModnameLast);
 
 		auto& child = insertChildImpl<ModuleNode>(pModnameLast);

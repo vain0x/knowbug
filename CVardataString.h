@@ -1,4 +1,4 @@
-// •Ï”ƒf[ƒ^‚Ì•¶š—ñ‚ğì‚éƒNƒ‰ƒX
+ï»¿// å¤‰æ•°ãƒ‡ãƒ¼ã‚¿ã®æ–‡å­—åˆ—ã‚’ä½œã‚‹ã‚¯ãƒ©ã‚¹
 
 #ifndef IG_CLASS_VARDATA_STRING_H
 #define IG_CLASS_VARDATA_STRING_H
@@ -27,12 +27,12 @@ namespace WrapCall
 
 class CVardataStrWriter
 {
-	// ƒƒ“ƒo•Ï”
+	// ãƒ¡ãƒ³ãƒå¤‰æ•°
 private:
-	// Œp³‚µ‚Ä‚à‚¢‚¢‚ªA‚±‚±‚Å‚Í•ïŠÜ‚É‚µ‚Ä‚¨‚­
+	// ç¶™æ‰¿ã—ã¦ã‚‚ã„ã„ãŒã€ã“ã“ã§ã¯åŒ…å«ã«ã—ã¦ãŠã
 	std::unique_ptr<CStructedStrWriter> writer_;
 
-	// ƒƒ“ƒoŠÖ”
+	// ãƒ¡ãƒ³ãƒé–¢æ•°
 public:
 	template<typename TWriter>
 	static CVardataStrWriter create(string* buf)
@@ -87,7 +87,7 @@ private:
 //	CVardataStrWriter(CVardataStrWriter const&) = delete;
 };
 
-// ƒoƒbƒtƒ@‚ğŠ—L‚·‚éƒo[ƒWƒ‡ƒ“
+// ãƒãƒƒãƒ•ã‚¡ã‚’æ‰€æœ‰ã™ã‚‹ãƒãƒ¼ã‚¸ãƒ§ãƒ³
 template<typename TBuf>
 class CVardataStrWriterWithBuf
 	: public CVardataStrWriter
@@ -102,30 +102,30 @@ private:
 	string mybuf_;
 };
 
-// ƒoƒbƒtƒ@‚ğŠ—L‚·‚éƒo[ƒWƒ‡ƒ“
+// ãƒãƒƒãƒ•ã‚¡ã‚’æ‰€æœ‰ã™ã‚‹ãƒãƒ¼ã‚¸ãƒ§ãƒ³
 //using CVardataStrWriterTreeformed = CVardataStrWriterWithBuf<CTreeformedWriter>;
 //using CVardataStrWriterLineformed = CVardataStrWriterWithBuf<CLineformedWriter>;
 
 //------------------------------------------------
-// ’u‚­êŠ‚É¢‚éŒnŠÖ”ŒQ
+// ç½®ãå ´æ‰€ã«å›°ã‚‹ç³»é–¢æ•°ç¾¤
 //------------------------------------------------
 
-// •¶š—ñƒŠƒeƒ‰ƒ‹‚ÌŒ`®‚Ì•¶š—ñ
+// æ–‡å­—åˆ—ãƒªãƒ†ãƒ©ãƒ«ã®å½¢å¼ã®æ–‡å­—åˆ—
 extern string toStringLiteralFormat(char const* src);
 
-// ƒ‚ƒWƒ…[ƒ‹ƒNƒ‰ƒX–¼‚Ì•¶š—ñ‚Ì¶¬
+// ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚¯ãƒ©ã‚¹åã®æ–‡å­—åˆ—ã®ç”Ÿæˆ
 extern string makeModuleClassNameString(stdat_t stdat, bool bClone);
 
-// ”z—ñ“Yš‚Ì•¶š—ñ‚Ì¶¬
+// é…åˆ—æ·»å­—ã®æ–‡å­—åˆ—ã®ç”Ÿæˆ
 extern string makeArrayIndexString(size_t dim, int const indexes[]);
 
-// aptr ‚©‚ç“Yš‚ğ‹‚ß‚é
+// aptr ã‹ã‚‰æ·»å­—ã‚’æ±‚ã‚ã‚‹
 extern void calcIndexesFromAptr(int* indexes, APTR aptr, int const* lengths, size_t cntElems, size_t dim);
 
-// ƒXƒR[ƒv‰ğŒˆ‚ğæ‚èœ‚¢‚½¯•Êq
+// ã‚¹ã‚³ãƒ¼ãƒ—è§£æ±ºã‚’å–ã‚Šé™¤ã„ãŸè­˜åˆ¥å­
 extern string removeScopeResolution(string const& name);
 
-// ‰¼ˆø”‚Ì–¼‘O (failure: "(idx)")
+// ä»®å¼•æ•°ã®åå‰ (failure: "(idx)")
 extern string getStPrmName(stprm_t stprm, int idx);
 
 #endif

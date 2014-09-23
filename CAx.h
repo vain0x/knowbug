@@ -1,6 +1,6 @@
-// ax structure analyzed
+ï»¿// ax structure analyzed
 
-// dinfo ‚ğ‰ğÍ‚µ‚Äƒ‰ƒxƒ‹–¼Aƒpƒ‰ƒ[ƒ^–¼‚ğûW‚·‚é
+// dinfo ã‚’è§£æã—ã¦ãƒ©ãƒ™ãƒ«åã€ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿åã‚’åé›†ã™ã‚‹
 
 #ifndef IG_CLASS_AX_H
 #define IG_CLASS_AX_H
@@ -28,8 +28,8 @@ private:
 	identTable_t labelNames;
 	identTable_t prmNames;
 	
-	// ƒtƒ@ƒCƒ‹–¼, s”Ô†‚©‚ç cs ˆÊ’u‚ğ“Á’è‚·‚é‚½‚ß‚Ì‚à‚Ì (Œ»İ‚Í–¢À‘•)
-	// ‚½‚¾‚µƒtƒ@ƒCƒ‹–¼‚Í di ‚ÌŠY“–ˆÊ’u‚Ö‚Ìƒ|ƒCƒ“ƒ^‚ÉŒÀ‚é
+	// ãƒ•ã‚¡ã‚¤ãƒ«å, è¡Œç•ªå·ã‹ã‚‰ cs ä½ç½®ã‚’ç‰¹å®šã™ã‚‹ãŸã‚ã®ã‚‚ã® (ç¾åœ¨ã¯æœªå®Ÿè£…)
+	// ãŸã ã—ãƒ•ã‚¡ã‚¤ãƒ«åã¯ di ã®è©²å½“ä½ç½®ã¸ã®ãƒã‚¤ãƒ³ã‚¿ã«é™ã‚‹
 	csMap_t csMap;
 
 public:
@@ -38,7 +38,7 @@ public:
 	}
 
 private:
-	// ƒe[ƒuƒ‹‚©‚ç¯•Êq‚ğŒŸõ (failure: nullptr)
+	// ãƒ†ãƒ¼ãƒ–ãƒ«ã‹ã‚‰è­˜åˆ¥å­ã‚’æ¤œç´¢ (failure: nullptr)
 	static char const* getIdentName(identTable_t const& table, int iparam) {
 		auto const iter = table.find(iparam);
 		return (iter != table.end()) ? iter->second : nullptr;
@@ -49,7 +49,7 @@ public:
 	char const* getPrmName(int stprmidx) const { return getIdentName(prmNames, stprmidx); }
 
 private:
-	enum DInfoCtx {	// ++ ‚µ‚½‚¢‚Ì‚Å enum class ‚É‚µ‚È‚¢
+	enum DInfoCtx {	// ++ ã—ãŸã„ã®ã§ enum class ã«ã—ãªã„
 		DInfoCtx_Default = 0,
 		DInfoCtx_LabelNames,
 		DInfoCtx_PrmNames,
@@ -58,14 +58,14 @@ private:
 
 	identTable_t* getIdentTableFromCtx(int dictx) {
 		switch ( dictx ) {
-			case DInfoCtx_Default:    return nullptr;	// •Ï”–¼‚Í‹L˜^‚µ‚È‚¢
+			case DInfoCtx_Default:    return nullptr;	// å¤‰æ•°åã¯è¨˜éŒ²ã—ãªã„
 			case DInfoCtx_LabelNames: return &labelNames;
 			case DInfoCtx_PrmNames:   return &prmNames;
 			default: throw;
 		}
 	}
 
-	// dinfo ‰ğÍ
+	// dinfo è§£æ
 	void analyzeDInfo() {
 		/*
 		csptr_t cur_cs = ctx->mem_mcs;
@@ -82,7 +82,7 @@ private:
 		for ( int i = 0; i < ctx->hsphed->max_dinfo; ) {
 			switch ( ctx->mem_di[i] ) {
 				case 0xFF:
-					++dictx;	// enum ‚ğ ++ ‚·‚é‹Æ
+					++dictx;	// enum ã‚’ ++ ã™ã‚‹æ¥­
 					if ( dictx == DInfoCtx_Max ) {
 						assert(i + 2 == ctx->hsphed->max_dinfo);
 						return;
@@ -90,7 +90,7 @@ private:
 					++i;
 					break;
 
-				// ƒ\[ƒXƒtƒ@ƒCƒ‹w’è
+				// ã‚½ãƒ¼ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«æŒ‡å®š
 				case 0xFE:
 				{/*
 					int const idxDs = tripeek(&ctx->mem_di[i + 1]);
@@ -102,7 +102,7 @@ private:
 					i += 6;
 					break;
 				}
-				// ¯•Êqw’è
+				// è­˜åˆ¥å­æŒ‡å®š
 				case 0xFD:
 				case 0xFB:
 					if ( auto const tbl = getIdentTableFromCtx(dictx) ) {
@@ -112,7 +112,7 @@ private:
 					}
 					i += 6;
 					break;
-				// Ÿ‚Ì–½—ß‚Ü‚Å‚ÌCSƒIƒtƒZƒbƒg’l
+				// æ¬¡ã®å‘½ä»¤ã¾ã§ã®CSã‚ªãƒ•ã‚»ãƒƒãƒˆå€¤
 				case 0xFC:
 					//cur_cs += *reinterpret_cast<csptr_t>(&ctx->mem_di[i + 1]);
 					//push_point();

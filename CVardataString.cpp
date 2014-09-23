@@ -1,4 +1,4 @@
-// •Ï”ƒf[ƒ^‚ÌƒcƒŠ[Œ`®•¶š—ñ
+ï»¿// å¤‰æ•°ãƒ‡ãƒ¼ã‚¿ã®ãƒ„ãƒªãƒ¼å½¢å¼æ–‡å­—åˆ—
 
 #include <algorithm>
 #include "module/ptr_cast.h"
@@ -17,17 +17,17 @@ static string stringizeSimpleValue(vartype_t type, void const* ptr, bool bShort)
 static char const* findVarName(PVal const* pval);
 
 //##########################################################
-//        —v‘f‚²‚Æ‚Ìˆ—ŠÖ”
+//        è¦ç´ ã”ã¨ã®å‡¦ç†é–¢æ•°
 //##########################################################
 //------------------------------------------------
-// [add][item] •Ï”
+// [add][item] å¤‰æ•°
 //------------------------------------------------
 void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 {
 	assert(!!pval);
 	auto const hvp = hpimod::getHvp(pval->flag);
 
-	// Šg’£Œ^
+	// æ‹¡å¼µå‹
 	if ( pval->flag >= HSPVAR_FLAG_USERDEF ) {
 		auto const iter = g_config->vswInfo.find(hvp->vartype_name);
 		if ( iter != g_config->vswInfo.end() ) {
@@ -38,13 +38,13 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 		}
 	}
 
-	// •W€”z—ñ
+	// æ¨™æº–é…åˆ—
 	if ( !(pval->len[1] == 1 && pval->len[2] == 0)
 		&& (hvp->support & (HSPVAR_SUPPORT_FIXEDARRAY | HSPVAR_SUPPORT_FLEXARRAY))
 	) {
 		addVarArray(name, pval);
 
-	// ’P‘Ì
+	// å˜ä½“
 	} else {
 		addVarScalar(name, pval, 0);
 	}
@@ -52,9 +52,9 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 }
 
 //------------------------------------------------
-// [add][item] ’P‘Ì•Ï”
+// [add][item] å˜ä½“å¤‰æ•°
 // 
-// @ —v‘f‚Ì’l‚ğo—Í‚·‚éB
+// @ è¦ç´ ã®å€¤ã‚’å‡ºåŠ›ã™ã‚‹ã€‚
 //------------------------------------------------
 void CVardataStrWriter::addVarScalar(char const* name, PVal const* pval)
 {
@@ -69,7 +69,7 @@ void CVardataStrWriter::addVarScalar(char const* name, PVal const* pval, APTR ap
 }
 
 //------------------------------------------------
-// [add][item] •W€”z—ñ•Ï”
+// [add][item] æ¨™æº–é…åˆ—å¤‰æ•°
 //------------------------------------------------
 void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 {
@@ -79,26 +79,26 @@ void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 
 	size_t const dim = hpimod::PVal_maxDim(pval);
 
-	// ƒcƒŠ[ó•¶š—ñ‚Ìê‡
+	// ãƒ„ãƒªãƒ¼çŠ¶æ–‡å­—åˆ—ã®å ´åˆ
 	if ( !getWriter().isLineformed() ) {
 		getWriter().catAttribute("type", getVartypeString(pval).c_str());
 
-		// Še—v‘f‚ğ’Ç‰Á‚·‚é
+		// å„è¦ç´ ã‚’è¿½åŠ ã™ã‚‹
 		size_t const cntElems = hpimod::PVal_cntElems(pval);
 		int indexes[hpimod::ArrayDimMax] = { 0 };
 
 		for ( size_t i = 0; i < cntElems; ++i ) {
 			calcIndexesFromAptr(indexes, i, &pval->len[1], cntElems, dim);
 
-			// —v‘f‚Ì’l‚ğ’Ç‰Á
+			// è¦ç´ ã®å€¤ã‚’è¿½åŠ 
 			string const nameChild = makeArrayIndexString(dim, indexes);
 			addVarScalar(nameChild.c_str(), pval, i);
 		}
 		
-	// ˆês•¶š—ñ‚Ìê‡
+	// ä¸€è¡Œæ–‡å­—åˆ—ã®å ´åˆ
 	} else if ( dim > 0 ) {
-		// cntElems[1 + i] = •”•ªiŸŒ³”z—ñ‚Ì—v‘f”
-		// (—á‚¦‚Î”z—ñ int(2, 3, 4) ‚¾‚ÆAcntElems = {1, 2, 2*3, 2*3*4, 0})
+		// cntElems[1 + i] = éƒ¨åˆ†iæ¬¡å…ƒé…åˆ—ã®è¦ç´ æ•°
+		// (ä¾‹ãˆã°é…åˆ— int(2, 3, 4) ã ã¨ã€cntElems = {1, 2, 2*3, 2*3*4, 0})
 		size_t cntElems[1 + hpimod::ArrayDimMax] = { 1 };
 		for ( size_t i = 0; i < dim && pval->len[i + 1] > 0; ++i ) {
 			cntElems[i + 1] = pval->len[i + 1] * cntElems[i];
@@ -117,13 +117,13 @@ void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const cntElems[]
 	for ( int i = 0; i < pval->len[idxDim + 1]; ++i ) {
 		//if ( i != 0 ) getWriter().cat(", ");
 
-		// 2ŸˆÈã => ”z—ñ‚ğo—Í
+		// 2æ¬¡ä»¥ä¸Š => é…åˆ—ã‚’å‡ºåŠ›
 		if ( idxDim >= 1 ) {
 			getWriter().catNodeBegin(CStructedStrWriter::stc_strUnused, "[");
 			addVarArrayRec(pval, cntElems, idxDim - 1, aptr_offset + (i * cntElems[idxDim]));
 			getWriter().catNodeEnd("]");
 
-		// 1Ÿ => Še—v‘f‚ğo—Í
+		// 1æ¬¡ => å„è¦ç´ ã‚’å‡ºåŠ›
 		} else {
 			addVarScalar(CStructedStrWriter::stc_strUnused, pval, aptr_offset + i);
 		}
@@ -132,17 +132,17 @@ void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const cntElems[]
 }
 
 //------------------------------------------------
-// ˆê”Ê‚Ì’l
+// ä¸€èˆ¬ã®å€¤
 //------------------------------------------------
 void CVardataStrWriter::addValue(char const* name, vartype_t type, void const* ptr)
 {
-	// –³ŒÀƒlƒXƒg‘Îô
+	// ç„¡é™ãƒã‚¹ãƒˆå¯¾ç­–
 	if ( getWriter().inifiniteNesting() ) {
 		getWriter().catLeafExtra(name, "too_many_nesting");
 		return;
 	}
 
-	// Šg’£Œ^
+	// æ‹¡å¼µå‹
 	if ( type >= HSPVAR_FLAG_USERDEF ) {
 		auto const iter = g_config->vswInfo.find(hpimod::getHvp(type)->vartype_name);
 		if ( iter != g_config->vswInfo.end() ) {
@@ -198,7 +198,7 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 //------------------------------------------------
 // [add][item] prmstack
 // 
-// @ ’†g‚¾‚¯o—Í‚·‚éB
+// @ ä¸­èº«ã ã‘å‡ºåŠ›ã™ã‚‹ã€‚
 //------------------------------------------------
 void CVardataStrWriter::addPrmstack(stdat_t stdat, void const* prmstack)
 {
@@ -213,7 +213,7 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, void const* prmstack)
 	std::for_each(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat), [&](STRUCTPRM const& stprm) {
 		auto const member = hpimod::Prmstack_getMemberPtr(prmstack, &stprm);
 
-		// ˆês•¶š—ñFÅ‰‚Ì local ‚Ì‘O‚É‚Í‹ó”’‚ğ1‚Â‘½‚ß‚É’u‚­
+		// ä¸€è¡Œæ–‡å­—åˆ—ï¼šæœ€åˆã® local ã®å‰ã«ã¯ç©ºç™½ã‚’1ã¤å¤šã‚ã«ç½®ã
 		if ( !getWriter().isLineformed()
 			&& i > 0
 			&& (prev_mptype != MPTYPE_LOCALVAR && stprm.mptype == MPTYPE_LOCALVAR)
@@ -223,27 +223,27 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, void const* prmstack)
 
 		addParameter(getStPrmName(&stprm, i).c_str(), stdat, &stprm, member);
 
-		// structtag => ƒƒ“ƒo‚Å‚Í‚È‚¢‚Ì‚ÅA”‚¦‚È‚¢
+		// structtag => ãƒ¡ãƒ³ãƒã§ã¯ãªã„ã®ã§ã€æ•°ãˆãªã„
 		if ( stprm.mptype != MPTYPE_STRUCTTAG ) { ++i; }
 	});
 	return;
 }
 
 //------------------------------------------------
-// [add][item] ƒƒ“ƒo (in prmstack)
+// [add][item] ãƒ¡ãƒ³ãƒ (in prmstack)
 //------------------------------------------------
 void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member)
 {
 	switch ( stprm->mptype ) {
 		case MPTYPE_STRUCTTAG: break;
 
-		// •Ï” (PVal*)
+		// å¤‰æ•° (PVal*)
 		//	case MPTYPE_VAR:
 		case MPTYPE_SINGLEVAR:
 		case MPTYPE_ARRAYVAR:
 		{
-			// ˆês•¶š—ñFQÆ‚Å‚ ‚é‚±‚Æ‚ğ¦‚· (var ‚© array ‚©‚Í–¾‚ç‚©)
-			// delimiter ‚Æ‚ÌˆÊ’uæ‚è‚ª“ï‚µ‚¢
+			// ä¸€è¡Œæ–‡å­—åˆ—ï¼šå‚ç…§ã§ã‚ã‚‹ã“ã¨ã‚’ç¤ºã™ (var ã‹ array ã‹ã¯æ˜ã‚‰ã‹)
+			// delimiter ã¨ã®ä½ç½®å–ã‚ŠãŒé›£ã—ã„
 		//	if ( getWriter().isLineformed() ) getWriter().cat("& ");
 
 			auto const vardata = cptr_cast<MPVarData*>(member);
@@ -255,7 +255,7 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 			}
 			break;
 		}
-		// •Ï” (PVal)
+		// å¤‰æ•° (PVal)
 		case MPTYPE_LOCALVAR:
 		{
 			auto const pval = cptr_cast<PVal*>(member);
@@ -272,13 +272,13 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 			addValueStruct(name, fv);
 			break;
 		}
-		// •¶š—ñ (char**)
+		// æ–‡å­—åˆ— (char**)
 		//	case MPTYPE_STRING:
 		case MPTYPE_LOCALSTRING:
 			addValue(name, HSPVAR_FLAG_STR, *cptr_cast<char**>(member));
 			break;
 
-		// ‚»‚Ì‘¼
+		// ãã®ä»–
 		case MPTYPE_DNUM:
 			addValue(name, HSPVAR_FLAG_DOUBLE, cptr_cast<double*>(member));
 			break;
@@ -291,7 +291,7 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 			addValue(name, HSPVAR_FLAG_LABEL, cptr_cast<label_t*>(member));
 			break;
 
-		// ‘¼ => –³‹
+		// ä»– => ç„¡è¦–
 		default:
 			getWriter().catLeaf(name,
 				strf("ignored (mptype = %d)", stprm->mptype).c_str()
@@ -302,9 +302,9 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 }
 
 //------------------------------------------------
-// [add] ƒVƒXƒeƒ€•Ï”
+// [add] ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°
 // 
-// @result: ƒƒ‚ƒŠƒ_ƒ“ƒv‚·‚éƒoƒbƒtƒ@‚ÆƒTƒCƒY
+// @result: ãƒ¡ãƒ¢ãƒªãƒ€ãƒ³ãƒ—ã™ã‚‹ãƒãƒƒãƒ•ã‚¡ã¨ã‚µã‚¤ã‚º
 //------------------------------------------------
 void CVardataStrWriter::addSysvar(SysvarId id)
 {
@@ -321,7 +321,7 @@ void CVardataStrWriter::addSysvar(SysvarId id)
 
 		case SysvarId_Cnt:
 			if ( ctx->looplev ) {
-				// int ”z—ñ‚Æ“¯‚¶•\¦‚É‚·‚é
+				// int é…åˆ—ã¨åŒã˜è¡¨ç¤ºã«ã™ã‚‹
 				getWriter().catNodeBegin(name, "<int>[");
 				for ( int i = 0; i < ctx->looplev; ++ i ) {
 					auto const lvLoop = ctx->looplev - i;
@@ -361,7 +361,7 @@ void CVardataStrWriter::addSysvar(SysvarId id)
 			}
 			break;
 		default:
-			// ®”’l
+			// æ•´æ•°å€¤
 			if ( SysvarData[id].type == HSPVAR_FLAG_INT ) {
 				addValue(name, HSPVAR_FLAG_INT, Sysvar_getPtrOfInt(id));
 				break;
@@ -370,7 +370,7 @@ void CVardataStrWriter::addSysvar(SysvarId id)
 }
 
 //------------------------------------------------
-// [add] ŒÄ‚Ño‚µ
+// [add] å‘¼ã³å‡ºã—
 //
 // @prm prmstk can be nullptr
 //------------------------------------------------
@@ -380,7 +380,7 @@ void CVardataStrWriter::addCall(stdat_t stdat, void const* prmstk)
 #if 0
 	string const name2 =
 		(stdat->index == STRUCTDAT_INDEX_CFUNC && !getWriter().isLineformed())
-		? strf("%s()", name)			// ƒcƒŠ[ó‚©‚ÂŠÖ”‚È‚ç–¼‘O‚É () ‚ğ‚Â‚¯‚é
+		? strf("%s()", name)			// ãƒ„ãƒªãƒ¼çŠ¶ã‹ã¤é–¢æ•°ãªã‚‰åå‰ã« () ã‚’ã¤ã‘ã‚‹
 		: name;
 #endif
 	addCall(name, stdat, prmstk);
@@ -404,24 +404,24 @@ void CVardataStrWriter::addCall(char const* name, stdat_t stdat, void const* prm
 }
 
 //------------------------------------------------
-// [add] •Ô’l
+// [add] è¿”å€¤
 //------------------------------------------------
 void CVardataStrWriter::addResult(char const* name, void const* ptr, vartype_t type)
 {
-	assert(getWriter().isLineformed());	// Œ»İ‚ÌÀ‘•‚Å‚Í
+	assert(getWriter().isLineformed());	// ç¾åœ¨ã®å®Ÿè£…ã§ã¯
 
 	addValue(name, type, ptr);
 	return;
 }
 
 //**********************************************************
-//        ‰º¿‚¯ŠÖ”
+//        ä¸‹è«‹ã‘é–¢æ•°
 //**********************************************************
 
 //------------------------------------------------
-// ’Pƒ‚È’l‚ğ•¶š—ñ‰»‚·‚é
+// å˜ç´”ãªå€¤ã‚’æ–‡å­—åˆ—åŒ–ã™ã‚‹
 //
-// @ addItem_value ‚ÅƒtƒbƒN‚³‚ê‚éŒ^‚Í‚±‚±‚É—ˆ‚È‚¢B
+// @ addItem_value ã§ãƒ•ãƒƒã‚¯ã•ã‚Œã‚‹å‹ã¯ã“ã“ã«æ¥ãªã„ã€‚
 //------------------------------------------------
 string stringizeSimpleValue(vartype_t type, void const* ptr, bool bShort)
 {
@@ -442,7 +442,7 @@ string stringizeSimpleValue(vartype_t type, void const* ptr, bool bShort)
 		{
 			int const val = *cptr_cast<int*>(ptr);
 #ifdef with_ModPtr
-			assert(!ModPtr::isValid(val));	// addItem_value ‚Åˆ—‚³‚ê‚½‚Í‚¸
+			assert(!ModPtr::isValid(val));	// addItem_value ã§å‡¦ç†ã•ã‚ŒãŸã¯ãš
 #endif
 			return (bShort
 				? strf("%d", val)
@@ -475,14 +475,14 @@ string stringizeSimpleValue(vartype_t type, void const* ptr, bool bShort)
 			auto const vtname = hpimod::getHvp(type)->vartype_name;
 
 #ifdef with_ExtraBasics
-			// Šg’£Šî–{Œ^
+			// æ‹¡å¼µåŸºæœ¬å‹
 			bool bSigned = false;
 
 			if ( strcmp(vtname, "bool") == 0 ) {
 				static char const* const bool_name[2] = { "false", "true" };
 				return bool_name[*cptr_cast<bool*>(ptr) ? 1 : 0];
 
-				// char (signed char ‚Æ‚·‚é)
+				// char (signed char ã¨ã™ã‚‹)
 			} else if (
 				(strcmp(vtname, "char") == 0 || strcmp(vtname, "signed_char") == 0) && (bSigned = true)
 				|| (strcmp(vtname, "uchar") == 0 || strcmp(vtname, "unsigned_char") == 0)
@@ -514,7 +514,7 @@ string stringizeSimpleValue(vartype_t type, void const* ptr, bool bShort)
 					? strf("%d", (bSigned ? signed_val : unsigned_val))
 					: strf("%d (0x%16X)", (bSigned ? signed_val : unsigned_val), signed_val)
 					);
-				// ‚¨‚Ü‚¯
+				// ãŠã¾ã‘
 			} else if ( strcmp(vtname, "tribyte") == 0 ) {
 				auto const bytes = cptr_cast<char*>(ptr);
 				int const val = bytes[0] << 16 | bytes[1] << 8 | bytes[2];
@@ -530,7 +530,7 @@ string stringizeSimpleValue(vartype_t type, void const* ptr, bool bShort)
 }
 
 //------------------------------------------------
-// •¶š—ñ‚ğ•¶š—ñƒŠƒeƒ‰ƒ‹‚ÌŒ`®‚É•ÏŠ·‚·‚é
+// æ–‡å­—åˆ—ã‚’æ–‡å­—åˆ—ãƒªãƒ†ãƒ©ãƒ«ã®å½¢å¼ã«å¤‰æ›ã™ã‚‹
 //------------------------------------------------
 string toStringLiteralFormat(char const* src)
 {
@@ -543,7 +543,7 @@ string toStringLiteralFormat(char const* src)
 	for ( int i = 0;; ++i ) {
 		char c = src[i];
 
-		// ƒGƒXƒP[ƒvEƒV[ƒPƒ“ƒX‚ğ‰ğŒˆ‚·‚é
+		// ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ãƒ»ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ã‚’è§£æ±ºã™ã‚‹
 		if ( c == '\0' ) {
 			break;
 
@@ -579,7 +579,7 @@ string toStringLiteralFormat(char const* src)
 }
 
 //------------------------------------------------
-// ƒ‚ƒWƒ…[ƒ‹ƒNƒ‰ƒX–¼‚ğ•\‚·•¶š—ñ
+// ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚¯ãƒ©ã‚¹åã‚’è¡¨ã™æ–‡å­—åˆ—
 //------------------------------------------------
 string makeModuleClassNameString(stdat_t stdat, bool bClone)
 {
@@ -590,7 +590,7 @@ string makeModuleClassNameString(stdat_t stdat, bool bClone)
 }
 
 //------------------------------------------------
-// ”z—ñ“Yš‚Ì•¶š—ñ
+// é…åˆ—æ·»å­—ã®æ–‡å­—åˆ—
 //------------------------------------------------
 string makeArrayIndexString(size_t dim, int const indexes[])
 {
@@ -606,9 +606,9 @@ string makeArrayIndexString(size_t dim, int const indexes[])
 }
 
 //------------------------------------------------
-// APTR’l‚©‚ç“Yš‚ğŒvZ‚·‚é
+// APTRå€¤ã‹ã‚‰æ·»å­—ã‚’è¨ˆç®—ã™ã‚‹
 // 
-// @prm indexes: dim ŒÂˆÈã‚Ì—v‘f‚ğ‚ÂBdim ŒÂ‚æ‚èŒã‚Ì—v‘f‚Í•ÏX‚³‚ê‚È‚¢B
+// @prm indexes: dim å€‹ä»¥ä¸Šã®è¦ç´ ã‚’æŒã¤ã€‚dim å€‹ã‚ˆã‚Šå¾Œã®è¦ç´ ã¯å¤‰æ›´ã•ã‚Œãªã„ã€‚
 //------------------------------------------------
 void calcIndexesFromAptr(int* indexes, APTR aptr, int const* lengths, size_t cntElems, size_t dim)
 {
@@ -620,7 +620,7 @@ void calcIndexesFromAptr(int* indexes, APTR aptr, int const* lengths, size_t cnt
 }
 
 //------------------------------------------------
-// ƒXƒR[ƒv‰ğŒˆ‚ğæ‚èœ‚¢‚½–¼‘O
+// ã‚¹ã‚³ãƒ¼ãƒ—è§£æ±ºã‚’å–ã‚Šé™¤ã„ãŸåå‰
 //------------------------------------------------
 string removeScopeResolution(string const& name)
 {
@@ -631,9 +631,9 @@ string removeScopeResolution(string const& name)
 }
 
 //------------------------------------------------
-// \‘¢‘Ìƒpƒ‰ƒ[ƒ^‚Ì–¼‘O
+// æ§‹é€ ä½“ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®åå‰
 // 
-// ƒfƒoƒbƒOî•ñ‚©‚çæ“¾‚·‚éB‚È‚¯‚ê‚Îu(idx)v‚Æ‚·‚éB
+// ãƒ‡ãƒãƒƒã‚°æƒ…å ±ã‹ã‚‰å–å¾—ã™ã‚‹ã€‚ãªã‘ã‚Œã°ã€Œ(idx)ã€ã¨ã™ã‚‹ã€‚
 //------------------------------------------------
 string getStPrmName(stprm_t stprm, int idx)
 {
@@ -642,7 +642,7 @@ string getStPrmName(stprm_t stprm, int idx)
 		if ( auto const name = g_dbginfo->ax->getPrmName(subid) ) {
 			return removeScopeResolution(name);
 
-		// thismod ˆø”
+		// thismod å¼•æ•°
 		} else if ( stprm->mptype == MPTYPE_MODULEVAR || stprm->mptype == MPTYPE_IMODULEVAR || stprm->mptype == MPTYPE_TMODULEVAR ) {
 			return "thismod";
 		}
@@ -651,7 +651,7 @@ string getStPrmName(stprm_t stprm, int idx)
 }
 
 //------------------------------------------------
-// •Ï”‚Ì–¼‘O‚ğŒ©‚Â‚¯‚é (failure: nullptr)
+// å¤‰æ•°ã®åå‰ã‚’è¦‹ã¤ã‘ã‚‹ (failure: nullptr)
 //------------------------------------------------
 static char const* findVarName(PVal const* pval)
 {

@@ -1,4 +1,4 @@
-
+ï»¿
 #pragma comment(lib, "comctl32.lib")
 
 #include <windows.h>
@@ -60,7 +60,7 @@ HWND getSttCtrlHandle() { return hSttCtrl; }
 HWND getVarTreeHandle() { return hVarTree; }
 
 //------------------------------------------------
-// ƒEƒBƒ“ƒhƒEEƒIƒuƒWƒFƒNƒg‚Ì¶¬
+// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç”Ÿæˆ
 //------------------------------------------------
 static HWND GenerateObj( HWND parent, char const* name, char const* ttl, int x, int y, int sx, int sy, int menu, HFONT font )
 {
@@ -79,7 +79,7 @@ static HWND GenerateObj( HWND parent, char const* name, char const* ttl, int x, 
 }
 
 //------------------------------------------------
-// ‘S”Êƒ^ƒu‚Ì‘Oˆ—
+// å…¨èˆ¬ã‚¿ãƒ–ã®å‰å‡¦ç†
 //------------------------------------------------
 static void TabGeneralInit( void )
 {
@@ -87,19 +87,19 @@ static void TabGeneralInit( void )
 	col.mask     = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
 	col.fmt      = LVCFMT_LEFT;
 	col.cx       = 120;
-	col.pszText  = "€–Ú";
+	col.pszText  = "é …ç›®";
 	col.iSubItem = 0;
 	ListView_InsertColumn( hGenList , 0 , &col);
 	
 	col.cx       = 400;
 	col.iSubItem = 1;
-	col.pszText  = "“à—e";
+	col.pszText  = "å†…å®¹";
 	ListView_InsertColumn( hGenList , 1 , &col);
 	return;
 }
 
 //------------------------------------------------
-// ‘S”Êƒ^ƒu‚ÌXV
+// å…¨èˆ¬ã‚¿ãƒ–ã®æ›´æ–°
 //------------------------------------------------
 static void SrcSync( char const* filepath, int line_num, bool bUpdateEdit, bool bUpdateBox );
 static void TabGeneral_AddItem( char const* sItem, char const* sValue, int iItem );
@@ -113,7 +113,7 @@ static void TabGeneralReset()
 	char name[256];
 	char val[512];
 
-	char* const p = g_dbginfo->debug->get_value( DEBUGINFO_GENERAL );		// HSP‘¤‚É–â‚¢‡‚í‚¹
+	char* const p = g_dbginfo->debug->get_value( DEBUGINFO_GENERAL );		// HSPå´ã«å•ã„åˆã‚ã›
 	strsp_ini();
 	for (;;) {
 		chk = strsp_get( p, name, 0, sizeof(name) - 1 );
@@ -125,7 +125,7 @@ static void TabGeneralReset()
 		TabGeneral_AddItem( name, val, tgmax ); ++tgmax;
 	}
 	
-	// Šg’£“à—e‚Ì’Ç‰Á
+	// æ‹¡å¼µå†…å®¹ã®è¿½åŠ 
 	if ( exinfo->actscr ) {
 		auto const pBmscr = reinterpret_cast<BMSCR*>(exinfo->HspFunc_getbmscr(*exinfo->actscr));
 		if ( pBmscr ) {
@@ -168,7 +168,7 @@ static void TabGeneral_AddItem( char const* sItem, char const* sValue, int iItem
 }
 
 //------------------------------------------------
-// Às’†‚ÌˆÊ’u•\¦‚ğXV‚·‚é (line, file)
+// å®Ÿè¡Œä¸­ã®ä½ç½®è¡¨ç¤ºã‚’æ›´æ–°ã™ã‚‹ (line, file)
 //------------------------------------------------
 static void CurrentUpdate()
 {
@@ -183,7 +183,7 @@ static void CurrentUpdate()
 }
 
 //------------------------------------------------
-// •Ï”ƒ^ƒu‚Ì‰Šú‰»
+// å¤‰æ•°ã‚¿ãƒ–ã®åˆæœŸåŒ–
 //------------------------------------------------
 void TabVarInit( HWND hDlg )
 {
@@ -194,17 +194,17 @@ void TabVarInit( HWND hDlg )
 	
 	VarTree::init();
 	
-	// ƒ|ƒbƒvƒAƒbƒvƒƒjƒ…[‚Ì’Ç‰Á
+	// ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®è¿½åŠ 
 	hPopupOfVar = CreatePopupMenu();
-		AppendMenu( hPopupOfVar, MF_STRING, IDM_VAR_LOGGING, "ƒƒO(&L)");	// •¶‚Í•\¦‚Éã‘‚«‚³‚ê‚é
-		AppendMenu( hPopupOfVar, MF_STRING, IDM_VAR_UPDATE,  "XV(&U)" );
+		AppendMenu( hPopupOfVar, MF_STRING, IDM_VAR_LOGGING, "ãƒ­ã‚°(&L)");	// æ–‡ã¯è¡¨ç¤ºæ™‚ã«ä¸Šæ›¸ãã•ã‚Œã‚‹
+		AppendMenu( hPopupOfVar, MF_STRING, IDM_VAR_UPDATE,  "æ›´æ–°(&U)" );
 		AppendMenu( hPopupOfVar, MF_SEPARATOR, 0, 0 );
-		AppendMenu( hPopupOfVar, MF_STRING, IDM_VAR_STEPOUT, "’Eo(&O)" );
+		AppendMenu( hPopupOfVar, MF_STRING, IDM_VAR_STEPOUT, "è„±å‡º(&O)" );
 	return;
 }
 
 //------------------------------------------------
-// •Ï”ƒ^ƒu::•Ï”î•ñ‚ÌXV
+// å¤‰æ•°ã‚¿ãƒ–::å¤‰æ•°æƒ…å ±ã®æ›´æ–°
 //------------------------------------------------
 void TabVarsUpdate()
 {
@@ -219,7 +219,7 @@ void TabVarsUpdate()
 }
 
 //------------------------------------------------
-// ƒƒO‚Ìƒ`ƒFƒbƒNƒ{ƒbƒNƒX
+// ãƒ­ã‚°ã®ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹
 //------------------------------------------------
 bool isLogAutomaticallyUpdated()
 {
@@ -232,7 +232,7 @@ bool isLogCallings()
 }
 
 //------------------------------------------------
-// ƒƒOƒƒbƒZ[ƒW‚ğ‰Šú‰»‚·‚é
+// ãƒ­ã‚°ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’åˆæœŸåŒ–ã™ã‚‹
 //------------------------------------------------
 static string stt_logmsg;
 
@@ -241,12 +241,12 @@ void logClear()
 	stt_logmsg.clear();
 	
 	Edit_SetSel( hLogEdit, 0, -1 );
-	Edit_ReplaceSel( hLogEdit, "" );		// ‹ó‚Á‚Û‚É‚·‚é
+	Edit_ReplaceSel( hLogEdit, "" );		// ç©ºã£ã½ã«ã™ã‚‹
 	return;
 }
 
 //------------------------------------------------
-// ƒƒOƒƒbƒZ[ƒW‚ğ’Ç‰ÁEXV‚·‚é
+// ãƒ­ã‚°ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¿½åŠ ãƒ»æ›´æ–°ã™ã‚‹
 //------------------------------------------------
 void logUpdate( char const* textAdd )
 {
@@ -257,17 +257,17 @@ void logUpdate( char const* textAdd )
 	);
 	
 	int const size = Edit_GetTextLength( hLogEdit );
-	Edit_SetSel( hLogEdit, size, size );		// ÅŒã”ö‚ÉƒLƒƒƒŒƒbƒg‚ğ’u‚­
-	Edit_ReplaceSel( hLogEdit, textAdd );		// •¶š—ñ‚ğ’Ç‰Á‚·‚é
-	Edit_ScrollCaret( hLogEdit );				// ‰æ–Ê‚ğ•K—v‚È‚¾‚¯ƒXƒNƒ[ƒ‹
+	Edit_SetSel( hLogEdit, size, size );		// æœ€å¾Œå°¾ã«ã‚­ãƒ£ãƒ¬ãƒƒãƒˆã‚’ç½®ã
+	Edit_ReplaceSel( hLogEdit, textAdd );		// æ–‡å­—åˆ—ã‚’è¿½åŠ ã™ã‚‹
+	Edit_ScrollCaret( hLogEdit );				// ç”»é¢ã‚’å¿…è¦ãªã ã‘ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«
 	
-	// ‘I‘ğó‘Ô‚ğŒ³‚É–ß‚·
+	// é¸æŠçŠ¶æ…‹ã‚’å…ƒã«æˆ»ã™
 	Edit_SetSel( hLogEdit, caret[0], caret[1] );
 	return;
 }
 
 //------------------------------------------------
-// ƒƒOƒƒbƒZ[ƒW‚ğXV‚·‚é (commit)
+// ãƒ­ã‚°ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’æ›´æ–°ã™ã‚‹ (commit)
 //------------------------------------------------
 void TabLogCommit()
 {
@@ -279,11 +279,11 @@ void TabLogCommit()
 }
 
 //------------------------------------------------
-// ƒƒOƒƒbƒZ[ƒW‚É’Ç‰Á‚·‚é
+// ãƒ­ã‚°ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã«è¿½åŠ ã™ã‚‹
 //------------------------------------------------
 void logAdd( char const* str )
 {
-	// ©“®XV
+	// è‡ªå‹•æ›´æ–°
 	if ( isLogAutomaticallyUpdated() ) {
 //	if ( IsDlgButtonChecked( hLogPage, IDC_CHK_LOG_UPDATE ) ) {
 		logUpdate( str );
@@ -299,7 +299,7 @@ void logAddCrlf()
 	logAdd( "\r\n" );
 }
 
-// Œ»İˆÊ’u‚ğXV‚µ‚ÄAŒ»İˆÊ’u‚ğƒƒO‚É’Ç‰Á‚·‚éB
+// ç¾åœ¨ä½ç½®ã‚’æ›´æ–°ã—ã¦ã€ç¾åœ¨ä½ç½®ã‚’ãƒ­ã‚°ã«è¿½åŠ ã™ã‚‹ã€‚
 void logAddCurInf()
 {
 	g_dbginfo->debug->dbg_curinf();
@@ -308,23 +308,23 @@ void logAddCurInf()
 }
 
 //------------------------------------------------
-// ƒƒOƒƒbƒZ[ƒW‚ğ•Û‘¶‚·‚é
+// ãƒ­ã‚°ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ä¿å­˜ã™ã‚‹
 //------------------------------------------------
 void logSave()
 {
 	char filename[MAX_PATH + 1] = "";
 	char fullname[MAX_PATH + 1] = "hspdbg.log";
 	OPENFILENAME ofn = { 0 };
-		ofn.lStructSize    = sizeof(ofn);			// \‘¢‘Ì‚ÌƒTƒCƒY
-		ofn.hwndOwner      = hDlgWnd;				// ƒRƒ‚ƒ“ƒ_ƒCƒAƒƒO‚ÌeƒEƒBƒ“ƒhƒEƒnƒ“ƒhƒ‹
-		ofn.lpstrFilter    = "log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";	// ƒtƒ@ƒCƒ‹‚Ìí—Ş
-		ofn.lpstrFile      = fullname;				// ‘I‘ğ‚³‚ê‚½ƒtƒ@ƒCƒ‹–¼(ƒtƒ‹ƒpƒX)‚ğó‚¯æ‚é•Ï”‚ÌƒAƒhƒŒƒX
-		ofn.lpstrFileTitle = filename;				// ‘I‘ğ‚³‚ê‚½ƒtƒ@ƒCƒ‹–¼‚ğó‚¯æ‚é•Ï”‚ÌƒAƒhƒŒƒX
-		ofn.nMaxFile       = sizeof(fullname);		// lpstrFile‚Éw’è‚µ‚½•Ï”‚ÌƒTƒCƒY
-		ofn.nMaxFileTitle  = sizeof(filename);		// lpstrFileTitle‚Éw’è‚µ‚½•Ï”‚ÌƒTƒCƒY
-		ofn.Flags          = OFN_OVERWRITEPROMPT;	// ƒtƒ‰ƒOw’è
-		ofn.lpstrTitle     = "–¼‘O‚ğ•t‚¯‚Ä•Û‘¶";	// ƒRƒ‚ƒ“ƒ_ƒCƒAƒƒO‚ÌƒLƒƒƒvƒVƒ‡ƒ“
-		ofn.lpstrDefExt    = "log";					// ƒfƒtƒHƒ‹ƒg‚Ìƒtƒ@ƒCƒ‹‚Ìí—Ş
+		ofn.lStructSize    = sizeof(ofn);			// æ§‹é€ ä½“ã®ã‚µã‚¤ã‚º
+		ofn.hwndOwner      = hDlgWnd;				// ã‚³ãƒ¢ãƒ³ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®è¦ªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+		ofn.lpstrFilter    = "log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";	// ãƒ•ã‚¡ã‚¤ãƒ«ã®ç¨®é¡
+		ofn.lpstrFile      = fullname;				// é¸æŠã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«å(ãƒ•ãƒ«ãƒ‘ã‚¹)ã‚’å—ã‘å–ã‚‹å¤‰æ•°ã®ã‚¢ãƒ‰ãƒ¬ã‚¹
+		ofn.lpstrFileTitle = filename;				// é¸æŠã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«åã‚’å—ã‘å–ã‚‹å¤‰æ•°ã®ã‚¢ãƒ‰ãƒ¬ã‚¹
+		ofn.nMaxFile       = sizeof(fullname);		// lpstrFileã«æŒ‡å®šã—ãŸå¤‰æ•°ã®ã‚µã‚¤ã‚º
+		ofn.nMaxFileTitle  = sizeof(filename);		// lpstrFileTitleã«æŒ‡å®šã—ãŸå¤‰æ•°ã®ã‚µã‚¤ã‚º
+		ofn.Flags          = OFN_OVERWRITEPROMPT;	// ãƒ•ãƒ©ã‚°æŒ‡å®š
+		ofn.lpstrTitle     = "åå‰ã‚’ä»˜ã‘ã¦ä¿å­˜";	// ã‚³ãƒ¢ãƒ³ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚­ãƒ£ãƒ—ã‚·ãƒ§ãƒ³
+		ofn.lpstrDefExt    = "log";					// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ç¨®é¡
 
 	if ( GetSaveFileName(&ofn) ) {
 		logSave(fullname);
@@ -334,12 +334,12 @@ void logSave()
 
 void logSave( char const* filepath )
 {
-	// ƒƒOƒƒbƒZ[ƒW‚ğæ‚èo‚·
+	// ãƒ­ã‚°ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å–ã‚Šå‡ºã™
 	int const size = Edit_GetTextLength( hLogEdit );
 	char* const buf = new char[size + 2];
 	GetWindowText( hLogEdit, buf, size + 1 );
 	
-	// •Û‘¶
+	// ä¿å­˜
 	HANDLE const hFile =
 		CreateFile( filepath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
 	if ( hFile != INVALID_HANDLE_VALUE ) {
@@ -353,40 +353,40 @@ void logSave( char const* filepath )
 }
 
 //------------------------------------------------
-// ƒ\[ƒXƒtƒ@ƒCƒ‹‚ğŠJ‚­
+// ã‚½ãƒ¼ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã
 //
-// @ ƒGƒfƒBƒ^ã‚Å•ÒW’†‚Ìê‡Aƒtƒ@ƒCƒ‹‚Ì“à—e‚ªÀÛ‚ÆˆÙ‚È‚é‚±‚Æ‚ª‚ ‚éBs”Ô†‚ÌƒAƒEƒgƒŒƒ“ƒW‚É’ˆÓB
+// @ ã‚¨ãƒ‡ã‚£ã‚¿ä¸Šã§ç·¨é›†ä¸­ã®å ´åˆã€ãƒ•ã‚¡ã‚¤ãƒ«ã®å†…å®¹ãŒå®Ÿéš›ã¨ç•°ãªã‚‹ã“ã¨ãŒã‚ã‚‹ã€‚è¡Œç•ªå·ã®ã‚¢ã‚¦ãƒˆãƒ¬ãƒ³ã‚¸ã«æ³¨æ„ã€‚
 //------------------------------------------------
 /*
-// s‚²‚Æ‚É•ªŠ„‚³‚ê‚½ƒeƒLƒXƒg
-first: ƒXƒNƒŠƒvƒg‘S‘ÌA‚½‚¾‚µŠes‚Ìš‰º‚°‹ó”’‚Íœ‹‚³‚ê‚Ä‚¢‚éB
-second: s”Ô†(0ƒx[ƒX)‚Ì“Yš‚É‘Î‚µ‚ÄAfirst ‚É‚¨‚¯‚é‚»‚Ìs‚Ìæ“ª‚Ö‚ÌƒIƒtƒZƒbƒg’lB
-	Å‰‚Ì—v‘f‚Í 0AÅŒã‚Ì—v‘f‚Í first ‚Ì’·‚³B
+// è¡Œã”ã¨ã«åˆ†å‰²ã•ã‚ŒãŸãƒ†ã‚­ã‚¹ãƒˆ
+first: ã‚¹ã‚¯ãƒªãƒ—ãƒˆå…¨ä½“ã€ãŸã ã—å„è¡Œã®å­—ä¸‹ã’ç©ºç™½ã¯é™¤å»ã•ã‚Œã¦ã„ã‚‹ã€‚
+second: è¡Œç•ªå·(0ãƒ™ãƒ¼ã‚¹)ã®æ·»å­—ã«å¯¾ã—ã¦ã€first ã«ãŠã‘ã‚‹ãã®è¡Œã®å…ˆé ­ã¸ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆå€¤ã€‚
+	æœ€åˆã®è¦ç´ ã¯ 0ã€æœ€å¾Œã®è¦ç´ ã¯ first ã®é•·ã•ã€‚
 */
 using script_t = std::pair<string const, std::vector<size_t>>;
 
-// Œ»İƒ\[ƒXƒ^ƒu‚Å•\¦‚³‚ê‚Ä‚¢‚éƒtƒ@ƒCƒ‹‚ÌƒpƒX
+// ç¾åœ¨ã‚½ãƒ¼ã‚¹ã‚¿ãƒ–ã§è¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹
 static string stt_viewingFilepath;
 
-// “Ç‚İ‚İˆ— (failure: nullptr)
+// èª­ã¿è¾¼ã¿å‡¦ç† (failure: nullptr)
 static script_t const* ReadFromSourceFile( char const* _filepath )
 {
 	static std::map<string const, script_t> stt_src_cache;
 	
 	string const filepath = _filepath;
 	
-	// ƒLƒƒƒbƒVƒ…‚©‚çŒŸõ
+	// ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‹ã‚‰æ¤œç´¢
 	{
 		auto const iter = stt_src_cache.find(filepath);
 		if ( iter != stt_src_cache.end() ) return &iter->second;
 	}
 
-	// ƒtƒ@ƒCƒ‹‚©‚ç“Ç‚İ‚Ş
+	// ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰èª­ã¿è¾¼ã‚€
 	string code;
 	std::vector<size_t> idxlist;
 	{
 		std::ifstream ifs { filepath };
-		if ( !ifs.is_open() ) {			// Œ©‚Â‚©‚ç‚È‚©‚Á‚½ => common ‚©‚ç‚àŒŸõ
+		if ( !ifs.is_open() ) {			// è¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸ => common ã‹ã‚‰ã‚‚æ¤œç´¢
 			char path[MAX_PATH];
 			if ( SearchPath( g_config->commonPath.c_str(), _filepath, nullptr, sizeof(path), path, nullptr ) == 0 ) {
 				return nullptr;
@@ -417,10 +417,10 @@ static script_t const* ReadFromSourceFile( char const* _filepath )
 	return &res.first->second;
 }
 
-// ƒ\[ƒXƒ^ƒu‚ğ“¯Šú‚·‚é
+// ã‚½ãƒ¼ã‚¹ã‚¿ãƒ–ã‚’åŒæœŸã™ã‚‹
 static void SrcSyncImpl( HWND hEdit, char const* p )
 {
-	//Edit_SetSel( hEdit, 0, -1 );	// ‘S‘Ì‚ğ’u‚«Š·‚¦‚é
+	//Edit_SetSel( hEdit, 0, -1 );	// å…¨ä½“ã‚’ç½®ãæ›ãˆã‚‹
 	//Edit_ReplaceSel( hEdit, p );
 	Edit_UpdateText(hEdit, p);
 	return;
@@ -431,7 +431,7 @@ static void SrcSync( char const* filepath, int line_num, bool bUpdateEdit, bool 
 	if ( !filepath || line_num < 0 ) return;
 
 	if ( auto const p = ReadFromSourceFile( filepath ) ) {
-		assert(line_num >= 1);	// s”Ô† line_num ‚Í 1-based
+		assert(line_num >= 1);	// è¡Œç•ªå· line_num ã¯ 1-based
 		size_t const iLine = static_cast<size_t>(line_num) - 1;
 
 		size_t idxlist[2];
@@ -445,7 +445,7 @@ static void SrcSync( char const* filepath, int line_num, bool bUpdateEdit, bool 
 				SrcSyncImpl(hSrcEdit, p->first.c_str());
 				stt_viewingFilepath = filepath;
 			}
-			Edit_SetSel( hSrcEdit, idxlist[0], idxlist[1] );	// ŠY“–s‚ğ‘I‘ğ
+			Edit_SetSel( hSrcEdit, idxlist[0], idxlist[1] );	// è©²å½“è¡Œã‚’é¸æŠ
 			Edit_Scroll( hSrcEdit, iLine, 0 );
 		}
 		if ( bUpdateBox ) {
@@ -461,7 +461,7 @@ static void SrcSync( char const* filepath, int line_num, bool bUpdateEdit, bool 
 }
 
 //------------------------------------------------
-// ƒ\[ƒXƒ^ƒu‚ÌXV
+// ã‚½ãƒ¼ã‚¹ã‚¿ãƒ–ã®æ›´æ–°
 //------------------------------------------------
 static void TabSrcUpdate()
 {
@@ -469,7 +469,7 @@ static void TabSrcUpdate()
 }
 
 //------------------------------------------------
-// ‘S”Êƒ^ƒu::ƒvƒƒV[ƒWƒƒ
+// å…¨èˆ¬ã‚¿ãƒ–::ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
 //------------------------------------------------
 LRESULT CALLBACK TabGeneralProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -495,7 +495,7 @@ LRESULT CALLBACK TabGeneralProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 }
 
 //------------------------------------------------
-// •Ï”ƒ^ƒu::ƒvƒƒV[ƒWƒƒ
+// å¤‰æ•°ã‚¿ãƒ–::ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
 //------------------------------------------------
 LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -506,19 +506,19 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			
 		case WM_CONTEXTMENU:
 		{
-			// ƒcƒŠ[ã‚Å‹tƒNƒŠƒbƒN
+			// ãƒ„ãƒªãƒ¼ä¸Šã§é€†ã‚¯ãƒªãƒƒã‚¯
 			if ( wp == (WPARAM)hVarTree ) {
 				TV_HITTESTINFO tvHitTestInfo;
 					tvHitTestInfo.pt.x = LOWORD(lp);
 					tvHitTestInfo.pt.y = HIWORD(lp);
 				ScreenToClient( hVarTree, &tvHitTestInfo.pt );
-				auto const hItem = TreeView_HitTest( hVarTree, &tvHitTestInfo );	// ‘ÎÛ‚ğŠm’è
+				auto const hItem = TreeView_HitTest( hVarTree, &tvHitTestInfo );	// å¯¾è±¡ã‚’ç¢ºå®š
 				if ( !hItem )  break;
 				
-				if ( tvHitTestInfo.flags & TVHT_ONITEMLABEL ) {		// •¶š—ñƒAƒCƒeƒ€‚Ìê‡
+				if ( tvHitTestInfo.flags & TVHT_ONITEMLABEL ) {		// æ–‡å­—åˆ—ã‚¢ã‚¤ãƒ†ãƒ ã®å ´åˆ
 					auto const varname = TreeView_GetItemString(hVarTree, hItem);
 					{
-						auto const menuText = strf( "u%sv‚ğƒƒO(&L)", varname.c_str() );
+						auto const menuText = strf( "ã€Œ%sã€ã‚’ãƒ­ã‚°(&L)", varname.c_str() );
 						MENUITEMINFO menuInfo;
 							menuInfo.cbSize = sizeof(menuInfo);
 							menuInfo.fMask  = MIIM_STRING;
@@ -526,11 +526,11 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 						SetMenuItemInfo( hPopupOfVar, IDM_VAR_LOGGING, FALSE, &menuInfo );
 					}
 					
-					// u’Eov‚ÍŒÄ‚Ño‚µƒm[ƒh‚É‘Î‚µ‚Ä‚Ì‚İ—LŒø
+					// ã€Œè„±å‡ºã€ã¯å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ã«å¯¾ã—ã¦ã®ã¿æœ‰åŠ¹
 					EnableMenuItem( hPopupOfVar, IDM_VAR_STEPOUT,
 						(VarTree::isCallNode(varname.c_str()) ? MFS_ENABLED : MFS_DISABLED) );
 					
-					// ƒ|ƒbƒvƒAƒbƒvƒƒjƒ…[‚ğ•\¦‚·‚é
+					// ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’è¡¨ç¤ºã™ã‚‹
 					int const idSelected = TrackPopupMenuEx(
 						hPopupOfVar, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD,
 						(int)LOWORD(lp), (int)HIWORD(lp), hDlgWnd, nullptr
@@ -540,18 +540,18 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 						case IDM_VAR_LOGGING:
 						{
 							string const varinfoText = VarTree::getItemVarText(hItem);
-							Knowbug::logmes( varinfoText.c_str() );		// logmes ‘—M
+							Knowbug::logmes( varinfoText.c_str() );		// logmes é€ä¿¡
 							return TRUE;
 						}
 						case IDM_VAR_UPDATE:
 							TabVarsUpdate();
 							break;
-						case IDM_VAR_STEPOUT:		// ŒÄ‚Ño‚µƒm[ƒh‚Æ‰¼’è‚µ‚Ä‚æ‚¢
+						case IDM_VAR_STEPOUT:		// å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ã¨ä»®å®šã—ã¦ã‚ˆã„
 						{
 							auto const idx = static_cast<int>( TreeView_GetItemLParam(hVarTree, hItem) );
 							assert(idx >= 0);
 							if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
-								// ‘ÎÛ‚ªŒÄ‚Ño‚³‚ê‚½ŠK‘w‚Ü‚Åi‚Ş
+								// å¯¾è±¡ãŒå‘¼ã³å‡ºã•ã‚ŒãŸéšå±¤ã¾ã§é€²ã‚€
 								Knowbug::runStepReturn(pCallInfo->sublev);
 							}
 							break;
@@ -570,14 +570,14 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			if ( nmhdr->hwndFrom == hVarTree ) {
 				switch ( nmhdr->code ) {
 					
-					// ‘I‘ğ€–Ú‚ª•Ï‰»‚µ‚½
+					// é¸æŠé …ç›®ãŒå¤‰åŒ–ã—ãŸ
 					case TVN_SELCHANGED:
 					case NM_DBLCLK:
 					case NM_RETURN:
 						TabVarsUpdate();
 						break;
 						
-					// ƒJƒXƒ^ƒ€ƒhƒ[
+					// ã‚«ã‚¹ã‚¿ãƒ ãƒ‰ãƒ­ãƒ¼
 					case NM_CUSTOMDRAW:
 					{
 						if ( !g_config->bCustomDraw ) break;
@@ -595,7 +595,7 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 }
 
 //------------------------------------------------
-// ƒƒOƒ^ƒu::ƒvƒƒV[ƒWƒƒ
+// ãƒ­ã‚°ã‚¿ãƒ–::ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
 //------------------------------------------------
 LRESULT CALLBACK TabLogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -623,7 +623,7 @@ LRESULT CALLBACK TabLogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			switch ( LOWORD(wp) ) {
 				
 				case IDC_CHK_LOG_UPDATE:
-					// ƒ`ƒFƒbƒN‚ª•t‚¯‚ç‚ê‚½‚Æ‚«
+					// ãƒã‚§ãƒƒã‚¯ãŒä»˜ã‘ã‚‰ã‚ŒãŸã¨ã
 					if ( IsDlgButtonChecked( hLogPage, IDC_CHK_LOG_UPDATE ) ) goto LUpdate;
 					break;
 					
@@ -646,7 +646,7 @@ LRESULT CALLBACK TabLogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 }
 
 //------------------------------------------------
-// ƒ\[ƒXƒ^ƒu::ƒvƒƒV[ƒWƒƒ
+// ã‚½ãƒ¼ã‚¹ã‚¿ãƒ–::ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
 //------------------------------------------------
 LRESULT CALLBACK TabSrcProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -656,7 +656,7 @@ LRESULT CALLBACK TabSrcProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			hSrcEdit = GetDlgItem( hDlg, IDC_SRC );
 			
 			setEditStyle( hSrcEdit );
-			SendMessage( hSrcEdit, EM_SETLIMITTEXT, (WPARAM) g_config->logMaxlen, 0 );	// ƒƒO‚ÌÅ‘å’·‚ğ—¬—p
+			SendMessage( hSrcEdit, EM_SETLIMITTEXT, (WPARAM) g_config->logMaxlen, 0 );	// ãƒ­ã‚°ã®æœ€å¤§é•·ã‚’æµç”¨
 			return TRUE;
 			
 		case WM_COMMAND:
@@ -670,30 +670,30 @@ LRESULT CALLBACK TabSrcProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 }
 
 //------------------------------------------------
-// eƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒNŠÖ”
+// è¦ªãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°
 //------------------------------------------------
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
 	switch ( msg ) {
 
-	// ‰Šú‰»
+	// åˆæœŸåŒ–
 	case WM_CREATE:
 	{
-		// ƒ|ƒbƒvƒAƒbƒvƒƒjƒ…[‚ğ¶¬
+		// ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’ç”Ÿæˆ
 		hPopup = CreatePopupMenu();
-			AppendMenu( hPopup, (g_config->bTopMost ? MFS_CHECKED : MFS_UNCHECKED), IDM_TOPMOST, "í‚ÉÅ‘O–Ê‚É•\¦‚·‚é(&T)" );
+			AppendMenu( hPopup, (g_config->bTopMost ? MFS_CHECKED : MFS_UNCHECKED), IDM_TOPMOST, "å¸¸ã«æœ€å‰é¢ã«è¡¨ç¤ºã™ã‚‹(&T)" );
 		
-		// ƒ_ƒCƒAƒƒOƒIƒuƒWƒFƒNƒg‚ğ¶¬
+		// ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆ
 		auto const hFont = (HFONT)GetStockObject( DEFAULT_GUI_FONT );
 		hTabCtrl = GenerateObj( hDlg, WC_TABCONTROL, "", DIALOG_X0, DIALOG_Y0, DIALOG_X1, DIALOG_Y2, IDU_TAB, hFont );
 		hSttCtrl = GenerateObj( hDlg, "static",    "",  DIALOG_X0 + 210, DIALOG_Y1 + 12, DIALOG_X1 - 210, 48, 0, hFont );
-		hBtn1    = GenerateObj( hDlg, "button", "Às", DIALOG_X0 +   8, DIALOG_Y1 + 12, 40, 24, ID_BTN1, hFont );
-		hBtn2    = GenerateObj( hDlg, "button", "Ÿs", DIALOG_X0 +  48, DIALOG_Y1 + 12, 40, 24, ID_BTN2, hFont );	
-		hBtn3    = GenerateObj( hDlg, "button", "’â~", DIALOG_X0 +  88, DIALOG_Y1 + 12, 40, 24, ID_BTN3, hFont );
-		hBtn4    = GenerateObj( hDlg, "button", "Ÿ”ò", DIALOG_X0 + 128, DIALOG_Y1 + 12, 40, 24, ID_BTN4, hFont );		// ’Ç‰Á
-		hBtn5    = GenerateObj( hDlg, "button", "’Eo", DIALOG_X0 + 168, DIALOG_Y1 + 12, 40, 24, ID_BTN5, hFont );		// ’Ç‰Á
+		hBtn1    = GenerateObj( hDlg, "button", "å®Ÿè¡Œ", DIALOG_X0 +   8, DIALOG_Y1 + 12, 40, 24, ID_BTN1, hFont );
+		hBtn2    = GenerateObj( hDlg, "button", "æ¬¡è¡Œ", DIALOG_X0 +  48, DIALOG_Y1 + 12, 40, 24, ID_BTN2, hFont );	
+		hBtn3    = GenerateObj( hDlg, "button", "åœæ­¢", DIALOG_X0 +  88, DIALOG_Y1 + 12, 40, 24, ID_BTN3, hFont );
+		hBtn4    = GenerateObj( hDlg, "button", "æ¬¡é£›", DIALOG_X0 + 128, DIALOG_Y1 + 12, 40, 24, ID_BTN4, hFont );		// è¿½åŠ 
+		hBtn5    = GenerateObj( hDlg, "button", "è„±å‡º", DIALOG_X0 + 168, DIALOG_Y1 + 12, 40, 24, ID_BTN5, hFont );		// è¿½åŠ 
 		
-		// ‘S”Êƒ^ƒuA•Ï”ƒ^ƒuAƒƒOƒ^ƒuAƒXƒNƒŠƒvƒgƒ^ƒu‚ğ’Ç‰Á
+		// å…¨èˆ¬ã‚¿ãƒ–ã€å¤‰æ•°ã‚¿ãƒ–ã€ãƒ­ã‚°ã‚¿ãƒ–ã€ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚¿ãƒ–ã‚’è¿½åŠ 
 		{
 			struct tabinfo {
 				char const* const label;
@@ -701,10 +701,10 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				DLGPROC proc;
 			};
 			static std::array<tabinfo, TABDLGMAX> stc_tabinfo = { {
-				{ "‘S”Ê", "T_GENERAL", (DLGPROC)TabGeneralProc },
-				{ "•Ï”", "T_VAR", (DLGPROC)TabVarsProc },
-				{ "ƒƒO", "T_LOG", (DLGPROC)TabLogProc },
-				{ "ƒXƒNƒŠƒvƒg", "T_SRC", (DLGPROC)TabSrcProc }
+				{ "å…¨èˆ¬", "T_GENERAL", (DLGPROC)TabGeneralProc },
+				{ "å¤‰æ•°", "T_VAR", (DLGPROC)TabVarsProc },
+				{ "ãƒ­ã‚°", "T_LOG", (DLGPROC)TabLogProc },
+				{ "ã‚¹ã‚¯ãƒªãƒ—ãƒˆ", "T_SRC", (DLGPROC)TabSrcProc }
 			} };
 
 			TCITEM tc;
@@ -723,7 +723,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		//TabCtrl_AdjustRect(hTabCtrl, FALSE, &rt);
 		//MapWindowPoints(hTabCtrl, hDlg, pt, 2);
 
-		// ¶¬‚µ‚½qƒ_ƒCƒAƒƒO‚ğƒ^ƒuƒV[ƒg‚Ìã‚É“\‚è•t‚¯‚é
+		// ç”Ÿæˆã—ãŸå­ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ã‚¿ãƒ–ã‚·ãƒ¼ãƒˆã®ä¸Šã«è²¼ã‚Šä»˜ã‘ã‚‹
 		for ( int i = 0; i < TABDLGMAX; ++ i ) {
 			MoveWindow(
 				hTabSheet[i],
@@ -733,13 +733,13 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			);
 		}
 
-		// ƒfƒtƒHƒ‹ƒg‚Å¶’[‚Ìƒ^ƒu‚ğ•\¦
+		// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã§å·¦ç«¯ã®ã‚¿ãƒ–ã‚’è¡¨ç¤º
 		ShowWindow( hTabSheet[0], SW_SHOW );
 		return TRUE;
 	}
 	case WM_NOTIFY:
 	{
-		auto const nm = reinterpret_cast<NMHDR*>(lp);		// ƒ^ƒuƒRƒ“ƒgƒ[ƒ‹‚ÌƒV[ƒgØ‚è‘Ö‚¦’Ê’m
+		auto const nm = reinterpret_cast<NMHDR*>(lp);		// ã‚¿ãƒ–ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®ã‚·ãƒ¼ãƒˆåˆ‡ã‚Šæ›¿ãˆé€šçŸ¥
 		int const cur = TabCtrl_GetCurSel(hTabCtrl);
 		for ( int i = 0; i < TABDLGMAX; ++ i ) {
 			ShowWindow( hTabSheet[i], (i == cur ? SW_SHOW : SW_HIDE) );
@@ -757,19 +757,19 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		if ( LOWORD(wp) != ID_BTN3 ) SetWindowText( Dialog::hSttCtrl, "" );
 		break;
 		
-	case WM_CONTEXTMENU:		// ƒ|ƒbƒvƒAƒbƒvƒƒjƒ…[•\¦
+	case WM_CONTEXTMENU:		// ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ãƒ¡ãƒ‹ãƒ¥ãƒ¼è¡¨ç¤º
 	{
 		POINT pt;
-		GetCursorPos( &pt );	// ƒJ[ƒ\ƒ‹ˆÊ’u (ƒXƒNƒŠ[ƒ“À•W)
+		GetCursorPos( &pt );	// ã‚«ãƒ¼ã‚½ãƒ«ä½ç½® (ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™)
 		
-		// ƒ|ƒbƒvƒAƒbƒvƒƒjƒ…[‚ğ•\¦‚·‚é
+		// ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’è¡¨ç¤ºã™ã‚‹
 		int const idSelected = TrackPopupMenuEx(
 			hPopup, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, hDlg, nullptr
 		);
 		switch ( idSelected ) {
 			case IDM_TOPMOST:
 			{
-				g_config->bTopMost = !g_config->bTopMost;		// ”½“]
+				g_config->bTopMost = !g_config->bTopMost;		// åè»¢
 				
 				MENUITEMINFO menuInfo;
 					menuInfo.cbSize = sizeof(menuInfo);
@@ -777,7 +777,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					menuInfo.fState = ( g_config->bTopMost ? MFS_CHECKED : MFS_UNCHECKED );
 				SetMenuItemInfo( hPopup, IDM_TOPMOST, FALSE, &menuInfo );
 					
-				SetWindowPos(	// Å‘O–Ê
+				SetWindowPos(	// æœ€å‰é¢
 					hDlgWnd, (g_config->bTopMost ? HWND_TOPMOST : HWND_NOTOPMOST),
 					0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)
 				);
@@ -801,7 +801,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 }
 
 //------------------------------------------------
-// ƒƒCƒ“ƒ_ƒCƒAƒƒO‚ğ¶¬‚·‚é
+// ãƒ¡ã‚¤ãƒ³ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ç”Ÿæˆã™ã‚‹
 //------------------------------------------------
 HWND Dialog::createMain()
 {
@@ -840,7 +840,7 @@ HWND Dialog::createMain()
 		MessageBox( nullptr, "Debug window initalizing failed.", "Error", 0 );
 	}
 	
-	SetWindowPos(	// Å‘O–Ê
+	SetWindowPos(	// æœ€å‰é¢
 		hDlgWnd, (g_config->bTopMost ? HWND_TOPMOST : HWND_NOTOPMOST),
 		0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)
 	);
@@ -861,9 +861,9 @@ void Dialog::destroyMain()
 }
 
 //------------------------------------------------
-// XV
+// æ›´æ–°
 // 
-// @ dbgnotice (stop) ‚©‚çŒÄ‚Î‚ê‚éB
+// @ dbgnotice (stop) ã‹ã‚‰å‘¼ã°ã‚Œã‚‹ã€‚
 //------------------------------------------------
 void update()
 {
@@ -884,9 +884,9 @@ void update()
 }
 
 //------------------------------------------------
-// ƒGƒfƒBƒbƒgƒRƒ“ƒgƒ[ƒ‹‚Ì•W€ƒXƒ^ƒCƒ‹
+// ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®æ¨™æº–ã‚¹ã‚¿ã‚¤ãƒ«
 // 
-// @ İ’è‚ÉˆË‘¶
+// @ è¨­å®šã«ä¾å­˜
 //------------------------------------------------
 void setEditStyle( HWND hEdit )
 {
@@ -898,7 +898,7 @@ void setEditStyle( HWND hEdit )
 } // namespace Dialog
 
 //##############################################################################
-//                ŒöŠJAPI
+//                å…¬é–‹API
 //##############################################################################
 EXPORT HWND WINAPI knowbug_hwnd()
 {
@@ -906,10 +906,10 @@ EXPORT HWND WINAPI knowbug_hwnd()
 }
 
 //##############################################################################
-//                ‰º¿‚¯ˆ—
+//                ä¸‹è«‹ã‘å‡¦ç†
 //##############################################################################
 //------------------------------------------------
-// EditControl ‚Ìƒ^ƒu•¶š•‚ğ•ÏX‚·‚é
+// EditControl ã®ã‚¿ãƒ–æ–‡å­—å¹…ã‚’å¤‰æ›´ã™ã‚‹
 //------------------------------------------------
 void Edit_SetTabLength( HWND hEdit, const int tabwidth )
 {
@@ -926,9 +926,9 @@ void Edit_SetTabLength( HWND hEdit, const int tabwidth )
 }
 
 //------------------------------------------------
-// EditControl ‚Ìu‰E’[‚ÅÜ‚è•Ô‚·v‚©”Û‚©
+// EditControl ã®ã€Œå³ç«¯ã§æŠ˜ã‚Šè¿”ã™ã€ã‹å¦ã‹
 //
-// ƒXƒ^ƒCƒ‹ ES_AUTOHSCROLL ‚Í“®“I‚É•ÏX‚Å‚«‚È‚¢‚ç‚µ‚¢B
+// ã‚¹ã‚¿ã‚¤ãƒ« ES_AUTOHSCROLL ã¯å‹•çš„ã«å¤‰æ›´ã§ããªã„ã‚‰ã—ã„ã€‚
 //------------------------------------------------
 /*
 void Edit_EnableWordwrap( HWND hEdit, bool bEnable )
@@ -945,7 +945,7 @@ void Edit_EnableWordwrap( HWND hEdit, bool bEnable )
 //*/
 
 //------------------------------------------------
-// EditControl ‚Ì•¶š—ñ‚Ì’u‚«Š·‚¦
+// EditControl ã®æ–‡å­—åˆ—ã®ç½®ãæ›ãˆ
 //------------------------------------------------
 void Edit_UpdateText(HWND hwnd, char const* s)
 {
@@ -956,7 +956,7 @@ void Edit_UpdateText(HWND hwnd, char const* s)
 }
 
 //------------------------------------------------
-// ƒcƒŠ[ƒrƒ…[‚Ì€–Úƒ‰ƒxƒ‹‚ğæ“¾‚·‚é
+// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã®é …ç›®ãƒ©ãƒ™ãƒ«ã‚’å–å¾—ã™ã‚‹
 //------------------------------------------------
 string TreeView_GetItemString( HWND hwndTree, HTREEITEM hItem )
 {
@@ -974,7 +974,7 @@ string TreeView_GetItemString( HWND hwndTree, HTREEITEM hItem )
 }
 
 //------------------------------------------------
-// ƒcƒŠ[ƒrƒ…[‚Ìƒm[ƒh‚ÉŠÖ˜A‚·‚é lparam ’l‚ğæ“¾‚·‚é
+// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã®ãƒãƒ¼ãƒ‰ã«é–¢é€£ã™ã‚‹ lparam å€¤ã‚’å–å¾—ã™ã‚‹
 //------------------------------------------------
 LPARAM TreeView_GetItemLParam( HWND hwndTree, HTREEITEM hItem )
 {
@@ -987,9 +987,9 @@ LPARAM TreeView_GetItemLParam( HWND hwndTree, HTREEITEM hItem )
 }
 
 //------------------------------------------------
-// ƒcƒŠ[ƒrƒ…[‚ÌƒtƒH[ƒJƒX‚ğ‰ñ”ğ‚·‚é
+// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã®ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã‚’å›é¿ã™ã‚‹
 // 
-// @ ‘ÎÛ‚Ìƒm[ƒh‚ª‘I‘ğó‘Ô‚È‚çA‚»‚ÌŒZƒm[ƒh‚©eƒm[ƒh‚ğ‘I‘ğ‚·‚éB
+// @ å¯¾è±¡ã®ãƒãƒ¼ãƒ‰ãŒé¸æŠçŠ¶æ…‹ãªã‚‰ã€ãã®å…„ãƒãƒ¼ãƒ‰ã‹è¦ªãƒãƒ¼ãƒ‰ã‚’é¸æŠã™ã‚‹ã€‚
 //------------------------------------------------
 void TreeView_EscapeFocus( HWND hwndTree, HTREEITEM hItem )
 {
@@ -1003,7 +1003,7 @@ void TreeView_EscapeFocus( HWND hwndTree, HTREEITEM hItem )
 }
 
 //------------------------------------------------
-// ––qƒm[ƒh‚ğæ“¾‚·‚é (failure: nullptr)
+// æœ«å­ãƒãƒ¼ãƒ‰ã‚’å–å¾—ã™ã‚‹ (failure: nullptr)
 //------------------------------------------------
 HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
 {

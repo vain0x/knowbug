@@ -1,4 +1,4 @@
-// with modptr.as
+﻿// with modptr.as
 
 #include "main.h"
 #include "module/ptr_cast.h"

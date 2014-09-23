@@ -1,4 +1,4 @@
-// •Ï”ƒf[ƒ^ƒeƒLƒXƒg¶¬ƒNƒ‰ƒX
+ï»¿// å¤‰æ•°ãƒ‡ãƒ¼ã‚¿ãƒ†ã‚­ã‚¹ãƒˆç”Ÿæˆã‚¯ãƒ©ã‚¹
 
 #include <numeric>	// for accumulate
 #include <algorithm>
@@ -16,7 +16,7 @@ using namespace WrapCall;
 #endif
 
 //------------------------------------------------
-// •Ï”ƒf[ƒ^‚©‚ç¶¬
+// å¤‰æ•°ãƒ‡ãƒ¼ã‚¿ã‹ã‚‰ç”Ÿæˆ
 //------------------------------------------------
 void CVarinfoText::addVar( PVal* pval, char const* name )
 {
@@ -25,35 +25,35 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 	void const* const pMemBlock =
 		hvp->GetBlockSize(pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize));
 
-	// •Ï”‚ÉŠÖ‚·‚éî•ñ
-	getWriter().catln(strf("•Ï”–¼F%s", name));
-	getWriter().catln(strf("•Ï”Œ^F%s", getVartypeString(pval).c_str()));
-	getWriter().catln(strf("ƒAƒhƒŒƒXF0x%08X, 0x%08X", address_cast(pval->pt), address_cast(pval->master)));
-	getWriter().catln(strf("ƒTƒCƒYFusing %d of %d [byte]", pval->size, bufsize));
+	// å¤‰æ•°ã«é–¢ã™ã‚‹æƒ…å ±
+	getWriter().catln(strf("å¤‰æ•°åï¼š%s", name));
+	getWriter().catln(strf("å¤‰æ•°å‹ï¼š%s", getVartypeString(pval).c_str()));
+	getWriter().catln(strf("ã‚¢ãƒ‰ãƒ¬ã‚¹ï¼š0x%08X, 0x%08X", address_cast(pval->pt), address_cast(pval->master)));
+	getWriter().catln(strf("ã‚µã‚¤ã‚ºï¼šusing %d of %d [byte]", pval->size, bufsize));
 	getWriter().catCrlf();
 
-	// •Ï”‚Ì“à—e‚ÉŠÖ‚·‚éî•ñ
+	// å¤‰æ•°ã®å†…å®¹ã«é–¢ã™ã‚‹æƒ…å ±
 	{
 		auto vardat = CVardataStrWriter::create<CTreeformedWriter>(getBuf());
 		vardat.addVar(name, pval);
 	}
 	getWriter().catCrlf();
 
-	// ƒƒ‚ƒŠƒ_ƒ“ƒv
+	// ãƒ¡ãƒ¢ãƒªãƒ€ãƒ³ãƒ—
 	getWriter().catDump(pMemBlock, static_cast<size_t>(bufsize));
 	return;
 }
 
 //------------------------------------------------
-// ƒVƒXƒeƒ€•Ï”ƒf[ƒ^‚©‚ç¶¬
+// ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ãƒ‡ãƒ¼ã‚¿ã‹ã‚‰ç”Ÿæˆ
 //------------------------------------------------
 void CVarinfoText::addSysvar(char const* name)
 {
 	auto const id = Sysvar_seek(name);
 	if ( id == SysvarId_MAX ) return;
 
-	getWriter().catln(strf("•Ï”–¼F%s\t(ƒVƒXƒeƒ€•Ï”)", name));
-	getWriter().catln(strf("•Ï”Œ^F%s", hpimod::getHvp(SysvarData[id].type)->vartype_name));
+	getWriter().catln(strf("å¤‰æ•°åï¼š%s\t(ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°)", name));
+	getWriter().catln(strf("å¤‰æ•°å‹ï¼š%s", hpimod::getHvp(SysvarData[id].type)->vartype_name));
 	getWriter().catCrlf();
 
 	{
@@ -62,7 +62,7 @@ void CVarinfoText::addSysvar(char const* name)
 	}
 	getWriter().catCrlf();
 
-	// ƒƒ‚ƒŠƒ_ƒ“ƒv
+	// ãƒ¡ãƒ¢ãƒªãƒ€ãƒ³ãƒ—
 	{
 		void const* data; size_t size;
 		Sysvar_getDumpInfo(id, data, size);
@@ -73,9 +73,9 @@ void CVarinfoText::addSysvar(char const* name)
 
 #if with_WrapCall
 //------------------------------------------------
-// ŒÄ‚Ño‚µƒf[ƒ^‚©‚ç¶¬
+// å‘¼ã³å‡ºã—ãƒ‡ãƒ¼ã‚¿ã‹ã‚‰ç”Ÿæˆ
 // 
-// @prm prmstk: nullptr => ˆø”–¢Šm’è
+// @prm prmstk: nullptr => å¼•æ•°æœªç¢ºå®š
 //------------------------------------------------
 void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 {
@@ -83,12 +83,12 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 	auto const name = hpimod::STRUCTDAT_getName(stdat);
 	getWriter().catln(
 		(callinfo.fname == nullptr)
-			? strf("ŠÖ”–¼F%s", name)
-			: strf("ŠÖ”–¼F%s (#%d of %s)", name, callinfo.line, callinfo.fname)
+			? strf("é–¢æ•°åï¼š%s", name)
+			: strf("é–¢æ•°åï¼š%s (#%d of %s)", name, callinfo.line, callinfo.fname)
 	);
 
-	// ƒVƒOƒlƒ`ƒƒ
-	getWriter().catln(strf("‰¼ˆø”F(%s)", getPrmlistString(stdat).c_str()));
+	// ã‚·ã‚°ãƒãƒãƒ£
+	getWriter().catln(strf("ä»®å¼•æ•°ï¼š(%s)", getPrmlistString(stdat).c_str()));
 	getWriter().catCrlf();
 
 	auto const prmstk = callinfo.getPrmstk();
@@ -104,19 +104,19 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 }
 
 //------------------------------------------------
-// •Ô’lƒf[ƒ^‚©‚ç¶¬
+// è¿”å€¤ãƒ‡ãƒ¼ã‚¿ã‹ã‚‰ç”Ÿæˆ
 //------------------------------------------------
 void CVarinfoText::addResult( stdat_t stdat, string const& text, char const* name )
 {
-	getWriter().catln(strf("ŠÖ”–¼F%s", name));
-//	getWriter().catln(strf("‰¼ˆø”F(%s)", getPrmlistString(stdat).c_str()));
+	getWriter().catln(strf("é–¢æ•°åï¼š%s", name));
+//	getWriter().catln(strf("ä»®å¼•æ•°ï¼š(%s)", getPrmlistString(stdat).c_str()));
 	getWriter().catCrlf();
 
-	// •Ï”‚Ì“à—e‚ÉŠÖ‚·‚éî•ñ
+	// å¤‰æ•°ã®å†…å®¹ã«é–¢ã™ã‚‹æƒ…å ±
 	getWriter().cat(text);
 //	getWriter().catCrlf();
 	
-	// ƒƒ‚ƒŠƒ_ƒ“ƒv
+	// ãƒ¡ãƒ¢ãƒªãƒ€ãƒ³ãƒ—
 //	getWriter().catDump( ptr, static_cast<size_t>(bufsize) );
 	return;
 }
@@ -124,10 +124,10 @@ void CVarinfoText::addResult( stdat_t stdat, string const& text, char const* nam
 #endif
 
 //**********************************************************
-//        ŠTŠÏ‚Ì’Ç‰Á
+//        æ¦‚è¦³ã®è¿½åŠ 
 //**********************************************************
 //------------------------------------------------
-// [add] ƒ‚ƒWƒ…[ƒ‹ŠTŠÏ
+// [add] ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«æ¦‚è¦³
 //------------------------------------------------
 void CVarinfoText::addModuleOverview(char const* name, CVarTree::ModuleNode const& tree)
 {
@@ -149,7 +149,7 @@ void CVarinfoText::addModuleOverview(char const* name, CVarTree::ModuleNode cons
 			getWriter().catCrlf();
 
 		}, [&](CStaticVarTree::ModuleNode const& child) {
-			// (“ü‚êq‚Ì)ƒ‚ƒWƒ…[ƒ‹‚Í–¼‘O‚¾‚¯•\¦‚µ‚Ä‚¨‚­
+			// (å…¥ã‚Œå­ã®)ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã¯åå‰ã ã‘è¡¨ç¤ºã—ã¦ãŠã
 			getWriter().catln(child.getName());
 		});
 	}
@@ -157,11 +157,11 @@ void CVarinfoText::addModuleOverview(char const* name, CVarTree::ModuleNode cons
 }
 
 //------------------------------------------------
-// [add] ƒVƒXƒeƒ€•Ï”ŠTŠÏ
+// [add] ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°æ¦‚è¦³
 //------------------------------------------------
 void CVarinfoText::addSysvarsOverview()
 {
-	getWriter().catln("[ƒVƒXƒeƒ€•Ï”]");
+	getWriter().catln("[ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°]");
 
 	for ( int i = 0; i < SysvarCount; ++i ) {
 		getWriter().cat(SysvarData[i].name);
@@ -177,13 +177,13 @@ void CVarinfoText::addSysvarsOverview()
 
 #ifdef with_WrapCall
 //------------------------------------------------
-// [add] ŒÄ‚Ño‚µŠTŠÏ
+// [add] å‘¼ã³å‡ºã—æ¦‚è¦³
 // 
 // depends on WrapCall
 //------------------------------------------------
 void CVarinfoText::addCallsOverview(ResultNodeData const* pLastResult)
 {
-	getWriter().catln("[ŒÄ‚Ño‚µ—š—ğ]");
+	getWriter().catln("[å‘¼ã³å‡ºã—å±¥æ­´]");
 
 	auto const range = WrapCall::getCallInfoRange();
 	std::for_each(range.first, range.second, [&](stkCallInfo_t::value_type const& pCallInfo) {
@@ -194,7 +194,7 @@ void CVarinfoText::addCallsOverview(ResultNodeData const* pLastResult)
 		getWriter().catCrlf();
 	});
 
-	// ÅŒã‚Ì•Ô’l
+	// æœ€å¾Œã®è¿”å€¤
 	if ( pLastResult ) {
 		getWriter().cat("-> ");
 		getWriter().catln(pLastResult->valueString);
@@ -204,11 +204,11 @@ void CVarinfoText::addCallsOverview(ResultNodeData const* pLastResult)
 #endif
 
 //**********************************************************
-//        ‰º¿‚¯ŠÖ”
+//        ä¸‹è«‹ã‘é–¢æ•°
 //**********************************************************
 /*
 //------------------------------------------------
-// ‰üs‚ğ˜AŒ‹‚·‚é
+// æ”¹è¡Œã‚’é€£çµã™ã‚‹
 //------------------------------------------------
 void CVarinfoText::cat_crlf( void )
 {
@@ -220,17 +220,17 @@ void CVarinfoText::cat_crlf( void )
 }
 
 //------------------------------------------------
-// •¶š—ñ‚ğ˜AŒ‹‚·‚é
+// æ–‡å­—åˆ—ã‚’é€£çµã™ã‚‹
 //------------------------------------------------
 void CVarinfoText::cat( char const* string )
 {
 	if ( mlenLimit <= 0 ) return;
 	
-	size_t len( strlen( string ) + 2 );		// 2 ‚Í crlf ‚Ì•ª
+	size_t len( strlen( string ) + 2 );		// 2 ã¯ crlf ã®åˆ†
 	
 	if ( static_cast<int>(len) > mlenLimit ) {
 		mpBuf->append( string, mlenLimit );
-		mpBuf->append( "(’·‚·‚¬‚½‚Ì‚ÅÈ—ª‚µ‚Ü‚µ‚½B)" );
+		mpBuf->append( "(é•·ã™ããŸã®ã§çœç•¥ã—ã¾ã—ãŸã€‚)" );
 		mlenLimit = 2;
 	} else {
 		mpBuf->append( string );
@@ -242,7 +242,7 @@ void CVarinfoText::cat( char const* string )
 }
 
 //------------------------------------------------
-// ‘®•t‚«•¶š—ñ‚ğ˜AŒ‹‚·‚é
+// æ›¸å¼ä»˜ãæ–‡å­—åˆ—ã‚’é€£çµã™ã‚‹
 //------------------------------------------------
 void CVarinfoText::catf( char const* format, ... )
 {
@@ -258,8 +258,8 @@ void CVarinfoText::catf( char const* format, ... )
 //*/
 
 //------------------------------------------------
-// mptype ‚Ì•¶š—ñ‚ğ“¾‚é
-// todo: hpimod ‚ÉˆÚ“®H
+// mptype ã®æ–‡å­—åˆ—ã‚’å¾—ã‚‹
+// todo: hpimod ã«ç§»å‹•ï¼Ÿ
 //------------------------------------------------
 char const* getMPTypeString(int mptype)
 {
@@ -300,7 +300,7 @@ char const* getMPTypeString(int mptype)
 
 #include "module/map_iterator.h"
 //------------------------------------------------
-// ‰¼ˆø”ƒŠƒXƒg‚Ì•¶š—ñ
+// ä»®å¼•æ•°ãƒªã‚¹ãƒˆã®æ–‡å­—åˆ—
 //------------------------------------------------
 string getPrmlistString(stdat_t stdat)
 {
@@ -320,12 +320,12 @@ string getPrmlistString(stdat_t stdat)
 #endif
 }
 
-#if 0 // –¢g—p
+#if 0 // æœªä½¿ç”¨
 static char const* getModeString(varmode_t mode)
 {
-	return	(mode == HSPVAR_MODE_NONE) ? "–³Œø" :
-		(mode == HSPVAR_MODE_MALLOC) ? "À‘Ì" :
-		(mode == HSPVAR_MODE_CLONE) ? "ƒNƒ[ƒ“" : "???";
+	return	(mode == HSPVAR_MODE_NONE) ? "ç„¡åŠ¹" :
+		(mode == HSPVAR_MODE_MALLOC) ? "å®Ÿä½“" :
+		(mode == HSPVAR_MODE_CLONE) ? "ã‚¯ãƒ­ãƒ¼ãƒ³" : "???";
 }
 #endif
 static char const* getTypeQualifierFromMode(varmode_t mode)
@@ -335,7 +335,7 @@ static char const* getTypeQualifierFromMode(varmode_t mode)
 		(mode == HSPVAR_MODE_CLONE) ? "&" : "<err>";
 }
 
-// •Ï”‚ÌŒ^‚ğ•\‚·•¶š—ñ
+// å¤‰æ•°ã®å‹ã‚’è¡¨ã™æ–‡å­—åˆ—
 string getVartypeString(PVal const* pval)
 {
 	size_t const maxDim = hpimod::PVal_maxDim(pval);

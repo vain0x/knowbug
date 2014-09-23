@@ -1,701 +1,701 @@
+﻿
+	knowbug (ver: 1.0β17)
 
-	knowbug (ver: 1.0��17)
+＠概要
 
-���T�v
+上大が拡張した HSP デバッグ・ウィンドウです。
 
-��傪�g������ HSP �f�o�b�O�E�E�B���h�E�ł��B
+変数データ表示機能を重点的に拡張しており、標準では表示できない、
+	・多次元配列の2,3次元目
+	・モジュール変数のメンバ
+	・実行中のユーザ定義関数の実引数
+などを見ることができます。
 
-�ϐ��f�[�^�\���@�\���d�_�I�Ɋg�����Ă���A�W���ł͕\���ł��Ȃ��A
-	�E�������z���2,3������
-	�E���W���[���ϐ��̃����o
-	�E���s���̃��[�U��`�֐��̎�����
-�Ȃǂ����邱�Ƃ��ł��܂��B
+他にも、int の16進数併記など、地味に便利な部分も。
 
-���ɂ��Aint ��16�i�����L�ȂǁA�n���ɕ֗��ȕ������B
+＠導入方法
+－knowbug
 
-���������@
-�|knowbug
+まず、HSPのフォルダ(*)にある「hsp3debug.dll」をバックアップします。
+ファイルの名前を変更し、「hsp3debug_default.dll」などにするのがよいでしょう。
 
-�܂��AHSP�̃t�H���_(*)�ɂ���uhsp3debug.dll�v���o�b�N�A�b�v���܂��B
-�t�@�C���̖��O��ύX���A�uhsp3debug_default.dll�v�Ȃǂɂ���̂��悢�ł��傤�B
+次に、同梱されている「hsp3debug_knowbug.dll」の名前を「hsp3debug.dll」に変え、
+先ほどの(HSPの)フォルダにコピーします。
 
-���ɁA��������Ă���uhsp3debug_knowbug.dll�v�̖��O���uhsp3debug.dll�v�ɕς��A
-��قǂ�(HSP��)�t�H���_�ɃR�s�[���܂��B
+*「HSPのフォルダ」
+	HSPがインストールされているフォルダで、「common」フォルダの1つ上です。
+	通常は「C:/Program Files/hsp34」です。数字は変わるかもしれません。
 
-*�uHSP�̃t�H���_�v
-	HSP���C���X�g�[������Ă���t�H���_�ŁA�ucommon�v�t�H���_��1��ł��B
-	�ʏ�́uC:/Program Files/hsp34�v�ł��B�����͕ς�邩������܂���B
+－WrapCall
 
-�|WrapCall
+※ WrapCall は一部機能にのみ使用するので、無くても問題ありません。
 
-�� WrapCall �͈ꕔ�@�\�ɂ̂ݎg�p����̂ŁA�����Ă���肠��܂���B
+HSPのフォルダに同梱されている「WrapCall.as」と「userdef.as」を common フォルダに移動します。
+(既に userdef.as を使っている方は、上書きではなく追記してください。)
 
-HSP�̃t�H���_�ɓ�������Ă���uWrapCall.as�v�Ɓuuserdef.as�v�� common �t�H���_�Ɉړ����܂��B
-(���� userdef.as ���g���Ă�����́A�㏑���ł͂Ȃ��ǋL���Ă��������B)
+なお、WrapCall は hgimg3 などの拡張ランタイムと併用することができません。
+(拡張ランタイムを使用する場合は、WrapCall.as を #include しないでください。)
+ご了承ください。
 
-�Ȃ��AWrapCall �� hgimg3 �Ȃǂ̊g�������^�C���ƕ��p���邱�Ƃ��ł��܂���B
-(�g�������^�C�����g�p����ꍇ�́AWrapCall.as �� #include ���Ȃ��ł��������B)
-���������������B
+－設定ファイル「knowbug.ini」
 
-�|�ݒ�t�@�C���uknowbug.ini�v
+特に重要でもないので、削除していただいて構いません。
+存在しない場合、既定の設定を用いて、正常に動作します。
 
-���ɏd�v�ł��Ȃ��̂ŁA�폜���Ă��������č\���܂���B
-���݂��Ȃ��ꍇ�A����̐ݒ��p���āA����ɓ��삵�܂��B
+具体的な設定については、設定ファイルのコメントを参照してください。
 
-��̓I�Ȑݒ�ɂ��ẮA�ݒ�t�@�C���̃R�����g���Q�Ƃ��Ă��������B
+＠除去方法
 
-���������@
+「＠導入方法」と逆の操作をします。
 
-�u���������@�v�Ƌt�̑�������܂��B
+knowbug (ファイル名 hsp3debug.dll) を削除し、バックアップしておいた、元々の
+hsp3debug.dll を、元に戻します。
 
-knowbug (�t�@�C���� hsp3debug.dll) ���폜���A�o�b�N�A�b�v���Ă������A���X��
-hsp3debug.dll ���A���ɖ߂��܂��B
+「knowbug.ini」「WrapCall.as」は不要なので削除します。
+なおレジストリなどに記録は残していません。
 
-�uknowbug.ini�v�uWrapCall.as�v�͕s�v�Ȃ̂ō폜���܂��B
-�Ȃ����W�X�g���ȂǂɋL�^�͎c���Ă��܂���B
+＠機能詳細
+＊「全般」タブ
 
-���@�\�ڍ�
-���u�S�ʁv�^�u
+内容は本家とだいたい同じです (ランタイムから供給されるもの)。
+win32gui版では、カレント・ポジション (pos) とカレント色 (color) も表示します。
 
-���e�͖{�ƂƂ������������ł� (�����^�C�����狟����������)�B
-win32gui�łł́A�J�����g�E�|�W�V���� (pos) �ƃJ�����g�F (color) ���\�����܂��B
+＊「変数」タブ
 
-���u�ϐ��v�^�u
+本家版とはレイアウトが異なり、画面を上下に二分して、上にツリービューが、下に
+灰色メッセージボックスがあります。後者は、本家版と同じ働きです。
 
-�{�ƔłƂ̓��C�A�E�g���قȂ�A��ʂ��㉺�ɓ񕪂��āA��Ƀc���[�r���[���A����
-�D�F���b�Z�[�W�{�b�N�X������܂��B��҂́A�{�ƔłƓ��������ł��B
+ツリーには、すべての静的変数の名前を、モジュールごとに分類して並べています。
+この項目を選択すると、下のボックスに、変数の内容 (変数情報) が表示されます。
 
-�c���[�ɂ́A���ׂĂ̐ÓI�ϐ��̖��O���A���W���[�����Ƃɕ��ނ��ĕ��ׂĂ��܂��B
-���̍��ڂ�I������ƁA���̃{�b�N�X�ɁA�ϐ��̓��e (�ϐ����) ���\������܂��B
-
-�ϐ����́A�c���[�`���̕�����ŕ\����܂��B��{�I�ɖ{�ƂƓ����ł����A�z���
-�C���X�^���X�́A���ʂȕ��@�ŕ\�����܂��B�}��͈ȉ��̒ʂ�F
+変数情報は、ツリー形式の文字列で表されます。基本的に本家と同じですが、配列や
+インスタンスは、特別な方法で表示します。凡例は以下の通り：
 	
-	(�P��: �ꎟ����v�f)
-	�v�f�� = �l
+	(単体: 一次元一要素)
+	要素名 = 値
 	
-	(�ꎟ���z��)
-	�v�f��:
-		.type = �^��[&] (�v�f��)
-		�v�f���X�g
+	(一次元配列)
+	要素名:
+		.type = 型名[&] (要素数)
+		要素リスト
 	
-	(�������z��)
-	�v�f��:
-		.type = �^��[&] (�v�f��(1), ...) (�S�v�f�� in total)
-		�v�f���X�g
+	(多次元配列)
+	要素名:
+		.type = 型名[&] (要素数(1), ...) (全要素数 in total)
+		要素リスト
 	
-	(�C���X�^���X)
-	�v�f��:
-		.modcls = ���W���[����[&]
-		�v�f���X�g
+	(インスタンス)
+	要素名:
+		.modcls = モジュール名[&]
+		要素リスト
 
-�����ŁA�z��ϐ��̌^���ɂ��Ă���u&�v�́A���̕ϐ����N���[���ϐ�(dup ��
-dupptr �ɂ���č�������)�ł��邱�Ƃ������܂��B
-�܂��A�C���X�^���X�̃��W���[�����̌�ɂ��Ă���u&�v�́A���̃C���X�^���X���A
-���̃C���X�^���X�ւ̎Q�Ƃł��邱�Ƃ������܂��B
+ここで、配列変数の型名についている「&」は、その変数がクローン変数(dup や
+dupptr によって作られるもの)であることを示します。
+また、インスタンスのモジュール名の後についている「&」は、そのインスタンスが、
+他のインスタンスへの参照であることを示します。
 
-���W���[�����̃m�[�h(�u@...�v)���̂�I������ƁA���̃��W���[���������ׂĂ�
-�ÓI�ϐ��̒l���A�ȒP�ɕ\�����܂��B
+モジュール名のノード(「@...」)自体を選択すると、そのモジュールが持つすべての
+静的変数の値を、簡単に表示します。
 
-	(���W���[��)
-	[@���W���[����]
-	�ϐ���	= �l
+	(モジュール)
+	[@モジュール名]
+	変数名	= 値
 	...
 
-����
+＃＃
 
-���[�g�Ɉʒu����u+sysvar�v�m�[�h�̒����ɂ́A�V�X�e���ϐ��̍������݂��܂��B
+ルートに位置する「+sysvar」ノードの直下には、システム変数の項が存在します。
 
-cnt �͔z��̂悤�ɕ\������܂��B��ꍀ�ɑ���������̂���ԊO���̃��[�v�� cnt �ł��Brepeat ���[�v�̊O�ł���Ƃ��́A(out_of_loop) �ƕ\������܂��B
-�������_���v�͈͂� HSPCTX::mem_loop[1�`looplev] �ƂȂ��Ă��܂��B
+cnt は配列のように表示されます。第一項に相当するものが一番外側のループの cnt です。repeat ループの外であるときは、(out_of_loop) と表示されます。
+メモリダンプ範囲は HSPCTX::mem_loop[1～looplev] となっています。
 
-(��)
+(例)
 	cnt:
 		#n = 1
 		#(n-1) = 2
 		...
 		#1 = 0
-	�Ȃ� n = looplev �ƂȂ�܂��B
+	なお n = looplev となります。
 
-notebuf �̓V�X�e���ϐ��ł͂���܂��񂪁A�Ō�� notepad_sel �Ŏw�肳�ꂽ (�܂� notepad_unsel ����Ă��Ȃ�) �o�b�t�@��\�����܂��B
+notebuf はシステム変数ではありませんが、最後に notepad_sel で指定された (まだ notepad_unsel されていない) バッファを表示します。
 
-�u+sysvar�v�m�[�h���̂�I������ƁA���ׂẴV�X�e���ϐ��̒l���ȒP�ɕ\������܂��B
+「+sysvar」ノード自体を選択すると、すべてのシステム変数の値が簡単に表示されます。
 
-����
+＃＃
 
-WrapCall �Ή��ł��g�p���Ă���ꍇ�A���[�g�Ɂu+dynamic�v�m�[�h�����݂��܂��B
-���̒����ɂ́A�Ăяo����Ă��郆�[�U��`���߁E�֐��̃��X�g������܂��B
-������I������ƁA�ȉ��̌`���ŁA��������\�����܂��F
+WrapCall 対応版を使用している場合、ルートに「+dynamic」ノードが存在します。
+この直下には、呼び出されているユーザ定義命令・関数のリストがあります。
+それらを選択すると、以下の形式で、実引数を表示します：
 
-	�֐����F���߂܂��͊֐��̖��O
-	�������F(�������^�C�v, ...)
+	関数名：命令または関数の名前
+	仮引数：(仮引数タイプ, ...)
 	
-	�֐���:
-		(0) = �������̒l
-		(1) = ��j�����̒l
+	関数名:
+		(0) = 第一引数の値
+		(1) = 第ニ引数の値
 		...
 
-�u(N)�v�́AN�Ԗڂ̉�������\���܂��B�������̖��O���\������邩������܂���B
-#modfunc, #modcfunc �̍ŏ��̈����̖��O�́uthismod�v�ƕ\������܂��B
+「(N)」は、N番目の仮引数を表します。仮引数の名前が表示されるかもしれません。
+#modfunc, #modcfunc の最初の引数の名前は「thismod」と表示されます。
 
-���[�U��`���߁E�֐������s����Ă����Ƀm�[�h���ǉ�����܂����A������������
-��ɂ��v�Z���Ă���A���߁E�֐��̖{�̂̎��s���n�܂�܂��B
-���̊ԁA�������̓��e�͕\���ł��Ȃ����߁A���̂悤�ɕ\������܂��B
+ユーザ定義命令・関数が実行されてすぐにノードが追加されますが、実引数をその
+後にを計算してから、命令・関数の本体の実行が始まります。
+その間、実引数の内容は表示できないため、次のように表示されます。
 
-	�֐����F(���l)
-	�������F(���l)
+	関数名：(同様)
+	仮引数：(同様)
 	
-	�֐���:
+	関数名:
 		arguments : (not_available)
 	
-�܂��A�{�̂̎��s���n�܂�������A�������f�[�^�ɃA�N�Z�X�ł��Ȃ��ꍇ������A
-���̍ۂ����̕\���ɂȂ�܂��B
-(�Ⴆ�΁Anewmod ���߂ɂ�� #modinit �����s����Ă���ԂȂ�)
+また、本体の実行が始まった後も、実引数データにアクセスできない場合があり、
+その際もこの表示になります。
+(例えば、newmod 命令により #modinit が実行されている間など)
 
-����
+＃＃
 
-�Ȃ��A�{�Ɣłɂ���`�F�b�N�{�b�N�X (�\�[�g, ���W���[��, �z��, �������_���v)
-�́A���ׂ� on �̏�Ԃł��B
+なお、本家版にあるチェックボックス (ソート, モジュール, 配列, メモリダンプ)
+は、すべて on の状態です。
 
-�|�ϐ����
+－変数情報
 
-�ϐ���: 
-	�ϐ��̖��O�ł��B���W���[���̒��ɂ���ϐ����A���S�Ȗ��O�ŕ\�����܂��B
-�ϐ��^: 
-	�ϐ��̌^�����̌`���ŕ\���܂��B
+変数名: 
+	変数の名前です。モジュールの中にある変数も、完全な名前で表示します。
+変数型: 
+	変数の型を次の形式で表します。
 		<vt><tq> <index>
-	<vt> �͕ϐ��̌^�̖��O�ł��B
-	<tq> �͕ϐ��̃��[�h��\���܂��B�ʏ�͋�("")�ł��B
-		�ϐ���(dup �Ȃǂɂ��)������N���[���ϐ��̂Ƃ��u&�v�ƕ\������܂��B
-		�ϐ��������ȏ�Ԃ̂Ƃ��A�u!�v�ƕ\������܂��B
-	<index> �͔z��̌`��\���܂��B
-		1�����z��̏ꍇ�A�u(x)�v�ł��B(x �͂��̗v�f��)
-		2�����z��̏ꍇ�A�u(x, y) (N in total)�v�ƕ\������܂��B
-			x, y �͂��ꂼ��1,2�����ڂ̗v�f���ŁAN �͔z��S�̗̂v�f���ł��B
-		3,4�����z��̏ꍇ�́A2�����z��Ɠ��l�ł��B
-	�\����F�uint (2, 3) (6 in total)�v
-�A�h���X:
-	2��8����16�i���ŕ\���܂��B
-	�O�҂́A�ϐ��̎��̃f�[�^�����郁�����̃A�h���X�ŁA
-	��҂́A�ϐ��̃}�X�^�[�f�[�^�����郁�����̃A�h���X�ł��B
-	@ PVal::pt, PVal::master �̂��ƁB
-�T�C�Y:
-	"using X of Y [byte]" �̌`���ŕ\���܂��B
-	Y �͎��̃f�[�^���u�m�ہv���Ă��郁�����T�C�Y [byte] �ŁA
-	X �͂��̂����A�g�p���Ă��镔���̃T�C�Y�ł��B
-	�Ȃ��ϐ��̌^�ɂ���Ă� X, Y �����ꂼ��ʂ̗̈�̑傫�����w�����Ƃ�����A
-	X > Y �ƂȂ邱�Ƃ����肦�܂��B
+	<vt> は変数の型の名前です。
+	<tq> は変数のモードを表します。通常は空("")です。
+		変数が(dup などによる)いわゆるクローン変数のとき「&」と表示されます。
+		変数が無効な状態のとき、「!」と表示されます。
+	<index> は配列の形を表します。
+		1次元配列の場合、「(x)」です。(x はその要素数)
+		2次元配列の場合、「(x, y) (N in total)」と表示されます。
+			x, y はそれぞれ1,2次元目の要素数で、N は配列全体の要素数です。
+		3,4次元配列の場合は、2次元配列と同様です。
+	表示例：「int (2, 3) (6 in total)」
+アドレス:
+	2つの8桁の16進数で表します。
+	前者は、変数の実体データがあるメモリのアドレスで、
+	後者は、変数のマスターデータがあるメモリのアドレスです。
+	@ PVal::pt, PVal::master のこと。
+サイズ:
+	"using X of Y [byte]" の形式で表します。
+	Y は実体データが「確保」しているメモリサイズ [byte] で、
+	X はそのうち、使用している部分のサイズです。
+	なお変数の型によっては X, Y がそれぞれ別の領域の大きさを指すことがあり、
+	X > Y となることもありえます。
 	
-���u���O�v�^�u
+＊「ログ」タブ
 
-�t�H���g�F"�l�r �S�V�b�N", 9[pt]
+フォント："ＭＳ ゴシック", 9[pt]
 
-�����X�V�`�F�b�N�{�b�N�X�F
-	������O���ƁAlogmes ���߂����s����Ă��A�ꎞ�I�Ƀ��O���X�V����܂���B
-	@ �X�V�͂��Ȃ莞�Ԃ̊|���鏈���ł��B��������̏o�͂�����ꍇ�́A�����
-		off �ɂ������������ɂȂ�܂��B
+自動更新チェックボックス：
+	これを外すと、logmes 命令が実行されても、一時的にログが更新されません。
+	@ 更新はかなり時間の掛かる処理です。たくさんの出力がある場合は、これを
+		off にした方が高速になります。
 	
-�ďo�����`�F�b�N�{�b�N�X�F
-	�����t����ƁA���[�U��`���߁E�֐��̌Ăяo���ƏI���� logmes ����܂��B
-	WrapCall ���K�v�ł��B
+呼出履歴チェックボックス：
+	これを付けると、ユーザ定義命令・関数の呼び出しと終了が logmes されます。
+	WrapCall が必要です。
 	
-�u�X�V�v�{�^���F
-	���O���ŐV�̏�ԂɍX�V���܂��B
+「更新」ボタン：
+	ログを最新の状態に更新します。
 	
-�u�ۑ��v�{�^���F
-	���O���t�@�C���ɕۑ����܂��B
-	(�t�@�C�����w�肷��_�C�A���O���J���܂��B)
-	�Ȃ��A�ݒ�t�@�C����p���āA�I�����Ƀ��O�������ۑ�����悤�ɂł��܂��B
+「保存」ボタン：
+	ログをファイルに保存します。
+	(ファイルを指定するダイアログが開きます。)
+	なお、設定ファイルを用いて、終了時にログを自動保存するようにできます。
 	
-�u�������v�{�^���F
-	���O�����������܂��B
+「初期化」ボタン：
+	ログを初期化します。
 	
-�����s����
+＊実行制御
 
-�ʏ�́u���s�v�u���s�v�u��~�v�{�^���̉��ɁA�����āu����v�u�E�o�v�{�^����
-�ǉ�����Ă��܂��B
+通常の「実行」「次行」「停止」ボタンの横に、加えて「次飛」「脱出」ボタンが
+追加されています。
 
-�u���s�v(Run)�F
-	assert ���߂ȂǂŒ�~���Ă������s���ĊJ���܂��B
+「実行」(Run)：
+	assert 命令などで停止していた実行を再開します。
 	
-�u���s�v(Step In)�F
-	���̖��߂�1���s���āA�Ăђ�~���܂��B
+「次行」(Step In)：
+	次の命令を1つ実行して、再び停止します。
 	
-�u��~�v(Stop)�F
-	���s���~���܂��B
+「停止」(Stop)：
+	実行を停止します。
 	
-�u����v(Step Over)�F
-	�u���s�v�Ɠ��l�Ɏ��̖��߂����s���܂����A���ꂪ���[�U��`���߁E�֐��ł���
-	�ꍇ�́A���̓����̎��s���I�����Ă����~���܂��B
+「次飛」(Step Over)：
+	「次行」と同様に次の命令を実行しますが、それがユーザ定義命令・関数である
+	場合は、その内部の実行が終了してから停止します。
 	
-	(��)
-		// ���[�U��`���� test1, test2 ������Ƃ���
+	(例)
+		// ユーザ定義命令 test1, test2 があるとして
 		assert
-		test1	// ���������I (assert �Œ�~����)
+		test1	// ←今ここ！ (assert で停止した)
 		test2
 		
-		�����Łu����v���g���ƁA
+		ここで「次飛」を使うと、
 		
-		test1	// test1 �̎��s����������
-		test2	// ���������I (test2 �̎��s���O�Œ�~����)
+		test1	// test1 の実行が完了する
+		test2	// ←今ここ！ (test2 の実行直前で停止する)
 		
-		�ƂȂ�B
+		となる。
 	
-	���������������A�}�E�X�𓮂����Ȃǂ��āA�f�o�b�O�E�B���h�E�Ƀ��b�Z�[�W
-	�@�𑗂�Ȃ��Ǝ��s�ʒu�̕\�����X�V����܂���B(���m�̕s�)
+	※これを押した後、マウスを動かすなどして、デバッグウィンドウにメッセージ
+	　を送らないと実行位置の表示が更新されません。(既知の不具合)
 	
-	@ �u���s�v���u�E�o�v�ɓ������B
-	@ �Ȃ��A�u����v�ł͕�����Â炢�̂ŁA�ʈĂ��W���Ă��܂��B
+	@ 「次行」→「脱出」に等しい。
+	@ なお、「次飛」では分かりづらいので、別案を募集しています。
 	
-�u�E�o�v(Step Out)�F
-	���� return �܂Ŏ��s���܂��B���[�U��`���߁E�֐��̒�`�̒��Ŏg�p����ƁA
-	���̖��߂��I������Ƃ���܂Ŏ��s���܂��B
-	(��)
+「脱出」(Step Out)：
+	次の return まで実行します。ユーザ定義命令・関数の定義の中で使用すると、
+	その命令が終了するところまで実行します。
+	(例)
 		test1
 		mes "hello"
 		
 		#deffunc test1
 			assert
-			mes "process"	// ���������I (assert �Œ�~����)
+			mes "process"	// ←今ここ！ (assert で停止した)
 			a = 1
 			test2
 			return
 			
-		�����Łu�E�o�v���g���ƁA
+		ここで「脱出」を使うと、
 		
-		test1			// test1 �̎��s����������
-		mes "hello"		// ���������I
+		test1			// test1 の実行が完了する
+		mes "hello"		// ←今ここ！
 		
-		�ƂȂ�B
+		となる。
 		
-	���u����v�Ɠ��l�̃o�O�����݂��܂��B
+	※「次飛」と同様のバグが存在します。
 
-����
+＠環境
 
 OS : Windows 7 HomeEdition
 IDE: Visual C++ 2013 Express Edition SP1
 Lang: C++
 
-�������
+＠動作環境
 
-HSP3.4��4 �ȍ~
+HSP3.4β4 以降
 OS: Windows 7
 
-�����ȊO�ł́A������m�F���Ă��܂���B�T�|�[�g�ł��Ȃ��\���������̂ł��������������B
+これら以外では、動作を確認していません。サポートできない可能性も高いのでご了承ください。
 
-�����쌠
+＠著作権
 
-knowbug �́A�����̃f�o�b�K hsp3debug.dll �ɁA��傪������������̂ł��B
+knowbug は、公式のデバッガ hsp3debug.dll に、上大が手を加えたものです。
 
-�{�\�t�g�̔������x�́AOpenHSP �ɂ���R�[�h�A����у��\�[�X���g�p���Ă��܂��B
+本ソフトの半分程度は、OpenHSP にあるコード、およびリソースを使用しています。
 	(/trunk/tools/win32/hsp3debug/*)
 
-���̒��쌠�\���́A�ȉ��̒ʂ�ł��F
+その著作権表示は、以下の通りです：
 	Copyright (C) 1997-2011, Onion Software/onitama.
 	All rights reserved.
-�܂��ALisense �t�H���_�̒��g���Q�l�ɂ��Ă��������B
+また、Lisense フォルダの中身も参考にしてください。
 
-���\�[�X�R�[�h
+＠ソースコード
 
-��傪�쐬���������́A�����R�ɂ��g�����������B
-���́A���C�Z���X�ɏ]���Ă��������B
+上大が作成した部分は、ご自由にお使いください。
+他は、ライセンスに従ってください。
 
-���s�����⌇���Ȃǂ���܂����炲�A�����������B
+※不整合や欠落などありましたらご連絡ください。
 
-���Q��
-�|�v���O���L��
+＠参照
+－プログラ広場
 
 [http://prograpark.ninja-web.net/]
-���Ƃ��[�݂̃T�C�g�ł��B�o�O�񍐁A�ӌ��A���z�A�v�]�Ȃǂ́A�����̌f����
-�܂ł��肢���܂��B�܂��A�ŐV�ł́A�����́u���܂��v�ɂ���܂��B
+上大とかーみのサイトです。バグ報告、意見、感想、要望などは、ここの掲示板
+までお願いします。また、最新版は、ここの「たまり場」にあります。
 
-�|HSPTV!
+－HSPTV!
 
 [http://hsp.tv/]
-HSP�̌����T�C�g�ł��B
+HSPの公式サイトです。
 
-�|OpenHSP
+－OpenHSP
 
 [http://dev.onionsoft.net/trac/]
-�v���W�F�N�g OpenHSP �̃��|�W�g��������T�C�g�ł��B
-HSP�͂����ŊJ������Ă��܂��B
+プロジェクト OpenHSP のリポジトリがあるサイトです。
+HSPはここで開発されています。
 
-�����m�̕s�
-�|�����s���Ȃ���
+＠既知の不具合
+－原因不明なもの
 
-�E�����t���X�e�b�v���s���AWindowMessage�𑗂�Ȃ��Ɠ����Ȃ��B�����s���B
-�E�X�e�b�v���s�̂Ƃ��� [�~] �� onexit �̎��s�Ɉړ����A�Ă� [�~] ��������
-	�����^�C���G���[���N����B�����s���B
-�E���܂ɁA�\�[�X�����̍X�V���Ƀ|�[���Ɖ�����B�V�����s�̃\�[�X��(�㏑���ł͂Ȃ�)�ǋL�����B
+・条件付きステップ実行が、WindowMessageを送らないと動かない。原因不明。
+・ステップ実行のときに [×] で onexit の実行に移動し、再び [×] を押すと
+	ランタイムエラーが起きる。原因不明。
+・たまに、ソース小窓の更新時にポーンと音が鳴る。新しい行のソースが(上書きではなく)追記される。
 
-�|�����Ȃ�����
+－直せないもの
 
-�E�X�N���v�g��v���O�C���� ctx->prmstack ��ύX�����ꍇ�AWrapCall ���A�N�Z�X�ᔽ��Ƃ��\���������B
-	���ɁAcall.hpi �Ƃ͋����ł��Ȃ��B
-�E@ ����n�܂閼�O�̐ÓI�ϐ��̕ϐ������擾���悤�Ƃ���ƁA�V�X�e���G���[�ŗ�����B
-�E�uDebug Window ��\�����Ȃ��v�̏�ԂŎ��s����ƁA�I�����Ƀ����^�C���G���[���N����B
-	�܂��A���̏�Ԃ� WrapCall ���g�����[�U��`�R�}���h���ĂԂƁA�V�X�e���G���[�ŗ�����B
+・スクリプトやプラグインが ctx->prmstack を変更した場合、WrapCall がアクセス違反を犯す可能性が高い。
+	特に、call.hpi とは共存できない。
+・@ から始まる名前の静的変数の変数情報を取得しようとすると、システムエラーで落ちる。
+・「Debug Window を表示しない」の状態で実行すると、終了時にランタイムエラーが起こる。
+	また、その状態で WrapCall を使いユーザ定義コマンドを呼ぶと、システムエラーで落ちる。
 
 --------------------------------------------------------------------------------
-������
-�|���̑�
+＠メモ
+－その他
 
-�E32bit ���ł̂ݓ���m�F (�V��)�B
-�E�f�o�b�O������̐����� HspVarProc �ɔC����ƁA�����^�C�������f�o�b�O���Ɏg�p�ł���Ƃ������_������B
-	�����[�X�łɃf�o�b�O�p�R�[�h���܂܂��Ƃ�����肪����B
-�ERelease::Build Event::Post Build
+・32bit 環境でのみ動作確認 (新版)。
+・デバッグ文字列の生成を HspVarProc に任せると、ランタイム側がデバッグ時に使用できるという利点がある。
+	リリース版にデバッグ用コードが含まれるという問題がある。
+・Release::Build Event::Post Build
 	Command Line:
 		copy $(TargetPath) ..\..\..\hsp3\win32\release\
 		copy $(TargetPath) ..\..\..\hsp3\win32gui\release\
-�Econstexpr: VC++ �̑Ή��󋵂������Ȃ̂ŕs�g�p�B
-�Ename �Ƃ����ϐ����A�m�[�h�̕�����Ȃ̂��A�ϐ���V�X�e���ϐ��̖��O�Ȃ̂����B���B
-�E�R�s�y�v���O���~���O��߂�
-�E���[�U��`�֐�������q�ɂȂ��Ă���(���[�U��`�֐��̈������Ƀ��[�U��`�֐����܂܂��)�Ƃ��F
+・constexpr: VC++ の対応状況が微妙なので不使用。
+・name という変数が、ノードの文字列なのか、変数やシステム変数の名前なのかが曖昧。
+・コピペプログラミングやめろ
+・ユーザ定義関数が入れ子になっている(ユーザ定義関数の引数式にユーザ定義関数が含まれる)とき：
 	A( B() ):
 		-reffunc_custom(A)
-			-���b�p�[�����FOnBeginCalling(A)
-				A�̃m�[�h���ǉ������
-			-���������o���F�X�^�b�N�ɗ̈��ς݁Aexpandstruct���ĂԁB
+			-ラッパー処理：OnBeginCalling(A)
+				Aのノードが追加される
+			-引数を取り出す：スタックに領域を積み、expandstructを呼ぶ。
 				-reffunc_custom(B)
-					-���b�p�[�����FOnBeginCalling(B)
-						B�̃m�[�h��ǉ�����
-					-���������o��
-						B�̈��������������
-					-prmstack, sublev �����������A�ړ�����B
-						B�̎��s���s���B
-						return����
-					-prmstack, sublev ��߂��B
-					-�I��
-					-���b�p�[�����FOnEndCalling(B)
-						B�̃m�[�h���폜����
-			-prmstack, sublev �����������A�ړ�����B
-				A�̎��s���s���B
-				return����
-			-prmstack, sublev ��߂��B
-			-�I��
-			-���b�p�[�����FOnEndCalling(A)
-				A�̃m�[�h���폜����
-	A, B �̏��Ńm�[�h���ς܂�Ă���Ƃ��AA( B() ) �Ȃ̂��AA() �̎��s���� B() ���������̂����f����K�v������B�����̓���q A( B(), C() ) �͓��ɍl������K�v�͂Ȃ��B
-	����q��Ԃ̏ꍇ�Aprmstack, sublev �ɕύX��������̂́AB() �̎��s�̌�A�܂�댯�Ȋϑ��̑O�ł���B
-	�Ăяo�� A �̈����ɃA�N�Z�X�\�ł��邽�߂̏����́F
-		0. A ���Ō�̃m�[�h�ł���B
-			�������Ƀ��[�U��`�֐� B() �����݂��Ȃ��Ȃ�΁AA �̈����̏������� assert �ȂǂŒ�~����^�C�~���O�͑��݂��Ȃ��B
-	�܂���
-		1. A.sublev < B.sublev  (X.sublev: X �̏������O�� sublev)
-			����q��Ԃ̂Ƃ��� A.sublev == B.sublev �ƂȂ�B
-	�ƂȂ�B
-	���łɁA�Ăяo�� A �� prmstack �́AA ���A�N�Z�X�\�Ȃ��
-		A ���Ō�̃m�[�h�Ȃ� ctx->prmstack
-		�����łȂ���Ύ��̃m�[�h B �� B.prmstk
-	�����łȂ���Α��݂��Ȃ��B
-	# ��₱�����l�����������ʂ����ꂾ��I
-�E���z�I�Ɍ�����
-	_ = A( B( C(), D() ), E() ) �Ƃ����Ăяo���́AA �̎��s���J�n�������_��
+					-ラッパー処理：OnBeginCalling(B)
+						Bのノードを追加する
+					-引数を取り出す
+						Bの引数が処理される
+					-prmstack, sublev を書き換え、移動する。
+						Bの実行を行う。
+						returnする
+					-prmstack, sublev を戻す。
+					-終了
+					-ラッパー処理：OnEndCalling(B)
+						Bのノードを削除する
+			-prmstack, sublev を書き換え、移動する。
+				Aの実行を行う。
+				returnする
+			-prmstack, sublev を戻す。
+			-終了
+			-ラッパー処理：OnEndCalling(A)
+				Aのノードを削除する
+	A, B の順でノードが積まれているとき、A( B() ) なのか、A() の実行中に B() が生じたのか判断する必要がある。複数の入れ子 A( B(), C() ) は特に考慮する必要はない。
+	入れ子状態の場合、prmstack, sublev に変更が生じるのは、B() の実行の後、つまり危険な観測の前である。
+	呼び出し A の引数にアクセス可能であるための条件は：
+		0. A が最後のノードである。
+			引数式にユーザ定義関数 B() が存在しないならば、A の引数の処理中に assert などで停止するタイミングは存在しない。
+	または
+		1. A.sublev < B.sublev  (X.sublev: X の処理直前の sublev)
+			入れ子状態のときは A.sublev == B.sublev となる。
+	となる。
+	ついでに、呼び出し A の prmstack は、A がアクセス可能ならば
+		A が最後のノードなら ctx->prmstack
+		そうでなければ次のノード B の B.prmstk
+	そうでなければ存在しない。
+	# ややこしく考えすぎた結果がこれだよ！
+・理想的に言えば
+	_ = A( B( C(), D() ), E() ) という呼び出しは、A の実行が開始した時点で
 	+dynamic
 		'A
 			"B
 				"C
 				"D
 			"E
-	(' : �Ăяo���m�[�h�A" : �Ԓl�m�[�h)
-	�ƂȂ��Ă���ׂ���������Ȃ��B
-�E����̕�����(�Ⴆ��"__")����n�܂�ϐ��⃂�W���[�����c���[�r���[�ɕ\�����Ȃ��ݒ�
-�E���O�Ȃǂ̃t�H���g�� ini �ł̎w��
-	�t�H���g�I�u�W�F�N�g�߂�ǂ������B
-�E�ϐ��̒l�̏�������
-	str, double, int �̒萔�Ɍ���
-	struct, prmstack �̓����ɂ��N��������
-		�ǂ�����đΏۂ�I�����邩�H
-	��p�� Editor �_�C�A���O�𐧍삷��H���߂�ǂ�����
-�E�Ԓl�m�[�h�̏��ʂ���⏭�Ȃ��C�����邪�A����̏��ʂ𑝂₷�͎̂��s���x�ւ̉e�����傫���̂ł��߂炢������B
-�EOverviewFormedWriter �Ƃ�����H
-�Ecallog �����ĂȂ��H
-�E�g���^�̕\���ŁA�g���^�� hpi ���̂���֐������[�h����Ƃ����w����@�������Ă����������B
-	�� �g���^���ǂ̃v���O�C������񋟂���Ă��邩�͔��f�ł��Ȃ��B
+	(' : 呼び出しノード、" : 返値ノード)
+	となっているべきかもしれない。
+・特定の文字列(例えば"__")から始まる変数やモジュールをツリービューに表示しない設定
+・ログなどのフォントの ini での指定
+	フォントオブジェクトめんどくさい。
+・変数の値の書き換え
+	str, double, int の定数に限る
+	struct, prmstack の内部にも侵入したい
+		どうやって対象を選択するか？
+	専用の Editor ダイアログを制作する？→めんどくさい
+・返値ノードの情報量がやや少ない気がするが、これの情報量を増やすのは実行速度への影響が大きいのでためらいがある。
+・OverviewFormedWriter という手？
+・callog きいてない？
+・拡張型の表示で、拡張型の hpi 自体から関数をロードするという指定方法があってもいいかも。
+	→ 拡張型がどのプラグインから提供されているかは判断できない。
 
-�|Wishlist
+－Wishlist
 
-�Earray[str]�^�̗v�f���ƃ������_���v
-�E�ϐ��⃍�O�̕�����̏c�f�����B
-�E�E�B���h�E�T�C�Y���ςɂ������B
-�E�����K���̓���
-�E#modinit, #modterm �̔����A�I�����X�N���v�g������w�肷��B
+・array[str]型の要素ごとメモリダンプ
+・変数やログの文字列の縦断検索。
+・ウィンドウサイズを可変にしたい。
+・命名規則の統一
+・#modinit, #modterm の発生、終了をスクリプト側から指定する。
 
-������
+＠履歴
 
-�|2014/09/07
+－2014/09/07
 
-�ECIni �� enumSection, enumKeys ��ǉ������B
-�E�ϐ��c���[�r���[���J�X�^���h���[����ۂɁA�V�X�e���ϐ����^�ɉ����ĐF��������悤�ɂ��A�Ăяo���m�[�h�𖽗߂��֐����ŐF�����ł���悤�ɂ����B
-	�܂��A�I����Ԃ̃m�[�h�͐F�������Ȃ��悤�ɂ����B(���Â炭�Ȃ�̂�)
-�EEditControl �̍X�V���ɁA�X�N���[���o�[�̍s�̈ʒu��ۑ�����悤�ɂ����B
-	�ϐ��̓��e���啝�ɕύX���ꂽ�ꍇ�Ȃǂ͂����Ƃ�������������Ȃ����B
-�E�g���^�̕ϐ���l���A�O��Dll������悤�ɂ����B���̌^��HPI���g�łȂ��Ă������B
-	���̂��߂ɂ������̊֐������J���Ă���B(ExVardataString.(h/cpp))
-�E�ٍ�v���O�C�� assoc, vector, (array), modcmd �̊g���\�������C���̕��������菜���A�O�q�̊O�� Dll �̌Ăяo���̕����� knowbug (hsp3debug.dll) �����֐��|�C���^���g�����ƂőΉ�����悤�ɂ����B
-	assoc, vector �̓f�[�^�𐮌`���� knowbug �ɑ��M����Ƃ�����Ԃ����Ȃ��Ă悭�Ȃ������A����݊����̂��߂ɂƂ肠�����c���Ă����B
-�Enotebuf �ɐÓI�ϐ����w�肳��Ă����Ȃ�A���O��\������悤�ɂ����B
-�E�����[�X (ver: 1.0��17)�B
-	�v��F
-		�X�N���v�g����API�̒ǉ� (2��)
-		�J�X�^���h���[�̎��R�x�̑���
-		�v���O�C���g���^�̕�����\�����O����
-		�������̃o�O�C���A����ы@�\���Ă��Ȃ��@�\�̍폜
+・CIni に enumSection, enumKeys を追加した。
+・変数ツリービューをカスタムドローする際に、システム変数を型に応じて色分けするようにし、呼び出しノードを命令か関数かで色分けできるようにした。
+	また、選択状態のノードは色分けしないようにした。(見づらくなるので)
+・EditControl の更新時に、スクロールバーの行の位置を保存するようにした。
+	変数の内容が大幅に変更された場合などはうっとうしいかもしれないが。
+・拡張型の変数や値を、外部Dllが作れるようにした。その型のHPI自身でなくてもいい。
+	そのためにいくつかの関数を公開している。(ExVardataString.(h/cpp))
+・拙作プラグイン assoc, vector, (array), modcmd の拡張表示をメインの部分から取り除き、前述の外部 Dll の呼び出しの部分に knowbug (hsp3debug.dll) が持つ関数ポインタを使うことで対応するようにした。
+	assoc, vector はデータを整形して knowbug に送信するという手間をしなくてよくなったが、後方互換性のためにとりあえず残しておく。
+・notebuf に静的変数が指定されていたなら、名前を表示するようにした。
+・リリース (ver: 1.0β17)。
+	要約：
+		スクリプト向けAPIの追加 (2つ)
+		カスタムドローの自由度の増加
+		プラグイン拡張型の文字列表示を外部化
+		いくつかのバグ修正、および機能していない機能の削除
 
-�|2014/09/06
+－2014/09/06
 
-�EWrapCall�Ftypeinfo �̔z�� sbExpand ����Ĉړ����邱�Ƃɍ��X�C�Â��B
-	�܂� TYPE_MODCMD �� typeinfo �ɃA�N�Z�X�ł���̂́AWrapCall �v���O�C�������������ꂽ�Ƃ��Ɍ����A���A�I������ cmdfunc, reffunc �� restore ���邱�Ƃ��ł��Ȃ��B
-�E�ă����[�X (ver: 1.0��16)�B
-�E��ˑ��ȕԒl�m�[�h���ǉ�����Ă��Ȃ������o�O���C�������B
-	���O�̌Ăяo���ɕK���ˑ����Ă��邱�ƂɂȂ��Ă��܂��Ă����B
-�E�Ԓl�m�[�h�f�[�^�̊Ǘ��𕪂���₷�������B
-�ECVarinfoTree, CVarinfoLine �����킹�āACVardataString �ɂ����B
-	���ȕ��򂪂�������c���Ă���B
-	������ Template Method Pattern�B���z�֐��ɂ�鑽�Ԃ��g���̂Œx���B
-	������o�b�t�@(string)�ƕ�����o�b�t�@�ւ̏������݂��s���֐��Q�����N���X(CStrWriter)�𕪗����邱�ƂŁA���� Writer �̗��p�����₷�������B
-�E���̃o�b�t�@�̈Ϗ��ɂ��A�T��(Overview)�n�� CVarinfoText �Ɉڂ��₷���Ȃ����B
-	���ڂ��ƂɃo�b�t�@���m�ۂ��铮���͌������B
-	���������ڂ��Ƃ� new CLineformedWriter ���Ă���̂Ŗ����������B
-�E�ϐ����̕�����̒���������ݒ�ł��Ȃ��悤�ɂȂ����B
-	��̍X�V�̕��Q�B�Ή��ł���Ƃ͎v���B
-�E�ϐ��f�[�^�̕�����̃l�X�g���x��������(64)�𒴂�����A������[������q�f�[�^�𖳎�����悤�ɂ����B
-	�������[�v�΍�B
-�EEditControl �́u�E�[�Ő܂�Ԃ��v�ݒ肪�@�\���Ă��Ȃ����ƂɋC�Â����̂ŁA�ݒ荀�ڂ����菜�����B
-	���̃X�^�C���̓R���g���[���̍쐬���ɂ������ʂ��Ȃ��炵���B�܂�\�[�X������R���g���[���𐶐�����悤�ɂ���Ζ��Ȃ��c�c���A�t�H���g�����̂��߂�ǂ��������Ē��߂��B
+・WrapCall：typeinfo の配列が sbExpand されて移動することに今更気づく。
+	つまり TYPE_MODCMD の typeinfo にアクセスできるのは、WrapCall プラグインが初期化されたときに限られ、かつ、終了時に cmdfunc, reffunc を restore することができない。
+・再リリース (ver: 1.0β16)。
+・非依存な返値ノードが追加されていなかったバグを修正した。
+	直前の呼び出しに必ず依存していることになってしまっていた。
+・返値ノードデータの管理を分かりやすくした。
+・CVarinfoTree, CVarinfoLine を合わせて、CVardataString にした。
+	妙な分岐がたくさん残っている。
+	いわゆる Template Method Pattern。仮想関数による多態を使うので遅い。
+	文字列バッファ(string)と文字列バッファへの書き込みを行う関数群を持つクラス(CStrWriter)を分離することで、他の Writer の利用をしやすくした。
+・そのバッファの委譲により、概観(Overview)系を CVarinfoText に移しやすくなった。
+	項目ごとにバッファを確保する動きは厳しい。
+	ただし項目ごとに new CLineformedWriter しているので未だ厳しい。
+・変数情報の文字列の長さ制限を設定できないようになった。
+	上の更新の弊害。対応できるとは思う。
+・変数データの文字列のネストレベルが一定量(64)を超えたら、それより深い入れ子データを無視するようにした。
+	無限ループ対策。
+・EditControl の「右端で折り返す」設定が機能していないことに気づいたので、設定項目から取り除いた。
+	そのスタイルはコントロールの作成時にしか効果がないらしい。つまりソース側からコントロールを生成するようにすれば問題ない……が、フォントを作るのがめんどくさすぎて諦めた。
 
-�|2014/09/05
+－2014/09/05
 
-�E�V�X�e���ϐ��̃_���v�����Ȃ��� CVarinfoTree::addSysvar ���������Ă����̂ŁA�ʂ̊֐��ɕ������B
-�E�c���[�󕶎���̐����ɂ����āA�u���O�v�������Ŏ����^�Ԃ悤�ɂ����B
-�E�X�N���v�g������API knowbug_getVarinfoString, knowbug_getCurrentModcmdName ��ǉ������B
+・システム変数のダンプ情報をなぜか CVarinfoTree::addSysvar が生成していたので、別の関数に分けた。
+・ツリー状文字列の生成において、「名前」を引数で持ち運ぶようにした。
+・スクリプト向けのAPI knowbug_getVarinfoString, knowbug_getCurrentModcmdName を追加した。
 
-�|2014/09/02
+－2014/09/02
 
-�Eg_stkCallInfo �� ModcmdCallInfo �̎��̂�ێ�������̂���߂āA���ꂼ��̎��̂����L����X�}�|�̔z��ɂ����B
-	std::make_unique �ł� struct �������o�� {...} �ŏ������ł��Ȃ��̂ˁB
-�Eg_stkCallInfo �����J�ɂ��Aat �� range �̂݌��J�����B�K�v�Ȃ瑼�̂����J���邪�B
-�E�X�N���v�g�G�f�B�^����ҏW�������ۑ��̃t�@�C�������s����Ƃ��A
-	�\�[�X�����ɕ\�����镶������擾���悤�Ƃ��đ��݂��Ȃ��s�ԍ����Q�Ƃ��͈͊O�G���[�𐶂��Ă����o�O���C�������B
+・g_stkCallInfo に ModcmdCallInfo の実体を保持させるのをやめて、それぞれの実体を所有するスマポの配列にした。
+	std::make_unique では struct をメンバ列 {...} で初期化できないのね。
+・g_stkCallInfo を非公開にし、at と range のみ公開した。必要なら他のも公開するが。
+・スクリプトエディタから編集中かつ未保存のファイルを実行するとき、
+	ソース小窓に表示する文字列を取得しようとして存在しない行番号を参照し範囲外エラーを生じていたバグを修正した。
 
-�|2014.08/29
+－2014.08/29
 
-�E�����[�X (ver: 1.0��16)
-	�v��F�\�[�X�R�[�h�𐮗����������B
+・リリース (ver: 1.0β16)
+	要約：ソースコードを整理しただけ。
 
-�|2014.08/26
+－2014.08/26
 
-�Evartree �̒��ŕ����񐶐������Ă��镔���� CVarinfoTree/Line �ɓ��ꂽ�B
-	�V�X�e���ϐ��ꗗ�⃂�W���[���̈ꗗ�Ȃǂ� **Overview �n�B
-	WrapCall �Ƃ̌����x���オ�����B
-�E�c���[�󕶎��񂨂�ш�s������ɂ����āA���W���[�����̂��N���[���ł��邱�Ƃ̕\�����@��ύX�����B
-	���F�u.clone�v�ƕ\�����Ă����B��s������ł͓��ɂȂ��B
-	�V�F���W���[���N���X���̌��� & ��t����悤�ɂ����B
-�E�v�f�� 0 �̔z��ϐ�����ʈ������Ȃ��悤�ɂ����B
-�E��s������ŁA���W���[�����̂̃����o�� ( ) �ł͂Ȃ� { } �Ŋ���悤�ɂ����B
-	assoc �̃����o�� { } �ł͂Ȃ� [ ] �Ŋ���悤�ɂ����B
-	�܂��A���ʂ̓����ɋ󔒂����Ȃ��悤�ɂ����B
-�E��������\��������� map �� join �ō��悤�ɂ����B�܂����Ӗ��ȁB
+・vartree の中で文字列生成をしている部分を CVarinfoTree/Line に入れた。
+	システム変数一覧やモジュールの一覧などの **Overview 系。
+	WrapCall との結合度が上がった。
+・ツリー状文字列および一行文字列において、モジュール実体がクローンであることの表示方法を変更した。
+	旧：「.clone」と表示していた。一行文字列では特になし。
+	新：モジュールクラス名の後ろに & を付けるようにした。
+・要素数 0 の配列変数を特別扱いしないようにした。
+・一行文字列で、モジュール実体のメンバは ( ) ではなく { } で括るようにした。
+	assoc のメンバを { } ではなく [ ] で括るようにした。
+	また、括弧の内側に空白を入れないようにした。
+・仮引数を表す文字列を map と join で作るようにした。また無意味な。
 
-�|2014.08/22
+－2014.08/22
 
-�EResultNodeData �� VarTree �����Ǘ�����悤�ɂ����B
-�E(���W���[���m�[�h�ȂǂŌ�����)��s�\���ɂ����āA
-	���ׂĂ̕������G�X�P�[�v����Ē�����2�{�ɂȂ�悤�ȕ������\������Ƃ���
-	�o�b�t�@�I�[�o�[�t���[���N���Ă����o�O���C�������B
-	��F"""
-�E�ϐ����̃��[�h�̕\�����@��ύX�����B
-	���F�u���[�h�F����/����/�N���[��/���̑��v
-	�V�F�u�ϐ��^�Ftype<tq> (...)�v
-		<tq> �́A���[�h�����̂Ȃ��A�����Ȃ�u!�v�A�N���[���Ȃ�u&�v�A���̑��Ȃ�u<err>�v�B
-�E�c���[�󕶎���ŁA�z��̌^(.type)����Ɠ��l�ɂ��ă��[�h��\������悤�ɂ����B
-	�֐������L���������������B
-�EgetDbgString ��2�����AgetMPTypeString ��3�����ɂ������̂��܂Ƃ߂��B
-	getMPTypeString ��1�����ł����g���Ă��Ȃ��̂ɂ͋������B
-�E�ÓI�ϐ��c���[ CVarTree �̎��������t�@�N�^�����O�����B
-	���W���[�����͏�ɐ擪�� @ �������邱�Ƃɂ��ĕ�����₷���A���\�[�g�����܂������悤�ɂ����B
-	�Ȃ������씽���q���������g���Ă����o�O���C�������B
-�E�ϐ��c���[�r���[�ɂ����āA���W���[���E�m�[�h�̏ڍׂ𕶎���\�����邽�߂ɁA
-	���̒����̃��W���[���ƕϐ���񋓂��邽�߂ɁA
-	�ϐ��c���[�r���[�ł͂Ȃ��ACVarTree ����q���X�g�𓾂�悤�ɂ����B
-�E�V�X�e���ϐ� iparam, wparam, lparam ��3�g�������Ă����̂���߂��B
-�E�V�X�e���ϐ��̏��ԂŁAnotebuf �𖖔��ɂ����B
-�E���W���[���m�[�h�A+sysvar�A+dynamic �̈�s�\���̕������
-	vartree �ł͂Ȃ��ACVarinfoLine �����悤�ɂ����B
+・ResultNodeData を VarTree 側が管理するようにした。
+・(モジュールノードなどで見られる)一行表示において、
+	すべての文字がエスケープされて長さが2倍になるような文字列を表示するときに
+	バッファオーバーフローが起きていたバグを修正した。
+	例："""
+・変数情報のモードの表示方法を変更した。
+	旧：「モード：無効/実体/クローン/その他」
+	新：「変数型：type<tq> (...)」
+		<tq> は、モードが実体なら空、無効なら「!」、クローンなら「&」、その他なら「<err>」。
+・ツリー状文字列で、配列の型(.type)も上と同様にしてモードを表示するようにした。
+	関数を共有したかっただけ。
+・getDbgString が2か所、getMPTypeString が3か所にあったのをまとめた。
+	getMPTypeString が1か所でしか使われていないのには驚いた。
+・静的変数ツリー CVarTree の実装をリファクタリングした。
+	モジュール名は常に先頭に @ を冠することにして分かりやすく、かつソートがうまくいくようにした。
+	なぜか自作反復子を実装し使っていたバグを修正した。
+・変数ツリービューにおいて、モジュール・ノードの詳細を文字列表示するために、
+	その直下のモジュールと変数を列挙するために、
+	変数ツリービューではなく、CVarTree から子リストを得るようにした。
+・システム変数 iparam, wparam, lparam を3つ組扱いしていたのをやめた。
+・システム変数の順番で、notebuf を末尾にした。
+・モジュールノード、+sysvar、+dynamic の一行表示の文字列を
+	vartree ではなく、CVarinfoLine が作るようにした。
 
-�|2014.08/21
+－2014.08/21
 
-�EVarinfoTree/VarinfoLine �� CStrBuf ���g���悤�ɂ����B
-�E�Ăяo���m�[�h�� LPARAM �� ModcmdCallInfo* �ł͂Ȃ��A����� g_stkCallInfo �ɂ�����Y���ɂ����B
-	�����炭�Avector �̎��̂��ړ����Ă��܂����Ƃɂ���ă����N�؂ꂪ�N����\�����������B
-�E�c���[�󕶎���ŁA�z��̌^�̕\�����@���A�ϐ����̏ꍇ�Ɠ����ɂ����B
-	���\�� (�ꎟ���z��)�F
-		.vartype = �ϐ��^
-		.length  = �v�f��
-	���\�� (�������z��)�F
-		.vartype = �ϐ��^
-		.format  = (�v�f��1, �v�f��2, ...) (�S�v�f�� in total)
-	�V�\���F
-		.type = �ϐ��^ (�v�f��1, ...) (�S�v�f�� in total)
+・VarinfoTree/VarinfoLine が CStrBuf を使うようにした。
+・呼び出しノードの LPARAM を ModcmdCallInfo* ではなく、それの g_stkCallInfo における添字にした。
+	おそらく、vector の実体が移動してしまうことによってリンク切れが起きる可能性があった。
+・ツリー状文字列で、配列の型の表示方法を、変数情報の場合と同じにした。
+	旧表示 (一次元配列)：
+		.vartype = 変数型
+		.length  = 要素数
+	旧表示 (多次元配列)：
+		.vartype = 変数型
+		.format  = (要素数1, 要素数2, ...) (全要素数 in total)
+	新表示：
+		.type = 変数型 (要素数1, ...) (全要素数 in total)
 
-�|2014.08/20
+－2014.08/20
 
-�EHSP3EXINFO::er ���g�p���Ȃ��悤�ɂ����B
-	HSP2.x �n�̃v���O�C�������Ďg�p���Ă��������o�Ȃ̂ŁA��Q���N�����Ă����B
-�E�ă����[�X�B
-�EWrapCall �𓝍������B
-�E�Ԓl�m�[�h�̒l���擾���邽�߂ɍ����p�ł͂Ȃ����K�̕��@�����悤�ɂ����B
-	WrapCall ���̂������p�Ȃ̂ł��܂�Ӗ��Ȃ���������Ȃ��B
+・HSP3EXINFO::er を使用しないようにした。
+	HSP2.x 系のプラグインがかつて使用していたメンバなので、障害を起こしていた。
+・再リリース。
+・WrapCall を統合した。
+・返値ノードの値を取得するために黒魔術ではなく正規の方法を取るようにした。
+	WrapCall 自体が黒魔術なのであまり意味ないかもしれない。
 
-�|2014.04/27
+－2014.04/27
 
-�E�J������ VC++ 2013 Express SP1 �ɃA�b�v�f�[�g�����B
-�EHSP3.4��4 ����A���x�����ƈ��������f�o�b�O���Ƃ��ė^������悤�ɂȂ������Ƃ��󂯂čX�V�B
-	�����⃁���o�ϐ��̍����A�\�Ȃ疼�O��\������悤�ɂ����B
-	���x���̒l�Ƃ��āA�\�Ȃ烉�x������\������悤�ɂ����B
-	�Ȃ��A�����ʒu���w���قȂ镡���̖��O�̃��x�����o�^����Ă���ꍇ�A����1�ڂ�\������B
-	���m�F�����AHSP�̃o�[�W�������Â��Ă��������������͂��B
-�E�ꉞ�A�z���4�����ڂ܂ŕ\���ł���悤�ɂ����B
-�E�ϐ��^�̕\���ŁA���݂��Ȃ������� 0 �ł͂Ȃ��ȗ����ĕ\������悤�ɂ����B
-	�܂�2�����z��� int (a, b, 0) �������̂� int (a, b) �ɂȂ����B
-�E�����[�X (ver:1.0��15)�B
+・開発環境を VC++ 2013 Express SP1 にアップデートした。
+・HSP3.4β4 から、ラベル名と引数名がデバッグ情報として与えられるようになったことを受けて更新。
+	引数やメンバ変数の項を、可能なら名前を表示するようにした。
+	ラベルの値として、可能ならラベル名を表示するようにした。
+	なお、同じ位置を指す異なる複数の名前のラベルが登録されている場合、その1つ目を表示する。
+	未確認だが、HSPのバージョンが古くてもいちおう動くはず。
+・一応、配列の4次元目まで表示できるようにした。
+・変数型の表示で、存在しない次元は 0 ではなく省略して表示するようにした。
+	つまり2次元配列は int (a, b, 0) だったのが int (a, b) になった。
+・リリース (ver:1.0β15)。
 
-�|2014.02/16
+－2014.02/16
 
-�Evar_modcmd.hpi �ƘA�g�����B
-	modcmd_k �^�̒l�́A���ꂪ�w�����Ă���R�}���h�̖��O��\������B
-�Evar_modcmd.hpi �Ɠ��������[�X (ver: 1.0��14)�B
+・var_modcmd.hpi と連携した。
+	modcmd_k 型の値は、それが指示しているコマンドの名前を表示する。
+・var_modcmd.hpi と同時リリース (ver: 1.0β14)。
 
-�|2014.02/14
+－2014.02/14
 
-�Emodptr.as �ƘA�g�����B
-	modptr �l��\���������ɁA���ꂪ�w�����Ă���C���X�^���X�̏���\������B
-	modptr.as �̎d�l�ɂ��A���񂾃|�C���^�ł����Ȃ��\���ł��� (�͂�)�B
-�Emodptr.as �Ɠ��������[�X (ver: 1.0��13)
+・modptr.as と連携した。
+	modptr 値を表示する代わりに、それが指示しているインスタンスの情報を表示する。
+	modptr.as の仕様により、死んだポインタでも問題なく表示できる (はず)。
+・modptr.as と同時リリース (ver: 1.0β13)
 
-�|2012.12/02
+－2012.12/02
 
-�EEXPORT�����֐����Ăяo�����`�ŃX�N���v�g�ƘA�g����悤�ɂ����B
-�Emain.cpp �����ɔ삦���̂ŁAmain, vartree, dialog ��3�ɕ��������B
+・EXPORTした関数を呼び出される形でスクリプトと連携するようにした。
+・main.cpp が非常に肥えたので、main, vartree, dialog の3つに分解した。
 
-�|2012.12/01
+－2012.12/01
 
-�E�X�N���v�g�^�u�ƃX�N���v�g����(���s���̍s��\��)�𗼕��g�p����悤�ɂ����B
-	@ ��҂́u�S�ʁv�^�u�ɓ���B
+・スクリプトタブとスクリプト小窓(実行中の行を表示)を両方使用するようにした。
+	@ 後者は「全般」タブに入る。
 
-�|2012.11/30
+－2012.11/30
 
-�E�������̕ϐ����ÓI�ϐ��Ƃ��đ��݂��Ă����ꍇ�Aknowbug �̊J�n���ɁA
-	����� knowbug �̃E�B���h�E�n���h�����i�[����悤�ɂ����B
-	����ɂ��A�q������悤�ɂȂ����B
-�E�������ƂɁAknowbug �ƘA�g���邽�߂� knowbug ���W���[����������B
-	�\���̃p�����[�^�Ɏ��ʎq��^����@�\�����������B
-	@ ���łɁA�����o���߁E�֐��̑������� thismod �ƕ\�������悤�ɂ����B
-�E���s�ʒu��񂩂�A�t�@�C����ǂݍ���Ŏ��s���Ă���s��\������悤�ɂ����B
-	@ ����������Ĉ�s�����\�����邩�A�^�u��1�ǉ����ăX�N���v�g�S����\������ׂ����B
-	@ �I�v�V�����őI�ׂ��炢���񂶂�ˁH
+・ある特定の変数が静的変数として存在していた場合、knowbug の開始時に、
+	それに knowbug のウィンドウハンドルを格納するようにした。
+	これにより連繋が取れるようになった。
+・↑をもとに、knowbug と連携するための knowbug モジュールを作った。
+	構造体パラメータに識別子を与える機能を実装した。
+	@ ついでに、メンバ命令・関数の第一引数を thismod と表示されるようにした。
+・実行位置情報から、ファイルを読み込んで実行している行を表示するようにした。
+	@ 小窓を作って一行だけ表示するか、タブを1つ追加してスクリプト全文を表示するべきか。
+	@ オプションで選べたらいいんじゃね？
 
-�|2012.11/29
+－2012.11/29
 
-�E�Ăяo���֘A�̃c���[�r���[�m�[�h�����s���ɒǉ������菜�������肵�Ȃ��A
-	�Ƃ����������ԈႦ�Ă����o�O���C�������B
-	@ �u�u����v�u�E�o�v�̓X�e�b�v���s�Ƃ��Ĉ���Ȃ��B�v�Ƃ����̂�Y��Ă����B
-�E�ŐV�̌Ăяo�����������ꏊ��茻�݂� sublev ��2�ȏ�[���ꍇ�A�܂�A
-	����̎��s��ɑ��̃T�u���[�`���Ăяo�����N�����Ă���ꍇ�ɂ́A
-	ctx->prmstack ���Q�Ƃ��Ȃ��悤�ɂ����B
-	@ gosub �Ȃ炢�����A���̌Ăяo���ɂ���� prmstack ���u���������Ă�����
-	@	�s���ȃ������A�N�Z�X�ɂȂ肩�˂Ȃ����߁B
-	@	�Ⴆ�� ctor/dtor/onexit �̌Ăяo���͕ߑ��ł��Ȃ��̂ŗv���ӂł���B
-�E�Ăяo���m�[�h�ŁA�Ăяo���ꂽ�ʒu(�t�@�C�����A�s�ԍ�)��\������悤�ɂ����B
+・呼び出し関連のツリービューノードを実行中に追加したり除去したりしない、
+	という条件を間違えていたバグを修正した。
+	@ 「「次飛」「脱出」はステップ実行として扱わない。」というのを忘れていた。
+・最新の呼び出しが生じた場所より現在の sublev が2以上深い場合、つまり、
+	それの実行後に他のサブルーチン呼び出しが起こっている場合には、
+	ctx->prmstack を参照しないようにした。
+	@ gosub ならいいが、他の呼び出しによって prmstack が置き換えられていたら
+	@	不正なメモリアクセスになりかねないため。
+	@	例えば ctor/dtor/onexit の呼び出しは捕捉できないので要注意である。
+・呼び出しノードで、呼び出された位置(ファイル名、行番号)を表示するようにした。
 
-�|2012.09/13
+－2012.09/13
 
-�E�����[�X (ver: 1.0��12)
+・リリース (ver: 1.0β12)
 
-�|2012.09/12
+－2012.09/12
 
-�E�Ԓl�m�[�h�̋@�\���g�����ۂ���ݒ�ł���悤�ɂ����B
-�Erunmode �ŃX�e�b�v���s�����ۂ��𔻒f���邱�Ƃ��ł��Ȃ����Ƃ����������B
-	�ǂ���ɂ��� OnBgnCalling, OnEndCalling ��ʂ�Ƃ��� runmode ��
-	RUNMODE_RUN | RUNMODE_RETURN �ł���B
-	�Ȃ̂ŁA�X�e�b�v���s�����ۂ��������O���[�o���ϐ� stt_bStepRunning ��p����悤�ɂ����B
-	@ �X�e�b�v���s���łȂ���΁A�Ăяo���m�[�h��ύX���Ȃ��A�Ƃ����d�l�Ɏg���B
-	@	���̂��߁A�u����v�u�E�o�v�̓X�e�b�v���s�Ƃ��Ĉ���Ȃ��B
-�E�Ԓl�m�[�h���Ăяo���m�[�h�̉��ɒǉ�����ɍۂ��A���̌Ăяo��������Ɉ����Ƃ��Ĉˑ����Ă��Ȃ��ꍇ�A���̉��ɂ��邷�ׂĂ̕Ԓl�m�[�h���폜���Ă���ǉ�����悤�ɂ����B
-	@ ��ʂɗ��܂��Ă��܂��̂ŁB
-	@ ��̃o�O�ɋC�Â��Ă��Ȃ������̂Ō˘f�����B
-	@	�Ăяo���I����ɒǉ����悤�Ƃ���ƁA�ˑ����Ă��Ȃ��Ɣ��肳��邽�߁B
+・返値ノードの機能を使うか否かを設定できるようにした。
+・runmode でステップ実行中か否かを判断することができないことが判明した。
+	どちらにせよ OnBgnCalling, OnEndCalling を通るときの runmode は
+	RUNMODE_RUN | RUNMODE_RETURN である。
+	なので、ステップ実行中か否かを示すグローバル変数 stt_bStepRunning を用いるようにした。
+	@ ステップ実行中でなければ、呼び出しノードを変更しない、という仕様に使う。
+	@	そのため、「次飛」「脱出」はステップ実行として扱わない。
+・返値ノードを呼び出しノードの下に追加するに際し、その呼び出しがそれに引数として依存していない場合、その下にあるすべての返値ノードを削除してから追加するようにした。
+	@ 大量に溜まってしまうので。
+	@ 上のバグに気づいていなかったので戸惑った。
+	@	呼び出し終了後に追加しようとすると、依存していないと判定されるため。
 
-�|2012.09/11
+－2012.09/11
 
-�E�c���[��̌Ăяo���m�[�h�ɑ΂��āu�E�o�v������ł���悤�ɂ����B
-	�����悤�Ȃ��̂Ȃ̂Łu����v�͎������Ă��Ȃ��B
-�E�I�����ɁA�Ăяo���m�[�h��I�����Ă���Ɛ���ɏI���ł��Ȃ��o�O���C�������B
-	�I�����ɌĂяo���m�[�h���폜���Ȃ��悤�ɂ����B
-	@ �폜����K�v�͂Ȃ������̂ŁB
-	@ �u�I�����Ă���Ăяo���m�[�h���폜����ꍇ�A���̏��I������v�d�l��
-	@	�֘A���Ă���悤�����A�������Ȃ�����ɏI���ł��Ȃ��̂��͕s���B
+・ツリー上の呼び出しノードに対して「脱出」操作をできるようにした。
+	似たようなものなので「次飛」は実装していない。
+・終了時に、呼び出しノードを選択していると正常に終了できないバグを修正した。
+	終了時に呼び出しノードを削除しないようにした。
+	@ 削除する必要はなかったので。
+	@ 「選択している呼び出しノードを削除する場合、その上を選択する」仕様に
+	@	関連しているようだが、しかしなぜ正常に終了できないのかは不明。
 
-�|2012.09/10
+－2012.09/10
 
-�E���[�U��`�֐��̈����̒��Ń��[�U��`�֐����Ăяo����Ă����Ƃ��ɁA
-	�O�҂̈������W�J����I���O�ɑO�҂� prmstack (���݂��Ȃ�) ��
-	�A�N�Z�X���悤�Ƃ��āA�Ԉ���� prmstack ���Q�Ƃ��Ă����o�O���C�������B
-�EWrapCall:
-	�EModcmdCallInfo ��o�������X�g�ɂ����B
-		���X ModcmdCallInfo �̍쐬�E�j���� WrapCall �̒S���Ȃ̂ŁA
-		prev, next �� WrapCall ���Őݒ肳���B
-	�E�Ԓl���ԋp���ꂽ�Ƃ��ɒʒm ResultReturning �𑗂�悤�ɂ����B
-		���̌Ăяo���� OnEndCalling �ʒm�̒��O�ɑ�����B
-	�E�I�����ɁAModcmdCallInfo �����ׂĔj������悤�ɂ����B
-		�r���ŏI�������Ƃ��A������ delete ���邱�ƂȂ��I�����Ă����\���B
-		���܂Ɏ��S���Ă����̂͂��̂����H
-�E���[�U��`�R�}���h���Ԓl��Ԃ����Ƃ��ɁA�Ԓl�m�[�h�𐶂ݏo�����Ƃɂ����B
-	�ʏ�A���O�̌Ăяo���̎q�m�[�h�Ƃ��Ēǉ������B
-		���̐e�̌Ăяo�����I���������ɍ폜�����B
-	�ŏ��̌Ăяo���̕Ԓl�́A+dynamic �̒����ɒu�����B
-		����́A���̎��ɐ������Ăяo�����Ԓl��Ԃ����Ƃ��ɍ폜�����B
-�E�I�����ɁA���ׂĂ̕Ԓl�m�[�h���폜����悤�ɂ����B
-	�֘A���Ă��� ResultNodeData ��j�����邽�߁B
-�EOnResultReturning �ł͂Ȃ��AOnEndCalling �ɏ�������悤�ɂ����B
-	�m�[�h���폜������ɕԒl�m�[�h�𐶐�����B
-	���s���[�h RUN | RETURN �̏ꍇ�͑����ɒǉ����A�����łȂ���Η��߂�B
-	���̏ꍇ�A�֐������łȂ��A���߂��Ԓl��ԋp�����ꍇ�����������B
-�E�Ăяo���J�n�܂��͏I����(OnBgnCalling, OnEndCalling)�ɁA���s���[�h��
-	RUNMODE_RETURN �ł���\���������Ƃ��Ă����o�O���C�������B
-	@ �I������ RUNMODE_RUN �ł��邱�Ƃ͂Ȃ������B
+・ユーザ定義関数の引数の中でユーザ定義関数が呼び出されていたときに、
+	前者の引数が展開され終わる前に前者の prmstack (存在しない) に
+	アクセスしようとして、間違った prmstack を参照していたバグを修正した。
+・WrapCall:
+	・ModcmdCallInfo を双方向リストにした。
+		元々 ModcmdCallInfo の作成・破棄は WrapCall の担当なので、
+		prev, next も WrapCall 側で設定される。
+	・返値が返却されたときに通知 ResultReturning を送るようにした。
+		その呼び出しの OnEndCalling 通知の直前に送られる。
+	・終了時に、ModcmdCallInfo をすべて破棄するようにした。
+		途中で終了したとき、それらを delete することなく終了していた可能性。
+		たまに死亡していたのはこのせい？
+・ユーザ定義コマンドが返値を返したときに、返値ノードを生み出すことにした。
+	通常、直前の呼び出しの子ノードとして追加される。
+		その親の呼び出しが終了した時に削除される。
+	最初の呼び出しの返値は、+dynamic の直下に置かれる。
+		これは、その次に生じた呼び出しが返値を返したときに削除される。
+・終了時に、すべての返値ノードを削除するようにした。
+	関連している ResultNodeData を破棄するため。
+・OnResultReturning ではなく、OnEndCalling に処理するようにした。
+	ノードを削除した後に返値ノードを生成する。
+	実行モード RUN | RETURN の場合は即座に追加し、そうでなければ溜める。
+	この場合、関数だけでなく、命令が返値を返却した場合も処理される。
+・呼び出し開始または終了時(OnBgnCalling, OnEndCalling)に、実行モードが
+	RUNMODE_RETURN である可能性を見落としていたバグを修正した。
+	@ 終了時に RUNMODE_RUN であることはなさそう。
 
-�|2012.09/09
+－2012.09/09
 
-�E���O�̍ő啶���ʂ�ݒ�ł���悤�ɂ����B
-	�G�f�B�b�g�R���g���[���{���̊���l�� 0x8000 �A�ݒ�̊���l�� 0x20000 �B
-�E�G�f�B�b�g�R���g���[�����E�[�Ő܂�Ԃ����ۂ���ݒ�ŕύX�ł���悤�ɂ����B
-�Earray �����̕����񉻂Ɏ��s���Ă����o�O���C�������B
-�E�����[�X (ver: 1.0��11)
+・ログの最大文字量を設定できるようにした。
+	エディットコントロール本来の既定値は 0x8000 、設定の既定値は 0x20000 。
+・エディットコントロールを右端で折り返すか否かを設定で変更できるようにした。
+・array 引数の文字列化に失敗していたバグを修正した。
+・リリース (ver: 1.0β11)
 
-�|2012.09/08
+－2012.09/08
 
-�E�j�����ꂽ��������Ȃ��ꎞ�I�u�W�F�N�g���Q�Ƃ��Ă����o�O���C�������B
+・破棄されたかもしれない一時オブジェクトを参照していたバグを修正した。
 
-�|2012.09/07
+－2012.09/07
 
-�E���O�Ɂu�X�V�v�u�ۑ��v�u�������v�@�\��ǉ������B
-�E�ϐ��������O�ɏ������߂�悤�ɂ����B
-�E�t�@�C���p�X��ݒ肷��ƁA�I�����Ɏ����I�Ƀ��O��ۑ�����悤�ɂ����B
-�E�l��ϐ�����s�ɕ����񉻂��� CVarinfoLine �����������B
-	@ CVarinfoTree ���g���ɂ��Ă���h�B
-	@ �����ƌ_�񂵂��B
-�E�ϐ��c���[�́A���W���[���� +dynamic, +sysvar �ł̊ȈՕ\���ɑΉ������B
-	@ �e�q�m�[�h�̒l����s�ɕ����񉻂��ĕ\������B
-�Evar ������ array �����Ƃ��ď������Ă����o�O���C�������B
-	@ �ǋL(09/09)�F�C�������r���[�������̂��ďC�������B
+・ログに「更新」「保存」「初期化」機能を追加した。
+・変数情報をログに書き込めるようにした。
+・ファイルパスを設定すると、終了時に自動的にログを保存するようにした。
+・値や変数を一行に文字列化する CVarinfoLine を実装した。
+	@ CVarinfoTree を“元にしている”。
+	@ 悪魔と契約した。
+・変数ツリーの、モジュールや +dynamic, +sysvar での簡易表示に対応した。
+	@ 各子ノードの値を一行に文字列化して表示する。
+・var 引数を array 引数として処理していたバグを修正した。
+	@ 追記(09/09)：修正が中途半端だったのを再修生した。
 
-�|2012.08/10
+－2012.08/10
 
-�E�J�����A������� Windows 7 �ɕύX�����B
-	@ XP �Ɍ���A�d�Ăȃo�O������ꍇ�͑Ή����邩������Ȃ��B
-�E�g���v���O�C���ɂ���Ē񋟂��ꂤ���{�^�̕\���ɑΉ������B
-	C++�ɑ��݂���^���x�[�X�ɂ��Ă���Ɨ\�z���ď�������B
+・開発環境、動作環境を Windows 7 に変更した。
+	@ XP に限り、重篤なバグがある場合は対応するかもしれない。
+・拡張プラグインによって提供されうる基本型の表示に対応した。
+	C++に存在する型をベースにしていると予想して処理する。
 		bool,
 		 char  = signed_char, 
 		uchar  = unsigned_char,
@@ -703,248 +703,248 @@ HSP�͂����ŊJ������Ă��܂��B
 		ushort = unsigned_short,
 		uint   = unsigned_int,
 	
-�|2012.05/27
+－2012.05/27
 
-�EWrapCall:
-	���[�U��`���߂̕Ԓl(RUNMODE)���Aknowbug ���ԋp�������̂ɂ���悤�ɂ��� (���������g�p)�B
-�E�u���s�v�{�^���̕���������(���̃{�^���Ɠ�����)�����B
-	@ ����2�{�̑傫���������Ă����̂�������Ȃ��B
-�E�u����v�u�E�o�v�{�^����ǉ������B
-	����� sublev �ɒB����܂Łu���s�v(HSPDEBUG_STEPIN)�̏������J��Ԃ����ƂŎ��������B
-	����2�́A���� sublev �̒l�̈Ⴂ�����Ȃ� (�E�o�͌��ݒl ctx->sublev ��1��ɐݒ肳���)�B
-	@ ��������������A�}�E�X�𓮂����Ȃǂ��ăf�o�b�O�E�B���h�E�Ƀ��b�Z�[�W�𑗂�Ȃ��ƁA
-	@	���s�ʒu�̕\�����X�V����Ȃ��o�O���c���Ă���B������������Ȃ����A�v���I�ł͂Ȃ��̂łƂ肠�������u�����B
-�E�����[�X (ver: 1.0��8)�B
-	�o�[�W�����ԍ��������������Y�ꂽ�B
+・WrapCall:
+	ユーザ定義命令の返値(RUNMODE)を、knowbug が返却したものにするようにした (ただし未使用)。
+・「実行」ボタンの幅を小さく(他のボタンと同じに)した。
+	@ 何故2倍の大きさを持っていたのか分からない。
+・「次飛」「脱出」ボタンを追加した。
+	特定の sublev に達するまで「次行」(HSPDEBUG_STEPIN)の処理を繰り返すことで実装した。
+	この2つは、その sublev の値の違いしかない (脱出は現在値 ctx->sublev の1つ上に設定される)。
+	@ これらを押した後、マウスを動かすなどしてデバッグウィンドウにメッセージを送らないと、
+	@	実行位置の表示が更新されないバグが残っている。原因が分からないが、致命的ではないのでとりあえず放置した。
+・リリース (ver: 1.0β8)。
+	バージョン番号情報を書き換え忘れた。
 
-�|2012.01/22
+－2012.01/22
 
-�Eini �̘_���l�ɕ����� "true", "false" ���w��ł���悤�ɂ����B
-	@ �啶���E����������Ȃ�
-	@ �]���ʂ� 0, ��0 �ł��悢�B
-�E�|�b�v�A�b�v���j���[��\������悤�ɂ����B
-�E�őO�ʃE�B���h�E�ɐݒ�ł���悤�ɂ����B
-	@ ini �� [Window] bTopMost �� true �ɂ���Ɗ���ƂȂ�B
+・ini の論理値に文字列 "true", "false" を指定できるようにした。
+	@ 大文字・小文字を問わない
+	@ 従来通り 0, 非0 でもよい。
+・ポップアップメニューを表示するようにした。
+・最前面ウィンドウに設定できるようにした。
+	@ ini の [Window] bTopMost を true にすると既定となる。
 
-�|2011.11/16
+－2011.11/16
 
-�E�Ăяo���m�[�h���폜���鎞�A���ꂪ�I����ԂȂ�A���̌Z(���Ȃ���ΐe�A���Ȃ킿"+dynamic")��I������悤�ɂ����B
-�E�Ăяo���m�[�h�́A���s���̓c���[�m�[�h��ǉ������ɁAassert �Œ�~�����Ƃ��ɂ܂Ƃ߂Ēǉ�����悤�ɂ����B
-	@ �폜�͍s���B
-	@ wait �ɂ���~�ł��ǉ����Ă��܂��Ƃ�����肪����B
+・呼び出しノードを削除する時、それが選択状態なら、その兄(いなければ親、すなわち"+dynamic")を選択するようにした。
+・呼び出しノードは、実行中はツリーノードを追加せずに、assert で停止したときにまとめて追加するようにした。
+	@ 削除は行う。
+	@ wait による停止でも追加してしまうという問題がある。
 	
-�|2011.09/20
+－2011.09/20
 
-�E1024�o�C�g�ȏ�̕������ logmes ����ƃo�b�t�@�[�I�[�o�[�t���[�ŗ�����o�O���C�������B
+・1024バイト以上の文字列を logmes するとバッファーオーバーフローで落ちるバグを修正した。
 
-�|2011.08/21 (Sun)
+－2011.08/21 (Sun)
 
-�E���W���[�������o�֐��̑��������A�^����ꂽ�ϐ��̗v�f [0] ��\�����Ă����o�O���C�������B
+・モジュールメンバ関数の第一引数が、与えられた変数の要素 [0] を表示していたバグを修正した。
 
-�|2011.07.28 (Thu)
+－2011.07.28 (Thu)
 
-�Emulti �� assoc �ɏC�������B
-�E�ă����[�X (ver: 1.0��7)
+・multi → assoc に修正した。
+・再リリース (ver: 1.0β7)
 
-�|2011.07.21 (Thu)
+－2011.07.21 (Thu)
 
-�EWrapCall �̎d�l�ύX�ɑΉ������B
-	���[�U��`�R�}���h�̌Ăяo���J�n�E�I�����A�E�B���h�E���b�Z�[�W�ł͂Ȃ��֐��|�C���^�̌Ăяo���Œʒm����悤�ɂȂ����B
-�E�����[�X (ver: 1.0��7)
+・WrapCall の仕様変更に対応した。
+	ユーザ定義コマンドの呼び出し開始・終了を、ウィンドウメッセージではなく関数ポインタの呼び出しで通知するようになった。
+・リリース (ver: 1.0β7)
 
-�|2011.07.18 (Mon)
+－2011.07.18 (Mon)
 
-�Evar_vector.hpi �̊g���\���ɑΉ������B
+・var_vector.hpi の拡張表示に対応した。
 
-�|2011.06.23 (Thu)
+－2011.06.23 (Thu)
 
-�E���z�V�X�e���ϐ� notebuf ��ǉ������Bnotepad ���ߌQ�ɐݒ肳�ꂽ�o�b�t�@��\������B
-�E�V�X�e���ϐ��̒l��\��������� CVarinfoTree �ō쐬����悤�ɂ����B
+・仮想システム変数 notebuf を追加した。notepad 命令群に設定されたバッファを表示する。
+・システム変数の値を表す文字列を CVarinfoTree で作成するようにした。
 
-�|2011.06/22 (Wed)
+－2011.06/22 (Wed)
 
-�E�ϐ���񕔕��̏�����ύX���� (http://twitpic.com/5f3ye7)�B
-�E�ϐ��f�[�^�⃍�O�́A�^�u���������w��ł���悤�ɂ����B
+・変数情報部分の書式を変更した (http://twitpic.com/5f3ye7)。
+・変数データやログの、タブ文字幅を指定できるようにした。
 	@ [Interface] tabwidth = 4 (default)
-�E�ϐ��f�[�^������̎�����(indent)�� "    " �ł͂Ȃ� "\t" �ł���悤�ɂ����B
-�E�V�X�e���ϐ� iparam, wparam, lparam �� params �Ƃ���1�̃y�[�W�ŕ\������悤�ɂ����B
+・変数データ文字列の字下げ(indent)を "    " ではなく "\t" でするようにした。
+・システム変数 iparam, wparam, lparam を params として1つのページで表示するようにした。
 
-�|2011.06/21 (Tue)
+－2011.06/21 (Tue)
 
-�Evar_multi.hpi �̊g���\���ɑΉ������B
-�E�ÓI�łȂ��ϐ����A�v�f��1�ł��P�̕ϐ�(Scalar)�ł͂Ȃ��A�z��(Vector)�Ƃ��Ĉ����Ă����s����C�������B
+・var_multi.hpi の拡張表示に対応した。
+・静的でない変数が、要素数1でも単体変数(Scalar)ではなく、配列(Vector)として扱われていた不具合を修正した。
 
-�|2011 06/13 (Mon)
+－2011 06/13 (Mon)
 
-�E�Ăяo���I�����ɍ폜����c���[�m�[�h���A�Ō�̂ł͂Ȃ�2�Ԗڂ̃m�[�h�ɂȂ��Ă����o�O���C�������B
-	for ���� TreeView_GetNextSibling() �𕡐���g�����Ƃ������A���ۂ͏������ɂ��������Ă��Ȃ������Ƃ��������~�X�B
-�E�ă����[�X (ver: 1.0��5)
+・呼び出し終了時に削除するツリーノードが、最後のではなく2番目のノードになっていたバグを修正した。
+	for 文で TreeView_GetNextSibling() を複数回使おうとしたが、実際は初期化にしか書いていなかったという酷いミス。
+・再リリース (ver: 1.0β5)
 
-�|2011 03/29 (Tue)
+－2011 03/29 (Tue)
 
-�EWrapCall.hpi �Ƃ̘A�g�ɑΉ��B
-	+Dynamic �m�[�h�ŁA�Ăяo���ꂽ���[�U��`���߁E�֐��̈����̒l��\���ł���悤�ɂ����B
-	�Ăяo�������� logmes �o����悤�ɂ����B
-�E�����[�X (ver: 1.0��5)
+・WrapCall.hpi との連携に対応。
+	+Dynamic ノードで、呼び出されたユーザ定義命令・関数の引数の値を表示できるようにした。
+	呼び出し履歴を logmes 出来るようにした。
+・リリース (ver: 1.0β5)
 
-�|2010 02/07 (Sun), �V/08 (Mon)
+－2010 02/07 (Sun), 〃/08 (Mon)
 
-�EVisitor �p�^�[���𗘗p�������@�ɕύX���悤�Ƃ������A�����������B
-	@ �c�[ �� new_knowbug �t�H���_
+・Visitor パターンを利用した方法に変更しようとしたが、無理だった。
+	@ 残骸 → new_knowbug フォルダ
 	
-�|2010 02/06 (Sat)
+－2010 02/06 (Sat)
 
-�E�u@a@s�v�Ɓu@b@s�v�ȂǁA�̈���ɗ̈悪����Ƃ��A�����̊֌W���t�ɉ��߂���
-	���܂��o�O���C�������B
-	@ex: ������ŁF
+・「@a@s」と「@b@s」など、領域内に領域があるとき、それらの関係を逆に解釈して
+	しまうバグを修正した。
+	@ex: 同じ例で：
 		-@
 			-@a
 				-@s
 			-@b
 				-@s
-		�������́F
+		正しくは：
 		-@				// @
 			-@s			// @s
 				-@a		// @a@s
 				-@b		// @b@s
 
-�|2010 01/13 (Wed)
+－2010 01/13 (Wed)
 
-�E�J�X�^���h���[���邩�ǂ������Aini �t�@�C���Őݒ�ł���悤�ɂ����B
-	@ [ColorType]::bCustomDraw �L�[���^�Ȃ�J�X�^���h���[����B
-�E�S�ʃ^�u�̃��X�g�ɗv�f��ǉ�����R�[�h���A�኱�������肳�����B
-�E�z��� aptr �� 0x8000 �ȏ�̂Ƃ��A���������ɕς���āA�������ᔽ���N�����A
-	�ُ�I�����Ă��܂��o�O���Ahsp ���[�h�ł̂ݏC�������B
-	@ PVal::offset �� signed short �����ɂȂ��Ă������߁B
-�Ehsp ���[�h�ł́A�����ƁA hsp �{���̃w�b�_��p����悤�ɂ����B
-	@ �������Aclhsp �ł̒�`�������̏ꏊ�ɎU��΂��Ă��܂��B
-	@ �z��̎l�����ڂ�\���ł���悤�ɂȂ������A���v���Ȃ������Ȃ̂ŕύX�Ȃ��B
-�Ehsp ���[�h�ŁAthismod ���A�����Ɏw�肳�ꂽ�v�f�����\������悤�ɂ����B
-�E�����[�X (ver: 1.0��4)
+・カスタムドローするかどうかを、ini ファイルで設定できるようにした。
+	@ [ColorType]::bCustomDraw キーが真ならカスタムドローする。
+・全般タブのリストに要素を追加するコードを、若干すっきりさせた。
+・配列の aptr が 0x8000 以上のとき、符号が負に変わって、メモリ違反を起こし、
+	異常終了してしまうバグを、hsp モードでのみ修正した。
+	@ PVal::offset が signed short 扱いになっていたため。
+・hsp モードでは、ちゃんと、 hsp 本来のヘッダを用いるようにした。
+	@ ただし、clhsp での定義が複数の場所に散らばってしまう。
+	@ 配列の四次元目を表示できるようになったが、需要がなさそうなので変更なし。
+・hsp モードで、thismod を、引数に指定された要素だけ表示するようにした。
+・リリース (ver: 1.0β4)
 	
-�|2010 01/11 (Mon)
+－2010 01/11 (Mon)
 
-�E�ăR���p�C���B
+・再コンパイル。
 
-�|2010 01/02 (Sat)
+－2010 01/02 (Sat)
 
-�E�V�X�e���ϐ� err ��\������悤�ɂ����B
-�EVector�v�f VecElem ��\������ۂɁA���̗v�f�Ȃ� *�A�Q�Ɨv�f�Ȃ� & ���A
-	�v�f�� ( �ʏ�� [n] ) �̌�ɕt����悤�ɂ����B
-�EVecElem���Q�Ɨv�f�ŁAaptr != 0 �̂Ƃ��A���̗v�f�̒l�݂̂� varScalar �Ƃ���
-	���o���悤�ɂ����B
+・システム変数 err を表示するようにした。
+・Vector要素 VecElem を表示する際に、実体要素なら *、参照要素なら & を、
+	要素名 ( 通常は [n] ) の後に付けるようにした。
+・VecElemが参照要素で、aptr != 0 のとき、その要素の値のみを varScalar として
+	取り出すようにした。
 
-�|2009 12/19 (Sat)
+－2009 12/19 (Sat)
 
-�EVector�̎d�l�ύX�ɑΉ����A�ăr���h�����B
-�E�ϐ��f�[�^�c���[��300�ȏ�̐[���ɂȂ�ƁA�G���[�ōċA���I������悤�ɂ����B
-�E�ϐ��f�[�^�c���[����������� ( 0x5000 bytes �ȏ� )�A�r���Ő؂�悤�ɂ����B
+・Vectorの仕様変更に対応し、再ビルドした。
+・変数データツリーが300以上の深さになると、エラーで再帰を終了するようにした。
+・変数データツリーが長すぎると ( 0x5000 bytes 以上 )、途中で切るようにした。
 
-�|2009 12/18 (Fri)
+－2009 12/18 (Fri)
 
-�Eini�t�@�C�����A�����^�C���Ɠ����t�H���_����T���悤�ɂ����B
-	@ �X�N���v�g�G�f�B�^���J�����g�f�B���N�g����ύX���Ă��܂����߁A
-		�J�����g����T���Ɣ����ł��Ȃ��\���������B
-�E�J�X�^���h���[�ŁANM_PREPAINT �Ȃǂ̖߂�l���ASetWindowLong() ��p���ĕԂ�
-	�悤�ɂ����B
-	@ return �ł͕Ԃ����Ƃ��ł��Ȃ����߁ANM_PREPAINT ���������Ȃ������B
-�E�ϐ��c���[�ŁA�^���ƂɐF��ς���悤�ɂ����B
-�E(ver: 1.0��3)
+・iniファイルを、ランタイムと同じフォルダから探すようにした。
+	@ スクリプトエディタがカレントディレクトリを変更してしまうため、
+		カレントから探すと発見できない可能性が高い。
+・カスタムドローで、NM_PREPAINT などの戻り値を、SetWindowLong() を用いて返す
+	ようにした。
+	@ return では返すことができないため、NM_PREPAINT が発生しなかった。
+・変数ツリーで、型ごとに色を変えるようにした。
+・(ver: 1.0β3)
 
-�|2009 12/17 (Thu)
+－2009 12/17 (Thu)
 
-�E�c���[�r���[���J�X�^���h���[����悤�ɂ��悤�Ƃ����B
-�Eini�t�@�C������̓ǂݍ��݂��ł���悤�ɂ����B
+・ツリービューをカスタムドローするようにしようとした。
+・iniファイルからの読み込みができるようにした。
 
-�|2009 12/16 (Wed)
+－2009 12/16 (Wed)
 
-�Ecnt��\������ɍۂ��A�z��̂悤�ɁA�g�b�v���x���ł͂Ȃ����[�v�� cnt �l��
-	�\������悤�ɂ����B
-	�u#n�v�� looplev �� n �ł���ʒu�� cnt ��\���B�ŏ�i���g�b�v�B
-�E�u�}���`�X���b�h Dll (/MD)�v����u�}���`�X���b�h (/MT)�v�ɕύX�����B
-	@ Windows XP sp2 �ȑO�̊��ł������悤�ɂȂ����B
-�E�����[�X (ver: 1.0��2)
+・cntを表示するに際し、配列のように、トップレベルではないループの cnt 値も
+	表示するようにした。
+	「#n」は looplev が n である位置の cnt を表す。最上段がトップ。
+・「マルチスレッド Dll (/MD)」から「マルチスレッド (/MT)」に変更した。
+	@ Windows XP sp2 以前の環境でも動くようになった。
+・リリース (ver: 1.0β2)
 
-�|2009 12/15 (Tue)
+－2009 12/15 (Tue)
 
-�EKernel32.dll �� EncodePointer() ���Ȃ����ŃG���[���N����VS2010�̃o�O��
-	�Ή����邽�߁A�r���h�� VC++2008Ex �ōs���悤�ɂ����B
-�E�����[�X (ver: 1.0��1)
-�E�o�b�t�@�T�C�Y�́A�������_���v���ɕ\������悤�ɂ����B
-�E�V�X�e���ϐ����A�c���[�́u$sysvar�v�m�[�h�Ɏ�������悤�ɁA�ǉ������B
-�E�c���[�̃g�b�v���x���̃m�[�h�͂��ׂĊJ������Ԃɂ���悤�ɂ����B
+・Kernel32.dll に EncodePointer() がない環境でエラーが起きるVS2010のバグに
+	対応するため、ビルドは VC++2008Ex で行うようにした。
+・リリース (ver: 1.0β1)
+・バッファサイズは、メモリダンプ時に表示するようにした。
+・システム変数を、ツリーの「$sysvar」ノードに持たせるように、追加した。
+・ツリーのトップレベルのノードはすべて開いた状態にするようにした。
 
-�|2009 12/14 (Mon)
+－2009 12/14 (Mon)
 
-�Elog-Editbox���X�V����Ă��A�I����Ԃ��ێ�����悤�ɂ����B
-�Elog-Editbox�̎����X�V���~�߂邽�߂ɁA�����X�V�̗L�����`�F�b�N�{�b�N�X��
-	�Ǘ����A�����X�V�����������ꂽ��Ԃ� TabLogAdd ���ꂽ������́A��U�A
-	�ʂ̃o�b�t�@�ɏ������߂�悤�ɂ����B
-�Ehsp�݊����[�h�ł́A�z��̓Y�����ʂ� [] �ł͂Ȃ� () ��p����悤�ɂ����B
-�E�������[�X (ver: 1.0��0)
-	HSPTV! �f���Ő�`�����Fhttp://hsp.tv/play/pforum.php?mode=pastwch&num=29264
+・log-Editboxが更新されても、選択状態を維持するようにした。
+・log-Editboxの自動更新を止めるために、自動更新の有無をチェックボックスで
+	管理し、自動更新が無効化された状態で TabLogAdd された文字列は、一旦、
+	別のバッファに書きためるようにした。
+・hsp互換モードでは、配列の添字括弧に [] ではなく () を用いるようにした。
+・初リリース (ver: 1.0β0)
+	HSPTV! 掲示板で宣伝した：http://hsp.tv/play/pforum.php?mode=pastwch&num=29264
 
-�|2009 12/13 (Sun)
+－2009 12/13 (Sun)
 
-�ECompile-Switch�ŁAhsp�����̃o�[�W�����Ƃ��č쐬�ł���悤�ɂ����B
-	@ clhsp ����̋@�\�́Aclhsp �}�N�����Ȃ��Ɛ��䂳���B
-�E�������z��̑S�v�f���\���ł���悤�ɂ����B�������A������ɂ��3�����Ɍ���B
-�Enullmod ��\������Ƃ��ɁANULL�Q�ƃG���[���������Ă����o�O���C�������B
-�Ehsp�݊����[�h�ŁAstruct�^�̓��e (FlexValue) ���g���\������悤�ɂ����B
-�E�o�[�W�������𖄂ߍ��ނ悤�ɂ����B
-�Edelmod ���ꂽ��� FlexValue �� ptr �� NULL �ɂȂ��Ă��Ȃ��\��������̂�
-	�l�����āAtype �� FLEXVAL_TYPE_NONE �łȂ����Ƃ������ɂ����B
-	@ �����|�C���^�̎Q�ƂŃG���[���N���Ă����B
-�E�ϐ��f�[�^�e�L�X�g�� 0x2000 �o�C�g���傫����΁Amalloc �ŕK�v�Ȃ����m��
-	���đΉ�����悤�ɂ����B
+・Compile-Switchで、hsp向けのバージョンとして作成できるようにした。
+	@ clhsp 限定の機能は、clhsp マクロがないと制御される。
+・多次元配列の全要素が表示できるようにした。ただし、諸事情により3次元に限る。
+・nullmod を表示するときに、NULL参照エラーが発生していたバグを修正した。
+・hsp互換モードで、struct型の内容 (FlexValue) を拡張表示するようにした。
+・バージョン情報を埋め込むようにした。
+・delmod された後の FlexValue の ptr が NULL になっていない可能性があるのを
+	考慮して、type が FLEXVAL_TYPE_NONE でないことも条件にした。
+	@ 無効ポインタの参照でエラーが起きていた。
+・変数データテキストが 0x2000 バイトより大きければ、malloc で必要なだけ確保
+	して対応するようにした。
 
-�|2009 12/12 (Sat)
+－2009 12/12 (Sat)
 
-�E�ϐ��̓��e�̃c���[�`����������A�֐��ł͂Ȃ� CVarinfoTree �N���X����������
-	�悤�ɂ����B
-�E�}�N�� USE_DEFAULT_ARG ���Ȃ����߂ɁASTRUCTPRM �̑傫�����r���h���ƈ����
-	�����o�O���C�������B
-�Emodinst �̃����o���g���\������悤�ɂ����B
-�E�ϐ��̓��e�� CVarinfoText �N���X��p���Đ�������悤�ɂ����B
-�E�������_���v�̕\���`����ύX�����B
-	@ 1�s�� 16 �o�C�g���\������ȂǁAddw �Ɏ������B
-�E�ϐ��f�[�^�e�L�X�g���A���ڂ��v�N���b�N������A���^�[���L�[ ( [Enter] ) ��
-	�������肵�Ă��X�V����悤�ɂ����B
-�Elogmes ����Ă��ϐ��c���[���\�z�������Ȃ��悤�ɂ����B
+・変数の内容のツリー形式文字列を、関数ではなく CVarinfoTree クラスが生成する
+	ようにした。
+・マクロ USE_DEFAULT_ARG がないために、STRUCTPRM の大きさがビルド時と違って
+	いたバグを修正した。
+・modinst のメンバを拡張表示するようにした。
+・変数の内容は CVarinfoText クラスを用いて生成するようにした。
+・メモリダンプの表示形式を変更した。
+	@ 1行に 16 バイト分表示するなど、ddw に似せた。
+・変数データテキストを、項目をＷクリックしたり、リターンキー ( [Enter] ) を
+	押したりしても更新するようにした。
+・logmes されても変数ツリーを構築し直さないようにした。
 
-�|2009 12/10 (Thu)
+－2009 12/10 (Thu)
 
-�Evector �c���[�ŁA�u=�v�̍��ӂɁu�ϐ���[a][b]...[n]�v�ł͂Ȃ��u[n]�v�Ƃ���
-	�\������悤�ɂ����B
-	�܂��A.vartype �Ō^����\������悤�ɂ����B
-�Evector ����̎��̕\�L��ύX�����B
+・vector ツリーで、「=」の左辺に「変数名[a][b]...[n]」ではなく「[n]」とだけ
+	表示するようにした。
+	また、.vartype で型名を表示するようにした。
+・vector が空の時の表記を変更した。
 
-�|2009 12/09 (Wed)
+－2009 12/09 (Wed)
 
-�EHSP3DEBUG::dbg_toString() ��ǉ������B
-�E�ϐ��̓��e (varinf) ���Aknowbug ���������ĕ\������悤�ɂ����B
-	@ �܂�AHSP3DEBUG::dbg_getvarinf() ���Ă΂Ȃ��悤�ɂȂ����B
-�Evector���c���[�`���̕�����ŕ\������悤�ɂ����B
+・HSP3DEBUG::dbg_toString() を追加した。
+・変数の内容 (varinf) を、knowbug が処理して表示するようにした。
+	@ つまり、HSP3DEBUG::dbg_getvarinf() を呼ばないようになった。
+・vectorをツリー形式の文字列で表示するようにした。
 
-�|2009 12/07 (Mon)
+－2009 12/07 (Mon)
 
-�E�ʃt�H���_�Ɉړ����Aknowbug �ɉ��������B
-�E�ÓI�ϐ����X�g���A�؍\���� CVarTree �N���X�ŊǗ�����悤�ɂ����B
-�E�u�ϐ��v�^�u�̃`�F�b�N�{�b�N�X���폜���A�u�z��v�u�ÓI���[�J���v
-	�u�������_���v�v�Ȃǂ���ɍs���悤�ɂ����B
-�E�ϐ����X�g���c���[�r���[�ŕ\������悤�ɂ����B
+・別フォルダに移動し、knowbug に改名した。
+・静的変数リストを、木構造の CVarTree クラスで管理するようにした。
+・「変数」タブのチェックボックスを削除し、「配列」「静的ローカル」
+	「メモリダンプ」などを常に行うようにした。
+・変数リストをツリービューで表示するようにした。
 
-�|2009 12/06 (Sun)
+－2009 12/06 (Sun)
 
-�E�J���J�n�B
-�EEditControl �̃t�H���g���uMS UI Gothic�v����u�l�r �S�V�b�N�v�ɕύX�����B
-�E�^�u�̃y�[�W���A���E�܂ōL���g���悤�ɂ����B
-�E������ԂŁA�u�z��v�u�ÓI���[�J�� (�� : ���W���[��)�v�u�������_���v�v��
-	�`�F�b�N��������Ԃɂ����B
-�E�u�\�[�g�v�{�^�����폜���A��Ƀ\�[�g����悤�ɂ����B
-�E�ϐ����X�g�����X�g�{�b�N�X�Ɏ擾����ɍۂ��A��U CVarnameList �N���X�ɕϐ�
-	����ǉ����A����̔����q��p����悤�ɂ����B
-	@ �����郂�W���[�����Ƃɕϐ��𕪕ʂ��邽�߁B
-�E�ÓI�ϐ����X�g�́A�n�߂�1�񂾂��擾����悤�ɂ����B
-	@ �r���ŕς��킯���Ȃ����߁B
-�E�ϐ����Ȃ��Ƃ��ɁA������ iterator ��E�Q�Ƃ��Ă��܂��Ă����o�O���C�������B
+・開発開始。
+・EditControl のフォントを「MS UI Gothic」から「ＭＳ ゴシック」に変更した。
+・タブのページを、限界まで広く使うようにした。
+・初期状態で、「配列」「静的ローカル (旧 : モジュール)」「メモリダンプ」の
+	チェックをついた状態にした。
+・「ソート」ボタンを削除し、常にソートするようにした。
+・変数リストをリストボックスに取得するに際し、一旦 CVarnameList クラスに変数
+	名を追加し、それの反復子を用いるようにした。
+	@ 属するモジュールごとに変数を分別するため。
+・静的変数リストは、始めに1回だけ取得するようにした。
+	@ 途中で変わるわけがないため。
+・変数がないときに、無効な iterator を脱参照してしまっていたバグを修整した。

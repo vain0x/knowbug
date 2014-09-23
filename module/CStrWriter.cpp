@@ -1,4 +1,4 @@
-
+ï»¿
 #include <cassert>
 #include <cstring>
 #include "strf.h"
@@ -16,7 +16,7 @@ char const* const CStructedStrWriter::stc_strUnused =
 ;
 
 //------------------------------------------------
-// ’Pƒ‚È˜AŒ‹
+// å˜ç´”ãªé€£çµ
 //------------------------------------------------
 void CStrWriter::cat(char const* s)
 {
@@ -36,7 +36,7 @@ void CStrWriter::cat(char const* s, size_t lenToAppend)
 	//*/
 	assert(lenLimit_ != 0 && lenLimit_ != stc_inifiniteLength);
 
-	// ’´‚¦‚Ä‚µ‚Ü‚¤‚È‚ç‚¬‚è‚¬‚è‚Ü‚Å‘‚«‚ñ‚¾ã‚Å warning ‚ğo—Í‚·‚éB
+	// è¶…ãˆã¦ã—ã¾ã†ãªã‚‰ãã‚Šãã‚Šã¾ã§æ›¸ãè¾¼ã‚“ã ä¸Šã§ warning ã‚’å‡ºåŠ›ã™ã‚‹ã€‚
 	if ( lenToAppend > lenLimit_ ) {
 		size_t const lenAbleToWrite = lenLimit_ - std::min(lenLimit_, stc_warningLength);
 		buf_->append( s, lenAbleToWrite );
@@ -52,7 +52,7 @@ void CStrWriter::cat(char const* s, size_t lenToAppend)
 #endif
 
 //------------------------------------------------
-// ‰üs‚Ì˜AŒ‹
+// æ”¹è¡Œã®é€£çµ
 //------------------------------------------------
 void CStrWriter::catCrlf()
 {
@@ -60,9 +60,9 @@ void CStrWriter::catCrlf()
 }
 
 //------------------------------------------------
-// ƒƒ‚ƒŠƒ_ƒ“ƒv•¶š—ñ‚Ì˜AŒ‹
+// ãƒ¡ãƒ¢ãƒªãƒ€ãƒ³ãƒ—æ–‡å­—åˆ—ã®é€£çµ
 // 
-// @ ÅŒã‚Ìs‚É‰üs‚ğ‘}“ü‚µ‚È‚¢B
+// @ æœ€å¾Œã®è¡Œã«æ”¹è¡Œã‚’æŒ¿å…¥ã—ãªã„ã€‚
 //------------------------------------------------
 void CStrWriter::catDumpImpl( void const* data, size_t size )
 {
@@ -75,7 +75,7 @@ void CStrWriter::catDumpImpl( void const* data, size_t size )
 	size_t len = 0;
 	size_t idx = 0;
 	while ( idx < size ) {
-		if ( len != 0 ) catCrlf();		// 1‰ñ–Ú‚Ío—Í‚µ‚È‚¢
+		if ( len != 0 ) catCrlf();		// 1å›ç›®ã¯å‡ºåŠ›ã—ãªã„
 		
 		len = std::sprintf(tline, "%04X", idx);
 		for ( size_t i = 0; (i < stc_bytesPerLine && idx < size); ++i, ++idx ) {
@@ -94,7 +94,7 @@ void CStrWriter::catDump(void const* data, size_t bufsize)
 	size_t size = bufsize;
 
 	if ( size > stc_maxsize ) {
-		catln(strf("‘S%d[byte]‚Ì“àA%d[byte]‚Ì‚İƒ_ƒ“ƒv‚µ‚Ü‚·B", bufsize, stc_maxsize));
+		catln(strf("å…¨%d[byte]ã®å†…ã€%d[byte]ã®ã¿ãƒ€ãƒ³ãƒ—ã—ã¾ã™ã€‚", bufsize, stc_maxsize));
 		size = stc_maxsize;
 	}
 

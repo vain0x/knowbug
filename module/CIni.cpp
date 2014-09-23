@@ -1,4 +1,4 @@
-// INIƒtƒ@ƒCƒ‹“Ç‚İ‘‚«ƒNƒ‰ƒX
+ï»¿// INIãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿æ›¸ãã‚¯ãƒ©ã‚¹
 
 #include <windows.h>
 #include <cstdio>
@@ -11,7 +11,7 @@
 static char const* const STR_BOOLEAN[2] = { "false", "true" };
 
 //------------------------------------------------
-// \’z
+// æ§‹ç¯‰
 //------------------------------------------------
 CIni::CIni( char const* fname )
 	: msFilename( nullptr )
@@ -26,7 +26,7 @@ CIni::CIni( char const* fname )
 }
 
 //------------------------------------------------
-// ‰ğ‘Ì
+// è§£ä½“
 //------------------------------------------------
 CIni::~CIni()
 {
@@ -38,7 +38,7 @@ CIni::~CIni()
 }
 
 //------------------------------------------------
-// ƒtƒ@ƒCƒ‹‚ğŠJ‚­
+// ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã
 //------------------------------------------------
 void CIni::open( char const* fname )
 {
@@ -50,7 +50,7 @@ void CIni::open( char const* fname )
 }
 
 //------------------------------------------------
-// ƒtƒ@ƒCƒ‹‚ğ•Â‚¶‚é
+// ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‰ã˜ã‚‹
 //------------------------------------------------
 void CIni::close()
 {
@@ -59,7 +59,7 @@ void CIni::close()
 }
 
 //------------------------------------------------
-// [get] ˜_—’l (false | true, or 0 | non-0)
+// [get] è«–ç†å€¤ (false | true, or 0 | non-0)
 //------------------------------------------------
 bool CIni::getBool( char const* sec, char const* key, bool defval )
 {
@@ -67,13 +67,13 @@ bool CIni::getBool( char const* sec, char const* key, bool defval )
 	reserve( MinBufForBooleanString );
 	GetPrivateProfileStringA( sec, key, STR_BOOLEAN[defval ? 1 : 0], msBuf, MinBufForBooleanString - 1, msFilename );
 
-	CharLower( msBuf );		// ¬•¶š‚É‚·‚é
+	CharLower( msBuf );		// å°æ–‡å­—ã«ã™ã‚‹
 	
 	return !( strcmp(msBuf, "0") == 0 || strcmp(msBuf, STR_BOOLEAN[0]) == 0 );
 }
 
 //------------------------------------------------
-// [get] ®”’l
+// [get] æ•´æ•°å€¤
 //------------------------------------------------
 int CIni::getInt( char const* sec, char const* key, int defval )
 {
@@ -81,7 +81,7 @@ int CIni::getInt( char const* sec, char const* key, int defval )
 }
 
 //------------------------------------------------
-// [get] •¶š—ñ
+// [get] æ–‡å­—åˆ—
 //------------------------------------------------
 char const* CIni::getString( char const* sec, char const* key, char const* defval, size_t size )
 {
@@ -92,18 +92,18 @@ char const* CIni::getString( char const* sec, char const* key, char const* defva
 }
 
 //------------------------------------------------
-// [set] ˜_—’l
+// [set] è«–ç†å€¤
 //------------------------------------------------
 void CIni::setBool( char const* sec, char const* key, bool val )
 {
-	strcpy_s( msBuf, msizeBuf, STR_BOOLEAN[val ? 1 : 0] );		// •¶š—ñ‚Å‘‚«‚Ş
+	strcpy_s( msBuf, msizeBuf, STR_BOOLEAN[val ? 1 : 0] );		// æ–‡å­—åˆ—ã§æ›¸ãè¾¼ã‚€
 	
 	WritePrivateProfileStringA( sec, key, msBuf, msFilename );
 	return;
 }
 
 //------------------------------------------------
-// [set] ®”’l
+// [set] æ•´æ•°å€¤
 //------------------------------------------------
 void CIni::setInt( char const* sec, char const* key, int val, int radix )
 {
@@ -114,7 +114,7 @@ void CIni::setInt( char const* sec, char const* key, int val, int radix )
 }
 
 //------------------------------------------------
-// [set] •¶š—ñ
+// [set] æ–‡å­—åˆ—
 //------------------------------------------------
 void CIni::setString( char const* sec, char const* key, char const* val )
 {
@@ -125,7 +125,7 @@ void CIni::setString( char const* sec, char const* key, char const* val )
 }
 
 //------------------------------------------------
-// ƒZƒNƒVƒ‡ƒ“‚Ì—ñ‹“
+// ã‚»ã‚¯ã‚·ãƒ§ãƒ³ã®åˆ—æŒ™
 //------------------------------------------------
 std::list<std::string> CIni::enumSections()
 {
@@ -133,7 +133,7 @@ std::list<std::string> CIni::enumSections()
 }
 
 //------------------------------------------------
-// ƒL[‚Ì—ñ‹“
+// ã‚­ãƒ¼ã®åˆ—æŒ™
 //------------------------------------------------
 std::list<std::string> CIni::enumKeys(char const* sec)
 {
@@ -141,7 +141,7 @@ std::list<std::string> CIni::enumKeys(char const* sec)
 }
 
 //------------------------------------------------
-// —ñ‹“
+// åˆ—æŒ™
 //------------------------------------------------
 static std::list<std::string> splitByNullChar(char const* buf, size_t size);
 
@@ -150,7 +150,7 @@ std::list<std::string> CIni::enumImpl(char const* secOrNull)
 	size_t const size =
 		GetPrivateProfileString(secOrNull, nullptr, nullptr, msBuf, msizeBuf, msFilename);
 	
-	// ƒoƒbƒtƒ@•s‘«
+	// ãƒãƒƒãƒ•ã‚¡ä¸è¶³
 	if ( size == msizeBuf - 2 ) {
 		expand(msizeBuf);
 		return enumImpl(secOrNull);
@@ -159,7 +159,7 @@ std::list<std::string> CIni::enumImpl(char const* secOrNull)
 	return splitByNullChar(msBuf, size);
 }
 
-// '\0' ‹æØ‚è•¶š—ñAI’[‚Í2˜A‘±‚Ì '\0'
+// '\0' åŒºåˆ‡ã‚Šæ–‡å­—åˆ—ã€çµ‚ç«¯ã¯2é€£ç¶šã® '\0'
 std::list<std::string> splitByNullChar(char const* buf, size_t size)
 {
 	std::list<std::string> ls;
@@ -178,7 +178,7 @@ std::list<std::string> splitByNullChar(char const* buf, size_t size)
 }
 
 //------------------------------------------------
-// ƒZƒNƒVƒ‡ƒ“‚ğíœ‚·‚é
+// ã‚»ã‚¯ã‚·ãƒ§ãƒ³ã‚’å‰Šé™¤ã™ã‚‹
 //------------------------------------------------
 void CIni::removeSection( char const* sec )
 {
@@ -187,7 +187,7 @@ void CIni::removeSection( char const* sec )
 }
 
 //------------------------------------------------
-// ƒL[‚ğíœ‚·‚é
+// ã‚­ãƒ¼ã‚’å‰Šé™¤ã™ã‚‹
 //------------------------------------------------
 void CIni::removeKey( char const* sec, char const* key )
 {
@@ -196,7 +196,7 @@ void CIni::removeKey( char const* sec, char const* key )
 }
 
 //------------------------------------------------
-// ƒL[‚Ì—L–³
+// ã‚­ãƒ¼ã®æœ‰ç„¡
 //------------------------------------------------
 bool CIni::existsKey( char const* sec, char const* key )
 {
@@ -206,7 +206,7 @@ bool CIni::existsKey( char const* sec, char const* key )
 }
 
 //------------------------------------------------
-// ƒoƒbƒtƒ@‚ğŠg’£‚·‚é
+// ãƒãƒƒãƒ•ã‚¡ã‚’æ‹¡å¼µã™ã‚‹
 //------------------------------------------------
 void CIni::reserve( size_t newSize )
 {

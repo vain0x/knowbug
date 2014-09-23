@@ -1,12 +1,12 @@
-// VarTree
+﻿// VarTree
 
-// ���W���[�����m�[�h�A�ÓI�ϐ������[�t�Ƃ���؍\��
+// モジュールをノード、静的変数をリーフとする木構造
 
-// ���̃N���X�Ƃ��ẮA���W���[�����͐擪�� '@' ���܂ނƂ���B
-// (�������������\�[�g�̎�Ԃ��Ȃ���)
-// �ϐ����̓X�R�[�v�������܂ނƂ���B(gvar �܂��� lvar@mod)
+// このクラスとしては、モジュール名は先頭の '@' を含むとする。
+// (そうした方がソートの手間が省ける)
+// 変数名はスコープ解決を含むとする。(gvar または lvar@mod)
 
-// �㐔�I�f�[�^�^�ɂ��悤�Ǝv�������A��ʉ��ł��Ȃ��܂ܕ��u
+// 代数的データ型にしようと思ったが、一般化できないまま放置
 
 #ifndef IG_CLASS_VAR_TREE_H
 #define IG_CLASS_VAR_TREE_H
@@ -68,8 +68,8 @@ public:
 			case CaseId::Module: return fModule(*asCaseOf<ModuleNode>());
 		}
 	}
-	// non const �ł͏ȗ�
-	// template<...> TResult match() { ���l }
+	// non const 版は省略
+	// template<...> TResult match() { 同様 }
 };
 
 // Var
@@ -120,7 +120,7 @@ public:
 private:
 	ModuleNode& insertChildModule(char const* pModname);
 
-	// �q�m�[�h����������B�Ȃ���Βǉ�����B
+	// 子ノードを検索する。なければ追加する。
 	template<typename TNode, typename ...TArgs>
 	TNode& insertChildImpl(string const& name, TArgs&& ...args)
 	{

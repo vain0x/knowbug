@@ -1,4 +1,4 @@
-// ƒtƒH[ƒ}ƒbƒg•t‚«•¶š—ñ
+ï»¿// ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆä»˜ãæ–‡å­—åˆ—
 
 // type unsafe
 // use boost::format if able.
@@ -19,7 +19,7 @@ extern std::string vstrf(char const* format, va_list& arglist);
 std::string  operator *  (std::string const& self, size_t n);
 std::string& operator *= (std::string& self, size_t n);
 
-// —ñ‚©‚ç•¶š—ñ‚ğ¶¬‚·‚é
+// åˆ—ã‹ã‚‰æ–‡å­—åˆ—ã‚’ç”Ÿæˆã™ã‚‹
 template<typename TIter>
 std::string join(TIter&& begin, TIter&& end, char const* delimiter)
 {

@@ -1,6 +1,6 @@
-// knowbug - main header
+ï»¿// knowbug - main header
 
-// todo: ‚æ‚­‚í‚©‚ç‚È‚¢ƒwƒbƒ_
+// todo: ã‚ˆãã‚ã‹ã‚‰ãªã„ãƒ˜ãƒƒãƒ€
 
 #ifndef IG_HSP3DBGWIN_KNOWBUG_H
 #define IG_HSP3DBGWIN_KNOWBUG_H
@@ -33,13 +33,13 @@ namespace WrapCall
 #endif
 
 //extern HSP3DEBUG* g_debug;
-//extern HSPCTX*       ctx;	// hsp3plugin ‚ÅéŒ¾E’è‹`‚³‚ê‚é
+//extern HSPCTX*       ctx;	// hsp3plugin ã§å®£è¨€ãƒ»å®šç¾©ã•ã‚Œã‚‹
 //extern HSPEXINFO* exinfo;
 
 struct DebugInfo;
 extern DebugInfo* g_dbginfo;
 
-// knowbug ƒRƒ“ƒgƒ[ƒ‹
+// knowbug ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«
 namespace Knowbug
 {
 	extern HINSTANCE getInstance();
@@ -58,7 +58,7 @@ namespace Knowbug
 	extern void logmesWarning(char const* msg);
 
 #ifdef with_WrapCall
-	// WrapCall ‘¤‚©‚çŒÄ‚Î‚ê‚éŠÖ”
+	// WrapCall å´ã‹ã‚‰å‘¼ã°ã‚Œã‚‹é–¢æ•°
 	using ModcmdCallInfo = ::WrapCall::ModcmdCallInfo;
 	extern void bgnCalling(ModcmdCallInfo const& callinfo);
 	extern void endCalling(ModcmdCallInfo const& callinfo, void* ptr, vartype_t vtype);

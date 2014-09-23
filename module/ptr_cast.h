@@ -1,7 +1,7 @@
-#ifndef IG_POINTER_CAST_H
+ï»¿#ifndef IG_POINTER_CAST_H
 #define IG_POINTER_CAST_H
 
-/// ƒ|ƒCƒ“ƒ^Œ^“¯m‚ÌƒLƒƒƒXƒg
+/// ãƒã‚¤ãƒ³ã‚¿å‹åŒå£«ã®ã‚­ãƒ£ã‚¹ãƒˆ
 template<class T>
 T ptr_cast(void* p)
 {
@@ -18,10 +18,12 @@ template<class T,
 	class U = std::remove_pointer_t<T>>
 U const* cptr_cast(void const* p)
 {
+	static_assert(std::is_pointer<T>::value, "");
+	
 	return static_cast<U const*>(p);
 }
 
-/// ƒ|ƒCƒ“ƒ^¨®”
+/// ãƒã‚¤ãƒ³ã‚¿â†’æ•´æ•°
 #ifdef _UINTPTR_T_DEFINED
 static uintptr_t address_cast(void const* p)
 {

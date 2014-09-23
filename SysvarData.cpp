@@ -1,4 +1,4 @@
-// SysvarData ‚ğg—p‚·‚éŠÖ”
+ï»¿// SysvarData ã‚’ä½¿ç”¨ã™ã‚‹é–¢æ•°
 
 #include <cassert>
 #include <cstring>
@@ -9,7 +9,7 @@
 #include "SysvarData.h"
 
 //------------------------------------------------
-// ƒVƒXƒeƒ€•Ï”–¼‚©‚çƒCƒ“ƒfƒbƒNƒX’l‚ğ‹‚ß‚é
+// ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°åã‹ã‚‰ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹å€¤ã‚’æ±‚ã‚ã‚‹
 // 
 // (failure: SysvarId_MAX)
 //------------------------------------------------
@@ -22,9 +22,9 @@ SysvarId Sysvar_seek( char const* name )
 }
 
 //------------------------------------------------
-// ®”’l‚ÌƒVƒXƒeƒ€•Ï”‚Ö‚Ìƒ|ƒCƒ“ƒ^‚ğ“¾‚é
+// æ•´æ•°å€¤ã®ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ã¸ã®ãƒã‚¤ãƒ³ã‚¿ã‚’å¾—ã‚‹
 //
-// @ cnt ‚Ì‚İ nullptr ‚ğ•Ô‚µ‚¤‚é‚Ì‚Å’ˆÓB
+// @ cnt ã®ã¿ nullptr ã‚’è¿”ã—ã†ã‚‹ã®ã§æ³¨æ„ã€‚
 //------------------------------------------------
 int* Sysvar_getPtrOfInt(int id)
 {
@@ -48,7 +48,7 @@ int* Sysvar_getPtrOfInt(int id)
 }
 
 //------------------------------------------------
-// thismod ‚Ì’l
+// thismod ã®å€¤
 // 
 // (failure: nullptr)
 //------------------------------------------------
@@ -78,7 +78,7 @@ FlexValue* Sysvar_getThismod()
 }
 
 //------------------------------------------------
-// ƒƒ‚ƒŠƒ_ƒ“ƒv‚·‚é‚½‚ß‚Ìî•ñ‚ğ“¾‚é
+// ãƒ¡ãƒ¢ãƒªãƒ€ãƒ³ãƒ—ã™ã‚‹ãŸã‚ã®æƒ…å ±ã‚’å¾—ã‚‹
 //------------------------------------------------
 void Sysvar_getDumpInfo(int id, void const*& out_data, size_t& out_size)
 {
@@ -121,7 +121,7 @@ void Sysvar_getDumpInfo(int id, void const*& out_data, size_t& out_size)
 			}
 
 		default:
-			// ®”’l
+			// æ•´æ•°å€¤
 			if ( SysvarData[id].type == HSPVAR_FLAG_INT ) {
 				out_data = Sysvar_getPtrOfInt(id); out_size = sizeof(int);
 				return;

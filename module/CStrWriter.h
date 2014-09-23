@@ -1,4 +1,4 @@
-// •¶š—ñ‚Ö‚Ì®Œ`‘‚«‚İ
+ï»¿// æ–‡å­—åˆ—ã¸ã®æ•´å½¢æ›¸ãè¾¼ã¿
 
 #ifndef IG_CLASS_STRING_WRITER_H
 #define IG_CLASS_STRING_WRITER_H
@@ -11,12 +11,12 @@ class CTreeformedWriter;
 class CLineformedWriter;
 
 //------------------------------------------------
-// string ‚Ö‚Ì’Ç‰Á‘‚«‚İ‚ğx‰‡‚·‚éƒNƒ‰ƒX
+// string ã¸ã®è¿½åŠ æ›¸ãè¾¼ã¿ã‚’æ”¯æ´ã™ã‚‹ã‚¯ãƒ©ã‚¹
 //
-// •¶š—ñƒoƒbƒtƒ@‚ğŠ—L‚µ‚È‚¢B
-// std::sstream g‚¦‚Î‚¢‚¢‚Ì‚Å‚ÍB
-// ‘‚«‚İ—Ê§ŒÀ‚Ì‹@”\‚ğÈ‚¢‚½‚Ì‚Å•K—v«‚ª”÷–­‚ÉB
-// (‘‚«‚İ—Ê§ŒÀ‚Íƒoƒbƒtƒ@‘¤‚ª‚Á‚Ä‚¢‚é‚×‚«‚©‚Æ)
+// æ–‡å­—åˆ—ãƒãƒƒãƒ•ã‚¡ã‚’æ‰€æœ‰ã—ãªã„ã€‚
+// std::sstream ä½¿ãˆã°ã„ã„ã®ã§ã¯ã€‚
+// æ›¸ãè¾¼ã¿é‡åˆ¶é™ã®æ©Ÿèƒ½ã‚’çœã„ãŸã®ã§å¿…è¦æ€§ãŒå¾®å¦™ã«ã€‚
+// (æ›¸ãè¾¼ã¿é‡åˆ¶é™ã¯ãƒãƒƒãƒ•ã‚¡å´ãŒæŒã£ã¦ã„ã‚‹ã¹ãã‹ã¨)
 //------------------------------------------------
 class CStrWriter
 {
@@ -33,7 +33,7 @@ public:
 	string const& get() const { return *buf_; }
 	string* getBuf() const { return buf_; }
 
-	// o—Íƒƒ\ƒbƒh
+	// å‡ºåŠ›ãƒ¡ã‚½ãƒƒãƒ‰
 	void cat(char const* src);
 	void cat(string const& src) { cat(src.c_str()); }
 	void catln(char const* s) { cat(s); catCrlf(); }
@@ -45,24 +45,24 @@ private:
 
 	/*
 public:
-	// ‘‚«‚İ—Ê§ŒÀ
+	// æ›¸ãè¾¼ã¿é‡åˆ¶é™
 	static char const* const stc_warning;	// "(too long)"
 	static size_t const stc_warningLength = 10;	//= std::strlen(stc_warning);
 	static size_t const stc_inifiniteLength = 0xFFFFFFFF;
 	size_t getLimit() const { return lenLimit_; }
 private:
-	size_t lenLimit_;	// c‚è‚Ì‘‚«‚İ—Ê§ŒÀ
+	size_t lenLimit_;	// æ®‹ã‚Šã®æ›¸ãè¾¼ã¿é‡åˆ¶é™
 	//*/
 private:
 	string* buf_;
 };
 
 //------------------------------------------------
-// \‘¢•t‚« (treeform or lineform)
+// æ§‹é€ ä»˜ã (treeform or lineform)
 // 
 // for CVardataStrWriter
-// name, left-right Bracket ‚Ì¶¬‚Í‚Ç‚¿‚ç‚©‚µ‚©g‚í‚È‚¢‚Ì‚É—¼•û—pˆÓ‚³‚¹‚éA‚â‚â•x‹“Id—l
-// •W€”z—ñ•Ï”‚Ìˆ—‚ª‚¢‚Ü‚¢‚¿
+// name, left-right Bracket ã®ç”Ÿæˆã¯ã©ã¡ã‚‰ã‹ã—ã‹ä½¿ã‚ãªã„ã®ã«ä¸¡æ–¹ç”¨æ„ã•ã›ã‚‹ã€ã‚„ã‚„å¯Œè±ªçš„ä»•æ§˜
+// æ¨™æº–é…åˆ—å¤‰æ•°ã®å‡¦ç†ãŒã„ã¾ã„ã¡
 //------------------------------------------------
 class CStructedStrWriter
 	: public CStrWriter
@@ -76,9 +76,9 @@ private:
 		, lvNest_ { 0 }
 	{ }
 
-	// ƒeƒ“ƒvƒŒ[ƒgƒƒ\ƒbƒh
+	// ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆãƒ¡ã‚½ãƒƒãƒ‰
 public:
-	virtual bool isLineformed() const = 0;	// — ‹Z‚Á‚Û‚¢
+	virtual bool isLineformed() const = 0;	// è£æŠ€ã£ã½ã„
 	virtual void catLeaf(char const* name, char const* value) = 0;
 	virtual void catLeafExtra(char const* name, char const* state) = 0;
 	virtual void catNodeBegin(char const* name, char const* leftBracket) = 0;
@@ -90,18 +90,18 @@ public:
 	void catLeafExtra(string const& name, char const* state) { catLeafExtra(name.c_str(), state); }
 	void catNodeBegin(string const& name, char const* leftBracket) { catNodeBegin(name.c_str(), leftBracket); }
 
-	// ƒlƒXƒgŠÇ—
+	// ãƒã‚¹ãƒˆç®¡ç†
 	void incNest() { ++lvNest_; }
 	void decNest() { --lvNest_; }
 
 	int getNest() const { return lvNest_; }
-	bool inifiniteNesting() const { return lvNest_ > 64; }	// –³ŒÀƒlƒXƒg‚©‚ç•ÛŒì
+	bool inifiniteNesting() const { return lvNest_ > 64; }	// ç„¡é™ãƒã‚¹ãƒˆã‹ã‚‰ä¿è­·
 
 private:
 	int lvNest_;
 
 public:
-	// g—p‚³‚ê‚È‚¢•¶š—ñ (ƒfƒoƒbƒO‚É nullptr ‚Æ‹æ•Ê‚µ‚½‚¢)
+	// ä½¿ç”¨ã•ã‚Œãªã„æ–‡å­—åˆ— (ãƒ‡ãƒãƒƒã‚°æ™‚ã« nullptr ã¨åŒºåˆ¥ã—ãŸã„)
 	static char const* const stc_strUnused;
 private:
 	inline void assertUsingParameter(char const* from, char const* p) const {
@@ -110,7 +110,7 @@ private:
 };
 
 //------------------------------------------------
-// ƒcƒŠ[ó
+// ãƒ„ãƒªãƒ¼çŠ¶
 //------------------------------------------------
 class CTreeformedWriter
 	: public CStructedStrWriter
@@ -173,7 +173,7 @@ private:
 };
 
 //------------------------------------------------
-// ˆês
+// ä¸€è¡Œ
 //------------------------------------------------
 class CLineformedWriter
 	: public CStructedStrWriter
