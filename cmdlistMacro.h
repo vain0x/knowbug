@@ -42,8 +42,8 @@
 # if _CmdlistModeProcess == 'V'
 #  define HpiCmd__V(_Id, _Keyword) case Id::_Keyword: return _Keyword(ppResult);
 #  define HpiCmdS_V HpiCmd__V
-#  define HpiCmd_FV HpiCmd__V
-#  define HpiCmdSFV HpiCmd__V
+#  define HpiCmd_FV(_Id, _Keyword) case Id::_Keyword: return _Keyword(ppResult, true);
+#  define HpiCmdSFV HpiCmd_FV
 #  define HpiCmdS__ HpiCmd___
 #  define HpiCmd_F_ HpiCmd___
 #  define HpiCmdSF_ HpiCmd___
