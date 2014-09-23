@@ -12,9 +12,9 @@ nullptr に加えて、MagicNull という無効値を持つ。
 
 追加のテンプレート引数で、default ctor における動作を設定できる。もっとうまい方法がよい。
 
-なお Managed<TDerived> → Managed<TBase> のアップキャストはできない。実に不便。
+なお Managed<TBase> ←→ Managed<TDerived> のアップキャスト、ダウンキャストはできない。不便。
 また、Managed<T> に TDerived* を所有させるなら、T の destructor (dtor) が virtual であるか、
-TDerived とその基底クラスのすべての dtor が trivial でなければならない。(後者は制約としてコードされていない。)
+TDerived とその基底クラスのすべての dtor が trivial でなければならない。(Managed<> が型消去を使っていないため。)
 
 (sizeof(Managed<T>) == sizeof(void*)) という制約がある。
 vector_k 型は PVal::master の領域に Managed<> を配置 new する。
@@ -45,7 +45,7 @@ namespace detail {
 	template<typename T>
 	struct DefaultCtorDtor {
 		void ctor(T* p) { new(p) T(); }
-		void dtor(T& self) { self->~T(); }
+		void dtor(T& self) { self.~T(); }
 	};
 }
 
@@ -57,7 +57,7 @@ template<typename TValue,
 >
 class Managed {
 	struct inst_t {
-	//	int paddings_[2];
+		int paddings_[2];
 		mutable int cnt_;
 		mutable bool tmpobj_;
 		unsigned char padding_;		// (for instance id while debugging)
@@ -95,7 +95,7 @@ private:
 			std::allocator_traits<CharAllocator>::allocate(getAllocator<CharAllocator>(), instHeaderSize + sizeof(TInit))
 		);
 
-		::new(inst_)inst_t { 1, false, '\0', MagicCode, {} };
+		::new(inst_)inst_t { {}, 1, false, '\0', MagicCode, {} };
 
 		assert(inst_->cnt_ == 1 && inst_->tmpobj_ == false && inst_->magicCode_ == MagicCode
 			&& static_cast<void const*>(&inst_->magicCode_ + 1) == (inst_->value_)
@@ -112,10 +112,18 @@ private:
 
 public:
 	// default ctor
-	explicit Managed() : inst_ { nullptr }
-	{
-		static_assert(std::is_default_constructible<value_type>::value, "");
+	Managed() : inst_ { nullptr } { defaultCtor(); }
 
+	template<typename TVoid = void,
+		std::enable_if_t<bNullCtor, TVoid>* = nullptr
+	> void defaultCtor()
+	{ }
+
+	template<
+		typename TVoid = void,
+		std::enable_if_t<!bNullCtor, TVoid>* = nullptr
+	> void defaultCtor()
+	{
 		initializeHeader<value_type>();
 		std::allocator_traits<Allocator>::construct(getAllocator(), valuePtr());
 		//DefaultCtorDtor::ctor(valuePtr());
@@ -128,14 +136,17 @@ public:
 		static_assert(std::is_class<TDerived>::value && std::is_convertible<TDerived*, value_type*>::value, "互換性のない型では初期化できない。");
 		static_assert(std::is_same<value_type, TDerived>::value || std::has_trivial_destructor<TDerived>::value || std::has_virtual_destructor<value_type>::value,
 			"Managed<T> が T の派生形を所有するためには、その派生型が trivial destructor を持つか、T が virtual な destructor を持たなければならない。正常に解放できないため。");
+		static_assert(std::is_constructible<TDerived, Args...>::value, "constructor TDerived(Args...) is not found.");
 
 		self_t self { nullptr }; self.initializeHeader<TDerived>();
 
-		// todo: allocator has gone.
 		using rebound_t = std::allocator_traits<Allocator>::rebind_alloc<TDerived>;
 		std::allocator_traits<rebound_t>::construct(getAllocator<rebound_t>(),
-			self.valuePtr(), std::forward<Args>(args)...);
-	//	new(self.valuePtr()) TDerived(std::forward<Args>(args)...);
+			reinterpret_cast<TDerived*>(self.valuePtr()),
+			std::forward<Args>(args)...
+		);
+		// todo: allocator has gone.
+		//new(self.valuePtr()) TDerived(std::forward<Args>(args)...);
 		return std::move(self);
 	}
 
@@ -217,7 +228,7 @@ private:
 		const_cast<unsigned short&>(inst_->magicCode_) = 0;
 		const_cast<inst_t*&>(inst_) = nullptr;
 
-		std::allocator_traits<Allocator>::destroy(getAllocator(), inst_bak);
+		std::allocator_traits<Allocator>::destroy(getAllocator(), &value_bak);
 		std::allocator_traits<CharAllocator>::deallocate(getAllocator<CharAllocator>(),
 			reinterpret_cast<char*>(inst_bak), 1);		// HspAllocator<> ignores counts to deallocate.
 		//DefaultCtorDtor::dtor(value_bak);

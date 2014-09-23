@@ -4,7 +4,7 @@
 #define IG_KNOWBUG_FOR_HSP_PLUGIN_H
 
 #include <Windows.h>
-#include "D:/Docs/prg/cpp/Project/knowbug/ExVardataString.h"
+#include "../knowbug/ExVardataString.h"
 
 extern HMODULE g_hKnowbug;
 
