@@ -28,7 +28,7 @@ namespace WrapCall
 
 	public:
 		// ctor
-		ResultNodeData(ModcmdCallInfo const& callinfo, void* ptr, vartype_t vt)
+		ResultNodeData(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vt)
 			: stdat(callinfo.stdat)
 			, vtype(vt)
 			, pCallInfoDepended(callinfo.getDependedCallInfo())

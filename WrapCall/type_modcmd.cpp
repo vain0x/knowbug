@@ -61,7 +61,7 @@ void* modcmd_reffunc(int* type_res, int cmdid)
 	stdat_t const stdat = hpimod::getSTRUCTDAT(cmdid);
 
 	WrapCall::bgnCall(stdat);
-	void* const result = g_modcmd_reffunc_impl(type_res, cmdid);
+	PDAT* const result = static_cast<PDAT*>(g_modcmd_reffunc_impl(type_res, cmdid));
 	WrapCall::endCall(result, *type_res);
 	return result;
 }

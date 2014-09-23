@@ -43,7 +43,7 @@ void knowbugVsw_addVarArray(vswriter_t _w, char const* name, PVal const* pval)
 	vswriter(_w).addVarArray(name, pval);
 }
 
-void knowbugVsw_addValue(vswriter_t _w, char const* name, void const* ptr, /*vartype_t*/ unsigned short vtype)
+void knowbugVsw_addValue(vswriter_t _w, char const* name, PDAT const* ptr, /*vartype_t*/ unsigned short vtype)
 {
 	vswriter(_w).addValue(name, vtype, ptr);
 }

@@ -54,7 +54,7 @@ public:
 	void addVarArray(char const* name, PVal const* pval);
 	void addVarArrayRec(PVal const* pval, size_t const cntElem[], size_t idxDim, APTR aptr_offset);
 
-	void addValue(char const* name, vartype_t type, void const* ptr);
+	void addValue(char const* name, vartype_t type, PDAT const* ptr);
 	void addValueStruct(char const* name, FlexValue const* fv);
 
 #ifdef with_Assoc
@@ -78,7 +78,7 @@ public:
 
 	void addCall(stdat_t stdat, void const* prmstk);
 	void addCall(char const* name, stdat_t stdat, void const* prmstk);
-	void addResult(char const* name, void const* ptr, vartype_t type);
+	void addResult(char const* name, PDAT const* ptr, vartype_t type);
 	
 public:
 	CStructedStrWriter& getWriter() const { return *writer_; }

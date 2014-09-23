@@ -32,7 +32,7 @@ struct KnowbugVswMethods
 	void(*addVarScalar)(vswriter_t, char const* name, PVal const* pval, APTR aptr);
 	void(*addVarArray)(vswriter_t, char const* name, PVal const* pval);
 
-	void(*addValue)(vswriter_t, char const* name, void const* ptr, /*vartype_t*/ unsigned short vtype);
+	void(*addValue)(vswriter_t, char const* name, PDAT const* ptr, /*vartype_t*/ unsigned short vtype);
 	void(*addPrmstack)(vswriter_t, STRUCTDAT const* stdat, void const* prmstack);
 	void(*addStPrm)(vswriter_t, char const* name, STRUCTPRM const* stprm, void const* ptr);
 	void(*addSysvar)(vswriter_t, char const* name);

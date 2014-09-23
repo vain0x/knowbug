@@ -19,7 +19,7 @@ static int g_pluginType_WrapCall = -1;
 /*
 struct ValueRef
 {
-	void*      p;
+	PDAT*      p;
 	vartype_t vt;
 public:
 	ValueRef()
@@ -27,7 +27,7 @@ public:
 		, vt(HSPVAR_FLAG_NONE)
 	{ }
 
-	void set(void* p1, vartype_t vt1) {
+	void set(PDAT* p1, vartype_t vt1) {
 		p = p1; vt = vt1;
 	}
 };
@@ -95,7 +95,7 @@ void endCall()
 	return endCall(nullptr, HSPVAR_FLAG_NONE);
 }
 
-void endCall(void* p, vartype_t vt)
+void endCall(PDAT* p, vartype_t vt)
 {
 	if (g_stkCallInfo.empty()) return;
 	

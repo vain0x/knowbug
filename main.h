@@ -61,7 +61,7 @@ namespace Knowbug
 	// WrapCall 側から呼ばれる関数
 	using ModcmdCallInfo = ::WrapCall::ModcmdCallInfo;
 	extern void bgnCalling(ModcmdCallInfo const& callinfo);
-	extern void endCalling(ModcmdCallInfo const& callinfo, void* ptr, vartype_t vtype);
+	extern void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype);
 #endif
 
 } // namespace Knowbug

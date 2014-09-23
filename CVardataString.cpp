@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include "module/ptr_cast.h"
+#include "hpimod/vartype_traits.h"
 
 #include "main.h"
 
@@ -11,9 +12,12 @@
 #include "with_ModPtr.h"
 #include "WrapCall/ResultNodeData.h"
 
+namespace VtTraits { using namespace hpimod::VtTraits; }
+using namespace hpimod::VtTraits::InternalVartypeTags;
+
 extern string getVartypeString(PVal const* pval);
 
-static string stringizeSimpleValue(vartype_t type, void const* ptr, bool bShort);
+static string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort);
 static char const* findVarName(PVal const* pval);
 
 //##########################################################
@@ -134,7 +138,7 @@ void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const cntElems[]
 //------------------------------------------------
 // 一般の値
 //------------------------------------------------
-void CVardataStrWriter::addValue(char const* name, vartype_t type, void const* ptr)
+void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* ptr)
 {
 	// 無限ネスト対策
 	if ( getWriter().inifiniteNesting() ) {
@@ -275,20 +279,20 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 		// 文字列 (char**)
 		//	case MPTYPE_STRING:
 		case MPTYPE_LOCALSTRING:
-			addValue(name, HSPVAR_FLAG_STR, *cptr_cast<char**>(member));
+			addValue(name, HSPVAR_FLAG_STR, VtTraits::asPDAT<vtStr>(*cptr_cast<char**>(member)));
 			break;
 
 		// その他
 		case MPTYPE_DNUM:
-			addValue(name, HSPVAR_FLAG_DOUBLE, cptr_cast<double*>(member));
+			addValue(name, HSPVAR_FLAG_DOUBLE, VtTraits::asPDAT<vtDouble>(cptr_cast<double*>(member)));
 			break;
 
 		case MPTYPE_INUM:
-			addValue(name, HSPVAR_FLAG_INT, cptr_cast<int*>(member));
+			addValue(name, HSPVAR_FLAG_INT, VtTraits::asPDAT<vtInt>(cptr_cast<int*>(member)));
 			break;
 
 		case MPTYPE_LABEL:
-			addValue(name, HSPVAR_FLAG_LABEL, cptr_cast<label_t*>(member));
+			addValue(name, HSPVAR_FLAG_LABEL, VtTraits::asPDAT<vtLabel>(cptr_cast<label_t*>(member)));
 			break;
 
 		// 他 => 無視
@@ -312,11 +316,11 @@ void CVardataStrWriter::addSysvar(SysvarId id)
 
 	switch ( id ) {
 		case SysvarId_Refstr:
-			addValue(name, HSPVAR_FLAG_STR, ctx->refstr);
+			addValue(name, HSPVAR_FLAG_STR, VtTraits::asPDAT<vtStr>(ctx->refstr));
 			break;
 
 		case SysvarId_Refdval:
-			addValue(name, HSPVAR_FLAG_DOUBLE, &ctx->refdval);
+			addValue(name, HSPVAR_FLAG_DOUBLE, VtTraits::asPDAT<vtDouble>(&ctx->refdval));
 			break;
 
 		case SysvarId_Cnt:
@@ -325,7 +329,8 @@ void CVardataStrWriter::addSysvar(SysvarId id)
 				getWriter().catNodeBegin(name, "<int>[");
 				for ( int i = 0; i < ctx->looplev; ++ i ) {
 					auto const lvLoop = ctx->looplev - i;
-					addValue(strf("#%d", lvLoop).c_str(), HSPVAR_FLAG_INT, &ctx->mem_loop[lvLoop].cnt);
+					addValue(strf("#%d", lvLoop).c_str(), HSPVAR_FLAG_INT,
+						VtTraits::asPDAT<vtInt>(&ctx->mem_loop[lvLoop].cnt));
 					//getWriter().catLeaf(strf("#%d", lvLoop), strf("%d", cnt).c_str());
 				}
 				getWriter().catNodeEnd("]");
@@ -363,7 +368,7 @@ void CVardataStrWriter::addSysvar(SysvarId id)
 		default:
 			// 整数値
 			if ( SysvarData[id].type == HSPVAR_FLAG_INT ) {
-				addValue(name, HSPVAR_FLAG_INT, Sysvar_getPtrOfInt(id));
+				addValue(name, HSPVAR_FLAG_INT, VtTraits::asPDAT<vtInt>(Sysvar_getPtrOfInt(id)));
 				break;
 			} else throw;
 	};
@@ -406,7 +411,7 @@ void CVardataStrWriter::addCall(char const* name, stdat_t stdat, void const* prm
 //------------------------------------------------
 // [add] 返値
 //------------------------------------------------
-void CVardataStrWriter::addResult(char const* name, void const* ptr, vartype_t type)
+void CVardataStrWriter::addResult(char const* name, PDAT const* ptr, vartype_t type)
 {
 	assert(getWriter().isLineformed());	// 現在の実装では
 
@@ -423,7 +428,7 @@ void CVardataStrWriter::addResult(char const* name, void const* ptr, vartype_t t
 //
 // @ addItem_value でフックされる型はここに来ない。
 //------------------------------------------------
-string stringizeSimpleValue(vartype_t type, void const* ptr, bool bShort)
+string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 {
 	assert(type != HSPVAR_FLAG_STRUCT);
 
@@ -535,7 +540,7 @@ string stringizeSimpleValue(vartype_t type, void const* ptr, bool bShort)
 string toStringLiteralFormat(char const* src)
 {
 	size_t const maxlen = (std::strlen(src) * 2) + 2;
-	char* const buf = exinfo->HspFunc_malloc(maxlen + 1);
+	char* const buf = hspmalloc(maxlen + 1);
 	size_t idx = 0;
 
 	buf[idx++] = '\"';
@@ -574,7 +579,7 @@ string toStringLiteralFormat(char const* src)
 	buf[idx++] = '\0';
 
 	string const sResult = buf;
-	exinfo->HspFunc_free(buf);
+	hspfree(buf);
 	return std::move(sResult);
 }
 

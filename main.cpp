@@ -266,7 +266,7 @@ void bgnCalling(ModcmdCallInfo const& callinfo)
 	return;
 }
 
-void endCalling(ModcmdCallInfo const& callinfo, void* ptr, vartype_t vtype)
+void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
 {
 	// 最後の呼び出しノードを削除
 	VarTree::RemoveLastCallNode();
