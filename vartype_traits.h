@@ -47,8 +47,8 @@ namespace VtTraits
 	//------------------------------------------------
 	// alias
 	//------------------------------------------------
-	template<typename Tag> using value_t = typename Impl::value_type<Tag>::type;
-	template<typename Tag> using const_value_t = typename Impl::const_value_type<Tag>::type;
+	template<typename Tag> using value_t        = typename Impl::value_type<Tag>::type;
+	template<typename Tag> using const_value_t  = typename Impl::const_value_type<Tag>::type;
 	template<typename Tag> using valptr_t       = typename Impl::valptr_type<Tag>::type;
 	template<typename Tag> using const_valptr_t = typename Impl::const_valptr_type<Tag>::type;
 	template<typename Tag> using master_t       = typename Impl::master_type<Tag>::type;

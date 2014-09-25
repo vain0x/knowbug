@@ -11,7 +11,7 @@
 #undef stat	// いくつかの標準ライブラリと衝突してしまうので
 #undef puterror
 
-#define puterror(err) do { exinfo->HspFunc_puterror(err); throw err; } while(false)
+#define puterror(err) do { dbgout("puterror " #err " in hpi"); exinfo->HspFunc_puterror(err); throw err; } while(false)
 
 #include "./basis.h"
 #include "./vartype_traits.h"

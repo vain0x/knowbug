@@ -3,7 +3,7 @@
 /**
 class Managed<T>
 
-参照カウンタ方式のスマートポインタの一種。
+参照数方式のスマートポインタの一種。
 「バッファを自前で確保する」使い方と、既にある T への弱参照としての使い方を両方できる。
 また、参照カウントに加えて「一時オブジェクトフラグ」を持つ。HSPのスタックに積まれるオブジェクトには、必ずこれを立てる。
 
@@ -39,23 +39,21 @@ memo: header の中にカスタムデリーターを入れておくことも可�
 static unsigned char newManagedInstanceId() { static unsigned char id_; return id_++; }
 #endif
 
-namespace hpimod {
-
-namespace detail {
-	template<typename T>
-	struct DefaultCtorDtor {
-		void ctor(T* p) { new(p) T(); }
-		void dtor(T& self) { self.~T(); }
-	};
-}
+namespace hpimod
+{
 
 template<typename TValue,
-	// inst_ を nullptr で初期化するかどうか
+	// inst_ を nullptr で初期化するか否か
 	bool bNullCtor,
+
+	// for construct, destroy
 	typename Allocator = HspAllocator<TValue>
-	//typename DefaultCtorDtor = detail::DefaultCtorDtor<TValue>
 >
 class Managed {
+	using value_type = TValue;
+	using self_t = Managed<value_type, bNullCtor, Allocator>;
+	
+	// desiable: sizeof(inst_t with value_type) <= 64, because of specs of HspAllocator.
 	struct inst_t {
 		int paddings_[2];
 		mutable int cnt_;
@@ -63,19 +61,21 @@ class Managed {
 		unsigned char padding_;		// (for instance id while debugging)
 		unsigned short const magicCode_;	//= MagicCode
 
-		// flexible structure (used as T object)
+		// flexible structure (used as T value)
 		char value_[1];
 	};
-
-	inst_t* inst_;
-
-private:
-	using value_type = TValue;
-	using self_t = Managed<value_type, bNullCtor, Allocator>;
-	
 	static size_t const instHeaderSize = 3*sizeof(int)+sizeof(bool)+sizeof(unsigned char)+sizeof(unsigned short);
 	static unsigned short const MagicCode = 0x55AB;
 
+	inst_t* inst_;
+
+public:
+	// null ctor by force
+	// Must check null to use
+	explicit Managed(nullptr_t) : inst_ { nullptr } {
+		// static_assert
+		assert(sizeof(self_t) == sizeof(void*));
+	}
 private:
 	using CharAllocator = HspAllocator<char>;
 
@@ -86,7 +86,7 @@ private:
 		static TAllocator stt_allocator {};
 		return stt_allocator;
 	}
-
+	
 	template<typename TInit>
 	void initializeHeader()
 	{
@@ -94,11 +94,9 @@ private:
 		inst_ = reinterpret_cast<inst_t*>(
 			std::allocator_traits<CharAllocator>::allocate(getAllocator<CharAllocator>(), instHeaderSize + sizeof(TInit))
 		);
-
-		::new(inst_)inst_t { {}, 1, false, '\0', MagicCode, {} };
-
-		assert(inst_->cnt_ == 1 && inst_->tmpobj_ == false && inst_->magicCode_ == MagicCode
-			&& static_cast<void const*>(&inst_->magicCode_ + 1) == (inst_->value_)
+		new(inst_)inst_t { {}, 1, false, '\0', MagicCode, {} };
+		
+		assert(static_cast<void const*>(&inst_->magicCode_ + 1) == (inst_->value_)
 			&& isManagedValue(reinterpret_cast<value_type*>(inst_->value_)));
 
 		// new(inst_->value_) TInit(...);
@@ -114,6 +112,8 @@ public:
 	// default ctor
 	Managed() : inst_ { nullptr } { defaultCtor(); }
 
+private:
+	// overload by SFINAE
 	template<typename TVoid = void,
 		std::enable_if_t<bNullCtor, TVoid>* = nullptr
 	> void defaultCtor()
@@ -126,16 +126,16 @@ public:
 	{
 		initializeHeader<value_type>();
 		std::allocator_traits<Allocator>::construct(getAllocator(), valuePtr());
-		//DefaultCtorDtor::ctor(valuePtr());
 	}
 
+public:
 	// 実体の生成を伴う factory 関数
 	template<typename TDerived = value_type, typename ...Args>
 	static self_t makeDerived(Args&&... args)
 	{
 		static_assert(std::is_class<TDerived>::value && std::is_convertible<TDerived*, value_type*>::value, "互換性のない型では初期化できない。");
 		static_assert(std::is_same<value_type, TDerived>::value || std::has_trivial_destructor<TDerived>::value || std::has_virtual_destructor<value_type>::value,
-			"Managed<T> が T の派生形を所有するためには、その派生型が trivial destructor を持つか、T が virtual な destructor を持たなければならない。正常に解放できないため。");
+			"Managed<T> が T の派生型を所有するためには、その派生型が trivial destructor を持つか、T が virtual な destructor を持たなければならない。正常に解放できないため。");
 		static_assert(std::is_constructible<TDerived, Args...>::value, "constructor TDerived(Args...) is not found.");
 
 		self_t self { nullptr }; self.initializeHeader<TDerived>();
@@ -145,21 +145,13 @@ public:
 			reinterpret_cast<TDerived*>(self.valuePtr()),
 			std::forward<Args>(args)...
 		);
-		// todo: allocator has gone.
-		//new(self.valuePtr()) TDerived(std::forward<Args>(args)...);
 		return std::move(self);
 	}
 
-	// 実体の生成を伴う factory 関数
 	template<typename ...Args>
 	static self_t make(Args&&... args)
 	{
 		return makeDerived<value_type>(std::forward<Args>(args)...);
-	}
-
-	explicit Managed(nullptr_t) : inst_ { nullptr } {
-		// static_assert
-		assert(sizeof(self_t) == sizeof(void*));
 	}
 
 	// copy
@@ -167,28 +159,15 @@ public:
 		: inst_ { rhs.inst_ }
 	{ incRef(); }
 
+	self_t& operator=(self_t rhs) { swap(rhs); return *this; }
+
 	// move
 	Managed(self_t&& rhs)
 		: inst_ { rhs.inst_ }
 	{ rhs.inst_ = nullptr; }
 
-#if 0
-	// 値渡しで初期化する factory 関数
-	static self_t ofValue(value_type const& src) { return make(src); }
-	static self_t ofValue(value_type&& src) { return make(std::move(src)); }
-#endif
-
-public:
-	// instptr から managed を作成する factory 関数
-	static self_t const ofInstptr(void const* inst) { return self_t { const_cast<inst_t*>(static_cast<inst_t const*>(inst)) }; };
-	static self_t ofInstptr(void* inst) { return const_cast<self_t&&>(ofInstptr(static_cast<void const*>(inst))); }
-
-private:
-	explicit Managed(inst_t* inst) : inst_ { inst }
-	{
-	//	assert(checkMagicCode());
-		incRef();
-	}
+	// swap
+	void swap(self_t& rhs) throw() { std::swap(inst_, rhs.inst_); }
 
 public:
 	// 実体ポインタから managed を作成する factory 関数 (failure: nullptr)
@@ -196,43 +175,36 @@ public:
 	static self_t const ofValptr(value_type const* pdat) {
 		auto const inst = reinterpret_cast<inst_t const*>(reinterpret_cast<char const*>(pdat) - instHeaderSize);
 	//	assert(inst->magicCode_ == MagicCode);
-		return ofInstptr(inst);
+		return self_t { const_cast<inst_t*>(inst) };
 	};
 	static self_t ofValptr(value_type* pdat) { return const_cast<self_t&&>(ofValptr(static_cast<value_type const*>(pdat))); }
 
+private:
+	explicit Managed(inst_t* inst) : inst_ { inst }
+	{ incRef(); }
+
 public:
-	// デストラクタ
 	~Managed() {
 		decRef();
 	}
 
 	// 初期状態に戻す
-	void reset() {
-		this->~Managed(); new(this) self_t {};
-	}
+	void reset() { swap(self_t {}); }
 
 	// nullptr にクリアする
 	// bNullCtor に依らず nullptr になるので注意して使うこと。
-	void nullify() { decRef(); inst_ = nullptr; }
+	void nullify() { swap(self_t { nullptr }); }
 
 private:
 	void kill() const {
 		assert(isManaged() && cnt() == 0);
-		auto* const inst_bak = inst_;
-		auto& value_bak = value();
 
 #if DBGOUT_MANAGED_KILLED
 		dbgout("[%d] KILL %d <%d>", instId(), cnt(), tmpobj());
 #endif
-		// このオブジェクトからの参照を切り、MagicCode を消しておく (値の解体中に this が参照される際の安全のため)
-		const_cast<unsigned short&>(inst_->magicCode_) = 0;
-		const_cast<inst_t*&>(inst_) = nullptr;
-
-		std::allocator_traits<Allocator>::destroy(getAllocator(), &value_bak);
+		std::allocator_traits<Allocator>::destroy(getAllocator(), valuePtr());
 		std::allocator_traits<CharAllocator>::deallocate(getAllocator<CharAllocator>(),
-			reinterpret_cast<char*>(inst_bak), 1);		// HspAllocator<> ignores counts to deallocate.
-		//DefaultCtorDtor::dtor(value_bak);
-		//hspfree(inst_bak);
+			reinterpret_cast<char*>(inst_), 1);		// HspAllocator<> ignores counts to deallocate.
 	}
 
 private:
@@ -246,9 +218,6 @@ public:
 
 	value_type* valuePtr() const { assert(!isNull()); return reinterpret_cast<value_type*>(inst_->value_); }
 	value_type& value() const { return *valuePtr(); }
-
-	// inst のポインタを返す
-	void* instPtr() const { return inst_; }
 
 private:
 	// 参照カウンタとしての機能
@@ -298,9 +267,6 @@ public:
 
 public:
 	// 演算子
-	self_t& operator=(self_t const& rhs) { this->~Managed(); new(this) Managed(rhs); return *this; }
-	self_t& operator=(self_t&& rhs) { this->~Managed(); new(this) Managed(std::move(rhs)); return *this; }
-
 	value_type& operator*() const { return value(); }
 	value_type* operator->() const { return valuePtr(); }
 

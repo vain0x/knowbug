@@ -6,9 +6,6 @@
 #include <Windows.h>
 #include "../knowbug/ExVardataString.h"
 
-extern HMODULE g_hKnowbug;
-
-extern void terminateKnowbugForHPI();
 extern KnowbugVswMethods const* knowbug_getVswMethods();
 
 #endif

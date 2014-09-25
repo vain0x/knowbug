@@ -1,23 +1,46 @@
 ﻿
+#include <functional>
+#include <memory>
+
+#include "../hsp3plugin_custom.h"
 #include "knowbugForHPI.h"
 
-HMODULE g_hKnowbug;
-
-extern void terminateKnowbugForHPI()
+static HMODULE knowbug_getInstance()
 {
-	if ( g_hKnowbug ) {
-		FreeLibrary(g_hKnowbug); g_hKnowbug = nullptr;
+	// cf: http://hwada.hatenablog.com/entry/20100214/1266073808
+	// and http://cpplover.blogspot.jp/2010/02/blog-post_8598.html
+
+	struct moduleDeleter {
+		using pointer = HMODULE;
+		void operator ()(HMODULE p) { FreeLibrary(p); }
+	};
+	using moduleHandle_t = std::unique_ptr< HMODULE, moduleDeleter >;
+	
+	// singleton (thread unsafe style)
+	static moduleHandle_t stt_hKnowbug;
+
+	if ( hpimod::isDebugMode() && !stt_hKnowbug ) {
+		stt_hKnowbug.reset(LoadLibrary("hsp3debug.dll"));
+		if ( !stt_hKnowbug ) {
+#if _DEBUG
+			MessageBox(nullptr, "knowbug の load に失敗しました。", "hpimod", MB_OK);
+#endif
+			puterror(HSPERR_EXTERNAL_EXECUTE);
+		}
 	}
-	return;
+
+	return stt_hKnowbug.get();
 }
 
-static KnowbugVswMethods const* kvswm;
-extern KnowbugVswMethods const* knowbug_getVswMethods()
+KnowbugVswMethods const* knowbug_getVswMethods()
 {
-	if ( !g_hKnowbug ) {
-		if ( g_hKnowbug = LoadLibrary("hsp3debug.dll") ) {
+	static KnowbugVswMethods const* kvswm { nullptr };
+
+	if ( !kvswm ) {
+		auto const hModule = knowbug_getInstance();
+		if ( hModule ) {
 			if ( auto const f = reinterpret_cast<knowbug_getVswMethods_t>(
-				GetProcAddress(g_hKnowbug, "_knowbug_getVswMethods@0")
+				GetProcAddress(hModule, "_knowbug_getVswMethods@0")
 				) ) {
 				kvswm = f();
 			}

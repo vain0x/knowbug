@@ -93,6 +93,7 @@ static LIBDAT* getLIBDAT(int idx) {
 	return &mem_linfo[idx];
 }
 
+static size_t cntSttVars() { return ctx->hsphed->max_val; }
 static size_t cntLabels() { return ctx->hsphed->max_ot / sizeof(int); }
 static size_t cntStDats() { return ctx->hsphed->max_finfo / sizeof(STRUCTDAT); }
 static size_t cntStPrms() { return ctx->hsphed->max_minfo / sizeof(STRUCTPRM); }
@@ -202,14 +203,19 @@ static int const HspTrue = 1;
 static int const HspFalse = 0;
 static inline int HspBool(bool b) { return b ? HspTrue : HspFalse; }
 
+// その他
+static bool isDebugMode() { return ctx->hspstat & HSPSTAT_DEBUG; }
+
+#if 0
 // 値の持ち運び
 struct HspValue
 {
-	PDAT* pdat;
+	PDAT const* pdat;
 	vartype_t vtype;
 public:
 	HspValue() : pdat(nullptr), vtype(HSPVAR_FLAG_NONE) { }
 };
+#endif
 
 } // namespace hpimod
 
