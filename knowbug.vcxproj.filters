@@ -194,6 +194,9 @@
     <ClInclude Include="module\supio\supio.h">
       <Filter>module\supio</Filter>
     </ClInclude>
+    <ClInclude Include="..\hpimod\HspAllocator.h">
+      <Filter>module\hpimod</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc">

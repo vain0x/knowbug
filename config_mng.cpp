@@ -65,23 +65,23 @@ KnowbugConfig::KnowbugConfig()
 	}
 
 	// 拡張型の変数データを文字列化する関数
-	auto keys = ini.enumKeys("VardataString/UserdefTypes");
+	auto const keys = ini.enumKeys("VardataString/UserdefTypes");
 	//dbgout(join(keys.begin(), keys.end(), ", ").c_str());
 
 	for ( auto const& vtname : keys ) {
 		auto const dllPath = ini.getString("VardataString/UserdefTypes", vtname.c_str());
-		if ( auto const hDll = LoadLibrary(dllPath) ) {
+		if ( moduleHandle_t hDll { LoadLibrary(dllPath) } ) {
 			static char const* const stc_sec = "VardataString/UserdefTypes/Func";
 
 			auto const fnameAddVar = ini.getString(stc_sec, strf("%s.addVar", vtname.c_str()).c_str());
-			auto const fAddVar = (addVarUserdef_t)GetProcAddress(hDll, fnameAddVar);
+			auto const fAddVar = (addVarUserdef_t)GetProcAddress(hDll.get(), fnameAddVar);
 			if ( fnameAddVar[0] != '\0' && !fAddVar ) {
 				Knowbug::logmesWarning(strf("拡張型表示用の addVar 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s",
 					vtname.c_str(), fnameAddVar).c_str());
 			}
 
 			auto const fnameAddValue = ini.getString(stc_sec, strf("%s.addValue", vtname.c_str()).c_str());
-			auto const fAddValue = (addValueUserdef_t)GetProcAddress(hDll, fnameAddValue);
+			auto const fAddValue = (addValueUserdef_t)GetProcAddress(hDll.get(), fnameAddValue);
 			if ( fnameAddValue[0] != '\0' && !fAddValue ) {
 				Knowbug::logmesWarning(strf("拡張型表示用の addValue 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s",
 					vtname.c_str(), fnameAddValue).c_str());
@@ -91,7 +91,7 @@ KnowbugConfig::KnowbugConfig()
 			Knowbug::logmes(strf("型 %s の拡張表示情報が読み込まれた。\r\nVswInfo { %08X, %08X, %08X }",
 				vtname.c_str(), hDll, fAddVar, fAddValue).c_str());
 #endif
-			vswInfo.insert({ vtname, VswInfo { hDll, fAddVar, fAddValue } });
+			vswInfo.insert({ vtname, VswInfo { std::move(hDll), fAddVar, fAddValue } });
 		} else {
 			Knowbug::logmesWarning(strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s",
 				vtname.c_str(), dllPath).c_str());
@@ -121,13 +121,5 @@ KnowbugConfig::KnowbugConfig()
 		}
 	}
 	
-	return;
-}
-
-KnowbugConfig::~KnowbugConfig()
-{
-	for ( auto const& info : vswInfo ) {
-		if ( info.second.hDll ) FreeLibrary(info.second.hDll);
-	}
 	return;
 }

@@ -11,21 +11,26 @@
 #include <memory>
 #include "module/strf.h"
 
+#include <functional>
 #include "ExVardataString.h"
+
+namespace Detail
+{
+	struct moduleDeleter { using pointer = HMODULE; void operator()(HMODULE p) { FreeLibrary(p); } };
+};
 
 struct KnowbugConfig
 {
 public:
 	class Mng {
 	public:
-		void initialize() { KnowbugConfig::instance_.swap( std::unique_ptr<KnowbugConfig>(new KnowbugConfig()) ); }
+		void initialize() { KnowbugConfig::instance_.reset(new KnowbugConfig()); }
 		KnowbugConfig* operator ->() { return KnowbugConfig::instance_.get(); }
 	};
-	struct VswInfo {
-		HMODULE hDll;
-		addVarUserdef_t addVarUserdef;
-		addValueUserdef_t addValueUserdef;
-	};
+
+	using moduleHandle_t = std::unique_ptr<HMODULE, Detail::moduleDeleter>;
+	using VswInfo = std::tuple<moduleHandle_t, addVarUserdef_t, addValueUserdef_t>;
+
 public:
 	string commonPath;
 	
@@ -51,8 +56,6 @@ private:
 	friend class Mng;
 	static std::unique_ptr<KnowbugConfig> instance_;
 	KnowbugConfig();
-public:
-	~KnowbugConfig();
 };
 
 extern KnowbugConfig::Mng g_config;

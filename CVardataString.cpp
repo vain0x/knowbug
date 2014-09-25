@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "module/ptr_cast.h"
 #include "hpimod/vartype_traits.h"
+#include "hpimod//HspAllocator.h"
 
 #include "main.h"
 
@@ -35,7 +36,7 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 	if ( pval->flag >= HSPVAR_FLAG_USERDEF ) {
 		auto const iter = g_config->vswInfo.find(hvp->vartype_name);
 		if ( iter != g_config->vswInfo.end() ) {
-			if ( auto const addVar = iter->second.addVarUserdef ) {
+			if ( addVarUserdef_t const addVar = std::get<1>(iter->second) ) {
 				addVar(this, name, pval);
 				return;
 			}
@@ -150,7 +151,7 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 	if ( type >= HSPVAR_FLAG_USERDEF ) {
 		auto const iter = g_config->vswInfo.find(hpimod::getHvp(type)->vartype_name);
 		if ( iter != g_config->vswInfo.end() ) {
-			if ( auto const addValue = iter->second.addValueUserdef ) {
+			if ( addValueUserdef_t const addValue = std::get<2>(iter->second) ) {
 				addValue(this, name, ptr);
 				return;
 			}
@@ -540,13 +541,13 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 string toStringLiteralFormat(char const* src)
 {
 	size_t const maxlen = (std::strlen(src) * 2) + 2;
-	char* const buf = hspmalloc(maxlen + 1);
+	std::vector<char, hpimod::HspAllocator<char>> buf; buf.reserve(maxlen + 1);
 	size_t idx = 0;
 
 	buf[idx++] = '\"';
 
 	for ( int i = 0;; ++i ) {
-		char c = src[i];
+		char const c = src[i];
 
 		// エスケープ・シーケンスを解決する
 		if ( c == '\0' ) {
@@ -577,10 +578,7 @@ string toStringLiteralFormat(char const* src)
 
 	buf[idx++] = '\"';
 	buf[idx++] = '\0';
-
-	string const sResult = buf;
-	hspfree(buf);
-	return std::move(sResult);
+	return string { buf.data() };
 }
 
 //------------------------------------------------

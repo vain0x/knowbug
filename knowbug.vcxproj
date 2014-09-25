@@ -191,6 +191,7 @@
     <ClInclude Include="..\..\MakeHPI\hpimod\var_vector\for_knowbug.var_vector.h" />
     <ClInclude Include="..\hpimod\basis.h" />
     <ClInclude Include="..\hpimod\hsp3plugin_custom.h" />
+    <ClInclude Include="..\hpimod\HspAllocator.h" />
     <ClInclude Include="..\hpimod\hspsdk\hsed3_footy2\interface.h" />
     <ClInclude Include="..\hpimod\hspsdk\hsp3debug.h" />
     <ClInclude Include="..\hpimod\hspsdk\hsp3plugin.h" />
