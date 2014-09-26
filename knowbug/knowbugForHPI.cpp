@@ -43,6 +43,7 @@ KnowbugVswMethods const* knowbug_getVswMethods()
 				GetProcAddress(hModule, "_knowbug_getVswMethods@0")
 				) ) {
 				kvswm = f();
+				if ( !kvswm ) { puterror(HSPERR_EXTERNAL_EXECUTE); }
 			}
 		}
 	}

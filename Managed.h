@@ -172,7 +172,10 @@ public:
 public:
 	// 実体ポインタから managed を作成する factory 関数 (failure: nullptr)
 	// inst_t::value_ を指しているはずなので、inst_t の先頭を逆算する。
-	static self_t const ofValptr(value_type const* pdat) {
+	static self_t const ofValptr(value_type const* pdat)
+	{
+		if ( !pdat ) return self_t { nullptr };
+
 		auto const inst = reinterpret_cast<inst_t const*>(reinterpret_cast<char const*>(pdat) - instHeaderSize);
 	//	assert(inst->magicCode_ == MagicCode);
 		return self_t { const_cast<inst_t*>(inst) };

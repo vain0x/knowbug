@@ -62,6 +62,13 @@ public:
 		: ManagedVarData()
 	{ PVal_assign(getPVal(), pdat, vtype); }
 
+	static ManagedVarData duplicate(PVal* pval)
+	{
+		ManagedPVal self;
+		PVal_copy(self.valuePtr(), pval);
+		return ManagedVarData { self.valuePtr(), 0 };
+	}
+
 public:
 	PVal* getPVal() const { return pval_.valuePtr(); }
 	APTR  getAptr() const { return aptr_; }
