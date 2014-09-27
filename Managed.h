@@ -273,6 +273,8 @@ public:
 	value_type& operator*() const { return value(); }
 	value_type* operator->() const { return valuePtr(); }
 
+	explicit operator bool() const { return !isNull(); };
+
 	bool operator==(self_t const& rhs) const {
 		return (isNull() && rhs.isNull()) || (inst_ == rhs.inst_);
 	}
