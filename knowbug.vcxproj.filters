@@ -22,9 +22,6 @@
     <Filter Include="WrapCall">
       <UniqueIdentifier>{8edddfd0-21dc-4014-a397-d3b7bd1f0ef4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="var_extra">
-      <UniqueIdentifier>{91cc624b-f272-4337-8d5b-2ad048d6db7c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="module\hpimod">
       <UniqueIdentifier>{bbb14e3b-4dd2-4d95-a2a6-47582d419246}</UniqueIdentifier>
     </Filter>
@@ -36,6 +33,9 @@
     </Filter>
     <Filter Include="module\hspsdk\hsed3_footy2">
       <UniqueIdentifier>{7c999e1d-cb21-4a82-8e64-7751fabf60c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="module\hpimod\myPluginTypeInterface">
+      <UniqueIdentifier>{9576ee6a-db55-4763-bd10-935a31013f74}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -143,12 +143,6 @@
     <ClInclude Include="WrapCall\ResultNodeData.h">
       <Filter>WrapCall</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\MakeHPI\hpimod\var_vector\for_knowbug.var_vector.h">
-      <Filter>var_extra</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\MakeHPI\hpimod\var_assoc\for_knowbug.var_assoc.h">
-      <Filter>var_extra</Filter>
-    </ClInclude>
     <ClInclude Include="main.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
@@ -196,6 +190,15 @@
     </ClInclude>
     <ClInclude Include="..\hpimod\HspAllocator.h">
       <Filter>module\hpimod</Filter>
+    </ClInclude>
+    <ClInclude Include="module\Singleton.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\crouton\src\var_assoc\for_knowbug.var_assoc.h">
+      <Filter>module\hpimod\myPluginTypeInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\crouton\src\var_vector\for_knowbug.var_vector.h">
+      <Filter>module\hpimod\myPluginTypeInterface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

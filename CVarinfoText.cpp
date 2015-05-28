@@ -28,8 +28,12 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 	// 変数に関する情報
 	getWriter().catln(strf("変数名：%s", name));
 	getWriter().catln(strf("変数型：%s", getVartypeString(pval).c_str()));
-	getWriter().catln(strf("アドレス：0x%08X, 0x%08X", address_cast(pval->pt), address_cast(pval->master)));
-	getWriter().catln(strf("サイズ：using %d of %d [byte]", pval->size, bufsize));
+	if ( g_config->showsVariableAddress ) {
+		getWriter().catln(strf("アドレス：0x%08X, 0x%08X", address_cast(pval->pt), address_cast(pval->master)));
+	}
+	if ( g_config->showsVariableSize ) {
+		getWriter().catln(strf("サイズ：using %d of %d [byte]", pval->size, bufsize));
+	}
 	getWriter().catCrlf();
 
 	// 変数の内容に関する情報
@@ -53,7 +57,7 @@ void CVarinfoText::addSysvar(char const* name)
 	if ( id == SysvarId_MAX ) return;
 
 	getWriter().catln(strf("変数名：%s\t(システム変数)", name));
-	getWriter().catln(strf("変数型：%s", hpimod::getHvp(SysvarData[id].type)->vartype_name));
+	//getWriter().catln(strf("変数型：%s", hpimod::getHvp(SysvarData[id].type)->vartype_name));
 	getWriter().catCrlf();
 
 	{

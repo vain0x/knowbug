@@ -541,7 +541,7 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 string toStringLiteralFormat(char const* src)
 {
 	size_t const maxlen = (std::strlen(src) * 2) + 2;
-	std::vector<char, hpimod::HspAllocator<char>> buf; buf.reserve(maxlen + 1);
+	std::vector<char, hpimod::HspAllocator<char>> buf; buf.resize(maxlen + 1);
 	size_t idx = 0;
 
 	buf[idx++] = '\"';

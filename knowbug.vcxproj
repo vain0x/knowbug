@@ -187,8 +187,8 @@
     <ClCompile Include="WrapCall\WrapCall.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\MakeHPI\hpimod\var_assoc\for_knowbug.var_assoc.h" />
-    <ClInclude Include="..\..\MakeHPI\hpimod\var_vector\for_knowbug.var_vector.h" />
+    <ClInclude Include="..\crouton\src\var_assoc\for_knowbug.var_assoc.h" />
+    <ClInclude Include="..\crouton\src\var_vector\for_knowbug.var_vector.h" />
     <ClInclude Include="..\hpimod\basis.h" />
     <ClInclude Include="..\hpimod\hsp3plugin_custom.h" />
     <ClInclude Include="..\hpimod\HspAllocator.h" />
@@ -212,6 +212,7 @@
     <ClInclude Include="module\CLogBuf.h" />
     <ClInclude Include="module\CStrWriter.h" />
     <ClInclude Include="module\ptr_cast.h" />
+    <ClInclude Include="module\Singleton.h" />
     <ClInclude Include="module\strf.h" />
     <ClInclude Include="module\supio\supio.h" />
     <ClInclude Include="resource.h" />

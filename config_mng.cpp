@@ -4,8 +4,7 @@
 
 #include "config_mng.h"
 
-std::unique_ptr<KnowbugConfig> KnowbugConfig::instance_;
-KnowbugConfig::Mng g_config;
+KnowbugConfig::SingletonAccessor g_config;
 
 KnowbugConfig::KnowbugConfig()
 {
@@ -24,48 +23,37 @@ KnowbugConfig::KnowbugConfig()
 	string const ownpath_full = strf("%sknowbug.ini", ownpath);
 	CIni ini { ownpath_full.c_str() };
 	
-	// common フォルダへのパス
 	commonPath = strf( "%scommon", ownpath );
 	
-	// 最大表示データ量
 	//maxlenVarinfo = ini.getInt( "Varinfo", "maxlen", 0x1000 - 1 );
-	logMaxlen     = ini.getInt( "Log",     "maxlen", 0x20000 );
-	
-	// タブ文字幅
-	tabwidth  = ini.getInt( "Interface", "tabwidth", 3 );
-	
-	// 右端で折り返すか否か
+	logMaxlen   = ini.getInt( "Log",     "maxlen", 0x20000 );
+	tabwidth    = ini.getInt( "Interface", "tabwidth", 3 );
 	//bWordwrap = ini.getBool( "Interface", "bWordwrap", false );
+	bTopMost    = ini.getBool( "Window", "bTopMost", false );
+	logPath = ini.getString("Log", "autoSavePath", "");
+	showsVariableAddress = ini.getBool("Varinfo", "showsVariableAddress", true);
+	showsVariableSize    = ini.getBool("Varinfo", "showsVariableSize", true);
 	
-	// 最前面ウィンドウか否か
-	bTopMost = ini.getBool( "Window", "bTopMost", false );
-	
-	// 自動保存パス
-	logPath = ini.getString( "Log", "autoSavePath", "" );
-	
-	// 返値ノードを使うか
 	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
-
-	// カスタムドローするかどうか
 	bCustomDraw = ini.getBool( "ColorType", "bCustomDraw", false );
 	
 	if ( bCustomDraw ) {
-		// 型ごとの色
+		//color of internal types
 		for ( int i = 0; i < HSPVAR_FLAG_USERDEF; ++i ) {
 			clrText[i] = ini.getInt("ColorType", strf("text#%d", i).c_str(), RGB(0, 0, 0));
 		}
 
-		// 呼び出しや拡張型の色
-		auto const keys = ini.enumKeys("ColorTypeExtra");
+		//color of external types or functions
+		auto const& keys = ini.enumKeys("ColorTypeExtra");
 		for ( auto const& key : keys ) {
 			COLORREF const cref = ini.getInt("ColorTypeExtra", key.c_str());
 			//dbgout("extracolor: %s = (%d, %d, %d)", key.c_str(), GetRValue(cref), GetGValue(cref), GetBValue(cref) );
-			clrTextExtra.insert({ key, cref });
+			clrTextExtra.emplace(key, cref);
 		}
 	}
 
 	// 拡張型の変数データを文字列化する関数
-	auto const keys = ini.enumKeys("VardataString/UserdefTypes");
+	auto const& keys = ini.enumKeys("VardataString/UserdefTypes");
 	//dbgout(join(keys.begin(), keys.end(), ", ").c_str());
 
 	for ( auto const& vtname : keys ) {
@@ -114,10 +102,10 @@ KnowbugConfig::KnowbugConfig()
 		{ "modcmd_k", nullptr, knowbugVsw_addValueModcmd },
 #endif
 	};
-	for ( auto vsw2 : stc_vswInfoForInternal ) {
-		// ini ファイルの指定を優先する
+	for ( auto&& vsw2 : stc_vswInfoForInternal ) {
+		//doesn't overwrite the writer of external Dll
 		if ( vswInfo.find(vsw2.vtname) == vswInfo.end() ) {
-			vswInfo.insert({ vsw2.vtname, VswInfo { nullptr, vsw2.addVar, vsw2.addValue } });
+			vswInfo.emplace(vsw2.vtname, VswInfo { nullptr, vsw2.addVar, vsw2.addValue });
 		}
 	}
 	
