@@ -22,7 +22,6 @@ namespace Detail
 //RAII for Dll
 using moduleHandle_t = std::unique_ptr<HMODULE, Detail::moduleDeleter>;
 
-//singleton
 struct KnowbugConfig : public Singleton<KnowbugConfig>
 {
 	friend class Singleton<KnowbugConfig>;

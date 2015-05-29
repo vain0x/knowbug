@@ -113,13 +113,17 @@ static void TabGeneralReset()
 	char name[256];
 	char val[512];
 
-	char* const p = g_dbginfo->debug->get_value( DEBUGINFO_GENERAL );		// HSP側に問い合わせ
+	// HSP側に問い合わせ
+	std::unique_ptr<char, void(*)(char*)> p(
+		g_dbginfo->debug->get_value( DEBUGINFO_GENERAL ),
+		g_dbginfo->debug->dbg_close
+	);
 	strsp_ini();
 	for (;;) {
-		chk = strsp_get( p, name, 0, sizeof(name) - 1 );
+		chk = strsp_get( p.get(), name, 0, sizeof(name) - 1 );
 		if ( chk == 0 ) break;
 		
-		chk = strsp_get( p, val, 0, sizeof(val) - 1 );
+		chk = strsp_get( p.get(), val, 0, sizeof(val) - 1 );
 		if ( chk == 0 ) break;
 		
 		TabGeneral_AddItem( name, val, tgmax ); ++tgmax;
@@ -143,9 +147,6 @@ static void TabGeneralReset()
 			TabGeneral_AddItem("pos", val, tgmax); ++tgmax;
 		}
 	}
-	
-	g_dbginfo->debug->dbg_close( p );
-
 	SrcSync( g_dbginfo->debug->fname, g_dbginfo->debug->line, false, true );
 	return;
 }
@@ -241,7 +242,7 @@ void logClear()
 	stt_logmsg.clear();
 	
 	Edit_SetSel( hLogEdit, 0, -1 );
-	Edit_ReplaceSel( hLogEdit, "" );		// 空っぽにする
+	Edit_ReplaceSel( hLogEdit, "" );
 	return;
 }
 
@@ -336,19 +337,17 @@ void logSave( char const* filepath )
 {
 	// ログメッセージを取り出す
 	int const size = Edit_GetTextLength( hLogEdit );
-	char* const buf = new char[size + 2];
-	GetWindowText( hLogEdit, buf, size + 1 );
+	std::vector<char> buf(size + 2);
+	GetWindowText( hLogEdit, buf.data(), size + 1 );
 	
 	// 保存
 	HANDLE const hFile =
 		CreateFile( filepath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
 	if ( hFile != INVALID_HANDLE_VALUE ) {
 		DWORD writesize;
-		WriteFile( hFile, buf, size, &writesize, nullptr );
+		WriteFile( hFile, buf.data(), size, &writesize, nullptr );
 		CloseHandle( hFile );
 	}
-
-	delete buf;
 	return;
 }
 
@@ -624,11 +623,10 @@ LRESULT CALLBACK TabLogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				
 				case IDC_CHK_LOG_UPDATE:
 					// チェックが付けられたとき
-					if ( IsDlgButtonChecked( hLogPage, IDC_CHK_LOG_UPDATE ) ) goto LUpdate;
+					if ( IsDlgButtonChecked(hLogPage, IDC_CHK_LOG_UPDATE) ) { TabLogCommit(); }
 					break;
 					
 				case IDC_BTN_LOG_UPDATE:
-				LUpdate:
 					TabLogCommit();
 					break;
 					
@@ -769,7 +767,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		switch ( idSelected ) {
 			case IDM_TOPMOST:
 			{
-				g_config->bTopMost = !g_config->bTopMost;		// 反転
+				g_config->bTopMost = !g_config->bTopMost;
 				
 				MENUITEMINFO menuInfo;
 					menuInfo.cbSize = sizeof(menuInfo);

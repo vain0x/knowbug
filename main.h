@@ -10,12 +10,13 @@
 #undef max
 
 #include <string>
-using std::string;
+#include <memory>
 
 #include "hsp3plugin.h"
 #undef stat
 #include "hpimod/basis.h"
 
+using std::string;
 using hpimod::vartype_t;
 using hpimod::varmode_t;
 using hpimod::label_t;
@@ -37,7 +38,7 @@ namespace WrapCall
 //extern HSPEXINFO* exinfo;
 
 struct DebugInfo;
-extern DebugInfo* g_dbginfo;
+extern std::unique_ptr<DebugInfo> g_dbginfo;
 
 // knowbug コントロール
 namespace Knowbug

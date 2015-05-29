@@ -7,6 +7,7 @@
 
 #include "main.h"
 #include "SysvarData.h"
+#include "CVarTree.h"
 #include "CVarinfoText.h"
 #include "CVardataString.h"
 
@@ -133,30 +134,25 @@ void CVarinfoText::addResult( stdat_t stdat, string const& text, char const* nam
 //------------------------------------------------
 // [add] モジュール概観
 //------------------------------------------------
-void CVarinfoText::addModuleOverview(char const* name, CVarTree::ModuleNode const& tree)
+void CVarinfoText::addModuleOverview(char const* name, CStaticVarTree const& tree)
 {
 	getWriter().catln(strf("[%s]", name));
 
-	for ( auto const& iter : tree ) {
-		//for ( auto iter = tree.begin(); iter != tree.end(); ++iter ) {
-		CVarTree const& child = *iter.second;
-
-		child.match<void>([&](CStaticVarTree::VarNode const& child) {
-			auto const varname = child.getName();
+	tree.foreach(
+		[&](CStaticVarTree const& module) {
+			// (入れ子の)モジュールは名前だけ表示しておく
+			getWriter().catln(module.getName());
+		},
+		[&](string const& varname) {
 			auto const varname_raw = removeScopeResolution(varname);
-
 			getWriter().cat(varname_raw + "\t= ");
 			{
 				CVardataStrWriter::create<CLineformedWriter>(getBuf())
 					.addVar(varname.c_str(), hpimod::seekSttVar(varname.c_str()));
 			}
 			getWriter().catCrlf();
-
-		}, [&](CStaticVarTree::ModuleNode const& child) {
-			// (入れ子の)モジュールは名前だけ表示しておく
-			getWriter().catln(child.getName());
-		});
-	}
+		}
+	);
 	return;
 }
 

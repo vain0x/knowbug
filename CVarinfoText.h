@@ -8,7 +8,7 @@
 #include "module/strf.h"
 #include "module/CStrWriter.h"
 
-#include "CVarTree.h"
+class CStaticVarTree;
 
 #ifdef with_WrapCall
 namespace WrapCall
@@ -38,7 +38,7 @@ public:
 	void addResult(stdat_t stdat, string const& text, char const* name);
 #endif
 
-	void addModuleOverview(char const* name, CVarTree::ModuleNode const& tree);
+	void addModuleOverview(char const* name, CStaticVarTree const& tree);
 	void addSysvarsOverview();
 #ifdef with_WrapCall
 	void addCallsOverview(WrapCall::ResultNodeData const* pLastResult);

@@ -27,12 +27,10 @@ namespace WrapCall
 
 class CVardataStrWriter
 {
-	// メンバ変数
 private:
 	// 継承してもいいが、ここでは包含にしておく
 	std::unique_ptr<CStructedStrWriter> writer_;
 
-	// メンバ関数
 public:
 	template<typename TWriter>
 	static CVardataStrWriter create(string* buf)
@@ -41,7 +39,7 @@ public:
 	}
 private:
 	template<typename TWriter>
-	CVardataStrWriter(string* buf,  TWriter* /* for definite template parameter */)
+	CVardataStrWriter(string* buf,  TWriter* /* for template parameter induction */)
 		: writer_(static_cast<CStructedStrWriter*>(new TWriter(buf)))
 	{ }
 

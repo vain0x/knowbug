@@ -1,32 +1,33 @@
 ﻿
 #include <Windows.h>
 #include <CommCtrl.h>
+#include "module/supio/supio.h"
 
 #include "main.h"
 #include "dialog.h"
 #include "config_mng.h"
 
 #include "vartree.h"
+#include "CVarTree.h"
 #include "CVarinfoText.h"
 #include "CVardataString.h"
 
 #include "SysvarData.h"
 #include "DebugInfo.h"
 
-extern CVarTree* getSttVarTree();	// at main.cpp
-
 #define hwndVarTree (Dialog::getVarTreeHandle())
 
 namespace VarTree
 {
 
+static CStaticVarTree const& getSttVarTree();
 static vartype_t getVartypeOfNode(HTREEITEM hItem);
-static void AddNode(HTREEITEM hParent, CVarTree const& tree);
-static void AddNodeSysvar(HTREEITEM hParent);
+static void AddNodeModule(HTREEITEM hParent, CVarTree const& tree);
+static void AddNodeSysvar();
 
 #ifdef with_WrapCall
-HTREEITEM g_hNodeDynamic;
-static void AddNodeDynamic(HTREEITEM hParent);
+static HTREEITEM g_hNodeDynamic;
+static void AddNodeDynamic();
 
 // ツリービューに含まれる返値ノードのデータ
 using resultDataPtr_t = std::shared_ptr<ResultNodeData>;
@@ -46,18 +47,18 @@ static void RemoveLastIndependedResultNode();
 static ResultNodeData* FindLastIndependedResultData();
 #endif
 
+static HTREEITEM TreeView_MyInsertItem(HTREEITEM hParent, char const* name, bool sorts, LPARAM lp);
+
 //------------------------------------------------
 // 変数ツリーの初期化
 //------------------------------------------------
 void init()
 {
-//	TreeView_DeleteAllItems( hwndVarTree );
-	
-	AddNode(TVI_ROOT, *getSttVarTree());
+	AddNodeModule(TVI_ROOT, getSttVarTree());
 #ifdef with_WrapCall
-	AddNodeDynamic(TVI_ROOT);
+	AddNodeDynamic();
 #endif
-	AddNodeSysvar(TVI_ROOT);
+	AddNodeSysvar();
 	
 	// すべてのルートノードを開く
 	HTREEITEM const hRoot = TreeView_GetRoot(hwndVarTree);
@@ -80,7 +81,7 @@ void init()
 void term()
 {
 #ifdef with_WrapCall
-	if ( auto hVarTree = Dialog::getVarTreeHandle() ) {
+	if ( auto const hVarTree = Dialog::getVarTreeHandle() ) {
 		RemoveDependingResultNodes(g_hNodeDynamic);
 
 		// dynamic 関連のデータを削除する (必要なさそう)
@@ -93,51 +94,60 @@ void term()
 }
 
 //------------------------------------------------
-// 変数ツリーにノードを追加する
+// 静的変数リストを取得する
 //------------------------------------------------
-void AddNode(HTREEITEM hParent, CVarTree const& tree)
+static CStaticVarTree const& getSttVarTree()
 {
-	TVINSERTSTRUCT tvis;
-	tvis.hParent      = hParent;
-	tvis.hInsertAfter = TVI_SORT;
-	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
-	tvis.item.pszText = const_cast<char*>( tree.getName().c_str() );
-	// 静的変数やモジュールの lParam 値は、CVarTree の対応するノードへのポインタ
-	tvis.item.lParam  = (LPARAM)&tree;
+	static std::unique_ptr<CStaticVarTree> stt_tree;
+	if ( !stt_tree ) {
+		stt_tree.reset(new CStaticVarTree(CStaticVarTree::ModuleName_Global));
 
-	auto const hElem = TreeView_InsertItem( hwndVarTree, &tvis );
-	if ( auto const modnode = tree.asCaseOf<CStaticVarTree::ModuleNode>() ) {
-		for ( auto const& iter : *modnode ) {
-			//for ( CVarTree::const_iterator iter = tree.begin(); iter != tree.end(); ++iter ) {
-			AddNode(hElem, *iter.second);
+		std::unique_ptr<char, void(*)(char*)> p(
+			g_dbginfo->debug->get_varinf(nullptr, 0xFF),
+			g_dbginfo->debug->dbg_close
+		);
+		strsp_ini();
+		for ( ;; ) {
+			char name[0x100];
+			int const chk = strsp_get(p.get(), name, 0, sizeof(name) - 1);
+			if ( chk == 0 ) break;
+			stt_tree->pushVar(name);
 		}
 	}
+	return *stt_tree;
+}
+
+//------------------------------------------------
+// 変数ツリーにノードを追加する
+//------------------------------------------------
+void AddNodeModule(HTREEITEM hParent, CStaticVarTree const& tree)
+{
+	auto const hElem = TreeView_MyInsertItem(hParent, tree.getName().c_str(), true, (LPARAM)(&tree));
+	tree.foreach(
+		[&](CStaticVarTree const& module) {
+			AddNodeModule(hElem, module);
+		},
+		[&](string const& varname) {
+			PVal* const pval = hpimod::seekSttVar(varname.c_str());
+			assert(!!pval);
+			TreeView_MyInsertItem(hElem, varname.c_str(), true, (LPARAM)pval);
+		}
+	);
 	return;
 }
 
 //------------------------------------------------
 // 変数ツリーにシステム変数ノードを追加する
 //------------------------------------------------
-void AddNodeSysvar( HTREEITEM hParent )
+void AddNodeSysvar()
 {
-	TVINSERTSTRUCT tvis;
-	tvis.hParent      = hParent;
-	tvis.hInsertAfter = TVI_LAST;
-	tvis.item.mask    = TVIF_TEXT;
-	tvis.item.pszText = "+sysvar";
-	
-	HTREEITEM const hNodeSysvar = TreeView_InsertItem( hwndVarTree, &tvis );
-	
-	tvis.hParent      = hNodeSysvar;
-	tvis.hInsertAfter = TVI_LAST;		// 順番を守る
-	
+	HTREEITEM const hNodeSysvar = TreeView_MyInsertItem( TVI_ROOT, "+sysvar", false, (LPARAM)0 );
+
 	// システム変数のリストを追加する
 	for ( int i = 0; i < SysvarCount; ++ i ) {
 		string const name = strf( "~%s", SysvarData[i].name );
-		tvis.item.pszText = const_cast<char*>( name.c_str() );
-		TreeView_InsertItem( hwndVarTree, &tvis );
+		TreeView_MyInsertItem( hNodeSysvar, name.c_str(), false, (LPARAM)i );
 	}
-	
 	return;
 }
 
@@ -145,15 +155,9 @@ void AddNodeSysvar( HTREEITEM hParent )
 //------------------------------------------------
 // 変数ツリーに動的変数ノードを追加する
 //------------------------------------------------
-void AddNodeDynamic( HTREEITEM hParent )
+void AddNodeDynamic()
 {
-	TVINSERTSTRUCT tvis;
-	tvis.hParent      = hParent;
-	tvis.hInsertAfter = TVI_LAST;
-	tvis.item.mask    = TVIF_TEXT;
-	tvis.item.pszText = "+dynamic";
-	
-	g_hNodeDynamic = TreeView_InsertItem( hwndVarTree, &tvis );
+	g_hNodeDynamic = TreeView_MyInsertItem(TVI_ROOT, "+dynamic", false, (LPARAM)0);
 	return;
 }
 #endif
@@ -178,12 +182,11 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 		char const* const name = sItem.c_str();
 
 		// 呼び出しノード
-		// __sttm__, __func__ に指定された色にする
 		if ( isCallNode(name) ) {
 			auto const idx = static_cast<int>(TreeView_GetItemLParam(hwndVarTree, hItem));
 			assert(idx >= 0);
-			if ( auto const* pCallInfo = WrapCall::getCallInfoAt(idx) ) {
-				auto const iter = g_config->clrTextExtra.find(
+			if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
+				auto const&& iter = g_config->clrTextExtra.find(
 					(pCallInfo->stdat->index == STRUCTDAT_INDEX_CFUNC)
 					? "__func__" : "__sttm__"
 				);
@@ -196,15 +199,12 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 		// その他
 		} else {
 			vartype_t const vtype = getVartypeOfNode(hItem);
-
-			// 組み込み型
 			if ( 0 < vtype && vtype < HSPVAR_FLAG_USERDEF ) {
 				pnmcd->clrText = g_config->clrText[vtype];
 				return CDRF_NEWFONT;
 
-			// 拡張型
 			} else if ( vtype >= HSPVAR_FLAG_USERDEF ) {
-				auto const iter = g_config->clrTextExtra.find(hpimod::getHvp(vtype)->vartype_name);
+				auto const&& iter = g_config->clrTextExtra.find(hpimod::getHvp(vtype)->vartype_name);
 				pnmcd->clrText = (iter != g_config->clrTextExtra.end())
 					? iter->second
 					: g_config->clrText[HSPVAR_FLAG_NONE];
@@ -220,7 +220,7 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 //------------------------------------------------
 vartype_t getVartypeOfNode( HTREEITEM hItem )
 {
-	auto const name = TreeView_GetItemString(hwndVarTree, hItem);
+	string const&& name = TreeView_GetItemString(hwndVarTree, hItem);
 
 	if ( isVarNode(name.c_str()) ) {
 		PVal* const pval = hpimod::seekSttVar( name.c_str() );
@@ -233,7 +233,7 @@ vartype_t getVartypeOfNode( HTREEITEM hItem )
 		}
 
 	} else if ( isResultNode(name.c_str()) ) {
-		auto iter = g_allResultData.find(hItem);
+		auto const&& iter = g_allResultData.find(hItem);
 		if ( iter != g_allResultData.end() ) {
 			return iter->second->vtype;
 		}
@@ -246,7 +246,7 @@ vartype_t getVartypeOfNode( HTREEITEM hItem )
 //------------------------------------------------
 string getItemVarText( HTREEITEM hItem )
 {
-	string const itemText = TreeView_GetItemString( hwndVarTree, hItem );
+	string const&& itemText = TreeView_GetItemString( hwndVarTree, hItem );
 	char const* const name = itemText.c_str();
 	
 	CVarinfoText varinf;
@@ -262,9 +262,10 @@ string getItemVarText( HTREEITEM hItem )
 		if ( strcmp(name, "+sysvar") == 0 ) {
 			varinf.addSysvarsOverview();
 
-		// モジュール (@...)
+		// モジュール
 		} else {
-			auto const* pTree = reinterpret_cast<CVarTree::ModuleNode*>(
+			assert(isModuleNode(name));
+			auto const pTree = reinterpret_cast<CStaticVarTree*>(
 				TreeView_GetItemLParam(hwndVarTree, hItem)
 			);
 			assert(pTree != nullptr);
@@ -288,22 +289,14 @@ string getItemVarText( HTREEITEM hItem )
 			
 		// 返値データ
 		} else if ( utilizeResultNodes() && isResultNode(name) ) {
-			auto const iter = g_allResultData.find(hItem);
+			auto const&& iter = g_allResultData.find(hItem);
 			auto const pResult = (iter != g_allResultData.end() ? iter->second : nullptr);
 			varinf.addResult( pResult->stdat, pResult->valueString, hpimod::STRUCTDAT_getName(pResult->stdat) );
 	#endif
 		// 静的変数
 		} else {
-		/*
-			// HSP側に問い合わせ
-			char* p = g_debug->get_varinf( name, GetTabVarsOption() );
-			SetWindowText( g_dialog.hVarEdit, p );
-			g_debug->dbg_close( p );
-		//*/
-			PVal* const pval = hpimod::seekSttVar( name );
-			if ( !pval ) {
-				return strf("[Error] \"%s\"は静的変数の名称ではない。\n参照：静的変数が存在しないときにこのエラーが生じることがある。", name);
-			}
+			auto const pval = reinterpret_cast<PVal*>(TreeView_GetItemLParam(hwndVarTree, hItem));
+			assert(pval && ctx->mem_var <= pval && pval < &ctx->mem_var[hpimod::cntSttVars()]);
 			varinf.addVar( pval, name );
 		}
 	}
@@ -332,17 +325,9 @@ void AddCallNode(ModcmdCallInfo const& callinfo)
 
 void AddCallNodeImpl(ModcmdCallInfo const& callinfo)
 {
-	char name[0x80] = "'";
-	strcpy_s( &name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(callinfo.stdat) );
-	
-	TVINSERTSTRUCT tvis = { 0 };
-	tvis.hParent      = g_hNodeDynamic;
-	tvis.hInsertAfter = TVI_LAST;
-	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
-	tvis.item.pszText = name;
-	tvis.item.lParam  = (LPARAM)(callinfo.idx);		// lparam に ModcmdCallInfo の添字を設定する
-	
-	HTREEITEM const hChild = TreeView_InsertItem( hwndVarTree, &tvis );
+	char name[128] = "'";
+	strcpy_s(&name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(callinfo.stdat));
+	HTREEITEM const hChild = TreeView_MyInsertItem(g_hNodeDynamic, name, false, (LPARAM)callinfo.idx);
 	
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, g_hNodeDynamic ) == hChild ) {
@@ -425,14 +410,7 @@ void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
 	// 挿入
 	char name[128] = "\"";
 	strcpy_s( &name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(pResult->stdat) );
-	
-	TVINSERTSTRUCT tvis = { 0 };
-		tvis.hParent      = hParent;
-		tvis.hInsertAfter = TVI_LAST;
-		tvis.item.mask    = TVIF_TEXT;
-		tvis.item.pszText = name;
-	
-	HTREEITEM const hChild = TreeView_InsertItem( hwndVarTree, &tvis );
+	HTREEITEM const hChild = TreeView_MyInsertItem(hParent, name, false, (LPARAM)0);
 	
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, hParent ) == hChild ) {
@@ -585,5 +563,19 @@ void UpdateCallNode()
 	return;
 }
 #endif
+
+//------------------------------------------------
+// ツリービューに要素を挿入する
+//------------------------------------------------
+static HTREEITEM TreeView_MyInsertItem(HTREEITEM hParent, char const* name, bool sorts, LPARAM lp)
+{
+	TVINSERTSTRUCT tvis {};
+	tvis.hParent = hParent;
+	tvis.hInsertAfter = (sorts ? TVI_SORT : TVI_LAST);
+	tvis.item.mask = TVIF_TEXT | TVIF_PARAM;
+	tvis.item.pszText = const_cast<char*>(name);
+	tvis.item.lParam = lp;
+	return TreeView_InsertItem(hwndVarTree, &tvis);
+}
 
 } // namespace VarTree

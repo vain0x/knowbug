@@ -14,13 +14,12 @@
 
 #include "hsed3_footy2/interface.h"
 
-#include "module/supio/supio.h"
-
 #include "resource.h"
 #include "main.h"
 
 #include "module/strf.h"
 #include "module/ptr_cast.h"
+#include "module/supio/supio.h"
 #include "DebugInfo.h"
 #include "CAx.h"
 #include "CVarTree.h"
@@ -33,20 +32,12 @@
 #include "vartree.h"
 
 static HINSTANCE g_hInstance;
-DebugInfo* g_dbginfo = nullptr;
-//HSP3DEBUG* g_debug;
-//HSPCTX*       ctx;
-//HSPEXINFO* exinfo;
-
-static CVarTree* stt_pSttVarTree = nullptr;
-//static DynTree_t* stt_pDynTree = nullptr;
+std::unique_ptr<DebugInfo> g_dbginfo;
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 );
 EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 );
 EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 );
-
-static void InvokeThread();
 
 // WrapCall 関連
 #ifdef with_WrapCall
@@ -71,39 +62,23 @@ int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 		case DLL_PROCESS_DETACH:
 			debugbye( g_dbginfo->debug, 0, 0, 0 );
 			Dialog::destroyMain();
-
-			delete g_dbginfo; g_dbginfo = nullptr;
 			break;
 	}
 	return TRUE;
 }
 
-//##############################################################################
-//        デバッグウィンドウ::(runtime から呼ばれる関数)
-//##############################################################################
 //------------------------------------------------
 // debugini ptr  (type1)
 //------------------------------------------------
 EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
-	// グローバル変数の初期化
-//	g_debug = p1;
 	ctx     = p1->hspctx;
 	exinfo  = ctx->exinfo2;
 
-	g_dbginfo = new DebugInfo(p1);
-	
-	// 設定を読み込む
+	g_dbginfo.reset(new DebugInfo(p1));
 	g_config.initialize();
 	
-//	DynTree::g_dbginfo = g_dbginfo;
-	
-	// ウィンドウの生成
 	HWND const hDlg = Dialog::createMain();
-	
-	// 実行位置決定スレッド
-//	InvokeThread();
-	
 	return 0;
 }
 
@@ -150,7 +125,6 @@ EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 )
 #ifdef with_Script
 	termConnectWithScript();
 #endif
-	delete stt_pSttVarTree; stt_pSttVarTree = nullptr;
 	return 0;
 }
 
@@ -174,7 +148,7 @@ HINSTANCE getInstance()
 }
 
 //------------------------------------------------
-// 実行設定
+// 実行制御
 //------------------------------------------------
 void runStop()
 {
@@ -200,10 +174,8 @@ void runStepOut()  { return runStepReturn( ctx->sublev - 1 ); }
 // ctx->sublev == sublev になるまで step を繰り返す
 void runStepReturn(int sublev)
 {
-	// 最外周への脱出 = 無制限
-	if ( sublev < 0 ) {
-		return run();	
-	}
+	if ( sublev < 0 ) return run();	
+
 	sublevOfGoal = sublev;
 	bStepRunning = false;
 	g_dbginfo->debug->dbg_set( HSPDEBUG_STEPIN );
@@ -250,7 +222,6 @@ void logmesWarning(char const* msg)
 //------------------------------------------------
 void bgnCalling(ModcmdCallInfo const& callinfo)
 {
-	// ノードの追加
 	VarTree::AddCallNode(callinfo);
 
 	// ログ出力
@@ -268,7 +239,6 @@ void bgnCalling(ModcmdCallInfo const& callinfo)
 
 void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
 {
-	// 最後の呼び出しノードを削除
 	VarTree::RemoveLastCallNode();
 
 	// 返値ノードデータの生成
@@ -278,7 +248,6 @@ void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
 		? std::make_shared<ResultNodeData>(callinfo, ptr, vtype)
 		: nullptr;
 
-	// 返値ノードの追加
 	if ( pResult ) {
 		VarTree::AddResultNode(callinfo, pResult);
 	}
@@ -296,32 +265,6 @@ void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
 }
 #endif
 
-}
-
-//------------------------------------------------
-// 静的変数リストを取得する
-//------------------------------------------------
-CVarTree* getSttVarTree()
-{
-	if ( !stt_pSttVarTree ) {
-		auto const tree = new CStaticVarTree::ModuleNode(CStaticVarTree::ModuleName_Global);
-
-		char name[0x100];
-		char* const p = g_dbginfo->debug->get_varinf( nullptr, 0xFF );	// HSP側に問い合わせ
-	//	SortNote( p );		// ツリービュー側でソートするので不要
-		strsp_ini();
-		for (;;) {
-			int const chk = strsp_get( p, name, 0, 255 );
-			if ( chk == 0 ) break;
-			
-			tree->pushVar( name );
-		}
-		g_dbginfo->debug->dbg_close( p );
-
-		stt_pSttVarTree = tree;
-	}
-	
-	return stt_pSttVarTree;
 }
 
 //##############################################################################

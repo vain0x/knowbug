@@ -6,7 +6,6 @@
 
 #include "main.h"
 #include "module/strf.h"
-#include "CVarTree.h"
 
 #ifdef with_WrapCall
 # include "WrapCall/ModcmdCallInfo.h"

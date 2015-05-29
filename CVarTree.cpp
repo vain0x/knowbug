@@ -1,33 +1,61 @@
 ﻿// VarTree
 
+#include <vector>
+#include <set>
+#include <map>
+#include "main.h"
 #include "CVarTree.h"
 
 string const CStaticVarTree::ModuleName_Global = "@";
 
+struct CStaticVarTree::Private {
+	CStaticVarTree& self;
+	string const name_;
+	std::set<string> vars_;
+	std::map<string, std::unique_ptr<CStaticVarTree>> modules_;
+
+public:
+	void insertVar(char const* name);
+	CStaticVarTree& insertModule(char const* pModname);
+};
+
+CStaticVarTree::CStaticVarTree(string const& name)
+	: p_(new Private { *this, name })
+{ }
+
+CStaticVarTree::~CStaticVarTree() {}
+
+string const& CStaticVarTree::getName() const {
+	return p_->name_;
+}
+
 //------------------------------------------------
 // 子ノードとして、変数ノードを追加する
 //------------------------------------------------
-void CStaticVarTree::ModuleNode::pushVar(char const* name)
+void CStaticVarTree::pushVar(char const* name)
 {
-	// 全スコープ解決を求める
-	char const* const pModname = std::strchr(name, '@');
+	char const* const scopeResolution = std::strchr(name, '@');
 
 	// スコープ解決がある => 子ノードのモジュールに属す
-	if ( pModname ) {
-		auto& child = insertChildModule(pModname);
-		child.insertChildImpl<VarNode>(name);
-
+	if ( scopeResolution ) {
+		auto& child = p_->insertModule(scopeResolution);
+		child.p_->insertVar(name);
 	} else {
-		insertChildImpl<VarNode>(name);
+		p_->insertVar(name);
 	}
 	return;
+}
+
+void CStaticVarTree::Private::insertVar(char const* name)
+{
+	vars_.insert(name);
 }
 
 //------------------------------------------------
 // 子ノードの、指定した名前のモジュール・ノードを取得する
 // なければ挿入する
 //------------------------------------------------
-CStaticVarTree::ModuleNode& CStaticVarTree::ModuleNode::insertChildModule(char const* pModname)
+CStaticVarTree& CStaticVarTree::Private::insertModule(char const* pModname)
 {
 	assert(pModname[0] == '@');
 
@@ -39,10 +67,27 @@ CStaticVarTree::ModuleNode& CStaticVarTree::ModuleNode::insertChildModule(char c
 		// 最後のスコープ解決1つを取り除いた部分
 		auto const modname2 = string(pModname, pModnameLast);
 
-		auto& child = insertChildImpl<ModuleNode>(pModnameLast);
-		return child.insertChildModule(modname2.c_str());
+		auto& child = insertModule(pModnameLast);
+		return child.p_->insertModule(modname2.c_str());
 
 	} else {
-		return insertChildImpl<ModuleNode>(pModname);
+		string modname = pModname;
+		auto it = modules_.find(modname);
+		if ( it == modules_.end() ) {
+			it = modules_.emplace(modname, std::make_unique<CStaticVarTree>(modname)).first;
+		}
+		return *it->second;
+	}
+}
+
+//------------------------------------------------
+// 浅い横断
+//------------------------------------------------
+void CStaticVarTree::foreach(CStaticVarTree::Visitor const& visitor) const {
+	for ( auto&& kv : p_->modules_ ) {
+		visitor.fModule(*kv.second);
+	}
+	for ( auto const& it : p_->vars_ ) {
+		visitor.fVar(it);
 	}
 }
