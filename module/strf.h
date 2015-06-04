@@ -24,8 +24,6 @@ template<typename TIter>
 std::string join(TIter&& begin, TIter&& end, char const* delimiter)
 {
 	std::stringstream ss;
-//	std::copy(std::forward<TIter>(begin), std::forward<TIter>(end),
-//		std::ostream_iterator<string>(ss, delimiter));
 	bool bFirst = true;
 	std::for_each(std::forward<TIter>(begin), std::forward<TIter>(end), [&](decltype(*begin) const& val) {
 		if ( bFirst ) { bFirst = false; } else { ss << delimiter; }

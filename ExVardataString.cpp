@@ -143,7 +143,6 @@ void WINAPI knowbugVsw_addValueAssoc(vswriter_t _w, char const* name, void const
 		}
 	}
 	knowbugVsw_catNodeEnd(_w, "]");
-	return;
 }
 #endif
 
@@ -189,7 +188,6 @@ void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void cons
 
 	}
 	knowbugVsw_catNodeEnd(_w, "]");
-	return;
 }
 #endif
 
@@ -224,7 +222,6 @@ void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const
 
 	// 表示
 	knowbugVsw_addVarArray(_w, name, pvInner);
-	return;
 }
 #endif
 
@@ -239,7 +236,6 @@ extern void WINAPI knowbugVsw_addValueModcmd(vswriter_t _w, char const* name, vo
 	knowbugVsw_catLeaf(_w, name, strf("modcmd(%s)",
 		(modcmd == 0xFFFFFFFF) ? "" : hpimod::STRUCTDAT_getName(hpimod::getSTRUCTDAT(modcmd))
 	).c_str());
-	return;
 }
 
 #endif

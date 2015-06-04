@@ -72,7 +72,6 @@ void init()
 	
 	// トップを表示するように仕向ける
 	TreeView_EnsureVisible(hwndVarTree, hRoot);
-	return;
 }
 
 //------------------------------------------------
@@ -85,7 +84,7 @@ void term()
 		RemoveDependingResultNodes(g_hNodeDynamic);
 
 		// dynamic 関連のデータを削除する (必要なさそう)
-		if ( utilizeResultNodes() ) {
+		if ( usesResultNodes() ) {
 			g_willAddResultNodeIndepend = nullptr;
 			g_willAddResultNodes.clear();
 		}
@@ -133,7 +132,6 @@ void AddNodeModule(HTREEITEM hParent, CStaticVarTree const& tree)
 			TreeView_MyInsertItem(hElem, varname.c_str(), true, (LPARAM)pval);
 		}
 	);
-	return;
 }
 
 //------------------------------------------------
@@ -148,7 +146,6 @@ void AddNodeSysvar()
 		string const name = strf( "~%s", SysvarData[i].name );
 		TreeView_MyInsertItem( hNodeSysvar, name.c_str(), false, (LPARAM)i );
 	}
-	return;
 }
 
 #ifdef with_WrapCall
@@ -158,7 +155,6 @@ void AddNodeSysvar()
 void AddNodeDynamic()
 {
 	g_hNodeDynamic = TreeView_MyInsertItem(TVI_ROOT, "+dynamic", false, (LPARAM)0);
-	return;
 }
 #endif
 
@@ -262,7 +258,6 @@ string getItemVarText( HTREEITEM hItem )
 		if ( strcmp(name, "+sysvar") == 0 ) {
 			varinf.addSysvarsOverview();
 
-		// モジュール
 		} else {
 			assert(isModuleNode(name));
 			auto const pTree = reinterpret_cast<CStaticVarTree*>(
@@ -288,13 +283,14 @@ string getItemVarText( HTREEITEM hItem )
 			}
 			
 		// 返値データ
-		} else if ( utilizeResultNodes() && isResultNode(name) ) {
+		} else if ( usesResultNodes() && isResultNode(name) ) {
 			auto const&& iter = g_allResultData.find(hItem);
 			auto const pResult = (iter != g_allResultData.end() ? iter->second : nullptr);
 			varinf.addResult( pResult->stdat, pResult->valueString, hpimod::STRUCTDAT_getName(pResult->stdat) );
 	#endif
 		// 静的変数
 		} else {
+			assert(isVarNode(name));
 			auto const pval = reinterpret_cast<PVal*>(TreeView_GetItemLParam(hwndVarTree, hItem));
 			assert(pval && ctx->mem_var <= pval && pval < &ctx->mem_var[hpimod::cntSttVars()]);
 			varinf.addVar( pval, name );
@@ -310,7 +306,7 @@ string getItemVarText( HTREEITEM hItem )
 void AddCallNode(ModcmdCallInfo const& callinfo)
 {
 	// 非依存な返値ノードを除去
-	if ( utilizeResultNodes() ) {
+	if ( usesResultNodes() ) {
 		RemoveLastIndependedResultNode();
 	}
 
@@ -320,8 +316,7 @@ void AddCallNode(ModcmdCallInfo const& callinfo)
 	} else {
 		AddCallNodeImpl(callinfo);
 	}
-	return;
-}
+	}
 
 void AddCallNodeImpl(ModcmdCallInfo const& callinfo)
 {
@@ -333,7 +328,6 @@ void AddCallNodeImpl(ModcmdCallInfo const& callinfo)
 	if ( TreeView_GetChild( hwndVarTree, g_hNodeDynamic ) == hChild ) {
 		TreeView_Expand( hwndVarTree, g_hNodeDynamic, TVE_EXPAND );
 	}
-	return;
 }
 
 //------------------------------------------------
@@ -346,7 +340,7 @@ void RemoveLastCallNode()
 
 	} else {
 		// 末子に返値ノードがあれば削除する
-		if ( utilizeResultNodes() ) {
+		if ( usesResultNodes() ) {
 			RemoveLastIndependedResultNode();
 		}
 
@@ -358,7 +352,6 @@ void RemoveLastCallNode()
 		RemoveDependingResultNodes(hLast);
 		TreeView_DeleteItem(hwndVarTree, hLast);
 	}
-	return;
 }
 
 //------------------------------------------------
@@ -394,7 +387,6 @@ void AddResultNode(ModcmdCallInfo const& callinfo, std::shared_ptr<ResultNodeDat
 	} else {
 		AddResultNodeImpl(pResult);
 	}
-	return;
 }
 
 void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
@@ -423,7 +415,6 @@ void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
 	if ( hParent == g_hNodeDynamic ) {
 		g_lastIndependedResultNode = hChild;
 	}
-	return;
 }
 
 //------------------------------------------------
@@ -469,7 +460,6 @@ void RemoveResultNode(HTREEITEM hResult)
 	}
 
 	TreeView_DeleteItem(hwndVarTree, hResult);
-	return;
 }
 
 //------------------------------------------------
@@ -477,7 +467,7 @@ void RemoveResultNode(HTREEITEM hResult)
 //------------------------------------------------
 static void RemoveDependingResultNodes(HTREEITEM hItem)
 {
-	if ( !utilizeResultNodes() ) return;
+	if ( !usesResultNodes() ) return;
 
 	// +dynamic 直下の返値ノードは非依存なものであり、それは末子の高々1つに限られる
 	if ( hItem == g_hNodeDynamic ) {
@@ -501,7 +491,6 @@ static void RemoveDependingResultNodes(HTREEITEM hItem)
 		}
 		hChild = hNext;
 	}
-	return;
 }
 
 //------------------------------------------------
@@ -514,7 +503,6 @@ void RemoveLastIndependedResultNode()
 		g_lastIndependedResultNode = nullptr;
 	}
 	g_willAddResultNodeIndepend = nullptr;
-	return;
 }
 
 //------------------------------------------------
@@ -545,7 +533,7 @@ void UpdateCallNode()
 	}
 
 	// 追加予定の返値ノードを実際に追加する
-	if ( utilizeResultNodes() ) {
+	if ( usesResultNodes() ) {
 		// 非依存なもの
 		if ( g_willAddResultNodeIndepend ) {
 			AddResultNodeImpl(g_willAddResultNodeIndepend);
@@ -560,7 +548,6 @@ void UpdateCallNode()
 			g_willAddResultNodes.clear();
 		}
 	}
-	return;
 }
 #endif
 

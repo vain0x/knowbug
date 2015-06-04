@@ -32,12 +32,6 @@ struct ModcmdCallInfo
 	// g_stkCallInfo における位置
 	size_t const idx;
 
-	/*
-	// 連結リスト
-	ModcmdCallInfo const* prev;
-	ModcmdCallInfo const* next;
-	//*/
-
 public:
 	ModcmdCallInfo(stdat_t stdat, void* prmstk_bak, int sublev, int looplev, char const* fname, int line, size_t idx)
 		: stdat(stdat), prmstk_bak(prmstk_bak), sublev(sublev), looplev(looplev), fname(fname), line(line), idx(idx)

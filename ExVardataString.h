@@ -41,7 +41,7 @@ struct KnowbugVswMethods
 	bool (*isLineformWriter)(vswriter_t);
 };
 
-// internal
+// internal writers
 #ifdef HSP_DEBUGGER
 
 #ifdef with_Assoc

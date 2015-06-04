@@ -16,9 +16,6 @@ struct DebugInfo
 {
 public:
 	HSP3DEBUG* const debug;
-//	HSPCTX*    const ctx;
-//	HSPEXINFO* const exinfo;
-
 	std::unique_ptr<CAx> const ax;
 
 public:
@@ -30,7 +27,6 @@ public:
 	// 現在実行の実行位置を表す文字列 (更新はしない)
 	std::string getCurInfString() const {
 		auto const fname = (debug->fname ? debug->fname : "(nameless)");
-	//	return strf("%s\n( line : %d )", fname, debug->line);
 		return strf("#%d \"%s\"", debug->line, fname);
 	}
 };

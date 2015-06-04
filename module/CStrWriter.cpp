@@ -47,7 +47,6 @@ void CStrWriter::cat(char const* s, size_t lenToAppend)
 		buf_->append( s );
 		lenLimit_ -= lenToAppend;
 	}
-	return;
 }
 #endif
 
@@ -83,7 +82,6 @@ void CStrWriter::catDumpImpl( void const* data, size_t size )
 		}
 		cat( tline );
 	}
-	return;
 }
 
 void CStrWriter::catDump(void const* data, size_t bufsize)
@@ -101,5 +99,4 @@ void CStrWriter::catDump(void const* data, size_t bufsize)
 	catln("dump  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F");
 	catln("----------------------------------------------------");
 	catDumpImpl(data, size);
-	return;
 }

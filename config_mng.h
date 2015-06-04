@@ -35,11 +35,10 @@ public:
 	int  maxlenVarinfo;
 	int  tabwidth;
 	bool bTopMost;
-	bool showsVariableAddress, showsVariableSize;
+	bool showsVariableAddress, showsVariableSize, showsVariableDump;
 	
 	string logPath;
 	int  logMaxlen;
-	//bool bWordwrap;
 	bool bResultNode;
 
 	bool bCustomDraw;
@@ -62,4 +61,4 @@ public:
 
 extern KnowbugConfig::SingletonAccessor g_config;
 
-static bool utilizeResultNodes() { return g_config->bResultNode; }
+static bool usesResultNodes() { return g_config->bResultNode; }

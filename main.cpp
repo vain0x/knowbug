@@ -6,16 +6,11 @@
 
 #include <Windows.h>
 #include <cstdio>
-#include <deque>
 #include <vector>
-#include <list>
 #include <algorithm>
-#include <fstream>
 
-#include "hsed3_footy2/interface.h"
-
-#include "resource.h"
 #include "main.h"
+#include "hsed3_footy2/interface.h"
 
 #include "module/strf.h"
 #include "module/ptr_cast.h"
@@ -23,7 +18,6 @@
 #include "DebugInfo.h"
 #include "CAx.h"
 #include "CVarTree.h"
-//#include "CVarinfoTree.h"
 #include "CVarinfoText.h"
 #include "SysvarData.h"
 
@@ -103,8 +97,6 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 			Dialog::update();
 			break;
 		}
-		
-		// logmes 命令が呼ばれた
 		case hpimod::DebugNotice_Logmes:
 			Knowbug::logmes( ctx->stmp );
 			break;
@@ -117,7 +109,7 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 //------------------------------------------------
 EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
-	if ( !g_config->logPath.empty() ) {		// 自動ログ保存
+	if ( !g_config->logPath.empty() ) { //auto save
 		Dialog::logSave( g_config->logPath.c_str() );
 	}
 	
@@ -179,7 +171,6 @@ void runStepReturn(int sublev)
 	sublevOfGoal = sublev;
 	bStepRunning = false;
 	g_dbginfo->debug->dbg_set( HSPDEBUG_STEPIN );
-	return;
 }
 
 //------------------------------------------------
@@ -234,7 +225,6 @@ void bgnCalling(ModcmdCallInfo const& callinfo)
 		);
 		Knowbug::logmes(logText.c_str());
 	}
-	return;
 }
 
 void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
@@ -244,7 +234,7 @@ void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
 	// 返値ノードデータの生成
 	// ptr の生存期限が今だけなので、今作るしかない
 	auto const pResult =
-		(utilizeResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
+		(usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
 		? std::make_shared<ResultNodeData>(callinfo, ptr, vtype)
 		: nullptr;
 
@@ -261,7 +251,6 @@ void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
 		);
 		Knowbug::logmes(logText.c_str());
 	}
-	return;
 }
 #endif
 
@@ -278,7 +267,6 @@ EXPORT void WINAPI knowbug_getVarinfoString(char const* name, PVal* pval,  char*
 	auto const varinf = std::make_unique<CVarinfoText>();
 	varinf->addVar(pval, name);
 	strcpy_s(prefstr, HSPCTX_REFSTR_MAX, varinf->getString().c_str());
-	return;
 }
 
 //------------------------------------------------
@@ -299,63 +287,4 @@ EXPORT void WINAPI knowbug_getCurrentModcmdName(char const* strNone, int n, char
 #else
 	strcpy_s(prefstr, HSPCTX_REFSTR_MAX, strNone);
 #endif
-	return;
 }
-
-#if 0
-//------------------------------------------------
-// スレッド起動
-//
-// TODO: 作りかけ
-//------------------------------------------------
-
-class ExecPtrThread
-{
-public:
-	ExecPtrThread() {
-		
-	}
-};
-
-void threadFunc()
-{
-	/*
-	const unsigned short* mcs;
-	const unsigned short* mcs_bak;
-
-	std::map<int, bool> is_var_checked;
-	
-	for (;;) {
-		is_var_checked.clear();
-
-		std::map<int, csptr_t>& vec = g_dbginfo->ax->csMap.at( g_dbginfo->debug->fname );
-		mcs = vec[g_dbginfo->debug->line];
-		
-		if ( mcs >= mcs_bak ) {		// 順進  (!! 最初の mcs_bak 不定値)
-			for ( csptr_t p = mcs_bak; p <= mcs; ++ p ) {
-				const int c = *p;
-				int code;
-				if ( c & 0x8000 ) {
-					code = *reinterpret_cast<int const*>(p); p += 2;
-				} else {
-					code = *p; p ++;
-				}
-				
-				if ( (c & CSTYPE) == TYPE_VAR && !is_var_checked[code] ) {
-					// 静的変数 code の変数値制約を確認する
-					is_var_checked.insert( std::pair<int, bool>(code, true) );
-				}
-			}
-		}
-		
-		mcs_bak = mcs;
-		Sleep(1);
-	}
-	//*/
-}
-
-void InvokeThread()
-{
-	//
-}
-#endif

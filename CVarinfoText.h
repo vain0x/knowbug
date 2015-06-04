@@ -1,6 +1,4 @@
-﻿// 変数データテキスト生成クラス
-
-#ifndef IG_CLASS_VARINFO_TEXT_H
+﻿#ifndef IG_CLASS_VARINFO_TEXT_H
 #define IG_CLASS_VARINFO_TEXT_H
 
 #include "main.h"
@@ -18,14 +16,13 @@ namespace WrapCall
 }
 #endif
 
+// 変数データテキスト生成クラス
 class CVarinfoText
 {
-	// メンバ変数
 private:
 	string buf_;
 	CStrWriter writer_;
 
-	// メンバ関数
 public:
 	CVarinfoText()
 		: writer_ { getBuf() }

@@ -39,7 +39,7 @@ public:
 	}
 private:
 	template<typename TWriter>
-	CVardataStrWriter(string* buf,  TWriter* /* for template parameter induction */)
+	CVardataStrWriter(string* buf,  TWriter* /* for template argument deduction */)
 		: writer_(static_cast<CStructedStrWriter*>(new TWriter(buf)))
 	{ }
 
@@ -67,8 +67,6 @@ public:
 #ifdef with_ExtraBasics
 	//	template<class TNumeric> string dbgstr_extraBasic(const TNumeric src);
 #endif
-	//	void addItem_string(char const* src);
-
 	void addPrmstack(stdat_t stdat, void const* prmstack);
 	void addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member);
 
@@ -99,10 +97,6 @@ public:
 private:
 	string mybuf_;
 };
-
-// バッファを所有するバージョン
-//using CVardataStrWriterTreeformed = CVardataStrWriterWithBuf<CTreeformedWriter>;
-//using CVardataStrWriterLineformed = CVardataStrWriterWithBuf<CLineformedWriter>;
 
 //------------------------------------------------
 // 置く場所に困る系関数群

@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "module/ptr_cast.h"
+#include "module/map_iterator.h"
 
 #include "main.h"
 #include "SysvarData.h"
@@ -45,8 +46,9 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 	getWriter().catCrlf();
 
 	// メモリダンプ
-	getWriter().catDump(pMemBlock, static_cast<size_t>(bufsize));
-	return;
+	if ( g_config->showsVariableDump ) {
+		 getWriter().catDump(pMemBlock, static_cast<size_t>(bufsize));
+	}
 }
 
 //------------------------------------------------
@@ -58,9 +60,7 @@ void CVarinfoText::addSysvar(char const* name)
 	if ( id == SysvarId_MAX ) return;
 
 	getWriter().catln(strf("変数名：%s\t(システム変数)", name));
-	//getWriter().catln(strf("変数型：%s", hpimod::getHvp(SysvarData[id].type)->vartype_name));
 	getWriter().catCrlf();
-
 	{
 		CVardataStrWriter::create<CTreeformedWriter>(getBuf())
 			.addSysvar(id);
@@ -68,12 +68,11 @@ void CVarinfoText::addSysvar(char const* name)
 	getWriter().catCrlf();
 
 	// メモリダンプ
-	{
+	if ( g_config->showsVariableDump ) {
 		void const* data; size_t size;
 		Sysvar_getDumpInfo(id, data, size);
 		getWriter().catDump(data, size);
 	}
-	return;
 }
 
 #if with_WrapCall
@@ -101,11 +100,10 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
 			.addCall( stdat, prmstk );
 
-	if ( prmstk ) {
+	if ( prmstk && g_config->showsVariableDump ) {
 		getWriter().catCrlf();
 		getWriter().catDump(prmstk, static_cast<size_t>(stdat->size));
 	}
-	return;
 }
 
 //------------------------------------------------
@@ -122,8 +120,7 @@ void CVarinfoText::addResult( stdat_t stdat, string const& text, char const* nam
 //	getWriter().catCrlf();
 	
 	// メモリダンプ
-//	getWriter().catDump( ptr, static_cast<size_t>(bufsize) );
-	return;
+	//if ( g_config->showsVariableDump ) { getWriter().catDump( ptr, static_cast<size_t>(bufsize) ); }
 }
 
 #endif
@@ -153,7 +150,6 @@ void CVarinfoText::addModuleOverview(char const* name, CStaticVarTree const& tre
 			getWriter().catCrlf();
 		}
 	);
-	return;
 }
 
 //------------------------------------------------
@@ -172,7 +168,6 @@ void CVarinfoText::addSysvarsOverview()
 		}
 		getWriter().catCrlf();
 	}
-	return;
 }
 
 #ifdef with_WrapCall
@@ -199,64 +194,12 @@ void CVarinfoText::addCallsOverview(ResultNodeData const* pLastResult)
 		getWriter().cat("-> ");
 		getWriter().catln(pLastResult->valueString);
 	}
-	return;
 }
 #endif
 
 //**********************************************************
 //        下請け関数
 //**********************************************************
-/*
-//------------------------------------------------
-// 改行を連結する
-//------------------------------------------------
-void CVarinfoText::cat_crlf( void )
-{
-	if ( mlenLimit < 2 ) return;
-	
-	mpBuf->append( "\r\n" );
-	mlenLimit -= 2;
-	return;
-}
-
-//------------------------------------------------
-// 文字列を連結する
-//------------------------------------------------
-void CVarinfoText::cat( char const* string )
-{
-	if ( mlenLimit <= 0 ) return;
-	
-	size_t len( strlen( string ) + 2 );		// 2 は crlf の分
-	
-	if ( static_cast<int>(len) > mlenLimit ) {
-		mpBuf->append( string, mlenLimit );
-		mpBuf->append( "(長すぎたので省略しました。)" );
-		mlenLimit = 2;
-	} else {
-		mpBuf->append( string );
-		mlenLimit -= len;
-	}
-	
-	cat_crlf();
-	return;
-}
-
-//------------------------------------------------
-// 書式付き文字列を連結する
-//------------------------------------------------
-void CVarinfoText::catf( char const* format, ... )
-{
-	va_list   arglist;
-	va_start( arglist, format );
-	
-	string s = vstrf( format, arglist );
-	cat( s.c_str() );
-	
-	va_end( arglist );
-	return;
-}
-//*/
-
 //------------------------------------------------
 // mptype の文字列を得る
 // todo: hpimod に移動？
@@ -298,7 +241,6 @@ char const* getMPTypeString(int mptype)
 	}
 }
 
-#include "module/map_iterator.h"
 //------------------------------------------------
 // 仮引数リストの文字列
 //------------------------------------------------
@@ -320,15 +262,7 @@ string getPrmlistString(stdat_t stdat)
 #endif
 }
 
-#if 0 // 未使用
-static char const* getModeString(varmode_t mode)
-{
-	return	(mode == HSPVAR_MODE_NONE) ? "無効" :
-		(mode == HSPVAR_MODE_MALLOC) ? "実体" :
-		(mode == HSPVAR_MODE_CLONE) ? "クローン" : "???";
-}
-#endif
-static char const* getTypeQualifierFromMode(varmode_t mode)
+static char const* typeQualifierStringFromVarmode(varmode_t mode)
 {
 	return (mode == HSPVAR_MODE_NONE) ? "!" :
 		(mode == HSPVAR_MODE_MALLOC) ? "" :
@@ -348,7 +282,7 @@ string getVartypeString(PVal const* pval)
 
 	return strf("%s%s %s",
 		hpimod::getHvp(pval->flag)->vartype_name,
-		getTypeQualifierFromMode(pval->mode),
+		typeQualifierStringFromVarmode(pval->mode),
 		arrayType.c_str()
 	);
 }

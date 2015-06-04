@@ -53,7 +53,6 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 	} else {
 		addVarScalar(name, pval, 0);
 	}
-	return;
 }
 
 //------------------------------------------------
@@ -64,13 +63,11 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 void CVardataStrWriter::addVarScalar(char const* name, PVal const* pval)
 {
 	addValue(name, pval->flag, hpimod::PVal_getPtr(pval));
-	return;
 }
 
 void CVardataStrWriter::addVarScalar(char const* name, PVal const* pval, APTR aptr)
 {
 	addValue(name, pval->flag, hpimod::PVal_getPtr(pval, aptr));
-	return;
 }
 
 //------------------------------------------------
@@ -113,7 +110,6 @@ void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 	}
 
 	getWriter().catNodeEnd("]");
-	return;
 }
 
 void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const cntElems[], size_t idxDim, APTR aptr_offset)
@@ -133,7 +129,6 @@ void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const cntElems[]
 			addVarScalar(CStructedStrWriter::stc_strUnused, pval, aptr_offset + i);
 		}
 	}
-	return;
 }
 
 //------------------------------------------------
@@ -171,7 +166,6 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 		auto const dbgstr = stringizeSimpleValue(type, ptr, getWriter().isLineformed());
 		getWriter().catLeaf(name, dbgstr.c_str());
 	}
-	return;
 }
 
 //------------------------------------------------
@@ -197,7 +191,6 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 
 		getWriter().catNodeEnd("}");
 	}
-	return;
 }
 
 //------------------------------------------------
@@ -231,7 +224,6 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, void const* prmstack)
 		// structtag => メンバではないので、数えない
 		if ( stprm.mptype != MPTYPE_STRUCTTAG ) { ++i; }
 	});
-	return;
 }
 
 //------------------------------------------------
@@ -303,7 +295,6 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 			);
 			break;
 	}
-	return;
 }
 
 //------------------------------------------------
@@ -332,7 +323,6 @@ void CVardataStrWriter::addSysvar(SysvarId id)
 					auto const lvLoop = ctx->looplev - i;
 					addValue(strf("#%d", lvLoop).c_str(), HSPVAR_FLAG_INT,
 						VtTraits::asPDAT<vtInt>(&ctx->mem_loop[lvLoop].cnt));
-					//getWriter().catLeaf(strf("#%d", lvLoop), strf("%d", cnt).c_str());
 				}
 				getWriter().catNodeEnd("]");
 			} else {
@@ -390,7 +380,6 @@ void CVardataStrWriter::addCall(stdat_t stdat, void const* prmstk)
 		: name;
 #endif
 	addCall(name, stdat, prmstk);
-	return;
 }
 
 void CVardataStrWriter::addCall(char const* name, stdat_t stdat, void const* prmstk)
@@ -406,7 +395,6 @@ void CVardataStrWriter::addCall(char const* name, stdat_t stdat, void const* prm
 		addPrmstack(stdat, prmstk);
 	}
 	getWriter().catNodeEnd(")");
-	return;
 }
 
 //------------------------------------------------
@@ -417,7 +405,6 @@ void CVardataStrWriter::addResult(char const* name, PDAT const* ptr, vartype_t t
 	assert(getWriter().isLineformed());	// 現在の実装では
 
 	addValue(name, type, ptr);
-	return;
 }
 
 //**********************************************************
@@ -462,20 +449,6 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 				(idx >= 0 ? g_dbginfo->ax->getLabelName(idx) : nullptr);
 			return (name ? strf("*%s", name) : strf("label(0x%08X)", address_cast(lb)));
 		}
-#if 0
-		case HSPVAR_FLAG_STRUCT:
-			{
-				auto const fv = cptr_cast<FlexValue*>(ptr);
-				if ( fv->type == FLEXVAL_TYPE_NONE ) {
-					return string("(empty struct)");
-				} else {
-					return strf("struct%s(0x%08X; #%d, size:%d)",
-						(fv->type == FLEXVAL_TYPE_CLONE ? "&" : ""),
-						fv->customid, address_cast(fv->ptr), fv->size,
-						);
-				}
-			}
-#endif
 		default:
 		{
 			auto const vtname = hpimod::getHvp(type)->vartype_name;
@@ -619,7 +592,6 @@ void calcIndexesFromAptr(int* indexes, APTR aptr, int const* lengths, size_t cnt
 		indexes[idxDim] = aptr % lengths[idxDim];
 		aptr /= lengths[idxDim];
 	}
-	return;
 }
 
 //------------------------------------------------

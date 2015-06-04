@@ -22,7 +22,6 @@ void modcmd_init(HSP3TYPEINFO* info)
 
 	info->cmdfunc = modcmd_cmdfunc;
 	info->reffunc = modcmd_reffunc;
-	return;
 }
 
 //------------------------------------------------
@@ -37,7 +36,6 @@ void modcmd_term(HSP3TYPEINFO* info)
 		g_modcmd_cmdfunc_impl = nullptr;
 		g_modcmd_reffunc_impl = nullptr;
 	}
-	return;
 }
 
 //------------------------------------------------

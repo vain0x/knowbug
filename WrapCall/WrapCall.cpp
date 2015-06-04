@@ -14,57 +14,18 @@ namespace WrapCall
 
 static stkCallInfo_t g_stkCallInfo;
 
-static int g_pluginType_WrapCall = -1;
-
-/*
-struct ValueRef
-{
-	PDAT*      p;
-	vartype_t vt;
-public:
-	ValueRef()
-		: p(nullptr)
-		, vt(HSPVAR_FLAG_NONE)
-	{ }
-
-	void set(PDAT* p1, vartype_t vt1) {
-		p = p1; vt = vt1;
-	}
-};
-static ValueRef lastResult;	// 最後の返値への参照 (すぐ使えなくなるので注意)
-//*/
-
 //------------------------------------------------
 // プラグイン初期化関数
 //------------------------------------------------
 EXPORT void WINAPI hsp3hpi_init_wrapcall(HSP3TYPEINFO* info)
 {
-	g_pluginType_WrapCall = info->type;
-	auto const typeinfo = info - g_pluginType_WrapCall;
-
 	hsp3sdk_init(info);
 
 	// 初期化
+	auto const typeinfo = &info[- info->type];
 	modcmd_init(&typeinfo[TYPE_MODCMD]);
 	g_stkCallInfo.reserve(32);
-	return;
 }
-
-/*
-EXPORT void WINAPI WrapCallInitialize()
-{
-	//
-}
-
-// typeinfo が動いた可能性があるので元に戻すタイミングはない
-EXPORT void WINAPI WrapCallTerminate()
-{
-	if ( g_typeinfo != nullptr ) {
-		modcmd_term(&g_typeinfo[TYPE_MODCMD]);
-	}
-	return;
-}
-//*/
 
 //------------------------------------------------
 // 呼び出しの開始
@@ -84,7 +45,6 @@ void bgnCall(stdat_t stdat)
 	
 	// DebugWindow への通知
 	Knowbug::bgnCalling(callinfo);
-	return;
 }
 
 //------------------------------------------------
@@ -114,7 +74,6 @@ void endCall(PDAT* p, vartype_t vt)
 	Knowbug::endCalling(callinfo, p, vt);
 	
 	g_stkCallInfo.pop_back();
-	return;
 }
 
 //------------------------------------------------

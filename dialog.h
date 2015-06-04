@@ -6,24 +6,6 @@
 #include <Windows.h>
 #include <CommCtrl.h>
 
-#include "resource.h"
-
-#define IDU_TAB 100
-#define ID_BTN1 1000
-#define ID_BTN2 1001
-#define ID_BTN3 1002
-#define ID_BTN4 1003
-#define ID_BTN5 1004
-
-#define DIALOG_X0 5
-#define DIALOG_Y0 5
-#define DIALOG_X1 366
-#define DIALOG_Y1 406
-#define DIALOG_Y2 23
-
-#define WND_SX 380
-#define WND_SY 480
-
 namespace Dialog
 {
 
@@ -52,9 +34,8 @@ void setEditStyle( HWND hEdit );
 
 } // namespace Dialog
 
-// その他
+// helpers
 void Edit_SetTabLength( HWND hEdit, const int tabwidth );
-void Edit_EnableWordwrap(HWND hEdit, bool bEnable);
 void Edit_UpdateText(HWND hEdit, char const* s);
 string TreeView_GetItemString( HWND hwndTree, HTREEITEM hItem );
 LPARAM TreeView_GetItemLParam( HWND hwndTree, HTREEITEM hItem );

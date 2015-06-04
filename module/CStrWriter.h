@@ -42,17 +42,6 @@ public:
 	void catDump(void const* data, size_t size);
 private:
 	void catDumpImpl(void const* data, size_t size);
-
-	/*
-public:
-	// 書き込み量制限
-	static char const* const stc_warning;	// "(too long)"
-	static size_t const stc_warningLength = 10;	//= std::strlen(stc_warning);
-	static size_t const stc_inifiniteLength = 0xFFFFFFFF;
-	size_t getLimit() const { return lenLimit_; }
-private:
-	size_t lenLimit_;	// 残りの書き込み量制限
-	//*/
 private:
 	string* buf_;
 };
@@ -210,7 +199,6 @@ public:
 		cat(leftBracket);
 		incNest();
 		bFirstElem_.push(true);
-		return;
 	}
 	void catNodeEnd(char const* rightBracket) override
 	{
@@ -231,7 +219,6 @@ public:
 			if ( !bFirstElem_.top() ) cat(", ");
 			bFirstElem_.top() = false;
 		}
-		return;
 	}
 
 private:

@@ -35,7 +35,6 @@ namespace WrapCall
 		{
 			CVardataStrWriter::create<CLineformedWriter>(&valueString)
 				.addResult(hpimod::STRUCTDAT_getName(stdat), ptr, vt);
-			return;
 		}
 
 		ResultNodeData(ModcmdCallInfo const& callinfo, PVal* pvResult)

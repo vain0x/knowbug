@@ -28,11 +28,11 @@ KnowbugConfig::KnowbugConfig()
 	//maxlenVarinfo = ini.getInt( "Varinfo", "maxlen", 0x1000 - 1 );
 	logMaxlen   = ini.getInt( "Log",     "maxlen", 0x20000 );
 	tabwidth    = ini.getInt( "Interface", "tabwidth", 3 );
-	//bWordwrap = ini.getBool( "Interface", "bWordwrap", false );
 	bTopMost    = ini.getBool( "Window", "bTopMost", false );
 	logPath = ini.getString("Log", "autoSavePath", "");
 	showsVariableAddress = ini.getBool("Varinfo", "showsVariableAddress", true);
 	showsVariableSize    = ini.getBool("Varinfo", "showsVariableSize", true);
+	showsVariableDump    = ini.getBool("Varinfo", "showsVariableDump", true);
 	
 	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
 	bCustomDraw = ini.getBool( "ColorType", "bCustomDraw", false );
@@ -47,15 +47,12 @@ KnowbugConfig::KnowbugConfig()
 		auto const& keys = ini.enumKeys("ColorTypeExtra");
 		for ( auto const& key : keys ) {
 			COLORREF const cref = ini.getInt("ColorTypeExtra", key.c_str());
-			//dbgout("extracolor: %s = (%d, %d, %d)", key.c_str(), GetRValue(cref), GetGValue(cref), GetBValue(cref) );
 			clrTextExtra.emplace(key, cref);
 		}
 	}
 
 	// 拡張型の変数データを文字列化する関数
 	auto const& keys = ini.enumKeys("VardataString/UserdefTypes");
-	//dbgout(join(keys.begin(), keys.end(), ", ").c_str());
-
 	for ( auto const& vtname : keys ) {
 		auto const dllPath = ini.getString("VardataString/UserdefTypes", vtname.c_str());
 		if ( moduleHandle_t hDll { LoadLibrary(dllPath) } ) {
@@ -103,11 +100,9 @@ KnowbugConfig::KnowbugConfig()
 #endif
 	};
 	for ( auto&& vsw2 : stc_vswInfoForInternal ) {
-		//doesn't overwrite the writer of external Dll
+		//doesn't overwrite writers of external Dll
 		if ( vswInfo.find(vsw2.vtname) == vswInfo.end() ) {
 			vswInfo.emplace(vsw2.vtname, VswInfo { nullptr, vsw2.addVar, vsw2.addValue });
 		}
 	}
-	
-	return;
 }

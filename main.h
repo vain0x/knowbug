@@ -1,6 +1,6 @@
 ﻿// knowbug - main header
 
-// todo: よくわからないヘッダ
+// todo: ヘッダの目的が分からないのでなんとかしたい
 
 #ifndef IG_HSP3DBGWIN_KNOWBUG_H
 #define IG_HSP3DBGWIN_KNOWBUG_H
@@ -33,8 +33,7 @@ namespace WrapCall
 }
 #endif
 
-//extern HSP3DEBUG* g_debug;
-//extern HSPCTX*       ctx;	// hsp3plugin で宣言・定義される
+//extern HSPCTX* ctx; // declared and defined in hsp3plugin.(h/cpp)
 //extern HSPEXINFO* exinfo;
 
 struct DebugInfo;

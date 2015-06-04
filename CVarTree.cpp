@@ -43,7 +43,6 @@ void CStaticVarTree::pushVar(char const* name)
 	} else {
 		p_->insertVar(name);
 	}
-	return;
 }
 
 void CStaticVarTree::Private::insertVar(char const* name)

@@ -31,11 +31,6 @@ int* Sysvar_getPtrOfInt(int id)
 	assert(SysvarData[id].type == HSPVAR_FLAG_INT && id != SysvarId_Cnt);
 	switch ( id ) {
 		case SysvarId_Stat:    return &ctx->stat;
-		/*case SysvarId_Cnt:
-		{
-			int const lv = ctx->looplev;
-			return (lv > 0 ? &ctx->mem_loop[lv].cnt : nullptr);
-		}//*/
 		case SysvarId_IParam:  return &ctx->iparam;
 		case SysvarId_WParam:  return &ctx->wparam;
 		case SysvarId_LParam:  return &ctx->lparam;
@@ -59,16 +54,6 @@ FlexValue* Sysvar_getThismod()
 		if ( thismod->magic == MODVAR_MAGICCODE ) {
 			PVal* const pval = thismod->pval;
 			if ( pval->flag == HSPVAR_FLAG_STRUCT ) {
-				/*
-				int const offset_bak = pval->offset;
-				pval->offset = thismod->aptr;
-
-				auto const hvp = hpimod::getHvp(pval->flag);
-				auto const fv = ptr_cast<FlexValue*>(hvp->GetPtr(pval));
-
-				pval->offset = offset_bak;
-				return fv;
-				//*/
 				auto const fv = ptr_cast<FlexValue*>(hpimod::PVal_getPtr(pval, thismod->aptr));
 				return fv;
 			}
@@ -132,12 +117,4 @@ void Sysvar_getDumpInfo(int id, void const*& out_data, size_t& out_size)
 
 	// no dump
 	out_data = nullptr; out_size = 0;
-	return;
 }
-
-//------------------------------------------------
-// 
-//------------------------------------------------
-//------------------------------------------------
-// 
-//------------------------------------------------

@@ -1,5 +1,4 @@
-﻿// ax structure analyzed
-
+﻿// ax analyzer
 // dinfo を解析してラベル名、パラメータ名を収集する
 
 #ifndef IG_CLASS_AX_H
@@ -125,7 +124,6 @@ private:
 					break;
 			}
 		}
-		return;
 	}
 };
 	
