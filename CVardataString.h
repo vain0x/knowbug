@@ -3,16 +3,14 @@
 #ifndef IG_CLASS_VARDATA_STRING_H
 #define IG_CLASS_VARDATA_STRING_H
 
-#include <stack>
-
 #include "main.h"
 #include "DebugInfo.h"
 #include "SysvarData.h"
-#include "module/strf.h"
-#include "module/CStrWriter.h"
 
-#include "CVarTree.h"
-
+class CStructedStrWriter;
+class CLineformedWriter;
+class CTreeformedWriter;
+class CStrBuf;
 #if defined(with_Assoc) || defined(with_Vector) || defined(with_Array)
 class CAssoc;
 class CVector;
@@ -32,19 +30,21 @@ private:
 	std::unique_ptr<CStructedStrWriter> writer_;
 
 public:
+	CVardataStrWriter(CVardataStrWriter&& src);
+	~CVardataStrWriter();
 	template<typename TWriter>
-	static CVardataStrWriter create(string* buf)
+	static CVardataStrWriter create(std::shared_ptr<CStrBuf> buf)
 	{
 		return CVardataStrWriter(buf, static_cast<TWriter*>(nullptr));
 	}
 private:
 	template<typename TWriter>
-	CVardataStrWriter(string* buf,  TWriter* /* for template argument deduction */)
-		: writer_(static_cast<CStructedStrWriter*>(new TWriter(buf)))
+	CVardataStrWriter(std::shared_ptr<CStrBuf> buf,  TWriter* /* for template argument deduction */)
+		: writer_(static_cast<CStructedStrWriter*>(new TWriter(buf, g_config->infiniteNest)))
 	{ }
 
 public:
-	string const& getString() const { return getWriter().get(); }
+	string const& getString() const;
 
 	void addVar(char const* name, PVal const* pval);
 	void addVarScalar(char const* name, PVal const* pval);
@@ -84,6 +84,7 @@ private:
 };
 
 // バッファを所有するバージョン
+#if 0 //未使用
 template<typename TBuf>
 class CVardataStrWriterWithBuf
 	: public CVardataStrWriter
@@ -97,6 +98,7 @@ public:
 private:
 	string mybuf_;
 };
+#endif
 
 //------------------------------------------------
 // 置く場所に困る系関数群

@@ -5,7 +5,11 @@
 
 #include <string>
 #include <stack>
+#include <memory>
+#include <cassert>
+#include "strf.h"
 
+class CStrBuf;
 class CStructedStrWriter;
 class CTreeformedWriter;
 class CLineformedWriter;
@@ -22,16 +26,17 @@ class CStrWriter
 {
 protected:
 	using string = std::string;
+	using buf_t = std::shared_ptr<CStrBuf>;
 
 public:
 	CStrWriter() = delete;
-	explicit CStrWriter(string* buf)
+	explicit CStrWriter(buf_t buf)
 		: buf_ { buf }
 	{ }
 
 public:
-	string const& get() const { return *buf_; }
-	string* getBuf() const { return buf_; }
+	string const& get() const;
+	buf_t getBuf() const { return buf_; }
 
 	// 出力メソッド
 	void cat(char const* src);
@@ -43,7 +48,7 @@ public:
 private:
 	void catDumpImpl(void const* data, size_t size);
 private:
-	string* buf_;
+	buf_t buf_;
 };
 
 //------------------------------------------------
@@ -60,9 +65,10 @@ class CStructedStrWriter
 	friend class CLineformedWriter;
 
 private:
-	CStructedStrWriter(string* buf)
+	CStructedStrWriter(buf_t buf, size_t infiniteNest)
 		: CStrWriter(buf)
 		, lvNest_ { 0 }
+		, infiniteNest_ { infiniteNest }
 	{ }
 
 	// テンプレートメソッド
@@ -84,10 +90,11 @@ public:
 	void decNest() { --lvNest_; }
 
 	int getNest() const { return lvNest_; }
-	bool inifiniteNesting() const { return lvNest_ > 64; }	// 無限ネストから保護
+	bool inifiniteNesting() const { return lvNest_ >= 0 && static_cast<size_t>(lvNest_) >= infiniteNest_; }
 
 private:
 	int lvNest_;
+	size_t infiniteNest_;
 
 public:
 	// 使用されない文字列 (デバッグ時に nullptr と区別したい)
@@ -105,8 +112,8 @@ class CTreeformedWriter
 	: public CStructedStrWriter
 {
 public:
-	explicit CTreeformedWriter(string* buf)
-		: CStructedStrWriter(buf)
+	explicit CTreeformedWriter(buf_t buf, size_t infiniteNest)
+		: CStructedStrWriter(buf, infiniteNest)
 	{ }
 
 public:
@@ -168,8 +175,8 @@ class CLineformedWriter
 	: public CStructedStrWriter
 {
 public:
-	explicit CLineformedWriter(string* buf)
-		: CStructedStrWriter(buf)
+	explicit CLineformedWriter(buf_t buf, size_t infiniteNest)
+		: CStructedStrWriter(buf, infiniteNest)
 		, bFirstElem_({ true })	// sentinel elem
 	{ }
 

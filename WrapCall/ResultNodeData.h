@@ -27,16 +27,7 @@ namespace WrapCall
 		ModcmdCallInfo const* pCallInfoDepended;
 
 	public:
-		// ctor
-		ResultNodeData(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vt)
-			: stdat(callinfo.stdat)
-			, vtype(vt)
-			, pCallInfoDepended(callinfo.getDependedCallInfo())
-		{
-			CVardataStrWriter::create<CLineformedWriter>(&valueString)
-				.addResult(hpimod::STRUCTDAT_getName(stdat), ptr, vt);
-		}
-
+		ResultNodeData(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vt);
 		ResultNodeData(ModcmdCallInfo const& callinfo, PVal* pvResult)
 			: ResultNodeData(callinfo, pvResult->pt, pvResult->flag)
 		{ }

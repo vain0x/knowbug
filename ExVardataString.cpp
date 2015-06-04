@@ -1,5 +1,7 @@
 ﻿// 外部Dll用、VardataString 作成機能
 
+#include "module/CStrWriter.h"
+
 #include "main.h"
 #include "ExVardataString.h"
 #include "CVardataString.h"

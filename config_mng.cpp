@@ -24,12 +24,11 @@ KnowbugConfig::KnowbugConfig()
 	CIni ini { ownpath_full.c_str() };
 	
 	commonPath = strf( "%scommon", ownpath );
+	bTopMost = ini.getBool( "Window", "bTopMost", false );
+	tabwidth = ini.getInt( "Interface", "tabwidth", 3 );
 	
-	//maxlenVarinfo = ini.getInt( "Varinfo", "maxlen", 0x1000 - 1 );
-	logMaxlen   = ini.getInt( "Log",     "maxlen", 0x20000 );
-	tabwidth    = ini.getInt( "Interface", "tabwidth", 3 );
-	bTopMost    = ini.getBool( "Window", "bTopMost", false );
-	logPath = ini.getString("Log", "autoSavePath", "");
+	maxlenVarinfo = ini.getInt( "Varinfo", "maxlen", 0x10000 - 1 );
+	infiniteNest  = ini.getInt("Varinfo", "infiniteNest", 8);
 	showsVariableAddress = ini.getBool("Varinfo", "showsVariableAddress", true);
 	showsVariableSize    = ini.getBool("Varinfo", "showsVariableSize", true);
 	showsVariableDump    = ini.getBool("Varinfo", "showsVariableDump", true);
@@ -37,6 +36,9 @@ KnowbugConfig::KnowbugConfig()
 	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
 	bCustomDraw = ini.getBool( "ColorType", "bCustomDraw", false );
 	
+	logMaxlen = ini.getInt( "Log",     "maxlen", 0x20000 );
+	logPath   = ini.getString("Log", "autoSavePath", "");
+
 	if ( bCustomDraw ) {
 		//color of internal types
 		for ( int i = 0; i < HSPVAR_FLAG_USERDEF; ++i ) {

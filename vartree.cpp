@@ -511,7 +511,7 @@ void RemoveLastIndependedResultNode()
 ResultNodeData* FindLastIndependedResultData()
 {
 	if ( !g_lastIndependedResultNode ) return nullptr;
-	auto const iter = g_allResultData.find(g_lastIndependedResultNode);
+	auto const&& iter = g_allResultData.find(g_lastIndependedResultNode);
 	return (iter != g_allResultData.end())
 		? iter->second.get()
 		: nullptr;
@@ -524,7 +524,7 @@ void UpdateCallNode()
 {
 	// 追加予定の呼び出しノードを実際に追加する
 	if ( g_cntWillAddCallNodes > 0 ) {
-		auto const range = WrapCall::getCallInfoRange();
+		auto const&& range = WrapCall::getCallInfoRange();
 		size_t const lenStk = std::distance(range.first, range.second);
 		for ( size_t i = lenStk - g_cntWillAddCallNodes; i < lenStk; ++i ) {
 			AddCallNodeImpl(*(range.first[i]));
@@ -542,7 +542,7 @@ void UpdateCallNode()
 
 		// 依存されているもの
 		if ( !g_willAddResultNodes.empty() ) {
-			for ( auto const pResult : g_willAddResultNodes ) {
+			for ( auto const& pResult : g_willAddResultNodes ) {
 				AddResultNodeImpl(pResult);
 			}
 			g_willAddResultNodes.clear();
@@ -566,3 +566,21 @@ static HTREEITEM TreeView_MyInsertItem(HTREEITEM hParent, char const* name, bool
 }
 
 } // namespace VarTree
+
+//------------------------------------------------
+// ResultNodeData コンストラクタ
+//------------------------------------------------
+#include "module/CStrBuf.h"
+namespace WrapCall
+{
+	ResultNodeData::ResultNodeData(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vt)
+		: stdat(callinfo.stdat)
+		, vtype(vt)
+		, pCallInfoDepended(callinfo.getDependedCallInfo())
+	{
+		auto p = std::make_shared<CStrBuf>();
+		CVardataStrWriter::create<CLineformedWriter>(p)
+			.addResult(hpimod::STRUCTDAT_getName(stdat), ptr, vt);
+		valueString = p->getMove();
+	}
+}

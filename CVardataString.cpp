@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include "module/ptr_cast.h"
+#include "module/CStrWriter.h"
+#include "module/CStrBuf.h"
 #include "hpimod/vartype_traits.h"
-#include "hpimod//HspAllocator.h"
+#include "hpimod/HspAllocator.h"
 
 #include "main.h"
 
@@ -21,6 +23,11 @@ extern string getVartypeString(PVal const* pval);
 static string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort);
 static char const* findVarName(PVal const* pval);
 
+CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src) : writer_(std::move(src.writer_)) {}
+CVardataStrWriter::~CVardataStrWriter() {}
+
+string const& CVardataStrWriter::getString() const { return getWriter().get(); }
+
 //##########################################################
 //        要素ごとの処理関数
 //##########################################################
@@ -34,7 +41,7 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 
 	// 拡張型
 	if ( pval->flag >= HSPVAR_FLAG_USERDEF ) {
-		auto const iter = g_config->vswInfo.find(hvp->vartype_name);
+		auto const&& iter = g_config->vswInfo.find(hvp->vartype_name);
 		if ( iter != g_config->vswInfo.end() ) {
 			if ( addVarUserdef_t const addVar = std::get<1>(iter->second) ) {
 				addVar(this, name, pval);

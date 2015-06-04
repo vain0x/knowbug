@@ -3,8 +3,10 @@
 #include <numeric>	// for accumulate
 #include <algorithm>
 
+#include "module/strf.h"
 #include "module/ptr_cast.h"
 #include "module/map_iterator.h"
+#include "module/CStrBuf.h"
 
 #include "main.h"
 #include "SysvarData.h"
@@ -16,6 +18,19 @@
 # include "WrapCall/ResultNodeData.h"
 using namespace WrapCall;
 #endif
+
+CVarinfoText::CVarinfoText()
+	: writer_(std::make_shared<CStrBuf>())
+{
+	writer_.getBuf()->limit(std::max(0x100, g_config->maxlenVarinfo));
+}
+
+string const& CVarinfoText::getString() const {
+	return getBuf()->get();
+}
+string&& CVarinfoText::getStringMove() {
+	return getBuf()->getMove();
+}
 
 //------------------------------------------------
 // 変数データから生成

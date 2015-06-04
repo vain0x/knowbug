@@ -90,6 +90,9 @@
     <ClCompile Include="module\supio\supio.cpp">
       <Filter>module\supio</Filter>
     </ClCompile>
+    <ClCompile Include="module\CStrBuf.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CVarinfoText.h">
@@ -199,6 +202,9 @@
     </ClInclude>
     <ClInclude Include="..\crouton\src\var_vector\for_knowbug.var_vector.h">
       <Filter>module\hpimod\myPluginTypeInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="module\CStrBuf.h">
+      <Filter>module</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

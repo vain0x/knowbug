@@ -3,7 +3,6 @@
 
 #include "main.h"
 #include "DebugInfo.h"
-#include "module/strf.h"
 #include "module/CStrWriter.h"
 
 class CStaticVarTree;
@@ -19,14 +18,8 @@ namespace WrapCall
 // 変数データテキスト生成クラス
 class CVarinfoText
 {
-private:
-	string buf_;
-	CStrWriter writer_;
-
 public:
-	CVarinfoText()
-		: writer_ { getBuf() }
-	{ }
+	CVarinfoText();
 	
 	void addVar(PVal* pval, char const* name);
 	void addSysvar(char const* name);
@@ -41,12 +34,13 @@ public:
 	void addCallsOverview(WrapCall::ResultNodeData const* pLastResult);
 #endif
 
-	string const& getString() const { return buf_; }
-	string&& getStringMove() { return std::move(buf_); }
-
+	string const& getString() const;
+	string&& getStringMove();
 private:
 	CStrWriter& getWriter() { return writer_; }
-	string* getBuf() { return &buf_; }
+	std::shared_ptr<CStrBuf> getBuf() const { return writer_.getBuf(); }
+private:
+	CStrWriter writer_;
 };
 
 extern char const* getMPTypeString(int mptype);

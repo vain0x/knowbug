@@ -32,20 +32,17 @@ public:
 	//properties from ini (see that for detail)
 
 	string commonPath;
-	int  maxlenVarinfo;
-	int  tabwidth;
 	bool bTopMost;
+	int  tabwidth;
+	int  maxlenVarinfo, infiniteNest;
 	bool showsVariableAddress, showsVariableSize, showsVariableDump;
-	
-	string logPath;
-	int  logMaxlen;
 	bool bResultNode;
-
 	bool bCustomDraw;
 	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;
 	std::map<string, COLORREF> clrTextExtra;
-
 	std::map<string, VswInfo> vswInfo;
+	string logPath;
+	int  logMaxlen;
 
 private:
 	KnowbugConfig();
