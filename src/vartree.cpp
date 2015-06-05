@@ -59,19 +59,21 @@ void init()
 	AddNodeDynamic();
 #endif
 	AddNodeSysvar();
-	
-	// すべてのルートノードを開く
+
+	//すべてのトップレベルノードを開く
 	HTREEITEM const hRoot = TreeView_GetRoot(hwndVarTree);
-	
 	for ( HTREEITEM hNode = hRoot
 		; hNode != nullptr
 		; hNode = TreeView_GetNextSibling(hwndVarTree, hNode)
 	) {
 		TreeView_Expand(hwndVarTree, hNode, TVE_EXPAND);
 	}
-	
+
 	// トップを表示するように仕向ける
 	TreeView_EnsureVisible(hwndVarTree, hRoot);
+
+	//グローバルノードを選択
+	TreeView_SelectItem(hwndVarTree, hRoot);
 }
 
 //------------------------------------------------
@@ -165,7 +167,7 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 {
 	if ( pnmcd->nmcd.dwDrawStage == CDDS_PREPAINT ) {
 		return CDRF_NOTIFYITEMDRAW;
-		
+
 	} else if ( pnmcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT ) {
 		auto const hItem = reinterpret_cast<HTREEITEM>(pnmcd->nmcd.dwItemSpec);
 
@@ -221,7 +223,7 @@ vartype_t getVartypeOfNode( HTREEITEM hItem )
 	if ( isVarNode(name.c_str()) ) {
 		PVal* const pval = hpimod::seekSttVar( name.c_str() );
 		if ( pval ) return pval->flag;
-		
+
 	} else if ( isSysvarNode(name.c_str()) ) {
 		Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
 		assert(id == Sysvar::seek(&name[1]));
@@ -245,9 +247,9 @@ string getItemVarText( HTREEITEM hItem )
 {
 	string const&& itemText = TreeView_GetItemString( hwndVarTree, hItem );
 	char const* const name = itemText.c_str();
-	
+
 	CVarinfoText varinf;
-	
+
 	// ノード
 	if ( isModuleNode(name) || isSystemNode(name) ) {
 		//auto const varinf = std::make_unique<CVarinfoLine>(g_config->maxlenVarinfo);
@@ -267,14 +269,14 @@ string getItemVarText( HTREEITEM hItem )
 			assert(pTree != nullptr);
 			varinf.addModuleOverview(name, *pTree);
 		}
-		
+
 	// リーフ
 	} else {
 		if ( isSysvarNode(name) ) {
 			Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
 			assert(0 <= id && id < Sysvar::Count && Sysvar::seek(&name[1]) == id);
 			varinf.addSysvar(id);
-			
+
 	#ifdef with_WrapCall
 		} else if ( isCallNode(name) ) {
 			auto const idx = static_cast<int>(
@@ -284,7 +286,7 @@ string getItemVarText( HTREEITEM hItem )
 			if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
 				varinf.addCall(*pCallInfo);
 			}
-			
+
 		// 返値データ
 		} else if ( usesResultNodes() && isResultNode(name) ) {
 			auto const&& iter = g_allResultData.find(hItem);
@@ -326,7 +328,7 @@ void AddCallNodeImpl(ModcmdCallInfo const& callinfo)
 	char name[128] = "'";
 	strcpy_s(&name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(callinfo.stdat));
 	HTREEITEM const hChild = TreeView_MyInsertItem(g_hNodeDynamic, name, false, (LPARAM)callinfo.idx);
-	
+
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, g_hNodeDynamic ) == hChild ) {
 		TreeView_Expand( hwndVarTree, g_hNodeDynamic, TVE_EXPAND );
@@ -401,12 +403,12 @@ void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
 	if ( hParent == g_hNodeDynamic ) {
 		RemoveLastIndependedResultNode();
 	}
-	
+
 	// 挿入
 	char name[128] = "\"";
 	strcpy_s( &name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(pResult->stdat) );
 	HTREEITEM const hChild = TreeView_MyInsertItem(hParent, name, false, (LPARAM)0);
-	
+
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, hParent ) == hChild ) {
 		TreeView_Expand( hwndVarTree, hParent, TVE_EXPAND );

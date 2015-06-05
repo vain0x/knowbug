@@ -33,6 +33,7 @@ public:
 
 	string commonPath;
 	bool bTopMost;
+	int  initialTab;
 	int  tabwidth;
 	int  maxlenVarinfo, infiniteNest;
 	bool showsVariableAddress, showsVariableSize, showsVariableDump;

@@ -11,31 +11,32 @@ KnowbugConfig::KnowbugConfig()
 	char ownpath[MAX_PATH];
 	{
 		GetModuleFileName( GetModuleHandle(nullptr), ownpath, MAX_PATH );
-		
+
 		char drive[5];
 		char dir[MAX_PATH];
 		char _dummy[MAX_PATH];		// ダミー
-		
+
 		_splitpath_s( ownpath, drive, dir, _dummy, _dummy );
 		sprintf_s( ownpath, "%s%s", drive, dir );
 	}
-	
+
 	string const ownpath_full = strf("%sknowbug.ini", ownpath);
 	CIni ini { ownpath_full.c_str() };
-	
+
 	commonPath = strf( "%scommon", ownpath );
-	bTopMost = ini.getBool( "Window", "bTopMost", false );
-	tabwidth = ini.getInt( "Interface", "tabwidth", 3 );
-	
+	bTopMost   = ini.getBool( "Window", "bTopMost", false );
+	initialTab = ini.getInt("Interface", "initialTab", 0);
+	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
+
 	maxlenVarinfo = ini.getInt( "Varinfo", "maxlen", 0x10000 - 1 );
 	infiniteNest  = ini.getInt("Varinfo", "infiniteNest", 8);
 	showsVariableAddress = ini.getBool("Varinfo", "showsVariableAddress", true);
 	showsVariableSize    = ini.getBool("Varinfo", "showsVariableSize", true);
 	showsVariableDump    = ini.getBool("Varinfo", "showsVariableDump", true);
-	
+
 	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
 	bCustomDraw = ini.getBool( "ColorType", "bCustomDraw", false );
-	
+
 	logMaxlen = ini.getInt( "Log",     "maxlen", 0x20000 );
 	logPath   = ini.getString("Log", "autoSavePath", "");
 	warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
