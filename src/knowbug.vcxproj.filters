@@ -84,14 +84,14 @@
     <ClCompile Include="ExVardataString.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\hpimod\hspsdk\hsp3plugin.cpp">
-      <Filter>module\hspsdk</Filter>
-    </ClCompile>
     <ClCompile Include="module\supio\supio.cpp">
       <Filter>module\supio</Filter>
     </ClCompile>
     <ClCompile Include="module\CStrBuf.cpp">
       <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\hpimod\hspsdk\hsp3plugin.cpp">
+      <Filter>module\hspsdk</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -161,50 +161,50 @@
     <ClInclude Include="ExVardataString.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\hpimod\basis.h">
-      <Filter>module\hpimod</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hsp3plugin_custom.h">
-      <Filter>module\hpimod</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\vartype_traits.h">
-      <Filter>module\hpimod</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hsp3debug.h">
-      <Filter>module\hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hsp3plugin.h">
-      <Filter>module\hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hsp3struct.h">
-      <Filter>module\hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hspvar_core.h">
-      <Filter>module\hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hspwnd.h">
-      <Filter>module\hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hsed3_footy2\interface.h">
-      <Filter>module\hspsdk\hsed3_footy2</Filter>
-    </ClInclude>
     <ClInclude Include="module\supio\supio.h">
       <Filter>module\supio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\HspAllocator.h">
-      <Filter>module\hpimod</Filter>
     </ClInclude>
     <ClInclude Include="module\Singleton.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="..\crouton\src\var_assoc\for_knowbug.var_assoc.h">
-      <Filter>module\hpimod\myPluginTypeInterface</Filter>
-    </ClInclude>
-    <ClInclude Include="..\crouton\src\var_vector\for_knowbug.var_vector.h">
-      <Filter>module\hpimod\myPluginTypeInterface</Filter>
-    </ClInclude>
     <ClInclude Include="module\CStrBuf.h">
       <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hpimod\hspsdk\hsp3debug.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hpimod\hspsdk\hsp3plugin.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hpimod\hspsdk\hsp3struct.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hpimod\hspsdk\hspvar_core.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hpimod\hspsdk\hspwnd.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hpimod\hspsdk\hsed3_footy2\interface.h">
+      <Filter>module\hspsdk\hsed3_footy2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hpimod\basis.h">
+      <Filter>module\hpimod</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hpimod\hsp3plugin_custom.h">
+      <Filter>module\hpimod</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hpimod\HspAllocator.h">
+      <Filter>module\hpimod</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\hpimod\vartype_traits.h">
+      <Filter>module\hpimod</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\crouton\src\var_assoc\for_knowbug.var_assoc.h">
+      <Filter>module\hpimod\myPluginTypeInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\crouton\src\var_vector\for_knowbug.var_vector.h">
+      <Filter>module\hpimod\myPluginTypeInterface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
