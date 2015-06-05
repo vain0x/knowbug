@@ -624,7 +624,10 @@ LRESULT CALLBACK TabLogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 					
 				case IDC_BTN_LOG_CLEAR:
-					logClear();
+					if ( !g_config->warnsBeforeClearingLog
+						|| MessageBox(hDlgWnd, "ログをすべて消去しますか？", "knowbug", MB_OKCANCEL) == IDOK ) {
+						logClear();
+					}
 					break;
 			}
 			return FALSE;
@@ -744,7 +747,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	{
 		POINT pt;
 		GetCursorPos( &pt );	// カーソル位置 (スクリーン座標)
-		
+
 		// ポップアップメニューを表示する
 		int const idSelected = TrackPopupMenuEx(
 			hPopup, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, hDlg, nullptr
@@ -825,7 +828,7 @@ HWND Dialog::createMain()
 		0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)
 	);
 	ShowWindow( hDlgWnd, SW_SHOW );
-   UpdateWindow( hDlgWnd );
+	UpdateWindow( hDlgWnd );
 	return hDlgWnd;
 }
 

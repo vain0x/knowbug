@@ -43,6 +43,7 @@ public:
 	std::map<string, VswInfo> vswInfo;
 	string logPath;
 	int  logMaxlen;
+	bool warnsBeforeClearingLog;
 
 private:
 	KnowbugConfig();
