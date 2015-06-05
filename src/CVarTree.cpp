@@ -34,6 +34,8 @@ string const& CStaticVarTree::getName() const {
 //------------------------------------------------
 void CStaticVarTree::pushVar(char const* name)
 {
+	if ( name[0] == '@' ) return;
+
 	char const* const scopeResolution = std::strchr(name, '@');
 
 	// スコープ解決がある => 子ノードのモジュールに属す
