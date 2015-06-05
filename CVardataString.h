@@ -70,7 +70,7 @@ public:
 	void addPrmstack(stdat_t stdat, void const* prmstack);
 	void addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member);
 
-	void addSysvar(SysvarId id);
+	void addSysvar(Sysvar::Id id);
 
 	void addCall(stdat_t stdat, void const* prmstk);
 	void addCall(char const* name, stdat_t stdat, void const* prmstk);

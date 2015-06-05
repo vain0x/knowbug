@@ -69,7 +69,7 @@ public:
 		// 最新の呼び出し
 		if ( !getNext() ) {
 			// modinit が実行中の可能性があるとき
-			if ( ctx->sublev > sublev + 1  && Sysvar_getThismod() ) {
+			if ( ctx->sublev > sublev + 1  && Sysvar::getThismod() ) {
 				return nullptr;
 			}
 

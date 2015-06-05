@@ -69,12 +69,9 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 //------------------------------------------------
 // システム変数データから生成
 //------------------------------------------------
-void CVarinfoText::addSysvar(char const* name)
+void CVarinfoText::addSysvar(Sysvar::Id id)
 {
-	auto const id = Sysvar_seek(name);
-	if ( id == SysvarId_MAX ) return;
-
-	getWriter().catln(strf("変数名：%s\t(システム変数)", name));
+	getWriter().catln(strf("変数名：%s\t(システム変数)", Sysvar::List[id].name));
 	getWriter().catCrlf();
 	{
 		CVardataStrWriter::create<CTreeformedWriter>(getBuf())
@@ -84,9 +81,8 @@ void CVarinfoText::addSysvar(char const* name)
 
 	// メモリダンプ
 	if ( g_config->showsVariableDump ) {
-		void const* data; size_t size;
-		Sysvar_getDumpInfo(id, data, size);
-		getWriter().catDump(data, size);
+		auto const&& dump = Sysvar::dump(id);
+		getWriter().catDump(dump.first, dump.second);
 	}
 }
 
@@ -130,7 +126,6 @@ void CVarinfoText::addResult( stdat_t stdat, string const& text, char const* nam
 //	getWriter().catln(strf("仮引数：(%s)", getPrmlistString(stdat).c_str()));
 	getWriter().catCrlf();
 
-	// 変数の内容に関する情報
 	getWriter().cat(text);
 //	getWriter().catCrlf();
 	
@@ -174,12 +169,12 @@ void CVarinfoText::addSysvarsOverview()
 {
 	getWriter().catln("[システム変数]");
 
-	for ( int i = 0; i < SysvarCount; ++i ) {
-		getWriter().cat(SysvarData[i].name);
+	for ( int i = 0; i < Sysvar::Count; ++i ) {
+		getWriter().cat(Sysvar::List[i].name);
 		getWriter().cat("\t= ");
 		{
 			CVardataStrWriter::create<CLineformedWriter>(getBuf())
-				.addSysvar(static_cast<SysvarId>(i));
+				.addSysvar(static_cast<Sysvar::Id>(i));
 		}
 		getWriter().catCrlf();
 	}

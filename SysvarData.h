@@ -1,22 +1,42 @@
-﻿// システム変数データ
-
-#ifndef IG_SYSVAR_DATA_H
-#define IG_SYSVAR_DATA_H
-
+﻿#pragma once
+#include <array>
+#include <utility>
 #include "hsp3struct.h"
 
-struct StSysvarData
+namespace Sysvar
 {
+struct Info {
 	char const* name;
-	int type;
+	short type;
 };
 
-//**********************************************************
-//        システム変数データ
-//**********************************************************
-// SysvarId に対応する
-static StSysvarData const SysvarData[]
-= {
+//respectively corresponds to List
+enum Id {
+	Stat = 0,
+	Refstr,
+	Refdval,
+	Thismod,
+	Cnt,
+	IParam,
+	WParam,
+	LParam,
+	StrSize,
+	Looplev,
+	Sublev,
+	Err,
+	NoteBuf,
+
+	// GUI
+	//MouseX,
+	//MouseY,
+	//MouseW,
+	//GInfo,
+	//DirInfo,
+	MAX,
+};
+
+static size_t const Count = static_cast<size_t>(Id::MAX);
+static std::array<Info, Count> const List = {{
 	{ "stat",    HSPVAR_FLAG_INT },
 	{ "refstr",  HSPVAR_FLAG_STR },
 	{ "refdval", HSPVAR_FLAG_DOUBLE },
@@ -34,46 +54,13 @@ static StSysvarData const SysvarData[]
 //	{ "mousex",  HSPVAR_FLAG_INT },
 //	{ "mousey",  HSPVAR_FLAG_INT },
 //	{ "mousew",  HSPVAR_FLAG_INT },
-//	{ "ginfo",   HSPVAR_FLAG_INT }
-//	{ "dirinfo", HSPVAR_FLAG_STR }
-};
+//	{ "ginfo",   HSPVAR_FLAG_INT },
+//	{ "dirinfo", HSPVAR_FLAG_STR },
+}};
 
-static size_t const SysvarCount = ( sizeof(SysvarData) / sizeof(SysvarData[0]) );
+extern Id seek(char const* name);
+extern int* getIntPtr(Id id);
+extern FlexValue* getThismod();
+extern std::pair<void const*, size_t> dump(Id id);
 
-// SysvarData に対応する
-enum SysvarId
-{
-	SysvarId_Stat = 0,		// stat
-	SysvarId_Refstr,		// refstr
-	SysvarId_Refdval,		// refdval
-	SysvarId_Thismod,		// thismod
-	SysvarId_Cnt,			// cnt
-	SysvarId_IParam,		// iparam
-	SysvarId_WParam,		// wparam
-	SysvarId_LParam,		// lparam
-	SysvarId_StrSize,		// strsize
-	SysvarId_Looplev,		// looplev
-	SysvarId_Sublev,		// sublev
-	SysvarId_Err,			// err
-	SysvarId_NoteBuf,		// notebuf
-	
-	// GUI
-//	SysvarId_MouseX,		// mousex
-//	SysvarId_MouseY,		// mousey
-//	SysvarId_MouseW,		// mousew
-//	SysvarId_GInfo,			// ginfo
-//	SysvarId_DirInfo,		// dirinfo
-	SysvarId_MAX,
-};
-
-//**********************************************************
-//        関数宣言
-//**********************************************************
-extern SysvarId Sysvar_seek( char const* name );
-
-extern int* Sysvar_getPtrOfInt(int id);
-extern FlexValue* Sysvar_getThismod();
-
-extern void Sysvar_getDumpInfo(int id,  void const*& out_data, size_t& out_size);
-
-#endif
+} //namespace Sysvar

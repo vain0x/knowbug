@@ -142,8 +142,8 @@ void AddNodeSysvar()
 	HTREEITEM const hNodeSysvar = TreeView_MyInsertItem( TVI_ROOT, "+sysvar", false, (LPARAM)0 );
 
 	// システム変数のリストを追加する
-	for ( int i = 0; i < SysvarCount; ++ i ) {
-		string const name = strf( "~%s", SysvarData[i].name );
+	for ( int i = 0; i < Sysvar::Count; ++ i ) {
+		string const name = strf( "~%s", Sysvar::List[i].name );
 		TreeView_MyInsertItem( hNodeSysvar, name.c_str(), false, (LPARAM)i );
 	}
 }
@@ -223,9 +223,10 @@ vartype_t getVartypeOfNode( HTREEITEM hItem )
 		if ( pval ) return pval->flag;
 		
 	} else if ( isSysvarNode(name.c_str()) ) {
-		auto const iSysvar = Sysvar_seek( &name[1] );
-		if ( iSysvar != SysvarId_MAX ) {
-			return SysvarData[iSysvar].type;
+		Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
+		assert(id == Sysvar::seek(&name[1]));
+		if ( id != Sysvar::Id::MAX ) {
+			return Sysvar::List[id].type;
 		}
 
 	} else if ( isResultNode(name.c_str()) ) {
@@ -270,7 +271,9 @@ string getItemVarText( HTREEITEM hItem )
 	// リーフ
 	} else {
 		if ( isSysvarNode(name) ) {
-			varinf.addSysvar( &name[1] );
+			Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
+			assert(0 <= id && id < Sysvar::Count && Sysvar::seek(&name[1]) == id);
+			varinf.addSysvar(id);
 			
 	#ifdef with_WrapCall
 		} else if ( isCallNode(name) ) {

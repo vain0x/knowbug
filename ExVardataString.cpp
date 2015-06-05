@@ -59,8 +59,8 @@ void knowbugVsw_addStPrm(vswriter_t _w, char const* name, STRUCTPRM const* stprm
 }
 void knowbugVsw_addSysvar(vswriter_t _w, char const* name)
 {
-	auto const id = Sysvar_seek(name);
-	if ( id != SysvarId_MAX ) {
+	auto const id = Sysvar::seek(name);
+	if ( id != Sysvar::Id::MAX ) {
 		vswriter(_w).addSysvar(id);
 
 	} else {

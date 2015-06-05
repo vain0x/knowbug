@@ -8,37 +8,36 @@
 #include "main.h"
 #include "SysvarData.h"
 
+namespace Sysvar
+{
+
 //------------------------------------------------
 // システム変数名からインデックス値を求める
-// 
-// (failure: SysvarId_MAX)
 //------------------------------------------------
-SysvarId Sysvar_seek( char const* name )
+Id seek( char const* name )
 {
-	for ( int i = 0; i < SysvarCount; ++ i ) {
-		if ( strcmp( name, SysvarData[i].name ) == 0 ) return static_cast<SysvarId>(i);
+	for ( int i = 0; i < Count; ++ i ) {
+		if ( strcmp( name, List[i].name ) == 0 ) return static_cast<Id>(i);
 	}
-	return SysvarId_MAX;
+	return Id::MAX;
 }
 
 //------------------------------------------------
 // 整数値のシステム変数へのポインタを得る
-//
-// @ cnt のみ nullptr を返しうるので注意。
 //------------------------------------------------
-int* Sysvar_getPtrOfInt(int id)
+int* getIntPtr(Id id)
 {
-	assert(SysvarData[id].type == HSPVAR_FLAG_INT && id != SysvarId_Cnt);
+	assert(List[id].type == HSPVAR_FLAG_INT && id != Id::Cnt);
 	switch ( id ) {
-		case SysvarId_Stat:    return &ctx->stat;
-		case SysvarId_IParam:  return &ctx->iparam;
-		case SysvarId_WParam:  return &ctx->wparam;
-		case SysvarId_LParam:  return &ctx->lparam;
-		case SysvarId_StrSize: return &ctx->strsize;
-		case SysvarId_Looplev: return &ctx->looplev;
-		case SysvarId_Sublev:  return &ctx->sublev;
-		case SysvarId_Err:     return ptr_cast<int*>(&ctx->err);
-		default: throw;
+		case Id::Stat:    return &ctx->stat;
+		case Id::IParam:  return &ctx->iparam;
+		case Id::WParam:  return &ctx->wparam;
+		case Id::LParam:  return &ctx->lparam;
+		case Id::StrSize: return &ctx->strsize;
+		case Id::Looplev: return &ctx->looplev;
+		case Id::Sublev:  return &ctx->sublev;
+		case Id::Err:     return ptr_cast<int*>(&ctx->err);
+		default: assert(false); throw;
 	}
 }
 
@@ -47,7 +46,7 @@ int* Sysvar_getPtrOfInt(int id)
 // 
 // (failure: nullptr)
 //------------------------------------------------
-FlexValue* Sysvar_getThismod()
+FlexValue* getThismod()
 {
 	if ( ctx->prmstack ) {
 		auto const thismod = ptr_cast<MPModVarData*>(ctx->prmstack);
@@ -65,56 +64,43 @@ FlexValue* Sysvar_getThismod()
 //------------------------------------------------
 // メモリダンプするための情報を得る
 //------------------------------------------------
-void Sysvar_getDumpInfo(int id, void const*& out_data, size_t& out_size)
+std::pair<void const*, size_t> dump(Id id)
 {
 	switch ( id ) {
-		case SysvarId_Refstr:
-			out_data = ctx->refstr; out_size = HSPCTX_REFSTR_MAX;
-			return;
-
-		case SysvarId_Refdval:
-			out_data = &ctx->refdval; out_size = sizeof(double);
-			return;
-
-		case SysvarId_Cnt:
-			out_data = &ctx->mem_loop[1]; out_size = ctx->looplev * sizeof(LOOPDAT);
-			return;
-
-		case SysvarId_NoteBuf:
-		{
+		case Id::Refstr:  return std::make_pair(ctx->refstr, HSPCTX_REFSTR_MAX);
+		case Id::Refdval: return std::make_pair(&ctx->refdval, sizeof(double));
+		case Id::Cnt:     return std::make_pair(&ctx->mem_loop[1], ctx->looplev * sizeof(LOOPDAT));
+		case Id::NoteBuf: {
 			PVal* const pval = ctx->note_pval;
 			APTR  const aptr = ctx->note_aptr;
 			if ( pval && pval->flag == HSPVAR_FLAG_STR ) {
 				int size;
-				out_data = hpimod::getHvp(HSPVAR_FLAG_STR)->GetBlockSize(
+				auto const data = hpimod::getHvp(HSPVAR_FLAG_STR)->GetBlockSize(
 					pval,
 					ptr_cast<PDAT*>(hpimod::PVal_getPtr(pval, aptr)),
 					&size
 				);
-				out_size = static_cast<size_t>(size);
-				return;
+				return std::make_pair(data, static_cast<size_t>(size));
 			} else {
 				break;
 			}
 		}
-		case SysvarId_Thismod:
-			if ( auto const fv = Sysvar_getThismod() ) {
-				out_data = fv->ptr; out_size = fv->size;
-				return;
+		case Sysvar::Id::Thismod:
+			if ( auto const fv = Sysvar::getThismod() ) {
+				return std::make_pair(fv->ptr, fv->size);
 			} else {
 				break;
 			}
-
 		default:
 			// 整数値
-			if ( SysvarData[id].type == HSPVAR_FLAG_INT ) {
-				out_data = Sysvar_getPtrOfInt(id); out_size = sizeof(int);
-				return;
+			if ( Sysvar::List[id].type == HSPVAR_FLAG_INT ) {
+				return std::make_pair(Sysvar::getIntPtr(id), sizeof(int));
 			} else {
 				break;
 			}
 	};
-
 	// no dump
-	out_data = nullptr; out_size = 0;
+	return std::make_pair(nullptr, 0);
 }
+
+} //namespace Sysvar

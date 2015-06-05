@@ -14,6 +14,10 @@ namespace WrapCall
 	struct ResultNodeData;
 }
 #endif
+namespace Sysvar
+{
+	enum Id;
+}
 
 // 変数データテキスト生成クラス
 class CVarinfoText
@@ -22,7 +26,7 @@ public:
 	CVarinfoText();
 	
 	void addVar(PVal* pval, char const* name);
-	void addSysvar(char const* name);
+	void addSysvar(Sysvar::Id id);
 #ifdef with_WrapCall
 	void addCall(WrapCall::ModcmdCallInfo const& callinfo);
 	void addResult(stdat_t stdat, string const& text, char const* name);

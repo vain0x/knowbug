@@ -143,7 +143,6 @@ void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const cntElems[]
 //------------------------------------------------
 void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* ptr)
 {
-	// 無限ネスト対策
 	if ( getWriter().inifiniteNesting() ) {
 		getWriter().catLeafExtra(name, "too_many_nesting");
 		return;
@@ -207,18 +206,17 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 //------------------------------------------------
 void CVardataStrWriter::addPrmstack(stdat_t stdat, void const* prmstack)
 {
-	/*
+#if 0
 	getWriter().catAttribute( "id_finfo", strf("%d", stdat->subid).c_str() );
 	getWriter().catAttribute( "id_minfo", strf("%d", stdat->prmindex).c_str() );
-	//*/
-
+#endif
 	int prev_mptype = MPTYPE_NONE;
 	int i = 0;
 
 	std::for_each(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat), [&](STRUCTPRM const& stprm) {
 		auto const member = hpimod::Prmstack_getMemberPtr(prmstack, &stprm);
 
-		// 一行文字列：最初の local の前には空白を1つ多めに置く
+		// if lineformed: put an additional ' ' before 'local' parameters
 		if ( !getWriter().isLineformed()
 			&& i > 0
 			&& (prev_mptype != MPTYPE_LOCALVAR && stprm.mptype == MPTYPE_LOCALVAR)
@@ -228,7 +226,7 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, void const* prmstack)
 
 		addParameter(getStPrmName(&stprm, i).c_str(), stdat, &stprm, member);
 
-		// structtag => メンバではないので、数えない
+		// structtag isn't a member
 		if ( stprm.mptype != MPTYPE_STRUCTTAG ) { ++i; }
 	});
 }
@@ -309,20 +307,20 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 // 
 // @result: メモリダンプするバッファとサイズ
 //------------------------------------------------
-void CVardataStrWriter::addSysvar(SysvarId id)
+void CVardataStrWriter::addSysvar(Sysvar::Id id)
 {
-	char const* const name = SysvarData[id].name;
+	char const* const name = Sysvar::List[id].name;
 
 	switch ( id ) {
-		case SysvarId_Refstr:
+		case Sysvar::Id::Refstr:
 			addValue(name, HSPVAR_FLAG_STR, VtTraits::asPDAT<vtStr>(ctx->refstr));
 			break;
 
-		case SysvarId_Refdval:
+		case Sysvar::Id::Refdval:
 			addValue(name, HSPVAR_FLAG_DOUBLE, VtTraits::asPDAT<vtDouble>(&ctx->refdval));
 			break;
 
-		case SysvarId_Cnt:
+		case Sysvar::Id::Cnt:
 			if ( ctx->looplev ) {
 				// int 配列と同じ表示にする
 				getWriter().catNodeBegin(name, "<int>[");
@@ -337,7 +335,7 @@ void CVardataStrWriter::addSysvar(SysvarId id)
 			}
 			break;
 
-		case SysvarId_NoteBuf:
+		case Sysvar::Id::NoteBuf:
 		{
 			if ( PVal const* const pval = ctx->note_pval ) {
 				APTR const aptr = ctx->note_aptr;
@@ -356,8 +354,8 @@ void CVardataStrWriter::addSysvar(SysvarId id)
 			}
 			break;
 		}
-		case SysvarId_Thismod:
-			if ( auto const fv = Sysvar_getThismod() ) {
+		case Sysvar::Id::Thismod:
+			if ( auto const fv = Sysvar::getThismod() ) {
 				addValueStruct(name, fv);
 			} else {
 				getWriter().catLeafExtra(name, "nullmod");
@@ -365,8 +363,8 @@ void CVardataStrWriter::addSysvar(SysvarId id)
 			break;
 		default:
 			// 整数値
-			if ( SysvarData[id].type == HSPVAR_FLAG_INT ) {
-				addValue(name, HSPVAR_FLAG_INT, VtTraits::asPDAT<vtInt>(Sysvar_getPtrOfInt(id)));
+			if ( Sysvar::List[id].type == HSPVAR_FLAG_INT ) {
+				addValue(name, HSPVAR_FLAG_INT, VtTraits::asPDAT<vtInt>(Sysvar::getIntPtr(id)));
 				break;
 			} else throw;
 	};
@@ -529,7 +527,6 @@ string toStringLiteralFormat(char const* src)
 	for ( int i = 0;; ++i ) {
 		char const c = src[i];
 
-		// エスケープ・シーケンスを解決する
 		if ( c == '\0' ) {
 			break;
 

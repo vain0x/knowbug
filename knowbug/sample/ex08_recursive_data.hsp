@@ -1,0 +1,13 @@
+//無限再帰データ
+
+#module Value x_
+#modfunc Value_set var x
+	x_ = x
+	return
+#modcfunc Value_get
+	return x_
+#global
+
+	newmod v, Value@
+	Value_set v, v //self reference
+	stop
