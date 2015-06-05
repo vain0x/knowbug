@@ -23,10 +23,13 @@
 #define IDC_BTN_SRC_UPDATE              1030
 #define IDC_SRC_BOX                     1031
 
-#define IDM_TOPMOST     4001
-#define IDM_VAR_LOGGING 4002
-#define IDM_VAR_UPDATE  4003
-#define IDM_VAR_STEPOUT 4004
+enum {
+	IDM_TOPMOST = 4001,
+	IDM_OPEN_INI,
+	IDM_VAR_LOGGING,
+	IDM_VAR_UPDATE,
+	IDM_VAR_STEPOUT,
+};
 
 // Next default values for new objects
 // 

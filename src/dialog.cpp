@@ -381,7 +381,7 @@ static script_t const* ReadFromSourceFile( char const* _filepath )
 		std::ifstream ifs { filepath };
 		if ( !ifs.is_open() ) { //search "common" folder
 			char path[MAX_PATH];
-			if ( SearchPath( g_config->commonPath.c_str(), _filepath, nullptr, sizeof(path), path, nullptr ) == 0 ) {
+			if ( SearchPath( g_config->commonPath().c_str(), _filepath, nullptr, sizeof(path), path, nullptr ) == 0 ) {
 				return nullptr;
 			}
 
@@ -661,7 +661,8 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 
 		case WM_CREATE: {
 			hPopup = CreatePopupMenu();
-				AppendMenu( hPopup, (g_config->bTopMost ? MFS_CHECKED : MFS_UNCHECKED), IDM_TOPMOST, "常に最前面に表示する(&T)" );
+				AppendMenu(hPopup, (g_config->bTopMost ? MFS_CHECKED : MFS_UNCHECKED), IDM_TOPMOST, "常に最前面に表示する(&T)");
+				AppendMenu(hPopup, MFS_DEFAULT, IDM_OPEN_INI, "設定ファイル(&I)");
 
 			// ダイアログオブジェクトを生成
 			auto const hFont = (HFONT)GetStockObject( DEFAULT_GUI_FONT );
@@ -709,10 +710,8 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			}
 
 			//select initial tab
-			int const initialTab =
-				(0 <= g_config->initialTab && g_config->initialTab < TABDLGMAX
-				? g_config->initialTab : 0);
-			TabCtrl_SetCurSel(hTabCtrl, initialTab);
+			int const initialTab = g_config->initialTab;
+			TabCtrl_SetCurSel(hTabCtrl, (0 <= initialTab && initialTab < TABDLGMAX ? initialTab : 0));
 			return TRUE;
 		}
 		case WM_NOTIFY: {
@@ -757,6 +756,11 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 						hDlgWnd, (g_config->bTopMost ? HWND_TOPMOST : HWND_NOTOPMOST),
 						0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)
 					);
+					break;
+				}
+				case IDM_OPEN_INI: {
+					std::ofstream of { g_config->selfPath(), std::ios::app }; //create empty file if not exist
+					ShellExecute(nullptr, "open", g_config->selfPath().c_str(), nullptr, "", SW_SHOWDEFAULT);	
 					break;
 				}
 				default: break;
@@ -823,6 +827,10 @@ HWND Dialog::createMain()
 
 void Dialog::destroyMain()
 {
+	if ( !g_config->logPath.empty() ) { //auto save
+		logSave(g_config->logPath.c_str());
+	}
+
 	if ( hDlgWnd != nullptr ) {
 		DestroyWindow( hDlgWnd );
 		hDlgWnd = nullptr;

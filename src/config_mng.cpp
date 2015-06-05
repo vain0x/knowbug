@@ -6,24 +6,22 @@
 
 KnowbugConfig::SingletonAccessor g_config;
 
+static string SelfDir() {
+	char path[MAX_PATH];
+	GetModuleFileName(GetModuleHandle(nullptr), path, MAX_PATH);
+
+	char drive[5];
+	char dir[MAX_PATH];
+	char _dummy[MAX_PATH];
+	_splitpath_s(path, drive, dir, _dummy, _dummy);
+	return string(drive) + dir;
+}
+
 KnowbugConfig::KnowbugConfig()
 {
-	char ownpath[MAX_PATH];
-	{
-		GetModuleFileName( GetModuleHandle(nullptr), ownpath, MAX_PATH );
+	hspDir = SelfDir();
+	CIni ini { selfPath().c_str() };
 
-		char drive[5];
-		char dir[MAX_PATH];
-		char _dummy[MAX_PATH];		// ダミー
-
-		_splitpath_s( ownpath, drive, dir, _dummy, _dummy );
-		sprintf_s( ownpath, "%s%s", drive, dir );
-	}
-
-	string const ownpath_full = strf("%sknowbug.ini", ownpath);
-	CIni ini { ownpath_full.c_str() };
-
-	commonPath = strf( "%scommon", ownpath );
 	bTopMost   = ini.getBool( "Window", "bTopMost", false );
 	initialTab = ini.getInt("Interface", "initialTab", 0);
 	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );

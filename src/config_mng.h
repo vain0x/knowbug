@@ -9,7 +9,6 @@
 #include <array>
 #include <map>
 #include <memory>
-#include "module/strf.h"
 #include "module/Singleton.h"
 
 #include <functional>
@@ -29,9 +28,9 @@ public:
 	using VswInfo = std::tuple<moduleHandle_t, addVarUserdef_t, addValueUserdef_t>;
 
 public:
-	//properties from ini (see that for detail)
+	//properties from ini (see it for detail)
 
-	string commonPath;
+	string hspDir;
 	bool bTopMost;
 	int  initialTab;
 	int  tabwidth;
@@ -45,6 +44,9 @@ public:
 	string logPath;
 	int  logMaxlen;
 	bool warnsBeforeClearingLog;
+
+	string commonPath() const { return hspDir + "common"; }
+	string selfPath() const { return hspDir + "knowbug.ini"; }
 
 private:
 	KnowbugConfig();
