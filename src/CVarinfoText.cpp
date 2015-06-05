@@ -107,7 +107,7 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 	getWriter().catCrlf();
 
 	auto const prmstk = callinfo.getPrmstk();
-	
+
 	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
 			.addCall( stdat, prmstk );
 
@@ -128,7 +128,7 @@ void CVarinfoText::addResult( stdat_t stdat, string const& text, char const* nam
 
 	getWriter().cat(text);
 //	getWriter().catCrlf();
-	
+
 	// メモリダンプ
 	//if ( g_config->showsVariableDump ) { getWriter().catDump( ptr, static_cast<size_t>(bufsize) ); }
 }

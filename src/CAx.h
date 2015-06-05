@@ -26,7 +26,7 @@ private:
 private:
 	identTable_t labelNames;
 	identTable_t prmNames;
-	
+
 	// ファイル名, 行番号から cs 位置を特定するためのもの (現在は未実装)
 	// ただしファイル名は di の該当位置へのポインタに限る
 	csMap_t csMap;
@@ -126,7 +126,7 @@ private:
 		}
 	}
 };
-	
+
 } // namespace hpimod
 
 #endif

@@ -8,14 +8,14 @@
 class CLogBuf
 {
 	using string = std::string;
-	
+
 private:
 	string stock_;
 	string queue_;
 	bool bAutoCommit;
 
 	std::function<void(string const&)> whenCommit_, whenClear_, when;
-	
+
 public:
 	void add( string const& s ) {
 		if ( bAutoCommit ) {
@@ -24,7 +24,7 @@ public:
 			queue_ += s;
 		}
 	}
-	
+
 	void commit() {
 		if ( !queue_.empty() ) return;
 		whenCommit_( queue_ );

@@ -124,7 +124,7 @@ public:
 	{
 		assertUsingParameter(__FUNCTION__, name);
 		assertUsingParameter(__FUNCTION__, value);
-		
+
 		catIndent();
 		cat(name); cat(" = "); cat(value);
 		catCrlf();

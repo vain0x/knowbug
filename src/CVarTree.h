@@ -12,7 +12,7 @@ private:
 	using string = std::string;
 	struct Private;
 	std::unique_ptr<Private> p_;
-	
+
 public:
 	CStaticVarTree(string const& name);
 	~CStaticVarTree();
@@ -30,7 +30,7 @@ public:
 	//helper
 	template<typename FModule, typename FVar>
 	void foreach(FModule&& fModule, FVar&& fVar) const { return foreach(Visitor { decltype(Visitor::fModule)(fModule), decltype(Visitor::fVar)(fVar) }); }
-	
+
 public:
 	static string const ModuleName_Global;
 };

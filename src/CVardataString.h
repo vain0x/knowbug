@@ -75,7 +75,7 @@ public:
 	void addCall(stdat_t stdat, void const* prmstk);
 	void addCall(char const* name, stdat_t stdat, void const* prmstk);
 	void addResult(char const* name, PDAT const* ptr, vartype_t type);
-	
+
 public:
 	CStructedStrWriter& getWriter() const { return *writer_; }
 

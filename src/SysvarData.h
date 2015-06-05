@@ -50,7 +50,7 @@ static std::array<Info, Count> const List = {{
 	{ "sublev",  HSPVAR_FLAG_INT },
 	{ "err",     HSPVAR_FLAG_INT },
 	{ "notebuf", HSPVAR_FLAG_STR },
-	
+
 //	{ "mousex",  HSPVAR_FLAG_INT },
 //	{ "mousey",  HSPVAR_FLAG_INT },
 //	{ "mousew",  HSPVAR_FLAG_INT },

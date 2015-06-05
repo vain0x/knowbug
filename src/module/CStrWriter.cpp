@@ -49,7 +49,7 @@ void CStrWriter::catDumpImpl( void const* data, size_t size )
 	size_t idx = 0;
 	while ( idx < size ) {
 		if ( len != 0 ) catCrlf();		// 1回目は出力しない
-		
+
 		len = std::sprintf(tline, "%04X", idx);
 		for ( size_t i = 0; (i < stc_bytesPerLine && idx < size); ++i, ++idx ) {
 			len += std::sprintf(&tline[len], " %02X", mem[idx]);

@@ -19,7 +19,7 @@ template<class T,
 U const* cptr_cast(void const* p)
 {
 	static_assert(std::is_pointer<T>::value, "");
-	
+
 	return static_cast<U const*>(p);
 }
 

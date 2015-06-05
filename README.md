@@ -49,8 +49,7 @@ win32gui版では、カレント・ポジション (pos) とカレント色 (col
 本家版とはレイアウトが異なり、画面を上下に二分して、上にツリービューが、下に
 灰色メッセージボックスがあります。後者は、本家版と同じ働きです。
 
-ツリーには、すべての静的変数の名前を、モジュールごとに分類して並べています。
-この項目を選択すると、下のボックスに、変数の内容 (変数情報) が表示されます。
+ツリービューには、すべての静的変数をモジュールごとに分類して並べています。この項目を選択すると、下のボックスに変数の内容 (変数情報) が表示されます。
 
 #### 静的変数
 * 変数名:
@@ -259,7 +258,7 @@ myfunc を実行している間、mystmt の実引数の値は未確定なので
 ## 権利
 knowbug は、公式のデバッガ hsp3debug.dll に、上大が手を加えたものです。
 
-本ソフトの半分程度は、OpenHSP にあるコード、およびリソースを使用しています (<http://dev.onionsoft.net/trac/openhsp/browser/trunk/tools/win32/hsp3debug>)。[Lisense フォルダの中身](http://dev.onionsoft.net/trac/openhsp/browser/trunk/License_j.txt)もご参照ください。
+本ソフトの半分程度は、OpenHSP にあるコード、およびリソースを使用しています (<http://dev.onionsoft.net/trac/openhsp/browser/trunk/tools/win32/hsp3debug>)。[Lisense](http://dev.onionsoft.net/trac/openhsp/browser/trunk/License_j.txt)もご参照ください。
 
 ## 関連URL
 * プログラ広場 <http://prograpark.ninja-web.net/>:
@@ -272,4 +271,3 @@ knowbug は、公式のデバッガ hsp3debug.dll に、上大が手を加えた
   * HSPはここで開発されています。
 * knowbug on GitHub <https://github.com/vain0/knowbug/>:
   * knowbug のソースコードをアップロードしています。
-  * 上大が作成した部分はご自由にお使いください。

@@ -103,7 +103,7 @@ void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 			string const nameChild = makeArrayIndexString(dim, indexes);
 			addVarScalar(nameChild.c_str(), pval, i);
 		}
-		
+
 	// 一行文字列の場合
 	} else if ( dim > 0 ) {
 		// cntElems[1 + i] = 部分i次元配列の要素数
@@ -192,7 +192,7 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 
 		getWriter().catNodeBegin(name, (modclsNameString + "{").c_str());
 		getWriter().catAttribute("modcls", modclsNameString.c_str());
-			
+
 		addPrmstack(stdat, fv->ptr);
 
 		getWriter().catNodeEnd("}");

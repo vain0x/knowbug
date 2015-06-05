@@ -42,7 +42,7 @@ void bgnCall(stdat_t stdat)
 	));
 
 	auto& callinfo = *g_stkCallInfo.back();
-	
+
 	// DebugWindow への通知
 	Knowbug::bgnCalling(callinfo);
 }
@@ -58,21 +58,21 @@ void endCall()
 void endCall(PDAT* p, vartype_t vt)
 {
 	if (g_stkCallInfo.empty()) return;
-	
+
 	auto const& callinfo = *g_stkCallInfo.back();
-	
+
 	// 警告
 	if ( ctx->looplev != callinfo.looplev ) {
 		Knowbug::logmesWarning( "呼び出し中に入った loop から、正常に脱出せず、呼び出しが終了した。" );
 	}
-	
+
 	if ( ctx->sublev != callinfo.sublev ) {
 		Knowbug::logmesWarning("呼び出し中に入ったサブルーチンから、正常に脱出せず、呼び出しが終了した。");
 	}
 
 	// DebugWindow への通知
 	Knowbug::endCalling(callinfo, p, vt);
-	
+
 	g_stkCallInfo.pop_back();
 }
 

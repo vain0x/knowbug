@@ -24,7 +24,7 @@ class CVarinfoText
 {
 public:
 	CVarinfoText();
-	
+
 	void addVar(PVal* pval, char const* name);
 	void addSysvar(Sysvar::Id id);
 #ifdef with_WrapCall
