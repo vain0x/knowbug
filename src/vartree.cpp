@@ -47,7 +47,45 @@ static void RemoveLastIndependedResultNode();
 static ResultNodeData* FindLastIndependedResultData();
 #endif
 
-static HTREEITEM TreeView_MyInsertItem(HTREEITEM hParent, char const* name, bool sorts, LPARAM lp);
+//------------------------------------------------
+// ツリービューのノードの LPARAM の型定義
+//------------------------------------------------
+bool VarNode::isTypeOf(char const* s)
+{
+	return !(ModuleNode::isTypeOf(s) || SystemNode::isTypeOf(s) || SysvarNode::isTypeOf(s) || InvokeNode::isTypeOf(s) || ResultNode::isTypeOf(s));
+}
+namespace Detail
+{
+	template<> struct Verify < ModuleNode > { static bool apply(char const*, ModuleNode::lparam_t value) {
+		return (value != nullptr);
+	} };
+	template<> struct Verify < SystemNode > { static bool apply(char const*, SystemNode::lparam_t value) {
+		return true;
+	} };
+	template<> struct Verify < SysvarNode > { static bool apply(char const* s, SysvarNode::lparam_t value) {
+		return (0 <= value && value < Sysvar::Count && Sysvar::seek(&s[1]) == value);
+	} };
+	template<> struct Verify < InvokeNode > { static bool apply(char const*, InvokeNode::lparam_t value) {
+		return (value >= 0);
+	} };
+	template<> struct Verify < ResultNode > { static bool apply(char const*, ResultNode::lparam_t value) {
+		return (value != nullptr);
+	} };
+	template<> struct Verify < VarNode > { static bool apply(char const*, PVal* pval) {
+			return (pval && ctx->mem_var <= pval && pval < &ctx->mem_var[hpimod::cntSttVars()]);
+	} };
+}
+
+template<typename Tag, typename lparam_t>
+lparam_t TreeView_MyLParam(HWND hTree, HTREEITEM hItem, Tag*)
+{
+	auto&& v = (lparam_t)TreeView_GetItemLParam(hTree, hItem);
+	DbgArea {
+		string const&& s = TreeView_GetItemString(hTree, hItem);
+		assert(Tag::isTypeOf(s.c_str()) && Detail::Verify<Tag>::apply(s.c_str(), v));
+	}
+	return v;
+}
 
 //------------------------------------------------
 // 変数ツリーの初期化
@@ -119,11 +157,26 @@ static CStaticVarTree const& getSttVarTree()
 }
 
 //------------------------------------------------
+// ツリービューに要素を挿入する
+//------------------------------------------------
+template<typename Tag>
+static HTREEITEM TreeView_MyInsertItem(HTREEITEM hParent, char const* name, bool sorts, typename Tag::lparam_t lp, Tag* = nullptr)
+{
+	TVINSERTSTRUCT tvis {};
+	tvis.hParent = hParent;
+	tvis.hInsertAfter = (sorts ? TVI_SORT : TVI_LAST);
+	tvis.item.mask = TVIF_TEXT | TVIF_PARAM;
+	tvis.item.pszText = const_cast<char*>(name);
+	tvis.item.lParam = (LPARAM)(lp);
+	return TreeView_InsertItem(hwndVarTree, &tvis);
+}
+
+//------------------------------------------------
 // 変数ツリーにノードを追加する
 //------------------------------------------------
 void AddNodeModule(HTREEITEM hParent, CStaticVarTree const& tree)
 {
-	auto const hElem = TreeView_MyInsertItem(hParent, tree.getName().c_str(), true, (LPARAM)(&tree));
+	auto const hElem = TreeView_MyInsertItem<ModuleNode>(hParent, tree.getName().c_str(), true, &tree);
 	tree.foreach(
 		[&](CStaticVarTree const& module) {
 			AddNodeModule(hElem, module);
@@ -131,7 +184,7 @@ void AddNodeModule(HTREEITEM hParent, CStaticVarTree const& tree)
 		[&](string const& varname) {
 			PVal* const pval = hpimod::seekSttVar(varname.c_str());
 			assert(!!pval);
-			TreeView_MyInsertItem(hElem, varname.c_str(), true, (LPARAM)pval);
+			TreeView_MyInsertItem<VarNode>(hElem, varname.c_str(), true, pval);
 		}
 	);
 }
@@ -141,12 +194,12 @@ void AddNodeModule(HTREEITEM hParent, CStaticVarTree const& tree)
 //------------------------------------------------
 void AddNodeSysvar()
 {
-	HTREEITEM const hNodeSysvar = TreeView_MyInsertItem( TVI_ROOT, "+sysvar", false, (LPARAM)0 );
+	HTREEITEM const hNodeSysvar = TreeView_MyInsertItem<SystemNode>( TVI_ROOT, "+sysvar", false, SystemNodeId::Sysvar );
 
 	// システム変数のリストを追加する
 	for ( int i = 0; i < Sysvar::Count; ++ i ) {
 		string const name = strf( "~%s", Sysvar::List[i].name );
-		TreeView_MyInsertItem( hNodeSysvar, name.c_str(), false, (LPARAM)i );
+		TreeView_MyInsertItem<SysvarNode>(hNodeSysvar, name.c_str(), false, static_cast<Sysvar::Id>(i));
 	}
 }
 
@@ -156,7 +209,7 @@ void AddNodeSysvar()
 //------------------------------------------------
 void AddNodeDynamic()
 {
-	g_hNodeDynamic = TreeView_MyInsertItem(TVI_ROOT, "+dynamic", false, (LPARAM)0);
+	g_hNodeDynamic = TreeView_MyInsertItem<SystemNode>(TVI_ROOT, "+dynamic", false, SystemNodeId::Dynamic);
 }
 #endif
 
@@ -180,9 +233,8 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 		char const* const name = sItem.c_str();
 
 		// 呼び出しノード
-		if ( isCallNode(name) ) {
-			auto const idx = static_cast<int>(TreeView_GetItemLParam(hwndVarTree, hItem));
-			assert(idx >= 0);
+		if ( InvokeNode::isTypeOf(name) ) {
+			auto const idx = TreeView_MyLParam<InvokeNode>(hwndVarTree, hItem);
 			if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
 				auto const&& iter = g_config->clrTextExtra.find(
 					(pCallInfo->stdat->index == STRUCTDAT_INDEX_CFUNC)
@@ -220,18 +272,15 @@ vartype_t getVartypeOfNode( HTREEITEM hItem )
 {
 	string const&& name = TreeView_GetItemString(hwndVarTree, hItem);
 
-	if ( isVarNode(name.c_str()) ) {
-		PVal* const pval = hpimod::seekSttVar( name.c_str() );
-		if ( pval ) return pval->flag;
+	if ( VarNode::isTypeOf(name.c_str()) ) {
+		PVal* const pval = TreeView_MyLParam<VarNode>(hwndVarTree, hItem);
+		return pval->flag;
 
-	} else if ( isSysvarNode(name.c_str()) ) {
-		Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
-		assert(id == Sysvar::seek(&name[1]));
-		if ( id != Sysvar::Id::MAX ) {
-			return Sysvar::List[id].type;
-		}
+	} else if ( SysvarNode::isTypeOf(name.c_str()) ) {
+		Sysvar::Id const id = TreeView_MyLParam<SysvarNode>(hwndVarTree, hItem);
+		return Sysvar::List[id].type;
 
-	} else if ( isResultNode(name.c_str()) ) {
+	} else if ( ResultNode::isTypeOf(name.c_str()) ) {
 		auto const&& iter = g_allResultData.find(hItem);
 		if ( iter != g_allResultData.end() ) {
 			return iter->second->vtype;
@@ -250,54 +299,43 @@ string getItemVarText( HTREEITEM hItem )
 
 	CVarinfoText varinf;
 
-	// ノード
-	if ( isModuleNode(name) || isSystemNode(name) ) {
-		//auto const varinf = std::make_unique<CVarinfoLine>(g_config->maxlenVarinfo);
+	if ( ModuleNode::isTypeOf(name) ) {
+		auto const pTree = TreeView_MyLParam<ModuleNode>(hwndVarTree, hItem);
+		varinf.addModuleOverview(name, *pTree);
+
+	} else if ( SystemNode::isTypeOf(name) ) {
+		switch ( TreeView_MyLParam<SystemNode>(hwndVarTree, hItem) ) {
 #ifdef with_WrapCall
-		if ( strcmp(name, "+dynamic") == 0 ) {
-			varinf.addCallsOverview(FindLastIndependedResultData());
-		} else
+			case SystemNodeId::Dynamic:
+				varinf.addCallsOverview(FindLastIndependedResultData());
+				break;
 #endif
-		if ( strcmp(name, "+sysvar") == 0 ) {
-			varinf.addSysvarsOverview();
-
-		} else {
-			assert(isModuleNode(name));
-			auto const pTree = reinterpret_cast<CStaticVarTree*>(
-				TreeView_GetItemLParam(hwndVarTree, hItem)
-			);
-			assert(pTree != nullptr);
-			varinf.addModuleOverview(name, *pTree);
+			case SystemNodeId::Sysvar:
+				varinf.addSysvarsOverview();
+				break;
+			default: assert_sentinel;
 		}
-
-	// リーフ
 	} else {
-		if ( isSysvarNode(name) ) {
+		if ( SysvarNode::isTypeOf(name) ) {
 			Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
 			assert(0 <= id && id < Sysvar::Count && Sysvar::seek(&name[1]) == id);
 			varinf.addSysvar(id);
 
 	#ifdef with_WrapCall
-		} else if ( isCallNode(name) ) {
-			auto const idx = static_cast<int>(
-				TreeView_GetItemLParam( hwndVarTree, hItem )
-			);
-			assert(idx >= 0);
+		} else if ( InvokeNode::isTypeOf(name) ) {
+			auto const idx = TreeView_MyLParam<InvokeNode>( hwndVarTree, hItem );
 			if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
 				varinf.addCall(*pCallInfo);
 			}
 
-		// 返値データ
-		} else if ( usesResultNodes() && isResultNode(name) ) {
+		} else if ( usesResultNodes() && ResultNode::isTypeOf(name) ) {
 			auto const&& iter = g_allResultData.find(hItem);
 			auto const pResult = (iter != g_allResultData.end() ? iter->second : nullptr);
 			varinf.addResult( pResult->stdat, pResult->valueString, hpimod::STRUCTDAT_getName(pResult->stdat) );
 	#endif
-		// 静的変数
 		} else {
-			assert(isVarNode(name));
-			auto const pval = reinterpret_cast<PVal*>(TreeView_GetItemLParam(hwndVarTree, hItem));
-			assert(pval && ctx->mem_var <= pval && pval < &ctx->mem_var[hpimod::cntSttVars()]);
+			assert(VarNode::isTypeOf(name));
+			PVal* const pval = TreeView_MyLParam<VarNode>(hwndVarTree, hItem);
 			varinf.addVar( pval, name );
 		}
 	}
@@ -321,13 +359,13 @@ void AddCallNode(ModcmdCallInfo const& callinfo)
 	} else {
 		AddCallNodeImpl(callinfo);
 	}
-	}
+}
 
 void AddCallNodeImpl(ModcmdCallInfo const& callinfo)
 {
 	char name[128] = "'";
 	strcpy_s(&name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(callinfo.stdat));
-	HTREEITEM const hChild = TreeView_MyInsertItem(g_hNodeDynamic, name, false, (LPARAM)callinfo.idx);
+	HTREEITEM const hChild = TreeView_MyInsertItem<InvokeNode>(g_hNodeDynamic, name, false, callinfo.idx);
 
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, g_hNodeDynamic ) == hChild ) {
@@ -351,7 +389,7 @@ void RemoveLastCallNode()
 
 		HTREEITEM const hLast = TreeView_GetChildLast(hwndVarTree, g_hNodeDynamic);
 		if ( !hLast ) return;
-		assert( isCallNode(TreeView_GetItemString(hwndVarTree, hLast).c_str()) );
+		assert( InvokeNode::isTypeOf(TreeView_GetItemString(hwndVarTree, hLast).c_str()) );
 
 		TreeView_EscapeFocus(hwndVarTree, hLast);
 		RemoveDependingResultNodes(hLast);
@@ -407,7 +445,7 @@ void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
 	// 挿入
 	char name[128] = "\"";
 	strcpy_s( &name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(pResult->stdat) );
-	HTREEITEM const hChild = TreeView_MyInsertItem(hParent, name, false, (LPARAM)0);
+	HTREEITEM const hChild = TreeView_MyInsertItem<ResultNode>(hParent, name, false, nullptr);
 
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, hParent ) == hChild ) {
@@ -415,7 +453,7 @@ void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
 	}
 
 	// 返値ノードデータを保存しておく
-	g_allResultData.insert({ hChild, pResult });
+	g_allResultData.emplace(hChild, pResult);
 
 	if ( hParent == g_hNodeDynamic ) {
 		g_lastIndependedResultNode = hChild;
@@ -436,8 +474,7 @@ HTREEITEM FindDependedCallNode(ResultNodeData* pResult)
 			; hItem != nullptr
 			; hItem = TreeView_GetNextSibling(hwndVarTree, hItem)
 		) {
-			int const idx = static_cast<int>(TreeView_GetItemLParam(hwndVarTree, hItem));
-			assert(idx >= 0);
+			int const idx = TreeView_MyLParam<InvokeNode>(hwndVarTree, hItem);
 			if ( WrapCall::getCallInfoAt(idx) == pResult->pCallInfoDepended ) break;
 		}
 		return hItem;
@@ -482,7 +519,7 @@ static void RemoveDependingResultNodes(HTREEITEM hItem)
 
 	DbgArea {
 		string const nodeName = TreeView_GetItemString(hwndVarTree, hItem);
-		assert(isCallNode(nodeName.c_str()) || isResultNode(nodeName.c_str()));
+		assert(InvokeNode::isTypeOf(nodeName.c_str()) || ResultNode::isTypeOf(nodeName.c_str()));
 	};
 
 	for ( HTREEITEM hChild = TreeView_GetChild(hwndVarTree, hItem)
@@ -491,7 +528,7 @@ static void RemoveDependingResultNodes(HTREEITEM hItem)
 	) {
 		HTREEITEM const hNext = TreeView_GetNextSibling(hwndVarTree, hChild);
 		string const nodeName = TreeView_GetItemString(hwndVarTree, hChild);
-		if ( isResultNode(nodeName.c_str()) ) {
+		if ( ResultNode::isTypeOf(nodeName.c_str()) ) {
 			RemoveResultNode(hChild);
 		}
 		hChild = hNext;
@@ -555,20 +592,6 @@ void UpdateCallNode()
 	}
 }
 #endif
-
-//------------------------------------------------
-// ツリービューに要素を挿入する
-//------------------------------------------------
-static HTREEITEM TreeView_MyInsertItem(HTREEITEM hParent, char const* name, bool sorts, LPARAM lp)
-{
-	TVINSERTSTRUCT tvis {};
-	tvis.hParent = hParent;
-	tvis.hInsertAfter = (sorts ? TVI_SORT : TVI_LAST);
-	tvis.item.mask = TVIF_TEXT | TVIF_PARAM;
-	tvis.item.pszText = const_cast<char*>(name);
-	tvis.item.lParam = lp;
-	return TreeView_InsertItem(hwndVarTree, &tvis);
-}
 
 } // namespace VarTree
 

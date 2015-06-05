@@ -52,10 +52,9 @@ int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 		case DLL_PROCESS_ATTACH:
 			g_hInstance = hInstance;
 			break;
-		
+
 		case DLL_PROCESS_DETACH:
 			debugbye( g_dbginfo->debug, 0, 0, 0 );
-			Dialog::destroyMain();
 			break;
 	}
 	return TRUE;
@@ -71,7 +70,7 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 
 	g_dbginfo.reset(new DebugInfo(p1));
 	g_config.initialize();
-	
+
 	HWND const hDlg = Dialog::createMain();
 	return 0;
 }
@@ -109,14 +108,8 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 //------------------------------------------------
 EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
-	if ( !g_config->logPath.empty() ) { //auto save
-		Dialog::logSave( g_config->logPath.c_str() );
-	}
-	
 	VarTree::term();
-#ifdef with_Script
-	termConnectWithScript();
-#endif
+	Dialog::destroyMain();
 	return 0;
 }
 

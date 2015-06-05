@@ -13,6 +13,7 @@
 using WrapCall::ModcmdCallInfo;
 using WrapCall::ResultNodeData;
 #endif
+class CStaticVarTree;
 
 namespace VarTree
 {
@@ -24,14 +25,35 @@ LRESULT   customDraw(LPNMTVCUSTOMDRAW pnmcd);
 vartype_t getVartype(HTREEITEM hItem );
 string    getItemVarText(HTREEITEM hItem);
 
-static inline bool isModuleNode(char const* name) { return name[0] == '@'; }
-static inline bool isSystemNode(char const* name) { return name[0] == '+'; }
-static inline bool isSysvarNode(char const* name) { return name[0] == '~'; }
-static inline bool isCallNode  (char const* name) { return name[0] == '\''; }
-static inline bool isResultNode(char const* name) { return name[0] == '"'; }
-static inline bool isVarNode   (char const* name) {
-	return !(isModuleNode(name) || isSystemNode(name) || isSysvarNode(name) || isCallNode(name) || isResultNode(name));
+// ツリービューのノードに関するメタ定義
+enum class SystemNodeId {
+	Dynamic = 0,
+	Sysvar = 1,
+};
+namespace Detail
+{
+	template<char Prefix, typename LParamType>
+	struct NodeTag {
+		using self_t = NodeTag<Prefix, LParamType>;
+		using lparam_t = LParamType;
+		static bool isTypeOf(char const* itemString) {
+			return itemString[0] == Prefix;
+		}
+	};
+	template<typename Tag> struct Verify {
+		static bool apply(char const*, typename Tag::lparam_t const& value);
+	};
 }
+struct ModuleNode : public Detail::NodeTag<'@', CStaticVarTree const*> { };
+struct SystemNode : public Detail::NodeTag<'+', SystemNodeId> { };
+struct SysvarNode : public Detail::NodeTag<'~', Sysvar::Id> { }; 
+struct InvokeNode : public Detail::NodeTag<'\'', int> { };
+struct ResultNode : public Detail::NodeTag<'"', ResultNodeData*> { };
+struct VarNode    : public Detail::NodeTag<'\0', PVal*> {
+	static bool isTypeOf(char const * s);
+};
+template<typename Tag, typename lparam_t = typename Tag::lparam_t>
+lparam_t TreeView_MyLParam(HWND hTree, HTREEITEM hItem, Tag* = nullptr);
 
 #ifdef with_WrapCall
 
@@ -41,6 +63,6 @@ void AddResultNode(ModcmdCallInfo const& callinfo, std::shared_ptr<ResultNodeDat
 void RemoveResultNode( HTREEITEM hResult );
 void UpdateCallNode();
 
-}
-
 #endif
+
+}

@@ -11,6 +11,8 @@
 
 #include <string>
 #include <memory>
+#include <cassert>
+#define assert_sentinel do { assert(false); throw; } while(false)
 
 #include "hsp3plugin.h"
 #undef stat
@@ -30,6 +32,7 @@ using hpimod::HSPVAR_FLAG_VARIANT;
 namespace WrapCall
 {
 	struct ModcmdCallInfo;
+	struct ResultNodeData;
 }
 #endif
 

@@ -495,7 +495,7 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 
 		case WM_CONTEXTMENU: {
 			// ツリー上で逆クリック
-			if ( wp == (WPARAM)hVarTree ) {
+			if ( (HWND)wp == hVarTree ) {
 				TV_HITTESTINFO tvHitTestInfo;
 				tvHitTestInfo.pt = { LOWORD(lp), HIWORD(lp) };
 				ScreenToClient( hVarTree, &tvHitTestInfo.pt );
@@ -515,7 +515,7 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 
 					// 「脱出」は呼び出しノードに対してのみ有効
 					EnableMenuItem( hPopupOfVar, IDM_VAR_STEPOUT,
-						(VarTree::isCallNode(nodeString.c_str()) ? MFS_ENABLED : MFS_DISABLED));
+						(VarTree::InvokeNode::isTypeOf(nodeString.c_str()) ? MFS_ENABLED : MFS_DISABLED));
 
 					// ポップアップメニューを表示する
 					int const idSelected = TrackPopupMenuEx(
@@ -533,9 +533,8 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 							TabVarsUpdate();
 							break;
 						case IDM_VAR_STEPOUT: {
-							assert(VarTree::isCallNode(nodeString.c_str()));
-							auto const idx = static_cast<int>( TreeView_GetItemLParam(hVarTree, hItem) );
-							assert(idx >= 0);
+							assert(VarTree::InvokeNode::isTypeOf(nodeString.c_str()));
+							auto const idx =  VarTree::TreeView_MyLParam<VarTree::InvokeNode>(hVarTree, hItem);
 							if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
 								// 対象が呼び出された階層まで進む
 								Knowbug::runStepReturn(pCallInfo->sublev);
