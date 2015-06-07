@@ -100,7 +100,7 @@ static size_t cntStPrms() { return ctx->hsphed->max_minfo / sizeof(STRUCTPRM); }
 static size_t cntHpis()   { return ctx->hsphed->max_hpi / sizeof(HPIDAT); }
 static size_t cntLibs()   { return ctx->hsphed->max_linfo / sizeof(LIBDAT); }
 
-namespace detail
+namespace Detail
 {
 	// (failure: -1)
 	// todo: std::search に帰着できそう？
@@ -135,7 +135,7 @@ static PVal* seekSttVar(char const* name)
 // ot-index の検索 (failure: -1)
 static int findOTIndex(label_t lb)
 {
-	return detail::indexOf(ctx->mem_ot, ctx->mem_ot + cntLabels(), getOTPtr(lb));
+	return Detail::indexOf(ctx->mem_ot, ctx->mem_ot + cntLabels(), getOTPtr(lb));
 }
 
 // stprm index の検索 (failure: -1)
@@ -151,6 +151,7 @@ static char const* STRUCTDAT_getName(stdat_t self) { return &ctx->mem_mds[self->
 static stprm_t STRUCTDAT_getStPrm(stdat_t self) { return getSTRUCTPRM(self->prmindex); }
 static stprm_t STRUCTDAT_getStPrmEnd(stdat_t self) { return STRUCTDAT_getStPrm(self) + self->prmmax; }
 static stdat_t STRUCTPRM_getStDat(stprm_t self) { return getSTRUCTDAT(self->subid); }
+static bool STRUCTDAT_isSttmOrFunc(stdat_t self) { return (self->index == STRUCTDAT_INDEX_FUNC || self->index == STRUCTDAT_INDEX_CFUNC); }
 
 static stprm_t FlexValue_getModuleTag(FlexValue const* self) {	// structtag を持つ stprm
 	return getSTRUCTPRM(self->customid); }
@@ -161,8 +162,8 @@ static bool FlexValue_isClone(FlexValue const* self) { return (self->type == FLE
 
 // prmstack におけるメンバ stprm の領域へのポインタ
 template<typename TVoid = void,  bool bConst = std::is_const<TVoid>::value>
-static auto Prmstack_getMemberPtr(TVoid* self, stprm_t stprm) -> detail::const_iff_t<void, bConst>*
-{ return static_cast<detail::const_iff_t<char, bConst>*>(self) + stprm->offset; }
+static auto Prmstack_getMemberPtr(TVoid* self, stprm_t stprm) -> Detail::const_iff_t<void, bConst>*
+{ return static_cast<Detail::const_iff_t<char, bConst>*>(self) + stprm->offset; }
 
 static size_t PVal_maxDim(PVal const* pval) {
 	size_t i = 0;
@@ -185,7 +186,7 @@ static PDAT const* PVal_getPtr(PVal const* pval) {
 	return PVal_getPtr(const_cast<PVal*>(pval));
 }
 template<typename TPVal>
-static auto PVal_getPtr(TPVal* pval, APTR aptr) -> detail::const_iff_t<PDAT, std::is_const<TPVal>::value>*
+static auto PVal_getPtr(TPVal* pval, APTR aptr) -> Detail::const_iff_t<PDAT, std::is_const<TPVal>::value>*
 {
 	static_assert(std::is_same<std::remove_cv_t<TPVal>, PVal>::value, "typename TPVal must be PVal or PVal const.");
 

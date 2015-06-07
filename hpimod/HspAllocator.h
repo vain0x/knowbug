@@ -28,13 +28,13 @@ public:
 	HspAllocator() = default;
 	~HspAllocator() = default;
 
-	template <class U>
-	HspAllocator(HspAllocator<U> const&) { }
+	template <class TOther>
+	HspAllocator(HspAllocator<TOther> const&) { }
 
 	pointer allocate(size_t cntElements)
 	{
 		assert(exinfo && hspmalloc);
-		return reinterpret_cast<pointer>(hspmalloc(cntElements * sizeof(T)));
+		return reinterpret_cast<pointer>(hspmalloc(cntElements * sizeof(value_type)));
 	}
 #if 0
 	pointer allocate(size_t n, void const* hint)
@@ -46,7 +46,33 @@ public:
 	void deallocate(pointer p, size_t cntElements)
 	{
 		if ( p ) hspfree(p);
-		return;
+	}
+
+	// for classes that don't use allocator_traits
+	template<typename TOther>
+	struct rebind {
+		using other = HspAllocator<TOther>;
+	};
+
+	void construct(pointer p)
+	{
+		::new (static_cast<void*>(p)) value_type {};
+	}
+
+	void construct(pointer p, value_type const& value) {
+		::new (static_cast<void*>(p)) value_type { value };
+	}
+
+	template<typename TValue, typename... TArgs>
+	void construct(TValue* p, TArgs&&... args)
+	{
+		::new (static_cast<void*>(p)) TValue(std::forward<TArgs>(args)...);
+	}
+
+	template<class TValue>
+	void destroy(TValue* p)
+	{
+		p->~TValue();
 	}
 };
 
@@ -57,6 +83,6 @@ bool operator==(HspAllocator<T> const&, HspAllocator<U> const&) { return true; }
 template<typename T, typename U>
 bool operator!=(HspAllocator<T> const&, HspAllocator<U> const&) { return false; }
 
-}
+} // namespace hpimod
 
 #endif

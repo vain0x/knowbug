@@ -9,7 +9,7 @@
 
 namespace hpimod {
 
-namespace detail
+namespace Detail
 {
 	template<typename TResult, int vtype>
 	int SetReffuncResult(PDAT** ppResult, TResult const& src)
@@ -27,13 +27,13 @@ namespace detail
 // reffunc の返値を設定する
 //-----------------------------------------------
 static inline int SetReffuncResult(PDAT** ppResult, label_t const& src) {
-	return detail::SetReffuncResult<label_t, HSPVAR_FLAG_LABEL>(ppResult, src);
+	return Detail::SetReffuncResult<label_t, HSPVAR_FLAG_LABEL>(ppResult, src);
 }
 static inline int SetReffuncResult(PDAT** ppResult, double const& src) {
-	return detail::SetReffuncResult<double, HSPVAR_FLAG_DOUBLE>(ppResult, src);
+	return Detail::SetReffuncResult<double, HSPVAR_FLAG_DOUBLE>(ppResult, src);
 }
 static inline int SetReffuncResult(PDAT** ppResult, int const& src) {
-	return detail::SetReffuncResult<int, HSPVAR_FLAG_INT>(ppResult, src);
+	return Detail::SetReffuncResult<int, HSPVAR_FLAG_INT>(ppResult, src);
 }
 
 static char stt_result_string[2048];

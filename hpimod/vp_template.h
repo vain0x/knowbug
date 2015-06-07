@@ -70,11 +70,12 @@ static operator_t HspVarProcOperatorCast(typeRedefinedOperator_t op)
 //------------------------------------------------
 using compare_func_t = int(*)(PDAT* pdat, PDAT const* val);
 
-namespace detail
+namespace Detail
 {
 template<compare_func_t CmpI, typename TCmpFunctor>
 static void HspVarTemplate_CmpI(PDAT* pdat, PDAT const* val)
 {
+	static_assert(std::is_empty<TCmpFunctor>::value, "TCmpFunctor mustn't have nono-static member vars.");
 	static TCmpFunctor comparer {};
 
 	VtTraits::derefValptr<vtInt>(pdat) = HspBool( comparer(CmpI(pdat, val), 0) );
@@ -88,8 +89,8 @@ static void HspVarTemplate_CmpI(PDAT* pdat, PDAT const* val)
 template<compare_func_t CmpI>
 static void HspVarTemplate_InitCmpI_Equality(HspVarProc* hvp)
 {
-	hvp->EqI = HspVarProcOperatorCast( detail::HspVarTemplate_CmpI< CmpI, std::equal_to<int> > );
-	hvp->NeI = HspVarProcOperatorCast( detail::HspVarTemplate_CmpI< CmpI, std::not_equal_to<int> > );
+	hvp->EqI = HspVarProcOperatorCast( Detail::HspVarTemplate_CmpI< CmpI, std::equal_to<int> > );
+	hvp->NeI = HspVarProcOperatorCast( Detail::HspVarTemplate_CmpI< CmpI, std::not_equal_to<int> > );
 	return;
 }
 
@@ -99,10 +100,10 @@ static void HspVarTemplate_InitCmpI_Full(HspVarProc* hvp)
 {
 	HspVarTemplate_InitCmpI_Equality< CmpI >(hvp);
 
-	hvp->LtI   = HspVarProcOperatorCast(detail::HspVarTemplate_CmpI< CmpI, std::less<int> > );
-	hvp->GtI   = HspVarProcOperatorCast(detail::HspVarTemplate_CmpI< CmpI, std::greater<int> > );
-	hvp->LtEqI = HspVarProcOperatorCast(detail::HspVarTemplate_CmpI< CmpI, std::less_equal<int> > );
-	hvp->GtEqI = HspVarProcOperatorCast(detail::HspVarTemplate_CmpI< CmpI, std::greater_equal<int> > );
+	hvp->LtI   = HspVarProcOperatorCast(Detail::HspVarTemplate_CmpI< CmpI, std::less<int> > );
+	hvp->GtI   = HspVarProcOperatorCast(Detail::HspVarTemplate_CmpI< CmpI, std::greater<int> > );
+	hvp->LtEqI = HspVarProcOperatorCast(Detail::HspVarTemplate_CmpI< CmpI, std::less_equal<int> > );
+	hvp->GtEqI = HspVarProcOperatorCast(Detail::HspVarTemplate_CmpI< CmpI, std::greater_equal<int> > );
 	return;
 }
 

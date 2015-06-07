@@ -7,16 +7,7 @@
 
 namespace hpimod {
 
-namespace detail {
-	struct PValDefaultCtorDtor {
-		static inline void ctor(PVal* p) {
-			PVal_init(p, HSPVAR_FLAG_INT);
-		}
-		static inline void dtor(PVal& self) {
-			PVal_free(&self);
-		}
-	};
-
+namespace Detail {
 	struct HspAllocatorForPVal : public HspAllocator<PVal> {
 		void construct(PVal* pval) {
 			PVal_init(pval, HSPVAR_FLAG_INT);
@@ -29,12 +20,9 @@ namespace detail {
 			PVal_free(pval);
 		}
 	};
-}
+} // namespace Detail
 
-using ManagedPVal = Managed<PVal, false, 
-	//detail::PValDefaultCtorDtor
-	detail::HspAllocatorForPVal
->;
+using ManagedPVal = Managed<PVal, false, Detail::HspAllocatorForPVal>;
 
 // PVal with APTR
 // 基本的には自前で PVal を生成して所有する。
@@ -83,6 +71,8 @@ public:
 		}
 		return pval;
 	}
+
+	ManagedPVal const& getPValManaged() const { return pval_; }
 };
 
 } // namespace hpimod

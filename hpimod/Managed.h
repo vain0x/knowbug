@@ -20,6 +20,7 @@ TDerived とその基底クラスのすべての dtor が trivial でなけれ�
 vector_k 型は PVal::master の領域に Managed<> を配置 new する。
 
 todo: 学ぶ
+todo: alignment の問題に対処
 memo: header の中にカスタムデリーターを入れておくことも可能
 
 //*/
@@ -47,27 +48,30 @@ template<typename TValue,
 	bool bNullCtor,
 
 	// for construct, destroy
+	// バッファ自体には HspAllocator が使われる
 	typename Allocator = HspAllocator<TValue>
 >
 class Managed {
 	using value_type = TValue;
 	using self_t = Managed<value_type, bNullCtor, Allocator>;
+
+	using byte = unsigned char;
 	
-	// desiable: sizeof(inst_t with value_type) <= 64, because of specs of HspAllocator.
-	struct inst_t {
+	// desiable: sizeof(Inst with value_type) <= 64, because of specs of HspAllocator.
+	struct Inst {
 		int paddings_[2];
 		mutable int cnt_;
 		mutable bool tmpobj_;
-		unsigned char padding_;		// (for instance id while debugging)
-		unsigned short const magicCode_;	//= MagicCode
+		byte padding_;		// (for instance id while debugging)
+		unsigned short magicCode_;	//= MagicCode
 
 		// flexible structure (used as T value)
-		char value_[1];
+		byte value_[1];
 	};
-	static size_t const instHeaderSize = 3*sizeof(int)+sizeof(bool)+sizeof(unsigned char)+sizeof(unsigned short);
+	static size_t const instHeaderSize = sizeof(Inst) - sizeof(byte[1]);
 	static unsigned short const MagicCode = 0x55AB;
 
-	inst_t* inst_;
+	Inst* inst_;
 
 public:
 	// null ctor by force
@@ -77,7 +81,7 @@ public:
 		assert(sizeof(self_t) == sizeof(void*));
 	}
 private:
-	using CharAllocator = HspAllocator<char>;
+	using ByteAllocator = HspAllocator<byte>;
 
 	template<typename TAllocator = Allocator>
 	static TAllocator& getAllocator()
@@ -91,10 +95,12 @@ private:
 	void initializeHeader()
 	{
 		assert(!inst_);
-		inst_ = reinterpret_cast<inst_t*>(
-			std::allocator_traits<CharAllocator>::allocate(getAllocator<CharAllocator>(), instHeaderSize + sizeof(TInit))
+		inst_ = reinterpret_cast<Inst*>(
+			std::allocator_traits<ByteAllocator>::allocate(getAllocator<ByteAllocator>(), instHeaderSize + sizeof(TInit))
 		);
-		new(inst_)inst_t { {}, 1, false, '\0', MagicCode, {} };
+		inst_->cnt_ = 1;
+		inst_->tmpobj_ = false;
+		inst_->magicCode_ = MagicCode;
 		
 		assert(static_cast<void const*>(&inst_->magicCode_ + 1) == (inst_->value_)
 			&& isManagedValue(reinterpret_cast<value_type*>(inst_->value_)));
@@ -110,19 +116,13 @@ private:
 
 public:
 	// default ctor
-	Managed() : inst_ { nullptr } { defaultCtor(); }
+	Managed() : inst_ { nullptr } { defaultCtor<bNullCtor>(); }
 
 private:
-	// overload by SFINAE
-	template<typename TVoid = void,
-		std::enable_if_t<bNullCtor, TVoid>* = nullptr
-	> void defaultCtor()
+	template<bool bNullCtor = true> void defaultCtor()
 	{ }
 
-	template<
-		typename TVoid = void,
-		std::enable_if_t<!bNullCtor, TVoid>* = nullptr
-	> void defaultCtor()
+	template<> void defaultCtor<false>()
 	{
 		initializeHeader<value_type>();
 		std::allocator_traits<Allocator>::construct(getAllocator(), valuePtr());
@@ -139,12 +139,16 @@ public:
 		static_assert(std::is_constructible<TDerived, Args...>::value, "constructor TDerived(Args...) is not found.");
 
 		self_t self { nullptr }; self.initializeHeader<TDerived>();
+		auto derivedPtr = reinterpret_cast<TDerived*>(self.valuePtr());
 
 		using rebound_t = std::allocator_traits<Allocator>::rebind_alloc<TDerived>;
 		std::allocator_traits<rebound_t>::construct(getAllocator<rebound_t>(),
-			reinterpret_cast<TDerived*>(self.valuePtr()),
-			std::forward<Args>(args)...
+			derivedPtr, std::forward<Args>(args)...
 		);
+
+		// キャストでアドレスが変わる型ではいけない
+		assert( static_cast<value_type*>(derivedPtr) == self.valuePtr() );
+
 		return std::move(self);
 	}
 
@@ -167,23 +171,23 @@ public:
 	{ rhs.inst_ = nullptr; }
 
 	// swap
-	void swap(self_t& rhs) throw() { std::swap(inst_, rhs.inst_); }
+	void swap(self_t& rhs) throw() { using std::swap; swap(inst_, rhs.inst_); }
 
 public:
 	// 実体ポインタから managed を作成する factory 関数 (failure: nullptr)
-	// inst_t::value_ を指しているはずなので、inst_t の先頭を逆算する。
+	// Inst::value_ を指しているはずなので、Inst の先頭を逆算する。
 	static self_t const ofValptr(value_type const* pdat)
 	{
 		if ( !pdat ) return self_t { nullptr };
 
-		auto const inst = reinterpret_cast<inst_t const*>(reinterpret_cast<char const*>(pdat) - instHeaderSize);
+		auto const inst = reinterpret_cast<Inst const*>(reinterpret_cast<byte const*>(pdat) - instHeaderSize);
 	//	assert(inst->magicCode_ == MagicCode);
-		return self_t { const_cast<inst_t*>(inst) };
+		return self_t { const_cast<Inst*>(inst) };
 	};
 	static self_t ofValptr(value_type* pdat) { return const_cast<self_t&&>(ofValptr(static_cast<value_type const*>(pdat))); }
 
 private:
-	explicit Managed(inst_t* inst) : inst_ { inst }
+	explicit Managed(Inst* inst) : inst_ { inst }
 	{ incRef(); }
 
 public:
@@ -206,8 +210,8 @@ private:
 		dbgout("[%d] KILL %d <%d>", instId(), cnt(), tmpobj());
 #endif
 		std::allocator_traits<Allocator>::destroy(getAllocator(), valuePtr());
-		std::allocator_traits<CharAllocator>::deallocate(getAllocator<CharAllocator>(),
-			reinterpret_cast<char*>(inst_), 1);		// HspAllocator<> ignores counts to deallocate.
+		std::allocator_traits<ByteAllocator>::deallocate(getAllocator<ByteAllocator>(),
+			reinterpret_cast<byte*>(inst_), 1);		// HspAllocator<> ignores counts to deallocate.
 	}
 
 private:
@@ -263,7 +267,7 @@ public:
 		return (!isNull() && inst_->magicCode_ == MagicCode);
 	}
 
-	// data が構造体 Managed<T>::inst_t の中の value_ を指しているか否か
+	// data が構造体 Managed<T>::Inst の中の value_ を指しているか否か
 	static bool isManagedValue(value_type const* data) {
 		return (reinterpret_cast<unsigned short const*>(data)[-1] == MagicCode);
 	}

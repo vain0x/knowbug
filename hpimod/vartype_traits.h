@@ -93,7 +93,7 @@ namespace VtTraits
 	// 固定長型か？
 	template<typename Tag>
 	struct isFixed { static bool const value = (basesize<Tag>::value >= 0); };
-	
+
 	// PDAT* → 実体ポインタ
 	template<typename Tag>
 	static const_valptr_t<Tag> asValptr(PDAT const* pdat) {
@@ -118,7 +118,7 @@ namespace VtTraits
 	}
 	template<typename Tag>
 	static master_t<Tag>& getMaster(PVal* pval) { return const_cast<master_t<Tag>&>(getMaster<Tag>(static_cast<PVal const*>(pval))); }
-	
+
 	// 実体ポインタの脱参照 (valptr_t = value_t* である型に限る)
 	template<typename Tag> static const_value_t<Tag>& derefValptr(PDAT const* pdat) {
 		static_assert(std::is_same<valptr_t<Tag>, value_t<Tag>*>::value, "General 'derefValptr()' can be used for vartypes (valptr_t = value_t*).");
