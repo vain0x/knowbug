@@ -57,7 +57,7 @@ namespace Knowbug
 	extern bool isStepRunning();
 	extern bool continueConditionalRun();
 
-	extern void logmes(char const* msg);
+	extern void logmes(char const* msg); //自動改行なし
 	extern void logmesWarning(char const* msg);
 
 #ifdef with_WrapCall

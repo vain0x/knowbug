@@ -9,28 +9,18 @@
 namespace Dialog
 {
 
-static char const* const myClass = "KNOWBUG";
-static int const TABDLGMAX = 4;
-
-HWND getKnowbugHandle();
-HWND getSttCtrlHandle();
 HWND getVarTreeHandle();
 
 HWND createMain();
 void destroyMain();
 
-void logClear();
-void logAdd( char const* msg );
-void logAddCrlf();
-void logAddCurInf();
-bool isLogAutomaticallyUpdated();
-bool isLogCallings();
-void logSave();
-void logSave( char const* filepath );
-
 void update();
+bool logsCalling();
 
-void setEditStyle( HWND hEdit );
+namespace LogBox
+{
+	void add(char const* msg);
+}
 
 } // namespace Dialog
 

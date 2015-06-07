@@ -5,21 +5,11 @@
 //
 
 #include <Windows.h>
-#include <cstdio>
-#include <vector>
-#include <algorithm>
 
 #include "main.h"
-#include "hsed3_footy2/interface.h"
-
 #include "module/strf.h"
-#include "module/ptr_cast.h"
-#include "module/supio/supio.h"
 #include "DebugInfo.h"
-#include "CAx.h"
-#include "CVarTree.h"
 #include "CVarinfoText.h"
-#include "SysvarData.h"
 
 #include "config_mng.h"
 #include "dialog.h"
@@ -36,11 +26,7 @@ EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 );
 // WrapCall 関連
 #ifdef with_WrapCall
 # include "WrapCall/ModcmdCallInfo.h"
-
 using WrapCall::ModcmdCallInfo;
-
-static void OnBgnCalling( HWND hwndTree, ModcmdCallInfo const& callinfo );
-static void OnEndCalling( HWND hwndTree, ModcmdCallInfo const& callinfo, void* ptr, int flag );
 #endif
 
 //------------------------------------------------
@@ -49,13 +35,8 @@ static void OnEndCalling( HWND hwndTree, ModcmdCallInfo const& callinfo, void* p
 int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 {
 	switch ( fdwReason ) {
-		case DLL_PROCESS_ATTACH:
-			g_hInstance = hInstance;
-			break;
-
-		case DLL_PROCESS_DETACH:
-			debugbye( g_dbginfo->debug, 0, 0, 0 );
-			break;
+		case DLL_PROCESS_ATTACH: g_hInstance = hInstance; break;
+		case DLL_PROCESS_DETACH: debugbye( g_dbginfo->debug, 0, 0, 0 ); break;
 	}
 	return TRUE;
 }
@@ -65,8 +46,8 @@ int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 //------------------------------------------------
 EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
-	ctx     = p1->hspctx;
-	exinfo  = ctx->exinfo2;
+	ctx    = p1->hspctx;
+	exinfo = ctx->exinfo2;
 
 	g_dbginfo.reset(new DebugInfo(p1));
 	g_config.initialize();
@@ -97,7 +78,8 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 			break;
 		}
 		case hpimod::DebugNotice_Logmes:
-			Knowbug::logmes( ctx->stmp );
+			strcat_s(ctx->stmp, HSPCTX_REFSTR_MAX, "\r\n");
+			Knowbug::logmes(ctx->stmp);
 			break;
 	}
 	return 0;
@@ -190,14 +172,14 @@ bool continueConditionalRun()
 //------------------------------------------------
 void logmes( char const* msg )
 {
-	Dialog::logAdd( msg );
-	Dialog::logAddCrlf();
+	Dialog::LogBox::add(msg);
 }
 
 void logmesWarning(char const* msg)
 {
-	logmes(strf("warning: %s", msg).c_str());
-	Dialog::logAddCurInf();
+	g_dbginfo->debug->dbg_curinf();
+	logmes(strf("warning: %s\r\nCurInf:%s\r\n",
+		msg, g_dbginfo->getCurInfString().c_str()).c_str());
 }
 
 #ifdef with_WrapCall
@@ -209,9 +191,9 @@ void bgnCalling(ModcmdCallInfo const& callinfo)
 	VarTree::AddCallNode(callinfo);
 
 	// ログ出力
-	if ( Dialog::isLogCallings() ) {
+	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
-			"[CallBgn] %s\t#%d of \"%s\"]\n",
+			"[CallBgn] %s\t#%d of \"%s\"]\r\n",
 			hpimod::STRUCTDAT_getName(callinfo.stdat),
 			callinfo.line,
 			callinfo.fname
@@ -236,9 +218,9 @@ void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
 	}
 
 	// ログ出力
-	if ( Dialog::isLogCallings() ) {
+	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
-			"[CallEnd] %s%s\n",
+			"[CallEnd] %s%s\r\n",
 			hpimod::STRUCTDAT_getName(callinfo.stdat),
 			(pResult ? ("-> " + pResult->valueString).c_str() : "")
 		);
@@ -247,7 +229,7 @@ void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
 }
 #endif
 
-}
+} //namespace Knowbug
 
 //##############################################################################
 //                スクリプト向けのAPI

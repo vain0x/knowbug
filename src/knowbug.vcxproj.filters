@@ -134,9 +134,6 @@
     <ClInclude Include="module\ptr_cast.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="module\CLogBuf.h">
-      <Filter>module</Filter>
-    </ClInclude>
     <ClInclude Include="module\CIni.h">
       <Filter>module</Filter>
     </ClInclude>
@@ -205,6 +202,9 @@
     </ClInclude>
     <ClInclude Include="..\..\crouton\src\var_vector\for_knowbug.var_vector.h">
       <Filter>module\hpimod\myPluginTypeInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="module\LineDelimitedString.h">
+      <Filter>module</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

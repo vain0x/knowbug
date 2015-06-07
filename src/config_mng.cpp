@@ -63,24 +63,24 @@ KnowbugConfig::KnowbugConfig()
 			auto const fnameAddVar = ini.getString(stc_sec, strf("%s.addVar", vtname.c_str()).c_str());
 			auto const fAddVar = (addVarUserdef_t)GetProcAddress(hDll.get(), fnameAddVar);
 			if ( fnameAddVar[0] != '\0' && !fAddVar ) {
-				Knowbug::logmesWarning(strf("拡張型表示用の addVar 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s",
+				Knowbug::logmesWarning(strf("拡張型表示用の addVar 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n",
 					vtname.c_str(), fnameAddVar).c_str());
 			}
 
 			auto const fnameAddValue = ini.getString(stc_sec, strf("%s.addValue", vtname.c_str()).c_str());
 			auto const fAddValue = (addValueUserdef_t)GetProcAddress(hDll.get(), fnameAddValue);
 			if ( fnameAddValue[0] != '\0' && !fAddValue ) {
-				Knowbug::logmesWarning(strf("拡張型表示用の addValue 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s",
+				Knowbug::logmesWarning(strf("拡張型表示用の addValue 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n",
 					vtname.c_str(), fnameAddValue).c_str());
 			}
 
 #ifdef _DEBUG
-			Knowbug::logmes(strf("型 %s の拡張表示情報が読み込まれた。\r\nVswInfo { %08X, %08X, %08X }",
+			Knowbug::logmes(strf("型 %s の拡張表示情報が読み込まれた。\r\nVswInfo { %08X, %08X, %08X }\r\n",
 				vtname.c_str(), hDll, fAddVar, fAddValue).c_str());
 #endif
 			vswInfo.insert({ vtname, VswInfo { std::move(hDll), fAddVar, fAddValue } });
 		} else {
-			Knowbug::logmesWarning(strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s",
+			Knowbug::logmesWarning(strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s\r\n",
 				vtname.c_str(), dllPath).c_str());
 		}
 	}

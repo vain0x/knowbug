@@ -40,6 +40,9 @@
 namespace Dialog
 {
 
+static char const* const myClass = "KNOWBUG";
+static int const TABDLGMAX = 4;
+
 static HWND hDlgWnd;
 
 static HWND hTabCtrl;
@@ -58,7 +61,6 @@ static HWND hVarTree;
 static HWND hVarEdit;
 
 static HWND hLogPage;
-static HWND hLogEdit;
 static HWND hLogChkUpdate;
 static HWND hLogChkCalog;
 
@@ -72,6 +74,8 @@ static HMENU hPopupOfVar;
 HWND getKnowbugHandle() { return hDlgWnd; }
 HWND getSttCtrlHandle() { return hSttCtrl; }
 HWND getVarTreeHandle() { return hVarTree; }
+
+static void setEditStyle(HWND hEdit, int maxlen);
 
 //------------------------------------------------
 // ウィンドウ・オブジェクトの生成
@@ -95,7 +99,7 @@ static HWND GenerateObj( HWND parent, char const* name, char const* ttl, int x, 
 //------------------------------------------------
 // 全般タブの前処理
 //------------------------------------------------
-static void TabGeneralInit( void )
+static void TabGeneralInit()
 {
 	LVCOLUMN col;
 	col.mask     = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
@@ -115,9 +119,9 @@ static void TabGeneralInit( void )
 // 全般タブの更新
 //------------------------------------------------
 static void SrcSync( char const* filepath, int line_num, bool bUpdateEdit, bool bUpdateBox );
-static void TabGeneral_AddItem( char const* sItem, char const* sValue, int iItem );
+static void TabGeneral_AddItem( char const* sItem, char const* sValue, int& iItem );
 
-static void TabGeneralReset()
+static void TabGeneralUpdate()
 {
 	ListView_DeleteAllItems( hGenList );
 
@@ -135,11 +139,9 @@ static void TabGeneralReset()
 	for (;;) {
 		chk = strsp_get( p.get(), name, 0, sizeof(name) - 1 );
 		if ( chk == 0 ) break;
-
 		chk = strsp_get( p.get(), val, 0, sizeof(val) - 1 );
 		if ( chk == 0 ) break;
-
-		TabGeneral_AddItem( name, val, tgmax ); ++tgmax;
+		TabGeneral_AddItem(name, val, tgmax);
 	}
 
 	// 拡張内容の追加
@@ -149,21 +151,19 @@ static void TabGeneralReset()
 			// color
 			{
 				COLORREF const cref = pBmscr->color;
-				sprintf_s(val, "(%d, %d, %d)",
-					GetRValue(cref), GetGValue(cref), GetBValue(cref)
-				);
+				sprintf_s(val, "(%d, %d, %d)", GetRValue(cref), GetGValue(cref), GetBValue(cref));
 			}
-			TabGeneral_AddItem("color", val, tgmax); ++tgmax;
+			TabGeneral_AddItem("color", val, tgmax);
 
 			// pos
 			sprintf_s(val, "(%d, %d)", pBmscr->cx, pBmscr->cy);
-			TabGeneral_AddItem("pos", val, tgmax); ++tgmax;
+			TabGeneral_AddItem("pos", val, tgmax);
 		}
 	}
 	SrcSync( g_dbginfo->debug->fname, g_dbginfo->debug->line, false, true );
 }
 
-static void TabGeneral_AddItem( char const* sItem, char const* sValue, int iItem )
+static void TabGeneral_AddItem( char const* sItem, char const* sValue, int& iItem )
 {
 	LV_ITEM item;
 	item.mask     = LVIF_TEXT;
@@ -176,6 +176,8 @@ static void TabGeneral_AddItem( char const* sItem, char const* sValue, int iItem
 	item.iSubItem = 1;
 	item.pszText  = const_cast<char*>(sValue);
 	ListView_SetItem( hGenList, &item );
+
+	++iItem;
 }
 
 //------------------------------------------------
@@ -194,7 +196,7 @@ void TabVarInit( HWND hDlg )
 	hVarPage = hDlg;
 	hVarTree = GetDlgItem( hDlg, IDC_VARTREE );
 	hVarEdit = GetDlgItem( hDlg, IDC_VARINFO );;
-	setEditStyle( hVarEdit );
+	setEditStyle(hVarEdit, g_config->maxlenVarinfo);
 
 	VarTree::init();
 
@@ -223,190 +225,136 @@ void TabVarsUpdate()
 //------------------------------------------------
 // ログのチェックボックス
 //------------------------------------------------
-bool isLogAutomaticallyUpdated()
+bool updatesLogAutomatically()
 {
 	return IsDlgButtonChecked( hLogPage, IDC_CHK_LOG_UPDATE ) != FALSE;
 }
 
-bool isLogCallings()
+bool logsCalling()
 {
 	return IsDlgButtonChecked( hLogChkCalog, IDC_CHK_LOG_CALOG ) != FALSE;
 }
 
 //------------------------------------------------
-// ログメッセージを初期化する
+// ログボックス
 //------------------------------------------------
-static string stt_logmsg;
+namespace LogBox {
+	static HWND hwnd_;
+	static string stock_;
 
-void logClear()
-{
-	stt_logmsg.clear();
-
-	Edit_SetSel( hLogEdit, 0, -1 );
-	Edit_ReplaceSel( hLogEdit, "" );
-}
-
-//------------------------------------------------
-// ログメッセージを追加・更新する
-//------------------------------------------------
-void logUpdate( char const* textAdd )
-{
-	int caret[2];
-	SendMessage( hLogEdit, EM_GETSEL,
-		(WPARAM)( &caret[0] ),
-		(LPARAM)( &caret[1] )
-	);
-
-	int const size = Edit_GetTextLength( hLogEdit );
-	Edit_SetSel( hLogEdit, size, size );  // 最後尾にキャレットを置く
-	Edit_ReplaceSel( hLogEdit, textAdd ); // 文字列を追加する
-	Edit_ScrollCaret( hLogEdit );         // 画面を必要なだけスクロール
-
-	// 選択状態を元に戻す
-	Edit_SetSel( hLogEdit, caret[0], caret[1] );
-}
-
-//------------------------------------------------
-// ログメッセージを更新する (commit)
-//------------------------------------------------
-void TabLogCommit()
-{
-	if ( stt_logmsg.empty() ) return;
-
-	logUpdate( stt_logmsg.c_str() );
-	stt_logmsg.clear();
-}
-
-//------------------------------------------------
-// ログメッセージに追加する
-//------------------------------------------------
-void logAdd( char const* str )
-{
-	// 自動更新
-	if ( isLogAutomaticallyUpdated() ) {
-		logUpdate( str );
-
-	} else {
-		stt_logmsg.append( str );
+	void init(HWND hwnd) {
+		hwnd_ = hwnd;
+		setEditStyle(hwnd, g_config->logMaxlen);
 	}
-}
-
-void logAddCrlf()
-{
-	logAdd( "\r\n" );
-}
-
-// 現在位置を更新して、現在位置をログに追加する。
-void logAddCurInf()
-{
-	g_dbginfo->debug->dbg_curinf();
-	logAdd(("CurInf:" + g_dbginfo->getCurInfString()).c_str());
-	logAddCrlf();
-}
-
-//------------------------------------------------
-// ログメッセージを保存する
-//------------------------------------------------
-void logSave()
-{
-	char filename[MAX_PATH + 1] = "";
-	char fullname[MAX_PATH + 1] = "hspdbg.log";
-	OPENFILENAME ofn = { 0 };
-		ofn.lStructSize    = sizeof(ofn);         // 構造体のサイズ
-		ofn.hwndOwner      = hDlgWnd;             // コモンダイアログの親ウィンドウハンドル
-		ofn.lpstrFilter    = "log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";	// ファイルの種類
-		ofn.lpstrFile      = fullname;            // 選択されたファイル名(フルパス)を受け取る変数のアドレス
-		ofn.lpstrFileTitle = filename;            // 選択されたファイル名を受け取る変数のアドレス
-		ofn.nMaxFile       = sizeof(fullname);    // lpstrFileに指定した変数のサイズ
-		ofn.nMaxFileTitle  = sizeof(filename);    // lpstrFileTitleに指定した変数のサイズ
-		ofn.Flags          = OFN_OVERWRITEPROMPT; // フラグ指定
-		ofn.lpstrTitle     = "名前を付けて保存";   // コモンダイアログのキャプション
-		ofn.lpstrDefExt    = "log";               // デフォルトのファイルの種類
-
-	if ( GetSaveFileName(&ofn) ) {
-		logSave(fullname);
+	void clearImpl() {
+		stock_.clear();
+		Edit_SetSel(hwnd_, 0, -1);
+		Edit_ReplaceSel(hwnd_, "");
 	}
-}
-
-void logSave( char const* filepath )
-{
-	// ログメッセージを取り出す
-	int const size = Edit_GetTextLength( hLogEdit );
-	std::vector<char> buf(size + 2);
-	GetWindowText( hLogEdit, buf.data(), size + 1 );
-
-	// 保存
-	HANDLE const hFile =
-		CreateFile( filepath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
-	if ( hFile != INVALID_HANDLE_VALUE ) {
-		DWORD writesize;
-		WriteFile( hFile, buf.data(), size, &writesize, nullptr );
-		CloseHandle( hFile );
+	void clear() {
+		if ( !g_config->warnsBeforeClearingLog
+			|| MessageBox(hDlgWnd, "ログをすべて消去しますか？", "knowbug", MB_OKCANCEL) == IDOK ) {
+			clearImpl();
+		}
 	}
-}
+	void commit(char const* textAdd) {
+		int caret[2];
+		SendMessage(hwnd_, EM_GETSEL,
+			(WPARAM)(&caret[0]),
+			(LPARAM)(&caret[1])
+		);
+
+		int const size = Edit_GetTextLength(hwnd_);
+		Edit_SetSel(hwnd_, size, size);  // 最後尾にキャレットを置く
+		Edit_ReplaceSel(hwnd_, textAdd); // 文字列を追加する
+		Edit_ScrollCaret(hwnd_);         // 画面を必要なだけスクロール
+
+		// 選択状態を元に戻す
+		Edit_SetSel(hwnd_, caret[0], caret[1]);
+	}
+	void update() {
+		commit(stock_.c_str());
+		stock_.clear();
+	}
+	void add(char const* str) {
+		if ( !str || str[0] == '\0' ) return;
+		if ( updatesLogAutomatically() ) {
+			commit(str);
+		} else {
+			stock_.append(str);
+		}
+	}
+	void save(char const* filepath) {
+		// ログメッセージを取り出す
+		int const size = Edit_GetTextLength(hwnd_);
+		std::vector<char> buf(size + 2);
+		GetWindowText(hwnd_, buf.data(), size + 1);
+
+		// 保存
+		HANDLE const hFile =
+			CreateFile(filepath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if ( hFile != INVALID_HANDLE_VALUE ) {
+			DWORD writesize;
+			WriteFile(hFile, buf.data(), size, &writesize, nullptr);
+			CloseHandle(hFile);
+		}
+	}
+	void save() {
+		char filename[MAX_PATH + 1] = "";
+		char fullname[MAX_PATH + 1] = "hspdbg.log";
+		OPENFILENAME ofn = { 0 };
+			ofn.lStructSize    = sizeof(ofn);         // 構造体のサイズ
+			ofn.hwndOwner      = hDlgWnd;             // コモンダイアログの親ウィンドウハンドル
+			ofn.lpstrFilter    = "log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";	// ファイルの種類
+			ofn.lpstrFile      = fullname;            // 選択されたファイル名(フルパス)を受け取る変数のアドレス
+			ofn.lpstrFileTitle = filename;            // 選択されたファイル名を受け取る変数のアドレス
+			ofn.nMaxFile       = sizeof(fullname);    // lpstrFileに指定した変数のサイズ
+			ofn.nMaxFileTitle  = sizeof(filename);    // lpstrFileTitleに指定した変数のサイズ
+			ofn.Flags          = OFN_OVERWRITEPROMPT; // フラグ指定
+			ofn.lpstrTitle     = "名前を付けて保存";   // コモンダイアログのキャプション
+			ofn.lpstrDefExt    = "log";               // デフォルトのファイルの種類
+
+		if ( GetSaveFileName(&ofn) ) {
+			save(fullname);
+		}
+	}
+} //namespace LogBox
 
 //------------------------------------------------
 // ソースファイルを開く
 //
 // @ エディタ上で編集中の場合、ファイルの内容が実際と異なることがある。行番号のアウトレンジに注意。
 //------------------------------------------------
-/*
-// 行ごとに分割されたテキスト
-first: スクリプト全体、ただし各行の字下げ空白は除去されている。
-second: 行番号(0ベース)の添字に対して、first におけるその行の先頭へのオフセット値。
-	最初の要素は 0、最後の要素は first の長さ。
-*/
-using script_t = std::pair<string const, std::vector<size_t>>;
+#include "module/LineDelimitedString.h"
+using script_t = LineDelimitedString;
 
 // 現在ソースタブで表示されているファイルのパス
 static string stt_viewingFilepath;
 
 // 読み込み処理 (failure: nullptr)
-static script_t const* ReadFromSourceFile( char const* _filepath )
+static script_t const* ReadFromSourceFile(char const* _filepath)
 {
-	static std::map<string const, script_t> stt_src_cache;
-
 	string const filepath = _filepath;
 
 	// キャッシュから検索
+	static std::map<string const, script_t> stt_cache;
 	{
-		auto const iter = stt_src_cache.find(filepath);
-		if ( iter != stt_src_cache.end() ) return &iter->second;
+		auto const iter = stt_cache.find(filepath);
+		if ( iter != stt_cache.end() ) return &iter->second;
 	}
 
 	// ファイルから読み込む
-	string code;
-	std::vector<size_t> idxlist;
-	{
-		std::ifstream ifs { filepath };
-		if ( !ifs.is_open() ) { //search "common" folder
-			char path[MAX_PATH];
-			if ( SearchPath( g_config->commonPath().c_str(), _filepath, nullptr, sizeof(path), path, nullptr ) == 0 ) {
-				return nullptr;
-			}
-
-			ifs.open( path );
-			if ( !ifs.is_open() ) return nullptr;
+	std::ifstream ifs { filepath };
+	if ( !ifs.is_open() ) { //search "common" folder
+		char path[MAX_PATH];
+		if ( SearchPath(g_config->commonPath().c_str(), _filepath, nullptr, sizeof(path), path, nullptr) == 0 ) {
+			return nullptr;
 		}
-
-		char linebuf[0x400];
-		size_t idx = 0;
-		idxlist.push_back( 0 );
-		do {
-			ifs.getline( linebuf, sizeof(linebuf) );
-			int cntIndents = 0; {
-				for( int& i = cntIndents; linebuf[i] == '\t' || linebuf[i] == ' '; ++ i );
-			}
-			char const* const p = &linebuf[cntIndents];
-			size_t const len = std::strlen(p);
-			code.append( p, p + len ).append("\r\n");
-			idx += len + 2;
-			idxlist.push_back( idx );
-		} while ( ifs.good() );
+		ifs.open(path);
+		if ( !ifs.is_open() ) return nullptr;
 	}
-
 	auto const res =
-		stt_src_cache.emplace(std::move(filepath), make_pair(std::move(code), std::move(idxlist)));
+		stt_cache.emplace(filepath, ifs);
 	return &res.first->second;
 }
 
@@ -416,36 +364,30 @@ static void SrcSyncImpl( HWND hEdit, char const* p )
 	Edit_UpdateText(hEdit, p);
 }
 
-static void SrcSync( char const* filepath, int line_num, bool bUpdateEdit, bool bUpdateBox )
+static void SrcSync(char const* filepath, int line_num, bool bUpdateEdit, bool bUpdateBox)
 {
 	if ( !filepath || line_num < 0 ) return;
 
-	if ( auto const p = ReadFromSourceFile( filepath ) ) {
+	if ( auto const p = ReadFromSourceFile(filepath) ) {
 		assert(line_num >= 1);	// 行番号 line_num は 1-based
-		size_t const iLine = static_cast<size_t>(line_num) - 1;
+		size_t const iLine = static_cast<size_t>(line_num - 1);
+		auto&& ran = p->lineRange(iLine);
 
-		size_t idxlist[2];
-		if ( iLine + 1 < p->second.size() ) {
-			idxlist[0] = p->second[iLine]; idxlist[1] = p->second[iLine + 1];
-		} else {
-			idxlist[0] = idxlist[1] = 0;
-		}
 		if ( bUpdateEdit ) {
-			if ( stt_viewingFilepath.empty() || stt_viewingFilepath != filepath ) {
-				SrcSyncImpl(hSrcEdit, p->first.c_str());
+			if ( stt_viewingFilepath != filepath ) {
+				SrcSyncImpl(hSrcEdit, p->get().c_str());
 				stt_viewingFilepath = filepath;
 			}
-			Edit_SetSel( hSrcEdit, idxlist[0], idxlist[1] );	// 該当行を選択
-			Edit_Scroll( hSrcEdit, iLine, 0 );
+			Edit_SetSel(hSrcEdit, ran.first, ran.second); // 該当行を選択
+			Edit_Scroll(hSrcEdit, iLine, 0);
 		}
 		if ( bUpdateBox ) {
-			auto const text = p->first.substr( idxlist[0], idxlist[1] - idxlist[0] );
-			SrcSyncImpl( hSrcBox, text.c_str() );
+			SrcSyncImpl(hSrcBox, p->line(iLine).c_str());
 		}
 	} else {
 		auto const text = strf("(#%d \"%s\")", line_num, filepath);
-		if ( bUpdateEdit ) SrcSyncImpl( hSrcEdit, text.c_str() );
-		if ( bUpdateBox  ) SrcSyncImpl( hSrcBox,  text.c_str() );
+		if ( bUpdateEdit ) SrcSyncImpl(hSrcEdit, text.c_str());
+		if ( bUpdateBox ) SrcSyncImpl(hSrcBox, text.c_str());
 	}
 }
 
@@ -454,7 +396,7 @@ static void SrcSync( char const* filepath, int line_num, bool bUpdateEdit, bool 
 //------------------------------------------------
 static void TabSrcUpdate()
 {
-	SrcSync( g_dbginfo->debug->fname, g_dbginfo->debug->line, true, false );
+	SrcSync(g_dbginfo->debug->fname, g_dbginfo->debug->line, true, false);
 }
 
 //------------------------------------------------
@@ -468,18 +410,17 @@ LRESULT CALLBACK TabGeneralProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			hGenList = GetDlgItem( hDlg, IDC_LV_GENERAL );
 			hSrcBox  = GetDlgItem( hDlg, IDC_SRC_BOX );
 			TabGeneralInit();
-			TabGeneralReset();
+			TabGeneralUpdate();
 			return TRUE;
 
 		case WM_COMMAND:
 			switch ( LOWORD(wp) ) {
 				case IDC_BTN_UPDATE:
-					TabGeneralReset();
+					TabGeneralUpdate();
 					break;
 			}
 			return FALSE;
 	}
-
 	return FALSE;
 }
 
@@ -582,45 +523,25 @@ LRESULT CALLBACK TabLogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	switch ( msg ) {
 		case WM_INITDIALOG:
 			hLogPage = hDlg;
-			hLogEdit = GetDlgItem( hDlg, IDC_LOG );
 			hLogChkUpdate = GetDlgItem( hDlg, IDC_CHK_LOG_UPDATE );
 			hLogChkCalog  = GetDlgItem( hDlg, IDC_CHK_LOG_CALOG );
 
 			CheckDlgButton( hLogPage, IDC_CHK_LOG_UPDATE, BST_CHECKED );
-#ifdef with_WrapCall
-		//	CheckDlgButton( hLogPage, IDC_CHK_LOG_CALOG,  BST_CHECKED );
-#else
+#ifndef with_WrapCall
 			EnableWindow( hLogChkCalog, false );
 #endif
-
-			setEditStyle( hLogEdit );
-			SendMessage( hLogEdit, EM_SETLIMITTEXT, (WPARAM) g_config->logMaxlen, 0 );
-
-			stt_logmsg.reserve( 0x400 + 1 );
+			LogBox::init(GetDlgItem( hDlg, IDC_LOG ));
 			return TRUE;
 
 		case WM_COMMAND:
 			switch ( LOWORD(wp) ) {
-
 				case IDC_CHK_LOG_UPDATE:
 					// チェックが付けられたとき
-					if ( IsDlgButtonChecked(hLogPage, IDC_CHK_LOG_UPDATE) ) { TabLogCommit(); }
+					if ( updatesLogAutomatically() ) { LogBox::update(); }
 					break;
-
-				case IDC_BTN_LOG_UPDATE:
-					TabLogCommit();
-					break;
-
-				case IDC_BTN_LOG_SAVE:
-					logSave();
-					break;
-
-				case IDC_BTN_LOG_CLEAR:
-					if ( !g_config->warnsBeforeClearingLog
-						|| MessageBox(hDlgWnd, "ログをすべて消去しますか？", "knowbug", MB_OKCANCEL) == IDOK ) {
-						logClear();
-					}
-					break;
+				case IDC_BTN_LOG_UPDATE: LogBox::update(); break;
+				case IDC_BTN_LOG_SAVE:  LogBox::save(); break;
+				case IDC_BTN_LOG_CLEAR: LogBox::clear(); break;
 			}
 			return FALSE;
 	}
@@ -636,9 +557,7 @@ LRESULT CALLBACK TabSrcProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		case WM_INITDIALOG:
 			hSrcPage = hDlg;
 			hSrcEdit = GetDlgItem( hDlg, IDC_SRC );
-
-			setEditStyle( hSrcEdit );
-			SendMessage( hSrcEdit, EM_SETLIMITTEXT, (WPARAM) g_config->logMaxlen, 0 );	// ログの最大長を流用
+			setEditStyle(hSrcEdit, g_config->logMaxlen); // ログの最大長を流用
 			return TRUE;
 
 		case WM_COMMAND:
@@ -657,7 +576,6 @@ LRESULT CALLBACK TabSrcProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
 	switch ( msg ) {
-
 		case WM_CREATE: {
 			hPopup = CreatePopupMenu();
 				AppendMenu(hPopup, (g_config->bTopMost ? MFS_CHECKED : MFS_UNCHECKED), IDM_TOPMOST, "常に最前面に表示する(&T)");
@@ -708,16 +626,20 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				);
 			}
 
-			//select initial tab
+			//open initial tab
 			int const initialTab = g_config->initialTab;
 			TabCtrl_SetCurSel(hTabCtrl, (0 <= initialTab && initialTab < TABDLGMAX ? initialTab : 0));
+			ShowWindow(hTabSheet[TabCtrl_GetCurSel(hTabCtrl)], SW_SHOW);
 			return TRUE;
 		}
 		case WM_NOTIFY: {
-			auto const nm = reinterpret_cast<NMHDR*>(lp);		// タブコントロールのシート切り替え通知
-			int const cur = TabCtrl_GetCurSel(hTabCtrl);
-			for ( int i = 0; i < TABDLGMAX; ++ i ) {
-				ShowWindow( hTabSheet[i], (i == cur ? SW_SHOW : SW_HIDE) );
+			auto const nm = reinterpret_cast<NMHDR*>(lp);
+			if ( nm->code == TCN_SELCHANGE ) { // タブコントロールのシート切り替え通知
+				int const cur = TabCtrl_GetCurSel(hTabCtrl);
+				for ( int i = 0; i < TABDLGMAX; ++i ) {
+					ShowWindow(hTabSheet[i], (i == cur ? SW_SHOW : SW_HIDE));
+				}
+				update();
 			}
 			break;
 		}
@@ -827,7 +749,7 @@ HWND Dialog::createMain()
 void Dialog::destroyMain()
 {
 	if ( !g_config->logPath.empty() ) { //auto save
-		logSave(g_config->logPath.c_str());
+		LogBox::save(g_config->logPath.c_str());
 	}
 
 	if ( hDlgWnd != nullptr ) {
@@ -847,15 +769,10 @@ void update()
 
 	int const idxTab = TabCtrl_GetCurSel( hTabCtrl );
 	switch( idxTab ) {
-		case 0:
-			TabGeneralReset();
-			break;
-		case 1:
-			TabVarsUpdate();
-			break;
-		case 3:
-			TabSrcUpdate();
-			break;
+		case 0: TabGeneralUpdate(); break;
+		case 1: TabVarsUpdate(); break;
+		case 2: break;
+		case 3: TabSrcUpdate(); break;
 	}
 }
 
@@ -864,9 +781,10 @@ void update()
 // 
 // @ 設定に依存
 //------------------------------------------------
-void setEditStyle( HWND hEdit )
+void setEditStyle( HWND hEdit, int maxlen )
 {
-	Edit_SetTabLength( hEdit, g_config->tabwidth );
+	Edit_SetTabLength(hEdit, g_config->tabwidth);
+	SendMessage(hEdit, EM_SETLIMITTEXT, (WPARAM)maxlen, 0);
 }
 
 } // namespace Dialog

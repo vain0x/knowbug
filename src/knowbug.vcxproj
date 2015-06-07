@@ -211,9 +211,9 @@
     <ClInclude Include="ExVardataString.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="module\CIni.h" />
-    <ClInclude Include="module\CLogBuf.h" />
     <ClInclude Include="module\CStrBuf.h" />
     <ClInclude Include="module\CStrWriter.h" />
+    <ClInclude Include="module\LineDelimitedString.h" />
     <ClInclude Include="module\ptr_cast.h" />
     <ClInclude Include="module\Singleton.h" />
     <ClInclude Include="module\strf.h" />
