@@ -90,7 +90,7 @@
     <ClCompile Include="module\CStrBuf.cpp">
       <Filter>module</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\hpimod\hspsdk\hsp3plugin.cpp">
+    <ClCompile Include="..\hpimod\hspsdk\hsp3plugin.cpp">
       <Filter>module\hspsdk</Filter>
     </ClCompile>
   </ItemGroup>
@@ -170,34 +170,34 @@
     <ClInclude Include="module\CStrBuf.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\hpimod\hspsdk\hsp3debug.h">
+    <ClInclude Include="..\hpimod\hspsdk\hsp3struct.h">
       <Filter>module\hspsdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\hpimod\hspsdk\hsp3plugin.h">
+    <ClInclude Include="..\hpimod\hspsdk\hspvar_core.h">
       <Filter>module\hspsdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\hpimod\hspsdk\hsp3struct.h">
+    <ClInclude Include="..\hpimod\hspsdk\hspwnd.h">
       <Filter>module\hspsdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\hpimod\hspsdk\hspvar_core.h">
+    <ClInclude Include="..\hpimod\hspsdk\hsp3debug.h">
       <Filter>module\hspsdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\hpimod\hspsdk\hspwnd.h">
+    <ClInclude Include="..\hpimod\hspsdk\hsp3plugin.h">
       <Filter>module\hspsdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\hpimod\hspsdk\hsed3_footy2\interface.h">
+    <ClInclude Include="..\hpimod\hspsdk\hsed3_footy2\interface.h">
       <Filter>module\hspsdk\hsed3_footy2</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\hpimod\basis.h">
+    <ClInclude Include="..\hpimod\hpimod\basis.h">
       <Filter>module\hpimod</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\hpimod\hsp3plugin_custom.h">
+    <ClInclude Include="..\hpimod\hpimod\hsp3plugin_custom.h">
       <Filter>module\hpimod</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\hpimod\HspAllocator.h">
+    <ClInclude Include="..\hpimod\hpimod\HspAllocator.h">
       <Filter>module\hpimod</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\hpimod\vartype_traits.h">
+    <ClInclude Include="..\hpimod\hpimod\vartype_traits.h">
       <Filter>module\hpimod</Filter>
     </ClInclude>
     <ClInclude Include="..\..\crouton\src\var_assoc\for_knowbug.var_assoc.h">

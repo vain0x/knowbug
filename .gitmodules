@@ -1,0 +1,3 @@
+[submodule "hpimod"]
+	path = hpimod
+	url = ../hpimod

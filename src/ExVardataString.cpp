@@ -98,7 +98,7 @@ EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods()
 // 拙作 assoc 型の拡張表示のための関数群
 //------------------------------------------------
 #ifdef with_Assoc
-# include "crouton/src/var_assoc/for_knowbug.var_assoc.h"
+# include "../../crouton/src/var_assoc/for_knowbug.var_assoc.h"
 
 //void WINAPI knowbugVsw_addVarAssoc(vswriter_t _w, char const* name, PVal const* pval);
 
@@ -152,7 +152,7 @@ void WINAPI knowbugVsw_addValueAssoc(vswriter_t _w, char const* name, void const
 // 拙作 vector 型の拡張表示
 //------------------------------------------------
 #ifdef with_Vector
-# include "crouton/src/var_vector/for_knowbug.var_vector.h"
+# include "../../crouton/src/var_vector/for_knowbug.var_vector.h"
 
 void WINAPI knowbugVsw_addVarVector(vswriter_t _w, char const* name, PVal const* pval)
 {

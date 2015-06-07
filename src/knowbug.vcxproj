@@ -86,7 +86,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>../../;../../hpimod;../../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)hsp3debug.dll</OutputFile>
@@ -115,7 +115,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>../../;../../hpimod;../../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
@@ -144,7 +144,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>../../;../../hpimod;../../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)hsp3debug.dll</OutputFile>
@@ -167,7 +167,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\hpimod\hspsdk\hsp3plugin.cpp" />
+    <ClCompile Include="..\hpimod\hspsdk\hsp3plugin.cpp" />
     <ClCompile Include="config_mng.cpp" />
     <ClCompile Include="CVardataString.cpp" />
     <ClCompile Include="CVarinfoText.cpp">
@@ -191,16 +191,16 @@
   <ItemGroup>
     <ClInclude Include="..\..\crouton\src\var_assoc\for_knowbug.var_assoc.h" />
     <ClInclude Include="..\..\crouton\src\var_vector\for_knowbug.var_vector.h" />
-    <ClInclude Include="..\..\hpimod\basis.h" />
-    <ClInclude Include="..\..\hpimod\hsp3plugin_custom.h" />
-    <ClInclude Include="..\..\hpimod\HspAllocator.h" />
-    <ClInclude Include="..\..\hpimod\hspsdk\hsed3_footy2\interface.h" />
-    <ClInclude Include="..\..\hpimod\hspsdk\hsp3debug.h" />
-    <ClInclude Include="..\..\hpimod\hspsdk\hsp3plugin.h" />
-    <ClInclude Include="..\..\hpimod\hspsdk\hsp3struct.h" />
-    <ClInclude Include="..\..\hpimod\hspsdk\hspvar_core.h" />
-    <ClInclude Include="..\..\hpimod\hspsdk\hspwnd.h" />
-    <ClInclude Include="..\..\hpimod\vartype_traits.h" />
+    <ClInclude Include="..\hpimod\hpimod\basis.h" />
+    <ClInclude Include="..\hpimod\hpimod\hsp3plugin_custom.h" />
+    <ClInclude Include="..\hpimod\hpimod\HspAllocator.h" />
+    <ClInclude Include="..\hpimod\hpimod\vartype_traits.h" />
+    <ClInclude Include="..\hpimod\hspsdk\hsed3_footy2\interface.h" />
+    <ClInclude Include="..\hpimod\hspsdk\hsp3debug.h" />
+    <ClInclude Include="..\hpimod\hspsdk\hsp3plugin.h" />
+    <ClInclude Include="..\hpimod\hspsdk\hsp3struct.h" />
+    <ClInclude Include="..\hpimod\hspsdk\hspvar_core.h" />
+    <ClInclude Include="..\hpimod\hspsdk\hspwnd.h" />
     <ClInclude Include="CAx.h" />
     <ClInclude Include="config_mng.h" />
     <ClInclude Include="CVardataString.h" />
