@@ -76,7 +76,6 @@ public:
 	}
 };
 
-// 比較演算子
 template<typename T, typename U>
 bool operator==(HspAllocator<T> const&, HspAllocator<U> const&) { return true; }
 

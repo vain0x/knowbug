@@ -139,11 +139,12 @@ namespace VtTraits
 
 		struct vtStr { };
 	}
-	using namespace InternalVartypeTags;
 
 	// 型タイプ値
 	namespace Impl
 	{
+		using namespace InternalVartypeTags;
+
 		template<> static vartype_t vartype<vtLabel>()  { return HSPVAR_FLAG_LABEL; }
 		template<> static vartype_t vartype<vtStr>()    { return HSPVAR_FLAG_STR; }
 		template<> static vartype_t vartype<vtDouble>() { return HSPVAR_FLAG_DOUBLE; }
