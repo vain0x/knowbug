@@ -4,31 +4,34 @@
 #define IG_STRUCT_DEBUG_INFO_H
 
 #include <memory>
+#include <vector>
 #include "hsp3debug.h"
 #include "hsp3struct.h"
 #include "hspvar_core.h"
 #include "module/strf.h"
-#include "CAx.h"
 
-using hpimod::CAx;
+namespace hpimod { class CAx; }
 
 struct DebugInfo
 {
+	using string = std::string;
 public:
 	HSP3DEBUG* const debug;
-	std::unique_ptr<CAx> const ax;
+	std::unique_ptr<hpimod::CAx> const ax;
 
 public:
-	DebugInfo(HSP3DEBUG* debug)
-		: debug(debug)
-		, ax(new CAx())
-	{ }
+	DebugInfo(HSP3DEBUG* debug);
+	~DebugInfo();
 
 	// 現在実行の実行位置を表す文字列 (更新はしない)
-	std::string getCurInfString() const {
-		auto const fname = (debug->fname ? debug->fname : "(nameless)");
-		return strf("#%d \"%s\"", debug->line, fname);
-	}
+	string getCurInfString() const;
+	static string formatCurInfString(char const* fname, int line);
+
+	//全般情報
+	std::vector<std::pair<string, string>> fetchGeneralInfo() const;
+
+	//静的変数リスト
+	std::vector<string> fetchStaticVarNames() const;
 };
 
 #endif

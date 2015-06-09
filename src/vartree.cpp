@@ -1,7 +1,6 @@
 
 #include <Windows.h>
 #include <CommCtrl.h>
-#include "module/supio/supio.h"
 
 #include "main.h"
 #include "dialog.h"
@@ -24,6 +23,7 @@ static CStaticVarTree const& getSttVarTree();
 static vartype_t getVartypeOfNode(HTREEITEM hItem);
 static void AddNodeModule(HTREEITEM hParent, CVarTree const& tree);
 static void AddNodeSysvar();
+static void AddNodeGeneral();
 
 #ifdef with_WrapCall
 static HTREEITEM g_hNodeDynamic;
@@ -97,20 +97,17 @@ void init()
 	AddNodeDynamic();
 #endif
 	AddNodeSysvar();
+	AddNodeGeneral();
 
-	//すべてのトップレベルノードを開く
+	//@, +dynamic は開いておく
+#ifdef with_WrapCall
+	TreeView_Expand(hwndVarTree, g_hNodeDynamic, TVE_EXPAND);
+#endif
 	HTREEITEM const hRoot = TreeView_GetRoot(hwndVarTree);
-	for ( HTREEITEM hNode = hRoot
-		; hNode != nullptr
-		; hNode = TreeView_GetNextSibling(hwndVarTree, hNode)
-	) {
-		TreeView_Expand(hwndVarTree, hNode, TVE_EXPAND);
-	}
+	assert(TreeView_GetItemString(hwndVarTree, hRoot) == CStaticVarTree::ModuleName_Global);
+	TreeView_Expand(hwndVarTree, hRoot, TVE_EXPAND);
 
-	// トップを表示するように仕向ける
-	TreeView_EnsureVisible(hwndVarTree, hRoot);
-
-	//グローバルノードを選択
+	TreeView_EnsureVisible(hwndVarTree, hRoot); //トップまでスクロール
 	TreeView_SelectItem(hwndVarTree, hRoot);
 }
 
@@ -140,17 +137,9 @@ static CStaticVarTree const& getSttVarTree()
 	static std::unique_ptr<CStaticVarTree> stt_tree;
 	if ( !stt_tree ) {
 		stt_tree.reset(new CStaticVarTree(CStaticVarTree::ModuleName_Global));
-
-		std::unique_ptr<char, void(*)(char*)> p(
-			g_dbginfo->debug->get_varinf(nullptr, 0xFF),
-			g_dbginfo->debug->dbg_close
-		);
-		strsp_ini();
-		for ( ;; ) {
-			char name[0x100];
-			int const chk = strsp_get(p.get(), name, 0, sizeof(name) - 1);
-			if ( chk == 0 ) break;
-			stt_tree->pushVar(name);
+		auto const&& names = g_dbginfo->fetchStaticVarNames();
+		for ( auto const& name : names ) {
+			stt_tree->pushVar(name.c_str());
 		}
 	}
 	return *stt_tree;
@@ -212,6 +201,13 @@ void AddNodeDynamic()
 	g_hNodeDynamic = TreeView_MyInsertItem<SystemNode>(TVI_ROOT, "+dynamic", false, SystemNodeId::Dynamic);
 }
 #endif
+
+//------------------------------------------------
+// 変数ツリーに全般ノードを追加する
+//------------------------------------------------
+void AddNodeGeneral() {
+	TreeView_MyInsertItem<SystemNode>(TVI_ROOT, "+general", false, SystemNodeId::General);
+}
 
 //------------------------------------------------
 // 変数ツリーの NM_CUSTOMDRAW を処理する
@@ -312,6 +308,9 @@ string getItemVarText( HTREEITEM hItem )
 #endif
 			case SystemNodeId::Sysvar:
 				varinf.addSysvarsOverview();
+				break;
+			case SystemNodeId::General:
+				varinf.addGeneralOverview();
 				break;
 			default: assert_sentinel;
 		}

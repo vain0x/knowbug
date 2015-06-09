@@ -8,8 +8,8 @@
 #include "hpimod/HspAllocator.h"
 
 #include "main.h"
-
 #include "CVardataString.h"
+#include "CAx.h"
 #include "SysvarData.h"
 
 #include "with_ModPtr.h"

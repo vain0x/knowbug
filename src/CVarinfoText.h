@@ -37,6 +37,7 @@ public:
 #ifdef with_WrapCall
 	void addCallsOverview(WrapCall::ResultNodeData const* pLastResult);
 #endif
+	void addGeneralOverview();
 
 	string const& getString() const;
 	string&& getStringMove();

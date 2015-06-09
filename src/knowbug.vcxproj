@@ -174,6 +174,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="CVarTree.cpp" />
+    <ClCompile Include="DebugInfo.cpp" />
     <ClCompile Include="dialog.cpp" />
     <ClCompile Include="ExVardataString.cpp" />
     <ClCompile Include="main.cpp" />

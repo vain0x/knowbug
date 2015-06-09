@@ -119,51 +119,20 @@ static void TabGeneralInit()
 // 全般タブの更新
 //------------------------------------------------
 static void SrcSync( char const* filepath, int line_num, bool bUpdateEdit, bool bUpdateBox );
-static void TabGeneral_AddItem( char const* sItem, char const* sValue, int& iItem );
+static void TabGeneral_AddItem( char const* sItem, char const* sValue, int iItem );
 
 static void TabGeneralUpdate()
 {
 	ListView_DeleteAllItems( hGenList );
 
-	int tgmax = 0;
-	int chk;
-	char name[256];
-	char val[512];
-
-	// HSP側に問い合わせ
-	std::unique_ptr<char, void(*)(char*)> p(
-		g_dbginfo->debug->get_value( DEBUGINFO_GENERAL ),
-		g_dbginfo->debug->dbg_close
-	);
-	strsp_ini();
-	for (;;) {
-		chk = strsp_get( p.get(), name, 0, sizeof(name) - 1 );
-		if ( chk == 0 ) break;
-		chk = strsp_get( p.get(), val, 0, sizeof(val) - 1 );
-		if ( chk == 0 ) break;
-		TabGeneral_AddItem(name, val, tgmax);
-	}
-
-	// 拡張内容の追加
-	if ( exinfo->actscr ) {
-		auto const pBmscr = reinterpret_cast<BMSCR*>(exinfo->HspFunc_getbmscr(*exinfo->actscr));
-		if ( pBmscr ) {
-			// color
-			{
-				COLORREF const cref = pBmscr->color;
-				sprintf_s(val, "(%d, %d, %d)", GetRValue(cref), GetGValue(cref), GetBValue(cref));
-			}
-			TabGeneral_AddItem("color", val, tgmax);
-
-			// pos
-			sprintf_s(val, "(%d, %d)", pBmscr->cx, pBmscr->cy);
-			TabGeneral_AddItem("pos", val, tgmax);
-		}
+	int cntItems = 0;
+	for ( auto&& kv : g_dbginfo->fetchGeneralInfo() ) {
+		TabGeneral_AddItem(kv.first.c_str(), kv.second.c_str(), cntItems); ++cntItems;
 	}
 	SrcSync( g_dbginfo->debug->fname, g_dbginfo->debug->line, false, true );
 }
 
-static void TabGeneral_AddItem( char const* sItem, char const* sValue, int& iItem )
+static void TabGeneral_AddItem( char const* sItem, char const* sValue, int iItem )
 {
 	LV_ITEM item;
 	item.mask     = LVIF_TEXT;
@@ -176,8 +145,6 @@ static void TabGeneral_AddItem( char const* sItem, char const* sValue, int& iIte
 	item.iSubItem = 1;
 	item.pszText  = const_cast<char*>(sValue);
 	ListView_SetItem( hGenList, &item );
-
-	++iItem;
 }
 
 //------------------------------------------------
@@ -385,7 +352,7 @@ static void SrcSync(char const* filepath, int line_num, bool bUpdateEdit, bool b
 			SrcSyncImpl(hSrcBox, p->line(iLine).c_str());
 		}
 	} else {
-		auto const text = strf("(#%d \"%s\")", line_num, filepath);
+		auto const&& text = DebugInfo::formatCurInfString(filepath, line_num);
 		if ( bUpdateEdit ) SrcSyncImpl(hSrcEdit, text.c_str());
 		if ( bUpdateBox ) SrcSyncImpl(hSrcBox, text.c_str());
 	}

@@ -29,6 +29,7 @@ string    getItemVarText(HTREEITEM hItem);
 enum class SystemNodeId {
 	Dynamic = 0,
 	Sysvar = 1,
+	General = 2,
 };
 namespace Detail
 {

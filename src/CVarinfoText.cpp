@@ -192,10 +192,8 @@ void CVarinfoText::addCallsOverview(ResultNodeData const* pLastResult)
 
 	auto const range = WrapCall::getCallInfoRange();
 	std::for_each(range.first, range.second, [&](stkCallInfo_t::value_type const& pCallInfo) {
-		{
-			CVardataStrWriter::create<CLineformedWriter>(getBuf())
-				.addCall(pCallInfo->stdat, pCallInfo->getPrmstk());
-		}
+		CVardataStrWriter::create<CLineformedWriter>(getBuf())
+			.addCall(pCallInfo->stdat, pCallInfo->getPrmstk());
 		getWriter().catCrlf();
 	});
 
@@ -206,6 +204,18 @@ void CVarinfoText::addCallsOverview(ResultNodeData const* pLastResult)
 	}
 }
 #endif
+
+//------------------------------------------------
+// [add] 全般概観
+//------------------------------------------------
+void CVarinfoText::addGeneralOverview() {
+	getWriter().catln("[全般]");
+	for ( auto&& kv : g_dbginfo->fetchGeneralInfo() ) {
+		if ( Sysvar::seek(kv.first.c_str()) == Sysvar::MAX ) {
+			getWriter().catln(kv.first + "\t= " + kv.second);
+		}
+	}
+}
 
 //**********************************************************
 //        下請け関数
