@@ -38,6 +38,10 @@ KnowbugConfig::KnowbugConfig()
 	logMaxlen = ini.getInt( "Log",     "maxlen", 0x20000 );
 	logPath   = ini.getString("Log", "autoSavePath", "");
 	warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
+	updatesLogAutomatically = ini.getBool("Log", "updatesLogAutomatically", true);
+#ifdef with_WrapCall
+	logsInvocation = ini.getBool("Log", "logsInvocation", false);
+#endif
 
 	if ( bCustomDraw ) {
 		//color of internal types

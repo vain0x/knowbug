@@ -37,6 +37,9 @@
     <Filter Include="module\hpimod\myPluginTypeInterface">
       <UniqueIdentifier>{9576ee6a-db55-4763-bd10-935a31013f74}</UniqueIdentifier>
     </Filter>
+    <Filter Include="テキスト">
+      <UniqueIdentifier>{832353c6-8f2f-44a8-b714-e0445d320023}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CVarinfoText.cpp">
@@ -95,6 +98,9 @@
     </ClCompile>
     <ClCompile Include="DebugInfo.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="module\GuiUtility.cpp">
+      <Filter>module</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -209,10 +215,21 @@
     <ClInclude Include="module\LineDelimitedString.h">
       <Filter>module</Filter>
     </ClInclude>
+    <ClInclude Include="module\GuiUtility.h">
+      <Filter>module</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc">
       <Filter>リソース ファイル</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\knowbug\changes.md">
+      <Filter>テキスト</Filter>
+    </None>
+    <None Include="..\README.md">
+      <Filter>テキスト</Filter>
+    </None>
   </ItemGroup>
 </Project>

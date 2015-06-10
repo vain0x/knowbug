@@ -4,8 +4,7 @@
 //				onion software/onitama 2005
 //
 
-#include <Windows.h>
-
+#include <winapifamily.h>
 #include "main.h"
 #include "module/strf.h"
 #include "DebugInfo.h"
@@ -35,7 +34,13 @@ using WrapCall::ModcmdCallInfo;
 int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 {
 	switch ( fdwReason ) {
-		case DLL_PROCESS_ATTACH: g_hInstance = hInstance; break;
+		case DLL_PROCESS_ATTACH: {
+			g_hInstance = hInstance;
+#if _DEBUG
+			if ( GetKeyState(VK_SHIFT) ) { MessageBox(nullptr, "Attach Me!", "knowbug", MB_OK); }
+#endif
+			break;
+		}
 		case DLL_PROCESS_DETACH: debugbye( g_dbginfo->debug, 0, 0, 0 ); break;
 	}
 	return TRUE;
@@ -52,7 +57,7 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 	g_dbginfo.reset(new DebugInfo(p1));
 	g_config.initialize();
 
-	HWND const hDlg = Dialog::createMain();
+	Dialog::createMain();
 	return 0;
 }
 

@@ -181,6 +181,7 @@
     <ClCompile Include="module\CIni.cpp" />
     <ClCompile Include="module\CStrBuf.cpp" />
     <ClCompile Include="module\CStrWriter.cpp" />
+    <ClCompile Include="module\GuiUtility.cpp" />
     <ClCompile Include="module\strf.cpp" />
     <ClCompile Include="module\supio\supio.cpp" />
     <ClCompile Include="SysvarData.cpp" />
@@ -214,6 +215,7 @@
     <ClInclude Include="module\CIni.h" />
     <ClInclude Include="module\CStrBuf.h" />
     <ClInclude Include="module\CStrWriter.h" />
+    <ClInclude Include="module\GuiUtility.h" />
     <ClInclude Include="module\LineDelimitedString.h" />
     <ClInclude Include="module\ptr_cast.h" />
     <ClInclude Include="module\Singleton.h" />
@@ -230,6 +232,10 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\knowbug\changes.md" />
+    <None Include="..\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

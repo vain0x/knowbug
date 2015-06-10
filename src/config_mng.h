@@ -44,6 +44,10 @@ public:
 	string logPath;
 	int  logMaxlen;
 	bool warnsBeforeClearingLog;
+	bool updatesLogAutomatically;
+#ifdef with_WrapCall
+	bool logsInvocation;
+#endif
 
 	string commonPath() const { return hspDir + "common"; }
 	string selfPath() const { return hspDir + "knowbug.ini"; }

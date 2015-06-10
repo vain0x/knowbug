@@ -27,9 +27,13 @@ string    getItemVarText(HTREEITEM hItem);
 
 // ツリービューのノードに関するメタ定義
 enum class SystemNodeId {
-	Dynamic = 0,
-	Sysvar = 1,
-	General = 2,
+#ifdef with_WrapCall
+	Dynamic,
+#endif
+	Sysvar,
+	Log,
+	Script,
+	General,
 };
 namespace Detail
 {

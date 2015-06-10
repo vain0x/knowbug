@@ -1,43 +1,28 @@
-﻿//{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by knowbug.rc
-//
-#define IDC_TAB1                        1007
-#define IDC_LV_GENERAL                  1008
-#define IDC_EDIT1                       1009
-#define IDC_BTN_UPDATE                  1010
-#define IDC_SORT                        1011
-#define IDC_MODULE                      1012
-#define IDC_ARRAY                       1013
-#define IDC_DUMP                        1014
-#define IDC_VARINFO                     1016
-#define IDC_LOG                         1017
-#define IDC_MFCSHELLLIST1               1018
-#define IDC_VARTREE                     1019
-#define IDC_CHK_LOG_UPDATE              1024
-#define IDC_CHK_LOG_CALOG               1025
-#define IDC_BTN_LOG_UPDATE              1026
-#define IDC_BTN_LOG_SAVE                1027
-#define IDC_BTN_LOG_CLEAR               1028
-#define IDC_SRC                         1029
-#define IDC_BTN_SRC_UPDATE              1030
-#define IDC_SRC_BOX                     1031
-
-enum {
-	IDM_TOPMOST = 4001,
-	IDM_OPEN_INI,
-	IDM_VAR_LOGGING,
-	IDM_VAR_UPDATE,
-	IDM_VAR_STEPOUT,
-};
-
-// Next default values for new objects
-// 
-#ifdef APSTUDIO_INVOKED
-#ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        106
-#define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1028
-#define _APS_NEXT_SYMED_VALUE           101
+#ifndef IDC_STATIC
+#define IDC_STATIC (-1)
 #endif
-#endif
+
+#define IDR_MAIN_MENU                           103
+#define IDD_MAIN_PANE                           104
+#define IDR_NODE_MENU                           106
+#define IDD_VIEW_PANE                           107
+#define IDC_VARTREE                             40001
+#define IDC_SRC_LINE                            40002
+#define IDC_BTN1                                40003
+#define IDC_BTN2                                40004
+#define IDC_BTN3                                40005
+#define IDC_BTN4                                40006
+#define IDC_BTN5                                40007
+#define IDC_VIEW                                40008
+#define IDC_TOPMOST                             40009
+#define IDC_UPDATE                              40010
+#define IDC_OPEN_INI                            40011
+#define IDC_HELP_DEVREPOS                       40012
+#define IDC_HELP_VER                            40013
+#define IDC_NODE_UPDATE                         40014
+#define IDC_NODE_LOG                            40015
+#define IDC_NODE_STEP_OUT                       40016
+#define IDC_LOG_AUTO_UPDATE                     40017
+#define IDC_LOG_INVOCATION                      40018
+#define IDC_LOG_SAVE                            40019
+#define IDC_LOG_CLEAR                           40020

@@ -14,6 +14,8 @@
 #include "SysvarData.h"
 #include "DebugInfo.h"
 
+#include "module/GuiUtility.h"
+
 #define hwndVarTree (Dialog::getVarTreeHandle())
 
 namespace VarTree
@@ -22,8 +24,8 @@ namespace VarTree
 static CStaticVarTree const& getSttVarTree();
 static vartype_t getVartypeOfNode(HTREEITEM hItem);
 static void AddNodeModule(HTREEITEM hParent, CVarTree const& tree);
+static HTREEITEM AddNodeSystem(char const* name, SystemNodeId id);
 static void AddNodeSysvar();
-static void AddNodeGeneral();
 
 #ifdef with_WrapCall
 static HTREEITEM g_hNodeDynamic;
@@ -97,7 +99,9 @@ void init()
 	AddNodeDynamic();
 #endif
 	AddNodeSysvar();
-	AddNodeGeneral();
+	AddNodeSystem("+script", SystemNodeId::Script);
+	AddNodeSystem("+log", SystemNodeId::Log);
+	AddNodeSystem("+general", SystemNodeId::General);
 
 	//@, +dynamic は開いておく
 #ifdef with_WrapCall
@@ -179,11 +183,19 @@ void AddNodeModule(HTREEITEM hParent, CStaticVarTree const& tree)
 }
 
 //------------------------------------------------
+// 変数ツリーにシステムノードを追加する
+//------------------------------------------------
+HTREEITEM AddNodeSystem(char const* name, SystemNodeId id) {
+	assert(SystemNode::isTypeOf(name));
+	return TreeView_MyInsertItem<SystemNode>(TVI_ROOT, name, false, id);
+}
+
+//------------------------------------------------
 // 変数ツリーにシステム変数ノードを追加する
 //------------------------------------------------
 void AddNodeSysvar()
 {
-	HTREEITEM const hNodeSysvar = TreeView_MyInsertItem<SystemNode>( TVI_ROOT, "+sysvar", false, SystemNodeId::Sysvar );
+	HTREEITEM const hNodeSysvar = AddNodeSystem("+sysvar", SystemNodeId::Sysvar);
 
 	// システム変数のリストを追加する
 	for ( int i = 0; i < Sysvar::Count; ++ i ) {
@@ -198,16 +210,9 @@ void AddNodeSysvar()
 //------------------------------------------------
 void AddNodeDynamic()
 {
-	g_hNodeDynamic = TreeView_MyInsertItem<SystemNode>(TVI_ROOT, "+dynamic", false, SystemNodeId::Dynamic);
+	g_hNodeDynamic = AddNodeSystem("+dynamic", SystemNodeId::Dynamic);
 }
 #endif
-
-//------------------------------------------------
-// 変数ツリーに全般ノードを追加する
-//------------------------------------------------
-void AddNodeGeneral() {
-	TreeView_MyInsertItem<SystemNode>(TVI_ROOT, "+general", false, SystemNodeId::General);
-}
 
 //------------------------------------------------
 // 変数ツリーの NM_CUSTOMDRAW を処理する
@@ -309,6 +314,17 @@ string getItemVarText( HTREEITEM hItem )
 			case SystemNodeId::Sysvar:
 				varinf.addSysvarsOverview();
 				break;
+			case SystemNodeId::Log:
+				return Dialog::LogBox::get();
+
+			case SystemNodeId::Script:
+				if ( auto const p = Dialog::tryGetCurrentScript() ) {
+					return *p;
+				} else {
+					return g_dbginfo->getCurInfString();
+				}
+				break;
+
 			case SystemNodeId::General:
 				varinf.addGeneralOverview();
 				break;
