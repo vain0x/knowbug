@@ -20,7 +20,7 @@ std::unique_ptr<DebugInfo> g_dbginfo;
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 );
 EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 );
-EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 );
+static void debugbye();
 
 // WrapCall 関連
 #ifdef with_WrapCall
@@ -41,7 +41,7 @@ int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 #endif
 			break;
 		}
-		case DLL_PROCESS_DETACH: debugbye( g_dbginfo->debug, 0, 0, 0 ); break;
+		case DLL_PROCESS_DETACH: debugbye(); break;
 	}
 	return TRUE;
 }
@@ -75,7 +75,7 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 		{
 			if (Knowbug::continueConditionalRun()) break;
 
-			g_dbginfo->debug->dbg_curinf();
+			g_dbginfo->updateCurInf();
 #ifdef with_WrapCall
 			VarTree::UpdateCallNode();
 #endif
@@ -91,13 +91,12 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 }
 
 //------------------------------------------------
-// debugbye ptr  (type1)
+// debugbye
 //------------------------------------------------
-EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 )
+void debugbye()
 {
 	VarTree::term();
 	Dialog::destroyMain();
-	return 0;
 }
 
 namespace Knowbug
@@ -124,12 +123,12 @@ HINSTANCE getInstance()
 //------------------------------------------------
 void runStop()
 {
-	g_dbginfo->debug->dbg_set( HSPDEBUG_STOP );
+	g_dbginfo->setStepMode( HSPDEBUG_STOP );
 }
 
 void run()
 {
-	g_dbginfo->debug->dbg_set( HSPDEBUG_RUN );
+	g_dbginfo->setStepMode(HSPDEBUG_RUN);
 	bStepRunning = false;
 }
 
@@ -137,7 +136,7 @@ void runStepIn() {
 	// 本当のステップ実行でのみフラグが立つ
 	bStepRunning = true;
 
-	g_dbginfo->debug->dbg_set( HSPDEBUG_STEPIN );
+	g_dbginfo->setStepMode(HSPDEBUG_STEPIN);
 }
 
 void runStepOver() { return runStepReturn( ctx->sublev ); }
@@ -150,7 +149,7 @@ void runStepReturn(int sublev)
 
 	sublevOfGoal = sublev;
 	bStepRunning = false;
-	g_dbginfo->debug->dbg_set( HSPDEBUG_STEPIN );
+	g_dbginfo->setStepMode(HSPDEBUG_STEPIN);
 }
 
 //------------------------------------------------
@@ -162,7 +161,7 @@ bool continueConditionalRun()
 {
 	if (sublevOfGoal >= 0) {
 		if (ctx->sublev > sublevOfGoal) {
-			g_dbginfo->debug->dbg_set(HSPDEBUG_STEPIN);		// stepin を繰り返す
+			g_dbginfo->setStepMode(HSPDEBUG_STEPIN); // stepin を繰り返す
 			return true;
 		} else {
 			sublevOfGoal = -1;	// 終了
@@ -182,7 +181,7 @@ void logmes( char const* msg )
 
 void logmesWarning(char const* msg)
 {
-	g_dbginfo->debug->dbg_curinf();
+	g_dbginfo->updateCurInf();
 	logmes(strf("warning: %s\r\nCurInf:%s\r\n",
 		msg, g_dbginfo->getCurInfString().c_str()).c_str());
 }

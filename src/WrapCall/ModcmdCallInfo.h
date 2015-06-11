@@ -27,7 +27,7 @@ struct ModcmdCallInfo
 
 	// ŒÄ‚Ño‚³‚ê‚½ˆÊ’u
 	char const* const fname;
-	int const line;
+	int const line; //0-based
 
 	// g_stkCallInfo ‚É‚¨‚¯‚éˆÊ’u
 	size_t const idx;

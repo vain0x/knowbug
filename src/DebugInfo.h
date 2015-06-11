@@ -16,22 +16,25 @@ struct DebugInfo
 {
 	using string = std::string;
 public:
-	HSP3DEBUG* const debug;
 	std::unique_ptr<hpimod::CAx> const ax;
+private:
+	HSP3DEBUG* const debug;
 
 public:
 	DebugInfo(HSP3DEBUG* debug);
 	~DebugInfo();
 
+	char const* curFileName() const { return debug->fname; }
+	int curLine() const { return debug->line - 1; }
+	std::vector<std::pair<string, string>> fetchGeneralInfo() const;
+	std::vector<string> fetchStaticVarNames() const;
+
+	void updateCurInf() { (debug->dbg_curinf()); }
+	bool setStepMode(int mode) { return (debug->dbg_set(mode) >= 0); }
+
 	// 現在実行の実行位置を表す文字列 (更新はしない)
 	string getCurInfString() const;
 	static string formatCurInfString(char const* fname, int line);
-
-	//全般情報
-	std::vector<std::pair<string, string>> fetchGeneralInfo() const;
-
-	//静的変数リスト
-	std::vector<string> fetchStaticVarNames() const;
 };
 
 #endif

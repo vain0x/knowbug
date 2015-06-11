@@ -16,12 +16,12 @@ DebugInfo::~DebugInfo() {}
 
 string DebugInfo::getCurInfString() const
 {
-	return formatCurInfString(debug->fname, debug->line);
+	return formatCurInfString(debug->fname, debug->line - 1);
 }
 
 string DebugInfo::formatCurInfString(char const* fname, int line)
 {
-	return strf("#%d \"%s\"", line, (fname ? fname : "(nameless)"));
+	return strf("#%d \"%s\"", (line + 1), (fname ? fname : "(nameless)"));
 }
 
 std::vector<std::pair<string, string>> DebugInfo::fetchGeneralInfo() const

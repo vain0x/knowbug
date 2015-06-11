@@ -99,7 +99,7 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 	getWriter().catln(
 		(callinfo.fname == nullptr)
 			? strf("関数名：%s", name)
-			: strf("関数名：%s (#%d of %s)", name, callinfo.line, callinfo.fname)
+			: strf("関数名：%s (#%d of %s)", name, callinfo.line + 1, callinfo.fname)
 	);
 
 	// シグネチャ

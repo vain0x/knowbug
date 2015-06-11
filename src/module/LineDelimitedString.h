@@ -6,31 +6,36 @@
 #include <fstream>
 #include <cstring>
 
+static size_t countIndents(char const* s)
+{
+	size_t i = 0;
+	for ( ; s[i] == '\t' || s[i] == ' '; ++i );
+	return i;
+}
+
 //s‚²‚Æ‚É‹æØ‚ç‚ê‚½•ÏX•s‰Â‚È•¶š—ñ
 //‚½‚¾‚µŠes‚Ìš‰º‚°‚ÍÁ‹‚·‚é
 class LineDelimitedString {
 	using string = std::string;
 
 	string base_;
-	std::vector<size_t> index_; //[i]: is–Ú‚Ìæ“ª‚Ö‚Ì“Yš; back(): ––”ö‚Ö‚Ì“Yš
+	std::vector<size_t> index_; //[i]: is–Ú‚Ìæ“ª‚Ìš‰º‚°Œã‚Ö‚Ì“Yš; back(): ––”ö‚Ö‚Ì“Yš
 
 public:
 	LineDelimitedString(std::istream& is)
 	{
-		char linebuf[0x400];
+		char linebuf[0x1000];
 		size_t idx = 0;
-		index_.push_back(0);
 		do {
 			is.getline(linebuf, sizeof(linebuf));
-			int cntIndents = 0; {
-				for ( int& i = cntIndents; linebuf[i] == '\t' || linebuf[i] == ' '; ++i );
-			}
-			char const* const p = &linebuf[cntIndents];
-			size_t const len = std::strlen(p);
-			base_.append(p, p + len).append("\r\n");
+			index_.push_back(idx + countIndents(linebuf));
+
+			size_t const len = std::strlen(linebuf);
+			base_.append(linebuf, linebuf + len).append("\r\n");
 			idx += len + 2;
-			index_.push_back(idx);
 		} while ( is.good() );
+		index_.push_back(idx);
+		assert(idx == base_.size());
 	}
 
 	string const& get() const {

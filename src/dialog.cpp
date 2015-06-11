@@ -15,6 +15,7 @@
 #include "hspwnd.h"
 #include "module/supio/supio.h"
 #include "module/GuiUtility.h"
+#include "module/LineDelimitedString.h"
 #include "WrapCall/WrapCall.h"
 
 #include "dialog.h"
@@ -48,10 +49,11 @@ HWND getKnowbugHandle() { return hDlgWnd; }
 HWND getSttCtrlHandle() { return hSttCtrl; }
 HWND getVarTreeHandle() { return hVarTree; }
 
+static LineDelimitedString const* ReadFromSourceFile(char const* _filepath);
 static void setEditStyle(HWND hEdit, int maxlen);
 
 //------------------------------------------------
-// ビュー更新
+// ビューキャレット位置を変更
 //------------------------------------------------
 void SaveViewCaret()
 {
@@ -64,18 +66,28 @@ void SaveViewCaret()
 	}
 }
 
+//------------------------------------------------
+// ビュー更新
+//------------------------------------------------
 void UpdateView()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
 	if ( hItem ) {
-		int vcaret = 0; {
-			auto it = vartree_vcaret.find(hItem);
-			if ( it != vartree_vcaret.end() ) vcaret = it->second;
-		}
-
 		string const varinfoText = VarTree::getItemVarText(hItem);
 		SetWindowText(hViewEdit, varinfoText.c_str());
-		Edit_Scroll(hViewEdit, vcaret, 0);
+
+		//+script ノードなら現在の実行位置を選択
+		if ( VarTree::SystemNode::isTypeOf(TreeView_GetItemString(hVarTree, hItem).c_str())
+			&& VarTree::TreeView_MyLParam<VarTree::SystemNode>(hVarTree, hItem) == VarTree::SystemNodeId::Script ) {
+			auto const p = ReadFromSourceFile(g_dbginfo->curFileName());
+			int const iLine = g_dbginfo->curLine();
+			Edit_Scroll(hViewEdit, std::max(0, iLine - 3), 0);
+			Edit_SetSel(hViewEdit, Edit_LineIndex(hViewEdit, iLine), Edit_LineIndex(hViewEdit, iLine + 1));
+
+		} else {
+			auto&& it = vartree_vcaret.find(hItem);
+			Edit_Scroll(hViewEdit, (it != vartree_vcaret.end() ? it->second : 0), 0);
+		}
 	}
 }
 
@@ -163,19 +175,13 @@ namespace LogBox {
 //
 // @ エディタ上で編集中の場合、ファイルの内容が実際と異なることがある。行番号のアウトレンジに注意。
 //------------------------------------------------
-#include "module/LineDelimitedString.h"
-using script_t = LineDelimitedString;
-
-// 現在ソースタブで表示されているファイルのパス
-static string stt_viewingFilepath;
-
 // 読み込み処理 (failure: nullptr)
-static script_t const* ReadFromSourceFile(char const* _filepath)
+LineDelimitedString const* ReadFromSourceFile(char const* _filepath)
 {
 	string const filepath = _filepath;
 
 	// キャッシュから検索
-	static std::map<string const, script_t> stt_cache;
+	static std::map<string const, LineDelimitedString> stt_cache;
 	{
 		auto const iter = stt_cache.find(filepath);
 		if ( iter != stt_cache.end() ) return &iter->second;
@@ -197,48 +203,24 @@ static script_t const* ReadFromSourceFile(char const* _filepath)
 }
 
 // ソースタブを同期する
-static void SrcSync(char const* filepath, int line_num, bool bUpdateEdit, bool bUpdateBox)
+static void UpdateCurInfEdit(char const* filepath, int iLine)
 {
-	if ( !filepath || line_num < 0 ) return;
-	auto const&& curinf = DebugInfo::formatCurInfString(filepath, line_num);
+	if ( !filepath || iLine < 0 ) return;
+	auto const&& curinf = DebugInfo::formatCurInfString(filepath, iLine);
 
 	if ( auto const p = ReadFromSourceFile(filepath) ) {
-		assert(line_num >= 1);	// 行番号 line_num は 1-based
-		size_t const iLine = static_cast<size_t>(line_num - 1);
-		auto&& ran = p->lineRange(iLine);
+		SetWindowText(hSrcLine, (curinf + "\r\n" + p->line(iLine)).c_str());
 
-#if 0
-		if ( bUpdateEdit ) {
-			if ( stt_viewingFilepath != filepath ) {
-				SrcSyncImpl(hSrcEdit, p->get().c_str());
-				stt_viewingFilepath = filepath;
-			}
-			Edit_SetSel(hSrcEdit, ran.first, ran.second); // 該当行を選択
-			Edit_Scroll(hSrcEdit, iLine, 0);
-		}
-#endif
-		if ( bUpdateBox ) {
-			SetWindowText(hSrcLine, (curinf + "\r\n" + p->line(iLine)).c_str());
-		}
 	} else {
-		//if ( bUpdateEdit ) Edit_UpdateText(hSrcEdit, text.c_str());
-		if ( bUpdateBox ) SetWindowText(hSrcLine, curinf.c_str());
+		SetWindowText(hSrcLine, curinf.c_str());
 	}
 }
 
 string const* tryGetCurrentScript() {
-	if ( auto const p = ReadFromSourceFile(g_dbginfo->debug->fname) ) {
+	if ( auto const p = ReadFromSourceFile(g_dbginfo->curFileName()) ) {
 		return &p->get();
 	}
 	return nullptr;
-}
-
-//------------------------------------------------
-// ソースタブの更新
-//------------------------------------------------
-static void TabSrcUpdate()
-{
-	SrcSync(g_dbginfo->debug->fname, g_dbginfo->debug->line, true, false);
 }
 
 //------------------------------------------------
@@ -246,7 +228,7 @@ static void TabSrcUpdate()
 //------------------------------------------------
 static void CurrentUpdate()
 {
-	SrcSync(g_dbginfo->debug->fname, g_dbginfo->debug->line, false, true);
+	UpdateCurInfEdit(g_dbginfo->curFileName(), g_dbginfo->curLine());
 }
 
 //------------------------------------------------

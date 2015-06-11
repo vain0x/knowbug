@@ -32,13 +32,13 @@ EXPORT void WINAPI hsp3hpi_init_wrapcall(HSP3TYPEINFO* info)
 //------------------------------------------------
 void bgnCall(stdat_t stdat)
 {
-	g_dbginfo->debug->dbg_curinf();
+	g_dbginfo->updateCurInf();
 
 	// ŒÄ‚Ño‚µƒŠƒXƒg‚É’Ç‰Á
 	size_t const idx = g_stkCallInfo.size();
 	g_stkCallInfo.push_back(std::make_unique<ModcmdCallInfo>(
 		stdat, ctx->prmstack, ctx->sublev, ctx->looplev,
-		g_dbginfo->debug->fname, g_dbginfo->debug->line, idx
+		g_dbginfo->curFileName(), g_dbginfo->curLine(), idx
 	));
 
 	auto& callinfo = *g_stkCallInfo.back();
