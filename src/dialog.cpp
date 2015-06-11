@@ -44,6 +44,7 @@ static HWND hViewEdit;
 static HMENU hDlgMenu, hNodeMenu, hLogNodeMenu, hInvokeNodeMenu;
 
 static std::map<HTREEITEM, int> vartree_vcaret;
+static std::map<HTREEITEM, shared_ptr<string const>> vartree_textCache; //一回の停止中にのみ有効
 
 HWND getKnowbugHandle() { return hDlgWnd; }
 HWND getSttCtrlHandle() { return hSttCtrl; }
@@ -51,6 +52,20 @@ HWND getVarTreeHandle() { return hVarTree; }
 
 static LineDelimitedString const* ReadFromSourceFile(char const* _filepath);
 static void setEditStyle(HWND hEdit, int maxlen);
+
+//------------------------------------------------
+// ノード文字列の取得 (memoized)
+//------------------------------------------------
+static string const& getVarNodeString(HTREEITEM hItem)
+{
+	auto it = vartree_textCache.find(hItem);
+	if ( it == vartree_textCache.end() ) {
+		auto const p = VarTree::getItemVarText(hItem);
+		it = vartree_textCache.emplace(hItem, p).first;
+	}
+	assert(it->second);
+	return *it->second;
+}
 
 //------------------------------------------------
 // ビューキャレット位置を変更
@@ -73,7 +88,7 @@ void UpdateView()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
 	if ( hItem ) {
-		string const varinfoText = VarTree::getItemVarText(hItem);
+		string const& varinfoText = getVarNodeString(hItem);
 		SetWindowText(hViewEdit, varinfoText.c_str());
 
 		//+script ノードなら現在の実行位置を選択
@@ -257,8 +272,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 		case 0: break;
 		case IDC_NODE_UPDATE: UpdateView(); break;
 		case IDC_NODE_LOG: {
-			string const&& varinfoText = VarTree::getItemVarText(hItem);
-			Knowbug::logmes(varinfoText.c_str());
+			Knowbug::logmes(getVarNodeString(hItem).c_str());
 			break;
 		}
 		case IDC_NODE_STEP_OUT: {
@@ -501,6 +515,8 @@ void Dialog::destroyMain()
 //------------------------------------------------
 void update()
 {
+	vartree_textCache.clear();
+
 	CurrentUpdate();
 	UpdateView();
 }

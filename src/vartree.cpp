@@ -293,7 +293,7 @@ vartype_t getVartypeOfNode( HTREEITEM hItem )
 //------------------------------------------------
 // 変数情報のテキストを取得する
 //------------------------------------------------
-string getItemVarText( HTREEITEM hItem )
+std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 {
 	string const&& itemText = TreeView_GetItemString( hwndVarTree, hItem );
 	char const* const name = itemText.c_str();
@@ -315,16 +315,14 @@ string getItemVarText( HTREEITEM hItem )
 				varinf.addSysvarsOverview();
 				break;
 			case SystemNodeId::Log:
-				return Dialog::LogBox::get();
+				return shared_ptr_from_rawptr(&Dialog::LogBox::get());
 
 			case SystemNodeId::Script:
 				if ( auto const p = Dialog::tryGetCurrentScript() ) {
-					return *p;
+					return shared_ptr_from_rawptr(p);
 				} else {
-					return g_dbginfo->getCurInfString();
+					return std::make_shared<string>(g_dbginfo->getCurInfString());
 				}
-				break;
-
 			case SystemNodeId::General:
 				varinf.addGeneralOverview();
 				break;
@@ -354,7 +352,7 @@ string getItemVarText( HTREEITEM hItem )
 			varinf.addVar( pval, name );
 		}
 	}
-	return varinf.getStringMove();
+	return std::make_shared<string>(varinf.getStringMove());
 }
 
 #ifdef with_WrapCall

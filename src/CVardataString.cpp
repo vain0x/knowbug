@@ -424,6 +424,7 @@ void CVardataStrWriter::addResult(char const* name, PDAT const* ptr, vartype_t t
 string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 {
 	assert(type != HSPVAR_FLAG_STRUCT);
+	assert(ptr);
 
 	switch ( type ) {
 		case HSPVAR_FLAG_STR:

@@ -16,7 +16,7 @@ void destroyMain();
 
 void update();
 bool logsCalling();
-string const* tryGetCurrentScript();
+optional_ref<string const> tryGetCurrentScript();
 
 namespace LogBox
 {

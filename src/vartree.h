@@ -23,7 +23,7 @@ void term();
 
 LRESULT   customDraw(LPNMTVCUSTOMDRAW pnmcd);
 vartype_t getVartype(HTREEITEM hItem );
-string    getItemVarText(HTREEITEM hItem);
+std::shared_ptr<string const> getItemVarText(HTREEITEM hItem);
 
 // ツリービューのノードに関するメタ定義
 enum class SystemNodeId {

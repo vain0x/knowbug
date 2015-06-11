@@ -37,7 +37,7 @@ int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 		case DLL_PROCESS_ATTACH: {
 			g_hInstance = hInstance;
 #if _DEBUG
-			if ( GetKeyState(VK_SHIFT) ) { MessageBox(nullptr, "Attach Me!", "knowbug", MB_OK); }
+			if ( GetKeyState(VK_SHIFT) & 0x8000 ) { MessageBox(nullptr, "Attach Me!", "knowbug", MB_OK); }
 #endif
 			break;
 		}

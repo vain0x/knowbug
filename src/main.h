@@ -1,6 +1,8 @@
-﻿// knowbug - main header
-
-// todo: ヘッダの目的が分からないのでなんとかしたい
+﻿//ごった煮:
+//windows APIまわりの宣言
+//hspsdkまわりの宣言
+//knowbugの宣言
+//汎用ユーティリティーの定義
 
 #ifndef IG_HSP3DBGWIN_KNOWBUG_H
 #define IG_HSP3DBGWIN_KNOWBUG_H
@@ -19,6 +21,7 @@
 #include "hpimod/basis.h"
 
 using std::string;
+using std::shared_ptr;
 using hpimod::vartype_t;
 using hpimod::varmode_t;
 using hpimod::label_t;
@@ -68,5 +71,12 @@ namespace Knowbug
 #endif
 
 } // namespace Knowbug
+
+//others
+
+template<typename T> using optional_ref = T*; //option<T&>
+
+template<typename T>
+static shared_ptr<T> shared_ptr_from_rawptr(T* p) { return shared_ptr<T>(p, [](void const*) {}); }
 
 #endif
