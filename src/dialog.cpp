@@ -42,6 +42,8 @@ static HWND hViewEdit;
 
 static HMENU hDlgMenu, hNodeMenu, hLogNodeMenu, hInvokeNodeMenu;
 
+static std::map<HTREEITEM, int> vartree_vcaret;
+
 HWND getKnowbugHandle() { return hDlgWnd; }
 HWND getSttCtrlHandle() { return hSttCtrl; }
 HWND getVarTreeHandle() { return hVarTree; }
@@ -51,12 +53,29 @@ static void setEditStyle(HWND hEdit, int maxlen);
 //------------------------------------------------
 // ビュー更新
 //------------------------------------------------
+void SaveViewCaret()
+{
+	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
+	if ( hItem != nullptr ) {
+		int const vcaret = Edit_GetFirstVisibleLine(hViewEdit);
+		if ( vcaret != 0 ) {
+			vartree_vcaret[hItem] = vcaret;
+		}
+	}
+}
+
 void UpdateView()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
 	if ( hItem ) {
+		int vcaret = 0; {
+			auto it = vartree_vcaret.find(hItem);
+			if ( it != vartree_vcaret.end() ) vcaret = it->second;
+		}
+
 		string const varinfoText = VarTree::getItemVarText(hItem);
-		Edit_UpdateText(hViewEdit, varinfoText.c_str());
+		SetWindowText(hViewEdit, varinfoText.c_str());
+		Edit_Scroll(hViewEdit, vcaret, 0);
 	}
 }
 
@@ -199,11 +218,11 @@ static void SrcSync(char const* filepath, int line_num, bool bUpdateEdit, bool b
 		}
 #endif
 		if ( bUpdateBox ) {
-			Edit_UpdateText(hSrcLine, (curinf + "\r\n" + p->line(iLine)).c_str());
+			SetWindowText(hSrcLine, (curinf + "\r\n" + p->line(iLine)).c_str());
 		}
 	} else {
 		//if ( bUpdateEdit ) Edit_UpdateText(hSrcEdit, text.c_str());
-		if ( bUpdateBox ) Edit_UpdateText(hSrcLine, curinf.c_str());
+		if ( bUpdateBox ) SetWindowText(hSrcLine, curinf.c_str());
 	}
 }
 
@@ -314,14 +333,13 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			break;
 
 		case WM_CONTEXTMENU: {
-			// ツリー上で逆クリック
 			if ( (HWND)wp == hVarTree ) {
 				TV_HITTESTINFO tvHitTestInfo;
 				tvHitTestInfo.pt = { LOWORD(lp), HIWORD(lp) };
 				ScreenToClient(hVarTree, &tvHitTestInfo.pt);
 				auto const hItem = TreeView_HitTest(hVarTree, &tvHitTestInfo);
 				if ( hItem && tvHitTestInfo.flags & TVHT_ONITEMLABEL ) { //文字列アイテムにヒット
-					VarTree_PopupMenu(hItem, (int)LOWORD(lp), (int)HIWORD(lp));
+					VarTree_PopupMenu(hItem, LOWORD(lp), HIWORD(lp));
 					return TRUE;
 				}
 			}
@@ -331,12 +349,15 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			auto const nmhdr = reinterpret_cast<LPNMHDR>(lp);
 			if ( nmhdr->hwndFrom == hVarTree ) {
 				switch ( nmhdr->code ) {
-					case TVN_SELCHANGED:
 					case NM_DBLCLK:
 					case NM_RETURN:
-						UpdateView();
+					case TVN_SELCHANGED: UpdateView(); break;
+					case TVN_SELCHANGING: SaveViewCaret(); break;
+					case TVN_DELETEITEM: {
+						NMTREEVIEW* const nmtv = reinterpret_cast<NMTREEVIEW*>(lp);
+						vartree_vcaret.erase(nmtv->itemOld.hItem);
 						break;
-
+					}
 					case NM_CUSTOMDRAW: {
 						if ( !g_config->bCustomDraw ) break;
 						LRESULT const res = VarTree::customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
@@ -449,7 +470,7 @@ void Dialog::createMain()
 		SetMenu(hDlgWnd, hDlgMenu);
 
 		//ポップメニュー
-		HMENU hNodeMenuBar = LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_NODE_MENU);
+		HMENU const hNodeMenuBar = LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_NODE_MENU);
 		hNodeMenu       = GetSubMenu(hNodeMenuBar, 0);
 		hInvokeNodeMenu = GetSubMenu(hNodeMenuBar, 1);
 		hLogNodeMenu	= GetSubMenu(hNodeMenuBar, 2);
