@@ -56,9 +56,7 @@ void UpdateView()
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
 	if ( hItem ) {
 		string const varinfoText = VarTree::getItemVarText(hItem);
-		if ( !varinfoText.empty() ) {
-			Edit_UpdateText(hViewEdit, varinfoText.c_str());
-		}
+		Edit_UpdateText(hViewEdit, varinfoText.c_str());
 	}
 }
 
@@ -233,6 +231,52 @@ static void CurrentUpdate()
 }
 
 //------------------------------------------------
+// ツリーノードのコンテキストメニュー
+//------------------------------------------------
+void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
+{
+	auto const nodeString = TreeView_GetItemString(hVarTree, hItem);
+	HMENU hPop;
+	if ( VarTree::InvokeNode::isTypeOf(nodeString.c_str()) ) {
+		hPop = hInvokeNodeMenu;
+	} else if ( VarTree::SystemNode::isTypeOf(nodeString.c_str())
+		&& VarTree::TreeView_MyLParam<VarTree::SystemNode>(hVarTree, hItem) == VarTree::SystemNodeId::Log ) {
+		hPop = hLogNodeMenu;
+	} else {
+		hPop = hNodeMenu;
+	}
+
+	// ポップアップメニューを表示する
+	int const idSelected = TrackPopupMenuEx(
+		hPop, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD),
+		x, y, hDlgWnd, nullptr
+	);
+
+	switch ( idSelected ) {
+		case 0: break;
+		case IDC_NODE_UPDATE: UpdateView(); break;
+		case IDC_NODE_LOG: {
+			string const&& varinfoText = VarTree::getItemVarText(hItem);
+			Knowbug::logmes(varinfoText.c_str());
+			break;
+		}
+		case IDC_NODE_STEP_OUT: {
+			auto const idx = VarTree::TreeView_MyLParam<VarTree::InvokeNode>(hVarTree, hItem);
+			if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
+				// 対象が呼び出された階層まで進む
+				Knowbug::runStepReturn(pCallInfo->sublev);
+			}
+			break;
+		}
+		case IDC_LOG_AUTO_UPDATE: break; //自動更新のチェックを反転
+		case IDC_LOG_INVOCATION: break; //呼び出しをログするかのチェックを反転
+		case IDC_LOG_SAVE: LogBox::save(); break;
+		case IDC_LOG_CLEAR: LogBox::clear(); break;
+		default: assert_sentinel;
+	}
+}
+
+//------------------------------------------------
 // 親ダイアログのコールバック関数
 //------------------------------------------------
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
@@ -276,48 +320,8 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				tvHitTestInfo.pt = { LOWORD(lp), HIWORD(lp) };
 				ScreenToClient(hVarTree, &tvHitTestInfo.pt);
 				auto const hItem = TreeView_HitTest(hVarTree, &tvHitTestInfo);
-				if ( !hItem ) break;
-
-				break; //unsupported
-
-				if ( tvHitTestInfo.flags & TVHT_ONITEMLABEL ) {		// 文字列アイテムの場合
-					auto const nodeString = TreeView_GetItemString(hVarTree, hItem);
-					HMENU hPop;
-					if ( VarTree::InvokeNode::isTypeOf(nodeString.c_str()) ) {
-						hPop = hInvokeNodeMenu;
-					} else if ( VarTree::TreeView_MyLParam<VarTree::SystemNode>(hVarTree, hItem) == VarTree::SystemNodeId::Log ) {
-						hPop = hLogNodeMenu;
-					} else {
-						hPop = hNodeMenu;
-					}
-					// ポップアップメニューを表示する
-					int const idSelected = TrackPopupMenuEx(
-						hPop, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD),
-						(int)LOWORD(lp), (int)HIWORD(lp), hDlgWnd, nullptr
-						);
-
-					switch ( idSelected ) {
-						case IDC_NODE_UPDATE: UpdateView(); break;
-						case IDC_NODE_LOG: {
-							string const&& varinfoText = VarTree::getItemVarText(hItem);
-							Knowbug::logmes(varinfoText.c_str());
-							return TRUE;
-						}
-						case IDC_NODE_STEP_OUT: {
-							assert(VarTree::InvokeNode::isTypeOf(nodeString.c_str()));
-							auto const idx = VarTree::TreeView_MyLParam<VarTree::InvokeNode>(hVarTree, hItem);
-							if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
-								// 対象が呼び出された階層まで進む
-								Knowbug::runStepReturn(pCallInfo->sublev);
-							}
-							break;
-						}
-						case IDC_LOG_AUTO_UPDATE: break; //自動更新のチェックを反転
-						case IDC_LOG_INVOCATION: break; //呼び出しをログするかのチェックを反転
-						case IDC_LOG_SAVE: LogBox::save(); break;
-						case IDC_LOG_CLEAR: LogBox::clear(); break;
-						default: break;
-					}
+				if ( hItem && tvHitTestInfo.flags & TVHT_ONITEMLABEL ) { //文字列アイテムにヒット
+					VarTree_PopupMenu(hItem, (int)LOWORD(lp), (int)HIWORD(lp));
 					return TRUE;
 				}
 			}
@@ -443,6 +447,12 @@ void Dialog::createMain()
 		//メニューバー
 		hDlgMenu = LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_MAIN_MENU);
 		SetMenu(hDlgWnd, hDlgMenu);
+
+		//ポップメニュー
+		HMENU hNodeMenuBar = LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_NODE_MENU);
+		hNodeMenu       = GetSubMenu(hNodeMenuBar, 0);
+		hInvokeNodeMenu = GetSubMenu(hNodeMenuBar, 1);
+		hLogNodeMenu	= GetSubMenu(hNodeMenuBar, 2);
 
 		//いろいろ
 		hVarTree = GetDlgItem(hPane, IDC_VARTREE);

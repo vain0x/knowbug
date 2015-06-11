@@ -17,15 +17,15 @@
 * str 配列の要素ごとメモリダンプ
   * ネストなしブロックを挿入するメソッドの追加。改行込みの文字列も改行してから表示したい。
 * #modinit, #modterm の発生、終了をスクリプト側から指定する方法を提供する。
-* SysvarInfo をOOっぽくしたい
 * 与えられた項目を一覧表示する概観ノードの追加
-* SysvarとしてGinfo,dirlinfo,mouse(x,y,z)の追加
+* SysvarとしてGinfo,dirinfo,mouse(x,y,w)の追加
 * スクリプト側から api を通して、変数ツリービューにノードを追加できるようにしたい。
   * 事前に ``knowbug_addNode "ginfo_winx", *knowbug_node_ginfo_winx`` としておく。
   * 値が要求されるたびに、スクリプト内のラベル ``*knowbug_node_ginfo_winx`` を呼ぶ。
     * ``*knowbug_node_ginfo_winx: knowbug_vswAddValue ginfo_winx: return``
     * knowbug側から起動されるラベルの間にステップ実行で停止するのは、直感的な挙動ではないので避ける。
-* hsphedの情報をvartreeに配置
+* hsphedの情報をvartreeに配置。
+* ログやスクリプトの情報をコピーすることなくエディットボックスに送りたい。
 * 各変数タブに対応するスクロール量を記憶。
   * ログタブが非常に見づらいので。
 * ウィンドウの位置とサイズの記憶
