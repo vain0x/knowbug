@@ -23,11 +23,12 @@ KnowbugConfig::KnowbugConfig()
 	CIni ini { selfPath().c_str() };
 
 	bTopMost   = ini.getBool( "Window", "bTopMost", false );
-	initialTab = ini.getInt("Interface", "initialTab", 0);
+	viewSizeX  = ini.getInt("Window", "viewSizeX", 300);
+	viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
 	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
 
-	maxlenVarinfo = ini.getInt( "Varinfo", "maxlen", 0x10000 - 1 );
-	infiniteNest  = ini.getInt("Varinfo", "infiniteNest", 8);
+	maxLength    = ini.getInt("Varinfo", "maxlen", 0x10000 - 1);
+	infiniteNest = ini.getInt("Varinfo", "infiniteNest", 8);
 	showsVariableAddress = ini.getBool("Varinfo", "showsVariableAddress", true);
 	showsVariableSize    = ini.getBool("Varinfo", "showsVariableSize", true);
 	showsVariableDump    = ini.getBool("Varinfo", "showsVariableDump", true);
@@ -35,8 +36,7 @@ KnowbugConfig::KnowbugConfig()
 	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
 	bCustomDraw = ini.getBool( "ColorType", "bCustomDraw", false );
 
-	logMaxlen = ini.getInt( "Log",     "maxlen", 0x20000 );
-	logPath   = ini.getString("Log", "autoSavePath", "");
+	logPath = ini.getString("Log", "autoSavePath", "");
 	warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
 	scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
 #ifdef with_WrapCall

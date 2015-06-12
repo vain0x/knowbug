@@ -32,9 +32,9 @@ public:
 
 	string hspDir;
 	bool bTopMost;
-	int  initialTab;
+	int viewSizeX, viewSizeY;
 	int  tabwidth;
-	int  maxlenVarinfo, infiniteNest;
+	int  maxLength, infiniteNest;
 	bool showsVariableAddress, showsVariableSize, showsVariableDump;
 	bool bResultNode;
 	bool bCustomDraw;
@@ -42,7 +42,6 @@ public:
 	std::map<string, COLORREF> clrTextExtra;
 	std::map<string, VswInfo> vswInfo;
 	string logPath;
-	int  logMaxlen;
 	bool warnsBeforeClearingLog;
 	bool scrollsLogAutomatically;
 #ifdef with_WrapCall

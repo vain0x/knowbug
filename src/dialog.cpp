@@ -443,7 +443,7 @@ void Dialog::createMain()
 	int const dispy = GetSystemMetrics(SM_CYSCREEN);
 
 	int const mainSizeX = 234, mainSizeY = 380;
-	int const viewSizeX = 300, viewSizeY = mainSizeY;
+	int const viewSizeX = g_config->viewSizeX, viewSizeY = g_config->viewSizeY;
 
 	//ビューウィンドウ
 	hViewWnd = MyCreateWindow("KnowbugViewWindow", ViewDialogProc, "Knowbug View", (WS_THICKFRAME),
@@ -454,7 +454,7 @@ void Dialog::createMain()
 	{
 		HWND const hPane = CreateDialog(Knowbug::getInstance(), (LPCSTR)IDD_VIEW_PANE, hViewWnd, (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
-		setEditStyle(hViewEdit, g_config->maxlenVarinfo);
+		setEditStyle(hViewEdit, g_config->maxLength);
 
 		//エディタをクライアント領域全体に広げる
 		RECT rc; GetClientRect(hViewWnd, &rc);

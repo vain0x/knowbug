@@ -22,7 +22,7 @@ using namespace WrapCall;
 CVarinfoText::CVarinfoText()
 	: writer_(std::make_shared<CStrBuf>())
 {
-	writer_.getBuf()->limit(std::max(0x100, g_config->maxlenVarinfo));
+	writer_.getBuf()->limit(std::max(0x100, g_config->maxLength));
 }
 
 string const& CVarinfoText::getString() const {
