@@ -60,7 +60,7 @@ static string const& getVarNodeString(HTREEITEM hItem)
 {
 	auto it = vartree_textCache.find(hItem);
 	if ( it == vartree_textCache.end() ) {
-		auto const p = VarTree::getItemVarText(hItem);
+		auto&& p = VarTree::getItemVarText(hItem);
 		it = vartree_textCache.emplace(hItem, p).first;
 	}
 	assert(it->second);
@@ -70,7 +70,7 @@ static string const& getVarNodeString(HTREEITEM hItem)
 //------------------------------------------------
 // ビューキャレット位置を変更
 //------------------------------------------------
-void SaveViewCaret()
+static void SaveViewCaret()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
 	if ( hItem != nullptr ) {
@@ -84,7 +84,7 @@ void SaveViewCaret()
 //------------------------------------------------
 // ビュー更新
 //------------------------------------------------
-void UpdateView()
+static void UpdateView()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
 	if ( hItem ) {
@@ -92,16 +92,20 @@ void UpdateView()
 		SetWindowText(hViewEdit, varinfoText.c_str());
 
 		//+script ノードなら現在の実行位置を選択
-		if ( VarTree::SystemNode::isTypeOf(TreeView_GetItemString(hVarTree, hItem).c_str())
-			&& VarTree::TreeView_MyLParam<VarTree::SystemNode>(hVarTree, hItem) == VarTree::SystemNodeId::Script ) {
+		if ( hItem == VarTree::getScriptNodeHandle() ) {
 			auto const p = ReadFromSourceFile(g_dbginfo->curFileName());
 			int const iLine = g_dbginfo->curLine();
 			Edit_Scroll(hViewEdit, std::max(0, iLine - 3), 0);
 			Edit_SetSel(hViewEdit, Edit_LineIndex(hViewEdit, iLine), Edit_LineIndex(hViewEdit, iLine + 1));
 
+		//+log ノードの自動スクロール
+		} else if ( hItem == VarTree::getLogNodeHandle() && g_config->scrollsLogAutomatically ) {
+			Edit_Scroll(hViewEdit, Edit_GetLineCount(hViewEdit), 0);
+
 		} else {
 			auto&& it = vartree_vcaret.find(hItem);
-			Edit_Scroll(hViewEdit, (it != vartree_vcaret.end() ? it->second : 0), 0);
+			int const vcaret = (it != vartree_vcaret.end() ? it->second : 0);
+			Edit_Scroll(hViewEdit, vcaret, 0);
 		}
 	}
 }
@@ -109,11 +113,6 @@ void UpdateView()
 //------------------------------------------------
 // ログのチェックボックス
 //------------------------------------------------
-bool updatesLogAutomatically()
-{
-	return g_config->updatesLogAutomatically;
-}
-
 bool logsCalling()
 {
 	return g_config->logsInvocation;
@@ -124,7 +123,6 @@ bool logsCalling()
 //------------------------------------------------
 namespace LogBox {
 	static HWND hwnd_;
-	static string stock_;
 	static string buf_;
 
 	void init(HWND hwnd) {
@@ -134,7 +132,6 @@ namespace LogBox {
 		return buf_;
 	}
 	void clearImpl() {
-		stock_.clear();
 		buf_.clear();
 	}
 	void clear() {
@@ -146,17 +143,9 @@ namespace LogBox {
 	void commit(char const* textAdd) {
 		buf_ += textAdd;
 	}
-	void update() {
-		commit(stock_.c_str());
-		stock_.clear();
-	}
 	void add(char const* str) {
 		if ( !str || str[0] == '\0' ) return;
-		if ( updatesLogAutomatically() ) {
-			commit(str);
-		} else {
-			stock_.append(str);
-		}
+		commit(str);
 	}
 	void save(char const* filepath) {
 		std::ofstream ofs(filepath);
@@ -283,8 +272,18 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 			}
 			break;
 		}
-		case IDC_LOG_AUTO_UPDATE: break; //自動更新のチェックを反転
-		case IDC_LOG_INVOCATION: break; //呼び出しをログするかのチェックを反転
+		case IDC_LOG_AUTO_SCROLL: {
+			bool& b = g_config->scrollsLogAutomatically;
+			b = !b;
+			CheckMenuItem(hLogNodeMenu, IDC_LOG_AUTO_SCROLL, (b ? MF_CHECKED : MF_UNCHECKED));
+			break;
+		}
+		case IDC_LOG_INVOCATION: {
+			bool& b = g_config->logsInvocation;
+			b = !b;
+			CheckMenuItem(hLogNodeMenu, IDC_LOG_INVOCATION, (b ? MF_CHECKED : MF_UNCHECKED));
+			break;
+		}
 		case IDC_LOG_SAVE: LogBox::save(); break;
 		case IDC_LOG_CLEAR: LogBox::clear(); break;
 		default: assert_sentinel;
@@ -306,8 +305,9 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				case IDC_BTN5: Knowbug::runStepOut();  break;
 
 				case IDC_TOPMOST: {
-					g_config->bTopMost = !g_config->bTopMost;
-					CheckMenuItem(hDlgMenu, IDC_TOPMOST, (g_config->bTopMost ? MF_CHECKED : MF_UNCHECKED));
+					bool& b = g_config->bTopMost;
+					b = !b;
+					CheckMenuItem(hDlgMenu, IDC_TOPMOST, (b ? MF_CHECKED : MF_UNCHECKED));
 					Window_SetTopMost(hDlgWnd, g_config->bTopMost);
 					Window_SetTopMost(hViewWnd, g_config->bTopMost);
 					break;
@@ -490,6 +490,12 @@ void Dialog::createMain()
 		CheckMenuItem(hDlgMenu, IDC_TOPMOST, MF_CHECKED);
 		Window_SetTopMost(hDlgWnd, true);
 		Window_SetTopMost(hViewWnd, true);
+	}
+	if ( g_config->scrollsLogAutomatically ) {
+		CheckMenuItem(hLogNodeMenu, IDC_LOG_AUTO_SCROLL, MF_CHECKED);
+	}
+	if ( g_config->logsInvocation ) {
+		CheckMenuItem(hLogNodeMenu, IDC_LOG_INVOCATION, MF_CHECKED);
 	}
 
 	UpdateWindow(hDlgWnd); ShowWindow(hDlgWnd, SW_SHOW);

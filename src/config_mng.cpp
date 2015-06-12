@@ -38,7 +38,7 @@ KnowbugConfig::KnowbugConfig()
 	logMaxlen = ini.getInt( "Log",     "maxlen", 0x20000 );
 	logPath   = ini.getString("Log", "autoSavePath", "");
 	warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
-	updatesLogAutomatically = ini.getBool("Log", "updatesLogAutomatically", true);
+	scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
 #ifdef with_WrapCall
 	logsInvocation = ini.getBool("Log", "logsInvocation", false);
 #endif

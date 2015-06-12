@@ -22,7 +22,7 @@
 #define IDC_NODE_UPDATE                         40014
 #define IDC_NODE_LOG                            40015
 #define IDC_NODE_STEP_OUT                       40016
-#define IDC_LOG_AUTO_UPDATE                     40017
+#define IDC_LOG_AUTO_SCROLL                     40017
 #define IDC_LOG_INVOCATION                      40018
 #define IDC_LOG_SAVE                            40019
 #define IDC_LOG_CLEAR                           40020

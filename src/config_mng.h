@@ -44,7 +44,7 @@ public:
 	string logPath;
 	int  logMaxlen;
 	bool warnsBeforeClearingLog;
-	bool updatesLogAutomatically;
+	bool scrollsLogAutomatically;
 #ifdef with_WrapCall
 	bool logsInvocation;
 #endif

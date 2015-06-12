@@ -25,6 +25,9 @@ LRESULT   customDraw(LPNMTVCUSTOMDRAW pnmcd);
 vartype_t getVartype(HTREEITEM hItem );
 std::shared_ptr<string const> getItemVarText(HTREEITEM hItem);
 
+HTREEITEM getScriptNodeHandle();
+HTREEITEM getLogNodeHandle();
+
 // ツリービューのノードに関するメタ定義
 enum class SystemNodeId {
 #ifdef with_WrapCall

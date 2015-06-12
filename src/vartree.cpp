@@ -27,6 +27,10 @@ static void AddNodeModule(HTREEITEM hParent, CVarTree const& tree);
 static HTREEITEM AddNodeSystem(char const* name, SystemNodeId id);
 static void AddNodeSysvar();
 
+static HTREEITEM g_hNodeScript, g_hNodeLog;
+HTREEITEM getScriptNodeHandle() { return g_hNodeScript; }
+HTREEITEM getLogNodeHandle() { return g_hNodeLog; }
+
 #ifdef with_WrapCall
 static HTREEITEM g_hNodeDynamic;
 static void AddNodeDynamic();
@@ -99,8 +103,8 @@ void init()
 	AddNodeDynamic();
 #endif
 	AddNodeSysvar();
-	AddNodeSystem("+script", SystemNodeId::Script);
-	AddNodeSystem("+log", SystemNodeId::Log);
+	g_hNodeScript = AddNodeSystem("+script", SystemNodeId::Script);
+	g_hNodeLog    = AddNodeSystem("+log", SystemNodeId::Log);
 	AddNodeSystem("+general", SystemNodeId::General);
 
 	//@, +dynamic ‚ÍŠJ‚¢‚Ä‚¨‚­

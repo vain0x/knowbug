@@ -11,6 +11,7 @@ void Window_SetTopMost(HWND hwnd, bool isTopMost);
 
 void Edit_SetTabLength(HWND hEdit, const int tabwidth);
 void Edit_UpdateText(HWND hEdit, char const* s);
+void Edit_SetSelLast(HWND hEdit);
 
 string TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem);
 LPARAM TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem);
