@@ -36,7 +36,9 @@ IDR_MAIN_MENU MENUEX
 {
     POPUP "メニュー(&M)", 0, 0, 0
     {
-        MENUITEM "常に最前面に表示する(&T)", IDC_TOPMOST, 0, 0
+		MENUITEM "常に最前面に表示する(&T)", IDC_TOPMOST, 0, 0
+		MENUITEM "", 0, MFT_SEPARATOR, 0
+		MENUITEM "実行中のスクリプトを開く(&R)", IDC_OPEN_CURRENT_SCRIPT, 0, 0
         MENUITEM "設定ファイルを開く(&S)", IDC_OPEN_INI, 0, 0
     }
     MENUITEM "更新(&U)", IDC_UPDATE, 0, 0

@@ -149,8 +149,9 @@ namespace LogBox {
 	}
 	void save(char const* filepath) {
 		std::ofstream ofs(filepath);
-		if ( ofs.is_open() ) {
-			ofs.write(buf_.c_str(), buf_.size());
+		ofs.write(buf_.c_str(), buf_.size());
+		if ( ofs.bad() ) {
+			MessageBox(hDlgWnd, "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
 		}
 	}
 	void save() {
@@ -179,31 +180,35 @@ namespace LogBox {
 //
 // @ エディタ上で編集中の場合、ファイルの内容が実際と異なることがある。行番号のアウトレンジに注意。
 //------------------------------------------------
-// 読み込み処理 (failure: nullptr)
-LineDelimitedString const* ReadFromSourceFile(char const* _filepath)
+
+static std::unique_ptr<string> TrySearchFile(char const* filepath) {
+	char* filename = nullptr;
+	char fullpath[MAX_PATH + 2] {};
+	if ( SearchPath(nullptr, filepath, nullptr, sizeof(fullpath), fullpath, &filename) ) {
+		return std::make_unique<string>(fullpath);
+	} else if ( SearchPath(g_config->commonPath().c_str(), filepath, nullptr, sizeof(fullpath), fullpath, &filename) ) {
+		return std::make_unique<string>(fullpath);
+	}
+	return nullptr;
+}
+
+// 読み込み処理
+optional_ref<LineDelimitedString const> ReadFromSourceFile(char const* _filepath)
 {
-	string const filepath = _filepath;
+	if ( auto const&& p = TrySearchFile(_filepath) ) {
+		string const filepath = *p;
 
-	// キャッシュから検索
-	static std::map<string const, LineDelimitedString> stt_cache;
-	{
-		auto const iter = stt_cache.find(filepath);
-		if ( iter != stt_cache.end() ) return &iter->second;
-	}
-
-	// ファイルから読み込む
-	std::ifstream ifs { filepath };
-	if ( !ifs.is_open() ) { //search "common" folder
-		char path[MAX_PATH];
-		if ( SearchPath(g_config->commonPath().c_str(), _filepath, nullptr, sizeof(path), path, nullptr) == 0 ) {
-			return nullptr;
+		// キャッシュから検索
+		static std::map<string const, LineDelimitedString> stt_cache;
+		auto iter = stt_cache.find(filepath);
+		if ( iter == stt_cache.end() ) {
+			std::ifstream ifs { filepath };
+			assert(ifs.is_open());
+			iter = stt_cache.emplace(filepath, ifs).first;
 		}
-		ifs.open(path);
-		if ( !ifs.is_open() ) return nullptr;
+		return &iter->second;
 	}
-	auto const res =
-		stt_cache.emplace(filepath, ifs);
-	return &res.first->second;
+	return nullptr;
 }
 
 // ソースタブを同期する
@@ -220,7 +225,7 @@ static void UpdateCurInfEdit(char const* filepath, int iLine)
 	}
 }
 
-string const* tryGetCurrentScript() {
+optional_ref<string const> tryGetCurrentScript() {
 	if ( auto const p = ReadFromSourceFile(g_dbginfo->curFileName()) ) {
 		return &p->get();
 	}
@@ -310,6 +315,12 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					CheckMenuItem(hDlgMenu, IDC_TOPMOST, (b ? MF_CHECKED : MF_UNCHECKED));
 					Window_SetTopMost(hDlgWnd, g_config->bTopMost);
 					Window_SetTopMost(hViewWnd, g_config->bTopMost);
+					break;
+				}
+				case IDC_OPEN_CURRENT_SCRIPT: {
+					if ( auto const&& p = TrySearchFile(g_dbginfo->curFileName()) ) {
+						ShellExecute(nullptr, "open", p->c_str(), nullptr, "", SW_SHOWDEFAULT);
+					}
 					break;
 				}
 				case IDC_OPEN_INI: {

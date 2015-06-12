@@ -16,6 +16,7 @@
 #define IDC_VIEW                                40008
 #define IDC_TOPMOST                             40009
 #define IDC_UPDATE                              40010
+#define IDC_OPEN_CURRENT_SCRIPT                 40021
 #define IDC_OPEN_INI                            40011
 #define IDC_HELP_DEVREPOS                       40012
 #define IDC_HELP_VER                            40013
