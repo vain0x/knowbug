@@ -11,53 +11,53 @@ static CVardataStrWriter& vswriter(vswriter_t self) {
 	return *reinterpret_cast<CVardataStrWriter*>(self);
 }
 
-void knowbugVsw_catLeaf(vswriter_t _w, char const* name, char const* value)
+EXPORT void WINAPI knowbugVsw_catLeaf(vswriter_t _w, char const* name, char const* value)
 {
 	vswriter(_w).getWriter().catLeaf(name, value);
 }
-void knowbugVsw_catLeafExtra(vswriter_t _w, char const* name, char const* state)
+EXPORT void WINAPI knowbugVsw_catLeafExtra(vswriter_t _w, char const* name, char const* state)
 {
 	vswriter(_w).getWriter().catLeafExtra(name, state);
 }
-void knowbugVsw_catAttribute(vswriter_t _w, char const* name, char const* value)
+EXPORT void WINAPI knowbugVsw_catAttribute(vswriter_t _w, char const* name, char const* value)
 {
 	vswriter(_w).getWriter().catAttribute(name, value);
 }
-void knowbugVsw_catNodeBegin(vswriter_t _w, char const* name, char const* leftBracket)
+EXPORT void WINAPI knowbugVsw_catNodeBegin(vswriter_t _w, char const* name, char const* leftBracket)
 {
 	vswriter(_w).getWriter().catNodeBegin(name, leftBracket);
 }
-void knowbugVsw_catNodeEnd(vswriter_t _w, char const* rightBracket)
+EXPORT void WINAPI knowbugVsw_catNodeEnd(vswriter_t _w, char const* rightBracket)
 {
 	vswriter(_w).getWriter().catNodeEnd(rightBracket);
 }
 
-void knowbugVsw_addVar(vswriter_t _w, char const* name, PVal const* pval)
+EXPORT void WINAPI knowbugVsw_addVar(vswriter_t _w, char const* name, PVal const* pval)
 {
 	vswriter(_w).addVar(name, pval);
 }
-void knowbugVsw_addVarScalar(vswriter_t _w, char const* name, PVal const* pval, APTR aptr)
+EXPORT void WINAPI knowbugVsw_addVarScalar(vswriter_t _w, char const* name, PVal const* pval, APTR aptr)
 {
 	vswriter(_w).addVarScalar(name, pval, aptr);
 }
-void knowbugVsw_addVarArray(vswriter_t _w, char const* name, PVal const* pval)
+EXPORT void WINAPI knowbugVsw_addVarArray(vswriter_t _w, char const* name, PVal const* pval)
 {
 	vswriter(_w).addVarArray(name, pval);
 }
 
-void knowbugVsw_addValue(vswriter_t _w, char const* name, PDAT const* ptr, /*vartype_t*/ unsigned short vtype)
+EXPORT void WINAPI knowbugVsw_addValue(vswriter_t _w, char const* name, PDAT const* ptr, /*vartype_t*/ unsigned short vtype)
 {
 	vswriter(_w).addValue(name, vtype, ptr);
 }
-void knowbugVsw_addPrmstack(vswriter_t _w, STRUCTDAT const* stdat, void const* prmstack)
+EXPORT void WINAPI knowbugVsw_addPrmstack(vswriter_t _w, STRUCTDAT const* stdat, void const* prmstack)
 {
 	vswriter(_w).addPrmstack(stdat, { prmstack, true });
 }
-void knowbugVsw_addStPrm(vswriter_t _w, char const* name, STRUCTPRM const* stprm, void const* ptr)
+EXPORT void WINAPI knowbugVsw_addStPrm(vswriter_t _w, char const* name, STRUCTPRM const* stprm, void const* ptr)
 {
 	vswriter(_w).addParameter(name, hpimod::STRUCTPRM_getStDat(stprm), stprm, ptr, true);
 }
-void knowbugVsw_addSysvar(vswriter_t _w, char const* name)
+EXPORT void WINAPI knowbugVsw_addSysvar(vswriter_t _w, char const* name)
 {
 	auto const id = Sysvar::seek(name);
 	if ( id != Sysvar::Id::MAX ) {
@@ -68,9 +68,9 @@ void knowbugVsw_addSysvar(vswriter_t _w, char const* name)
 	}
 }
 
-bool knowbugVsw_isLineformWriter(vswriter_t _w)
+EXPORT BOOL WINAPI knowbugVsw_isLineformWriter(vswriter_t _w)
 {
-	return vswriter(_w).getWriter().isLineformed();
+	return (vswriter(_w).getWriter().isLineformed() ? TRUE : FALSE);
 }
 
 static KnowbugVswMethods g_knowbugVswMethods;

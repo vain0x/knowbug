@@ -22,23 +22,23 @@ using addValueUserdef_t = void(CALLBACK*)(vswriter_t, char const* name, void con
 struct KnowbugVswMethods
 {
 	// writing methods
-	void(*catLeaf)(vswriter_t, char const* name, char const* value);
-	void(*catLeafExtra)(vswriter_t, char const* name, char const* state);
-	void(*catAttribute)(vswriter_t, char const* name, char const* value);
-	void(*catNodeBegin)(vswriter_t, char const* name, char const* leftBracket);
-	void(*catNodeEnd)(vswriter_t, char const* rightBracket);
+	void(CALLBACK *catLeaf)(vswriter_t, char const* name, char const* value);
+	void(CALLBACK *catLeafExtra)(vswriter_t, char const* name, char const* state);
+	void(CALLBACK *catAttribute)(vswriter_t, char const* name, char const* value);
+	void(CALLBACK *catNodeBegin)(vswriter_t, char const* name, char const* leftBracket);
+	void(CALLBACK *catNodeEnd)(vswriter_t, char const* rightBracket);
 
-	void(*addVar)(vswriter_t, char const* name, PVal const* pval);
-	void(*addVarScalar)(vswriter_t, char const* name, PVal const* pval, APTR aptr);
-	void(*addVarArray)(vswriter_t, char const* name, PVal const* pval);
+	void(CALLBACK *addVar)(vswriter_t, char const* name, PVal const* pval);
+	void(CALLBACK *addVarScalar)(vswriter_t, char const* name, PVal const* pval, APTR aptr);
+	void(CALLBACK *addVarArray)(vswriter_t, char const* name, PVal const* pval);
 
-	void(*addValue)(vswriter_t, char const* name, PDAT const* ptr, /*vartype_t*/ unsigned short vtype);
-	void(*addPrmstack)(vswriter_t, STRUCTDAT const* stdat, void const* prmstack);
-	void(*addStPrm)(vswriter_t, char const* name, STRUCTPRM const* stprm, void const* ptr);
-	void(*addSysvar)(vswriter_t, char const* name);
+	void(CALLBACK *addValue)(vswriter_t, char const* name, PDAT const* ptr, /*vartype_t*/ unsigned short vtype);
+	void(CALLBACK *addPrmstack)(vswriter_t, STRUCTDAT const* stdat, void const* prmstack);
+	void(CALLBACK *addStPrm)(vswriter_t, char const* name, STRUCTPRM const* stprm, void const* ptr);
+	void(CALLBACK *addSysvar)(vswriter_t, char const* name);
 
 	// others
-	bool (*isLineformWriter)(vswriter_t);
+	BOOL (CALLBACK *isLineformWriter)(vswriter_t);
 };
 
 // internal writers
