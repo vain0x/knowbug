@@ -24,7 +24,7 @@ namespace WrapCall
 		string valueString;
 
 		// これに依存する呼び出し (存在する場合はこれの子ノードになる)
-		ModcmdCallInfo const* pCallInfoDepended;
+		optional_ref<ModcmdCallInfo const> pCallInfoDepended;
 
 	public:
 		ResultNodeData(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vt);

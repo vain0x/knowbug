@@ -106,11 +106,11 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 	getWriter().catln(strf("仮引数：(%s)", getPrmlistString(stdat).c_str()));
 	getWriter().catCrlf();
 
-	auto const prmstk = callinfo.getPrmstk();
-
+	auto const&& prmstk_safety = callinfo.tryGetPrmstk();
 	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
-			.addCall( stdat, prmstk );
+			.addCall( stdat, prmstk_safety );
 
+	auto const prmstk = prmstk_safety.first;
 	if ( prmstk && g_config->showsVariableDump ) {
 		getWriter().catCrlf();
 		getWriter().catDump(prmstk, static_cast<size_t>(stdat->size));
@@ -193,7 +193,7 @@ void CVarinfoText::addCallsOverview(ResultNodeData const* pLastResult)
 	auto const range = WrapCall::getCallInfoRange();
 	std::for_each(range.first, range.second, [&](stkCallInfo_t::value_type const& pCallInfo) {
 		CVardataStrWriter::create<CLineformedWriter>(getBuf())
-			.addCall(pCallInfo->stdat, pCallInfo->getPrmstk());
+			.addCall(pCallInfo->stdat, pCallInfo->tryGetPrmstk());
 		getWriter().catCrlf();
 	});
 

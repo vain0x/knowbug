@@ -20,7 +20,7 @@ extern void bgnCall(stdat_t callee);
 extern void endCall();
 extern void endCall(PDAT* p, vartype_t vtype);
 
-extern ModcmdCallInfo const* getCallInfoAt(size_t idx);
+extern optional_ref<ModcmdCallInfo const> getCallInfoAt(size_t idx);
 extern std::pair<stkCallInfo_t::const_iterator, stkCallInfo_t::const_iterator> getCallInfoRange();
 
 };

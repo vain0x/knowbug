@@ -67,13 +67,13 @@ public:
 #ifdef with_ExtraBasics
 	//	template<class TNumeric> string dbgstr_extraBasic(const TNumeric src);
 #endif
-	void addPrmstack(stdat_t stdat, void const* prmstack);
-	void addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member);
+	void addPrmstack(stdat_t stdat, std::pair<void const*, bool> prmstk);
+	void addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member, bool isSafe);
 
 	void addSysvar(Sysvar::Id id);
 
-	void addCall(stdat_t stdat, void const* prmstk);
-	void addCall(char const* name, stdat_t stdat, void const* prmstk);
+	void addCall(stdat_t stdat, std::pair<void const*, bool> prmstk);
+	void addCall(char const* name, stdat_t stdat, std::pair<void const*, bool> prmstk);
 	void addResult(char const* name, PDAT const* ptr, vartype_t type);
 
 public:

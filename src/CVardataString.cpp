@@ -193,7 +193,7 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 		getWriter().catNodeBegin(name, (modclsNameString + "{").c_str());
 		getWriter().catAttribute("modcls", modclsNameString.c_str());
 
-		addPrmstack(stdat, fv->ptr);
+		addPrmstack(stdat, { fv->ptr, true });
 
 		getWriter().catNodeEnd("}");
 	}
@@ -204,7 +204,7 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 // 
 // @ 中身だけ出力する。
 //------------------------------------------------
-void CVardataStrWriter::addPrmstack(stdat_t stdat, void const* prmstack)
+void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> prmstk)
 {
 #if 0
 	getWriter().catAttribute( "id_finfo", strf("%d", stdat->subid).c_str() );
@@ -214,7 +214,7 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, void const* prmstack)
 	int i = 0;
 
 	std::for_each(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat), [&](STRUCTPRM const& stprm) {
-		auto const member = hpimod::Prmstack_getMemberPtr(prmstack, &stprm);
+		auto const member = hpimod::Prmstack_getMemberPtr(prmstk.first, &stprm);
 
 		// if lineformed: put an additional ' ' before 'local' parameters
 		if ( !getWriter().isLineformed()
@@ -224,7 +224,7 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, void const* prmstack)
 			getWriter().cat(" ");
 		}
 
-		addParameter(getStPrmName(&stprm, i).c_str(), stdat, &stprm, member);
+		addParameter(getStPrmName(&stprm, i).c_str(), stdat, &stprm, member, prmstk.second);
 
 		// structtag isn't a member
 		if ( stprm.mptype != MPTYPE_STRUCTTAG ) { ++i; }
@@ -234,16 +234,28 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, void const* prmstack)
 //------------------------------------------------
 // [add][item] メンバ (in prmstack)
 //------------------------------------------------
-void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member)
+void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member, bool isSafe)
 {
+	if ( !isSafe ) {
+		switch ( stprm->mptype ) {
+			case MPTYPE_STRUCTTAG:
+			case MPTYPE_INUM: //safe iff read member as bits array
+			case MPTYPE_DNUM:
+			case MPTYPE_LABEL:
+				break;
+			default:
+				getWriter().catLeafExtra(name, "unsafe");
+				return;
+		}
+	}
+
 	switch ( stprm->mptype ) {
 		case MPTYPE_STRUCTTAG: break;
 
 		// 変数 (PVal*)
 		//	case MPTYPE_VAR:
 		case MPTYPE_SINGLEVAR:
-		case MPTYPE_ARRAYVAR:
-		{
+		case MPTYPE_ARRAYVAR: {
 			// 一行文字列：参照であることを示す (var か array かは明らか)
 			// delimiter との位置取りが難しい
 		//	if ( getWriter().isLineformed() ) getWriter().cat("& ");
@@ -258,8 +270,7 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 			break;
 		}
 		// 変数 (PVal)
-		case MPTYPE_LOCALVAR:
-		{
+		case MPTYPE_LOCALVAR: {
 			auto const pval = cptr_cast<PVal*>(member);
 			addVar(name, pval);
 			break;
@@ -267,8 +278,7 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 		// thismod
 		case MPTYPE_MODULEVAR:
 		case MPTYPE_IMODULEVAR:
-		case MPTYPE_TMODULEVAR:
-		{
+		case MPTYPE_TMODULEVAR: {
 			auto const thismod = cptr_cast<MPModVarData*>(member);
 			auto const fv = cptr_cast<FlexValue*>(hpimod::PVal_getPtr(thismod->pval, thismod->aptr));
 			addValueStruct(name, fv);
@@ -375,7 +385,7 @@ void CVardataStrWriter::addSysvar(Sysvar::Id id)
 //
 // @prm prmstk can be nullptr
 //------------------------------------------------
-void CVardataStrWriter::addCall(stdat_t stdat, void const* prmstk)
+void CVardataStrWriter::addCall(stdat_t stdat, std::pair<void const*, bool> prmstk)
 {
 	char const* const name = hpimod::STRUCTDAT_getName(stdat);
 #if 0
@@ -387,10 +397,10 @@ void CVardataStrWriter::addCall(stdat_t stdat, void const* prmstk)
 	addCall(name, stdat, prmstk);
 }
 
-void CVardataStrWriter::addCall(char const* name, stdat_t stdat, void const* prmstk)
+void CVardataStrWriter::addCall(char const* name, stdat_t stdat, std::pair<void const*, bool> prmstk)
 {
 	getWriter().catNodeBegin(name, strf("%s(", name).c_str());
-	if ( !prmstk ) {
+	if ( !prmstk.first ) {
 		if ( getWriter().isLineformed() ) {
 			getWriter().catLeafExtra(CStructedStrWriter::stc_strUnused, "not_available");
 		} else {

@@ -3,6 +3,9 @@
 #ifndef IG_STRUCT_MODCMD_CALL_INFO_H
 #define IG_STRUCT_MODCMD_CALL_INFO_H
 
+//unhookable invocation …… modinit/modterm/deffunc_onexit commands, and call by call.hpi
+// これらの呼び出しはprmstkを変更するにもかかわらず検知できないので危険。
+
 #include "../main.h"
 #include "WrapCall.h"
 
@@ -12,7 +15,6 @@ namespace WrapCall
 {
 
 // 呼び出し直前の情報
-// Remark: Don't rearrange the members.
 struct ModcmdCallInfo
 {
 	// 呼び出されたコマンド
@@ -37,58 +39,47 @@ public:
 		: stdat(stdat), prmstk_bak(prmstk_bak), sublev(sublev), looplev(looplev), fname(fname), line(line), idx(idx)
 	{ }
 
-	// 引数展開が終了しているか
-/*
-条件について：
-1. 他のユーザ定義コマンドが起動されない限り、これの引数展開の間に knowbug は動作しない。
-そのため、次のユーザ定義コマンドが存在しなければ、引数展開は終了している。
-ただし (call.hpi のような) 拡張プラグインのコマンドにより、ユーザ定義コマンド以外の方法で引数式中から gosub が生じると、
-これが最新の呼び出しであるにもかかわらず、引数展開が終了していない状態で knowbug が動く、ということがありうる。
-また、modinit による呼び出しの間は ctx->prmstack が変わるため参照できない。
-2. 直後のユーザ定義コマンドがこの呼び出しの引数式の中にあるなら、これの引数展開は終了していない。
-逆に、直後のユーザ定義コマンドが引数式の中にないなら、この呼び出しの実行は開始されている――すなわち、これの引数展開は終了している。
-ただし、1. と同様に、後者は拡張プラグインを考慮していない。
-3. 拡張プラグインのコマンドによる式中 gosub を考慮した上で、引数展開が終了しているための十分条件を見つけることはできない。
-//*/
-	bool isMaybeRunning() const {
-		return (!getNext() || sublev < getNext()->sublev);
-	}
-
-	// result is optional (none: nullptr)
-	ModcmdCallInfo const* getPrev() const {
+	optional_ref<ModcmdCallInfo const> getPrev() const {
 		return getCallInfoAt(idx - 1);
 	}
-	ModcmdCallInfo const* getNext() const {
+	optional_ref<ModcmdCallInfo const> getNext() const {
 		return getCallInfoAt(idx + 1);
 	}
 
-	// この呼び出しの実引数情報を持つ prmstack を得る。(failure: nullptr)
-	// なお、ctx->prmstack が勝手に変更されることは考慮していない。
-	void* getPrmstk() const
+	//prmstk: この呼び出しの実引数情報 (failure: nullptr)
+	//safety: このprmstkが確実に安全であるか。
+	// prmstkはhspのスタックかメモリプール上に確保されるので、メモリアクセスは常に安全。
+	std::pair<void*, bool> tryGetPrmstk() const
 	{
-		// 最新の呼び出し
+		//これが最新の呼び出し
 		if ( !getNext() ) {
-			// modinit が実行中の可能性があるとき
-			if ( ctx->sublev > sublev + 1  && Sysvar::getThismod() ) {
-				return nullptr;
-			}
+			assert(sublev <= ctx->sublev);
+			//本体からさらに他のサブルーチンが実行中なら、それはunhookable invocationの可能性がある
+			bool const safe = ( ctx->sublev == sublev + 1 );
 
-			return ctx->prmstack;
+			return { ctx->prmstack, safe };
 
-		// 引数展開が完了している
-		} else if ( isMaybeRunning() ) {
-			return getNext()->prmstk_bak;
+		//呼び出しが実行中
+		//⇔ 次の呼び出しがあり、それはこれの実引数式からの呼び出しではない
+		//⇔ 次の呼び出しがあり、それはこれの本体(またはそれより深い位置)から呼び出されている
+		} else if ( sublev < getNext()->sublev ) {
+			assert(sublev + 1 <= getNext()->sublev);
+			//本体からさらに他のサブルーチンが実行中なら、それはunhookable invocationの可能性がある
+			bool const safe = (sublev + 1 == getNext()->sublev);
 
-		// 引数展開中 (そもそも prmstack は未作成)
+			return { getNext()->prmstk_bak, safe };
+
+		// 引数展開中
+		//⇔prmstack は未作成
 		} else {
-			return nullptr;
+			return { nullptr, false };
 		}
 	}
 
 	// この呼び出しが直接依存されている呼び出しを得る。(failure: nullptr)
 	// 条件について：直前の呼び出しで、それと sublev が等しければ依存関係にあり、そうでなければない
 	// なお、これも拡張プラグインの gosub を考慮しない。
-	ModcmdCallInfo const* getDependedCallInfo() const
+	optional_ref<ModcmdCallInfo const> getDependedCallInfo() const
 	{
 		auto const prev = getPrev();
 		return (prev && prev->sublev == sublev)

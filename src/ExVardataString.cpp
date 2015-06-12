@@ -51,11 +51,11 @@ void knowbugVsw_addValue(vswriter_t _w, char const* name, PDAT const* ptr, /*var
 }
 void knowbugVsw_addPrmstack(vswriter_t _w, STRUCTDAT const* stdat, void const* prmstack)
 {
-	vswriter(_w).addPrmstack(stdat, prmstack);
+	vswriter(_w).addPrmstack(stdat, { prmstack, true });
 }
 void knowbugVsw_addStPrm(vswriter_t _w, char const* name, STRUCTPRM const* stprm, void const* ptr)
 {
-	vswriter(_w).addParameter(name, hpimod::STRUCTPRM_getStDat(stprm), stprm, ptr);
+	vswriter(_w).addParameter(name, hpimod::STRUCTPRM_getStDat(stprm), stprm, ptr, true);
 }
 void knowbugVsw_addSysvar(vswriter_t _w, char const* name)
 {
