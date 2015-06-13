@@ -1,0 +1,39 @@
+
+#include "../knowbug.as"
+
+#runtime "hsp3debug.exe"
+	//カスタムノードを追加する
+	;assert
+	knowbug_addCustomNode "ginfo", "+sysvar", *LKnowbugVswGinfo
+
+	repeat 10
+		mes "cnt = " + cnt
+		assert
+	loop
+	stop
+	
+//「*ginfo」ノードをみるたびに呼ばれる
+*LKnowbugVswGinfo
+	if ( length(ginfo_names) == 1 ) {
+		ginfo_names = "mx", "my", "actid", "selid", "wx1", "wy1", "wx2", "wy2", "vx", "vy", "sizex", "sizey", "winx", "winy", "mesx", "mesy", "r", "g", "b", "paluse", "dispx", "dispy", "cx", "cy", "intid", "newid", "sx", "sy"
+	}
+	
+	//knowbug にデータを渡すためのハンドルを取得する
+	vsw = knowbug_getCurrentVswriter()
+	if ( vsw ) {
+		//「ginfo: ...」というのを追加する
+		//以後、自動的に字下げされる
+		knowbugVsw_catNodeBegin vsw, "ginfo", "["
+		
+		foreach ginfo_names
+			//「name = value」というのを追加する
+			knowbugVsw_catLeaf vsw, ginfo_names(cnt), str(ginfo(cnt))
+		loop
+		
+		//「ginfo: ...」の終了を表す
+		//以後、字下げがなくなる
+		knowbugVsw_catNodeEnd vsw, "]"
+	}
+	
+	//ラベル終了
+	knowbugVsw_return vsw
