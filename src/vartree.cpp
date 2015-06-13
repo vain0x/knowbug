@@ -58,7 +58,7 @@ static ResultNodeData* FindLastIndependedResultData();
 //------------------------------------------------
 bool VarNode::isTypeOf(char const* s)
 {
-	return !(ModuleNode::isTypeOf(s) || SystemNode::isTypeOf(s) || SysvarNode::isTypeOf(s) || InvokeNode::isTypeOf(s) || ResultNode::isTypeOf(s));
+	return !(ModuleNode::isTypeOf(s) || SystemNode::isTypeOf(s) || SysvarNode::isTypeOf(s) || InvokeNode::isTypeOf(s) || ResultNode::isTypeOf(s) || CustomNode::isTypeOf(s));
 }
 namespace Detail
 {
@@ -77,6 +77,11 @@ namespace Detail
 	template<> struct Verify < ResultNode > { static bool apply(char const*, ResultNode::lparam_t value) {
 		return (value != nullptr);
 	} };
+	template<> struct Verify < CustomNode > {
+		static bool apply(char const*, CustomNode::lparam_t value) {
+			return (value != nullptr);
+		}
+	};
 	template<> struct Verify < VarNode > { static bool apply(char const*, PVal* pval) {
 			return (pval && ctx->mem_var <= pval && pval < &ctx->mem_var[hpimod::cntSttVars()]);
 	} };
@@ -332,29 +337,30 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 				break;
 			default: assert_sentinel;
 		}
-	} else {
-		if ( SysvarNode::isTypeOf(name) ) {
-			Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
-			assert(0 <= id && id < Sysvar::Count && Sysvar::seek(&name[1]) == id);
-			varinf.addSysvar(id);
+	} else if ( SysvarNode::isTypeOf(name) ) {
+		Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
+		assert(0 <= id && id < Sysvar::Count && Sysvar::seek(&name[1]) == id);
+		varinf.addSysvar(id);
 
-	#ifdef with_WrapCall
-		} else if ( InvokeNode::isTypeOf(name) ) {
-			auto const idx = TreeView_MyLParam<InvokeNode>( hwndVarTree, hItem );
-			if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
-				varinf.addCall(*pCallInfo);
-			}
-
-		} else if ( usesResultNodes() && ResultNode::isTypeOf(name) ) {
-			auto const&& iter = g_allResultData.find(hItem);
-			auto const pResult = (iter != g_allResultData.end() ? iter->second : nullptr);
-			varinf.addResult( pResult->stdat, pResult->valueString, hpimod::STRUCTDAT_getName(pResult->stdat) );
-	#endif
-		} else {
-			assert(VarNode::isTypeOf(name));
-			PVal* const pval = TreeView_MyLParam<VarNode>(hwndVarTree, hItem);
-			varinf.addVar( pval, name );
+#ifdef with_WrapCall
+	} else if ( InvokeNode::isTypeOf(name) ) {
+		auto const idx = TreeView_MyLParam<InvokeNode>( hwndVarTree, hItem );
+		if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
+			varinf.addCall(*pCallInfo);
 		}
+
+	} else if ( usesResultNodes() && ResultNode::isTypeOf(name) ) {
+		auto const&& iter = g_allResultData.find(hItem);
+		auto const pResult = (iter != g_allResultData.end() ? iter->second : nullptr);
+		varinf.addResult(pResult->stdat, pResult->valueString, hpimod::STRUCTDAT_getName(pResult->stdat));
+#endif
+	} else if ( CustomNode::isTypeOf(name) ) {
+		varinf.addCustom(TreeView_MyLParam<CustomNode>(hwndVarTree, hItem));
+		
+	} else {
+		assert(VarNode::isTypeOf(name));
+		PVal* const pval = TreeView_MyLParam<VarNode>(hwndVarTree, hItem);
+		varinf.addVar(pval, name);
 	}
 	return std::make_shared<string>(varinf.getStringMove());
 }
@@ -609,6 +615,27 @@ void UpdateCallNode()
 	}
 }
 #endif
+
+//------------------------------------------------
+// カスタムノードの追加
+//------------------------------------------------
+HTREEITEM AddCustomNode(char const* name, char const* parent, label_t lb) {
+	HTREEITEM const hParent =
+		( (HTREEITEM)(parent) == TVI_ROOT )
+		? (HTREEITEM)(parent)
+		: TreeView_FindItemByString(hwndVarTree, TreeView_GetRoot(hwndVarTree), parent)
+	;
+	if ( !hParent ) return nullptr;
+	return TreeView_MyInsertItem<CustomNode>(hParent, ("*" + string(name)).c_str(), TVI_LAST, lb);
+}
+
+bool RemoveCustomNode(HTREEITEM hItem) {
+	if ( hItem && CustomNode::isTypeOf(TreeView_GetItemString(hwndVarTree, hItem).c_str()) ) {
+		return TreeView_DeleteItem(hwndVarTree, hItem) != FALSE;
+	}
+	return false;
+}
+
 
 } // namespace VarTree
 

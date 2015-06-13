@@ -135,6 +135,15 @@ void CVarinfoText::addResult( stdat_t stdat, string const& text, char const* nam
 
 #endif
 
+//------------------------------------------------
+// スクリプト側で生成
+//------------------------------------------------
+void CVarinfoText::addCustom(label_t lb)
+{
+	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
+		.addCustom(lb);
+}
+
 //**********************************************************
 //        概観の追加
 //**********************************************************

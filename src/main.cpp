@@ -28,6 +28,12 @@ static void debugbye();
 using WrapCall::ModcmdCallInfo;
 #endif
 
+namespace Knowbug
+{
+	static bool continueConditionalRun();
+	static bool isRunningCustomWriter();
+}
+
 //------------------------------------------------
 // Dllエントリーポイント
 //------------------------------------------------
@@ -37,7 +43,7 @@ int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 		case DLL_PROCESS_ATTACH: {
 			g_hInstance = hInstance;
 #if _DEBUG
-			if ( GetKeyState(VK_SHIFT) & 0x8000 ) { MessageBox(nullptr, "Attach Me!", "knowbug", MB_OK); }
+			if ( GetKeyState(VK_SHIFT) & 0x80 ) { MessageBox(nullptr, "Attach Me!", "knowbug", MB_OK); }
 #endif
 			break;
 		}
@@ -57,7 +63,7 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 	g_dbginfo.reset(new DebugInfo(p1));
 	g_config.initialize();
 
-	Dialog::createMain();
+	p1->dbgwin = Dialog::createMain();
 	return 0;
 }
 
@@ -71,9 +77,9 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
 	switch ( p2 ) {
 		// 実行が停止した (stop, wait, await, assert など)
-		case hpimod::DebugNotice_Stop:
-		{
-			if (Knowbug::continueConditionalRun()) break;
+		case hpimod::DebugNotice_Stop: {
+			if ( Knowbug::isRunningCustomWriter()
+				|| Knowbug::continueConditionalRun() ) break;
 
 			g_dbginfo->updateCurInf();
 #ifdef with_WrapCall
@@ -82,10 +88,11 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 			Dialog::update();
 			break;
 		}
-		case hpimod::DebugNotice_Logmes:
+		case hpimod::DebugNotice_Logmes: {
 			strcat_s(ctx->stmp, HSPCTX_REFSTR_MAX, "\r\n");
 			Knowbug::logmes(ctx->stmp);
 			break;
+		}
 	}
 	return 0;
 }
@@ -233,6 +240,34 @@ void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
 }
 #endif
 
+static vswriter_t stt_customVsw;
+static std::array<int, 4> CustomVswMode = { { HSPDEBUG_RUN, HSPDEBUG_STEPIN, HSPDEBUG_STOP, HSPDEBUG_RUN } };
+static int stt_customVswMode = 0; //vsw ラベル内部での実行を制御する
+static bool stt_skipsNextUpdate = false;
+//------------------------------------------------
+// カスタムライターを呼び出す
+//------------------------------------------------
+void runCustomWriter(label_t lb, vswriter_t vswriter) {
+	stt_customVsw = vswriter;
+	g_dbginfo->setStepMode(HSPDEBUG_RUN);
+	code_call(lb);
+	stt_customVsw = nullptr;
+	stt_skipsNextUpdate = true;
+}
+
+bool isRunningCustomWriter() {
+	if ( stt_customVsw ) {
+		g_dbginfo->setStepMode(CustomVswMode[stt_customVswMode]);
+		stt_customVswMode = (stt_customVswMode + 1) % CustomVswMode.size();
+		return true;
+	}
+	if ( stt_skipsNextUpdate ) {
+		stt_skipsNextUpdate = false;
+		return true;
+	}
+	return false;
+}
+
 } //namespace Knowbug
 
 //##############################################################################
@@ -266,4 +301,28 @@ EXPORT void WINAPI knowbug_getCurrentModcmdName(char const* strNone, int n, char
 #else
 	strcpy_s(prefstr, HSPCTX_REFSTR_MAX, strNone);
 #endif
+}
+
+//------------------------------------------------
+// カスタムノードを追加する
+//------------------------------------------------
+EXPORT HTREEITEM WINAPI knowbug_addCustomNode(char const* nodeName, char const* parentName, label_t* lb) {
+	return VarTree::AddCustomNode(nodeName, parentName, *lb);
+}
+
+EXPORT BOOL WINAPI knowbug_removeCustomNode(HTREEITEM hItem) {
+	return (VarTree::RemoveCustomNode(hItem) ? TRUE : FALSE);
+}
+
+EXPORT LPVOID WINAPI knowbug_getCurrentVswriter() {
+	assert(Knowbug::stt_customVsw);
+	return Knowbug::stt_customVsw;
+}
+
+EXPORT void WINAPI knowbugVsw_beforeReturn() {
+	if ( Knowbug::stt_customVswMode != 0 ) { //初期状態
+		Knowbug::logmesWarning("knowbugVsw_beforeReturn が不適切な場所で呼び出された。");
+	}
+	Knowbug::stt_customVswMode = 1;
+	//次の assert で stepin、直後の return で停止、という流れにする。
 }

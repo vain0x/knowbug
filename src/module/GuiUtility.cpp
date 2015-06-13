@@ -104,3 +104,22 @@ HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
 	}
 	return hLast;
 }
+
+//------------------------------------------------
+// ÉmÅ[ÉhÇñºëOÇ©ÇÁíTÇ∑ (failure: nullptr)
+//------------------------------------------------
+HTREEITEM TreeView_FindItemByString(HWND hTree, HTREEITEM hNode, string const& name)
+{
+	for ( HTREEITEM hNext = hNode
+		; hNext != nullptr
+		; hNext = TreeView_GetNextSibling(hTree, hNext)
+		) {
+		if ( TreeView_GetItemString(hTree, hNext) == name ) {
+			return hNext;
+		} else {
+			HTREEITEM const hSub = TreeView_FindItemByString(hTree, TreeView_GetChild(hTree, hNext), name);
+			if ( hSub ) return hSub;
+		}
+	}
+	return nullptr;
+}

@@ -31,6 +31,7 @@ public:
 	void addCall(WrapCall::ModcmdCallInfo const& callinfo);
 	void addResult(stdat_t stdat, string const& text, char const* name);
 #endif
+	void addCustom(label_t lb);
 
 	void addModuleOverview(char const* name, CStaticVarTree const& tree);
 	void addSysvarsOverview();

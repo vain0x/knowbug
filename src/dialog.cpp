@@ -437,7 +437,7 @@ static HWND MyCreateWindow(char const* className, WNDPROC proc, char const* capt
 //------------------------------------------------
 // メインダイアログを生成する
 //------------------------------------------------
-void Dialog::createMain()
+HWND Dialog::createMain()
 {
 	int const dispx = GetSystemMetrics(SM_CXSCREEN);
 	int const dispy = GetSystemMetrics(SM_CYSCREEN);
@@ -511,6 +511,7 @@ void Dialog::createMain()
 
 	UpdateWindow(hDlgWnd); ShowWindow(hDlgWnd, SW_SHOW);
 	UpdateWindow(hViewWnd); ShowWindow(hViewWnd, SW_SHOW);
+	return hDlgWnd;
 }
 
 void Dialog::destroyMain()
@@ -557,4 +558,8 @@ void setEditStyle( HWND hEdit, int maxlen )
 EXPORT HWND WINAPI knowbug_hwnd()
 {
 	return Dialog::getKnowbugHandle();
+}
+
+EXPORT HWND WINAPI knowbug_treeViewHandle() {
+	return Dialog::hVarTree;
 }

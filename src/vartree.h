@@ -54,6 +54,7 @@ namespace Detail
 }
 struct ModuleNode : public Detail::NodeTag<'@', CStaticVarTree const*> { };
 struct SystemNode : public Detail::NodeTag<'+', SystemNodeId> { };
+struct CustomNode : public Detail::NodeTag<'*', label_t> { };
 struct SysvarNode : public Detail::NodeTag<'~', Sysvar::Id> { }; 
 struct InvokeNode : public Detail::NodeTag<'\'', int> { };
 struct ResultNode : public Detail::NodeTag<'"', ResultNodeData*> { };
@@ -72,5 +73,8 @@ void RemoveResultNode( HTREEITEM hResult );
 void UpdateCallNode();
 
 #endif
+
+HTREEITEM AddCustomNode(char const* name, char const* parentName, label_t lb);
+bool RemoveCustomNode(HTREEITEM hItem);
 
 }

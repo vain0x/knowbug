@@ -75,6 +75,7 @@ public:
 	void addCall(stdat_t stdat, std::pair<void const*, bool> prmstk);
 	void addCall(char const* name, stdat_t stdat, std::pair<void const*, bool> prmstk);
 	void addResult(char const* name, PDAT const* ptr, vartype_t type);
+	void addCustom(label_t lb);
 
 public:
 	CStructedStrWriter& getWriter() const { return *writer_; }

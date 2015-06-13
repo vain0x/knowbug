@@ -58,7 +58,6 @@ namespace Knowbug
 	extern void runStepReturn(int sublev);
 
 	extern bool isStepRunning();
-	extern bool continueConditionalRun();
 
 	extern void logmes(char const* msg); //自動改行なし
 	extern void logmesWarning(char const* msg);
@@ -70,6 +69,7 @@ namespace Knowbug
 	extern void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype);
 #endif
 
+	extern void runCustomWriter(label_t lb, void* vswriter);
 } // namespace Knowbug
 
 //others

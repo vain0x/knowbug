@@ -422,6 +422,14 @@ void CVardataStrWriter::addResult(char const* name, PDAT const* ptr, vartype_t t
 	addValue(name, type, ptr);
 }
 
+//------------------------------------------------
+// [add] カスタム
+//------------------------------------------------
+void CVardataStrWriter::addCustom(label_t lb)
+{
+	Knowbug::runCustomWriter(lb, this);
+}
+
 //**********************************************************
 //        下請け関数
 //**********************************************************

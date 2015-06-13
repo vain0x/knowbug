@@ -11,7 +11,7 @@ namespace Dialog
 
 HWND getVarTreeHandle();
 
-void createMain();
+HWND createMain();
 void destroyMain();
 
 void update();
