@@ -45,7 +45,7 @@ IDR_MAIN_MENU MENUEX
     POPUP "ヘルプ(&H)", 0, 0, 0
     {
         MENUITEM "バージョン情報(&V)", IDC_HELP_VER, 0, 0
-        MENUITEM "リポジトリ(GitHub)(&R)", IDC_HELP_DEVREPOS, 0, 0
+        MENUITEM "GitHubのリポジトリを開く(&R)", IDC_HELP_DEVREPOS, 0, 0
     }
 }
 

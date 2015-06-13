@@ -20,11 +20,6 @@
 * APIが返す文字列は静的変数に書き込むべき
 * 与えられた項目を一覧表示する概観ノードの追加
 * SysvarとしてGinfo,dirinfo,mouse(x,y,w)の追加
-* スクリプト側から api を通して、変数ツリービューにノードを追加できるようにしたい。
-  * 事前に ``knowbug_addNode "ginfo_winx", *knowbug_node_ginfo_winx`` としておく。
-  * 値が要求されるたびに、スクリプト内のラベル ``*knowbug_node_ginfo_winx`` を呼ぶ。
-    * ``*knowbug_node_ginfo_winx: knowbug_vswAddValue ginfo_winx: return``
-    * knowbug側から起動されるラベルの間にステップ実行で停止するのは、直感的な挙動ではないので避ける。
 * hsphedの情報をvartreeに配置。
 * エディットボックスを更新するときに途中で再描画されないようにしたい。
 
