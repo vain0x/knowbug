@@ -44,7 +44,7 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 
 	// 変数に関する情報
 	getWriter().catln(strf("変数名：%s", name));
-	getWriter().catln(strf("変数型：%s", getVartypeString(pval).c_str()));
+	getWriter().catln(strf("変数型：%s", getVartypeString(pval)));
 	if ( g_config->showsVariableAddress ) {
 		getWriter().catln(strf("アドレス：0x%08X, 0x%08X", address_cast(pval->pt), address_cast(pval->master)));
 	}
@@ -103,7 +103,7 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 	);
 
 	// シグネチャ
-	getWriter().catln(strf("仮引数：(%s)", getPrmlistString(stdat).c_str()));
+	getWriter().catln(strf("仮引数：(%s)", getPrmlistString(stdat)));
 	getWriter().catCrlf();
 
 	auto const&& prmstk_safety = callinfo.tryGetPrmstk();
@@ -123,7 +123,7 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 void CVarinfoText::addResult( stdat_t stdat, string const& text, char const* name )
 {
 	getWriter().catln(strf("関数名：%s", name));
-//	getWriter().catln(strf("仮引数：(%s)", getPrmlistString(stdat).c_str()));
+//	getWriter().catln(strf("仮引数：(%s)", getPrmlistString(stdat)));
 	getWriter().catCrlf();
 
 	getWriter().cat(text);
@@ -289,12 +289,12 @@ string getVartypeString(PVal const* pval)
 	string const arrayType =
 		(maxDim == 0) ? "(empty)" :
 		(maxDim == 1) ? makeArrayIndexString(1, &pval->len[1]) :
-		strf("%s (%d in total)", makeArrayIndexString(maxDim, &pval->len[1]).c_str(), hpimod::PVal_cntElems(pval))
+		strf("%s (%d in total)", makeArrayIndexString(maxDim, &pval->len[1]), hpimod::PVal_cntElems(pval))
 	;
 
 	return strf("%s%s %s",
 		hpimod::getHvp(pval->flag)->vartype_name,
 		typeQualifierStringFromVarmode(pval->mode),
-		arrayType.c_str()
+		arrayType
 	);
 }

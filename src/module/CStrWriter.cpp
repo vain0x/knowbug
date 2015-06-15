@@ -44,17 +44,16 @@ void CStrWriter::catDumpImpl( void const* data, size_t size )
 	assert(!!data);
 
 	auto const mem = static_cast<unsigned char const*>(data);
-	char tline[(4 + 3 * stc_bytesPerLine) + 1];
-	size_t len = 0;
 	size_t idx = 0;
 	while ( idx < size ) {
-		if ( len != 0 ) catCrlf();		// 1回目は出力しない
+		if ( idx != 0 ) catCrlf(); //delimiter
 
-		len = std::sprintf(tline, "%04X", idx);
+		fmt::MemoryWriter row;
+		row << fmt::pad(fmt::hexu(idx), 4, '0');
 		for ( size_t i = 0; (i < stc_bytesPerLine && idx < size); ++i, ++idx ) {
-			len += std::sprintf(&tline[len], " %02X", mem[idx]);
+			row << ' ' << fmt::pad(fmt::hexu(mem[idx]), 2, '0');
 		}
-		cat( tline );
+		cat(row.c_str());
 	}
 }
 

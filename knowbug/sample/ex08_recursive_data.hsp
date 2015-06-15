@@ -1,4 +1,5 @@
-//無限再帰データ
+//循環参照データ
+//「v の中に v を指す変数がある」ので、v を表す文字列は無限に長くて深い
 
 #module Value x_
 #modfunc Value_set var x
