@@ -164,8 +164,7 @@ bool continueConditionalRun()
 			g_dbginfo->setStepMode(HSPDEBUG_STEPIN); // stepin を繰り返す
 			return true;
 		} else {
-			sublevOfGoal = -1;	// 終了
-		//	g_dbginfo->debug->dbg_set( HSPDEBUG_STOP );
+			sublevOfGoal = -1;
 		}
 	}
 	return false;
@@ -197,10 +196,9 @@ void bgnCalling(ModcmdCallInfo const& callinfo)
 	// ログ出力
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
-			"[CallBgn] %s\t#%d of \"%s\"]\r\n",
+			"[CallBgn] %s\t%s]\r\n",
 			hpimod::STRUCTDAT_getName(callinfo.stdat),
-			callinfo.line,
-			callinfo.fname
+			DebugInfo::formatCurInfString(callinfo.fname, callinfo.line)
 		);
 		Knowbug::logmes(logText.c_str());
 	}
