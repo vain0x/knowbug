@@ -1,3 +1,6 @@
 [submodule "hpimod"]
 	path = hpimod
 	url = ../hpimod
+[submodule "cppformat"]
+	path = cppformat
+	url = https://github.com/cppformat/cppformat

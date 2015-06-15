@@ -40,6 +40,9 @@
     <Filter Include="テキスト">
       <UniqueIdentifier>{832353c6-8f2f-44a8-b714-e0445d320023}</UniqueIdentifier>
     </Filter>
+    <Filter Include="module\cppformat">
+      <UniqueIdentifier>{28c463bf-4ac1-41cd-b962-e422ed5235ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CVarinfoText.cpp">
@@ -75,9 +78,6 @@
     <ClCompile Include="module\CIni.cpp">
       <Filter>module</Filter>
     </ClCompile>
-    <ClCompile Include="module\strf.cpp">
-      <Filter>module</Filter>
-    </ClCompile>
     <ClCompile Include="CVardataString.cpp">
       <Filter>class</Filter>
     </ClCompile>
@@ -101,6 +101,9 @@
     </ClCompile>
     <ClCompile Include="module\GuiUtility.cpp">
       <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cppformat\format.cc">
+      <Filter>module\cppformat</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -217,6 +220,9 @@
     </ClInclude>
     <ClInclude Include="module\GuiUtility.h">
       <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cppformat\format.h">
+      <Filter>module\cppformat</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -266,20 +266,12 @@ char const* getMPTypeString(int mptype)
 //------------------------------------------------
 string getPrmlistString(stdat_t stdat)
 {
-#if 0
 	string s = "";
-
-	//if ( stdat->prmmax == 0 ) s = "void";
 	std::for_each(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat), [&](STRUCTPRM const& stprm) {
 		if ( !s.empty() ) s += ", ";
 		s += getMPTypeString(stprm.mptype);
 	});
 	return s;
-#else
-	auto const range = make_mapped_range(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat),
-		[&](STRUCTPRM const& stprm) { return getMPTypeString(stprm.mptype); });
-	return join(range.begin(), range.end(), ", ");
-#endif
 }
 
 static char const* typeQualifierStringFromVarmode(varmode_t mode)
