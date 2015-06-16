@@ -37,9 +37,6 @@ void CStrWriter::catCrlf()
 void CStrWriter::catDumpImpl( void const* data, size_t size )
 {
 	static size_t const stc_bytesPerLine = 0x10;
-
-	assert(!!data);
-
 	auto const mem = static_cast<unsigned char const*>(data);
 	size_t idx = 0;
 	while ( idx < size ) {
@@ -56,7 +53,7 @@ void CStrWriter::catDumpImpl( void const* data, size_t size )
 
 void CStrWriter::catDump(void const* data, size_t bufsize)
 {
-	if (data == nullptr || bufsize == 0) return;
+	assert(bufsize == 0 || data);
 
 	static size_t const stc_maxsize = 0x10000;
 	size_t size = bufsize;

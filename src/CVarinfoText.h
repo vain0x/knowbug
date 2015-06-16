@@ -48,8 +48,7 @@ private:
 	CStrWriter writer_;
 };
 
-extern char const* getMPTypeString(int mptype);
-extern string getPrmlistString(stdat_t stdat);
-extern string getVartypeString(PVal const* pval);
+extern string stringizePrmlist(stdat_t stdat);
+extern string stringizeVartype(PVal const* pval);
 
 #endif

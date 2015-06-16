@@ -50,8 +50,9 @@ public:
 	void addVarScalar(char const* name, PVal const* pval);
 	void addVarScalar(char const* name, PVal const* pval, APTR aptr);
 	void addVarArray(char const* name, PVal const* pval);
-	void addVarArrayRec(PVal const* pval, size_t const cntElem[], size_t idxDim, APTR aptr_offset);
-
+private:
+	void addVarArrayRec(PVal const* pval, size_t const (&cntElem)[hpimod::ArrayDimMax + 1], size_t idxDim, APTR aptr_offset);
+public:
 	void addValue(char const* name, vartype_t type, PDAT const* ptr);
 	void addValueStruct(char const* name, FlexValue const* fv);
 
@@ -79,27 +80,5 @@ public:
 public:
 	CStructedStrWriter& getWriter() const { return *writer_; }
 };
-
-//------------------------------------------------
-// 置く場所に困る系関数群
-//------------------------------------------------
-
-// 文字列リテラルの形式の文字列
-extern string toStringLiteralFormat(char const* src);
-
-// モジュールクラス名の文字列の生成
-extern string makeModuleClassNameString(stdat_t stdat, bool bClone);
-
-// 配列添字の文字列の生成
-extern string makeArrayIndexString(size_t dim, int const indexes[]);
-
-// aptr から添字を求める
-extern void calcIndexesFromAptr(int* indexes, APTR aptr, int const* lengths, size_t cntElems, size_t dim);
-
-// スコープ解決を取り除いた識別子
-extern string removeScopeResolution(string const& name);
-
-// 仮引数の名前 (failure: "(idx)")
-extern string getStPrmName(stprm_t stprm, int idx);
 
 #endif

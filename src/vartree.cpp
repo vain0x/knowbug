@@ -69,7 +69,7 @@ namespace Detail
 		return true;
 	} };
 	template<> struct Verify < SysvarNode > { static bool apply(char const* s, SysvarNode::lparam_t value) {
-		return (0 <= value && value < Sysvar::Count && Sysvar::seek(&s[1]) == value);
+		return (0 <= value && value < Sysvar::Count && Sysvar::trySeek(&s[1]) == value);
 	} };
 	template<> struct Verify < InvokeNode > { static bool apply(char const*, InvokeNode::lparam_t value) {
 		return (value >= 0);
@@ -335,7 +335,6 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 	} else {
 		if ( SysvarNode::isTypeOf(name) ) {
 			Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
-			assert(0 <= id && id < Sysvar::Count && Sysvar::seek(&name[1]) == id);
 			varinf.addSysvar(id);
 
 	#ifdef with_WrapCall

@@ -14,10 +14,11 @@ namespace Sysvar
 //------------------------------------------------
 // システム変数名からインデックス値を求める
 //------------------------------------------------
-Id seek( char const* name )
+Id trySeek( char const* name )
 {
+	assert(name);
 	for ( int i = 0; i < Count; ++ i ) {
-		if ( strcmp( name, List[i].name ) == 0 ) return static_cast<Id>(i);
+		if ( strcmp(name, List[i].name) == 0 ) return static_cast<Id>(i);
 	}
 	return Id::MAX;
 }
@@ -25,19 +26,22 @@ Id seek( char const* name )
 //------------------------------------------------
 // 整数値のシステム変数へのポインタを得る
 //------------------------------------------------
-int* getIntPtr(Id id)
+int& getIntRef(Id id)
 {
 	assert(List[id].type == HSPVAR_FLAG_INT && id != Id::Cnt);
 	switch ( id ) {
-		case Id::Stat:    return &ctx->stat;
-		case Id::IParam:  return &ctx->iparam;
-		case Id::WParam:  return &ctx->wparam;
-		case Id::LParam:  return &ctx->lparam;
-		case Id::StrSize: return &ctx->strsize;
-		case Id::Looplev: return &ctx->looplev;
-		case Id::Sublev:  return &ctx->sublev;
-		case Id::Err:     return ptr_cast<int*>(&ctx->err);
-		default: assert(false); throw;
+		case Id::Stat:    return ctx->stat;
+		case Id::IParam:  return ctx->iparam;
+		case Id::WParam:  return ctx->wparam;
+		case Id::LParam:  return ctx->lparam;
+		case Id::StrSize: return ctx->strsize;
+		case Id::Looplev: return ctx->looplev;
+		case Id::Sublev:  return ctx->sublev;
+		case Id::Err: {
+			static_assert(sizeof(int) == sizeof(ctx->err), "");
+			return reinterpret_cast<int&>(ctx->err);
+		}
+		default: assert_sentinel;
 	}
 }
 
@@ -46,7 +50,7 @@ int* getIntPtr(Id id)
 // 
 // (failure: nullptr)
 //------------------------------------------------
-FlexValue* getThismod()
+FlexValue* tryGetThismod()
 {
 	if ( ctx->prmstack ) {
 		auto const thismod = ptr_cast<MPModVarData*>(ctx->prmstack);
@@ -64,7 +68,7 @@ FlexValue* getThismod()
 //------------------------------------------------
 // メモリダンプするための情報を得る
 //------------------------------------------------
-std::pair<void const*, size_t> dump(Id id)
+std::pair<void const*, size_t> tryDump(Id id)
 {
 	switch ( id ) {
 		case Id::Refstr:  return std::make_pair(ctx->refstr, HSPCTX_REFSTR_MAX);
@@ -81,23 +85,19 @@ std::pair<void const*, size_t> dump(Id id)
 					&size
 				);
 				return std::make_pair(data, static_cast<size_t>(size));
-			} else {
-				break;
 			}
+			break;
 		}
 		case Sysvar::Id::Thismod:
-			if ( auto const fv = Sysvar::getThismod() ) {
+			if ( auto const fv = Sysvar::tryGetThismod() ) {
 				return std::make_pair(fv->ptr, fv->size);
-			} else {
-				break;
 			}
+			break;
 		default:
-			// 整数値
 			if ( Sysvar::List[id].type == HSPVAR_FLAG_INT ) {
-				return std::make_pair(Sysvar::getIntPtr(id), sizeof(int));
-			} else {
-				break;
+				return std::make_pair(&Sysvar::getIntRef(id), sizeof(int));
 			}
+			break;
 	};
 	// no dump
 	return std::make_pair(nullptr, 0);

@@ -168,6 +168,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\cppformat\format.cc" />
+    <ClCompile Include="..\hpimod\hpimod\stringization.cpp" />
     <ClCompile Include="..\hpimod\hspsdk\hsp3plugin.cpp" />
     <ClCompile Include="config_mng.cpp" />
     <ClCompile Include="CVardataString.cpp" />
@@ -196,7 +197,7 @@
     <ClInclude Include="..\cppformat\format.h" />
     <ClInclude Include="..\hpimod\hpimod\basis.h" />
     <ClInclude Include="..\hpimod\hpimod\hsp3plugin_custom.h" />
-    <ClInclude Include="..\hpimod\hpimod\HspAllocator.h" />
+    <ClInclude Include="..\hpimod\hpimod\stringization.h" />
     <ClInclude Include="..\hpimod\hpimod\vartype_traits.h" />
     <ClInclude Include="..\hpimod\hspsdk\hsed3_footy2\interface.h" />
     <ClInclude Include="..\hpimod\hspsdk\hsp3debug.h" />

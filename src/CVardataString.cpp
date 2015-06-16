@@ -5,9 +5,11 @@
 #include "module/CStrWriter.h"
 #include "module/CStrBuf.h"
 #include "hpimod/vartype_traits.h"
+#include "hpimod/stringization.h"
 
 #include "main.h"
 #include "CVardataString.h"
+#include "CVarinfoText.h"
 #include "CAx.h"
 #include "SysvarData.h"
 
@@ -17,10 +19,11 @@
 namespace VtTraits { using namespace hpimod::VtTraits; }
 using namespace hpimod::VtTraits::InternalVartypeTags;
 
-extern string getVartypeString(PVal const* pval);
-
 static string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort);
-static char const* findVarName(PVal const* pval);
+static string stringizeExtraScalar(char const* vtname, PDAT const* ptr, bool bShort, bool& caught);
+static string nameFromModuleClass(stdat_t stdat, bool bClone);
+static string nameFromStPrm(stprm_t stprm, int idx);
+static string nameFromLabel(label_t lb);
 
 CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src) : writer_(std::move(src.writer_)) {}
 CVardataStrWriter::~CVardataStrWriter() {}
@@ -35,24 +38,17 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 	assert(!!pval);
 	auto const hvp = hpimod::getHvp(pval->flag);
 
-	// 拡張型
 	if ( pval->flag >= HSPVAR_FLAG_USERDEF ) {
 		auto const&& iter = g_config->vswInfo.find(hvp->vartype_name);
 		if ( iter != g_config->vswInfo.end() ) {
 			if ( addVarUserdef_t const addVar = std::get<1>(iter->second) ) {
-				addVar(this, name, pval);
-				return;
+				return addVar(this, name, pval);
 			}
 		}
 	}
-
-	// 標準配列
-	if ( !(pval->len[1] == 1 && pval->len[2] == 0)
-		&& (hvp->support & (HSPVAR_SUPPORT_FIXEDARRAY | HSPVAR_SUPPORT_FLEXARRAY))
-	) {
+	
+	if ( hpimod::PVal_isStandardArray(pval) ) {
 		addVarArray(name, pval);
-
-	// 単体
 	} else {
 		addVarScalar(name, pval, 0);
 	}
@@ -79,29 +75,26 @@ void CVardataStrWriter::addVarScalar(char const* name, PVal const* pval, APTR ap
 void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 {
 	auto const hvp = hpimod::getHvp(pval->flag);
+	size_t const cntElem = hpimod::PVal_cntElems(pval);
 
 	getWriter().catNodeBegin(name, strf("<%s>[", hvp->vartype_name).c_str());
 
-	size_t const dim = hpimod::PVal_maxDim(pval);
-
 	// ツリー状文字列の場合
 	if ( !getWriter().isLineformed() ) {
-		getWriter().catAttribute("type", getVartypeString(pval).c_str());
+		getWriter().catAttribute("type", stringizeVartype(pval).c_str());
 
-		// 各要素を追加する
-		size_t const cntElems = hpimod::PVal_cntElems(pval);
-		int indexes[hpimod::ArrayDimMax] = { 0 };
-
-		for ( size_t i = 0; i < cntElems; ++i ) {
-			calcIndexesFromAptr(indexes, i, &pval->len[1], cntElems, dim);
+		for ( size_t i = 0; i < cntElem; ++i ) {
+			auto&& indexes = hpimod::PVal_indexesFromAptr(pval, i);
 
 			// 要素の値を追加
-			string const nameChild = makeArrayIndexString(dim, indexes);
+			string const nameChild = hpimod::stringizeArrayIndex(indexes);
 			addVarScalar(nameChild.c_str(), pval, i);
 		}
 
 	// 一行文字列の場合
-	} else if ( dim > 0 ) {
+	} else if ( cntElem > 0 ) {
+		size_t const dim = hpimod::PVal_maxDim(pval);
+
 		// cntElems[1 + i] = 部分i次元配列の要素数
 		// (例えば配列 int(2, 3, 4) だと、cntElems = {1, 2, 2*3, 2*3*4, 0})
 		size_t cntElems[1 + hpimod::ArrayDimMax] = { 1 };
@@ -115,12 +108,10 @@ void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 	getWriter().catNodeEnd("]");
 }
 
-void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const cntElems[], size_t idxDim, APTR aptr_offset)
+void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const (&cntElems)[hpimod::ArrayDimMax + 1], size_t idxDim, APTR aptr_offset)
 {
 	assert(getWriter().isLineformed());
 	for ( int i = 0; i < pval->len[idxDim + 1]; ++i ) {
-		//if ( i != 0 ) getWriter().cat(", ");
-
 		// 2次以上 => 配列を出力
 		if ( idxDim >= 1 ) {
 			getWriter().catNodeBegin(CStructedStrWriter::stc_strUnused, "[");
@@ -165,7 +156,7 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 		addValueStruct(name2.c_str(), ModPtr::getValue(modptr));
 #endif
 	} else {
-		auto const dbgstr = stringizeSimpleValue(type, ptr, getWriter().isLineformed());
+		auto const&& dbgstr = stringizeSimpleValue(type, ptr, getWriter().isLineformed());
 		getWriter().catLeaf(name, dbgstr.c_str());
 	}
 }
@@ -181,10 +172,9 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 		getWriter().catLeafExtra(name, "nullmod");
 
 	} else {
-		//	cat(strf("%s.myid = %d", getIndent().c_str(), fv->myid ));
 		auto const stdat = hpimod::FlexValue_getModule(fv);
 		auto const modclsNameString =
-			makeModuleClassNameString(stdat, hpimod::FlexValue_isClone(fv));
+			nameFromModuleClass(stdat, hpimod::FlexValue_isClone(fv));
 
 		getWriter().catNodeBegin(name, (modclsNameString + "{").c_str());
 		getWriter().catAttribute("modcls", modclsNameString.c_str());
@@ -216,7 +206,7 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> 
 			getWriter().cat(" ");
 		}
 
-		addParameter(getStPrmName(&stprm, i).c_str(), stdat, &stprm, member, prmstk.second);
+		addParameter(nameFromStPrm(&stprm, i).c_str(), stdat, &stprm, member, prmstk.second);
 
 		// structtag isn't a member
 		if ( stprm.mptype != MPTYPE_STRUCTTAG ) { ++i; }
@@ -244,7 +234,6 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 	switch ( stprm->mptype ) {
 		case MPTYPE_STRUCTTAG: break;
 
-		// 変数 (PVal*)
 		//	case MPTYPE_VAR:
 		case MPTYPE_SINGLEVAR:
 		case MPTYPE_ARRAYVAR: {
@@ -256,13 +245,11 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 			}
 			break;
 		}
-		// 変数 (PVal)
 		case MPTYPE_LOCALVAR: {
 			auto const pval = cptr_cast<PVal*>(member);
 			addVar(name, pval);
 			break;
 		}
-		// thismod
 		case MPTYPE_MODULEVAR:
 		case MPTYPE_IMODULEVAR:
 		case MPTYPE_TMODULEVAR: {
@@ -271,13 +258,11 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 			addValueStruct(name, fv);
 			break;
 		}
-		// 文字列 (char**)
 		//	case MPTYPE_STRING:
 		case MPTYPE_LOCALSTRING:
 			addValue(name, HSPVAR_FLAG_STR, VtTraits::asPDAT<vtStr>(*cptr_cast<char**>(member)));
 			break;
 
-		// その他
 		case MPTYPE_DNUM:
 			addValue(name, HSPVAR_FLAG_DOUBLE, VtTraits::asPDAT<vtDouble>(cptr_cast<double*>(member)));
 			break;
@@ -290,10 +275,9 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 			addValue(name, HSPVAR_FLAG_LABEL, VtTraits::asPDAT<vtLabel>(cptr_cast<label_t*>(member)));
 			break;
 
-		// 他 => 無視
 		default:
 			getWriter().catLeaf(name,
-				strf("ignored (mptype = %d)", stprm->mptype).c_str()
+				strf("unknown (mptype = %d)", stprm->mptype).c_str()
 			);
 			break;
 	}
@@ -318,7 +302,7 @@ void CVardataStrWriter::addSysvar(Sysvar::Id id)
 			break;
 
 		case Sysvar::Id::Cnt:
-			if ( ctx->looplev ) {
+			if ( ctx->looplev > 0 ) {
 				// int 配列と同じ表示にする
 				getWriter().catNodeBegin(name, "<int>[");
 				for ( int i = 0; i < ctx->looplev; ++ i ) {
@@ -336,15 +320,13 @@ void CVardataStrWriter::addSysvar(Sysvar::Id id)
 		{
 			if ( PVal const* const pval = ctx->note_pval ) {
 				APTR const aptr = ctx->note_aptr;
-				string name2;
-				if ( auto const nameOfVar = findVarName(pval) ) {
-					size_t const maxDim = hpimod::PVal_maxDim(pval);
-					int indexes[hpimod::ArrayDimMax];
-					calcIndexesFromAptr(indexes, aptr, &pval->len[1], hpimod::PVal_cntElems(pval), maxDim);
-					name2 = strf("%s (%s%s)", name, nameOfVar, makeArrayIndexString(maxDim, indexes));
-				} else {
-					name2 = strf("%s (0x%08X[%d])", name, address_cast(pval), aptr);
-				}
+
+				auto&& indexes = hpimod::PVal_indexesFromAptr(pval, aptr);
+				auto&& indexString = hpimod::stringizeArrayIndex(indexes);
+				auto const varName = hpimod::nameFromStaticVar(pval);
+				string&& name2 = (name
+					? strf("%s (%s%s)", name, varName, indexString)
+					: strf("%s (%08X%s)", name, address_cast(pval), aptr));
 				addVarScalar(name2.c_str(), pval, aptr);
 			} else {
 				getWriter().catLeafExtra(name, "not_exist");
@@ -352,20 +334,18 @@ void CVardataStrWriter::addSysvar(Sysvar::Id id)
 			break;
 		}
 		case Sysvar::Id::Thismod:
-			if ( auto const fv = Sysvar::getThismod() ) {
+			if ( auto const fv = Sysvar::tryGetThismod() ) {
 				addValueStruct(name, fv);
 			} else {
 				getWriter().catLeafExtra(name, "nullmod");
 			}
 			break;
 		default:
-			// 整数値
 			if ( Sysvar::List[id].type == HSPVAR_FLAG_INT ) {
-				addValue(name, HSPVAR_FLAG_INT, VtTraits::asPDAT<vtInt>(Sysvar::getIntPtr(id)));
+				addValue(name, HSPVAR_FLAG_INT, VtTraits::asPDAT<vtInt>(&Sysvar::getIntRef(id)));
 				break;
-			} else {
-				assert_sentinel;
 			}
+			assert_sentinel;
 	};
 }
 
@@ -384,11 +364,7 @@ void CVardataStrWriter::addCall(char const* name, stdat_t stdat, std::pair<void 
 {
 	getWriter().catNodeBegin(name, strf("%s(", name).c_str());
 	if ( !prmstk.first ) {
-		if ( getWriter().isLineformed() ) {
-			getWriter().catLeafExtra(CStructedStrWriter::stc_strUnused, "not_available");
-		} else {
-			getWriter().catLeafExtra("arguments", "not_available");
-		}
+		getWriter().catLeafExtra("arguments", "not_available");
 	} else {
 		addPrmstack(stdat, prmstk);
 	}
@@ -407,10 +383,6 @@ void CVardataStrWriter::addResult(char const* name, PDAT const* ptr, vartype_t t
 	addValue(name, type, ptr);
 }
 
-//**********************************************************
-//        下請け関数
-//**********************************************************
-
 //------------------------------------------------
 // 単純な値を文字列化する
 //
@@ -423,10 +395,10 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 
 	switch ( type ) {
 		case HSPVAR_FLAG_STR: {
-			auto const val = cptr_cast<char*>(ptr);
+			auto const s = cptr_cast<char*>(ptr);
 			return (bShort
-				? toStringLiteralFormat(val)
-				: string(val));
+				? hpimod::literalFormString(s)
+				: string(s));
 		}
 		case HSPVAR_FLAG_COMOBJ:  return strf("comobj(0x%08X)", address_cast(*cptr_cast<void**>(ptr)));
 		case HSPVAR_FLAG_VARIANT: return strf("variant(0x%08X)", address_cast(*cptr_cast<void**>(ptr)));
@@ -434,171 +406,92 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 		case HSPVAR_FLAG_INT: {
 			int const val = *cptr_cast<int*>(ptr);
 #ifdef with_ModPtr
-			assert(!ModPtr::isValid(val));	// addItem_value で処理されたはず
+			assert(!ModPtr::isValid(val)); // addItem_value で処理されたはず
 #endif
 			return (bShort
 				? strf("%d", val)
 				: strf("%-10d (0x%08X)", val, val));
 		}
-		case HSPVAR_FLAG_LABEL: {
-			auto const lb = *cptr_cast<label_t*>(ptr);
-			int const idx = hpimod::findOTIndex(lb);
-			auto const name =
-				(idx >= 0 ? g_dbginfo->ax->getLabelName(idx) : nullptr);
-			return (name ? strf("*%s", name) : strf("label(0x%08X)", address_cast(lb)));
-		}
+		case HSPVAR_FLAG_LABEL: return nameFromLabel(*cptr_cast<label_t*>(ptr));
 		default: {
 			auto const vtname = hpimod::getHvp(type)->vartype_name;
 
 #ifdef with_ExtraBasics
-			// 拡張基本型
-			bool bSigned = false;
-
-			if ( strcmp(vtname, "bool") == 0 ) {
-				static char const* const bool_name[2] = { "false", "true" };
-				return bool_name[*cptr_cast<bool*>(ptr) ? 1 : 0];
-
-				// char (signed char とする)
-			} else if (
-				(strcmp(vtname, "char") == 0 || strcmp(vtname, "signed_char") == 0) && (bSigned = true)
-				|| (strcmp(vtname, "uchar") == 0 || strcmp(vtname, "unsigned_char") == 0)
-				) {
-				int const val = bSigned ? *cptr_cast<signed char*>(ptr) : *cptr_cast<unsigned char*>(ptr);
-				return (val == 0) ? string("0 ('\\0')") : strf("%-3d '%c'", static_cast<int>(val), static_cast<char>(val));
-
-				// short
-			} else if (
-				(strcmp(vtname, "short") == 0 || strcmp(vtname, "signed_short") == 0) && (bSigned = true)
-				|| (strcmp(vtname, "ushort") == 0 || strcmp(vtname, "unsigned_short") == 0)
-				) {
-				int const val = static_cast<int>(bSigned ? *cptr_cast<signed short*>(ptr) : *cptr_cast<unsigned short*>(ptr));
-				return (bShort ? strf("%d", val) : strf("%-6d (0x%04X)", val, static_cast<short>(val)));
-
-				// unsigned int
-			} else if ( strcmp(vtname, "uint") == 0 || strcmp(vtname, "unsigned_int") == 0 ) {
-				auto const val = *cptr_cast<unsigned int*>(ptr);
-				return (bShort ? strf("%d", val) : strf("%-10d (0x%08X)", val, val));
-
-				// long
-			} else if (
-				(strcmp(vtname, "long") == 0 || strcmp(vtname, "signed_long") == 0) && (bSigned = true)
-				|| (strcmp(vtname, "ulong") == 0 || strcmp(vtname, "unsigned_long") == 0)
-				) {
-				auto const   signed_val = *cptr_cast<long long*>(ptr);
-				auto const unsigned_val = *cptr_cast<unsigned long long*>(ptr);
-				return (bShort
-					? strf("%d", (bSigned ? signed_val : unsigned_val))
-					: strf("%d (0x%16X)", (bSigned ? signed_val : unsigned_val), signed_val)
-					);
-				// おまけ
-			} else if ( strcmp(vtname, "tribyte") == 0 ) {
-				auto const bytes = cptr_cast<char*>(ptr);
-				int const val = bytes[0] << 16 | bytes[1] << 8 | bytes[2];
-				return (bShort
-					? strf("%d", val)
-					: strf("%-8d (0x%06X)", val, val)
-					);
-			}
+			bool caught;
+			auto&& exScalar = stringizeExtraScalar(vtname, ptr, bShort, caught);
+			if ( caught ) return std::move(exScalar);
 #endif
 			return strf("unknown<%s>(0x%08X)", vtname, address_cast(ptr));
 		}
 	}
 }
 
-//------------------------------------------------
-// 文字列を文字列リテラルの形式に変換する
-//------------------------------------------------
-string toStringLiteralFormat(char const* src)
+#ifdef with_ExtraBasics
+string stringizeExtraScalar(char const* vtname, PDAT const* ptr, bool bShort, bool& caught)
 {
-	size_t const maxlen = (std::strlen(src) * 2) + 2;
-	std::vector<char> buf; buf.resize(maxlen + 1);
-	size_t idx = 0;
+	caught = true;
+	bool bSigned = false;
 
-	buf[idx++] = '\"';
+	if ( strcmp(vtname, "bool") == 0 ) {
+		static char const* const bool_name[2] = { "false", "true" };
+		return bool_name[*cptr_cast<bool*>(ptr) ? 1 : 0];
 
-	for ( int i = 0;; ++i ) {
-		char const c = src[i];
+		// char (signed char とする)
+	} else if (
+		(strcmp(vtname, "char") == 0 || strcmp(vtname, "signed_char") == 0) && (bSigned = true)
+		|| (strcmp(vtname, "uchar") == 0 || strcmp(vtname, "unsigned_char") == 0)
+		) {
+		int const val = bSigned ? *cptr_cast<signed char*>(ptr) : *cptr_cast<unsigned char*>(ptr);
+		return (val == 0) ? string("0 ('\\0')") : strf("%-3d '%c'", static_cast<int>(val), static_cast<char>(val));
 
-		if ( c == '\0' ) {
-			break;
+		// short
+	} else if (
+		(strcmp(vtname, "short") == 0 || strcmp(vtname, "signed_short") == 0) && (bSigned = true)
+		|| (strcmp(vtname, "ushort") == 0 || strcmp(vtname, "unsigned_short") == 0)
+		) {
+		int const val = static_cast<int>(bSigned ? *cptr_cast<signed short*>(ptr) : *cptr_cast<unsigned short*>(ptr));
+		return (bShort ? strf("%d", val) : strf("%-6d (0x%04X)", val, static_cast<short>(val)));
 
-		} else if ( c == '\\' || c == '\"' ) {
-			buf[idx++] = '\\';
-			buf[idx++] = c;
+		// unsigned int
+	} else if ( strcmp(vtname, "uint") == 0 || strcmp(vtname, "unsigned_int") == 0 ) {
+		auto const val = *cptr_cast<unsigned int*>(ptr);
+		return (bShort ? strf("%d", val) : strf("%-10d (0x%08X)", val, val));
 
-		} else if ( c == '\t' ) {
-			buf[idx++] = '\\';
-			buf[idx++] = 't';
-
-		} else if ( c == '\r' || c == '\n' ) {
-			buf[idx++] = '\\';
-
-			if ( c == '\r' && src[i + 1] == '\n' ) {	// CR + LF
-				buf[idx++] = 'n';
-				i++;
-			} else {
-				buf[idx++] = 'r';
-			}
-
-		} else {
-			buf[idx++] = c;
-		}
+		// long
+	} else if (
+		(strcmp(vtname, "long") == 0 || strcmp(vtname, "signed_long") == 0) && (bSigned = true)
+		|| (strcmp(vtname, "ulong") == 0 || strcmp(vtname, "unsigned_long") == 0)
+		) {
+		auto const   signed_val = *cptr_cast<long long*>(ptr);
+		auto const unsigned_val = *cptr_cast<unsigned long long*>(ptr);
+		return (bShort
+			? strf("%d", (bSigned ? signed_val : unsigned_val))
+			: strf("%d (0x%16X)", (bSigned ? signed_val : unsigned_val), signed_val)
+			);
+		// おまけ
+	} else if ( strcmp(vtname, "tribyte") == 0 ) {
+		auto const bytes = cptr_cast<char*>(ptr);
+		int const val = bytes[0] << 16 | bytes[1] << 8 | bytes[2];
+		return (bShort
+			? strf("%d", val)
+			: strf("%-8d (0x%06X)", val, val)
+			);
+	} else {
+		caught = false;
+		return string();
 	}
-
-	buf[idx++] = '\"';
-	buf[idx++] = '\0';
-	return string { buf.data() };
 }
+#endif
 
 //------------------------------------------------
 // モジュールクラス名を表す文字列
 //------------------------------------------------
-string makeModuleClassNameString(stdat_t stdat, bool bClone)
+string nameFromModuleClass(stdat_t stdat, bool bClone)
 {
 	auto const modclsName = hpimod::STRUCTDAT_getName(stdat);
 	return (bClone
 		? strf("%s&", modclsName)
-		: string(modclsName));
-}
-
-//------------------------------------------------
-// 配列添字の文字列
-//------------------------------------------------
-string makeArrayIndexString(size_t dim, int const indexes[])
-{
-	switch ( dim ) {
-		case 0: return BracketIdxL BracketIdxR;
-		case 1: return strf(BracketIdxL "%d"             BracketIdxR, indexes[0]);
-		case 2: return strf(BracketIdxL "%d, %d"         BracketIdxR, indexes[0], indexes[1]);
-		case 3: return strf(BracketIdxL "%d, %d, %d"     BracketIdxR, indexes[0], indexes[1], indexes[2]);
-		case 4: return strf(BracketIdxL "%d, %d, %d, %d" BracketIdxR, indexes[0], indexes[1], indexes[2], indexes[3]);
-		default:
-			return "(invalid index)";
-	}
-}
-
-//------------------------------------------------
-// APTR値から添字を計算する
-// 
-// @prm indexes: dim 個以上の要素を持つ。dim 個より後の要素は変更されない。
-//------------------------------------------------
-void calcIndexesFromAptr(int* indexes, APTR aptr, int const* lengths, size_t cntElems, size_t dim)
-{
-	for ( size_t idxDim = 0; idxDim < dim; ++idxDim ) {
-		indexes[idxDim] = aptr % lengths[idxDim];
-		aptr /= lengths[idxDim];
-	}
-}
-
-//------------------------------------------------
-// スコープ解決を取り除いた名前
-//------------------------------------------------
-string removeScopeResolution(string const& name)
-{
-	int const idxScopeResolution = name.find('@');
-	return (idxScopeResolution != string::npos
-		? name.substr(0, idxScopeResolution)
-		: name);
+		: modclsName);
 }
 
 //------------------------------------------------
@@ -606,28 +499,32 @@ string removeScopeResolution(string const& name)
 // 
 // デバッグ情報から取得する。なければ「(idx)」とする。
 //------------------------------------------------
-string getStPrmName(stprm_t stprm, int idx)
+string nameFromStPrm(stprm_t stprm, int idx)
 {
 	int const subid = hpimod::findStPrmIndex(stprm);
 	if ( subid >= 0 ) {
 		if ( auto const name = g_dbginfo->ax->getPrmName(subid) ) {
-			return removeScopeResolution(name);
+			return hpimod::nameExcludingScopeResolution(name);
 
 		// thismod 引数
 		} else if ( stprm->mptype == MPTYPE_MODULEVAR || stprm->mptype == MPTYPE_IMODULEVAR || stprm->mptype == MPTYPE_TMODULEVAR ) {
 			return "thismod";
 		}
 	}
-	return makeArrayIndexString(1, &idx);
+	return hpimod::stringizeArrayIndex({ idx });
 }
 
 //------------------------------------------------
-// 変数の名前を見つける (failure: nullptr)
+// ラベルの名前
+// 
+// デバッグ情報から取得する。なければ「label(address)」とする。
 //------------------------------------------------
-static char const* findVarName(PVal const* pval)
+string nameFromLabel(label_t lb)
 {
-	auto const idx = pval - ctx->mem_var;
-	return (0 <= idx && idx < ctx->hsphed->max_val)
-		? exinfo->HspFunc_varname(idx)
-		: nullptr;
+	int const otIndex = hpimod::findOTIndex(lb);
+	if ( auto const name = g_dbginfo->ax->getLabelName(otIndex) ) {
+		return strf("*%s", name);
+	} else {
+		return strf("label(0x%08X)", address_cast(lb));
+	}
 }

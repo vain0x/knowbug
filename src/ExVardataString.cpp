@@ -1,6 +1,7 @@
 ﻿// 外部Dll用、VardataString 作成機能
 
 #include "module/CStrWriter.h"
+#include "hpimod/stringization.h"
 
 #include "main.h"
 #include "ExVardataString.h"
@@ -59,7 +60,7 @@ EXPORT void WINAPI knowbugVsw_addStPrm(vswriter_t _w, char const* name, STRUCTPR
 }
 EXPORT void WINAPI knowbugVsw_addSysvar(vswriter_t _w, char const* name)
 {
-	auto const id = Sysvar::seek(name);
+	auto const id = Sysvar::trySeek(name);
 	if ( id != Sysvar::Id::MAX ) {
 		vswriter(_w).addSysvar(id);
 
@@ -184,7 +185,7 @@ void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void cons
 		knowbugVsw_catAttribute(_w, "length", strf("%d", len).c_str());
 
 		for ( int i = 0; i < len; ++i ) {
-			knowbugVsw_addVar(_w, makeArrayIndexString(1, &i).c_str(), pvals[i]);
+			knowbugVsw_addVar(_w, hpimod::stringizeArrayIndex({ i }).c_str(), pvals[i]);
 			//dbgout("%p: idx = %d, pval = %p, next = %p", list, idx, list->pval, list->next );
 		}
 

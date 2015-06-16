@@ -105,6 +105,9 @@
     <ClCompile Include="..\cppformat\format.cc">
       <Filter>module\cppformat</Filter>
     </ClCompile>
+    <ClCompile Include="..\hpimod\hpimod\stringization.cpp">
+      <Filter>module\hpimod</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CVarinfoText.h">
@@ -203,9 +206,6 @@
     <ClInclude Include="..\hpimod\hpimod\hsp3plugin_custom.h">
       <Filter>module\hpimod</Filter>
     </ClInclude>
-    <ClInclude Include="..\hpimod\hpimod\HspAllocator.h">
-      <Filter>module\hpimod</Filter>
-    </ClInclude>
     <ClInclude Include="..\hpimod\hpimod\vartype_traits.h">
       <Filter>module\hpimod</Filter>
     </ClInclude>
@@ -223,6 +223,9 @@
     </ClInclude>
     <ClInclude Include="..\cppformat\format.h">
       <Filter>module\cppformat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpimod\hpimod\stringization.h">
+      <Filter>module\hpimod</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -3,8 +3,8 @@
 #include <utility>
 #include "hsp3struct.h"
 
-namespace Sysvar
-{
+namespace Sysvar {
+
 struct Info {
 	char const* name;
 	short type;
@@ -45,9 +45,9 @@ static std::array<Info, Count> const List = {{
 	{ "notebuf", HSPVAR_FLAG_STR },
 }};
 
-extern Id seek(char const* name);
-extern int* getIntPtr(Id id);
-extern FlexValue* getThismod();
-extern std::pair<void const*, size_t> dump(Id id);
+extern Id trySeek(char const* name);
+extern int& getIntRef(Id id);
+extern FlexValue* tryGetThismod();
+extern std::pair<void const*, size_t> tryDump(Id id);
 
 } //namespace Sysvar

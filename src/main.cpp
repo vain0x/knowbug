@@ -71,8 +71,7 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
 	switch ( p2 ) {
 		// 実行が停止した (stop, wait, await, assert など)
-		case hpimod::DebugNotice_Stop:
-		{
+		case hpimod::DebugNotice_Stop: {
 			if (Knowbug::continueConditionalRun()) break;
 
 			g_dbginfo->updateCurInf();
@@ -254,7 +253,7 @@ EXPORT void WINAPI knowbug_getVarinfoString(char const* name, PVal* pval,  char*
 EXPORT void WINAPI knowbug_getCurrentModcmdName(char const* strNone, int n, char* prefstr)
 {
 #ifdef with_WrapCall
-	auto const range = WrapCall::getCallInfoRange();
+	auto const&& range = WrapCall::getCallInfoRange();
 	if ( std::distance(range.first, range.second) > n ) {
 		auto const stdat = (*(range.second - (n + 1)))->stdat;
 		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, hpimod::STRUCTDAT_getName(stdat));
