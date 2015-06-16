@@ -1,10 +1,9 @@
 ﻿#ifndef IG_HPIMOD_BASIS_H
 #define IG_HPIMOD_BASIS_H
 
-//#include "hsp3plugin.h"
 //#include "hsp3plugin_custom.h"
-#undef stat
 
+#include <vector>
 #include <algorithm>
 
 // デバッグ用
@@ -14,32 +13,29 @@
 # include <stdio.h>
 # include <stdarg.h>
 # define DbgArea /* empty */
-# define dbgout(message, ...) hpimod_msgboxf<void>(__FILE__, __LINE__, __FUNCTION__, message, __VA_ARGS__)//MessageBoxA(0, message, "hpi", MB_OK)
-template<class T>
-T hpimod_msgboxf(char const* _curfile, int _curline, char const* _curfunc, char const* sFormat, ...)
+# define dbgout(message, ...) hpimod::Detail::hpimod_msgboxf<void>(__FILE__, __LINE__, __FUNCTION__, message, __VA_ARGS__)
+namespace hpimod { namespace Detail {
+template<typename T> T hpimod_msgboxf(char const* _curfile, int _curline, char const* _curfunc, char const* format, ...)
 {
 	static char stt_buf[0x800];
 	int const idx =
-		sprintf_s(stt_buf, "ファイル：%s\r\n行番号：%d\r\n関数：%s\r\n\r\n", _curfile, _curline, _curfunc, sFormat);
+		sprintf_s(stt_buf, "ファイル：%s\r\n行番号：%d\r\n関数：%s\r\n\r\n", _curfile, _curline, _curfunc, format);
 	assert(idx >= 0);
 	va_list arglist;
-	va_start(arglist, sFormat);
-	vsprintf_s(&stt_buf[idx], sizeof(stt_buf) - idx - 1, sFormat, arglist);
+	va_start(arglist, format);
+	vsprintf_s(&stt_buf[idx], sizeof(stt_buf) - idx - 1, format, arglist);
 	va_end(arglist);
 	MessageBoxA(nullptr, stt_buf, "hpi debug", MB_OK);
 }
+} } //namespace hpimod::Detail
 #else
 # define DbgArea if ( false )
 # define dbgout(message, ...) ((void)0)
-//template<class T> T hpimod_msgboxf(char const* sFormat, ...) {}
 #endif
 
 namespace hpimod
 {
-
-// consts
-
-// 次元数
+// 配列の次元数
 static size_t const ArrayDimMax = 4;
 
 // 配列の添字に用いる括弧
@@ -47,28 +43,26 @@ static size_t const ArrayDimMax = 4;
 #define BracketIdxR ")"
 
 // 型タイプ値
-static const int HSPVAR_FLAG_COMOBJ = HSPVAR_FLAG_COMSTRUCT;
-static const int HSPVAR_FLAG_VARIANT = 7;
+static int const HSPVAR_FLAG_COMOBJ = HSPVAR_FLAG_COMSTRUCT;
+static int const HSPVAR_FLAG_VARIANT = 7;
 
-// types
 using vartype_t = unsigned short;
 using varmode_t = signed short;
-using label_t = unsigned short const*;		// a.k.a. HSPVAR_LABEL
+using label_t = unsigned short const*; // a.k.a. HSPVAR_LABEL
 using csptr_t = unsigned short const*;
 using stdat_t = STRUCTDAT const*;
 using stprm_t = STRUCTPRM const*;
 
-using operator_t = void(*)(PDAT*, void const*);		// HspVarProc の演算関数 (redefne されてない型)
+using operator_t = void(*)(PDAT*, void const*); // HspVarProc の演算関数 (redefne されてない型)
 using hsp3DebugFunc_t = BOOL(CALLBACK*)(HSP3DEBUG*, int, int, int);
 
 // デバッグウィンドウへの通知ID
-enum DebugNotice
-{
-	DebugNotice_Stop = 0,		// 停止したとき (stop, wait, await, assert など)
-	DebugNotice_Logmes,			// logmes 命令が呼ばれたとき (ctx->stmp で文字列を参照できる)
+enum DebugNotice {
+	// 停止したとき (stop, wait, await, assert など)
+	DebugNotice_Stop = 0,
+	// logmes 命令が呼ばれたとき (ctx->stmp で文字列を参照できる)
+	DebugNotice_Logmes = 1,
 };
-
-// functions
 
 // 短縮名
 static HspVarProc* getHvp(vartype_t vtype) { return exinfo->HspFunc_getproc(vtype); }
@@ -102,22 +96,12 @@ static size_t cntLibs()   { return ctx->hsphed->max_linfo / sizeof(LIBDAT); }
 
 namespace Detail
 {
-	// (failure: -1)
-	// todo: std::search に帰着できそう？
+	//(failure: -1)
 	template<class TIter, class TValue>
 	int indexOf(TIter begin, TIter end, TValue const& val)
 	{
-#if 0
-		for (int i = 0; begin != end; ++begin, ++i) {
-			if (*begin == val) return i;
-		}
-		return -1;
-#else
 		auto const iter = std::search(begin, end, &val, &val + 1);
-		return (iter != end
-			? std::distance(begin, iter)
-			: -1);
-#endif
+		return (iter != end ? std::distance(begin, iter) : -1);
 	}
 
 	// type T const (if flag = true), or T non-const.
@@ -130,6 +114,13 @@ static PVal* seekSttVar(char const* name)
 {
 	int const iVar = exinfo->HspFunc_seekvar(name);
 	return (iVar >= 0) ? getPVal(iVar) : nullptr;
+}
+
+static char const* nameFromStaticVar(PVal const* pval) {
+	auto const idx = pval - ctx->mem_var;
+	return (0 <= idx && idx < ctx->hsphed->max_val)
+		? exinfo->HspFunc_varname(idx)
+		: nullptr;
 }
 
 // ot-index の検索 (failure: -1)
@@ -153,17 +144,20 @@ static stprm_t STRUCTDAT_getStPrmEnd(stdat_t self) { return STRUCTDAT_getStPrm(s
 static stdat_t STRUCTPRM_getStDat(stprm_t self) { return getSTRUCTDAT(self->subid); }
 static bool STRUCTDAT_isSttmOrFunc(stdat_t self) { return (self->index == STRUCTDAT_INDEX_FUNC || self->index == STRUCTDAT_INDEX_CFUNC); }
 
-static stprm_t FlexValue_getModuleTag(FlexValue const* self) {	// structtag を持つ stprm
-	return getSTRUCTPRM(self->customid); }
-static stdat_t FlexValue_getModule(FlexValue const* self) {	// module である stdat
+static stprm_t FlexValue_getModuleTag(FlexValue const* self) { // structtag を持つ stprm
+	return getSTRUCTPRM(self->customid);
+}
+static stdat_t FlexValue_getModule(FlexValue const* self) { // module である stdat
 	return STRUCTPRM_getStDat(FlexValue_getModuleTag(self));
 }
 static bool FlexValue_isClone(FlexValue const* self) { return (self->type == FLEXVAL_TYPE_CLONE); }
 
-// prmstack におけるメンバ stprm の領域へのポインタ
+// prmstack におけるメンバ stprm の実データへのポインタ
 template<typename TVoid = void,  bool bConst = std::is_const<TVoid>::value>
 static auto Prmstack_getMemberPtr(TVoid* self, stprm_t stprm) -> Detail::const_iff_t<void, bConst>*
-{ return static_cast<Detail::const_iff_t<char, bConst>*>(self) + stprm->offset; }
+{
+	return static_cast<Detail::const_iff_t<char, bConst>*>(self) + stprm->offset;
+}
 
 static size_t PVal_maxDim(PVal const* pval) {
 	size_t i = 0;
@@ -178,6 +172,20 @@ static size_t PVal_cntElems(PVal const* pval) {
 		if ( i == ArrayDimMax || pval->len[i + 1] == 0 ) break;
 	}
 	return cnt;
+}
+static std::vector<int> PVal_indexesFromAptr(PVal const* pval, APTR aptr) {
+	size_t const dim = PVal_maxDim(pval);
+	std::vector<int> indexes(dim);
+	for ( size_t i = 0; i < dim; ++i ) {
+		indexes[i] = aptr % pval->len[i + 1];
+		aptr /= pval->len[i + 1];
+	}
+	return std::move(indexes);
+}
+static bool PVal_isStandardArray(PVal const* pval) {
+	auto const hvp = getHvp(pval->flag);
+	return (hvp->support & (HSPVAR_SUPPORT_FIXEDARRAY | HSPVAR_SUPPORT_FLEXARRAY))
+		&& !(pval->len[1] == 1 && pval->len[2] == 0);
 }
 
 static PDAT* PVal_getPtr(PVal* pval) { return getHvp(pval->flag)->GetPtr(pval); }
@@ -202,22 +210,11 @@ static auto PVal_getPtr(TPVal* pval, APTR aptr) -> Detail::const_iff_t<PDAT, std
 // HSP的論理値
 static int const HspTrue = 1;
 static int const HspFalse = 0;
-static inline int HspBool(bool b) { return b ? HspTrue : HspFalse; }
+static int HspBool(bool b) { return b ? HspTrue : HspFalse; }
 
 // その他
 static bool isDebugMode() { return ctx->hspstat & HSPSTAT_DEBUG; }
 
-#if 0
-// 値の持ち運び
-struct HspValue
-{
-	PDAT const* pdat;
-	vartype_t vtype;
-public:
-	HspValue() : pdat(nullptr), vtype(HSPVAR_FLAG_NONE) { }
-};
-#endif
-
-} // namespace hpimod
+} //namespace hpimod
 
 #endif
