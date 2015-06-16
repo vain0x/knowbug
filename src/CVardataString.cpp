@@ -5,7 +5,6 @@
 #include "module/CStrWriter.h"
 #include "module/CStrBuf.h"
 #include "hpimod/vartype_traits.h"
-#include "hpimod/HspAllocator.h"
 
 #include "main.h"
 #include "CVardataString.h"
@@ -28,9 +27,6 @@ CVardataStrWriter::~CVardataStrWriter() {}
 
 string const& CVardataStrWriter::getString() const { return getWriter().get(); }
 
-//##########################################################
-//        要素ごとの処理関数
-//##########################################################
 //------------------------------------------------
 // [add][item] 変数
 //------------------------------------------------
@@ -206,17 +202,13 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 //------------------------------------------------
 void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> prmstk)
 {
-#if 0
-	getWriter().catAttribute( "id_finfo", strf("%d", stdat->subid).c_str() );
-	getWriter().catAttribute( "id_minfo", strf("%d", stdat->prmindex).c_str() );
-#endif
 	int prev_mptype = MPTYPE_NONE;
 	int i = 0;
 
 	std::for_each(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat), [&](STRUCTPRM const& stprm) {
 		auto const member = hpimod::Prmstack_getMemberPtr(prmstk.first, &stprm);
 
-		// if lineformed: put an additional ' ' before 'local' parameters
+		// if treeformed: put an additional ' ' before 'local' parameters
 		if ( !getWriter().isLineformed()
 			&& i > 0
 			&& (prev_mptype != MPTYPE_LOCALVAR && stprm.mptype == MPTYPE_LOCALVAR)
@@ -256,12 +248,7 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 		//	case MPTYPE_VAR:
 		case MPTYPE_SINGLEVAR:
 		case MPTYPE_ARRAYVAR: {
-			// 一行文字列：参照であることを示す (var か array かは明らか)
-			// delimiter との位置取りが難しい
-		//	if ( getWriter().isLineformed() ) getWriter().cat("& ");
-
 			auto const vardata = cptr_cast<MPVarData*>(member);
-
 			if ( stprm->mptype == MPTYPE_SINGLEVAR ) {
 				addVarScalar(name, vardata->pval, vardata->aptr);
 			} else {
@@ -354,7 +341,7 @@ void CVardataStrWriter::addSysvar(Sysvar::Id id)
 					size_t const maxDim = hpimod::PVal_maxDim(pval);
 					int indexes[hpimod::ArrayDimMax];
 					calcIndexesFromAptr(indexes, aptr, &pval->len[1], hpimod::PVal_cntElems(pval), maxDim);
-					name2 = strf("%s (%s%s)", name, nameOfVar, makeArrayIndexString(maxDim, indexes).c_str());
+					name2 = strf("%s (%s%s)", name, nameOfVar, makeArrayIndexString(maxDim, indexes));
 				} else {
 					name2 = strf("%s (0x%08X[%d])", name, address_cast(pval), aptr);
 				}
@@ -376,7 +363,9 @@ void CVardataStrWriter::addSysvar(Sysvar::Id id)
 			if ( Sysvar::List[id].type == HSPVAR_FLAG_INT ) {
 				addValue(name, HSPVAR_FLAG_INT, VtTraits::asPDAT<vtInt>(Sysvar::getIntPtr(id)));
 				break;
-			} else throw;
+			} else {
+				assert_sentinel;
+			}
 	};
 }
 
@@ -388,12 +377,6 @@ void CVardataStrWriter::addSysvar(Sysvar::Id id)
 void CVardataStrWriter::addCall(stdat_t stdat, std::pair<void const*, bool> prmstk)
 {
 	char const* const name = hpimod::STRUCTDAT_getName(stdat);
-#if 0
-	string const name2 =
-		(stdat->index == STRUCTDAT_INDEX_CFUNC && !getWriter().isLineformed())
-		? strf("%s()", name)			// ツリー状かつ関数なら名前に () をつける
-		: name;
-#endif
 	addCall(name, stdat, prmstk);
 }
 
@@ -417,7 +400,9 @@ void CVardataStrWriter::addCall(char const* name, stdat_t stdat, std::pair<void 
 //------------------------------------------------
 void CVardataStrWriter::addResult(char const* name, PDAT const* ptr, vartype_t type)
 {
-	assert(getWriter().isLineformed());	// 現在の実装では
+	//現在の実装では一行表示でしか呼ばれない
+	//ツリー形式にするなら文字列化の方法を考えなおす
+	assert(getWriter().isLineformed());
 
 	addValue(name, type, ptr);
 }
@@ -437,8 +422,7 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 	assert(ptr);
 
 	switch ( type ) {
-		case HSPVAR_FLAG_STR:
-		{
+		case HSPVAR_FLAG_STR: {
 			auto const val = cptr_cast<char*>(ptr);
 			return (bShort
 				? toStringLiteralFormat(val)
@@ -447,8 +431,7 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 		case HSPVAR_FLAG_COMOBJ:  return strf("comobj(0x%08X)", address_cast(*cptr_cast<void**>(ptr)));
 		case HSPVAR_FLAG_VARIANT: return strf("variant(0x%08X)", address_cast(*cptr_cast<void**>(ptr)));
 		case HSPVAR_FLAG_DOUBLE:  return strf((bShort ? "%f" : "%.16f"), *cptr_cast<double*>(ptr));
-		case HSPVAR_FLAG_INT:
-		{
+		case HSPVAR_FLAG_INT: {
 			int const val = *cptr_cast<int*>(ptr);
 #ifdef with_ModPtr
 			assert(!ModPtr::isValid(val));	// addItem_value で処理されたはず
@@ -457,16 +440,14 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 				? strf("%d", val)
 				: strf("%-10d (0x%08X)", val, val));
 		}
-		case HSPVAR_FLAG_LABEL:
-		{
+		case HSPVAR_FLAG_LABEL: {
 			auto const lb = *cptr_cast<label_t*>(ptr);
 			int const idx = hpimod::findOTIndex(lb);
 			auto const name =
 				(idx >= 0 ? g_dbginfo->ax->getLabelName(idx) : nullptr);
 			return (name ? strf("*%s", name) : strf("label(0x%08X)", address_cast(lb)));
 		}
-		default:
-		{
+		default: {
 			auto const vtname = hpimod::getHvp(type)->vartype_name;
 
 #ifdef with_ExtraBasics
@@ -530,7 +511,7 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 string toStringLiteralFormat(char const* src)
 {
 	size_t const maxlen = (std::strlen(src) * 2) + 2;
-	std::vector<char, hpimod::HspAllocator<char>> buf; buf.resize(maxlen + 1);
+	std::vector<char> buf; buf.resize(maxlen + 1);
 	size_t idx = 0;
 
 	buf[idx++] = '\"';

@@ -123,14 +123,8 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 void CVarinfoText::addResult( stdat_t stdat, string const& text, char const* name )
 {
 	getWriter().catln(strf("関数名：%s", name));
-//	getWriter().catln(strf("仮引数：(%s)", getPrmlistString(stdat)));
 	getWriter().catCrlf();
-
 	getWriter().cat(text);
-//	getWriter().catCrlf();
-
-	// メモリダンプ
-	//if ( g_config->showsVariableDump ) { getWriter().catDump( ptr, static_cast<size_t>(bufsize) ); }
 }
 
 #endif

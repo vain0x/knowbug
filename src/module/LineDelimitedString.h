@@ -14,12 +14,14 @@ static size_t countIndents(char const* s)
 }
 
 //行ごとに区切られた変更不可な文字列
-//ただし各行の字下げは消去する
 class LineDelimitedString {
 	using string = std::string;
 
 	string base_;
-	std::vector<size_t> index_; //[i]: i行目の先頭の字下げ後への添字; back(): 末尾への添字
+
+	//[i]: i行目の先頭の字下げ後への添字
+	//back(): 末尾への添字
+	std::vector<size_t> index_;
 
 public:
 	LineDelimitedString(std::istream& is)

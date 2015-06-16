@@ -17,16 +17,13 @@ char const* const CStructedStrWriter::stc_strUnused =
 std::string const& CStrWriter::get() const { return buf_->get(); }
 
 //------------------------------------------------
-// 単純な連結
+// 連結
 //------------------------------------------------
 void CStrWriter::cat(char const* s)
 {
 	buf_->append(s);
 }
 
-//------------------------------------------------
-// 改行の連結
-//------------------------------------------------
 void CStrWriter::catCrlf()
 {
 	cat("\r\n");

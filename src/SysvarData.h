@@ -25,13 +25,6 @@ enum Id {
 	Sublev,
 	Err,
 	NoteBuf,
-
-	// GUI
-	//MouseX,
-	//MouseY,
-	//MouseW,
-	//GInfo,
-	//DirInfo,
 	MAX,
 };
 
@@ -50,12 +43,6 @@ static std::array<Info, Count> const List = {{
 	{ "sublev",  HSPVAR_FLAG_INT },
 	{ "err",     HSPVAR_FLAG_INT },
 	{ "notebuf", HSPVAR_FLAG_STR },
-
-//	{ "mousex",  HSPVAR_FLAG_INT },
-//	{ "mousey",  HSPVAR_FLAG_INT },
-//	{ "mousew",  HSPVAR_FLAG_INT },
-//	{ "ginfo",   HSPVAR_FLAG_INT },
-//	{ "dirinfo", HSPVAR_FLAG_STR },
 }};
 
 extern Id seek(char const* name);

@@ -78,27 +78,7 @@ public:
 
 public:
 	CStructedStrWriter& getWriter() const { return *writer_; }
-
-private:
-//	CVardataStrWriter(CVardataStrWriter const&) = delete;
 };
-
-// バッファを所有するバージョン
-#if 0 //未使用
-template<typename TBuf>
-class CVardataStrWriterWithBuf
-	: public CVardataStrWriter
-{
-public:
-	CVardataStrWriterWithBuf()
-		: CVardataStrWriter<TBuf>(&mybuf_)
-	{ }
-	string const& get() const { return mybuf_; }
-	string&& get() { return std::move(mybuf_); }
-private:
-	string mybuf_;
-};
-#endif
 
 //------------------------------------------------
 // 置く場所に困る系関数群
