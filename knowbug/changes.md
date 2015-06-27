@@ -25,6 +25,11 @@
 
 ## 履歴
 
+#### 2015/06/27
+* サンプルの整理。
+* スクリーンショットを撮り直した。
+* リリース (ver: 1.0β19)
+
 #### 2015/06/12
 * WrapCall で検知できないユーザ定義コマンド呼び出し (unhookable invocation: modinit, modterm, deffunc onexit) に関するメモリアクセス違反を解消した。
   * 原因: unhookable invocation (A)の実行中には、その直前の呼び出し(B)の prmstkを取得できない。そのため(B)の prmstk を取得しようとして(A)の prmstk を取得してしまっていた。
