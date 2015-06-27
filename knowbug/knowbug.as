@@ -44,16 +44,6 @@
 #global
 
 #module
-//ÉTÉìÉvÉã exNN_custom_node.hsp ÇéQè∆
-#func addCustomNode "_knowbug_addCustomNode@12" sptr, sptr, var
-
-#define global knowbug_addCustomNode(%1,%2,%3) lbVsw@__knowbug = (%3) : addCustomNodeImpl@__knowbug %1, %2, lbVsw@__knowbug
-#deffunc addCustomNodeImpl@__knowbug str name, str parent, var lb
-	addCustomNode name, parent, lb
-	return
-
-#cfunc global knowbug_getCurrentVswriter "_knowbug_getCurrentVswriter@0"
-#func global knowbugVsw_beforeReturn "_knowbugVsw_beforeReturn@0"
 #func global knowbugVsw_catLeaf       "_knowbugVsw_catLeaf@12"      int, str, str
 #func global knowbugVsw_catLeafExtra  "_knowbugVsw_catLeafExtra@12" int, str, str
 #func global knowbugVsw_catAttribute  "_knowbugVsw_catAttribute@12" int, str, str
@@ -64,17 +54,14 @@
 #func global knowbugVsw_addVarArray   "_knowbugVsw_addVarArray@12"  int, str, pval
 #func global knowbugVsw_addValue      "_knowbugVsw_addValue@12"     int, str, int, int
 #func global knowbugVsw_addSysvar     "_knowbugVsw_addSysvar@8"     int, str
-
-#define global knowbugVsw_return(%1) knowbugVsw_beforeReturn : assert : return
-
 #global
 
-#else	// defined(_DEBUG)
+#else // defined(_DEBUG)
 
 #define global knowbug_hwnd 0
 #define global ctype knowbug_varinfstr(%1) ""
 #define global __func__ ""
 
-#endif	// defined(_DEBUG)
+#endif // defined(_DEBUG)
 
 #endif

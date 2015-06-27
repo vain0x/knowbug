@@ -1,0 +1,92 @@
+// 再帰呼び出しのサンプル
+
+#module
+
+#deffunc sample str msg
+	mes msg
+	return
+
+//------------------------------------------------
+// 文字列をマージソートで昇順化する
+//
+// 入力された文字列の、文字を小さい順に並び替えたものを返す。
+// アルファベットはABC順に、数字は0～9の順になる。
+// 注意: 全角文字は扱えない。
+// 実行例: "3120" → "0123"
+//------------------------------------------------
+#defcfunc strMergeSort str _msg,  local msg, local len, local pair
+	msg = _msg
+	len = strlen(msg)
+	
+	// 長さ 0 か 1 なら、もともと昇順なのでそのまま返す。
+	if ( len <= 1 ) {
+		return msg
+		
+	} else {
+		// 文字列を前半と後半に分ける
+		pair(0) = strmid(msg, 0, len / 2)
+		pair(1) = strmid(msg, len / 2, len - (len / 2))
+		
+		// 前半、後半をそれぞれ昇順にする
+		pair(0) = strMergeSort(pair(0))
+		pair(1) = strMergeSort(pair(1))
+		
+		// 前半と後半を strMerge でマージする
+		return strMerge(pair(0), pair(1))
+	}
+	
+//------------------------------------------------
+// 2つの文字列をマージする
+//
+// 2つの文字列 a, b を受け取り、(a + b) を昇順にしたものを返す。
+// ただし、a, b はそれぞれ昇順でなければいけない。
+//------------------------------------------------
+#defcfunc strMerge var a, var b,  local c, local ia, local ib, local len, local result
+	sdim result, strlen(a) + strlen(b) + 1
+	len = 0 // result の長さ
+	
+	// a, b を先頭から見ていく
+	ia = 0 : ib = 0
+	repeat
+		// a, b の見ている位置の文字を取り出す
+		c(0) = peek(a, ia)
+		c(1) = peek(b, ib)
+		
+		// a, b のどちらかを最後までみたら終わり
+		if ( c(0) == 0 || c(1) == 0 ) { break }
+		
+		// 小さいほうを result の末尾に書き加えて、
+		// 次の文字を見る
+		if ( c(0) <= c(1) ) {
+			poke result, len, c(0) : ia ++
+		} else {
+			poke result, len, c(1) : ib ++
+		}
+		len ++
+	loop
+	
+	// 余ったほうを result に連結
+	if ( c(0) == 0 ) {
+		result += strmid(b, ib, 0xFFFF)
+	} else {
+		result += strmid(a, ia, 0xFFFF)
+	}
+	return result
+	
+#global
+
+	assert
+	sample strMergeSort("531204")
+	stop
+	
+/*
+
+"531204"
+→ "531",             "204"
+→ ("5",  "31"),      ("2",  "04")
+→ ("5", ("3", "1")), ("2", ("0", "4"))
+→ ("5",  "13"),      ("2",  "04")
+→ "135",             "024"
+→ "012345"
+
+*/
