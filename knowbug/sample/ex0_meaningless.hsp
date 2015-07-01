@@ -23,7 +23,7 @@
 	repeat length2(arr) : cnt_1 = cnt
 	repeat length (arr) : cnt_0 = cnt
 		arr(cnt_0, cnt_1, cnt_2) = i : i ++
-	;	if ( i == 23 ) : assert
+		if ( i == 23 ) : assert
 	loop
 	loop
 	loop
@@ -45,4 +45,12 @@
 	mes "Hello, world!"
 	repeat 4 : k(cnt) = cnt : loop
 	func1 777, k(1)
+	
+	dup k_clone, k
+	dupptr k_clone_as_ptr, varptr(k), 8
+	dupptr k_short, varptr(k), 2
+	
+	sdim s, 120
+	s = "First\nSecond\nThird"
+	notesel s
 	stop

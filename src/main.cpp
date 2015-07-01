@@ -4,26 +4,24 @@
 //				onion software/onitama 2005
 //
 
-#include <stdio.h>
 #include <Windows.h>
-
-#include "module/hspdll.h"
-#include "module/supio.h"
-#include "module/SortNote.h"
-#include "resource.h"
-#include "main.h"
-
-#include "../../../../../openhsp/trunk/tools/win32/hsed3_footy2/interface.h"
-
+#include <cstdio>
 #include <deque>
 #include <vector>
 #include <list>
 #include <algorithm>
 #include <fstream>
 
-#include "module/mod_cstring.h"
-#include "module/mod_cast.h"
-#include "ClhspDebugInfo.h"
+#include "hsed3_footy2/interface.h"
+
+#include "module/supio/supio.h"
+
+#include "resource.h"
+#include "main.h"
+
+#include "module/strf.h"
+#include "module/ptr_cast.h"
+#include "DebugInfo.h"
 #include "CAx.h"
 #include "CVarTree.h"
 //#include "CVarinfoTree.h"
@@ -34,49 +32,33 @@
 #include "config_mng.h"
 #include "dialog.h"
 #include "vartree.h"
-#include "WrapCall.h"
 #include "with_Script.h"
 
-typedef BOOL (CALLBACK* HSP3DBGFUNC)(HSP3DEBUG*,int,int,int);
-
+static HINSTANCE g_hInstance;
 DebugInfo* g_dbginfo = nullptr;
 //HSP3DEBUG* g_debug;
 //HSPCTX*       ctx;
 //HSPEXINFO* exinfo;
-HINSTANCE g_hInstance;
 
-static CVarTree*  stt_pSttVarTree = nullptr;
-//static DynTree_t* stt_pDynTree  = nullptr;
+static CVarTree* stt_pSttVarTree = nullptr;
+//static DynTree_t* stt_pDynTree = nullptr;
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 );
 EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 );
-#ifndef clhsp
 EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 );
-#endif
-static void CurrentUpdate();
+
+static void InvokeThread();
 
 // WrapCall 関連
 #ifdef with_WrapCall
+# include "WrapCall/ModcmdCallInfo.h"
 
-std::vector<const ModcmdCallInfo*> g_stkCallInfo;
+using WrapCall::ModcmdCallInfo;
 
-static void termNodeDynamic();
-static void UpdateCallNode( HWND hwndTree );
-
-static void OnBgnCalling( HWND hwndTree, const ModcmdCallInfo& callinfo );
-static void OnEndCalling( HWND hwndTree, const ModcmdCallInfo& callinfo );
-static void OnResultReturning( HWND hwndTree, const ModcmdCallInfo& callinfo, void* ptr, int flag );
-
-// methods
-static void WrapCallMethod_AddLog( const char* log );
-static void WrapCallMethod_BgnCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo );
-static int  WrapCallMethod_EndCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo );
-static void WrapCallMethod_ResultReturning( unsigned int idx, const ModcmdCallInfo* pCallInfo, void* ptr, int flag );
-
+static void OnBgnCalling( HWND hwndTree, ModcmdCallInfo const& callinfo );
+static void OnEndCalling( HWND hwndTree, ModcmdCallInfo const& callinfo, void* ptr, int flag );
 #endif
-
-static void InvokeThread();
 
 //------------------------------------------------
 // Dllエントリーポイント
@@ -89,10 +71,10 @@ int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 			break;
 		
 		case DLL_PROCESS_DETACH:
-#ifndef clhsp
 			debugbye( g_dbginfo->debug, 0, 0, 0 );
-#endif
 			Dialog::destroyMain();
+
+			delete g_dbginfo; g_dbginfo = nullptr;
 			break;
 	}
 	return TRUE;
@@ -111,7 +93,7 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 	ctx     = p1->hspctx;
 	exinfo  = ctx->exinfo2;
 
-	g_dbginfo = new DebugInfo(ctx, exinfo, p1);
+	g_dbginfo = new DebugInfo(p1);
 	
 	// 設定を読み込む
 	g_config.initialize();
@@ -121,23 +103,6 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 	// ウィンドウの生成
 	HWND const hDlg = Dialog::createMain();
 	
-#ifdef with_WrapCall
-//	g_dbginfo->exinfo->er = almighty_cast<int*>( hDlg );
-	// 不要になったが後方互換性のために一応置いておく、しばらくしたら消す
-#endif
-#ifdef with_Script
-	/*
-	// 特定の名前の静的変数があれば、ダイアログのウィンドウハンドルを格納する
-	const int iVar = exinfo->HspFunc_seekvar(WindowHandleHolderName);
-	if ( iVar >= 0 ) {
-		PVal* pval = &ctx->mem_var[iVar];
-		if ( pval != nullptr && pval->flag == HSPVAR_FLAG_INT && pval->mode == HSPVAR_MODE_MALLOC ) {
-			*ptr_cast<int*>(pval->pt) = almighty_cast<intptr_t>( hDlg );
-		}
-	}
-	//*/
-#endif
-
 	// 実行位置決定スレッド
 //	InvokeThread();
 	
@@ -154,21 +119,20 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
 	switch ( p2 ) {
 		// 実行が停止した (stop, wait, await, assert など)
-		case DebugNotice_Stop:
+		case hpimod::DebugNotice_Stop:
 		{
 			if (Knowbug::continueConditionalRun()) break;
-			
+
+			g_dbginfo->debug->dbg_curinf();
 #ifdef with_WrapCall
-			UpdateCallNode( Dialog::getVarTreeHandle() );	// 呼び出しノード更新
+			VarTree::UpdateCallNode( Dialog::getVarTreeHandle() );	// 呼び出しノード更新
 #endif
-			
-			CurrentUpdate();
 			Dialog::update();
 			break;
 		}
 		
 		// logmes 命令が呼ばれた
-		case DebugNotice_Logmes:
+		case hpimod::DebugNotice_Logmes:
 			Knowbug::logmes( ctx->stmp );
 			break;
 	}
@@ -177,8 +141,6 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 
 //------------------------------------------------
 // debugbye ptr  (type1)
-// 
-// @ clhsp からは呼ばれるが、hsp なら自分で呼ぶ。
 //------------------------------------------------
 EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
@@ -186,33 +148,12 @@ EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 )
 		Dialog::logSave( g_config->logPath.c_str() );
 	}
 	
-#ifdef with_WrapCall
-	termNodeDynamic();
-#endif
 	VarTree::term();
 #ifdef with_Script
 	termConnectWithScript();
 #endif
-	if ( stt_pSttVarTree ) {
-		delete stt_pSttVarTree; stt_pSttVarTree = nullptr;
-	}
+	delete stt_pSttVarTree; stt_pSttVarTree = nullptr;
 	return 0;
-}
-
-//------------------------------------------------
-// 実行中の位置を更新する (line, file)
-//------------------------------------------------
-void CurrentUpdate( void )
-{
-	char tmp[512];
-	char* fn;
-	g_dbginfo->debug->dbg_curinf();
-	fn = g_dbginfo->debug->fname;
-	if ( !fn ) fn = "???";
-	
-	sprintf_s( tmp, "%s\n( line : %d )", fn, g_dbginfo->debug->line );
-	SetWindowText( Dialog::getSttCtrlHandle(), tmp );
-	return;
 }
 
 namespace Knowbug
@@ -241,16 +182,22 @@ void run()
 }
 
 void runStepIn() {
-	bStepRunning = true;		// 本当のステップ実行でのみフラグが立つ
+	// 本当のステップ実行でのみフラグが立つ
+	bStepRunning = true;
+
 	g_dbginfo->debug->dbg_set( HSPDEBUG_STEPIN );
 }
 
-void runStepOver() { return runStepOut( ctx->sublev ); }
-void runStepOut()  { return runStepOut( ctx->sublev - 1 ); }
+void runStepOver() { return runStepReturn( ctx->sublev ); }
+void runStepOut()  { return runStepReturn( ctx->sublev - 1 ); }
 
-void runStepOut(int sublev)			// ctx->sublev == sublev になるまで step を繰り返す
+// ctx->sublev == sublev になるまで step を繰り返す
+void runStepReturn(int sublev)
 {
-	if ( sublev < 0 ) return run();	// 最外周への脱出 = 無制限
+	// 最外周への脱出 = 無制限
+	if ( sublev < 0 ) {
+		return run();	
+	}
 	sublevOfGoal = sublev;
 	bStepRunning = false;
 	g_dbginfo->debug->dbg_set( HSPDEBUG_STEPIN );
@@ -279,10 +226,37 @@ bool continueConditionalRun()
 //------------------------------------------------
 // ログ操作
 //------------------------------------------------
-void logmes( const char* msg )
+void logmes( char const* msg )
 {
 	Dialog::logAdd( msg );
 	Dialog::logAddCrlf();
+}
+
+void logmesWarning(char const* msg)
+{
+	logmes(strf("warning: %s", msg).c_str());
+	Dialog::logAddCurInf();
+}
+
+//------------------------------------------------
+// WrapCall メソッド
+//------------------------------------------------
+void bgnCalling(::WrapCall::ModcmdCallInfo const& callinfo)
+{
+	return OnBgnCalling(Dialog::getVarTreeHandle(), callinfo);
+}
+
+void endCalling(::WrapCall::ModcmdCallInfo const& callinfo, void* ptr, vartype_t vtype)
+{
+	return OnEndCalling(Dialog::getVarTreeHandle(), callinfo, ptr, vtype);
+}
+
+//------------------------------------------------
+// インスタンスハンドル
+//------------------------------------------------
+HINSTANCE getInstance()
+{
+	return g_hInstance;
 }
 
 }
@@ -292,28 +266,25 @@ void logmes( const char* msg )
 //------------------------------------------------
 CVarTree* getSttVarTree()
 {
-	CVarTree*& vartree = stt_pSttVarTree;
-	
-	// 変数リストを作る
-	if ( !vartree ) {
+	if ( !stt_pSttVarTree ) {
+		auto const tree = new CStaticVarTree::ModuleNode(CStaticVarTree::ModuleName_Global);
+
 		char name[0x100];
-		char* p = g_dbginfo->debug->get_varinf( nullptr, 0xFF );	// HSP側に問い合わせ
-	//	SortNote( p );			// (-) ツリービュー側でソートするので不要
-		
-		vartree = new CVarTree( "", CVarTree::NodeType_Module );
-		
+		char* const p = g_dbginfo->debug->get_varinf( nullptr, 0xFF );	// HSP側に問い合わせ
+	//	SortNote( p );		// ツリービュー側でソートするので不要
 		strsp_ini();
 		for (;;) {
-			int chk = strsp_get( p, name, 0, 255 );
+			int const chk = strsp_get( p, name, 0, 255 );
 			if ( chk == 0 ) break;
 			
-			vartree->push_var( name );
+			tree->pushVar( name );
 		}
-		
 		g_dbginfo->debug->dbg_close( p );
+
+		stt_pSttVarTree = tree;
 	}
 	
-	return vartree;
+	return stt_pSttVarTree;
 }
 
 //##############################################################################
@@ -321,85 +292,17 @@ CVarTree* getSttVarTree()
 //##############################################################################
 #ifdef with_WrapCall
 
-// 動的ノードの追加除去の遅延処理はこちらで行う
-static size_t g_cntWillAddCallNodes = 0;						// 次の更新で追加すべきノード数
-static std::vector<ResultNodeData*> g_willAddResultNodes;		// 次の更新で追加すべき返値ノード
-static ResultNodeData* g_willAddResultNodeIndepend = nullptr;	// 〃 ( +dynamic 直下 )
-
-//------------------------------------------------
-// prmstack を参照する
-//------------------------------------------------
-void* ModcmdCallInfo_getPrmstk(const ModcmdCallInfo& callinfo)
-{
-	if ( callinfo.next == nullptr ) {		// 最新の呼び出し
-		if ( ctx->sublev - callinfo.sublev >= 2 ) return nullptr;
-		return ctx->prmstack;
-	}
-	if ( callinfo.isRunning() ) {			// 実行中の呼び出し (引数展開が終了している)
-		return callinfo.next->prmstk_bak;
-	}
-	return nullptr;		// 引数展開中 (スタックフレームが未完成なので prmstack は参照できない)
-}
-
-//------------------------------------------------
-// Dynamic 関連のデータをすべて破棄する
-//------------------------------------------------
-void termNodeDynamic()
-{
-	if ( g_config->bResultNode ) {
-		delete g_willAddResultNodeIndepend; g_willAddResultNodeIndepend = nullptr;
-		for each ( auto it in g_willAddResultNodes ) delete it;
-		g_willAddResultNodes.clear();
-	}
-	return;
-}
-
-//------------------------------------------------
-// ResultNodeData の生成
-// 
-// @ OnEndCaling でしか呼ばれない。
-//------------------------------------------------
-ResultNodeData* NewResultNodeData( const ModcmdCallInfo& callinfo, void* ptr, int flag )
-{
-	auto pResult = new ResultNodeData;
-		pResult->stdat      = callinfo.stdat;
-		pResult->sublev      = callinfo.sublev;
-		pResult->valueString = "";
-		pResult->pCallInfoDepended = callinfo.prev;
-	
-	{
-		auto const varinf = new CVarinfoLine( *g_dbginfo, g_config->maxlenVarinfo );
-		varinf->addResult( ptr, flag );
-		
-		pResult->valueString = varinf->getString();
-		
-		delete varinf;
-	}
-	return pResult;		// delete 義務
-}
-
-ResultNodeData* NewResultNodeData( const ModcmdCallInfo& callinfo, PVal* pvResult )
-{
-	return NewResultNodeData( callinfo, pvResult->pt, pvResult->flag );
-}
-
 //------------------------------------------------
 // 呼び出し開始
 //------------------------------------------------
-void OnBgnCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
+void OnBgnCalling( HWND hwndTree, ModcmdCallInfo const& callinfo )
 {
-	g_stkCallInfo.push_back( &callinfo );
-
 	// ノードの追加
-	if ( !Knowbug::isStepRunning() ) {
-		g_cntWillAddCallNodes ++;		// 後で追加する
-	} else {
-		VarTree::AddCallNode( hwndTree, callinfo );
-	}
-
+	VarTree::AddCallNode( hwndTree, callinfo );
+	
 	// ログ出力
 	if ( Dialog::isLogCallings() ) {
-		CString logText = strf(
+		string const logText = strf(
 			"[CallBgn] %s\t@%d of \"%s\"]\n",
 			hpimod::STRUCTDAT_getName(callinfo.stdat),
 			callinfo.line,
@@ -407,140 +310,74 @@ void OnBgnCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 		);
 		Knowbug::logmes( logText.c_str() );
 	}
-	
-	ctx->retval_level = -1;
-	
 	return;
 }
 
 //------------------------------------------------
 // 呼び出し終了
 //------------------------------------------------
-void OnEndCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
+void OnEndCalling( HWND hwndTree, ModcmdCallInfo const& callinfo, void* ptr, int flag )
 {
-	if ( g_stkCallInfo.empty() ) return;
+	// 最後の呼び出しノードを削除
+	VarTree::RemoveCallNode( hwndTree, callinfo );	// 既に追加していたので除去される
 	
-	auto const pResult = g_config->bResultNode && ( ctx->retval_level == ctx->sublev + 1 )
-		? NewResultNodeData( callinfo, *exinfo->mpval )
-		: nullptr;
+	// 返値ノードの追加
+	auto const pResult = VarTree::AddResultNode( hwndTree, callinfo, ptr, flag );
 	
 	// ログ出力
 	if ( Dialog::isLogCallings() ) {
-		CString logText = strf(
+		string const logText = strf(
 			"[CallEnd] %s%s\n",
 			hpimod::STRUCTDAT_getName(callinfo.stdat),
 			(pResult ? (" -> " + pResult->valueString).c_str() : "")
 		);
 		Knowbug::logmes( logText.c_str() );
 	}
-	
-	// ノードを削除
-	if ( g_cntWillAddCallNodes > 0 ) {
-		g_cntWillAddCallNodes --;				// やっぱり追加しない
-	} else {
-		VarTree::RemoveCallNode( hwndTree, callinfo );	// 既に追加していたので除去される
-	}
-	
-	// 返値ノードの追加
-	if ( pResult ) {
-		if ( !Knowbug::isStepRunning() ) {	// 後で追加する
-			if ( pResult->pCallInfoDepended ) {
-				g_willAddResultNodes.push_back(pResult);
-			} else {
-				delete g_willAddResultNodeIndepend;
-				g_willAddResultNodeIndepend = pResult;
-			}
-		} else {
-			VarTree::AddResultNode( hwndTree, pResult );
-		}
-	}
-	
-	g_stkCallInfo.pop_back();
-	return;
-}
-
-//------------------------------------------------
-// 返値返却
-// 
-// @ 返値があれば、OnEndCalling の直前に呼ばれる。
-// @ ptr, flag はすぐに死んでしまうので、
-// @	今のうちに文字列化しておく。
-//------------------------------------------------
-void OnResultReturning( HWND hwndTree, const ModcmdCallInfo& callinfo, void* ptr, int flag )
-{
-	return;
-}
-
-//------------------------------------------------
-// 呼び出しノード更新
-//------------------------------------------------
-void UpdateCallNode( HWND hwndTree )
-{
-	// 追加予定の返値ノードを実際に追加する (part1)
-	if ( g_config->bResultNode && g_willAddResultNodeIndepend ) {
-		VarTree::AddResultNode( hwndTree, g_willAddResultNodeIndepend );
-		g_willAddResultNodeIndepend = nullptr;
-	}
-	
-	// 追加予定の呼び出しノードを実際に追加する
-	if ( g_cntWillAddCallNodes > 0 ) {
-		size_t const lenStk = g_stkCallInfo.size() ;
-		for ( size_t i = lenStk - g_cntWillAddCallNodes; i < lenStk; ++ i ) {
-			VarTree::AddCallNode( hwndTree, *g_stkCallInfo[i] );
-		}
-		g_cntWillAddCallNodes = 0;
-	}
-	
-	// 追加予定の返値ノードを実際に追加する (part2)
-	if ( g_config->bResultNode && !g_willAddResultNodes.empty() ) {
-		for each ( auto pResult in g_willAddResultNodes ) {
-			VarTree::AddResultNode( hwndTree, pResult );
-		}
-		g_willAddResultNodes.clear();
-	}
-	return;
-}
-
-//------------------------------------------------
-// WrapCall メソッド
-//------------------------------------------------
-
-static void WrapCallMethod_AddLog( const char* log )
-{
-	Knowbug::logmes( log );
-}
-
-static void WrapCallMethod_BgnCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo )
-{
-	OnBgnCalling( Dialog::getVarTreeHandle(), *pCallInfo );
-}
-
-static int WrapCallMethod_EndCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo )
-{
-	OnEndCalling( Dialog::getVarTreeHandle(), *pCallInfo );
-	return RUNMODE_RUN;
-}
-
-static void WrapCallMethod_ResultReturning( unsigned int idx, const ModcmdCallInfo* pCallInfo, void* ptr, int flag )
-{
-//	OnResultReturning( Dialog::hVarTree, *pCallInfo, ptr, flag );
-}
-
-void WrapCall_RequireMethodFunc( WrapCallMethod* methods )
-{
-	methods->AddLog          = WrapCallMethod_AddLog;
-	methods->BgnCalling      = WrapCallMethod_BgnCalling;
-	methods->EndCalling      = WrapCallMethod_EndCalling;
-	methods->ResultReturning = WrapCallMethod_ResultReturning;
 	return;
 }
 
 #endif
 
+//##############################################################################
+//                スクリプト向けのAPI
+//##############################################################################
+//------------------------------------------------
+// 変数情報文字列 (refstr に出力)
+//------------------------------------------------
+EXPORT void WINAPI knowbug_getVarinfoString(char const* name, PVal* pval,  char* prefstr)
+{
+	auto const varinf = std::make_unique<CVarinfoText>(HSPCTX_REFSTR_MAX - 1);
+	varinf->addVar(pval, name);
+	strcpy_s(prefstr, HSPCTX_REFSTR_MAX, varinf->getString().c_str());
+	return;
+}
+
+//------------------------------------------------
+// 最後に呼び出された関数の名前 (refstr に出力)
+//
+// @prm n : 最後の n 個は無視する
+//------------------------------------------------
+EXPORT void WINAPI knowbug_getCurrentModcmdName(char const* strNone, int n, char* prefstr)
+{
+#ifdef with_WrapCall
+	auto const range = WrapCall::getCallInfoRange();
+	if ( std::distance(range.first, range.second) > n ) {
+		auto const stdat = (*(range.second - (n + 1)))->stdat;
+		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, hpimod::STRUCTDAT_getName(stdat));
+	} else {
+		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, strNone);
+	}
+#else
+	strcpy_s(prefstr, HSPCTX_REFSTR_MAX, strNone);
+#endif
+	return;
+}
+
+#if 0
 //------------------------------------------------
 // スレッド起動
 //
-// TODO: 作りかけすぎる
+// TODO: 作りかけ
 //------------------------------------------------
 
 class ExecPtrThread
@@ -570,7 +407,7 @@ void threadFunc()
 				const int c = *p;
 				int code;
 				if ( c & 0x8000 ) {
-					code = *reinterpret_cast<const int*>(p); p += 2;
+					code = *reinterpret_cast<int const*>(p); p += 2;
 				} else {
 					code = *p; p ++;
 				}
@@ -592,3 +429,4 @@ void InvokeThread()
 {
 	//
 }
+#endif

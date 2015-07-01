@@ -1,333 +1,167 @@
 // 変数データテキスト生成クラス
 
+#include <numeric>	// for accumulate
 #include <algorithm>
 
-#include "CVarinfoText.h"
-#include "CVarinfoTree.h"
-#include "module/mod_cast.h"
-
-#ifdef clhsp
-# include "hsp3/mod_vector.h"
-#endif
-
-#include "SysvarData.h"
+#include "module/ptr_cast.h"
 
 #include "main.h"
+#include "SysvarData.h"
+#include "CVarinfoText.h"
+#include "CVarinfoTree.h"
 
-//##############################################################################
-//                定義部 : CVarinfoText
-//##############################################################################
+#ifdef with_WrapCall
+# include "WrapCall/ModcmdCallInfo.h"
+using namespace WrapCall;
+#endif
+
 //------------------------------------------------
 // 構築
 //------------------------------------------------
-CVarinfoText::CVarinfoText( DebugInfo& dbginfo, int lenLimit )
-	: mdbginfo ( dbginfo )
-	, mpBuf    ( new CString )
-	, mpVar    ( nullptr )
-	, mpName   ( nullptr )
-	, mlenLimit( lenLimit )
+CVarinfoText::CVarinfoText(int lenLimit)
+	: mBuf(lenLimit)
 {
-	mpBuf->reserve( std::min(0x400, lenLimit) );		// 0x400 はテキトー
-	return;
-}
-
-//------------------------------------------------
-// 解体
-//------------------------------------------------
-CVarinfoText::~CVarinfoText()
-{
-	delete mpBuf; mpBuf = nullptr;
+	mBuf.reserve(0x400);		// 0x400 はテキトー
 	return;
 }
 
 //------------------------------------------------
 // 変数データから生成
 //------------------------------------------------
-void CVarinfoText::addVar( PVal* pval, const char* name )
+void CVarinfoText::addVar( PVal* pval, char const* name )
 {
-	mpVar  = pval;
-	mpName = name;
-	make();
-	return;
-}
-
-//------------------------------------------------
-// 生成
-//------------------------------------------------
-void CVarinfoText::make( void )
-{
-	PVal*& pval = mpVar;
-	
-	HspVarProc* const pHvp = mdbginfo.exinfo->HspFunc_getproc( pval->flag );
-	int bufsize; 
-	void* pMemBlock = pHvp->GetBlockSize( pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize) );
-	uint const lengths[] = PValLengthList(pHvp, pval);
+	auto const hvp = hpimod::getHvp(pval->flag);
+	int bufsize;
+	void const* const pMemBlock =
+		hvp->GetBlockSize(pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize));
 
 	// 変数に関する情報
-	catf( "変数名：%s", mpName );
-	catf( "変数型：%s %s",
-		pHvp->vartype_name, makeArrayIndexString(hpimod::PVal_maxDim(pval), lengths).c_str()
-	);
-	catf( "モード：%s", getModeString( pval->mode ) );
-	catf( "アドレス：0x%08X, 0x%08X", address_cast(pval->pt), address_cast(pval->master) );
-	catf( "サイズ：using %d of %d [byte]", pval->size, bufsize );
-	
-	cat_crlf();
-	
+	mBuf.catln(strf("変数名：%s", name));
+	mBuf.catln(strf("変数型：%s", getVartypeString(pval).c_str()));
+	mBuf.catln(strf("アドレス：0x%08X, 0x%08X", address_cast(pval->pt), address_cast(pval->master)));
+	mBuf.catln(strf("サイズ：using %d of %d [byte]", pval->size, bufsize));
+	mBuf.catCrlf();
+
 	// 変数の内容に関する情報
 	{
-		CVarinfoTree* varinf( new CVarinfoTree( mdbginfo, mlenLimit ) );
-		
-		varinf->addVar( pval, mpName );
-		
-		const CString& sTree( varinf->getString() );
-		size_t len( sTree.size() );		// mlenLimit は越えてない
-		cat( sTree.c_str() );
-		
-		delete varinf;
+		auto const varinf = std::make_unique<CVarinfoTree>(mBuf.getLimit());
+		varinf->addVar(name, pval);
+		mBuf.cat(varinf->getString());
 	}
-	
+	mBuf.catCrlf();
+
 	// メモリダンプ
-	dump( pMemBlock, static_cast<size_t>(bufsize) );
-	
-	return;
-}
-
-/*
-//------------------------------------------------
-// 変数をメモリダンプする
-//------------------------------------------------
-void CVarinfoText::dumpVar( PVal* pval )
-{
-	size_t size;
-	
-	HspVarCoreReset( pval );
-	HspVarProc* pHvp ( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
-	void* ptr ( pHvp->GetPtr( pval ) );
-	void* mem (  );
-	
-	dump( mem, size );
-	
-	return;
-}
-//*/
-
-//------------------------------------------------
-// メモリダンプを追加する
-//------------------------------------------------
-void CVarinfoText::dump( void* mem, size_t bufsize )
-{
-	static const size_t stc_maxsize( 0x10000 );
-	size_t size( bufsize );
-	
-	if ( size > stc_maxsize ) {
-		catf( "全%d[byte]の内、%d[byte]のみをダンプします。", bufsize, stc_maxsize );
-		size = stc_maxsize;
-	}
-	
-	char tline[1024];
-	size_t iWrote;
-	uint idx ( 0 );
-	
-	cat("dump  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F");
-	cat("----------------------------------------------------");
-	
-	while ( idx < size ) {
-		iWrote = sprintf_s( tline, "%04X", idx );
-		
-		for ( uint i = 0; (i < 0x10 && idx < size); ++ i, ++ idx ) {
-			iWrote += sprintf_s(
-				&tline[iWrote], 1024 - iWrote,
-				" %02X", static_cast<unsigned char>( ptr_cast<char*>(mem)[idx] )
-			);
-		}
-		
-		cat( tline );
-	}
-	
+	mBuf.catDump(pMemBlock, static_cast<size_t>(bufsize));
 	return;
 }
 
 //------------------------------------------------
 // システム変数データから生成
 //------------------------------------------------
-void CVarinfoText::addSysvar( const char* name )
+void CVarinfoText::addSysvar(char const* name)
 {
-	int idx ( -1 );
-	for ( int i = 0; i < SysvarCount; ++ i ) {
-		if ( strcmp( name, SysvarData[i].name ) == 0 ) {
-			idx = i;
-			break;
-		}
-	}
-	if ( idx < 0 ) return;
-	
-	mpVar  = nullptr;
-	mpName = name;
-	
-	vartype_t   type ( SysvarData[idx].type );
-	HspVarProc* pHvp ( mdbginfo.exinfo->HspFunc_getproc( type ) );
-	
-	catf( "変数名：%s\t(システム変数)", mpName );
-	catf( "変数型：%s", pHvp->vartype_name );
-	cat_crlf();
-	
-	void*  pDumped   ( nullptr );
-	size_t sizeToDump( 0 );
+	auto const id = Sysvar_seek(name);
+	if ( id == SysvarId_MAX ) return;
+
+	mBuf.catln(strf("変数名：%s\t(システム変数)", name));
+	mBuf.catln(strf("変数型：%s", hpimod::getHvp(SysvarData[id].type)->vartype_name));
+	mBuf.catCrlf();
 
 	{
-		CVarinfoTree* varinf = new CVarinfoTree( mdbginfo, mlenLimit );
-		
-		varinf->addSysvar( idx, name, &pDumped, &sizeToDump );
-		
-		const CString& sTree = varinf->getString();
-		size_t len = sTree.length();
-		cat( sTree.c_str() );				// 内容を連結する
-		
-		delete varinf;
+		auto const varinf = std::make_unique<CVarinfoTree>(mBuf.getLimit());
+		varinf->addSysvar(id);
+		mBuf.catln(varinf->getString());
 	}
-	
-	if ( pDumped ) {
-		dump( pDumped, sizeToDump );
+
+	{
+		void const* data; size_t size;
+		Sysvar_getDumpInfo(id, data, size);
+		mBuf.catDump(data, size);
 	}
-	
 	return;
 }
 
 #if with_WrapCall
-//------------------------------------------------
-// 引数タイプの文字列を得る
-//------------------------------------------------
-static const char* getMptypeString( STRUCTPRM* stprm )
-{
-	switch ( stprm->mptype ) {
-	//	case MPTYPE_STRUCTTAG:   return "structtag";
-		case MPTYPE_LABEL:       return "label";
-		case MPTYPE_DNUM:        return "double";
-		case MPTYPE_INUM:        return "int";
-		case MPTYPE_LOCALSTRING: return "str";
-		case MPTYPE_STRUCT:      return "modcls";
-		case MPTYPE_MODULEVAR:   return "thismod";
-		case MPTYPE_IMODULEVAR:  return "thismod(new)";
-		case MPTYPE_TMODULEVAR:  return "thismod(delete)";
-		case MPTYPE_SINGLEVAR:   return "var";
-		case MPTYPE_ARRAYVAR:    return "array";
-		case MPTYPE_LOCALVAR:    return "local";
-#ifdef clhsp
-		case MPTYPE_ANY:         return "any";
-		case MPTYPE_VECTOR:      return "vector";
-		case MPTYPE_FLEX:        return "...";
-		default:
-			// モジュールクラス
-			if ( stprm->mptype >= MPTYPE_MODCLS_BIAS ) {
-				int idxFinfo( stprm->mptype - MPTYPE_MODCLS_BIAS );
-				return &mdbginfo.ctx->mem_mds[mdbginfo.ctx->mem_finfo[idxFinfo].nameidx];
-				
-				ModInst* mv( code_get_modinst() );
-				*ptr_cast<ModInst**>(out) = mv;
-				
-				if ( get_stprm(mv)->subid != idxFinfo ) {
-					throw runerr HSPERR_TYPE_MISMATCH;
-				}
-			}
-			break;
-#endif
-	}
-	return "";
-}
-
+#include "module/map_iterator.h"
 //------------------------------------------------
 // 呼び出しデータから生成
 // 
 // @prm prmstk: nullptr => 引数未確定
 //------------------------------------------------
-void CVarinfoText::addCall( STRUCTDAT* stdat, void* prmstk, int sublev, const char* name, const char* filename, int line )
+void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 {
-	if ( filename == nullptr ) {
-		catf( "関数名：%s", name );
-	} else {
-		catf( "関数名：%s (#%d of %s)", name, line, filename );
-	}
-	
+	auto const stdat = callinfo.stdat;
+	auto const name = hpimod::STRUCTDAT_getName(stdat);
+	mBuf.catln(
+		(callinfo.fname == nullptr)
+			? strf("関数名：%s", name)
+			: strf("関数名：%s (#%d of %s)", name, callinfo.line, callinfo.fname)
+	);
+
 	// シグネチャ
+#if 0
 	{
-		CString sPrm = "仮引数：(";
-		STRUCTPRM* stprm = &mdbginfo.ctx->mem_minfo[stdat->prmindex];
+		// 仮引数リストの文字列
+		string s = "";
 
-		if ( stdat->prmmax == 0 ) {
-			sPrm += "void";
-		} else {
-			for ( int i = 0; i < stdat->prmmax; ++ i ) {
-				if ( i !=0 ) sPrm += ", ";
-				sPrm += getMptypeString( stprm + i );
-			}
-		}
-		
-		sPrm += ")";
-		cat( sPrm.c_str() );
+		//if ( stdat->prmmax == 0 ) s = "void";
+		std::for_each(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat), [&](STRUCTPRM const& stprm) {
+			if ( !s.empty() ) s += ", ";
+			s += getMPTypeString(stprm.mptype);
+		});
+		mBuf.catln(strf("仮引数：(%s)", s.c_str()));
+#else
+	{
+		auto const range = make_mapped_range(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat),
+			[&](STRUCTPRM const& stprm) { return getMPTypeString(stprm.mptype); });
+		mBuf.catln(strf("仮引数：(%s)", 
+			join(range.begin(), range.end(), ", ").c_str()));
 	}
-	
-	cat_crlf();
-	
-	if ( !prmstk ) {
-		cat("[展開中]");
-	} else {
+#endif
+	mBuf.catCrlf();
+
+	if ( auto const prmstk = callinfo.getPrmstk() ) {
 		// 変数の内容に関する情報
-		{
-			CVarinfoTree* varinf( new CVarinfoTree( mdbginfo, mlenLimit ) );
-			
-			varinf->addCall( stdat, prmstk, name );
-			
-			const CString& sTree( varinf->getString() );
-			size_t len( sTree.size() );		// mlenLimit は越えてない
-			cat( sTree.c_str() );
-			
-			mlenLimit -= len;
-			
-			delete varinf;
-		}
-		
-		// メモリダンプ
-		dump( prmstk, stdat->size );
-	}
+		auto const varinf = std::make_unique<CVarinfoTree>(mBuf.getLimit());
+		varinf->addCall( stdat, prmstk );
+		mBuf.cat(varinf->getString());
+		mBuf.catCrlf();
 
+		// メモリダンプ
+		mBuf.catDump( prmstk, static_cast<size_t>(stdat->size) );
+
+	} else {
+		mBuf.catln("[展開中]");
+	}
 	return;
 }
 
 //------------------------------------------------
 // 返値データから生成
 //------------------------------------------------
-void CVarinfoText::addResult( STRUCTDAT* stdat, void* ptr, int flag, int sublev, const char* name )
+void CVarinfoText::addResult( stdat_t stdat, void* ptr, vartype_t vtype, char const* name )
 {
-	HspVarProc* pHvp = mdbginfo.exinfo->HspFunc_getproc( flag );
-	int bufsize = pHvp->GetSize( ptr_cast<PDAT*>(ptr) );
+	int const bufsize = hpimod::getHvp(vtype)->GetSize( ptr_cast<PDAT*>(ptr) );
 	
-	catf( "関数名：%s", name );
-	cat_crlf();
-	
+	mBuf.catln(strf( "関数名：%s", name ));
+	mBuf.catCrlf();
+
 	// 変数の内容に関する情報
 	{
-		CVarinfoTree* varinf( new CVarinfoTree( mdbginfo, mlenLimit ) );
-		
-		varinf->addResult( ptr, flag, name );
-		
-		const CString& sTree( varinf->getString() );
-		size_t len( sTree.size() );		// mlenLimit は越えてない
-		cat( sTree.c_str() );
-		
-		mlenLimit -= len;
-		
-		delete varinf;
+		auto const varinf = std::make_unique<CVarinfoTree>(mBuf.getLimit());
+		varinf->addResult(name, ptr, vtype);
+		mBuf.cat(varinf->getString());
 	}
+	mBuf.catCrlf();
 	
 	// メモリダンプ
-	dump( ptr, static_cast<size_t>(bufsize) );
+	mBuf.catDump( ptr, static_cast<size_t>(bufsize) );
 	return;
 }
 
-void CVarinfoText::addResult2( const CString& text, const char* name )
+void CVarinfoText::addResult2( string const& text, char const* name )
 {
-	cat(text.c_str());
+	mBuf.catln(text);
 	return;
 }
 
@@ -336,6 +170,7 @@ void CVarinfoText::addResult2( const CString& text, const char* name )
 //**********************************************************
 //        下請け関数
 //**********************************************************
+/*
 //------------------------------------------------
 // 改行を連結する
 //------------------------------------------------
@@ -351,7 +186,7 @@ void CVarinfoText::cat_crlf( void )
 //------------------------------------------------
 // 文字列を連結する
 //------------------------------------------------
-void CVarinfoText::cat( const char* string )
+void CVarinfoText::cat( char const* string )
 {
 	if ( mlenLimit <= 0 ) return;
 	
@@ -373,14 +208,89 @@ void CVarinfoText::cat( const char* string )
 //------------------------------------------------
 // 書式付き文字列を連結する
 //------------------------------------------------
-void CVarinfoText::catf( const char* format, ... )
+void CVarinfoText::catf( char const* format, ... )
 {
 	va_list   arglist;
 	va_start( arglist, format );
 	
-	CString s = vstrf( format, arglist );
+	string s = vstrf( format, arglist );
 	cat( s.c_str() );
 	
 	va_end( arglist );
 	return;
+}
+//*/
+
+//------------------------------------------------
+// mptype の文字列を得る
+// todo: hpimod に移動？
+//------------------------------------------------
+char const* getMPTypeString(int mptype)
+{
+	switch ( mptype ) {
+		case MPTYPE_NONE:        return "none";
+		case MPTYPE_STRUCTTAG:   return "structtag";
+
+		case MPTYPE_LABEL:       return "label";
+		case MPTYPE_DNUM:        return "double";
+		case MPTYPE_STRING:
+		case MPTYPE_LOCALSTRING: return "str";
+		case MPTYPE_INUM:        return "int";
+		case MPTYPE_VAR:
+		case MPTYPE_PVARPTR:				// #dllfunc
+		case MPTYPE_SINGLEVAR:   return "var";
+		case MPTYPE_ARRAYVAR:    return "array";
+		case MPTYPE_LOCALVAR:    return "local";
+		case MPTYPE_MODULEVAR:   return "thismod";//"modvar";
+		case MPTYPE_IMODULEVAR:  return "modinit";
+		case MPTYPE_TMODULEVAR:  return "modterm";
+
+#if 0
+		case MPTYPE_IOBJECTVAR:  return "comobj";
+	//	case MPTYPE_LOCALWSTR:   return "";
+	//	case MPTYPE_FLEXSPTR:    return "";
+	//	case MPTYPE_FLEXWPTR:    return "";
+		case MPTYPE_FLOAT:       return "float";
+		case MPTYPE_PPVAL:       return "pval";
+		case MPTYPE_PBMSCR:      return "bmscr";
+		case MPTYPE_PTR_REFSTR:  return "prefstr";
+		case MPTYPE_PTR_EXINFO:  return "pexinfo";
+		case MPTYPE_PTR_DPMINFO: return "pdpminfo";
+		case MPTYPE_NULLPTR:     return "nullptr";
+#endif
+		default: return "unknown";
+	}
+}
+
+#if 0 // 未使用
+static char const* getModeString(varmode_t mode)
+{
+	return	(mode == HSPVAR_MODE_NONE) ? "無効" :
+		(mode == HSPVAR_MODE_MALLOC) ? "実体" :
+		(mode == HSPVAR_MODE_CLONE) ? "クローン" : "???";
+}
+#endif
+static char const* getTypeQualifierFromMode(varmode_t mode)
+{
+	return (mode == HSPVAR_MODE_NONE) ? "!" :
+		(mode == HSPVAR_MODE_MALLOC) ? "" :
+		(mode == HSPVAR_MODE_CLONE) ? "&" : "<err>";
+}
+
+// 変数の型を表す文字列
+string getVartypeString(PVal const* pval)
+{
+	size_t const maxDim = hpimod::PVal_maxDim(pval);
+
+	string const arrayType =
+		(maxDim == 0) ? "(empty)" :
+		(maxDim == 1) ? makeArrayIndexString(1, &pval->len[1]) :
+		strf("%s (%d in total)", makeArrayIndexString(maxDim, &pval->len[1]).c_str(), hpimod::PVal_cntElems(pval))
+	;
+
+	return strf("%s%s %s",
+		hpimod::getHvp(pval->flag)->vartype_name,
+		getTypeQualifierFromMode(pval->mode),
+		arrayType.c_str()
+	);
 }

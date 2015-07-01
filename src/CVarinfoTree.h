@@ -3,8 +3,11 @@
 #ifndef IG_CLASS_VARINFO_TREE_H
 #define IG_CLASS_VARINFO_TREE_H
 
-#include "ClhspDebugInfo.h"
-#include "module/mod_cstring.h"
+#include "main.h"
+#include "DebugInfo.h"
+#include "SysvarData.h"
+#include "module/strf.h"
+#include "module/CStrBuf.h"
 
 #if defined(with_Assoc) || defined(with_Vector) || defined(with_Array)
 class CAssoc;
@@ -12,119 +15,113 @@ class CVector;
 class CArray;
 #endif
 
-//##############################################################################
-//                宣言部 : CVarinfoTree
-//##############################################################################
 class CVarinfoTree
 {
+	// メンバ変数
 private:
-	static const int stc_cntUnitIndent = 1;		// 字下げ単位量
-	
-	struct BaseData
-	{
-		CString sIndent;
-		const char* name;
-		const char* indent;
-		
-		BaseData( const char* name_, const CString& sIndent_ )
-			: name    ( name_ )
-			, sIndent ( sIndent_ )
-			, indent  ( sIndent.c_str() )
-		{ }
-		
-		const char* getName  ( void ) const { return name; }
-		const char* getIndent( void ) const { return sIndent.c_str(); }
-		
-	};
-	
-	//******************************************************
-	//    メンバ変数
-	//******************************************************
-private:
-	DebugInfo& mdbginfo;
-	CString*   mpBuf;
-	int mlvNest;
-	
-	int mlenLimit;	// 表示データの制限
-	
-	//******************************************************
-	//    メンバ関数
-	//******************************************************
+	CTreeformStrBuf mBuf;
+
+	// メンバ関数
 public:
-	explicit CVarinfoTree( DebugInfo& dbginfo, int lenLimit = (0x7FFFFFFF - 1) );
-	~CVarinfoTree();
-	
-	void addVar( PVal* pval, const char* name );
-	void addSysvar( int idx, const char* name, void** ppDumped, size_t* pSizeToDump );
-	void addModInst( ModInst* mv, const char* name );
-	void addFlexValue( FlexValue* fv, const char* name );
-	void addCall( STRUCTDAT* stdat, void* prmstk, const char* name );
-	void addResult( void* ptr, vartype_t type, const char* name );
-	const CString& getString(void) const
-	{
-		return *mpBuf;
-	}
-	
-private:
-	// 項目の追加
-	void addItem_value    ( const BaseData& base, vartype_t type, void* ptr );
-	void addItem_var      ( const BaseData& base, PVal* pval );
-	void addItem_varScalar( const BaseData& base, PVal* pval );
-	void addItem_varScalar( const BaseData& base, PVal* pval, APTR aptr );
-	void addItem_varArray ( const BaseData& base, PVal* pval );
-	void addItem_varStr   ( const BaseData& base, PVal* pval, bool bScalar );
-#ifdef clhsp
-	void addItem_vector   ( const BaseData& base, Vector* vec, int length );
-	void addItem_vecelem  ( const BaseData& base, VecElem* vecelem, int idx );
-	void addItem_modinst  ( const BaseData& base, ModInst* mv );
-#else
-	void addItem_flexValue( const BaseData& base, FlexValue* fv );
-#endif
-	void addItem_prmstack ( const BaseData& base, STRUCTDAT* stdat, STRUCTPRM* stprm, const void* prmstack );
-	void addItem_member   ( const BaseData& base, STRUCTDAT* stdat, STRUCTPRM* stprm, const void* member );
+	explicit CVarinfoTree(int lenLimit = (0x7FFFFFFF - 1));
+
+	string const& getString() const { return mBuf.get(); }
+
+	void addVar(char const* name, PVal const* pval);
+	void addVarScalar(char const* name, PVal const* pval);
+	void addVarScalar(char const* name, PVal const* pval, APTR aptr);
+	void addVarArray(char const* name, PVal const* pval);
+
+	void addValue(char const* name, vartype_t type, void const* ptr);
+	void addItem_flexValue(char const* name, FlexValue const* fv);
+
 #ifdef with_Assoc
-	void addItem_assoc    ( const BaseData& base, CAssoc* src );
+	void addItem_assoc(char const* name, CAssoc* src);
 #endif
 #ifdef with_Vector
-	void addItem_vector   ( const BaseData& base, CVector* src );
+	void addItem_vector(char const* name, CVector* src);
 #endif
 #ifdef with_Array
-	void addItem_array    ( const BaseData& base, CArray* src );
+	void addItem_array(char const* name, CArray* src);
 #endif
 #ifdef with_ExtraBasics
-//	template<class TNumeric> CString dbgstr_extraBasic( const BaseData& base, const TNumeric src );
+	//	template<class TNumeric> string dbgstr_extraBasic(const TNumeric src);
 #endif
-//	void addItem_string   ( const BaseData& base, const char* src );
-	
-	// 文字列の連結
-	void cat( const char* src );
-	void catf( const char* format, ... );
-	void cat_crlf( void );
+	//	void addItem_string(char const* src);
+
+	void addPrmstack(stdat_t stdat, void const* prmstack);
+	void addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member);
+
+	void addSysvar(SysvarId id);
+
+	void addCall(stdat_t stdat, void const* prmstk);
+	void addCall(char const* name, stdat_t stdat, void const* prmstk);
+	void addResult(char const* name, void const* ptr, vartype_t type);
+
 private:
-	void cat( const char* src, size_t len );
-	
-public:
-	// その他
-	CString getIndent(void) const
-	{
-		return CString( mlvNest*  stc_cntUnitIndent, '\t' );
-	}
-	
-	// デバッグ文字列の生成
-#ifndef clhsp
-	CString getDbgString( vartype_t type, const void* ptr );
-	CString toStringLiteralFormat( const char* src );
-#endif
-	
-	//******************************************************
-	//    封印
-	//******************************************************
-private:
-	CVarinfoTree();
-	CVarinfoTree( const CVarinfoTree& );
-	
+	CVarinfoTree(CVarinfoTree const&) = delete;
 };
 
-extern CString makeArrayIndexString(uint dim, uint const indexes[]);
+// 単純な値を文字列化する
+extern string stringizeSimpleValue( vartype_t type, void const* ptr, bool bShort );
+
+// 文字列リテラルの形式の文字列
+extern string toStringLiteralFormat( char const* src );
+
+// モジュールクラス名の文字列の生成
+extern string makeModuleClassNameString(stdat_t stdat, bool bClone);
+
+// 配列添字の文字列の生成
+extern string makeArrayIndexString(size_t dim, int const indexes[]);
+
+// aptr から添字を求める
+extern void calcIndexesFromAptr(int* indexes, APTR aptr, int const* lengths, size_t cntElems, size_t dim);
+
+// const 変数の値を一時的に変更する
+#if 0
+#include <functional>
+template<typename T, typename TVal, typename TResult,
+	typename = std::enable_if_t<!std::is_same<TResult, void>::value>
+> TResult setASideConstTemporarily(T const& v, TVal&& tempVal, std::function<TResult()> const& proc)
+{
+	static_assert(std::is_convertible<TVal&&, T const&>::value, "");
+	
+	T const bak { std::move(v) };
+	const_cast<T&>(v) = std::forward(tempVal);
+	auto&& result { proc() };
+	const_cast<T&>(v) = std::move(bak);
+	return std::move(result);
+}
+
+template<typename T, typename TVal>
+void setASideConstTemporarily(T const& v, TVal&& tempVal, std::function<void()> const& proc)
+{
+	T const bak { std::move(v) };
+	const_cast<T&>(v) = std::forward(tempVal);
+	proc();
+	const_cast<T&>(v) = std::move(bak);
+	return;
+}
+#endif
+
+#if 0
+template<typename T>
+class TmpConstValueChange
+{
+public:
+	TmpConstValueChange(T const& ref, T const& tempVal)
+		: ref_(ref)
+		, bak_(std::move(ref))
+	{
+		const_cast<T&>(ref_) = std::move(tempVal);
+	}
+	TmpConstValueChange(TmpConstValueChange const&) = delete;
+	TmpConstValueChange& operator =(TmpConstValueChange const&) = delete;
+	~TmpConstValueChange() { const_cast<T&>(ref_) = std::move(bak_); }
+private:
+	T const& ref_;
+	T const bak_;
+};
+#endif
 
 #endif

@@ -3,33 +3,33 @@
 #ifndef IG_SYSVAR_DATA_H
 #define IG_SYSVAR_DATA_H
 
-#include "chruntime/hsp3struct.h"
+#include "hsp3struct.h"
 
 struct StSysvarData
 {
-	const char* name;
-	int        type;		// -1 => 特殊
+	char const* name;
+	int type;
 };
 
 //**********************************************************
 //        システム変数データ
 //**********************************************************
-static StSysvarData SysvarData[]
+// SysvarId に対応する
+static StSysvarData const SysvarData[]
 = {
 	{ "stat",    HSPVAR_FLAG_INT },
 	{ "refstr",  HSPVAR_FLAG_STR },
 	{ "refdval", HSPVAR_FLAG_DOUBLE },
 	{ "thismod", HSPVAR_FLAG_STRUCT },
 	{ "cnt",     HSPVAR_FLAG_INT },
-	{ "params",  HSPVAR_FLAG_INT },
-//	{ "iparam",  HSPVAR_FLAG_INT },
-//	{ "wparam",  HSPVAR_FLAG_INT },
-//	{ "lparam",  HSPVAR_FLAG_INT },
-	{ "notebuf", HSPVAR_FLAG_STR },
+	{ "iparam",  HSPVAR_FLAG_INT },
+	{ "wparam",  HSPVAR_FLAG_INT },
+	{ "lparam",  HSPVAR_FLAG_INT },
 	{ "strsize", HSPVAR_FLAG_INT },
 	{ "looplev", HSPVAR_FLAG_INT },
 	{ "sublev",  HSPVAR_FLAG_INT },
 	{ "err",     HSPVAR_FLAG_INT },
+	{ "notebuf", HSPVAR_FLAG_STR },
 	
 //	{ "mousex",  HSPVAR_FLAG_INT },
 //	{ "mousey",  HSPVAR_FLAG_INT },
@@ -38,8 +38,9 @@ static StSysvarData SysvarData[]
 //	{ "dirinfo", HSPVAR_FLAG_STR }
 };
 
-static const int SysvarCount = ( sizeof(SysvarData) / sizeof(SysvarData[0]) );
+static size_t const SysvarCount = ( sizeof(SysvarData) / sizeof(SysvarData[0]) );
 
+// SysvarData に対応する
 enum SysvarId
 {
 	SysvarId_Stat = 0,		// stat
@@ -47,20 +48,19 @@ enum SysvarId
 	SysvarId_Refdval,		// refdval
 	SysvarId_Thismod,		// thismod
 	SysvarId_Cnt,			// cnt
-	SysvarId_Params,		// (params)
-//	SysvarId_IParam,		// iparam
-//	SysvarId_WParam,		// wparam
-//	SysvarId_LParam,		// lparam
-	SysvarId_NoteBuf,		// notebuf
+	SysvarId_IParam,		// iparam
+	SysvarId_WParam,		// wparam
+	SysvarId_LParam,		// lparam
 	SysvarId_StrSize,		// strsize
 	SysvarId_Looplev,		// looplev
 	SysvarId_Sublev,		// sublev
 	SysvarId_Err,			// err
+	SysvarId_NoteBuf,		// notebuf
 	
 	// GUI
-	SysvarId_MouseX,		// mousex
-	SysvarId_MouseY,		// mousey
-	SysvarId_MouseW,		// mousew
+//	SysvarId_MouseX,		// mousex
+//	SysvarId_MouseY,		// mousey
+//	SysvarId_MouseW,		// mousew
 //	SysvarId_GInfo,			// ginfo
 //	SysvarId_DirInfo,		// dirinfo
 	SysvarId_MAX,
@@ -69,6 +69,11 @@ enum SysvarId
 //**********************************************************
 //        関数宣言
 //**********************************************************
-extern int getSysvarIndex( const char* name );
+extern SysvarId Sysvar_seek( char const* name );
+
+extern int* Sysvar_getPtrOfInt(int id);
+extern FlexValue* Sysvar_getThismod();
+
+extern void Sysvar_getDumpInfo(int id,  void const*& out_data, size_t& out_size);
 
 #endif

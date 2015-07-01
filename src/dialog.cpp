@@ -5,15 +5,17 @@
 #include <windowsx.h>
 #include <commctrl.h>
 
-#include "module/hspdll.h"
-#include "module/supio.h"
-#include "module/SortNote.h"
+#include "main.h"
+#include "hspwnd.h"
+#include "module/supio/supio.h"
+//#include "module/hspdll.h"
+//#include "module/SortNote.h"
+#include "WrapCall/WrapCall.h"
 
 #include "dialog.h"
 #include "vartree.h"
 #include "config_mng.h"
-#include "WrapCall.h"
-#include "ClhspDebugInfo.h"
+#include "DebugInfo.h"
 
 #include <fstream>
 #include <map>
@@ -61,17 +63,17 @@ HWND getVarTreeHandle() { return hVarTree; }
 //------------------------------------------------
 static HWND GenerateObj( HWND parent, char* name, char* ttl, int x, int y, int sx, int sy, int menu, HFONT font )
 {
-	HWND h = CreateWindow(
+	HWND const h = CreateWindow(
 		name, ttl,
 		(WS_CHILD | WS_VISIBLE),
 		x, y, sx, sy,
 		parent,
 		(HMENU)menu,
-		g_hInstance,
-		NULL
+		Knowbug::getInstance(),
+		nullptr
 	);
 
-	if ( font != NULL ) SendMessage( h, WM_SETFONT, (WPARAM)font, TRUE );
+	if ( font != nullptr ) SendMessage( h, WM_SETFONT, (WPARAM)font, TRUE );
 	return h;
 }
 
@@ -98,54 +100,48 @@ static void TabGeneralInit( void )
 //------------------------------------------------
 // 全般タブの更新
 //------------------------------------------------
-static void SrcSync( const char* filepath, int line_num, bool bUpdateEdit, bool bUpdateBox );
-static void TabGeneral_AddItem( const char* sItem, const char* sValue, int iItem );
+static void SrcSync( char const* filepath, int line_num, bool bUpdateEdit, bool bUpdateBox );
+static void TabGeneral_AddItem( char const* sItem, char const* sValue, int iItem );
 
-static void TabGeneralReset( void )
+static void TabGeneralReset()
 {
-	int chk, tgmax;
-	char* p;
+	ListView_DeleteAllItems( hGenList );
+
+	int tgmax = 0;
+	int chk;
 	char name[256];
 	char val[512];
 
-	ListView_DeleteAllItems( hGenList );
-	tgmax = 0;
-
-	p = g_dbginfo->debug->get_value( DEBUGINFO_GENERAL );		// HSP側に問い合わせ
+	char* const p = g_dbginfo->debug->get_value( DEBUGINFO_GENERAL );		// HSP側に問い合わせ
 	strsp_ini();
 	for (;;) {
-		chk = strsp_get( p, name, 0, 255 );
+		chk = strsp_get( p, name, 0, sizeof(name) - 1 );
 		if ( chk == 0 ) break;
 		
-		chk = strsp_get( p, val, 0, 511 );
+		chk = strsp_get( p, val, 0, sizeof(val) - 1 );
 		if ( chk == 0 ) break;
 		
-		TabGeneral_AddItem( name, val, tgmax );
-		tgmax ++;
+		TabGeneral_AddItem( name, val, tgmax ); ++tgmax;
 	}
 	
 	// 拡張内容の追加
-	do if ( exinfo->actscr != NULL ) {
-		BMSCR* pBmscr(
-			reinterpret_cast<BMSCR*>( exinfo->HspFunc_getbmscr( *exinfo->actscr ) )
-		);
-		if ( pBmscr == NULL ) break;
-		
-		// color
-		{
-			COLORREF cref ( pBmscr->color );
-			sprintf_s( val, "(%d, %d, %d)",
-				GetRValue(cref), GetGValue(cref), GetBValue(cref)
-			);
+	if ( exinfo->actscr ) {
+		auto const pBmscr = reinterpret_cast<BMSCR*>(exinfo->HspFunc_getbmscr(*exinfo->actscr));
+		if ( pBmscr ) {
+			// color
+			{
+				COLORREF const cref = pBmscr->color;
+				sprintf_s(val, "(%d, %d, %d)",
+					GetRValue(cref), GetGValue(cref), GetBValue(cref)
+				);
+			}
+			TabGeneral_AddItem("color", val, tgmax); ++tgmax;
+
+			// pos
+			sprintf_s(val, "(%d, %d)", pBmscr->cx, pBmscr->cy);
+			TabGeneral_AddItem("pos", val, tgmax); ++tgmax;
 		}
-		TabGeneral_AddItem( "color", val, tgmax );
-		tgmax ++;
-		
-		// pos
-		sprintf_s( val, "(%d, %d)", pBmscr->cx, pBmscr->cy );
-		TabGeneral_AddItem( "pos", val, tgmax );
-		tgmax ++;
-	} while ( false );
+	}
 	
 	g_dbginfo->debug->dbg_close( p );
 
@@ -153,7 +149,7 @@ static void TabGeneralReset( void )
 	return;
 }
 
-static void TabGeneral_AddItem( const char* sItem, const char* sValue, int iItem )
+static void TabGeneral_AddItem( char const* sItem, char const* sValue, int iItem )
 {
 	LV_ITEM item;
 	
@@ -171,20 +167,14 @@ static void TabGeneral_AddItem( const char* sItem, const char* sValue, int iItem
 }
 
 //------------------------------------------------
-// 実行中の位置を更新する (line, file)
+// 実行中の位置表示を更新する (line, file)
 //------------------------------------------------
-static void CurrnetUpdate( void )
+static void CurrentUpdate()
 {
-	char tmp[512];
-	char* fn;
-	g_dbginfo->debug->dbg_curinf();
-	fn = g_dbginfo->debug->fname;
-	if ( fn == NULL ) fn = "???";
-	sprintf_s( tmp, "%s\n( line : %d )", fn, g_dbginfo->debug->line );
-	SetWindowText( hSttCtrl, tmp );
+	SetWindowText( hSttCtrl, g_dbginfo->getCurInfString().c_str() );
 	
 #ifdef with_khad
-	if ( hKhad != NULL ) {
+	if ( hKhad != nullptr ) {
 		SendMessage( hKhad, UWM_KHAD_CURPOS, g_dbginfo->debug->line, (LPARAM)g_dbginfo->debug->fname );
 	}
 #endif
@@ -194,7 +184,7 @@ static void CurrnetUpdate( void )
 //------------------------------------------------
 // 変数タブのオプションを取得
 //------------------------------------------------
-static int GetTabVarsOption( void )
+static int GetTabVarsOption()
 {
 	return 0xF;
 /*
@@ -221,7 +211,7 @@ void TabVarInit( HWND hDlg )
 	// ポップアップメニューの追加
 	hPopupOfVar = CreatePopupMenu();
 		AppendMenu( hPopupOfVar, MF_STRING, IDM_VAR_LOGGING, "ログ(&L)");	// 文は表示時に上書きされる
-		AppendMenu( hPopupOfVar, MF_STRING, IDM_VAR_UPDATE,  "更新(&U" );
+		AppendMenu( hPopupOfVar, MF_STRING, IDM_VAR_UPDATE,  "更新(&U)" );
 		AppendMenu( hPopupOfVar, MF_SEPARATOR, 0, 0 );
 		AppendMenu( hPopupOfVar, MF_STRING, IDM_VAR_STEPOUT, "脱出(&O)" );
 	return;
@@ -232,10 +222,10 @@ void TabVarInit( HWND hDlg )
 //------------------------------------------------
 void TabVarsUpdate( void )
 {
-	HTREEITEM hItem = TreeView_GetSelection( hVarTree );
-	if ( hItem == NULL ) return;
+	HTREEITEM const hItem = TreeView_GetSelection( hVarTree );
+	if ( !hItem ) return;
 	
-	CString&& varinfoText = VarTree::getItemVarText( hVarTree, hItem );
+	string const varinfoText = VarTree::getItemVarText( hVarTree, hItem );
 	if ( !varinfoText.empty() ) {
 		SetWindowText( hVarEdit, varinfoText.c_str() );
 	}
@@ -272,7 +262,7 @@ void logClear()
 //------------------------------------------------
 // ログメッセージを追加・更新する
 //------------------------------------------------
-void logUpdate( const char* textAdd )
+void logUpdate( char const* textAdd )
 {
 	int caret[2];
 	SendMessage( hLogEdit, EM_GETSEL,
@@ -280,7 +270,7 @@ void logUpdate( const char* textAdd )
 		(LPARAM)( &caret[1] )
 	);
 	
-	int size = Edit_GetTextLength( hLogEdit );
+	int const size = Edit_GetTextLength( hLogEdit );
 	Edit_SetSel( hLogEdit, size, size );		// 最後尾にキャレットを置く
 	Edit_ReplaceSel( hLogEdit, textAdd );		// 文字列を追加する
 	Edit_ScrollCaret( hLogEdit );				// 画面を必要なだけスクロール
@@ -305,7 +295,7 @@ void TabLogCommit()
 //------------------------------------------------
 // ログメッセージに追加する
 //------------------------------------------------
-void logAdd( const char* str )
+void logAdd( char const* str )
 {
 	// 自動更新
 	if ( IsDlgButtonChecked( hLogPage, IDC_CHK_LOG_UPDATE ) ) {
@@ -320,6 +310,14 @@ void logAdd( const char* str )
 void logAddCrlf()
 {
 	logAdd( "\r\n" );
+}
+
+// 現在位置を更新して、現在位置をログに追加する。
+void logAddCurInf()
+{
+	g_dbginfo->debug->dbg_curinf();
+	logAdd(strf("CurInf: %s", g_dbginfo->getCurInfString()).c_str());
+	logAddCrlf();
 }
 
 //------------------------------------------------
@@ -341,24 +339,25 @@ void logSave()
 		ofn.lpstrTitle     = "名前を付けて保存";	// コモンダイアログのキャプション
 		ofn.lpstrDefExt    = "log";					// デフォルトのファイルの種類
 
-	if ( !GetSaveFileName( &ofn ) ) return;
-	
-	logSave( fullname );
+	if ( GetSaveFileName(&ofn) ) {
+		logSave(fullname);
+	}
 	return;
 }
 
-void logSave( const char* filepath )
+void logSave( char const* filepath )
 {
 	// ログメッセージを取り出す
-	int size = Edit_GetTextLength( hLogEdit );
-	char* buf = new char[size + 2];
+	int const size = Edit_GetTextLength( hLogEdit );
+	char* const buf = new char[size + 2];
 	GetWindowText( hLogEdit, buf, size + 1 );
 	
 	// 保存
-	HANDLE hFile = CreateFile( filepath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
+	HANDLE const hFile =
+		CreateFile( filepath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
 	if ( hFile != INVALID_HANDLE_VALUE ) {
 		DWORD writesize;
-		WriteFile( hFile, buf, size, &writesize, NULL );
+		WriteFile( hFile, buf, size, &writesize, nullptr );
 		CloseHandle( hFile );
 	}
 
@@ -368,42 +367,49 @@ void logSave( const char* filepath )
 
 //------------------------------------------------
 // ソースファイルを開く
+//
+// @ エディタ上で編集中の場合、ファイルの内容が実際と異なることがある。行番号のアウトレンジに注意。
 //------------------------------------------------
-#include "module/mod_chain.h"
+/*
+// 行ごとに分割されたテキスト
+first: スクリプト全体、ただし各行の字下げ空白は除去されている。
+second: 行番号(0ベース)の添字に対して、first におけるその行の先頭へのオフセット値。
+	最初の要素は 0、最後の要素は first の長さ。
+*/
+using script_t = std::pair<string const, std::vector<size_t>>;
 
-typedef std::pair<const std::string, std::vector<size_t>> script_t;	// 行ごとに分割されたテキスト
-static const char* stt_viewingFilepath = nullptr;	// 現在エディタにロードされているファイルのパス
+// 現在ソースタブで表示されているファイルのパス
+static string stt_viewingFilepath;
 
-// 読み込み処理
-// @ 失敗 => nullptr
-static const script_t* ReadFromSourceFile( const char* _filepath )
+// 読み込み処理 (failure: nullptr)
+static script_t const* ReadFromSourceFile( char const* _filepath )
 {
-	static std::map<std::string, script_t> stt_src_cache;
+	static std::map<string const, script_t> stt_src_cache;
 	
-	const string filepath = _filepath;
+	string const filepath = _filepath;
 	
 	// キャッシュから検索
 	{
-		auto iter = stt_src_cache.find(filepath);
+		auto const iter = stt_src_cache.find(filepath);
 		if ( iter != stt_src_cache.end() ) return &iter->second;
 	}
 
 	// ファイルから読み込む
-	std::string code;
+	string code;
 	std::vector<size_t> idxlist;
 	{
-		std::ifstream ifs( filepath );
+		std::ifstream ifs { filepath };
 		if ( !ifs.is_open() ) {			// 見つからなかった => common からも検索
 			char path[MAX_PATH];
-			if ( SearchPath( g_config->commonPath.c_str(), _filepath, NULL, sizeof(path), path, NULL ) == 0 ) {
+			if ( SearchPath( g_config->commonPath.c_str(), _filepath, nullptr, sizeof(path), path, nullptr ) == 0 ) {
 				return nullptr;
 			}
 			
 			ifs.open( path );
-			if  ( !ifs.is_open() ) return nullptr;
+			if ( !ifs.is_open() ) return nullptr;
 		}
 		
-		char linebuf[320];
+		char linebuf[0x400];
 		size_t idx = 0;
 		idxlist.push_back( 0 );
 		do {
@@ -411,48 +417,55 @@ static const script_t* ReadFromSourceFile( const char* _filepath )
 			int cntIndents = 0; {
 				for( int& i = cntIndents; linebuf[i] == '\t' || linebuf[i] == ' '; ++ i );
 			}
-			const char* const p = &linebuf[cntIndents];
-			const size_t len = std::strlen(p);
+			char const* const p = &linebuf[cntIndents];
+			size_t const len = std::strlen(p);
 			code.append( p, p + len ).append("\r\n");
 			idx += len + 2;
 			idxlist.push_back( idx );
 		} while ( ifs.good() );
 	}
-	
-	auto iter = stt_src_cache.insert(
-			std::pair<std::string, script_t>( std::move(filepath), script_t( std::move(code), std::move(idxlist) ) )
-		).first;
-	stt_viewingFilepath = iter->first.c_str();
-	return &iter->second;
+
+	auto const res =
+		stt_src_cache.insert({ std::move(filepath), { std::move(code), std::move(idxlist) } });
+	return &res.first->second;
 }
 
 // ソースタブを同期する
-static void SrcSyncImpl( HWND hEdit, const char* p )
+static void SrcSyncImpl( HWND hEdit, char const* p )
 {
 	Edit_SetSel( hEdit, 0, -1 );	// 全体を置き換える
 	Edit_ReplaceSel( hEdit, p );
 	return;
 }
 
-static void SrcSync( const char* filepath, int line_num, bool bUpdateEdit, bool bUpdateBox )
+static void SrcSync( char const* filepath, int line_num, bool bUpdateEdit, bool bUpdateBox )
 {
 	if ( !filepath || line_num < 0 ) return;
-	
-	auto const* p = ReadFromSourceFile( filepath );
-	
-	if ( p ) {
-		const size_t iLine = std::min( static_cast<size_t>(line_num), p->second.size() ) - 1;	// 行番号は 1-based
-		const size_t idxlist[2] = { p->second[iLine], p->second[iLine + 1] };
+
+	if ( auto const p = ReadFromSourceFile( filepath ) ) {
+		assert(line_num >= 1);	// 行番号 line_num は 1-based
+		size_t const iLine = static_cast<size_t>(line_num) - 1;
+
+		size_t idxlist[2];
+		if ( iLine + 1 < p->second.size() ) {
+			idxlist[0] = p->second[iLine]; idxlist[1] = p->second[iLine + 1];
+		} else {
+			idxlist[0] = idxlist[1] = 0;
+		}
 		if ( bUpdateEdit ) {
-			SrcSyncImpl( hSrcEdit, p->first.c_str() );
-			Edit_SetSel( hSrcEdit, idxlist[0], idxlist[0] );
+			if ( stt_viewingFilepath.empty() || stt_viewingFilepath != filepath ) {
+				SrcSyncImpl(hSrcEdit, p->first.c_str());
+				stt_viewingFilepath = filepath;
+			}
+			Edit_SetSel( hSrcEdit, idxlist[0], idxlist[1] );	// 該当行を選択
 			Edit_Scroll( hSrcEdit, iLine, 0 );
 		}
 		if ( bUpdateBox ) {
-			SrcSyncImpl( hSrcBox, p->first.substr( idxlist[0], (idxlist[1] - 2) - idxlist[0] ).c_str() );
+			auto const text = p->first.substr( idxlist[0], idxlist[1] - idxlist[0] );
+			SrcSyncImpl( hSrcBox, text.c_str() );
 		}
 	} else {
-		auto text = strf("(#%d of %s)", line_num, filepath);
+		auto const text = strf("(#%d \"%s\")", line_num, filepath);
 		if ( bUpdateEdit ) SrcSyncImpl( hSrcEdit, text.c_str() );
 		if ( bUpdateBox  ) SrcSyncImpl( hSrcBox,  text.c_str() );
 	}
@@ -511,13 +524,13 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					tvHitTestInfo.pt.x = LOWORD(lp);
 					tvHitTestInfo.pt.y = HIWORD(lp);
 				ScreenToClient( hVarTree, &tvHitTestInfo.pt );
-				const auto hItem = TreeView_HitTest( hVarTree, &tvHitTestInfo );	// 対象を確定
-				if ( hItem == NULL )  break;
+				auto const hItem = TreeView_HitTest( hVarTree, &tvHitTestInfo );	// 対象を確定
+				if ( !hItem )  break;
 				
 				if ( tvHitTestInfo.flags & TVHT_ONITEMLABEL ) {		// 文字列アイテムの場合
-					const auto varname = TreeView_GetItemString(hVarTree, hItem);
+					auto const varname = TreeView_GetItemString(hVarTree, hItem);
 					{
-						const auto menuText = strf( "「%s」をログ(&L)", varname.c_str() );
+						auto const menuText = strf( "「%s」をログ(&L)", varname.c_str() );
 						MENUITEMINFO menuInfo;
 							menuInfo.cbSize = sizeof(menuInfo);
 							menuInfo.fMask  = MIIM_STRING;
@@ -526,18 +539,19 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					}
 					
 					// 「脱出」は呼び出しノードに対してのみ有効
-					EnableMenuItem( hPopupOfVar, IDM_VAR_STEPOUT, (VarTree::isCallNode(varname.c_str()) ? MFS_ENABLED : MFS_DISABLED) );
+					EnableMenuItem( hPopupOfVar, IDM_VAR_STEPOUT,
+						(VarTree::isCallNode(varname.c_str()) ? MFS_ENABLED : MFS_DISABLED) );
 					
 					// ポップアップメニューを表示する
-					const int idSelected = TrackPopupMenuEx(
+					int const idSelected = TrackPopupMenuEx(
 						hPopupOfVar, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD,
-						(int)LOWORD(lp), (int)HIWORD(lp), hDlgWnd, NULL
+						(int)LOWORD(lp), (int)HIWORD(lp), hDlgWnd, nullptr
 					);
 					
 					switch ( idSelected ) {
 						case IDM_VAR_LOGGING:
 						{
-							CString&& varinfoText = VarTree::getItemVarText( hVarTree, hItem );
+							string const varinfoText = VarTree::getItemVarText( hVarTree, hItem );
 							Knowbug::logmes( varinfoText.c_str() );		// logmes 送信
 							return TRUE;
 						}
@@ -546,8 +560,12 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 							break;
 						case IDM_VAR_STEPOUT:		// 呼び出しノードと仮定してよい
 						{
-							auto const pCallInfo = reinterpret_cast<const ModcmdCallInfo*>( TreeView_GetItemLParam(hVarTree, hItem) );
-							Knowbug::runStepOut( pCallInfo->sublev );	// 対象が実行される前まで進む
+							auto const idx = static_cast<int>( TreeView_GetItemLParam(hVarTree, hItem) );
+							assert(idx >= 0);
+							if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
+								// 対象が呼び出された階層まで進む
+								Knowbug::runStepReturn(pCallInfo->sublev);
+							}
 							break;
 						}
 						default: break;
@@ -559,7 +577,7 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		}
 		case WM_NOTIFY:
 		{
-			NMHDR* nmhdr = (LPNMHDR)lp;
+			auto const nmhdr = reinterpret_cast<LPNMHDR>(lp);
 			
 			if ( nmhdr->hwndFrom == hVarTree ) {
 				switch ( nmhdr->code ) {
@@ -574,9 +592,9 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					// カスタムドロー
 					case NM_CUSTOMDRAW:
 					{
-						if ( !g_config->bCustomDraw ) break;		// カスタムドローしない
+						if ( !g_config->bCustomDraw ) break;
 						
-						LRESULT res = VarTree::customDraw(
+						LRESULT const res = VarTree::customDraw(
 							hVarTree, reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr)
 						);
 						SetWindowLong( hDlg, DWL_MSGRESULT, res );
@@ -675,16 +693,12 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	// 初期化
 	case WM_CREATE:
 	{
-		TCITEM tc;
-		RECT rt;
-		LPPOINT pt = (LPPOINT) &rt;
-		
 		// ポップアップメニューを生成
 		hPopup   = CreatePopupMenu();
 			AppendMenu( hPopup, (g_config->bTopMost ? MFS_CHECKED : MFS_UNCHECKED), IDM_TOPMOST, "常に最前面に表示する(&T)" );
 		
 		// ダイアログオブジェクトを生成
-		HFONT hFont = (HFONT)GetStockObject( DEFAULT_GUI_FONT );
+		auto const hFont = (HFONT)GetStockObject( DEFAULT_GUI_FONT );
 		hTabCtrl = GenerateObj( hDlg, WC_TABCONTROL, "", DIALOG_X0, DIALOG_Y0, DIALOG_X1, DIALOG_Y2, IDU_TAB, hFont );
 		hSttCtrl = GenerateObj( hDlg, "static",    "",  DIALOG_X0 + 210, DIALOG_Y1 + 12, DIALOG_X1 - 210, 48, 0, hFont );
 		hBtn1    = GenerateObj( hDlg, "button", "実行", DIALOG_X0 +   8, DIALOG_Y1 + 12, 40, 24, ID_BTN1, hFont );
@@ -693,30 +707,34 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		hBtn4    = GenerateObj( hDlg, "button", "次飛", DIALOG_X0 + 128, DIALOG_Y1 + 12, 40, 24, ID_BTN4, hFont );		// 追加
 		hBtn5    = GenerateObj( hDlg, "button", "脱出", DIALOG_X0 + 168, DIALOG_Y1 + 12, 40, 24, ID_BTN5, hFont );		// 追加
 		
+		TCITEM tc;
+
 		// 全般タブを追加
 		tc.mask = TCIF_TEXT;
 		tc.pszText = "全般";
 		TabCtrl_InsertItem(hTabCtrl, 0, &tc);
-		hTabSheet[0] = CreateDialog( g_hInstance, "T_GENERAL", hDlg, (DLGPROC) TabGeneralProc );
+		hTabSheet[0] = CreateDialog( Knowbug::getInstance(), "T_GENERAL", hDlg, (DLGPROC) TabGeneralProc );
 		
 		// 変数タブを追加
 		tc.mask = TCIF_TEXT;
 		tc.pszText = "変数";
 		TabCtrl_InsertItem(hTabCtrl, 1, &tc);
-		hTabSheet[1] = CreateDialog( g_hInstance, "T_VAR", hDlg, (DLGPROC) TabVarsProc );
+		hTabSheet[1] = CreateDialog( Knowbug::getInstance(), "T_VAR", hDlg, (DLGPROC) TabVarsProc );
 
 		// ログタブを追加
 		tc.mask    = TCIF_TEXT;
 		tc.pszText = "ログ";
 		TabCtrl_InsertItem(hTabCtrl, 2, &tc);
-		hTabSheet[2] = CreateDialog( g_hInstance, "T_LOG", hDlg, (DLGPROC) TabLogProc );
+		hTabSheet[2] = CreateDialog( Knowbug::getInstance(), "T_LOG", hDlg, (DLGPROC) TabLogProc );
 		
 		// スクリプトタブを追加
 		tc.mask    = TCIF_TEXT;
 		tc.pszText = "スクリプト";
 		TabCtrl_InsertItem(hTabCtrl, 3, &tc);
-		hTabSheet[3] = CreateDialog( g_hInstance, "T_SRC", hDlg, (DLGPROC) TabSrcProc );
+		hTabSheet[3] = CreateDialog( Knowbug::getInstance(), "T_SRC", hDlg, (DLGPROC) TabSrcProc );
 
+		RECT rt;
+		//auto pt = (LPPOINT) &rt;
 		//GetClientRect(hTabCtrl, &rt);
 		SetRect( &rt, 8, DIALOG_Y2 + 4, DIALOG_X1 + 8, DIALOG_Y1 + 4 );
 		//TabCtrl_AdjustRect(hTabCtrl, FALSE, &rt);
@@ -740,10 +758,10 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	}
 	case WM_NOTIFY:
 	{
-		NMHDR* nm = reinterpret_cast<NMHDR*>(lp);		// タブコントロールのシート切り替え通知
-		int cur   = TabCtrl_GetCurSel(hTabCtrl);
+		auto const nm = reinterpret_cast<NMHDR*>(lp);		// タブコントロールのシート切り替え通知
+		int const cur = TabCtrl_GetCurSel(hTabCtrl);
 		for ( int i = 0; i < TABDLGMAX; ++ i ) {
-			ShowWindow( hTabSheet[i], (i == cur) ? SW_SHOW : SW_HIDE );
+			ShowWindow( hTabSheet[i], (i == cur ? SW_SHOW : SW_HIDE) );
 		}
 		break;
 	}
@@ -764,8 +782,8 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		GetCursorPos( &pt );	// カーソル位置 (スクリーン座標)
 		
 		// ポップアップメニューを表示する
-		const int idSelected = TrackPopupMenuEx(
-			hPopup, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, hDlg, NULL
+		int const idSelected = TrackPopupMenuEx(
+			hPopup, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, hDlg, nullptr
 		);
 		switch ( idSelected ) {
 			case IDM_TOPMOST:
@@ -797,26 +815,6 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		DestroyMenu( hPopupOfVar ); hPopupOfVar = nullptr;
 		PostQuitMessage(0);
 		break;
-		
-#ifdef with_WrapCall
-	case DWM_RequireDebugStruct:
-	//	TabLogAdd("connected with WrapCall\n");
-		return (LRESULT)( g_dbginfo->debug );
-	case DWM_RequireMethodFunc:
-	{
-		WrapCall_RequireMethodFunc( reinterpret_cast<WrapCallMethod*>( lp ) );
-		return 0;
-	}
-#endif
-	/*
-#ifdef with_Script
-	case DWM_InitConnectWithScript: initConnectWithScript(); break;
-	case DWM_SetNodeAnnotation: setNodeAnnotation( almighty_cast<const char*>(wp), almighty_cast<const char*>(lp) ); break;
-	case DWM_SetStPrmNameBegin: setStPrmNameBegin( almighty_cast<const char*>(lp) ); break;
-	case DWM_SetStPrmNameEnd:   setStPrmNameEnd(); break;
-	case DWM_SetStPrmName:      setStPrmName( almighty_cast<int>(wp), almighty_cast<const char*>(lp) ); break;
-#endif
-	//*/
 	}
 	return DefWindowProc(hDlg, msg, wp, lp) ;
 }
@@ -826,21 +824,19 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 //------------------------------------------------
 HWND Dialog::createMain()
 {
-	int dispx, dispy;
-	WNDCLASS wndclass;
-
-	dispx   = GetSystemMetrics( SM_CXSCREEN );
-	dispy   = GetSystemMetrics( SM_CYSCREEN );
+	int const dispx = GetSystemMetrics( SM_CXSCREEN );
+	int const dispy = GetSystemMetrics( SM_CYSCREEN );
 	
+	WNDCLASS wndclass;
 	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
 	wndclass.lpfnWndProc   = DlgProc;
 	wndclass.cbClsExtra    = 0;
 	wndclass.cbWndExtra    = 0;
-	wndclass.hInstance     = g_hInstance;
-	wndclass.hIcon         = NULL;
-	wndclass.hCursor       = LoadCursor(NULL,IDC_ARROW);
+	wndclass.hInstance     = Knowbug::getInstance();
+	wndclass.hIcon         = nullptr;
+	wndclass.hCursor       = LoadCursor(nullptr, IDC_ARROW);
 	wndclass.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
-	wndclass.lpszMenuName  = NULL;
+	wndclass.lpszMenuName  = nullptr;
 	wndclass.lpszClassName = myClass;
 	RegisterClass( &wndclass );
 	
@@ -850,17 +846,17 @@ HWND Dialog::createMain()
 		(WS_CAPTION | WS_OVERLAPPED | WS_BORDER | WS_VISIBLE),
 		dispx - WND_SX, 0,
 		WND_SX, WND_SY,
-		NULL,
-		NULL,
-		g_hInstance,
-		NULL
+		nullptr,
+		nullptr,
+		Knowbug::getInstance(),
+		nullptr
 	);
 	ShowWindow( hDlgWnd, SW_SHOW );
 	UpdateWindow( hDlgWnd );
 	
-	// hDlgWnd = CreateDialog( myinst, "HSP3DEBUG", NULL, (DLGPROC)DlgProc );
-	if ( hDlgWnd == NULL ) {
-		MessageBox( NULL, "Debug window initalizing failed.", "Error", 0 );
+	// hDlgWnd = CreateDialog( myinst, "HSP3DEBUG", nullptr, (DLGPROC)DlgProc );
+	if ( !hDlgWnd ) {
+		MessageBox( nullptr, "Debug window initalizing failed.", "Error", 0 );
 	}
 	
 	SetWindowPos(	// 最前面
@@ -876,9 +872,9 @@ HWND Dialog::createMain()
 
 void Dialog::destroyMain()
 {
-	if ( hDlgWnd != NULL ) {
+	if ( hDlgWnd != nullptr ) {
 		DestroyWindow( hDlgWnd );
-		hDlgWnd = NULL;
+		hDlgWnd = nullptr;
 	}
 	return;
 }
@@ -890,11 +886,12 @@ void Dialog::destroyMain()
 //------------------------------------------------
 void update()
 {
-	const int idxTab = TabCtrl_GetCurSel( hTabCtrl );
+	CurrentUpdate();
+
+	int const idxTab = TabCtrl_GetCurSel( hTabCtrl );
 	switch( idxTab ) {
 		case 0:
 			TabGeneralReset();
-			SrcSync( g_dbginfo->debug->fname, g_dbginfo->debug->line, false, true );
 			break;
 		case 1:
 			TabVarsUpdate();
@@ -952,20 +949,20 @@ void Edit_SetTabLength( HWND hEdit, const int tabwidth )
 //------------------------------------------------
 void Edit_EnableWordwrap( HWND hEdit, bool bEnable )
 {
-	LONG const Style_HorzScroll = WS_HSCROLL | ES_AUTOHSCROLL;
+	static LONG const Style_HorzScroll = WS_HSCROLL | ES_AUTOHSCROLL;
 	LONG const style = GetWindowLongPtr(hEdit, GWL_STYLE);
 	
 	SetWindowLongPtr( hEdit, GWL_STYLE,
 		g_config->bWordwrap ? (style &~ Style_HorzScroll) : (style | Style_HorzScroll)
 	);
-	SetWindowPos( hEdit, NULL, 0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED) );
+	SetWindowPos( hEdit, nullptr, 0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED) );
 	return;
 }
 
 //------------------------------------------------
 // ツリービューの項目ラベルを取得する
 //------------------------------------------------
-CString TreeView_GetItemString( HWND hwndTree, HTREEITEM hItem )
+string TreeView_GetItemString( HWND hwndTree, HTREEITEM hItem )
 {
 	char stmp[256];
 	
@@ -975,11 +972,9 @@ CString TreeView_GetItemString( HWND hwndTree, HTREEITEM hItem )
 	ti.pszText    = stmp;
 	ti.cchTextMax = sizeof(stmp) - 1;
 	
-	if ( TreeView_GetItem( hwndTree, &ti ) ) {
-		return stmp;
-	} else {
-		return "";
-	}
+	return ( TreeView_GetItem( hwndTree, &ti ) )
+		? stmp
+		: "";
 }
 
 //------------------------------------------------
@@ -1004,9 +999,26 @@ void TreeView_EscapeFocus( HWND hwndTree, HTREEITEM hItem )
 {
 	if ( TreeView_GetSelection(hwndTree) == hItem ) {
 		HTREEITEM hUpper = TreeView_GetPrevSibling( hwndTree, hItem );
-		if ( hUpper == NULL ) hUpper = TreeView_GetParent(hwndTree, hItem);
+		if ( !hUpper ) hUpper = TreeView_GetParent(hwndTree, hItem);
 		
 		TreeView_SelectItem( hwndTree, hUpper );
 	}
 	return;
+}
+
+//------------------------------------------------
+// 末子ノードを取得する (failure: nullptr)
+//------------------------------------------------
+HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
+{
+	HTREEITEM hLast = TreeView_GetChild(hwndTree, hItem);
+	if ( !hLast ) return nullptr;	// error
+
+	for ( HTREEITEM hNext = hLast
+		; hNext != nullptr
+		; hNext = TreeView_GetNextSibling(hwndTree, hLast)
+		) {
+		hLast = hNext;
+	}
+	return hLast;
 }

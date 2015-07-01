@@ -5,95 +5,48 @@
 #include <numeric>
 #include <functional>
 
+#include "CVarTree.h"
 #include "CVarinfoLine.h"
-#include "SysvarData.h"
-#include "module/mod_cast.h"
+#include "CVarinfoTree.h"
 
-#ifdef clhsp
-# include "hsp3/mod_vector.h"
-#endif
+#include "module/ptr_cast.h"
+
 #ifdef with_Assoc
-# include "D:/Docs/prg/cpp/MakeHPI/hpimod/var_assoc/for_knowbug.var_assoc.h"	// あまりにも遠いのでフルパス
+# include "hpimod/var_assoc/for_knowbug.var_assoc.h"
 #endif
 #ifdef with_Vector
-# include "D:/Docs/prg/cpp/MakeHPI/hpimod/var_vector/for_knowbug.var_vector.h"	// あまりにも遠いのでフルパス
+# include "hpimod/var_vector/for_knowbug.var_vector.h"
 #endif
 #ifdef with_Array
-# include "D:/Docs/prg/cpp/MakeHPI/var_array/src/for_knowbug.var_array.h"	// あまりにも遠いのでフルパス
+# include "hpimod/var_array/src/for_knowbug.var_array.h"
 #endif
 
 #include "with_ModPtr.h"
+#include "WrapCall/ModcmdCallInfo.h"
+#include "WrapCall/ResultNodeData.h"
 
-static const char* getMPTypeString( int mptype );
+extern string removeScopeResolution(string const& name);	// at CVarinfoTree
 
-//##############################################################################
-//                定義部 : CVarinfoLine
-//##############################################################################
 //------------------------------------------------
 // 構築
 //------------------------------------------------
-CVarinfoLine::CVarinfoLine( DebugInfo& dbginfo, int lenLimit )
-	: mdbginfo ( dbginfo )
-	, mpBuf    ( new CString )
-	, mlenLimit( lenLimit - 30 )	// 「長すぎたので省略しました」を出力するため、余裕を持たせる
+CVarinfoLine::CVarinfoLine( int lenLimit )
+	: mBuf(lenLimit)
 {
-	mpBuf->reserve( std::min(0x100, mlenLimit + 1) );
-	return;
-}
-
-//------------------------------------------------
-// 解体
-//------------------------------------------------
-CVarinfoLine::~CVarinfoLine()
-{
-	delete mpBuf; mpBuf = nullptr;
-	mlvNest = 0;
+	mBuf.reserve(0x100);
 	return;
 }
 
 //##########################################################
 //        ルート処理関数
 //##########################################################
-//------------------------------------------------
-// [add] 変数
-//------------------------------------------------
-void CVarinfoLine::addVar( PVal* pval )
-{
-	addItem_var( pval );
-	return;
-}
-
 #if 0
 //------------------------------------------------
 // [add] 単体変数
 //------------------------------------------------
-void CVarinfoLine::addVarScalar( PVal* pval )
+void CVarinfoLine::addVarScalar( PVal const* pval )
 {
-	addItem_varScalar( pval );
-	return;
-}
-#endif
-
-#ifdef clhsp
-//------------------------------------------------
-// [add] modinst
-//------------------------------------------------
-void CVarinfoLine::addModInst( ModInst* mv )
-{
-	
-	addItem_modinst( mv );
-	return;
-}
-
-#else
-
-//------------------------------------------------
-// [add] flexValue
-//------------------------------------------------
-void CVarinfoLine::addFlexValue( FlexValue* fv )
-{
-	
-	addItem_flexValue( fv );
+	addVarScalar( pval );
 	return;
 }
 #endif
@@ -101,138 +54,54 @@ void CVarinfoLine::addFlexValue( FlexValue* fv )
 //------------------------------------------------
 // [add] システム変数
 //------------------------------------------------
-void CVarinfoLine::addSysvar( int idx )
+void CVarinfoLine::addSysvar( SysvarId id )
 {
-	switch ( idx ) {
-		// 整数値
-		case SysvarId_Stat:
-		case SysvarId_StrSize:
-		case SysvarId_Looplev:
-		case SysvarId_Sublev:
-		case SysvarId_Err:
-	//	case SysvarId_MouseX:
-	//	case SysvarId_MouseY:
-	//	case SysvarId_MouseW:
-		{
-			int* p;
-			switch ( idx ) {
-				case SysvarId_Stat:    p = &mdbginfo.ctx->stat;    break;
-				case SysvarId_StrSize: p = &mdbginfo.ctx->strsize; break;
-				case SysvarId_Looplev: p = &mdbginfo.ctx->looplev; break;
-				case SysvarId_Sublev:  p = &mdbginfo.ctx->sublev;  break;
-				case SysvarId_Err:     p = ptr_cast<int*>( &mdbginfo.ctx->err ); break;
-			}
-			addItem_value( HSPVAR_FLAG_INT, p );
-			break;	// no dump
-		}
-		// refstr
-		case SysvarId_Refstr:
-		{
-			char*& refstr = mdbginfo.ctx->refstr;
-			addItem_value( HSPVAR_FLAG_STR, refstr );
-			break;
-		}
-		// refdval
-		case SysvarId_Refdval:
-		{
-			double& dval = mdbginfo.ctx->refdval;
-			addItem_value( HSPVAR_FLAG_DOUBLE, &dval );
-			break;
-		}
-		// cnt
+	switch ( id ) {
+		case SysvarId_Refstr: addValue( HSPVAR_FLAG_STR, ctx->refstr ); break;
+		case SysvarId_Refdval: addValue( HSPVAR_FLAG_DOUBLE, &ctx->refdval ); break;
+
 		case SysvarId_Cnt:
-		{
-			int lvLoop ( mdbginfo.ctx->looplev );
-			if ( lvLoop == 0 ) {
-				cat( "(out of loop)" );
+			if ( int const lvLoop = ctx->looplev ) {
+				addValue( HSPVAR_FLAG_INT, &ctx->mem_loop[lvLoop].cnt );
 			} else {
-#ifdef clhsp
-				int& cnt = mdbginfo.ctx->mem_loop[lvLoop].cnt;
-#else
-				int& cnt = ptr_cast<LOOPDAT*>( &mdbginfo.ctx->mem_loop )[lvLoop].cnt;
-#endif
-				addItem_value( HSPVAR_FLAG_INT, &cnt );
+				cat( "(out of loop)" );
 			}
-			break;	// no dump
-		}
-		// (params)
-		case SysvarId_Params:
-		{
-			const int params[] = {
-				mdbginfo.ctx->iparam,
-				mdbginfo.ctx->wparam,
-				mdbginfo.ctx->lparam
-			};
-			catf( "(%d, %d, %d)", params[0], params[1], params[2] );
-			break;	// no dump
-		}
-		// (notebuf)
+			break;
+
 		case SysvarId_NoteBuf:
-		{
-			PVal* pval = mdbginfo.ctx->note_pval;
-			APTR  aptr = mdbginfo.ctx->note_aptr;
-			if ( pval ) {
-				HspVarProc* pHvp = mdbginfo.exinfo->HspFunc_getproc(HSPVAR_FLAG_STR);
-				pval->offset = aptr;
-				char* src  = ptr_cast<char*>( pHvp->GetPtr(pval) );
-				addItem_value( HSPVAR_FLAG_STR, src );
+			if ( PVal* const pval = ctx->note_pval ) {
+				addVarScalar(pval, ctx->note_aptr);
 			} else {
 				cat( "(null)" );
 			}
 			break;
-		}
-		// thismod
+
 		case SysvarId_Thismod:
-		{
-			if ( mdbginfo.ctx->prmstack ) {
-				MPThismod* thismod = ptr_cast<MPThismod*>( mdbginfo.ctx->prmstack );
-				
-				if ( thismod->magic == MODVAR_MAGICCODE ) {
-#ifdef clhsp
-					addItem_modinst( thismod->mv );
-#else
-					PVal* pval( thismod->pval );
-					pval->offset = thismod->aptr;
-					
-					HspVarProc* pHvp( mdbginfo.exinfo->HspFunc_getproc(pval->flag) );
-					FlexValue* fv = ptr_cast<FlexValue*>(pHvp->GetPtr(pval));
-					addItem_flexValue( fv );
-#endif
-					break;
-				}
+			if ( auto const fv = Sysvar_getThismod() ) {
+				addItem_flexValue( fv );
+			} else {
+				cat("(null)");
 			}
-			cat( "(null)" );
 			break;
-		}
-		/*
-		// ginfo
-		case SysvarId_GInfo:
-		{
-			cat( "(未実装)" );
-			break;
-		}
-		//*/
-		/*
-		// dirinfo
-		case SysvarId_DirInfo:
-		{
-			cat( "(未実装)" );
-			break;
-		}
-		//*/
+		default:
+			// 整数値
+			if ( SysvarData[id].type == HSPVAR_FLAG_INT ) {
+				addValue(HSPVAR_FLAG_INT, Sysvar_getPtrOfInt(id));
+			} else throw;
 	};
-	return;
 }
 
 //------------------------------------------------
 // [add] 呼び出し
 //------------------------------------------------
-void CVarinfoLine::addCall( STRUCTDAT* stdat, void* prmstk )
+void CVarinfoLine::addCall(stdat_t stdat, void const* prmstk)
 {
-	if ( prmstk == nullptr ) {
-		catf( "%s([展開中]) ", &mdbginfo.ctx->mem_mds[ stdat->nameidx ] );
+	if ( prmstk ) {
+		cat(strf("%s(", hpimod::STRUCTDAT_getName(stdat)));
+		addPrmstack(stdat, prmstk);
+		cat(")");
 	} else {
-		addItem_prmstack( stdat, &mdbginfo.ctx->mem_minfo[stdat->prmindex], prmstk );
+		cat(strf("%s([展開中]) ", hpimod::STRUCTDAT_getName(stdat)));
 	}
 	return;
 }
@@ -240,9 +109,9 @@ void CVarinfoLine::addCall( STRUCTDAT* stdat, void* prmstk )
 //------------------------------------------------
 // [add] 返値
 //------------------------------------------------
-void CVarinfoLine::addResult( void* ptr, vartype_t type )
+void CVarinfoLine::addResult( void const* ptr, vartype_t type )
 {
-	addItem_value( type, ptr );
+	addValue( type, ptr );
 	return;
 }
 
@@ -252,91 +121,78 @@ void CVarinfoLine::addResult( void* ptr, vartype_t type )
 //------------------------------------------------
 // [add][item] 値
 //------------------------------------------------
-void CVarinfoLine::addItem_value( vartype_t type, void* ptr )
+void CVarinfoLine::addValue( vartype_t type, void const* ptr )
 {
-	if ( type == HSPVAR_FLAG_STRUCT ) {
-#ifdef clhsp
-		addItem_modinst( *ptr_cast<ModInst**>(ptr) );
-#else
-		addItem_flexValue( ptr_cast<FlexValue*>(ptr) );
+#if defined(with_Assoc) || defined(with_Vector) || defined(with_Array)
+	auto const vtname = hpimod::getHvp(type)->vartype_name;
 #endif
+
+	if ( type == HSPVAR_FLAG_STRUCT ) {
+		addItem_flexValue( cptr_cast<FlexValue*>(ptr) );
 #ifdef with_Assoc
-	// "assoc_k" 型
-	} else if ( strcmp(mdbginfo.exinfo->HspFunc_getproc(type)->vartype_name, "assoc_k") == 0 ) {
-		CAssoc* src = *ptr_cast<CAssoc**>( ptr );
+	// assoc 型
+	} else if ( type >= HSPVAR_FLAG_USERDEF && strcmp(vtname, assoc_vartype_name) == 0 ) {
+		auto const src = *cptr_cast<CAssoc**>(ptr);
 		addItem_assoc( src );
 #endif
 #ifdef with_Vector
-	// "vector_d" 型
-	} else if ( strcmp(mdbginfo.exinfo->HspFunc_getproc(type)->vartype_name, "vector_k") == 0 ) {
-		CVector* src = *ptr_cast<CVector**>( ptr );
+	// vector 型
+	} else if ( type >= HSPVAR_FLAG_USERDEF && strcmp(vtname, vector_vartype_name) == 0 ) {
+		auto const src = *cptr_cast<CVector**>(ptr);
 		addItem_vector( src );
 #endif
 #ifdef with_Array
-	// "array_d" 型
-	} else if ( strcmp(mdbginfo.exinfo->HspFunc_getproc(type)->vartype_name, "array_k") == 0 ) {
-		CArray* src = *ptr_cast<CArray**>( ptr );
+	// array 型
+	} else if ( type >= HSPVAR_FLAG_USERDEF && strcmp(vtname, array_vartype_name) == 0 ) {
+		auto const src = *cptr_cast<CArray**>( ptr );
 		addItem_array( src );
 #endif
 #ifdef with_ModPtr
-	} else if ( type == HSPVAR_FLAG_INT && ModPtr::isValid(*ptr_cast<int*>(ptr)) ) {
-		catf( "mp#%d->", ModPtr::getIdx(*ptr_cast<int*>(ptr)) );
-		addItem_flexValue( ModPtr::getValue(*ptr_cast<int*>(ptr)) );
+	} else if ( type == HSPVAR_FLAG_INT && ModPtr::isValid(*cptr_cast<int*>(ptr)) ) {
+		int const modptr = *cptr_cast<int*>(ptr);
+		cat(strf("mp#%d->", ModPtr::getIdx(modptr)));
+		addItem_flexValue( ModPtr::getValue(modptr) );
 #endif
 //	} else if ( type == HSPVAR_FLAG_STR ) {
-//		addItem_string( ptr_cast<char*>(ptr) );
+//		addItem_string( cptr_cast<char*>(ptr) );
 		
+	// その他
 	} else {
-#ifdef clhsp
-		char* p = mdbginfo.debug->dbg_toString( type, ptr );
-		
-		cat( p );
-		
-		mdbginfo.debug->dbg_close( p );
-#else
-		CString s = getDbgString( type, ptr );
-		cat( s.c_str() );
-#endif
+		cat( stringizeSimpleValue(type, ptr, true) );
 	}
 	return;
 }
 
 //------------------------------------------------
 // [add][item] 変数
+//
+// @ vector や array は常に単体変数とみなす。
 //------------------------------------------------
-void CVarinfoLine::addItem_var( PVal* pval )
+void CVarinfoLine::addVar( PVal const* pval )
 {
-	HspVarProc* pHvp( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
-	int       length( PValLength( pHvp, pval, 1 ) );
+#if defined(with_Vector) || defined(with_Array)
+	auto const hvp = hpimod::getHvp(pval->flag);
+#endif
 	
 	// 単体
-	if ( ( length == 1 && PValLength(pHvp, pval, 2) == 0 )
-#if clhsp
-		&& pval->flag != HSPVAR_FLAG_VECTOR
-#endif
+	if ( ( pval->len[1] == 1 && pval->len[2] == 0 )
 #if defined(with_Vector) || defined(with_Array)
-		|| ( pval->flag >= HSPVAR_FLAG_USERDEF
-			&& (!strcmp(pHvp->vartype_name, "vector_k") || !strcmp(pHvp->vartype_name, "array_k")) )
+		|| ( pval->flag >= HSPVAR_FLAG_USERDEF && (false
+#ifdef with_Vector
+			|| !strcmp(hvp->vartype_name, vector_vartype_name)
+#endif
+#ifdef with_Array
+			|| !strcmp(hvp->vartype_name, array_vartype_name)
+#endif
+		))
 #endif
 	) {
-		addItem_varScalar( pval );
-		
-	// 空
-	} else if ( length == 0 ) {
-		cat( "(empty)" );
+		addVarScalar(pval, 0);
 		
 	// 配列
 	} else {
-#ifdef clhsp
-		if ( pval->flag == HSPVAR_FLAG_VECTOR ) {
-			addItem_vector( ptr_cast<Vector*>( pval->pt ), length );
-		} else
-#endif
-		{
-			addItem_varArray( pval );
-		}
+		addVarArray( pval );
 	}
-	
 	return;
 }
 
@@ -345,325 +201,173 @@ void CVarinfoLine::addItem_var( PVal* pval )
 // 
 // @ 一つの要素の値を出力する。
 //------------------------------------------------
-void CVarinfoLine::addItem_varScalar( PVal* pval )
+void CVarinfoLine::addVarScalar( PVal const* pval )
 {
-	HspVarProc* pHvp( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
-	
-	addItem_value( pval->flag, pHvp->GetPtr(pval) );
+	addValue(pval->flag, hpimod::PVal_getPtr(pval));
 	return;
 }
 
-void CVarinfoLine::addItem_varScalar( PVal* pval, APTR aptr )
+void CVarinfoLine::addVarScalar(PVal const* pval, APTR aptr)
 {
-	int offset_bak = pval->offset;
-	pval->offset = aptr;
-	addItem_varScalar( pval );
-	pval->offset = offset_bak;
+	addValue(pval->flag, hpimod::PVal_getPtr(pval, aptr));
 	return;
 }
 
 //------------------------------------------------
-// [add][item] 配列変数 (array)
-// 
-// @ vector 型は来ない。
-// @prm base : 親要素(配列変数)のある深さ
+// [add][item] 標準配列変数
 //------------------------------------------------
-void CVarinfoLine::addItem_varArray( PVal* pval )
+void CVarinfoLine::addVarArray( PVal const* pval )
 {
-	HspVarProc* pHvp( mdbginfo.exinfo->HspFunc_getproc(pval->flag) );
-	
-	size_t length[ArrayDimMax] = { 0 };
-	uint cntElem[ArrayDimMax]  = { 0 };		// 全体 cntElem = cntElem[cntDim - 1]
-	uint cntDim( 0 );
-	
-	// 全要素数と最大次元を調べる
-	for ( uint i = 0; i < ArrayDimMax; ++ i ) {
-		length[i] = PValLength( pHvp, pval, i + 1 );
-		
-		if ( length[i] > 0 ) {
-			cntElem[i] = length[i] * ( i == 0 ? 1 : cntElem[i - 1] );	// 部分i次配列の要素数 (例えば i = 3 だと、直方体の要素をなす各平面に含まれる要素数)
+	auto const hvp = hpimod::getHvp(pval->flag);
+
+	// cntElems[1 + i] = 部分i次元配列の要素数 (例えば配列 int(2, 3, 4) だと、cntElems = {1, 2, 2*3, 2*3*4, 0})
+	size_t cntElems[1 + hpimod::ArrayDimMax] = { 1 };
+	size_t cntDim = 0;
+	for ( size_t i = 0; i < hpimod::ArrayDimMax; ++ i ) {
+		if ( pval->len[i + 1] > 0 ) {
+			cntElems[i + 1] = pval->len[i + 1] * cntElems[i];	
 			cntDim  ++;
 		} else {
 			break;
 		}
 	}
 
-	// 各要素を追加する
-	int offset_bak = pval->offset;		// offset の値を保存しておく
-	bool bEnd = false;
-	
-	using namespace std::tr1;
-	std::function<void(PVal*, int, APTR)> varArray = [&](PVal* pval, int idxDim, APTR aptr_offset) -> void {
-		cat("[ ");
-		for ( uint i = 0; i < length[idxDim]; ++ i ) {
-			if ( i != 0 ) cat(", ");
-			if ( idxDim >= 1 ) {		// 2次以上 => 配列を出力
-				varArray( pval, idxDim - 1, aptr_offset + (i * cntElem[idxDim - 1]) );
-			} else {					// 1次 => 各要素を出力
-				pval->offset = aptr_offset + i;
-				addItem_value( pval->flag, pHvp->GetPtr(pval) );
-			}
+	cat(strf("<%s>", hvp->vartype_name));
+	if ( cntDim == 0 ) {
+		cat("[]");
+	} else {
+		addVarArrayRec(pval, cntElems, cntDim - 1, 0);
+	}
+	return;
+}
+
+void CVarinfoLine::addVarArrayRec(PVal const* pval, size_t const cntElems[], size_t idxDim, APTR aptr_offset)
+{
+	cat("[");
+	for ( int i = 0; i < pval->len[idxDim + 1]; ++i ) {
+		if ( i != 0 ) cat(", ");
+		// 2次以上 => 配列を出力
+		if ( idxDim >= 1 ) {
+			addVarArrayRec(pval, cntElems, idxDim - 1, aptr_offset + (i * cntElems[idxDim]));
+
+		// 1次 => 各要素を出力
+		} else {
+			addVarScalar(pval, aptr_offset + i);
 		}
-		cat(" ]");
-	};
-	
-	catf("<%s>", pHvp->vartype_name);
-	varArray( pval, cntDim - 1, 0 );		// 再帰呼び出し開始
-
-	pval->offset = offset_bak;
-	return;
-}
-
-//------------------------------------------------
-// [add][item] 変数 (vartype: str)
-//------------------------------------------------
-void CVarinfoLine::addItem_varStr( PVal* pval, bool bScalar )
-{
-	if ( bScalar ) {
-		cat( ptr_cast<char*>( pval->pt ) );
-		
-	} else {
-		addItem_varArray( pval );
 	}
+	cat("]");
 	return;
 }
-
-#ifdef clhsp
-//------------------------------------------------
-// [add][item] vector
-//------------------------------------------------
-void CVarinfoLine::addItem_vector( Vector* vec, int length )
-{
-//	CString sName;
-//	BaseData baseChild( nullptr, getIndent() );
-	
-	for ( int i = 0; i < length; ++ i ) {
-	//*
-		addItem_vecelem( vec->list->at(i), i );
-	/*/
-		PVal* pvElem = vec->list->at( i )->pval;
-		
-		sName = strf( "[%d]", i );
-		baseChild.name = sName.c_str();
-		
-		// 再帰する
-		addItem_var( baseChild, pvElem );
-	//*/
-	}
-	return;
-}
-
-//------------------------------------------------
-// [add][item] vecelem
-//------------------------------------------------
-void CVarinfoLine::addItem_vecelem( VecElem* vecelem, int idx )
-{
-	PVal* pval ( vecelem->pval );
-	APTR  aptr ( vecelem->aptr );
-	
-	CString sName(
-		strf( "[%d]%s", idx, (aptr < 0) ? "*" : "&" )
-	);
-	
-	mlvNest ++;
-	
-	const char* pName  ( sName.c_str() );
-	BaseData  baseChild( pName, getIndent() );
-	const char* pIndent( baseChild.getIndent() );
-	
-	if ( aptr < 0 || aptr == 0 ) {
-		addItem_var( baseChild, pval );
-	} else {
-		pval->offset = aptr;
-		addItem_varScalar( baseChild, pval );
-	}
-	
-	mlvNest --;
-	
-	return;
-}
-
-//------------------------------------------------
-// [add][item] modinst
-//------------------------------------------------
-void CVarinfoLine::addItem_modinst( ModInst* mv )
-{
-	if ( !mv ) {
-		catf( "%s%s = (nullmod)", base.getIndent(), base.getName() );
-		return;
-	}
-	
-	catf( "%s%s:", base.getIndent(), base.getName() );
-	
-	STRUCTPRM* stprm ( &mdbginfo.ctx->mem_minfo[mv->id_minfo] );
-	STRUCTDAT* stdat ( &mdbginfo.ctx->mem_finfo[stprm->subid] );
-	void*      prmstack ( mv->members );
-	
-	addItem_prmstack( stdat, stprm, prmstack );
-	
-	return;
-}
-
-#else
 
 //------------------------------------------------
 // [add][item] flex-value
 //------------------------------------------------
-void CVarinfoLine::addItem_flexValue( FlexValue* fv )
+void CVarinfoLine::addItem_flexValue( FlexValue const* fv )
 {
-	if ( !fv ) {
-		cat( "(null)" );
-		return;
+	assert(fv);
+	 if ( !fv->ptr || fv->type == FLEXVAL_TYPE_NONE ) {
+		cat( "(nullmod)" );
+
+	} else {
+		auto const stdat = hpimod::FlexValue_getModule(fv);
+		cat(strf("<%s>{", makeModuleClassNameString(stdat, hpimod::FlexValue_isClone(fv)).c_str()));
+		addPrmstack(stdat, fv->ptr);
+		cat("}" );
 	}
-	
-	if ( !fv->ptr || fv->type == FLEXVAL_TYPE_NONE ) {
-		cat( "(empty struct)" );
-		return;
-	}
-	
-	STRUCTPRM* stprm ( &mdbginfo.ctx->mem_minfo[fv->customid] );
-	STRUCTDAT* stdat ( &mdbginfo.ctx->mem_finfo[stprm->subid] );
-	
-	addItem_prmstack( stdat, stprm, fv->ptr );
-	return;
 }
-#endif
 
 //------------------------------------------------
 // [add][item] prmstack
 //------------------------------------------------
-void CVarinfoLine::addItem_prmstack(
-	STRUCTDAT* stdat,
-	STRUCTPRM* stprm,
-	const void* prmstack
-)
+void CVarinfoLine::addPrmstack(stdat_t stdat, void const* prmstack)
 {
-	STRUCTPRM* stprmEnd( stprm + stdat->prmmax );
 	int prev_mptype = MPTYPE_NONE;
-
-	// モジュールクラス、ユーザ定義関数、ともに形式を揃える( ident(...) )
-	catf( "%s( ", &mdbginfo.ctx->mem_mds[ stdat->nameidx ] );
-	
 	int i = 0;		// structtag でない要素の個数を数える
-	while ( stprm < stprmEnd )
-	 {
-		const void* member( ptr_cast<const char*>(prmstack) + stprm->offset );
-		
-		if ( i != 0 ) cat( (prev_mptype != MPTYPE_LOCALVAR && stprm->mptype == MPTYPE_LOCALVAR) ? ",  " : ", " );		// 最初の local の前に空白を1つ置く
-		addItem_member( stdat, stprm, member );
-		
-		// structtag => 無視
-		if ( stprm->mptype != MPTYPE_STRUCTTAG ) {
-			++ i;
+	std::for_each(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat), [&](STRUCTPRM const& stprm) {
+		auto const member = hpimod::Prmstack_getMemberPtr(prmstack, &stprm);
+		if ( i != 0 ) {
+			// 最初の local の前には空白を1つ多めに置く
+			cat((prev_mptype != MPTYPE_LOCALVAR && stprm.mptype == MPTYPE_LOCALVAR)
+				? ",  " : ", ");
 		}
-		
-		prev_mptype = stprm->mptype;
-		++ stprm;
-	}
-	cat( " )" );
+		addParameter(stdat, &stprm, member);
+
+		if ( stprm.mptype != MPTYPE_STRUCTTAG ) ++i;
+		prev_mptype = stprm.mptype;
+	});
 	return;
 }
 
 //------------------------------------------------
 // [add][item] メンバ (in prmstack)
 //------------------------------------------------
-void CVarinfoLine::addItem_member(
-	STRUCTDAT* stdat,
-	STRUCTPRM* stprm,
-	const void* member_const
-)
+void CVarinfoLine::addParameter(stdat_t stdat, stprm_t stprm, void const* member)
 {
-	void* member ( const_cast<void*>(member_const) );
-	
-	switch ( stprm->mptype )
-	{
+	switch ( stprm->mptype ) {
 		case MPTYPE_STRUCTTAG:
-		//	cat( &mdbginfo.ctx->mem_mds[stdat->nameidx] );
+		//	cat( hpimod::STRUCTDAT_getName(stdat) );
 			break;
-			
+
 		// 変数 (PVal*)
-	//	case MPTYPE_VAR:
+		//	case MPTYPE_VAR:
 		case MPTYPE_SINGLEVAR:
 		case MPTYPE_ARRAYVAR:
 		{
-			cat( "& " );		// 参照であることを示す (var か array かは明らか)
-			MPVarData* pVarDat ( ptr_cast<MPVarData*>(member) );
-			
+			cat("& ");		// 参照であることを示す (var か array かは明らか)
+			auto const vardata = cptr_cast<MPVarData*>(member);
+
 			if ( stprm->mptype == MPTYPE_SINGLEVAR ) {
-				addItem_varScalar( pVarDat->pval, pVarDat->aptr );
+				addVarScalar(vardata->pval, vardata->aptr);
 			} else {
-				addItem_var( pVarDat->pval );
+				addVar(vardata->pval);
 			}
 			break;
 		}
 		// 変数 (PVal)
 		case MPTYPE_LOCALVAR:
-#if clhsp
-		case MPTYPE_VECTOR:
-		case MPTYPE_ANY:
-		case MPTYPE_FLEX:
-#endif
 		{
-			PVal* pval ( ptr_cast<PVal*>(member) );
-			addItem_var( pval );
+			auto const pval = cptr_cast<PVal*>(member);
+			addVar(pval);
 			break;
 		}
-		// thismod (MPModInst)
+		// thismod
 		case MPTYPE_MODULEVAR:
 		case MPTYPE_IMODULEVAR:
 		case MPTYPE_TMODULEVAR:
-		{
-#ifdef clhsp
-			MPThismod* modinst = ptr_cast<MPThismod*>(member);
-			addItem_modinst( modinst->mv );
+			addItem_flexValue(Sysvar_getThismod());
 			break;
-#else
-			MPThismod* thismod = ptr_cast<MPThismod*>(member);
-			PVal* pvSelf( thismod->pval );
+		/*{
+			auto const thismod = cptr_cast<MPModVarData*>(member);
+			PVal* const pvSelf = thismod->pval;
 			pvSelf->offset = thismod->aptr;
-			
-			HspVarProc* pHvp( mdbginfo.exinfo->HspFunc_getproc(pvSelf->flag) );
-			FlexValue* fv = ptr_cast<FlexValue*>(pHvp->GetPtr(pvSelf));
-			addItem_flexValue( fv );
+
+			auto const hvp = hpimod::getHvp(pvSelf->flag);
+			auto const fv = cptr_cast<FlexValue*>(hvp->GetPtr(pvSelf));
+			addItem_flexValue(fv);
 			break;
-#endif
-		}
-		// ModInst (ModInst*) : clhspのみ
-#ifdef clhsp
-		case MPTYPE_STRUCT:
-		{
-			ModInst* mv2 ( *ptr_cast<ModInst**>(member) );
-			addItem_modinst( mv2 );
-			break;
-		}
-#endif
+		}//*/
 		// 文字列 (char**)
 	//	case MPTYPE_STRING:
 		case MPTYPE_LOCALSTRING:
-		{
-			char* pString ( *ptr_cast<char**>(member) );
-			addItem_value( HSPVAR_FLAG_STR, pString );
+			addValue(HSPVAR_FLAG_STR, *cptr_cast<char**>(member));
 			break;
-		}
+
 		// その他
 		case MPTYPE_DNUM:
-		{
-			addItem_value( HSPVAR_FLAG_DOUBLE, ptr_cast<double*>(member) );
+			addValue(HSPVAR_FLAG_DOUBLE, cptr_cast<double*>(member));
 			break;
-		}
+
 		case MPTYPE_INUM:
-		{
-			addItem_value( HSPVAR_FLAG_INT, ptr_cast<int*>(member) );
+			addValue(HSPVAR_FLAG_INT, cptr_cast<int*>(member));
 			break;
-		}
+
 		case MPTYPE_LABEL:
-		{
-			addItem_value( HSPVAR_FLAG_LABEL, ptr_cast<label_t*>(member) );
+			addValue(HSPVAR_FLAG_LABEL, cptr_cast<label_t*>(member));
 			break;
-		}
+
 		// 他 => 無視
 		default:
-			catf("(ignored: %d)", stprm->mptype );
+			cat(strf("(ignored: %d)", stprm->mptype));
 			break;
 	}
 	return;
@@ -676,7 +380,7 @@ void CVarinfoLine::addItem_member(
 # define DbgArea /* empty */
 # define dbgout(message, ...) msgboxf<void>(message, __VA_ARGS__)//MessageBoxA(0, message, "hpi", MB_OK)
 template<class T>
-T msgboxf(const char* sFormat, ...)
+T msgboxf(char const* sFormat, ...)
 {
 	static char stt_buffer[1024];
 	va_list arglist;
@@ -690,43 +394,42 @@ T msgboxf(const char* sFormat, ...)
 //------------------------------------------------
 // [add][item] assoc
 //------------------------------------------------
-void CVarinfoLine::addItem_assoc( CAssoc* src )
+void CVarinfoLine::addItem_assoc(CAssoc* src)
 {
 	if ( !src ) {
-		cat( "(assoc: null)" );
+		cat("(null assoc)");
 		return;
 	}
-	
-	HspVarProc* pHvp = mdbginfo.exinfo->HspFunc_seekproc("assoc_k");
-	StAssocMapList* head = ((StAssocMapList::GetMapList_t)(pHvp->user))( src );
-	
+
+	auto const hvp = hpimod::seekHvp(assoc_vartype_name);
+	StAssocMapList* const head = (reinterpret_cast<GetMapList_t>(hvp->user))(src);
+
 	// 要素なし
 	if ( !head ) {
-		cat( "(assoc: empty)" );
+		cat("(empty assoc)");
 		return;
 	}
-	
+
 	// 全キーのリスト
-	cat("{ ");
+	cat("[");
 	{
 		// 列挙
 		for ( StAssocMapList* list = head; list != nullptr; list = list->next ) {
 			if ( list != head ) cat(", ");
-			addItem_value( HSPVAR_FLAG_STR, list->key );
+			addValue(HSPVAR_FLAG_STR, list->key);
 			cat(": ");
-			addItem_var( list->pval );
+			addVar(list->pval);
 		//	dbgout("%p: key = %s, pval = %p, next = %p", list, list->key, list->pval, list->next );
 		}
-		
+
 		// リストの解放
-		for ( StAssocMapList* list = head; list != nullptr; /* */ ) {
-			StAssocMapList* next = list->next;
-			mdbginfo.exinfo->HspFunc_free( list );
+		for ( StAssocMapList* list = head; list != nullptr; ) {
+			StAssocMapList* const next = list->next;
+			exinfo->HspFunc_free(list);
 			list = next;
 		}
-		
 	}
-	cat(" }");
+	cat("]");
 	return;
 }
 #endif
@@ -738,31 +441,31 @@ void CVarinfoLine::addItem_assoc( CAssoc* src )
 void CVarinfoLine::addItem_vector( CVector* src )
 {
 	if ( !src ) {
-		cat( "(vector: null)" );
+		cat( "(null vector)" );
 		return;
 	}
 	
-	HspVarProc* pHvp = mdbginfo.exinfo->HspFunc_seekproc("vector_k");
-	int    len;
-	PVal** pvals = ((GetVectorList_t)(pHvp->user))( src, &len );
+	auto const hvp = hpimod::seekHvp(vector_vartype_name);
+	int len;
+	PVal** const pvals = (reinterpret_cast<GetVectorList_t>(hvp->user))( src, &len );
 	
 	// 要素なし
 	if ( !pvals ) {
-		cat( "(vector: empty)" );
+		cat( "(empty vector)" );
 		return;
 	}
 	
 	// 全キーのリスト
-	cat("[ ");
+	cat("[");
 	{
 		// 列挙
 		for ( int i = 0; i < len; ++ i ) {
 			if ( i != 0 ) cat( ", " );
-			addItem_var( pvals[i] );
+			addVar( pvals[i] );
 		//	dbgout("%p: idx = %d, pval = %p, next = %p", list, idx, list->pval, list->next );
 		}
 	}
-	cat(" ]");
+	cat("]");
 	return;
 }
 #endif
@@ -774,21 +477,21 @@ void CVarinfoLine::addItem_vector( CVector* src )
 void CVarinfoLine::addItem_array( CArray* src )
 {
 	if ( !src ) {
-		catf( "(array: null)" );
+		cat( "(null array)" );
 		return;
 	}
 	
-	HspVarProc* pHvp = mdbginfo.exinfo->HspFunc_seekproc("array_k");
-	PVal* pvInner = ((GetArray_t)(pHvp->user))( src );
+	auto const hvp = hpimod::seekHvp(array_vartype_name);
+	PVal* const pvInner = (reinterpret_cast<GetArray_t>(hvp->user))(src);
 	
 	// 要素なし
 	if ( !pvInner || pvInner->len[1] == 0 ) {
-		catf( "(array: empty)" );
+		cat( "(empty array)" );
 		return;
 	}
 	
 	// 表示
-	addItem_varArray( pvInner );
+	addVarArray( pvInner );
 	return;
 }
 #endif
@@ -797,9 +500,79 @@ void CVarinfoLine::addItem_array( CArray* src )
 // 
 //------------------------------------------------
 
+//------------------------------------------------
+// [add] モジュール外観
+//------------------------------------------------
+void CVarinfoLine::addModuleOverview(char const* name, CVarTree::ModuleNode const& tree)
+{
+	catln(strf("[%s]", name));
+
+	for ( auto const& iter : tree ) {
+		//for ( auto iter = tree.begin(); iter != tree.end(); ++iter ) {
+		CVarTree const& child = *iter.second;
+
+		child.match<void>([&](CStaticVarTree::VarNode const& child) {
+			auto const varname = child.getName();
+			auto const varname_raw = removeScopeResolution(varname);
+
+			cat(strf("%s\t= ", varname_raw.c_str()));
+			addVar(hpimod::seekSttVar(varname.c_str()));
+			catCrlf();
+
+		}, [&](CStaticVarTree::ModuleNode const& child) {
+			// (入れ子の)モジュールは名前だけ表示しておく
+			catln(child.getName());
+		});
+	}
+	return;
+}
+
+//------------------------------------------------
+// [add] システム変数外観
+//------------------------------------------------
+void CVarinfoLine::addSysvarsOverview()
+{
+	catln("[システム変数]");
+	
+	for ( int i = 0; i < SysvarCount; ++i ) {
+		cat(strf("%s\t= ", SysvarData[i].name));
+		addSysvar(static_cast<SysvarId>(i));
+		catCrlf();
+	}
+	return;
+}
+
+#ifdef with_WrapCall
+using namespace WrapCall;
+
+//------------------------------------------------
+// [add] 呼び出し外観
+// 
+// depends on WrapCall
+//------------------------------------------------
+void CVarinfoLine::addCallsOverview(ResultNodeData const* pLastResult)
+{
+	catln("[呼び出し履歴]");
+
+	auto const range = WrapCall::getCallInfoRange();
+	std::for_each(range.first, range.second, [&](stkCallInfo_t::value_type const& pCallInfo) {
+		addCall(pCallInfo->stdat, pCallInfo->getPrmstk());
+		catCrlf();
+	});
+
+	// 最後の返値
+	if ( pLastResult ) {
+		auto const result = "-> " + pLastResult->valueString;
+		catln(result);
+	}
+	return;
+}
+#endif
+
 //**********************************************************
 //        下請け関数
 //**********************************************************
+#if 0
 //------------------------------------------------
 // 改行を連結する
 //------------------------------------------------
@@ -815,7 +588,7 @@ void CVarinfoLine::cat_crlf( void )
 //------------------------------------------------
 // 文字列を連結する
 //------------------------------------------------
-void CVarinfoLine::cat( const char* src )
+void CVarinfoLine::cat( char const* src )
 {
 	if ( mlenLimit <= 0 ) return;
 	
@@ -823,7 +596,7 @@ void CVarinfoLine::cat( const char* src )
 	return;
 }
 
-void CVarinfoLine::cat( const char* src, size_t len )
+void CVarinfoLine::cat( char const* src, size_t len )
 {
 	if ( static_cast<int>(len) > mlenLimit ) {		// 限界なら
 		mpBuf->append( src, mlenLimit );
@@ -839,14 +612,14 @@ void CVarinfoLine::cat( const char* src, size_t len )
 //------------------------------------------------
 // 書式付き文字列を連結する
 //------------------------------------------------
-void CVarinfoLine::catf( const char* format, ... )
+void CVarinfoLine::catf( char const* format, ... )
 {
 	if ( mlenLimit <= 0 ) return;
 	
 	va_list   arglist;
 	va_start( arglist, format );
 	
-	CString stmp( vstrf( format, arglist ) );
+	string stmp( vstrf( format, arglist ) );
 	size_t   len( stmp.length() );
 	
 	cat( stmp.c_str(), len );
@@ -854,281 +627,4 @@ void CVarinfoLine::catf( const char* format, ... )
 	va_end( arglist );
 	return;
 }
-
-#ifndef clhsp
-//------------------------------------------------
-// デバッグ文字列を生成する
-// 
-// @prm pBuf : 最低でも 1024 B を必要とする
-//------------------------------------------------
-CString CVarinfoLine::getDbgString( vartype_t type, const void* pValue )
-{
-#ifndef HSPVAR_FLAG_VARIANT
-	static int const HSPVAR_FLAG_VARIANT = 7;
 #endif
-	
-	void* ptr = const_cast<void*>(pValue);
-	
-	switch ( type ) {
-	//	case HSPVAR_FLAG_STR:     return CString( ptr_cast<char*>(ptr) );
-		case HSPVAR_FLAG_STR:     return toStringLiteralFormat( ptr_cast<char*>(ptr) );
-		case HSPVAR_FLAG_COMOBJ:  return strf("comobj(0x%08X)",  address_cast( *ptr_cast<void**>(ptr) ));
-		case HSPVAR_FLAG_VARIANT: return strf("variant(0x%08X)", address_cast( *ptr_cast<void**>(ptr)) );
-		case HSPVAR_FLAG_DOUBLE:  return strf( "%f", *ptr_cast<double*>(ptr) );
-		case HSPVAR_FLAG_INT:
-		{
-			int const val = *ptr_cast<int*>(ptr);
-#ifdef with_ModPtr
-			if ( ModPtr::isValid(val) ) {
-				return strf("mp#%d->", ModPtr::getIdx(val))
-					+ getDbgString( HSPVAR_FLAG_STRUCT, ModPtr::getValue(*ptr_cast<int*>(ptr)) );
-			}
-#endif
-			return strf("%d", val);
-		}
-		case HSPVAR_FLAG_LABEL:
-		{
-			auto const lb = *ptr_cast<label_t*>(ptr);
-			int const idx = hpimod::findOTIndex(lb);
-			auto const name =
-				(idx >= 0 ? mdbginfo.ax->getLabelName(idx) : nullptr);
-			return (name ? strf("*%s", name) : strf("*label(0x%08X)", address_cast(lb)));
-		}
-#if 0
-		case HSPVAR_FLAG_STRUCT:		// 拡張表示あり
-		{
-#if clhsp
-			ModInst* mv( *ptr_cast<ModInst**>( ptr ) );
-			if ( !mv ) {
-				return CString( "modinst (null)" );
-				
-			} else {
-				STRUCTPRM* stprm( &mdbginfo.ctx->mem_minfo[mv->id_minfo]  );
-				STRUCTDAT* stdat( &mdbginfo.ctx->mem_finfo[stprm->subid] );
-
-				return strf( "modinst (0x%08X) id%d(%s) ptr(%p) size(%d)",
-					address_cast( mv ),
-					stprm->subid,
-					address_cast( &mdbginfo.ctx->mem_mds[stdat->nameidx] ),
-					mv->members,
-					stdat->size
-				);
-			}
-#else
-			FlexValue* fv ( ptr_cast<FlexValue*>( ptr ) );
-			if ( fv->type == FLEXVAL_TYPE_NONE ) {
-				return CString( "struct (empty)" ); 
-			} else {
-				return strf( "struct id%d ptr(0x%08X) size(%d) type(%d)",
-					fv->customid, address_cast(fv->ptr), fv->size, fv->type
-				);
-			}
-#endif
-		}
-#endif
-#if clhsp
-	//	case HSPVAR_FLAG_VECTOR:			// 拡張表示あり
-	//		return strf( "vector (0x%08X) ", address_cast( ptr_cast<Vector*>(ptr) ) );
-		
-		case HSPVAR_FLAG_REF:
-		{
-			bool       bExists ( false );
-			Reference* pRef    ( ptr_cast<Reference*>( ptr ) );
-			
-			char sReferred[64 + 32];
-			
-			// 静的変数から探す
-			for ( int i = 0; i < mdbginfo.ctx->hsphed->max_val; ++ i ) {
-				if ( pRef->pval == &mdbginfo.ctx->mem_var[i] ) {
-					strcpy_s( sReferred, mdbginfo.exinfo->HspFunc_varname(i) );
-					bExists = true;
-					break;
-				}
-			}
-			
-			if ( !bExists ) {
-				return strf( "なにかへの参照 (%p [#%d])", pRef->pval, pRef->aptr );
-				
-			} else {
-				if ( pRef->aptr ) {
-					sprintf_s( sReferred, "%s [#%d]", sReferred, pRef->aptr );
-				}
-				return strf( "変数 %s への参照", sReferred );
-			}
-		//*/
-		}
-#endif
-		default:
-		{
-			const char* vartype_name = mdbginfo.exinfo->HspFunc_getproc(type)->vartype_name;
-			
-		//	if ( strcmp(vartype_name, "__EXTRA" ) == 0 ) {
-		//		const HspVarProc* vp = mdbginfo.exinfo->HspFunc_getproc(type);
-		//		int size = vp->basesize > 0 ? vp->basesize : vp->GetSize(almighty_cast<const PDAT*>(ptr));
-		//	}
-#ifdef with_ExtraBasics
-			// 拡張基本型
-			bool bSigned = false;
-			
-			if ( strcmp(vartype_name, "bool") == 0 ) {
-				static const char* bool_name[2] = { "false", "true" };		// 名前定数
-				return bool_name[ *ptr_cast<bool*>( ptr ) ? 1 : 0 ];
-				
-			// char : char = signed char とする
-			} else if (
-				   ( strcmp(vartype_name,  "char") == 0 || strcmp(vartype_name,   "signed_char") == 0 ) && (bSigned = true)
-				|| ( strcmp(vartype_name, "uchar") == 0 || strcmp(vartype_name, "unsigned_char") == 0 )
-			) {
-				const int val = bSigned ? *ptr_cast<signed char*>( ptr ) : *ptr_cast<unsigned char*>( ptr );
-				return ( val == 0 ) ? CString("0 ('\\0')") : strf("%-3d '%c'", static_cast<int>(val), static_cast<char>(val));
-				
-			// short
-			} else if (
-				   ( strcmp(vartype_name,  "short") == 0 || strcmp(vartype_name,   "signed_short") == 0 ) && (bSigned = true)
-				|| ( strcmp(vartype_name, "ushort") == 0 || strcmp(vartype_name, "unsigned_short") == 0 )
-			) {
-				const int val = static_cast<int>( bSigned ? *ptr_cast<signed short*>( ptr ) : *ptr_cast<unsigned short*>( ptr ) );
-				return strf( "%6d", val );
-				
-			// unsigned int
-			} else if ( strcmp(vartype_name, "uint") == 0 || strcmp(vartype_name, "unsigned_int") == 0 ) {
-				const auto val = *ptr_cast<unsigned int*>( ptr );
-				return strf( "%d", val );
-				
-			// long
-			} else if (
-				   ( strcmp(vartype_name,  "long") == 0 || strcmp(vartype_name,   "signed_long") == 0 ) && (bSigned = true)
-				|| ( strcmp(vartype_name, "ulong") == 0 || strcmp(vartype_name, "unsigned_long") == 0 ) 
-			) {
-				const auto signed_val = *ptr_cast<long long*>( ptr );
-				return strf( "%d", bSigned ? signed_val : *ptr_cast<unsigned long long*>(ptr), signed_val );
-			/*
-			} else if ( strcmp(vartype_name,  "long") == 0 || strcmp(vartype_name,   "signed_long") == 0 ) {
-				const auto val = *ptr_cast<long long*>( ptr );
-				return strf( "%d", val );
-				
-			} else if ( strcmp(vartype_name, "ulong") == 0 || strcmp(vartype_name, "unsigned_long") == 0 ) {
-				const auto val = *ptr_cast<unsigned long long*>( ptr );
-				return strf( "%d", val );
-			//*/
-			// おまけ
-			} else if ( strcmp(vartype_name, "tribyte") == 0 ) {
-				const char* bytes = ptr_cast<char*>( ptr );
-				const int   val   = bytes[0] << 16 | bytes[1] << 8 | bytes[2];		// 再構成
-				return strf( "%d", val );
-			}
-#endif
-#ifdef with_Modcmd
-			// "modcmd_k" 型
-			if ( strcmp(vartype_name, "modcmd_k") == 0 ) {
-				int const modcmd = *ptr_cast<int*>(ptr);
-				return strf("modcmd(%s)",
-					(modcmd == 0xFFFFFFFF) ? "" : &mdbginfo.ctx->mem_mds[mdbginfo.ctx->mem_finfo[modcmd].nameidx]
-				);
-			}
-#endif
-			return strf( "Unknown<%s>(0x%08X)", vartype_name, address_cast( ptr ) );
-		}
-	}
-}
-
-//------------------------------------------------
-// 文字列を文字列リテラルの形式に変換する
-//------------------------------------------------
-CString CVarinfoLine::toStringLiteralFormat( const char* src )
-{
-	char* buf = mdbginfo.exinfo->HspFunc_malloc( strlen(src) * 2 );
-	uint iWrote( 0 );
-	
-	buf[iWrote ++] = '\"';
-	
-	for ( int i = 0; i < 0x400; ++ i ) {
-		char c = src[i];
-		
-		// エスケープ・シーケンスを解決する
-		if ( c == '\0' ) {
-			break;
-			
-		} else if ( c == '\\' || c == '\"' ) {
-			buf[iWrote ++] = '\\';
-			buf[iWrote ++] = c;
-			
-		} else if ( c == '\t' ) {
-			buf[iWrote ++] = '\\';
-			buf[iWrote ++] = 't';
-			
-		} else if ( c == '\r' || c == '\n' ) {
-			buf[iWrote ++] = '\\';
-			
-			if ( c == '\r' && src[i + 1] == '\n' ) {	// CR + LF
-				buf[iWrote ++] = 'n';
-				i ++;
-			} else {
-				buf[iWrote ++] = 'r';
-			}
-			
-		} else {
-			buf[iWrote ++] = c;
-		}
-	}
-	
-	buf[iWrote ++] = '\"';
-	buf[iWrote ++] = '\0';
-	
-	CString sResult ( buf );
-	
-	mdbginfo.exinfo->HspFunc_free( buf );
-	
-	return sResult;
-}
-
-#endif
-
-//------------------------------------------------
-// mptype の文字列を得る
-//------------------------------------------------
-static const char* getMPTypeString( int mptype )
-{
-	switch ( mptype ) {
-		case MPTYPE_NONE:    return "(unknown)";
-		case MPTYPE_DNUM:    return "double";
-		case MPTYPE_INUM:    return "int";
-		
-		case MPTYPE_STRING:
-		case MPTYPE_LOCALSTRING: return "str";
-		case MPTYPE_VAR:
-		case MPTYPE_PVARPTR:				// #dllfunc
-		case MPTYPE_SINGLEVAR:   return "var";
-		case MPTYPE_ARRAYVAR:    return "array";
-		case MPTYPE_LOCALVAR:    return "local";
-		case MPTYPE_MODULEVAR:   return "modvar";
-		case MPTYPE_IMODULEVAR:  return "modinit";
-		case MPTYPE_TMODULEVAR:  return "modterm";
-		
-#ifdef clhsp
-		case MPTYPE_LABEL:  return "label";
-		case MPTYPE_STRUCT: return "struct";
-	//	case MPTYPE_REF:    return "ref";
-		case MPTYPE_VECTOR: return "vector";
-		case MPTYPE_ANY:    return "any";
-		case MPTYPE_FLEX:   return "...";		// flex
-#endif
-		
-#if 0
-		case MPTYPE_IOBJECTVAR:  return "comobj";
-	//	case MPTYPE_LOCALWSTR:   return "";
-	//	case MPTYPE_FLEXSPTR:    return "";
-	//	case MPTYPE_FLEXWPTR:    return "";
-		case MPTYPE_FLOAT:       return "float";
-		case MPTYPE_PPVAL:       return "pval";
-		case MPTYPE_PBMSCR:      return "bmscr";
-		case MPTYPE_PTR_REFSTR:  return "prefstr";
-		case MPTYPE_PTR_EXINFO:  return "pexinfo";
-		case MPTYPE_PTR_DPMINFO: return "pdpminfo";
-		case MPTYPE_NULLPTR:     return "nullptr";
-		
-		case MPTYPE_STRUCTTAG:   return "(structtag)";
-#endif
-		default: return "unknown";
-	}
-}

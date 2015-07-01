@@ -41,3 +41,5 @@
 	
 	mes "k@outer = " + k@outer
 	mes "k@inner = " + k@inner@outer
+	
+	k = 1	// グローバル変数「k@」

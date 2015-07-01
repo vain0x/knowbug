@@ -27,8 +27,8 @@
 namespace Dialog
 {
 
-const char* const myClass = "KNOWBUG";
-int   const TABDLGMAX = 4;
+static char const* const myClass = "KNOWBUG";
+static int const TABDLGMAX = 4;
 
 HWND getKnowbugHandle();
 HWND getSttCtrlHandle();
@@ -38,12 +38,13 @@ HWND createMain();
 void destroyMain();
 
 void logClear();
-void logAdd( const char* msg );
+void logAdd( char const* msg );
 void logAddCrlf();
+void logAddCurInf();
 bool isLogAutomaticallyUpdated();
 bool isLogCallings();
 void logSave();
-void logSave( const char* filepath );
+void logSave( char const* filepath );
 
 void update();
 
@@ -57,3 +58,4 @@ void Edit_EnableWordwrap( HWND hEdit, bool bEnable );
 string TreeView_GetItemString( HWND hwndTree, HTREEITEM hItem );
 LPARAM TreeView_GetItemLParam( HWND hwndTree, HTREEITEM hItem );
 void   TreeView_EscapeFocus( HWND hwndTree, HTREEITEM hItem );
+HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem);

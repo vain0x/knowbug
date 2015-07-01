@@ -2,18 +2,10 @@
 
 #ifndef IG_HPI_WRAP_CALL_AS
 #define IG_HPI_WRAP_CALL_AS
-
 #ifdef _DEBUG
 
-#uselib "hsp3debug.dll"	// knowbug
-#cfunc knowbug_hwnd "_knowbug_hwnd@0"
+// after beta16
+#regcmd "_hsp3hpi_init_wrapcall@4", "hsp3debug.dll"
 
-#uselib "WrapCall.hpi"
-#func WrapCall_init "_WrapCallInitialize@4" int
-#func WrapCall_term "_WrapCallTerminate@0"
-
-	WrapCall_init knowbug_hwnd()
-	
-#endif
-
+#endif	// defined(_DEBUG)
 #endif

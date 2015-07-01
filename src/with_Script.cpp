@@ -13,13 +13,13 @@
 
 static void initConnectWithScript();
 
-static void setNodeAnnotation(const char* name, const char* msg);
+static void setNodeAnnotation(char const* name, char const* msg);
 
 /*
-static void setStPrmNameBegin( const char* modname );
+static void setStPrmNameBegin( char const* modname );
 static void setStPrmNameEnd();
-static void setStPrmName( int idx, const char* name );
-typedef std::map<const STRUCTPRM*, std::string> stprm_names_t;
+static void setStPrmName( int idx, char const* name );
+typedef std::map<const stprm_t, std::string> stprm_names_t;
 //*/
 
 typedef std::map<std::string, std::string> annotation_t;
@@ -53,14 +53,14 @@ void initConnectWithScript()
 //------------------------------------------------
 // ノード注釈
 //------------------------------------------------
-void setNodeAnnotation( const char* name, const char* msg )
+void setNodeAnnotation( char const* name, char const* msg )
 {
 	if ( !stt_annotations ) return;
 	stt_annotations->insert(annotation_t::value_type(name, msg));
 	return;
 }
 
-const char* getNodeAnnotation( const char* name )
+char const* getNodeAnnotation( char const* name )
 {
 	if ( !stt_annotations ) return nullptr;
 	auto const iter = stt_annotations->find( name );
@@ -68,7 +68,7 @@ const char* getNodeAnnotation( const char* name )
 }
 
 // 後方互換
-const char* getStPrmName(const STRUCTPRM* stprm)
+char const* getStPrmName(const stprm_t stprm)
 {
 	return (stprm->mptype == MPTYPE_MODULEVAR) ? "thismod" : nullptr;
 }
@@ -80,7 +80,7 @@ const char* getStPrmName(const STRUCTPRM* stprm)
 // @	その後に StPrmName を連続で呼び出す。
 //------------------------------------------------
 // setter
-void setStPrmName( const STRUCTPRM* stprm, const char* name )
+void setStPrmName( const stprm_t stprm, char const* name )
 {
 	if ( !stt_stprm_names ) return;
 	stt_stprm_names->insert(stprm_names_t::value_type(stprm, name));
@@ -90,7 +90,7 @@ void setStPrmName( const STRUCTPRM* stprm, const char* name )
 }
 
 // getter
-const char* getStPrmName( const STRUCTPRM* stprm )
+char const* getStPrmName( const stprm_t stprm )
 {
 	if ( stprm->mptype == MPTYPE_MODULEVAR ) return "thismod";
 	if ( !stt_stprm_names ) return nullptr;
@@ -100,18 +100,18 @@ const char* getStPrmName( const STRUCTPRM* stprm )
 	return ( iter != stt_stprm_names->end() ) ? iter->second.c_str() : nullptr;
 }
 
-static const STRUCTDAT* stt_stdatTarget;	// 現在識別子設定中のもの
+static const stdat_t stt_stdatTarget;	// 現在識別子設定中のもの
 
 // 特定の名前の構造体(STRUCTDAT)を探す (完全一致なので小文字でなければヒットしない)
-auto SeekStDat(const char* name) -> const STRUCTDAT* {
-	const STRUCTDAT* stdat = ctx->mem_finfo;
+auto SeekStDat(char const* name) -> const stdat_t {
+	const stdat_t stdat = ctx->mem_finfo;
 	for ( size_t i = 0; i < ctx->hsphed->max_finfo / sizeof(STRUCTDAT); ++ i ) {
 		if ( stdat[i].nameidx >= 0 && !std::strcmp( STRUCTDAT_getName(&stdat[i]), name ) ) return &stdat[i];
 	}
 	return nullptr;
 }
 
-void setStPrmNameBegin( const char* nameStDat )
+void setStPrmNameBegin( char const* nameStDat )
 {
 	if ( stt_stdatTarget ) throw HSPERR_ILLEGAL_FUNCTION;	// 他の対象の操作中
 
@@ -131,7 +131,7 @@ void setStPrmNameEnd()
 	return;
 }
 
-void setStPrmName( int idx, const char* name )
+void setStPrmName( int idx, char const* name )
 {
 	if ( !stt_stdatTarget ) throw HSPERR_ILLEGAL_FUNCTION;
 	const size_t prmidx = stt_stdatTarget->prmindex;
@@ -154,14 +154,14 @@ EXPORT void WINAPI knowbug_greet()
 }
 
 /*
-EXPORT void WINAPI knowbug_namePrms(const char* nameStDat,
-	const char* p1, const char* p2, const char* p3, const char* p4,
-	const char* p5, const char* p6, const char* p7, const char* p8,
-	const char* p9, const char* p10, const char* p11, const char* p12,
-	const char* p13, const char* p14, const char* p15)
+EXPORT void WINAPI knowbug_namePrms(char const* nameStDat,
+	char const* p1, char const* p2, char const* p3, char const* p4,
+	char const* p5, char const* p6, char const* p7, char const* p8,
+	char const* p9, char const* p10, char const* p11, char const* p12,
+	char const* p13, char const* p14, char const* p15)
 {
 	setStPrmNameBegin( nameStDat );
-	const char* const names[] = { p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15 };
+	char const* const names[] = { p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15 };
 	for ( int i = 0; i < 15; ++ i ) {
 		if ( names[i] == nullptr ) continue;
 		setStPrmName( i, names[i] );
@@ -170,7 +170,7 @@ EXPORT void WINAPI knowbug_namePrms(const char* nameStDat,
 }
 //*/
 /*
-	const char* nameStDat = exinfo->HspFunc_prm_gets();
+	char const* nameStDat = exinfo->HspFunc_prm_gets();
 	setStPrmNameBegin( nameStDat );
 	
 	PVal*& mpval = *exinfo->mpval;

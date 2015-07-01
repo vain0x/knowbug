@@ -3,69 +3,48 @@
 #ifndef IG_CLASS_VARINFO_TEXT_H
 #define IG_CLASS_VARINFO_TEXT_H
 
-#include "ClhspDebugInfo.h"
-#include "module/mod_cstring.h"
+#include "main.h"
+#include "DebugInfo.h"
+#include "module/strf.h"
+#include "module/CStrBuf.h"
 
-//##############################################################################
-//                宣言部 : CVarinfoText
-//##############################################################################
+#ifdef with_WrapCall
+namespace WrapCall
+{
+	struct ModcmdCallInfo;
+}
+#endif
+
 class CVarinfoText
 {
-	//******************************************************
-	//    メンバ変数
-	//******************************************************
+	// メンバ変数
 private:
-	DebugInfo&  mdbginfo;
-	CString*    mpBuf;
-	
-	PVal*       mpVar;
-	const char* mpName;
-	
-	int mlenLimit;
-	
-	//******************************************************
-	//    メンバ関数
-	//******************************************************
+	CStrBuf mBuf;
+
+	// メンバ関数
 public:
-	explicit CVarinfoText( DebugInfo& dbginfo, int lenLimit = (0x7FFFFFFF - 1) );
-	~CVarinfoText();
-	
-	const CString& getString(void) const
-	{
-		return *mpBuf;
-	}
-	
-	void addVar( PVal* pval, const char* name );
-	void addSysvar( const char* name );
+	explicit CVarinfoText(int lenLimit = (0x7FFFFFFF - 1));
+	~CVarinfoText() = default;
+
+	string const& getString() const { return mBuf.get(); }
+
+	void addVar(PVal* pval, char const* name);
+	void addSysvar(char const* name);
 #ifdef with_WrapCall
-	void addCall( STRUCTDAT* stdat, void* prmstk, int sublev, const char* name, const char* filename = nullptr, int line = -1 );
-	void addResult( STRUCTDAT* stdat, void* ptr, int flag, int sublev, const char* name );
-	void addResult2( const CString& text, const char* name );
+	void addCall(WrapCall::ModcmdCallInfo const& callinfo);
+	void addResult(stdat_t stdat, void* ptr, vartype_t vtype, char const* name);
+	void addResult2(string const& text, char const* name);
 #endif
-	
-private:
-	// テキストの生成
-	void make( void );
-	void dumpVar( PVal* pval );
-	void dump( void* mem, size_t size );
-	
+
 	// 項目の追加
-//	void addItem( const char* name, const char* string );
-//	void addItem( const char* name, const char* format, ... );
-	
-	// 文字列の連結
-	void cat ( const char* string );
-	void catf( const char* format, ... );
-	void cat_crlf( void );
-	
-	// その他
-	
-	//******************************************************
-	//    封印
-	//******************************************************
-private:
-	CVarinfoText();
-	
+	//	void addItem( char const* name, char const* string );
+	//	void addItem( char const* name, char const* format, ... );
+
+	// 文字列連結
+	void catln(char const* s);
 };
+
+char const* getMPTypeString(int mptype);
+string getVartypeString(PVal const* pval);
 
 #endif

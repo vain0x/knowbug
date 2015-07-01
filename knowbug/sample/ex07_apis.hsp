@@ -1,0 +1,32 @@
+// knowbug の公開APIを使う
+
+#include "../knowbug.as"
+
+#uselib "user32.dll"
+#func global ShowWindow "ShowWindow" sptr,sptr
+
+#define SW_SHOWMINIMIZED 2
+
+	// knowbug を最小化する
+	ShowWindow knowbug_hwnd, SW_SHOWMINIMIZED
+	
+	// グローバル領域では main になる
+	mes "now: " + __func__
+	
+#module
+#deffunc test
+	mes "begin: " + __func__
+	mes "hello, world!"
+	return
+#global
+	
+	// test 命令の中では __func__ は test になる
+	test
+	
+	// 変数の詳細情報の文字列を得る
+	dim a, 2, 1, 3
+	a(0, 0, 2) = 7
+	mes "a の詳細情報："
+	mes varinfstr(a)
+	
+	stop

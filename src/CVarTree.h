@@ -1,256 +1,139 @@
 // VarTree
 
+// モジュールをノード、静的変数をリーフとする木構造
+
+// このクラスとしては、モジュール名は先頭の '@' を含むとする。
+// (そうした方がソートの手間が省ける)
+// 変数名はスコープ解決を含むとする。(gvar または lvar@mod)
+
+// 代数的データ型にしようと思ったが、抽象化できないまま放置
+
 #ifndef IG_CLASS_VAR_TREE_H
 #define IG_CLASS_VAR_TREE_H
 
+#include "main.h"
 #include <string>
 #include <list>
 #include <vector>
 #include <map>
 #include <iterator>
+#include <memory>
 
-//##############################################################################
-//                宣言部 : CVarTree
-//##############################################################################
-class CVarTree
+// Remark: don't inherit this class (except for its case classes).
+class CStaticVarTree
 {
-	//********************************************
-	//    型宣言
-	//********************************************
-	typedef std::string string;
-	
+private:
+	string name_;
 public:
-	//--------------------------------------------
-	// 反復子
-	//--------------------------------------------
-	class iterator;
-	friend class iterator;
+	string const& getName() const { return name_; }
+
+	CStaticVarTree(string const& name) : name_(name) { }
+	virtual ~CStaticVarTree() { }
+
+	static string ModuleName_Global;
+
+	// cases
+	class VarNode;
+	class ModuleNode;
+
+	enum class CaseId { Var, Module };
+	virtual CaseId getCaseId() const = 0;
 	
-	enum NodeType
-	{
-		NodeType_Module = 0,
-		NodeType_Var
+	template<typename TCase> struct isCaseClass {
+		using TCaseRaw = std::remove_const_t<TCase>;
+		static bool const value = std::is_same<TCaseRaw, VarNode>::value || std::is_same<TCaseRaw, ModuleNode>::value;
 	};
-	
-private:
-	typedef std::list<std::string>              StringList_t;
-	typedef std::map<std::string, StringList_t> ModuleList_t;
-	typedef std::map<std::string, CVarTree>     Children_t;
-	
-	typedef StringList_t::iterator StringListIter_t;
-	typedef ModuleList_t::iterator ModuleListIter_t;
-	typedef Children_t::iterator   ChildrenIter_t;
-	
-	enum PushPos
+	template<typename TCase, typename = std::enable_if_t<isCaseClass<TCase>::value>>
+	bool isCaseOf() const { return (this->getCaseId() == TCase::GetCaseId()); }
+
+	template<typename TCase, typename = std::enable_if_t<isCaseClass<TCase>::value>>
+	TCase const* asCaseOf() const { return (isCaseOf<TCase>() ? reinterpret_cast<TCase const*>(this) : nullptr); }
+
+	template<typename TCase> TCase* asCaseOf() { return const_cast<CStaticVarTree*>(static_cast<CStaticVarTree const*>(this)->asCaseOf<TCase>()); }
+
+	template<typename TResult, typename TFuncVar, typename TFuncModule>
+	TResult match(TFuncVar&& fVar, TFuncModule&& fModule) const
 	{
-		PushPos_Back  = 0,
-		PushPos_Front = 1
-	};
-	
-	//********************************************
-	//    メンバ変数
-	//********************************************
-private:
-	NodeType mType;
-	string   mName;
-	
-	Children_t* mpChildren;
-	
-public:
-	static string AreaName_Global;
-	
-	//********************************************
-	//    メンバ関数
-	//********************************************
-public:
-	CVarTree( const string& name, NodeType type );
-	CVarTree( const CVarTree& src );
-	~CVarTree();
-	
-	// 情報
-	NodeType      getType() const { return mType; }
-	const string& getName() const { return mName; }
-	
-	// 要素の追加
-	void push_child ( const char* name, NodeType type );
-	void push_var   ( const char* name ) { push_child( name, NodeType_Var ); }
-	void push_module( const char* name ) { getChildModule( name ); }
-	
-	// 反復子の生成
-	iterator begin() const;
-	iterator   end() const;
-	
-private:
-	ChildrenIter_t getChildModule( const char* pModname );
-	
-	void add( const char* name, NodeType type );
-	
-	//********************************************
-	//    反復子のために公開 (危険)
-	//********************************************
-private:
-	ChildrenIter_t beginChildren() const { return mpChildren->begin(); }
-	ChildrenIter_t   endChildren() const { return mpChildren->end(); }
-	
+		switch ( getCaseId() ) {
+			case CaseId::Var: return fVar(*asCaseOf<VarNode>());
+			case CaseId::Module: return fModule(*asCaseOf<ModuleNode>());
+		}
+	}
+	// non const 版は省略
+	// template<...> TResult match() { 同様 }
 };
 
-//##############################################################################
-//                宣言部 : CVarTree::iterator
-//##############################################################################
-class CVarTree::iterator
-	: public std::iterator<std::forward_iterator_tag, CVarTree, void>
+// Var
+class CStaticVarTree::VarNode
+	: public CStaticVarTree
 {
-	friend class CVarTree;
-	
-private:
-	typedef CVarTree Elem_t;
-	typedef CVarTree::ChildrenIter_t iter_t;
-	typedef CVarTree::iterator       self_t;
-	
-	//********************************************
-	//    メンバ変数
-	//********************************************
-private:
-	CVarTree* mpOwner;
-	iter_t  mIter;		// 実体
-	
-	Elem_t* mpData;
-	
 public:
-	//--------------------------------------------
-	// 構築 (通常)
-	// 
-	// @ 先頭(begin)に設定される
-	//--------------------------------------------
-	iterator( CVarTree* pOwner )
-		: mpOwner( pOwner )
-		, mpData ( nullptr )
-	{
-		moveToBegin();
-		return;
-	}
-	
-	//--------------------------------------------
-	// 構築 (複写)
-	//--------------------------------------------
-	iterator( const self_t& src )
-		: mpOwner( src.mpOwner )
-		, mIter  ( src.mIter   )
-		, mpData ( src.mpData  )
+	VarNode(string const& name)
+		: CStaticVarTree(name)
 	{ }
-	
+
+	// case
+	static CaseId GetCaseId() { return CaseId::Var; }
+	CaseId getCaseId() const override { return CaseId::Var; }
+};
+
+// Module
+class CStaticVarTree::ModuleNode
+	: public CStaticVarTree
+{
+	using map_t = std::map<string, std::unique_ptr<CStaticVarTree>>;
+public:
+	using iterator = map_t::iterator;
+	using const_iterator = map_t::const_iterator;
+private:
+	std::unique_ptr<map_t> children_;
+public:
+	ModuleNode(string const& name)
+		: CStaticVarTree(name)
+		, children_(new map_t)
+	{
+		assert(name[0] == '@'
+			&& std::strchr(name.c_str() + 1, '@') == nullptr);
+	}
 	/*
-	//-----------------------------------------------
-	// 構築 (終端位置)
-	//-----------------------------------------------
-	iterator( CVarTree* pOwner, int n )
-		: 
+	ModuleNode(ModuleNode const& src)
+		: CStaticVarTree(src.getName())
+		, children_(new map_t(*src.children_))
 	{ }
-	//*/
-	
-	//--------------------------------------------
-	// 脱参照
-	//--------------------------------------------
-	Elem_t& operator *(void) const
-	{
-		return *mpData;
-	}
-	
-	Elem_t* operator ->(void)
-	{
-		return mpData;
-	}
-	
-	//--------------------------------------------
-	// 移動操作
-	//--------------------------------------------
-	// 前置
-	self_t& operator ++(void)
-	{
-		moveToNext();
-		return *this;
-	}
-	
-	// 後置
-	self_t operator ++(int)
-	{
-		self_t obj_bak( *this );		// 現在の位置を保存しておく
-		moveToNext();
-		return obj_bak;
-	}
-	
-	self_t operator +( unsigned int n )
-	{
-		self_t obj( *this );
-		for ( unsigned int i = 0; i < n; ++ i ) obj.moveToNext();
-		return obj;
-	}
-	
-	//--------------------------------------------
-	// 比較演算子
-	//--------------------------------------------
-	const bool operator ==(const self_t& iter) const
-	{
-		return ( mpData == iter.mpData );
-	}
-	
-	const bool operator !=(const self_t& iter) const
-	{
-		return !(*this == iter);
-	}
-	
+	ModuleNode(ModuleNode&& src)
+		: CStaticVarTree(src)
+		, children_(std::move(src.children_))
+	{ }//*/
+
+	void pushVar(char const* name);
+	void pushModule(char const* name) { insertChildModule(name); }
+
 private:
-	//--------------------------------------------
-	// 次に移動する
-	//--------------------------------------------
-	void moveToNext()
+	ModuleNode& insertChildModule(char const* pModname);
+
+	// 子ノードを検索する。なければ追加する。
+	template<typename TNode, typename ...TArgs>
+	TNode& insertChildImpl(string const& name, TArgs&& ...args)
 	{
-		// 終端に来ていたら
-		if ( mIter == mpOwner->endChildren() ) {
-			mpData = nullptr;
-			return;
+		auto iter = children_->find(name);
+		if ( iter == children_->end() ) {
+			iter = children_->insert(
+				{ name, std::make_unique<TNode>(name, std::forward<TArgs>(args)...) }
+			).first;
 		}
-		
-		// 次に移動する
-		mpData = &(mIter->second);
-		
-		++ mIter;
-		
-		return;
+		return reinterpret_cast<TNode&>(*iter->second);
 	}
 	
-	//------------------------------------------------
-	// 先頭(begin)に移動する
-	//------------------------------------------------
-	void moveToBegin()
-	{
-		if ( mpOwner->getType() == CVarTree::NodeType_Module ) {
-			mIter  = mpOwner->beginChildren();
-			mpData = nullptr;
-			
-			moveToNext();	// 初期操作
-			
-		} else {
-			mpData = nullptr;
-		}
-		return;
-	}
-	
-	//------------------------------------------------
-	// 終端(end)に移動する
-	//------------------------------------------------
-	void moveToEnd()
-	{
-		mpData = nullptr;
-		return;
-	}
-	
-	//############################################
-	//    封印
-	//############################################
-private:
-	iterator();
-	
+public:
+	// iterators
+	const_iterator begin() const { return children_->begin(); }
+	const_iterator end() const { return children_->end(); }
+
+	// case
+	static CaseId GetCaseId() { return CaseId::Module; }
+	CaseId getCaseId() const override { return CaseId::Module; }
 };
+
+using CVarTree = CStaticVarTree;
 
 #endif

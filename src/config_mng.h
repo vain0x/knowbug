@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "module/mod_cstring.h"
+#include "module/strf.h"
 
 struct KnowbugConfig
 {
@@ -43,3 +43,6 @@ private:
 };
 
 extern KnowbugConfig::Mng g_config;
+
+// 返値ノード機能を使うかどうか
+static bool utilizeResultNodes() { return g_config->bResultNode; }

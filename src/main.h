@@ -1,50 +1,63 @@
 // knowbug - main header
 
+// todo: よくわからないヘッダ
+
 #ifndef IG_HSP3DBGWIN_KNOWBUG_H
 #define IG_HSP3DBGWIN_KNOWBUG_H
 
 #include <Windows.h>
+#undef min
+#undef max
 
 #include <string>
 using std::string;
 
-#include "chruntime/hsp3debug.h"
-#include "chruntime/hsp3struct.h"			// hsp3 core define
-#include "hsp3plugin.compatible.h"
-#include "D:/Docs/prg/cpp/MakeHPI/hpimod/basis.h"
+#include "hsp3plugin.h"
 #undef stat
-#undef min
-#undef max
+#include "hpimod/basis.h"
 
-//#include "chruntime/mod_vector.h"
+using hpimod::vartype_t;
+using hpimod::varmode_t;
+using hpimod::label_t;
+using hpimod::csptr_t;
+using hpimod::stdat_t;
+using hpimod::stprm_t;
+using hpimod::HSPVAR_FLAG_COMOBJ;
+using hpimod::HSPVAR_FLAG_VARIANT;
+
+namespace WrapCall
+{
+	struct ModcmdCallInfo;
+}
 
 //extern HSP3DEBUG* g_debug;
 //extern HSPCTX*       ctx;	// hsp3plugin で宣言・定義される
 //extern HSPEXINFO* exinfo;
 
-extern HINSTANCE g_hInstance;
-
 struct DebugInfo;
 extern DebugInfo* g_dbginfo;
-
-//#define dbgmsg(msg) MessageBox( NULL, msg, "Debug Window", MB_OK )
 
 // knowbug コントロール
 namespace Knowbug
 {
+	extern HINSTANCE getInstance();
 
-extern void run();
-extern void runStop();
-extern void runStepIn();
-extern void runStepOver();
-extern void runStepOut();
-extern void runStepOut( int sublev );
+	extern void run();
+	extern void runStop();
+	extern void runStepIn();
+	extern void runStepOver();
+	extern void runStepOut();
+	extern void runStepReturn(int sublev);
 
-extern void logmes( const char* msg );
+	extern bool isStepRunning();
+	extern bool continueConditionalRun();
 
-extern bool isStepRunning();
-extern bool continueConditionalRun();
+	extern void logmes(char const* msg);
+	extern void logmesWarning(char const* msg);
 
-}
+	// WrapCall 側から呼ばれる関数
+	extern void bgnCalling(::WrapCall::ModcmdCallInfo const& callinfo);
+	extern void endCalling(::WrapCall::ModcmdCallInfo const& callinfo, void* ptr, vartype_t vtype);
+} // namespace Knowbug
 
 #endif

@@ -2,12 +2,11 @@
 
 #ifndef IG_WITH_MODPTR_AS_H
 #define IG_WITH_MODPTR_AS_H
-
 #ifdef with_ModPtr
 
 namespace ModPtr {
 
-const char* const VarName_AllInstance = "__all_instances_@__modptr";
+char const* const VarName_AllInstance = "__all_instances_@__modptr";
 int const MagicCode = 0x6B850000;
 
 extern PVal* getAllInstanceVar();
@@ -24,6 +23,6 @@ inline int getIdx(int mp)
 }
 
 };
-#endif
 
+#endif	// defined(with_ModPtr)
 #endif

@@ -5,16 +5,12 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="[D] hsp-compatible|Win32">
-      <Configuration>[D] hsp-compatible</Configuration>
+    <ProjectConfiguration Include="Release2|Win32">
+      <Configuration>Release2</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="[R] hsp-compatible|Win32">
-      <Configuration>[R] hsp-compatible</Configuration>
+      <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
@@ -29,17 +25,12 @@
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v120</PlatformToolset>
@@ -51,15 +42,11 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
@@ -67,36 +54,31 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.21006.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'">Debug\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'">Release\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'">Debug\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'">Release\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'">false</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'">Release\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'">Release\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'">false</LinkIncremental>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'" />
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'" />
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'">hsp3debug</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'">hsp3debug</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">hsp3debug</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">hsp3debug</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'">hsp3debug</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>clhsp;USE_DEFAULT_ARG;HSPDEBUG;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>use_CStaticVarTree;hsp;with_Modcmd;with_ModPtr;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -104,7 +86,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>..\..\..\..\trunk;..\..\..\..\trunk\module\compatible-header;C:\lib\boost</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../MakeHPI;../../MakeHPI/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)hsp3debug.dll</OutputFile>
@@ -118,60 +100,35 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'">
     <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>hsp;with_Modcmd;with_ModPtr;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>..\..\..\..\trunk;..\..\..\..\trunk\module\compatible-header;C:\lib\boost</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <OutputFile>$(OutDir)hsp3debug.dll</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(OutDir)knowbug.pdb</ProgramDatabaseFile>
-      <SubSystem>Windows</SubSystem>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <ImportLibrary>$(OutDir)hsp3debug.lib</ImportLibrary>
-      <TargetMachine>MachineX86</TargetMachine>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <PreprocessorDefinitions>clhsp;USE_DEFAULT_ARG;HSPDEBUG;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Optimization>Full</Optimization>
+      <PreprocessorDefinitions>hsp;with_Modcmd;with_ModPtr;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\trunk;..\..\..\..\trunk\module\compatible-header;C:\lib\boost</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../MakeHPI;../../MakeHPI/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)hsp3debug.dll</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)knowbug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <ImportLibrary>$(OutDir)hsp3debug.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>hsp;with_Modcmd;with_ModPtr;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -180,7 +137,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\trunk;..\..\..\..\trunk\module\compatible-header;C:\lib\boost</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../MakeHPI;../../MakeHPI/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)hsp3debug.dll</OutputFile>
@@ -204,74 +161,67 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\module\compatible-header\hsp3plugin.compatible.cpp" />
-    <ClCompile Include="..\..\..\module\hsedsdk.cpp" />
-    <ClCompile Include="..\..\..\module\mod_cstring.cpp" />
-    <ClCompile Include="..\..\..\module\mod_debug.cpp" />
-    <ClCompile Include="..\..\..\module\SortNote.cpp" />
-    <ClCompile Include="..\..\..\module\strbuf.cpp" />
-    <ClCompile Include="..\..\..\module\supio_win.cpp" />
-    <ClCompile Include="CIni.cpp" />
+    <ClCompile Include="..\..\MakeHPI\hspsdk\hsp3plugin.cpp" />
     <ClCompile Include="config_mng.cpp" />
     <ClCompile Include="CVarinfoLine.cpp" />
     <ClCompile Include="CVarinfoText.cpp">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="CVarinfoTree.cpp" />
     <ClCompile Include="CVarTree.cpp" />
     <ClCompile Include="dialog.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="module\CIni.cpp" />
+    <ClCompile Include="module\CStrBuf.cpp" />
+    <ClCompile Include="module\strf.cpp" />
+    <ClCompile Include="module\supio\strbuf.cpp" />
+    <ClCompile Include="module\supio\supio_win.cpp" />
     <ClCompile Include="SysvarData.cpp" />
-    <ClCompile Include="tab_log.cpp" />
     <ClCompile Include="vartree.cpp" />
     <ClCompile Include="with_ModPtr.cpp" />
     <ClCompile Include="with_Script.cpp" />
+    <ClCompile Include="WrapCall\type_modcmd.cpp" />
+    <ClCompile Include="WrapCall\WrapCall.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\..\MakeHPI\hpimod\basis.h" />
-    <ClInclude Include="..\..\..\..\..\..\MakeHPI\hpimod\var_assoc\for_knowbug.var_assoc.h" />
-    <ClInclude Include="..\..\..\..\..\..\MakeHPI\hpimod\var_vector\for_knowbug.var_vector.h" />
-    <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\DbgWndMsg.h" />
-    <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\ModcmdCallInfo.h" />
-    <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\WrapCallSdk.h" />
-    <ClInclude Include="..\..\..\..\..\openhsp\trunk\tools\win32\hsed3_footy2\interface.h" />
-    <ClInclude Include="..\..\..\chruntime\chdebug.h" />
-    <ClInclude Include="..\..\..\chruntime\chstruct.h" />
-    <ClInclude Include="..\..\..\chruntime\chvar_core.h" />
-    <ClInclude Include="..\..\..\chruntime\gc.h" />
-    <ClInclude Include="..\..\..\chruntime\mod_vector.h" />
-    <ClInclude Include="..\..\..\module\compatible-header\hsp3debug.compatible.h" />
-    <ClInclude Include="..\..\..\module\compatible-header\hsp3plugin.compatible.h" />
-    <ClInclude Include="..\..\..\module\compatible-header\hsp3struct.compatible.h" />
-    <ClInclude Include="..\..\..\module\compatible-header\hspvar_core.compatible.h" />
-    <ClInclude Include="..\..\..\module\func_isRange.h" />
-    <ClInclude Include="..\..\..\module\hsedsdk.h" />
-    <ClInclude Include="..\..\..\module\mod_cast.h" />
-    <ClInclude Include="..\..\..\module\mod_cstring.h" />
-    <ClInclude Include="..\..\..\module\mod_debug.h" />
-    <ClInclude Include="..\..\..\module\SortNote.h" />
-    <ClInclude Include="..\..\..\module\strbuf.h" />
-    <ClInclude Include="..\..\..\module\supio.h" />
-    <ClInclude Include="..\..\..\module\supio_win.h" />
+    <ClInclude Include="..\..\MakeHPI\hpimod\basis.h" />
+    <ClInclude Include="..\..\MakeHPI\hpimod\hsp3plugin_custom.h" />
+    <ClInclude Include="..\..\MakeHPI\hpimod\var_assoc\for_knowbug.var_assoc.h" />
+    <ClInclude Include="..\..\MakeHPI\hpimod\var_vector\for_knowbug.var_vector.h" />
+    <ClInclude Include="..\..\MakeHPI\hspsdk\hsed3_footy2\interface.h" />
+    <ClInclude Include="..\..\MakeHPI\hspsdk\hsp3debug.h" />
+    <ClInclude Include="..\..\MakeHPI\hspsdk\hsp3plugin.h" />
+    <ClInclude Include="..\..\MakeHPI\hspsdk\hsp3struct.h" />
+    <ClInclude Include="..\..\MakeHPI\hspsdk\hspvar_core.h" />
+    <ClInclude Include="..\..\MakeHPI\hspsdk\hspwnd.h" />
+    <ClInclude Include="..\..\MakeHPI\hspsdk\win32gui\hspwnd_win.h" />
     <ClInclude Include="CAx.h" />
-    <ClInclude Include="CIni.h" />
-    <ClInclude Include="ClhspDebugInfo.h" />
-    <ClInclude Include="CLogBuf.h" />
     <ClInclude Include="config_mng.h" />
     <ClInclude Include="CVarinfoLine.h" />
     <ClInclude Include="CVarinfoText.h" />
     <ClInclude Include="CVarinfoTree.h" />
     <ClInclude Include="CVarTree.h" />
+    <ClInclude Include="DebugInfo.h" />
     <ClInclude Include="dialog.h" />
-    <ClInclude Include="hsp3compatible.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="module\CIni.h" />
+    <ClInclude Include="module\CLogBuf.h" />
+    <ClInclude Include="module\CStrBuf.h" />
+    <ClInclude Include="module\ptr_cast.h" />
+    <ClInclude Include="module\strf.h" />
+    <ClInclude Include="module\supio\hsp3config.h" />
+    <ClInclude Include="module\supio\strbuf.h" />
+    <ClInclude Include="module\supio\supio.h" />
+    <ClInclude Include="module\supio\supio_win.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SysvarData.h" />
-    <ClInclude Include="tab_log.h" />
     <ClInclude Include="vartree.h" />
     <ClInclude Include="with_ModPtr.h" />
     <ClInclude Include="with_Script.h" />
-    <ClInclude Include="WrapCall.h" />
+    <ClInclude Include="WrapCall\ModcmdCallInfo.h" />
+    <ClInclude Include="WrapCall\ResultNodeData.h" />
+    <ClInclude Include="WrapCall\type_modcmd.h" />
+    <ClInclude Include="WrapCall\WrapCall.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc" />

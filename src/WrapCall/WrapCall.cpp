@@ -2,223 +2,134 @@
 
 #include <vector>
 
+#include "../main.h"
+#include "../DebugInfo.h"
+
 #include "WrapCall.h"
+#include "ModcmdCallInfo.h"
 #include "type_modcmd.h"
-#include "DbgWndMsg.h"
-#include "WrapCallSdk.h"
 
 namespace WrapCall
 {
 
-typedef std::vector<ModcmdCallInfo*> infCalling_t;
+static stkCallInfo_t g_stkCallInfo;
 
-struct WrapCallData
+static int g_pluginType_WrapCall = -1;
+
+/*
+struct ValueRef
 {
-	struct lastResult_t
-	{
-		void*      p;
-		vartype_t vt;
-	};
-	
-	infCalling_t* pInfCalling;
-	lastResult_t  lastResult;
-	
-	WrapCallMethod methods;
-	
+	void*      p;
+	vartype_t vt;
 public:
-	WrapCallData()
-	{
-		pInfCalling   = new infCalling_t;
-		lastResult.p  = NULL;
-		lastResult.vt = HSPVAR_FLAG_NONE;
-		return;
+	ValueRef()
+		: p(nullptr)
+		, vt(HSPVAR_FLAG_NONE)
+	{ }
+
+	void set(void* p1, vartype_t vt1) {
+		p = p1; vt = vt1;
 	}
-	
-	~WrapCallData()
-	{
-		for each ( auto pCallInfo in *pInfCalling ) { delete pCallInfo; }
-		pInfCalling->clear();
-		delete pInfCalling; pInfCalling = NULL;
-		return;
-	}
-	
-	bool        empty(void) const { return pInfCalling->empty(); }
-	unsigned int size(void) const { return pInfCalling->size();  }
 };
-
-// 変数定義
-extern WrapCallData* g_pWrapCallData = NULL;
-static HWND          g_hDbgWnd       = NULL;
-static HSP3DEBUG*    g_pDebug        = NULL;
-
-// 関数宣言
-static void setLastResult( void* p, vartype_t vt );
-
-static void PutLogMsg( const char* log );
-static void PutLogMsgWarning( const char* log );
+static ValueRef lastResult;	// 最後の返値への参照 (すぐ使えなくなるので注意)
+//*/
 
 //------------------------------------------------
-// WrapCall の準備
-// 
-// @ 実行開始時に呼ばれる (WrapCall_init 命令)。
+// プラグイン初期化関数
 //------------------------------------------------
-void init(HWND knowbug)
+EXPORT void WINAPI hsp3hpi_init_wrapcall(HSP3TYPEINFO* info)
 {
-	if ( g_pWrapCallData ) return;
-	
-	g_hDbgWnd = knowbug; //reinterpret_cast<HWND>( exinfo->er );
-	g_pDebug  = reinterpret_cast<HSP3DEBUG*>(
-		SendMessage( g_hDbgWnd, DWM_RequireDebugStruct, 0, 0 )
-	);
-	
-	g_pWrapCallData = new WrapCallData;
-	
-	SendMessage( g_hDbgWnd, DWM_RequireMethodFunc, 0, (LPARAM)(&g_pWrapCallData->methods) );
+	g_pluginType_WrapCall = info->type;
+	auto const typeinfo = info - g_pluginType_WrapCall;
+
+	hsp3sdk_init(info);
+
+	// 初期化
+	modcmd_init(&typeinfo[TYPE_MODCMD]);
+	g_stkCallInfo.reserve(32);
 	return;
 }
 
-//------------------------------------------------
-// WrapCall の破棄
-// 
-// @ 実行終了後に呼ばれる。
-//------------------------------------------------
-void term(void)
+/*
+EXPORT void WINAPI WrapCallInitialize()
 {
-	delete g_pWrapCallData; g_pWrapCallData = NULL;
-	return;
+	//
 }
 
-//##############################################################################
-//                アクション
-//##############################################################################
-
-static char stt_buf[1024];	// 一時バッファ
+// typeinfo が動いた可能性があるので元に戻すタイミングはない
+EXPORT void WINAPI WrapCallTerminate()
+{
+	if ( g_typeinfo != nullptr ) {
+		modcmd_term(&g_typeinfo[TYPE_MODCMD]);
+	}
+	return;
+}
+//*/
 
 //------------------------------------------------
 // 呼び出しの開始
 //------------------------------------------------
-void bgnCall( STRUCTDAT* pStDat )
+void bgnCall(stdat_t stdat)
 {
-	unsigned int const idx = g_pWrapCallData->size();
-	
-	ModcmdCallInfo* const pCallInfo = new ModcmdCallInfo;
-	
-	g_pDebug->dbg_curinf();
-	pCallInfo->fname      = g_pDebug->fname;
-	pCallInfo->line       = g_pDebug->line;
-	pCallInfo->sublev     = ctx->sublev;
-	pCallInfo->looplev    = ctx->looplev;
-	pCallInfo->pStDat     = pStDat;
-	pCallInfo->prmstk_bak = ctx->prmstack;
-	
-	pCallInfo->next = nullptr;
-	if ( idx == 0 ) {
-		pCallInfo->prev = nullptr;
-	} else {
-		ModcmdCallInfo* const pCallInfoPrev = g_pWrapCallData->pInfCalling->back();
-		pCallInfo->prev = pCallInfoPrev;
-		pCallInfoPrev->next = pCallInfo;
-	}
-	
-	g_pWrapCallData->pInfCalling->push_back( pCallInfo );
-	
-	// ログ出力 (knowbug が行う)
-	/*
-	{
-		printf( stt_buf, "[CallBgn] %s\t@%d of \"%s\"]",
-			&ctx->mem_mds[pCallInfo->pStDat->nameidx],
-			pCallInfo->line,
-			pCallInfo->fname
-		);
-		PutLogMsg( stt_buf );
-	}
-	//*/
+	g_dbginfo->debug->dbg_curinf();
+
+	// 呼び出しリストに追加
+	size_t const idx = g_stkCallInfo.size();
+	g_stkCallInfo.push_back(std::make_unique<ModcmdCallInfo>(
+		stdat, ctx->prmstack, ctx->sublev, ctx->looplev,
+		g_dbginfo->debug->fname, g_dbginfo->debug->line, idx
+	));
+
+	auto& callinfo = *g_stkCallInfo.back();
 	
 	// DebugWindow への通知
-	g_pWrapCallData->methods.BgnCalling( idx, pCallInfo );
-	
+	Knowbug::bgnCalling(callinfo);
 	return;
 }
 
 //------------------------------------------------
 // 呼び出しの完了
 //------------------------------------------------
-int endCall( void* p, vartype_t vt )
+void endCall()
 {
-	if ( g_pWrapCallData->empty() ) return RUNMODE_RUN;
+	return endCall(nullptr, HSPVAR_FLAG_NONE);
+}
+
+void endCall(void* p, vartype_t vt)
+{
+	if (g_stkCallInfo.empty()) return;
 	
-	unsigned int const idx = g_pWrapCallData->size() - 1;
-	const ModcmdCallInfo* pCallInfo = g_pWrapCallData->pInfCalling->at( idx );
+	auto& callinfo = *g_stkCallInfo.back();
 	
-	// エラーの指摘
-	if ( ctx->looplev != pCallInfo->looplev ) {
-		PutLogMsgWarning( "呼び出し中に入った loop から、正常に脱出せず、呼び出しが終了した。" );
+	// 警告
+	if ( ctx->looplev != callinfo.looplev ) {
+		Knowbug::logmesWarning( "呼び出し中に入った loop から、正常に脱出せず、呼び出しが終了した。" );
 	}
 	
-	if ( ctx->sublev != pCallInfo->sublev ) {
-		PutLogMsgWarning( "呼び出し中に入ったサブルーチンから、正常に脱出せず、呼び出しが終了した。" );
+	if ( ctx->sublev != callinfo.sublev ) {
+		Knowbug::logmesWarning("呼び出し中に入ったサブルーチンから、正常に脱出せず、呼び出しが終了した。");
 	}
-	
-	// ログ出力
-	/*
-	{
-		sprintf_s( stt_buf, "[CallEnd] %s", &ctx->mem_mds[pCallInfo->pStDat->nameidx] );
-		PutLogMsg( stt_buf );
-	}
-	//*/
-	
-	// (あれば) 返値の更新
-	if ( p != NULL ) {
-		setLastResult( p, vt );
-		g_pWrapCallData->methods.ResultReturning( idx, pCallInfo, p, vt );
-	}
-	
+
 	// DebugWindow への通知
-	int result = g_pWrapCallData->methods.EndCalling( idx, pCallInfo );
+	Knowbug::endCalling(callinfo, p, vt);
 	
-	// 呼び出しデータの除去
-	if ( pCallInfo->prev != nullptr ) {
-		const_cast<ModcmdCallInfo*>(pCallInfo->prev)->next = nullptr;
-	}
-	g_pWrapCallData->pInfCalling->pop_back();
-	delete pCallInfo;
-	
-	return result;
-}
-
-//------------------------------------------------
-// 最後の返値を設定する
-// 
-// @ すぐに使えなくなるので注意。
-//------------------------------------------------
-void setLastResult( void* p, vartype_t vt )
-{
-	g_pWrapCallData->lastResult.p  = p;
-	g_pWrapCallData->lastResult.vt = vt;
+	g_stkCallInfo.pop_back();
 	return;
 }
 
-//##############################################################################
-//                DebugWindow との通信
-//##############################################################################
 //------------------------------------------------
-// ログメッセージの追加
-// 
-// @prm wp: --
-// @prm lp: メッセージへのポインタ
+// callinfo スタックへのアクセス
 //------------------------------------------------
-void PutLogMsg( const char* log )
+ModcmdCallInfo const* getCallInfoAt(size_t idx)
 {
-	strncpy( ctx->stmp, log, 0x400 - 1 );
-	g_pWrapCallData->methods.AddLog( ctx->stmp );
-	return;
+	return ( 0 <= idx && idx < g_stkCallInfo.size() )
+		? g_stkCallInfo.at(idx).get()
+		: nullptr;
 }
 
-void PutLogMsgWarning( const char* log )
+std::pair<stkCallInfo_t::const_iterator, stkCallInfo_t::const_iterator> getCallInfoRange()
 {
-	sprintf( ctx->stmp, "[Warning] %*s", log );
-	g_pWrapCallData->methods.AddLog( ctx->stmp );
-	return;
+	return std::make_pair(g_stkCallInfo.begin(), g_stkCallInfo.end());
 }
 
 }

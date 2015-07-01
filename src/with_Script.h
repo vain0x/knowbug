@@ -7,27 +7,27 @@
 
 #ifdef with_Script
 
-extern const char* getNodeAnnotation(const char* name);
-extern const char* getStPrmName( const STRUCTPRM* stprm );
+extern char const* getNodeAnnotation(char const* name);
+extern char const* getStPrmName( const stprm_t stprm );
 
 extern void termConnectWithScript();
-//static const char* const WindowHandleHolderName = "wh_knowbug@knowbug";
+//static char const* const WindowHandleHolderName = "wh_knowbug@knowbug";
 
 // スクリプト側から呼ばれる関数
 EXPORT void WINAPI knowbug_greet();
 
 /*
-EXPORT void WINAPI knowbug_namePrms(const char* nameStDat,
-	const char* p1, const char* p2, const char* p3, const char* p4,
-	const char* p5, const char* p6, const char* p7, const char* p8,
-	const char* p9, const char* p10, const char* p11, const char* p12,
-	const char* p13, const char* p14, const char* p15);		// HPIでやれ
+EXPORT void WINAPI knowbug_namePrms(char const* nameStDat,
+	char const* p1, char const* p2, char const* p3, char const* p4,
+	char const* p5, char const* p6, char const* p7, char const* p8,
+	char const* p9, char const* p10, char const* p11, char const* p12,
+	char const* p13, char const* p14, char const* p15);		// HPIでやれ
 //*/
 
 #else
 
-static const char* getNodeAnnotation(const char*) { return nullptr; }
-//static const char* getStPrmName( const STRUCTPRM* stprm ) { return nullptr; }
+static char const* getNodeAnnotation(char const*) { return nullptr; }
+//static char const* getStPrmName( const stprm_t stprm ) { return nullptr; }
 
 #endif
 

@@ -2,27 +2,28 @@
 
 #ifndef IG_WRAP_CALL_H
 #define IG_WRAP_CALL_H
+#ifdef with_WrapCall
 
-#include "hsp3plugin_custom.h"
+#include <vector>
+#include <memory>
 
-struct ModcmdCallInfo;
-struct STRUCTDAT;
+#include "../main.h"
+//#include "ModcmdCallInfo.h"
 
 namespace WrapCall
 {
 
-struct WrapCallData;
+struct ModcmdCallInfo;
+using stkCallInfo_t = std::vector<std::unique_ptr<ModcmdCallInfo const>>;
 
-// 変数宣言
-extern WrapCallData* g_pWrapCallData;
+extern void bgnCall(stdat_t callee);
+extern void endCall();
+extern void endCall(void* p, vartype_t vtype);
 
-// 関数宣言
-extern void init(HWND knowbug);
-extern void term();
-
-extern void bgnCall( STRUCTDAT* pStDat );
-extern int  endCall( void* p = NULL, vartype_t vt = HSPVAR_FLAG_NONE );
+extern ModcmdCallInfo const* getCallInfoAt(size_t idx);
+extern std::pair<stkCallInfo_t::const_iterator, stkCallInfo_t::const_iterator> getCallInfoRange();
 
 };
 
+#endif
 #endif

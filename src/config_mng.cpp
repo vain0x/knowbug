@@ -1,6 +1,6 @@
 
 #include "config_mng.h"
-#include "CIni.h"
+#include "module/CIni.h"
 
 std::unique_ptr<KnowbugConfig> KnowbugConfig::instance_;
 KnowbugConfig::Mng g_config;
@@ -9,7 +9,7 @@ KnowbugConfig::KnowbugConfig()
 {
 	char ownpath[MAX_PATH];
 	{
-		GetModuleFileName( GetModuleHandle(NULL), ownpath, MAX_PATH );
+		GetModuleFileName( GetModuleHandle(nullptr), ownpath, MAX_PATH );
 		
 		char drive[5];
 		char dir[MAX_PATH];
