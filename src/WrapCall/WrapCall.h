@@ -17,8 +17,8 @@ struct WrapCallData;
 extern WrapCallData* g_pWrapCallData;
 
 // 関数宣言
-extern void init(void);
-extern void term(void);
+extern void init(HWND knowbug);
+extern void term();
 
 extern void bgnCall( STRUCTDAT* pStDat );
 extern int  endCall( void* p = NULL, vartype_t vt = HSPVAR_FLAG_NONE );

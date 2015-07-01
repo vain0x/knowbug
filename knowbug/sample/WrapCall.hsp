@@ -5,6 +5,8 @@
 // WrapCall によって、ユーザ定義関数の呼び出しの変遷を追うことができる。
 // @ デバッグウィンドウの「次行」ボタンを押しながら、+dynamic ノードを見る。
 
+	assert		// ←いきなり止まるので
+	
 #module Point x, y
 
 #modinit int x_, int y_
@@ -21,8 +23,6 @@
 	return strf("(%d, %d)", x, y)
 	
 #global
-	
-	assert		// ←いきなり止まるので
 	
 	newmod x, Point, 20, 30
 	assert

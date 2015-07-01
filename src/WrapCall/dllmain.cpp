@@ -35,7 +35,7 @@ static int cmdfunc( int cmd )
 		case 0x000:
 		{
 		//	modcmd_init( &g_pTypeinfo[TYPE_MODCMD] );
-			WrapCall::init();
+			WrapCall::init( reinterpret_cast<HWND>(code_geti()) );
 			break;
 		}
 		
@@ -135,6 +135,21 @@ EXPORT void WINAPI hsp3hpi_init( HSP3TYPEINFO* info )
 	//	WrapCall::init();
 	}
 	
+	return;
+}
+
+//------------------------------------------------
+// コマンド処理用関数
+//------------------------------------------------
+EXPORT void WINAPI WrapCallInitialize(HWND knowbug)
+{
+	WrapCall::init(knowbug);
+	return;
+}
+
+EXPORT void WINAPI WrapCallTerminate()
+{
+	WrapCall::term();
 	return;
 }
 

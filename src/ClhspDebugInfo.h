@@ -16,7 +16,7 @@ struct DebugInfo
 };
 
 // その他
-static const char *getModeString( varmode_t mode )
+static inline const char *getModeString( varmode_t mode )
 {
 	return	( mode <= HSPVAR_MODE_NONE   ) ? "無効" :
 			( mode == HSPVAR_MODE_MALLOC ) ? "実体" :
