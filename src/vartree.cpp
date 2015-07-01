@@ -19,8 +19,8 @@ extern CVarTree* getSttVarTree();	// at main.cpp
 namespace VarTree
 {
 
-static vartype_t getVartype( const char *name );
-static inline PVal* seekSttVar( const char *name )
+static vartype_t getVartype( const char* name );
+static inline PVal* seekSttVar( const char* name )
 {
 	const int iVar = g_dbginfo->exinfo->HspFunc_seekvar( name );
 	return ( iVar >= 0 ) ? &g_dbginfo->ctx->mem_var[iVar] : nullptr;
@@ -138,7 +138,7 @@ void addNodeSysvar( HWND hwndTree, HTREEITEM hParent )
 	for ( int i = 0; i < SysvarCount; ++ i ) {
 		CString name = strf( "~%s", SysvarData[i].name );
 		
-		tvis.item.pszText = const_cast<char *>( name.c_str() );
+		tvis.item.pszText = const_cast<char*>( name.c_str() );
 		
 		TreeView_InsertItem( hwndTree, &tvis );
 	}
@@ -179,7 +179,7 @@ LRESULT customDraw( HWND hwndTree, LPNMTVCUSTOMDRAW pnmcd )
 		
 		HTREEITEM hItem = reinterpret_cast<HTREEITEM>( pnmcd->nmcd.dwItemSpec );//( TreeView_GetSelection(hwndTree) );
 		string    sItem = TreeView_GetItemString( hwndTree, hItem );
-		const char *name ( sItem.c_str() );
+		const char* name ( sItem.c_str() );
 		
 		if ( isModuleNode(name) ) {
 		//	pnmcd->clrText   = g_config->clrTypeText[HSPVAR_FLAG_NONE];
@@ -208,7 +208,7 @@ LRESULT customDraw( HWND hwndTree, LPNMTVCUSTOMDRAW pnmcd )
 //------------------------------------------------
 // 変数の型を取得する
 //------------------------------------------------
-vartype_t getVartype( const char *name )
+vartype_t getVartype( const char* name )
 {
 	// モジュールノード
 	if ( isModuleNode(name) ) {
@@ -230,7 +230,7 @@ vartype_t getVartype( const char *name )
 		
 	// 静的変数
 	} else {
-		PVal *pval( seekSttVar( name ) );
+		PVal* pval( seekSttVar( name ) );
 		
 		if ( pval ) return pval->flag;
 	}
@@ -243,7 +243,7 @@ vartype_t getVartype( const char *name )
 vartype_t getVartype( HWND hwndTree, HTREEITEM hItem )
 {
 	CString    sItem( TreeView_GetItemString( hwndTree, hItem ) );
-	const char *name( sItem.c_str() );
+	const char* name( sItem.c_str() );
 	
 	return getVartype( name );
 }
@@ -269,7 +269,7 @@ CString getItemVarText( HWND hwndTree, HTREEITEM hItem )
 			
 			for ( uint i = 0; i < lenCall; ++ i ) {
 				auto const pCallInfo = g_stkCallInfo[i];
-				varinf->addCall( pCallInfo->pStDat, ModcmdCallInfo_getPrmstk(*pCallInfo) );
+				varinf->addCall( pCallInfo->stdat, ModcmdCallInfo_getPrmstk(*pCallInfo) );
 				varinf->cat_crlf();
 			}
 			
@@ -323,7 +323,7 @@ CString getItemVarText( HWND hwndTree, HTREEITEM hItem )
 	} else {
 	/*
 		// HSP側に問い合わせ
-		char *p = g_debug->get_varinf( name, GetTabVarsOption() );
+		char* p = g_debug->get_varinf( name, GetTabVarsOption() );
 		
 		SetWindowText( g_dialog.hVarEdit, p );
 		
@@ -344,7 +344,7 @@ CString getItemVarText( HWND hwndTree, HTREEITEM hItem )
 			);
 			
 			if ( pCallInfo != NULL ) {
-				varinf->addCall( pCallInfo->pStDat, ModcmdCallInfo_getPrmstk(*pCallInfo), pCallInfo->sublev, &name[1], pCallInfo->fname, pCallInfo->line );
+				varinf->addCall( pCallInfo->stdat, ModcmdCallInfo_getPrmstk(*pCallInfo), pCallInfo->sublev, &name[1], pCallInfo->fname, pCallInfo->line );
 			}
 			
 		// 返値データ
@@ -352,11 +352,11 @@ CString getItemVarText( HWND hwndTree, HTREEITEM hItem )
 			auto const pResult = reinterpret_cast<const ResultNodeData*>(
 				TreeView_GetItemLParam( hwndTree, hItem )
 			);
-			varinf->addResult2( pResult->valueString, STRUCTDAT_getName(pResult->pStDat) );
+			varinf->addResult2( pResult->valueString, hpimod::STRUCTDAT_getName(pResult->stdat) );
 	#endif
 		// 静的変数
 		} else {
-			PVal *pval = seekSttVar( name );
+			PVal* pval = seekSttVar( name );
 			
 			if ( pval == NULL ) {
 				return strf("[Error] \"%s\"は静的変数の名称ではない。\n参照：静的変数が存在しないときにこのエラーが生じることがある。", name);
@@ -401,7 +401,7 @@ static void CallTree_RemoveDependResult( HWND hwndTree, HTREEITEM hItem )
 void AddCallNode( HWND hwndTree, const ModcmdCallInfo& callinfo )
 {
 	char name[128] = "'";
-	strcpy_s( &name[1], sizeof(name) - 1, STRUCTDAT_getName(callinfo.pStDat) );
+	strcpy_s( &name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(callinfo.stdat) );
 	
 	TVINSERTSTRUCT tvis = { 0 };
 	tvis.hParent      = g_hNodeDynamic;
@@ -474,7 +474,7 @@ void AddResultNode( HWND hwndTree, const ResultNodeData* pResult )
 	}
 	
 	char name[128] = "\"";
-	strcpy_s( &name[1], sizeof(name) - 1, STRUCTDAT_getName(pResult->pStDat) );
+	strcpy_s( &name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(pResult->stdat) );
 	
 	TVINSERTSTRUCT tvis = { 0 };
 		tvis.hParent      = hElem;	// 依存元を親にする

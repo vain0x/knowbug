@@ -12,9 +12,9 @@ PVal* getAllInstanceVar()
 {
 	if ( !stt_pvalAllInstance ) {
 		int const iVar = exinfo->HspFunc_seekvar(VarName_AllInstance);
-		stt_pvalAllInstance = (iVar < 0)
-			? nullptr
-			: &ctx->mem_var[iVar];
+		stt_pvalAllInstance = (iVar >= 0)
+			? &ctx->mem_var[iVar]
+			: nullptr;
 	}
 	return stt_pvalAllInstance;
 }

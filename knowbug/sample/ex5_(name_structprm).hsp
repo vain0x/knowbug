@@ -1,5 +1,7 @@
 // knowbug sample
+// HSP3.4b4 ‚©‚çˆø”–¼‚ª‹L˜^‚³‚ê‚é‚æ‚¤‚É‚È‚Á‚½‚Ì‚Å”p~
 
+/*
 // ƒƒ“ƒo•Ï”‚â‰¼ˆø”‚Ì¯•Êq‚ğ knowbug ‚É—^‚¦‚é
 
 #include "../knowbug.as"
@@ -27,3 +29,4 @@
 	assert
 	Point_moveTo pt, 30, 40
 	stop
+//*/

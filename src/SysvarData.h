@@ -7,7 +7,7 @@
 
 struct StSysvarData
 {
-	const char *name;
+	const char* name;
 	int        type;		// -1 => 特殊
 };
 
@@ -69,6 +69,6 @@ enum SysvarId
 //**********************************************************
 //        関数宣言
 //**********************************************************
-extern int getSysvarIndex( const char *name );
+extern int getSysvarIndex( const char* name );
 
 #endif

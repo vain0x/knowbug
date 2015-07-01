@@ -55,8 +55,10 @@ enum CALCCODE
 //##############################################################################
 #ifdef clhsp
 # define PValLength(pHvp, pval, idx) (pHvp->Length((pval), (idx)))
+# define PValLengthList(pHvp, pval) { PValLength(pHvp, pval, 1), PValLength(pHvp, pval, 2), PValLength(pHvp, pval, 3) }
 #else
 # define PValLength(pHvp, pval, idx) ((pval)->len[(idx)])
+# define PValLengthList(pHvp, pval) { PValLength(pHvp, pval, 1), PValLength(pHvp, pval, 2), PValLength(pHvp, pval, 3), PValLength(pHvp, pval, 4) }
 #endif
 
 #ifdef clhsp

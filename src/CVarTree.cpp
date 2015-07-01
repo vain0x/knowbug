@@ -2,7 +2,7 @@
 
 #include "CVarTree.h"
 
-std::string CVarTree::AreaName_Global( "*" );
+std::string CVarTree::AreaName_Global("*");
 
 //##############################################################################
 //                定義部 : CVarTree
@@ -11,7 +11,7 @@ std::string CVarTree::AreaName_Global( "*" );
 // 構築
 //------------------------------------------------
 CVarTree::CVarTree( const std::string& name, NodeType type )
-	: mpChildren( NULL )
+	: mpChildren( nullptr )
 	, mName     ( name )
 	, mType     ( type )
 {
@@ -27,7 +27,7 @@ CVarTree::CVarTree( const std::string& name, NodeType type )
 CVarTree::CVarTree( const CVarTree& src )
 	: mType ( src.mType )
 	, mName ( src.mName )
-	, mpChildren( NULL )
+	, mpChildren( nullptr )
 {
 	if ( mType == NodeType_Module ) {
 		mpChildren = new Children_t;
@@ -50,7 +50,7 @@ CVarTree::CVarTree( const CVarTree& src )
 CVarTree::~CVarTree()
 {
 	if ( mpChildren ) {
-		delete mpChildren; mpChildren = NULL;
+		delete mpChildren; mpChildren = nullptr;
 	}
 	return;
 }
@@ -58,14 +58,14 @@ CVarTree::~CVarTree()
 //------------------------------------------------
 // 子ノードを追加する (任意位置)
 //------------------------------------------------
-void CVarTree::push_child( const char *name, CVarTree::NodeType type )
+void CVarTree::push_child( const char* name, CVarTree::NodeType type )
 {
 	if ( mType != NodeType_Module ) return;
 	
-	const char *pModname = strchr( name, '@' );
+	const char* pModname = strchr( name, '@' );
 	
 	// スコープ解決がある => 子ノードのモジュールに属す
-	if ( pModname != NULL ) {
+	if ( pModname ) {
 		
 		// 属すモジュールを得る
 		Children_t::iterator iter = getChildModule( pModname );
@@ -97,7 +97,7 @@ CVarTree::ChildrenIter_t CVarTree::getChildModule( const char* pModname )
 	const char* pModnameNext( strrchr( pModname, '@' ) );
 	
 	// '@' がまだある場合、'@' に続く文字列だけにする
-	if ( pModnameNext != NULL ) {
+	if ( pModnameNext ) {
 		modname = (pModnameNext + 1);	// '@' は飛ばす
 	}
 	
@@ -116,7 +116,7 @@ CVarTree::ChildrenIter_t CVarTree::getChildModule( const char* pModname )
 	}
 	
 	// 続きがあれば、さらに探索を続ける
-	if ( pModnameNext != NULL ) {
+	if ( pModnameNext ) {
 		string s( pModname - 1, pModnameNext );		// 先頭の '@' が必要
 		iter = iter->second.getChildModule( s.c_str() );
 	}
@@ -129,7 +129,7 @@ CVarTree::ChildrenIter_t CVarTree::getChildModule( const char* pModname )
 // 
 // @prm name : スコープ解決 '@' は、絶対にない。
 //------------------------------------------------
-void CVarTree::add( const char *name, CVarTree::NodeType type )
+void CVarTree::add( const char* name, CVarTree::NodeType type )
 {
 	if ( mType != NodeType_Module ) return;
 	
@@ -145,12 +145,12 @@ void CVarTree::add( const char *name, CVarTree::NodeType type )
 //------------------------------------------------
 CVarTree::iterator CVarTree::begin(void) const
 {
-	return iterator( const_cast<CVarTree *>( this ) );
+	return iterator( const_cast<CVarTree*>( this ) );
 }
 
 CVarTree::iterator CVarTree::end(void) const
 {
-	iterator iter( const_cast<CVarTree *>( this ) );
+	iterator iter( const_cast<CVarTree*>( this ) );
 	
 	iter.moveToEnd();
 	return iter;

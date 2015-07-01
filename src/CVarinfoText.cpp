@@ -1,5 +1,7 @@
 // 変数データテキスト生成クラス
 
+#include <algorithm>
+
 #include "CVarinfoText.h"
 #include "CVarinfoTree.h"
 #include "module/mod_cast.h"
@@ -10,6 +12,8 @@
 
 #include "SysvarData.h"
 
+#include "main.h"
+
 //##############################################################################
 //                定義部 : CVarinfoText
 //##############################################################################
@@ -19,8 +23,8 @@
 CVarinfoText::CVarinfoText( DebugInfo& dbginfo, int lenLimit )
 	: mdbginfo ( dbginfo )
 	, mpBuf    ( new CString )
-	, mpVar    ( NULL )
-	, mpName   ( NULL )
+	, mpVar    ( nullptr )
+	, mpName   ( nullptr )
 	, mlenLimit( lenLimit )
 {
 	mpBuf->reserve( std::min(0x400, lenLimit) );		// 0x400 はテキトー
@@ -32,14 +36,14 @@ CVarinfoText::CVarinfoText( DebugInfo& dbginfo, int lenLimit )
 //------------------------------------------------
 CVarinfoText::~CVarinfoText()
 {
-	delete mpBuf; mpBuf = NULL;
+	delete mpBuf; mpBuf = nullptr;
 	return;
 }
 
 //------------------------------------------------
 // 変数データから生成
 //------------------------------------------------
-void CVarinfoText::addVar( PVal *pval, const char *name )
+void CVarinfoText::addVar( PVal* pval, const char* name )
 {
 	mpVar  = pval;
 	mpName = name;
@@ -54,17 +58,15 @@ void CVarinfoText::make( void )
 {
 	PVal*& pval = mpVar;
 	
-	HspVarProc* pHvp = mdbginfo.exinfo->HspFunc_getproc( pval->flag );
+	HspVarProc* const pHvp = mdbginfo.exinfo->HspFunc_getproc( pval->flag );
 	int bufsize; 
 	void* pMemBlock = pHvp->GetBlockSize( pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize) );
-	
+	uint const lengths[] = PValLengthList(pHvp, pval);
+
 	// 変数に関する情報
 	catf( "変数名：%s", mpName );
-	catf( "変数型：%s " BracketIdxL "%d, %d, %d" BracketIdxR,
-		pHvp->vartype_name,
-		PValLength( pHvp, pval, 1 ),
-		PValLength( pHvp, pval, 2 ),
-		PValLength( pHvp, pval, 3 )
+	catf( "変数型：%s %s",
+		pHvp->vartype_name, makeArrayIndexString(hpimod::PVal_maxDim(pval), lengths).c_str()
 	);
 	catf( "モード：%s", getModeString( pval->mode ) );
 	catf( "アドレス：0x%08X, 0x%08X", address_cast(pval->pt), address_cast(pval->master) );
@@ -74,7 +76,7 @@ void CVarinfoText::make( void )
 	
 	// 変数の内容に関する情報
 	{
-		CVarinfoTree *varinf( new CVarinfoTree( mdbginfo, mlenLimit ) );
+		CVarinfoTree* varinf( new CVarinfoTree( mdbginfo, mlenLimit ) );
 		
 		varinf->addVar( pval, mpName );
 		
@@ -95,14 +97,14 @@ void CVarinfoText::make( void )
 //------------------------------------------------
 // 変数をメモリダンプする
 //------------------------------------------------
-void CVarinfoText::dumpVar( PVal *pval )
+void CVarinfoText::dumpVar( PVal* pval )
 {
 	size_t size;
 	
 	HspVarCoreReset( pval );
-	HspVarProc *pHvp ( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
-	void *ptr ( pHvp->GetPtr( pval ) );
-	void *mem (  );
+	HspVarProc* pHvp ( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
+	void* ptr ( pHvp->GetPtr( pval ) );
+	void* mem (  );
 	
 	dump( mem, size );
 	
@@ -113,7 +115,7 @@ void CVarinfoText::dumpVar( PVal *pval )
 //------------------------------------------------
 // メモリダンプを追加する
 //------------------------------------------------
-void CVarinfoText::dump( void *mem, size_t bufsize )
+void CVarinfoText::dump( void* mem, size_t bufsize )
 {
 	static const size_t stc_maxsize( 0x10000 );
 	size_t size( bufsize );
@@ -136,7 +138,7 @@ void CVarinfoText::dump( void *mem, size_t bufsize )
 		for ( uint i = 0; (i < 0x10 && idx < size); ++ i, ++ idx ) {
 			iWrote += sprintf_s(
 				&tline[iWrote], 1024 - iWrote,
-				" %02X", static_cast<unsigned char>( ptr_cast<char *>(mem)[idx] )
+				" %02X", static_cast<unsigned char>( ptr_cast<char*>(mem)[idx] )
 			);
 		}
 		
@@ -149,7 +151,7 @@ void CVarinfoText::dump( void *mem, size_t bufsize )
 //------------------------------------------------
 // システム変数データから生成
 //------------------------------------------------
-void CVarinfoText::addSysvar( const char *name )
+void CVarinfoText::addSysvar( const char* name )
 {
 	int idx ( -1 );
 	for ( int i = 0; i < SysvarCount; ++ i ) {
@@ -160,17 +162,17 @@ void CVarinfoText::addSysvar( const char *name )
 	}
 	if ( idx < 0 ) return;
 	
-	mpVar  = NULL;
+	mpVar  = nullptr;
 	mpName = name;
 	
 	vartype_t   type ( SysvarData[idx].type );
-	HspVarProc *pHvp ( mdbginfo.exinfo->HspFunc_getproc( type ) );
+	HspVarProc* pHvp ( mdbginfo.exinfo->HspFunc_getproc( type ) );
 	
 	catf( "変数名：%s\t(システム変数)", mpName );
 	catf( "変数型：%s", pHvp->vartype_name );
 	cat_crlf();
 	
-	void  *pDumped   ( NULL );
+	void*  pDumped   ( nullptr );
 	size_t sizeToDump( 0 );
 
 	{
@@ -185,7 +187,7 @@ void CVarinfoText::addSysvar( const char *name )
 		delete varinf;
 	}
 	
-	if ( pDumped != NULL ) {
+	if ( pDumped ) {
 		dump( pDumped, sizeToDump );
 	}
 	
@@ -196,9 +198,9 @@ void CVarinfoText::addSysvar( const char *name )
 //------------------------------------------------
 // 引数タイプの文字列を得る
 //------------------------------------------------
-static const char *getMptypeString( STRUCTPRM *pStPrm )
+static const char* getMptypeString( STRUCTPRM* stprm )
 {
-	switch ( pStPrm->mptype ) {
+	switch ( stprm->mptype ) {
 	//	case MPTYPE_STRUCTTAG:   return "structtag";
 		case MPTYPE_LABEL:       return "label";
 		case MPTYPE_DNUM:        return "double";
@@ -217,12 +219,12 @@ static const char *getMptypeString( STRUCTPRM *pStPrm )
 		case MPTYPE_FLEX:        return "...";
 		default:
 			// モジュールクラス
-			if ( pStPrm->mptype >= MPTYPE_MODCLS_BIAS ) {
-				int idxFinfo( pStPrm->mptype - MPTYPE_MODCLS_BIAS );
+			if ( stprm->mptype >= MPTYPE_MODCLS_BIAS ) {
+				int idxFinfo( stprm->mptype - MPTYPE_MODCLS_BIAS );
 				return &mdbginfo.ctx->mem_mds[mdbginfo.ctx->mem_finfo[idxFinfo].nameidx];
 				
-				ModInst *mv( code_get_modinst() );
-				*ptr_cast<ModInst **>(out) = mv;
+				ModInst* mv( code_get_modinst() );
+				*ptr_cast<ModInst**>(out) = mv;
 				
 				if ( get_stprm(mv)->subid != idxFinfo ) {
 					throw runerr HSPERR_TYPE_MISMATCH;
@@ -237,9 +239,9 @@ static const char *getMptypeString( STRUCTPRM *pStPrm )
 //------------------------------------------------
 // 呼び出しデータから生成
 // 
-// @prm prmstk: NULL => 引数未確定
+// @prm prmstk: nullptr => 引数未確定
 //------------------------------------------------
-void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const char *name, const char *filename, int line )
+void CVarinfoText::addCall( STRUCTDAT* stdat, void* prmstk, int sublev, const char* name, const char* filename, int line )
 {
 	if ( filename == nullptr ) {
 		catf( "関数名：%s", name );
@@ -250,14 +252,14 @@ void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const c
 	// シグネチャ
 	{
 		CString sPrm = "仮引数：(";
-		STRUCTPRM *pStPrm = &mdbginfo.ctx->mem_minfo[pStDat->prmindex];
+		STRUCTPRM* stprm = &mdbginfo.ctx->mem_minfo[stdat->prmindex];
 
-		if ( pStDat->prmmax == 0 ) {
+		if ( stdat->prmmax == 0 ) {
 			sPrm += "void";
 		} else {
-			for ( int i = 0; i < pStDat->prmmax; ++ i ) {
+			for ( int i = 0; i < stdat->prmmax; ++ i ) {
 				if ( i !=0 ) sPrm += ", ";
-				sPrm += getMptypeString( pStPrm + i );
+				sPrm += getMptypeString( stprm + i );
 			}
 		}
 		
@@ -267,14 +269,14 @@ void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const c
 	
 	cat_crlf();
 	
-	if ( prmstk == NULL ) {
+	if ( !prmstk ) {
 		cat("[展開中]");
 	} else {
 		// 変数の内容に関する情報
 		{
-			CVarinfoTree *varinf( new CVarinfoTree( mdbginfo, mlenLimit ) );
+			CVarinfoTree* varinf( new CVarinfoTree( mdbginfo, mlenLimit ) );
 			
-			varinf->addCall( pStDat, prmstk, name );
+			varinf->addCall( stdat, prmstk, name );
 			
 			const CString& sTree( varinf->getString() );
 			size_t len( sTree.size() );		// mlenLimit は越えてない
@@ -286,7 +288,7 @@ void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const c
 		}
 		
 		// メモリダンプ
-		dump( prmstk, pStDat->size );
+		dump( prmstk, stdat->size );
 	}
 
 	return;
@@ -295,7 +297,7 @@ void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const c
 //------------------------------------------------
 // 返値データから生成
 //------------------------------------------------
-void CVarinfoText::addResult( STRUCTDAT *pStDat, void *ptr, int flag, int sublev, const char *name )
+void CVarinfoText::addResult( STRUCTDAT* stdat, void* ptr, int flag, int sublev, const char* name )
 {
 	HspVarProc* pHvp = mdbginfo.exinfo->HspFunc_getproc( flag );
 	int bufsize = pHvp->GetSize( ptr_cast<PDAT*>(ptr) );
@@ -305,7 +307,7 @@ void CVarinfoText::addResult( STRUCTDAT *pStDat, void *ptr, int flag, int sublev
 	
 	// 変数の内容に関する情報
 	{
-		CVarinfoTree *varinf( new CVarinfoTree( mdbginfo, mlenLimit ) );
+		CVarinfoTree* varinf( new CVarinfoTree( mdbginfo, mlenLimit ) );
 		
 		varinf->addResult( ptr, flag, name );
 		
@@ -323,7 +325,7 @@ void CVarinfoText::addResult( STRUCTDAT *pStDat, void *ptr, int flag, int sublev
 	return;
 }
 
-void CVarinfoText::addResult2( const CString& text, const char *name )
+void CVarinfoText::addResult2( const CString& text, const char* name )
 {
 	cat(text.c_str());
 	return;
@@ -349,7 +351,7 @@ void CVarinfoText::cat_crlf( void )
 //------------------------------------------------
 // 文字列を連結する
 //------------------------------------------------
-void CVarinfoText::cat( const char *string )
+void CVarinfoText::cat( const char* string )
 {
 	if ( mlenLimit <= 0 ) return;
 	
@@ -371,7 +373,7 @@ void CVarinfoText::cat( const char *string )
 //------------------------------------------------
 // 書式付き文字列を連結する
 //------------------------------------------------
-void CVarinfoText::catf( const char *format, ... )
+void CVarinfoText::catf( const char* format, ... )
 {
 	va_list   arglist;
 	va_start( arglist, format );

@@ -237,7 +237,7 @@ void HspVarCoreArray( PVal *pval, int offset );
 // clhspのみ
 #ifndef clhsp
 
-#define ArrayDimMax 4	// hsp では 4 に固定
+static const size_t ArrayDimMax = 4;	// hsp では 4 に固定
 
 typedef unsigned short* label_t;
 typedef unsigned short* csptr_t;

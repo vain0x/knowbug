@@ -1,8 +1,10 @@
 // 変数データのツリー形式文字列
 
+#include <algorithm>
+#include "module/mod_cast.h"
+
 #include "CVarinfoTree.h"
 #include "SysvarData.h"
-#include "module/mod_cast.h"
 
 #ifdef clhsp
 # include "hsp3/mod_vector.h"
@@ -20,7 +22,7 @@
 #include "with_Script.h"
 #include "with_ModPtr.h"
 
-static const char *getMPTypeString( int mptype );
+static const char* getMPTypeString( int mptype );
 
 //##############################################################################
 //                定義部 : CVarinfoTree
@@ -43,7 +45,7 @@ CVarinfoTree::CVarinfoTree( DebugInfo& dbginfo, int lenLimit )
 //------------------------------------------------
 CVarinfoTree::~CVarinfoTree()
 {
-	delete mpBuf; mpBuf = NULL;
+	delete mpBuf; mpBuf = nullptr;
 	mlvNest = 0;
 	return;
 }
@@ -54,7 +56,7 @@ CVarinfoTree::~CVarinfoTree()
 //------------------------------------------------
 // [add] 変数
 //------------------------------------------------
-void CVarinfoTree::addVar( PVal *pval, const char *name )
+void CVarinfoTree::addVar( PVal* pval, const char* name )
 {
 	BaseData base ( name, getIndent() );
 	
@@ -66,7 +68,7 @@ void CVarinfoTree::addVar( PVal *pval, const char *name )
 //------------------------------------------------
 // [add] 単体変数
 //------------------------------------------------
-void CVarinfoTree::addVarScalar( PVal *pval, const char *name )
+void CVarinfoTree::addVarScalar( PVal* pval, const char* name )
 {
 	BaseData base ( name, getIndent() );
 	
@@ -79,7 +81,7 @@ void CVarinfoTree::addVarScalar( PVal *pval, const char *name )
 //------------------------------------------------
 // [add] modinst
 //------------------------------------------------
-void CVarinfoTree::addModInst( ModInst *mv, const char *name )
+void CVarinfoTree::addModInst( ModInst* mv, const char* name )
 {
 	BaseData base ( name, getIndent() );
 	addItem_modinst( base, mv );
@@ -91,7 +93,7 @@ void CVarinfoTree::addModInst( ModInst *mv, const char *name )
 //------------------------------------------------
 // [add] flexValue
 //------------------------------------------------
-void CVarinfoTree::addFlexValue( FlexValue *fv, const char *name )
+void CVarinfoTree::addFlexValue( FlexValue* fv, const char* name )
 {
 	BaseData base ( name, getIndent() );
 	addItem_flexValue( base, fv );
@@ -116,13 +118,13 @@ void CVarinfoTree::addSysvar( int idx, const char* name, void** ppDumped, size_t
 	//	case SysvarId_MouseY:
 	//	case SysvarId_MouseW:
 		{
-			int *p;
+			int* p;
 			switch ( idx ) {
 				case SysvarId_Stat:    p = &mdbginfo.ctx->stat;    break;
 				case SysvarId_StrSize: p = &mdbginfo.ctx->strsize; break;
 				case SysvarId_Looplev: p = &mdbginfo.ctx->looplev; break;
 				case SysvarId_Sublev:  p = &mdbginfo.ctx->sublev;  break;
-				case SysvarId_Err:     p = ptr_cast<int *>( &mdbginfo.ctx->err ); break;
+				case SysvarId_Err:     p = ptr_cast<int*>( &mdbginfo.ctx->err ); break;
 			}
 			addItem_value( base, HSPVAR_FLAG_INT, p );
 			break;	// no dump
@@ -130,7 +132,7 @@ void CVarinfoTree::addSysvar( int idx, const char* name, void** ppDumped, size_t
 		// refstr
 		case SysvarId_Refstr:
 		{
-			char *& refstr = mdbginfo.ctx->refstr;
+			char*& refstr = mdbginfo.ctx->refstr;
 			addItem_value( base, HSPVAR_FLAG_STR, refstr );
 			*ppDumped    = refstr;
 			*pSizeToDump = HSPCTX_REFSTR_MAX;
@@ -158,7 +160,7 @@ void CVarinfoTree::addSysvar( int idx, const char* name, void** ppDumped, size_t
 #ifdef clhsp
 					int& cnt = mdbginfo.ctx->mem_loop[lvLoop].cnt;
 #else
-					int& cnt = ptr_cast<LOOPDAT *>( &mdbginfo.ctx->mem_loop )[lvLoop].cnt;
+					int& cnt = ptr_cast<LOOPDAT*>( &mdbginfo.ctx->mem_loop )[lvLoop].cnt;
 #endif
 					catf( "\t#%d = %d", lvLoop, cnt );
 				}
@@ -184,7 +186,7 @@ void CVarinfoTree::addSysvar( int idx, const char* name, void** ppDumped, size_t
 		{
 			PVal* pval = mdbginfo.ctx->note_pval;
 			APTR  aptr = mdbginfo.ctx->note_aptr;
-			if ( pval != NULL ) {
+			if ( pval ) {
 				HspVarProc* pHvp = mdbginfo.exinfo->HspFunc_getproc(HSPVAR_FLAG_STR);
 				pval->offset = aptr;
 				char* src  = ptr_cast<char*>( pHvp->GetPtr(pval) );
@@ -199,18 +201,18 @@ void CVarinfoTree::addSysvar( int idx, const char* name, void** ppDumped, size_t
 		// thismod
 		case SysvarId_Thismod:
 		{
-			if ( mdbginfo.ctx->prmstack != NULL ) {
-				MPThismod *thismod = ptr_cast<MPThismod *>( mdbginfo.ctx->prmstack );
+			if ( mdbginfo.ctx->prmstack ) {
+				MPThismod* thismod = ptr_cast<MPThismod*>( mdbginfo.ctx->prmstack );
 				
 				if ( thismod->magic == MODVAR_MAGICCODE ) {
 #ifdef clhsp
 					addItem_modinst( base, thismod->mv );
 #else
-					PVal *pval( thismod->pval );
+					PVal* pval( thismod->pval );
 					pval->offset = thismod->aptr;
 					
-					HspVarProc *pHvp( mdbginfo.exinfo->HspFunc_getproc(pval->flag) );
-					FlexValue* fv = ptr_cast<FlexValue *>(pHvp->GetPtr(pval));
+					HspVarProc* pHvp( mdbginfo.exinfo->HspFunc_getproc(pval->flag) );
+					FlexValue* fv = ptr_cast<FlexValue*>(pHvp->GetPtr(pval));
 					addItem_flexValue( base, fv );
 					*ppDumped    = fv->ptr;
 					*pSizeToDump = fv->size;
@@ -244,22 +246,22 @@ void CVarinfoTree::addSysvar( int idx, const char* name, void** ppDumped, size_t
 //------------------------------------------------
 // [add] 呼び出し
 //------------------------------------------------
-void CVarinfoTree::addCall( STRUCTDAT *pStDat, void *prmstk, const char *name )
+void CVarinfoTree::addCall( STRUCTDAT* stdat, void* prmstk, const char* name )
 {
 	BaseData base ( name, getIndent() );
 	
 	catf(
 		"%s%s%s:", base.getIndent(), name,
-		(pStDat->index == STRUCTDAT_INDEX_CFUNC ? "()" : "")		// 関数なら () をつける
+		(stdat->index == STRUCTDAT_INDEX_CFUNC ? "()" : "")		// 関数なら () をつける
 	);
 	
 	// 実引数
-	if ( prmstk == NULL ) {
+	if ( !prmstk ) {
 		mlvNest ++;
 		catf("%s([展開中])", getIndent());
 		mlvNest --;
 	} else {
-		addItem_prmstack( base, pStDat, &mdbginfo.ctx->mem_minfo[pStDat->prmindex], prmstk );
+		addItem_prmstack( base, stdat, &mdbginfo.ctx->mem_minfo[stdat->prmindex], prmstk );
 	}
 	return;
 }
@@ -267,7 +269,7 @@ void CVarinfoTree::addCall( STRUCTDAT *pStDat, void *prmstk, const char *name )
 //------------------------------------------------
 // [add] 返値
 //------------------------------------------------
-void CVarinfoTree::addResult( void *ptr, vartype_t type, const char *name )
+void CVarinfoTree::addResult( void* ptr, vartype_t type, const char* name )
 {
 	BaseData base( name, getIndent() );
 	
@@ -281,15 +283,15 @@ void CVarinfoTree::addResult( void *ptr, vartype_t type, const char *name )
 //------------------------------------------------
 // [add][item] 値
 //------------------------------------------------
-void CVarinfoTree::addItem_value( const BaseData& base, vartype_t type, void *ptr )
+void CVarinfoTree::addItem_value( const BaseData& base, vartype_t type, void* ptr )
 {
 	const char* const vtname = mdbginfo.exinfo->HspFunc_getproc(type)->vartype_name;
 	
 	if ( type == HSPVAR_FLAG_STRUCT ) {
 #ifdef clhsp
-		addItem_modinst( base, *ptr_cast<ModInst **>(ptr) );
+		addItem_modinst( base, *ptr_cast<ModInst**>(ptr) );
 #else
-		addItem_flexValue( base, ptr_cast<FlexValue *>(ptr) );
+		addItem_flexValue( base, ptr_cast<FlexValue*>(ptr) );
 #endif
 #ifdef with_Assoc
 	// "assoc_k" 型
@@ -316,11 +318,11 @@ void CVarinfoTree::addItem_value( const BaseData& base, vartype_t type, void *pt
 		addItem_flexValue( base2, ModPtr::getValue(*ptr_cast<int*>(ptr)) );
 #endif
 //	} else if ( type == HSPVAR_FLAG_STR ) {
-//		addItem_string( base, ptr_cast<char *>(ptr) );
+//		addItem_string( base, ptr_cast<char*>(ptr) );
 		
 	} else {
 #ifdef clhsp
-		char *p = mdbginfo.debug->dbg_toString( type, ptr );
+		char* p = mdbginfo.debug->dbg_toString( type, ptr );
 		
 		catf( "%s%s = %s", base.getIndent(), base.getName(), p );
 		
@@ -335,9 +337,9 @@ void CVarinfoTree::addItem_value( const BaseData& base, vartype_t type, void *pt
 //------------------------------------------------
 // [add][item] 変数
 //------------------------------------------------
-void CVarinfoTree::addItem_var( const BaseData& base, PVal *pval )
+void CVarinfoTree::addItem_var( const BaseData& base, PVal* pval )
 {
-	HspVarProc *pHvp( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
+	HspVarProc* pHvp( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
 	int       length( PValLength( pHvp, pval, 1 ) );
 	
 	// 単体
@@ -367,7 +369,7 @@ void CVarinfoTree::addItem_var( const BaseData& base, PVal *pval )
 		} else
 #ifdef clhsp
 		if ( pval->flag == HSPVAR_FLAG_VECTOR ) {
-			addItem_vector( base, ptr_cast<Vector *>( pval->pt ), length );
+			addItem_vector( base, ptr_cast<Vector*>( pval->pt ), length );
 		} else
 #endif
 		{
@@ -385,15 +387,15 @@ void CVarinfoTree::addItem_var( const BaseData& base, PVal *pval )
 // 
 // @ 要素の値を出力する。
 //------------------------------------------------
-void CVarinfoTree::addItem_varScalar( const CVarinfoTree::BaseData& base, PVal *pval )
+void CVarinfoTree::addItem_varScalar( const CVarinfoTree::BaseData& base, PVal* pval )
 {
-	HspVarProc *pHvp( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
+	HspVarProc* pHvp( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
 	
 	addItem_value( base, pval->flag, pHvp->GetPtr(pval) );
 	return;
 }
 
-void CVarinfoTree::addItem_varScalar( const BaseData& base, PVal *pval, APTR aptr )
+void CVarinfoTree::addItem_varScalar( const BaseData& base, PVal* pval, APTR aptr )
 {
 	int offset_bak = pval->offset;
 	pval->offset = aptr;
@@ -408,11 +410,11 @@ void CVarinfoTree::addItem_varScalar( const BaseData& base, PVal *pval, APTR apt
 // @ vector 型は来ない。
 // @prm base : 子要素(配列変数)のある深さ
 //------------------------------------------------
-void CVarinfoTree::addItem_varArray( const CVarinfoTree::BaseData& base, PVal *pval )
+void CVarinfoTree::addItem_varArray( const CVarinfoTree::BaseData& base, PVal* pval )
 {
-	BaseData baseChild( NULL, getIndent() );
+	BaseData baseChild( nullptr, getIndent() );
 	
-	HspVarProc *pHvp( mdbginfo.exinfo->HspFunc_getproc(pval->flag) );
+	HspVarProc* pHvp( mdbginfo.exinfo->HspFunc_getproc(pval->flag) );
 	
 	size_t length[ArrayDimMax] = { 0 };
 	uint cntElem( 0 );
@@ -437,9 +439,8 @@ void CVarinfoTree::addItem_varArray( const CVarinfoTree::BaseData& base, PVal *p
 	if ( maxdim <= 1 ) {
 		catf( "%s.length  = %d", baseChild.getIndent(), length[0] );
 	} else {
-		CString format = strf( stc_fmt_elemname[maxdim], length[0], length[1], length[2] );
 		catf( "%s.format  = %s (%d in total)",
-			baseChild.getIndent(), format.c_str(), cntElem
+			baseChild.getIndent(), makeArrayIndexString(maxdim, length).c_str(), cntElem
 		);
 	}
 
@@ -449,13 +450,13 @@ void CVarinfoTree::addItem_varArray( const CVarinfoTree::BaseData& base, PVal *p
 		
 		// aptr を分解して添字を求める
 		APTR aptr ( i );
-		APTR idx[ArrayDimMax] = { 0 };
+		uint idx[ArrayDimMax] = { 0 };
 		for ( uint idxDim = 0; idxDim < maxdim; ++ idxDim ) {
 			idx[idxDim] = aptr % length[idxDim];
 			aptr        = aptr / length[idxDim];
 		}
 		
-		CString sName( strf(stc_fmt_elemname[maxdim], idx[0], idx[1], idx[2]) );
+		CString const sName = makeArrayIndexString(maxdim, idx);
 		baseChild.name = sName.c_str();
 		
 		// 要素の値を追加
@@ -470,10 +471,10 @@ void CVarinfoTree::addItem_varArray( const CVarinfoTree::BaseData& base, PVal *p
 //------------------------------------------------
 // [add][item] 変数 (vartype: str)
 //------------------------------------------------
-void CVarinfoTree::addItem_varStr( const BaseData& base, PVal *pval, bool bScalar )
+void CVarinfoTree::addItem_varStr( const BaseData& base, PVal* pval, bool bScalar )
 {
 	if ( bScalar ) {
-		catf( "%s", ptr_cast<char *>( pval->pt ) );
+		catf( "%s", ptr_cast<char*>( pval->pt ) );
 		
 	} else {
 		addItem_varArray( base, pval );
@@ -485,16 +486,16 @@ void CVarinfoTree::addItem_varStr( const BaseData& base, PVal *pval, bool bScala
 //------------------------------------------------
 // [add][item] vector
 //------------------------------------------------
-void CVarinfoTree::addItem_vector( const BaseData& base, Vector *vec, int length )
+void CVarinfoTree::addItem_vector( const BaseData& base, Vector* vec, int length )
 {
 //	CString sName;
-//	BaseData baseChild( NULL, getIndent() );
+//	BaseData baseChild( nullptr, getIndent() );
 	
 	for ( int i = 0; i < length; ++ i ) {
 	//*
 		addItem_vecelem( base, vec->list->at(i), i );
 	/*/
-		PVal *pvElem = vec->list->at( i )->pval;
+		PVal* pvElem = vec->list->at( i )->pval;
 		
 		sName = strf( "[%d]", i );
 		baseChild.name = sName.c_str();
@@ -509,9 +510,9 @@ void CVarinfoTree::addItem_vector( const BaseData& base, Vector *vec, int length
 //------------------------------------------------
 // [add][item] vecelem
 //------------------------------------------------
-void CVarinfoTree::addItem_vecelem( const BaseData& base, VecElem *vecelem, int idx )
+void CVarinfoTree::addItem_vecelem( const BaseData& base, VecElem* vecelem, int idx )
 {
-	PVal *pval ( vecelem->pval );
+	PVal* pval ( vecelem->pval );
 	APTR  aptr ( vecelem->aptr );
 	
 	CString sName(
@@ -520,9 +521,9 @@ void CVarinfoTree::addItem_vecelem( const BaseData& base, VecElem *vecelem, int 
 	
 	mlvNest ++;
 	
-	const char *pName  ( sName.c_str() );
+	const char* pName  ( sName.c_str() );
 	BaseData  baseChild( pName, getIndent() );
-	const char *pIndent( baseChild.getIndent() );
+	const char* pIndent( baseChild.getIndent() );
 	
 	if ( aptr < 0 || aptr == 0 ) {
 		addItem_var( baseChild, pval );
@@ -539,20 +540,20 @@ void CVarinfoTree::addItem_vecelem( const BaseData& base, VecElem *vecelem, int 
 //------------------------------------------------
 // [add][item] modinst
 //------------------------------------------------
-void CVarinfoTree::addItem_modinst( const BaseData& base, ModInst *mv )
+void CVarinfoTree::addItem_modinst( const BaseData& base, ModInst* mv )
 {
-	if ( mv == NULL ) {
+	if ( !mv ) {
 		catf( "%s%s = (nullmod)", base.getIndent(), base.getName() );
 		return;
 	}
 	
 	catf( "%s%s:", base.getIndent(), base.getName() );
 	
-	STRUCTPRM *pStPrm ( &mdbginfo.ctx->mem_minfo[mv->id_minfo] );
-	STRUCTDAT *pStDat ( &mdbginfo.ctx->mem_finfo[pStPrm->subid] );
-	void      *prmstack ( mv->members );
+	STRUCTPRM* stprm ( &mdbginfo.ctx->mem_minfo[mv->id_minfo] );
+	STRUCTDAT* stdat ( &mdbginfo.ctx->mem_finfo[stprm->subid] );
+	void*      prmstack ( mv->members );
 	
-	addItem_prmstack( base, pStDat, pStPrm, prmstack );
+	addItem_prmstack( base, stdat, stprm, prmstack );
 	
 	return;
 }
@@ -562,14 +563,14 @@ void CVarinfoTree::addItem_modinst( const BaseData& base, ModInst *mv )
 //------------------------------------------------
 // [add][item] flex-value
 //------------------------------------------------
-void CVarinfoTree::addItem_flexValue( const BaseData& base, FlexValue *fv )
+void CVarinfoTree::addItem_flexValue( const BaseData& base, FlexValue* fv )
 {
-	if ( fv == NULL ) {
-		catf( "%s[error] (addItem_flexValue) fv = NULL", base.getIndent() );
+	if ( !fv ) {
+		catf( "%s[error] (addItem_flexValue) fv = nullptr", base.getIndent() );
 		return;
 	}
 	
-	if ( fv->ptr == NULL || fv->type == FLEXVAL_TYPE_NONE ) {
+	if ( !fv->ptr || fv->type == FLEXVAL_TYPE_NONE ) {
 		catf( "%s%s = (empty struct)", base.getIndent(), base.getName() );
 		return;
 	}
@@ -585,10 +586,10 @@ void CVarinfoTree::addItem_flexValue( const BaseData& base, FlexValue *fv )
 		mlvNest --;
 	}
 	
-	STRUCTPRM *pStPrm ( &mdbginfo.ctx->mem_minfo[fv->customid] );
-	STRUCTDAT *pStDat ( &mdbginfo.ctx->mem_finfo[pStPrm->subid] );
+	STRUCTPRM* stprm ( &mdbginfo.ctx->mem_minfo[fv->customid] );
+	STRUCTDAT* stdat ( &mdbginfo.ctx->mem_finfo[stprm->subid] );
 	
-	addItem_prmstack( base, pStDat, pStPrm, fv->ptr );
+	addItem_prmstack( base, stdat, stprm, fv->ptr );
 	return;
 }
 #endif
@@ -598,42 +599,58 @@ void CVarinfoTree::addItem_flexValue( const BaseData& base, FlexValue *fv )
 //------------------------------------------------
 void CVarinfoTree::addItem_prmstack(
 	const CVarinfoTree::BaseData& base,
-	STRUCTDAT *pStDat,
-	STRUCTPRM *pStPrm,
-	const void *prmstack
+	STRUCTDAT* stdat,
+	STRUCTPRM* stprm,
+	const void* prmstack
 )
 {
 	mlvNest ++;
 	
-	CString sName; sName.reserve( 5 );
-	BaseData baseChild( NULL, getIndent() );
+	CString sName; sName.reserve(10);
+	BaseData baseChild( nullptr, getIndent() );
 	
 /*
-	catf( "%s.id_finfo = %d", baseChild.getIndent(), pStDat->subid );
-	catf( "%s.id_minfo = %d", baseChild.getIndent(), pStDat->prmindex );
+	catf( "%s.id_finfo = %d", baseChild.getIndent(), stdat->subid );
+	catf( "%s.id_minfo = %d", baseChild.getIndent(), stdat->prmindex );
 //*/
 	
-	STRUCTPRM *pStPrmEnd( pStPrm + pStDat->prmmax );
+	STRUCTPRM* stprmEnd(stprm + stdat->prmmax);
 	
 	int i( 0 );
-	while ( pStPrm < pStPrmEnd )
+	while ( stprm < stprmEnd )
 	 {
-		const void *member ( ptr_cast<const char *>(prmstack) + pStPrm->offset );
-		
+		const void* member = ptr_cast<const char*>(prmstack) + stprm->offset;
+		bool bNamed = false;
+
 #ifdef with_Script
-		auto const name = getStPrmName( pStPrm );
-		if ( name ) { sName = name; } else
+		{
+			auto const name = getStPrmName(stprm);
+			if (name) { sName = name; bNamed = true; }
+		}
 #endif
-		{ sName = strf( BracketIdxL "%d" BracketIdxR, i ); }	// 仮の名称
+		int const subid = hpimod::findStPrmIndex(stprm);
+		if (subid >= 0) {
+			auto const name = mdbginfo.ax->getPrmName(subid);
+			if (name) {
+				sName = name; bNamed = true;
+
+				// スコープ解決を取り除く
+				int const iScope = sName.find('@');
+				if (iScope != std::string::npos) {
+					sName = sName.substr(0, iScope);
+				}
+			}
+		}
+		if (!bNamed) sName = strf(BracketIdxL "%d" BracketIdxR, i);	// 仮の名称
 		baseChild.name = sName.c_str();
 		
-		addItem_member( baseChild, pStDat, pStPrm, member );
+		addItem_member( baseChild, stdat, stprm, member );
 		
 		// structtag => メンバではないので、数えない
-		if ( pStPrm->mptype != MPTYPE_STRUCTTAG ) {
+		if ( stprm->mptype != MPTYPE_STRUCTTAG ) {
 			i ++;
 		}
-		++ pStPrm;
+		++ stprm;
 	}
 	
 	mlvNest --;
@@ -645,29 +662,29 @@ void CVarinfoTree::addItem_prmstack(
 //------------------------------------------------
 void CVarinfoTree::addItem_member(
 	const CVarinfoTree::BaseData& base,
-	STRUCTDAT *pStDat,
-	STRUCTPRM *pStPrm,
-	const void *member_const
+	STRUCTDAT* stdat,
+	STRUCTPRM* stprm,
+	const void* member_const
 )
 {
-	void *member ( const_cast<void *>(member_const) );
+	void* member ( const_cast<void*>(member_const) );
 	
-	switch ( pStPrm->mptype )
+	switch ( stprm->mptype )
 	{
 		case MPTYPE_STRUCTTAG:
 			catf( "%s.modcls = %s", base.getIndent(),
-				&mdbginfo.ctx->mem_mds[pStDat->nameidx]
+				&mdbginfo.ctx->mem_mds[stdat->nameidx]
 			);
 			break;
 			
-		// 変数 (PVal *)
+		// 変数 (PVal*)
 	//	case MPTYPE_VAR:
 		case MPTYPE_SINGLEVAR:
 		case MPTYPE_ARRAYVAR:
 		{
-			MPVarData *pVarDat ( ptr_cast<MPVarData *>(member) );
+			MPVarData* pVarDat ( ptr_cast<MPVarData*>(member) );
 			
-			if ( pStPrm->mptype == MPTYPE_SINGLEVAR ) {
+			if ( stprm->mptype == MPTYPE_SINGLEVAR ) {
 				addItem_varScalar( base, pVarDat->pval, pVarDat->aptr );
 			} else {
 				addItem_var( base, pVarDat->pval );
@@ -682,7 +699,7 @@ void CVarinfoTree::addItem_member(
 		case MPTYPE_FLEX:
 #endif
 		{
-			PVal *pval ( ptr_cast<PVal *>(member) );
+			PVal* pval ( ptr_cast<PVal*>(member) );
 			addItem_var( base, pval );
 			break;
 		}
@@ -700,50 +717,50 @@ void CVarinfoTree::addItem_member(
 			PVal* pvSelf( thismod->pval );
 			pvSelf->offset = thismod->aptr;
 			
-			HspVarProc *pHvp( mdbginfo.exinfo->HspFunc_getproc(pvSelf->flag) );
+			HspVarProc* pHvp( mdbginfo.exinfo->HspFunc_getproc(pvSelf->flag) );
 			FlexValue* fv = ptr_cast<FlexValue*>(pHvp->GetPtr(pvSelf));
 			addItem_flexValue( base, fv );
 			break;
 #endif
 		}
-		// ModInst (ModInst *) : clhspのみ
+		// ModInst (ModInst*) : clhspのみ
 #ifdef clhsp
 		case MPTYPE_STRUCT:
 		{
-			ModInst *mv2 ( *ptr_cast<ModInst **>(member) );
+			ModInst* mv2 ( *ptr_cast<ModInst**>(member) );
 			addItem_modinst( base, mv2 );
 			break;
 		}
 #endif
-		// 文字列 (char **)
+		// 文字列 (char**)
 	//	case MPTYPE_STRING:
 		case MPTYPE_LOCALSTRING:
 		{
-			char *pString ( *ptr_cast<char **>(member) );
+			char* pString ( *ptr_cast<char**>(member) );
 			addItem_value( base, HSPVAR_FLAG_STR, pString );
 			break;
 		}
 		// その他
 		case MPTYPE_DNUM:
 		{
-			addItem_value( base, HSPVAR_FLAG_DOUBLE, ptr_cast<double *>(member) );
+			addItem_value( base, HSPVAR_FLAG_DOUBLE, ptr_cast<double*>(member) );
 			break;
 		}
 		case MPTYPE_INUM:
 		{
-			addItem_value( base, HSPVAR_FLAG_INT, ptr_cast<int *>(member) );
+			addItem_value( base, HSPVAR_FLAG_INT, ptr_cast<int*>(member) );
 			break;
 		}
 		case MPTYPE_LABEL:
 		{
-			addItem_value( base, HSPVAR_FLAG_LABEL, ptr_cast<label_t *>(member) );
+			addItem_value( base, HSPVAR_FLAG_LABEL, ptr_cast<label_t*>(member) );
 			break;
 		}
 		// 他 => 無視
 		default:
 			catf("%s%s = ignored (mptype = %d)",
 				base.getIndent(), base.getName(),
-				pStPrm->mptype
+				stprm->mptype
 			);
 			break;
 	}
@@ -764,7 +781,7 @@ T msgboxf(const char* sFormat, ...)
 	va_start( arglist, sFormat );
 	vsprintf_s( stt_buffer, 1024 - 1, sFormat, arglist );
 	va_end( arglist );
-	MessageBoxA( NULL, stt_buffer, "hpi", MB_OK );
+	MessageBoxA( nullptr, stt_buffer, "hpi", MB_OK );
 }
 # endif
 #ifdef with_Assoc
@@ -773,7 +790,7 @@ T msgboxf(const char* sFormat, ...)
 //------------------------------------------------
 void CVarinfoTree::addItem_assoc( const BaseData& base, CAssoc* src )
 {
-	if ( src == NULL ) {
+	if ( !src ) {
 		catf( "%s%s = (assoc: null)", base.getIndent(), base.getName() );
 		return;
 	}
@@ -782,7 +799,7 @@ void CVarinfoTree::addItem_assoc( const BaseData& base, CAssoc* src )
 	StAssocMapList* head = ((StAssocMapList::GetMapList_t)(pHvp->user))( src );
 	
 	// 要素なし
-	if ( head == NULL ) {
+	if ( !head ) {
 		catf( "%s%s = (assoc: empty)", base.getIndent(), base.getName() );
 		return;
 	}
@@ -792,14 +809,14 @@ void CVarinfoTree::addItem_assoc( const BaseData& base, CAssoc* src )
 	mlvNest ++;
 	{
 		// 列挙
-		for ( StAssocMapList* list = head; list != NULL; list = list->next ) {
+		for ( StAssocMapList* list = head; list != nullptr; list = list->next ) {
 			BaseData baseChild ( list->key, getIndent() );
 			addItem_var( baseChild, list->pval );
 		//	dbgout("%p: key = %s, pval = %p, next = %p", list, list->key, list->pval, list->next );
 		}
 		
 		// リストの解放
-		for ( StAssocMapList* list = head; list != NULL; /* */ ) {
+		for ( StAssocMapList* list = head; list != nullptr; /* */ ) {
 			StAssocMapList* next = list->next;
 			mdbginfo.exinfo->HspFunc_free( list );
 			list = next;
@@ -817,7 +834,7 @@ void CVarinfoTree::addItem_assoc( const BaseData& base, CAssoc* src )
 //------------------------------------------------
 void CVarinfoTree::addItem_vector( const BaseData& base, CVector* src )
 {
-	if ( src == NULL ) {
+	if ( !src ) {
 		catf( "%s%s = (vector: null)", base.getIndent(), base.getName() );
 		return;
 	}
@@ -827,7 +844,7 @@ void CVarinfoTree::addItem_vector( const BaseData& base, CVector* src )
 	PVal** pvals = ((GetVectorList_t)(pHvp->user))( src, &len );
 	
 	// 要素なし
-	if ( pvals == NULL ) {
+	if ( !pvals ) {
 		catf( "%s%s = (vector: empty)", base.getIndent(), base.getName() );
 		return;
 	}
@@ -858,7 +875,7 @@ void CVarinfoTree::addItem_vector( const BaseData& base, CVector* src )
 //------------------------------------------------
 void CVarinfoTree::addItem_array( const BaseData& base, CArray* src )
 {
-	if ( src == NULL ) {
+	if ( !src ) {
 		catf( "%s%s = (array: null)", base.getIndent(), base.getName() );
 		return;
 	}
@@ -867,7 +884,7 @@ void CVarinfoTree::addItem_array( const BaseData& base, CArray* src )
 	PVal* pvInner = ((GetArray_t)(pHvp->user))( src );
 	
 	// 要素なし
-	if ( pvInner == NULL || pvInner->len[1] == 0 ) {
+	if ( !pvInner || pvInner->len[1] == 0 ) {
 		catf( "%s%s = (array: empty)", base.getIndent(), base.getName() );
 		return;
 	}
@@ -900,7 +917,7 @@ void CVarinfoTree::cat_crlf( void )
 //------------------------------------------------
 // 文字列を連結する
 //------------------------------------------------
-void CVarinfoTree::cat( const char *src )
+void CVarinfoTree::cat( const char* src )
 {
 	if ( mlenLimit <= 0 ) return;
 	
@@ -908,7 +925,7 @@ void CVarinfoTree::cat( const char *src )
 	return;
 }
 
-void CVarinfoTree::cat( const char *src, size_t len )
+void CVarinfoTree::cat( const char* src, size_t len )
 {
 	if ( static_cast<int>(len) > mlenLimit ) {		// 限界なら
 		mpBuf->append( src, mlenLimit );
@@ -926,7 +943,7 @@ void CVarinfoTree::cat( const char *src, size_t len )
 //------------------------------------------------
 // 書式付き文字列を連結する
 //------------------------------------------------
-void CVarinfoTree::catf( const char *format, ... )
+void CVarinfoTree::catf( const char* format, ... )
 {
 	if ( mlenLimit <= 0 ) return;
 	
@@ -948,21 +965,20 @@ void CVarinfoTree::catf( const char *format, ... )
 // 
 // @prm pBuf : 最低でも 1024 B を必要とする
 //------------------------------------------------
-CString CVarinfoTree::getDbgString( vartype_t type, const void *pValue )
+CString CVarinfoTree::getDbgString( vartype_t type, const void* pValue )
 {
 #ifndef HSPVAR_FLAG_VARIANT
 	static const int HSPVAR_FLAG_VARIANT( 7 );
 #endif
 	
-	void *ptr( const_cast<void *>(pValue) );
+	void* ptr( const_cast<void*>(pValue) );
 	
 	switch ( type ) {
-		case HSPVAR_FLAG_STR:     return CString( ptr_cast<char *>(ptr) );
-	//	case HSPVAR_FLAG_STR:     return toStringLiteralFormat( ptr_cast<char *>(ptr) );
-		case HSPVAR_FLAG_LABEL:   return strf("*label (0x%08X)",  address_cast( *ptr_cast<label_t *>(ptr)) );
-		case HSPVAR_FLAG_COMOBJ:  return strf("comobj (0x%08X)",  address_cast( *ptr_cast<void **>(ptr) ));
-		case HSPVAR_FLAG_VARIANT: return strf("variant (0x%08X)", address_cast( *ptr_cast<void **>(ptr)) );
-		case HSPVAR_FLAG_DOUBLE:  return strf( "%.16f", *ptr_cast<double *>(ptr) );
+		case HSPVAR_FLAG_STR:     return CString( ptr_cast<char*>(ptr) );
+	//	case HSPVAR_FLAG_STR:     return toStringLiteralFormat( ptr_cast<char*>(ptr) );
+		case HSPVAR_FLAG_COMOBJ:  return strf("comobj (0x%08X)",  address_cast( *ptr_cast<void**>(ptr) ));
+		case HSPVAR_FLAG_VARIANT: return strf("variant (0x%08X)", address_cast( *ptr_cast<void**>(ptr)) );
+		case HSPVAR_FLAG_DOUBLE:  return strf( "%.16f", *ptr_cast<double*>(ptr) );
 		case HSPVAR_FLAG_INT:
 		{
 			int const val = *ptr_cast<int*>(ptr);
@@ -974,29 +990,36 @@ CString CVarinfoTree::getDbgString( vartype_t type, const void *pValue )
 #endif
 			return strf( "%-10d (0x%08X)", val, val );
 		}
-		
+		case HSPVAR_FLAG_LABEL:
+		{
+			auto const lb = *ptr_cast<label_t*>(ptr);
+			int const idx = hpimod::findOTIndex(lb);
+			auto const name =
+				(idx >= 0 ? g_dbginfo->ax->getLabelName(idx) : nullptr);
+			return (name ? strf("*%s", name) : strf("*label (0x%08X)", address_cast(lb)));
+		}
 #if 0
 		case HSPVAR_FLAG_STRUCT:		// 拡張表示あり
 		{
 #if clhsp
-			ModInst *mv( *ptr_cast<ModInst **>( ptr ) );
-			if ( mv == NULL ) {
+			ModInst* mv( *ptr_cast<ModInst**>( ptr ) );
+			if ( !mv ) {
 				return CString( "modinst (null)" );
 				
 			} else {
-				STRUCTPRM *pStPrm( &mdbginfo.ctx->mem_minfo[mv->id_minfo]  );
-				STRUCTDAT *pStDat( &mdbginfo.ctx->mem_finfo[pStPrm->subid] );
+				STRUCTPRM* stprm( &mdbginfo.ctx->mem_minfo[mv->id_minfo]  );
+				STRUCTDAT* stdat( &mdbginfo.ctx->mem_finfo[stprm->subid] );
 
 				return strf( "modinst (0x%08X) id%d(%s) ptr(%p) size(%d)",
 					address_cast( mv ),
-					pStPrm->subid,
-					address_cast( &mdbginfo.ctx->mem_mds[pStDat->nameidx] ),
+					stprm->subid,
+					address_cast( &mdbginfo.ctx->mem_mds[stdat->nameidx] ),
 					mv->members,
-					pStDat->size
+					stdat->size
 				);
 			}
 #else
-			FlexValue *fv ( ptr_cast<FlexValue *>( ptr ) );
+			FlexValue* fv ( ptr_cast<FlexValue*>( ptr ) );
 			if ( fv->type == FLEXVAL_TYPE_NONE ) {
 				return CString( "struct (empty)" ); 
 			} else {
@@ -1009,12 +1032,12 @@ CString CVarinfoTree::getDbgString( vartype_t type, const void *pValue )
 #endif
 #if clhsp
 	//	case HSPVAR_FLAG_VECTOR:			// 拡張表示あり
-	//		return strf( "vector (0x%08X) ", address_cast( ptr_cast<Vector *>(ptr) ) );
+	//		return strf( "vector (0x%08X) ", address_cast( ptr_cast<Vector*>(ptr) ) );
 		
 		case HSPVAR_FLAG_REF:
 		{
 			bool       bExists ( false );
-			Reference *pRef    ( ptr_cast<Reference *>( ptr ) );
+			Reference* pRef    ( ptr_cast<Reference*>( ptr ) );
 			
 			char sReferred[64 + 32];
 			
@@ -1116,9 +1139,9 @@ CString CVarinfoTree::getDbgString( vartype_t type, const void *pValue )
 //------------------------------------------------
 // 文字列を文字列リテラルの形式に変換する
 //------------------------------------------------
-CString CVarinfoTree::toStringLiteralFormat( const char *src )
+CString CVarinfoTree::toStringLiteralFormat( const char* src )
 {
-	char *buf = mdbginfo.exinfo->HspFunc_malloc( strlen(src) * 2 );
+	char* buf = mdbginfo.exinfo->HspFunc_malloc( strlen(src) * 2 );
 	uint iWrote( 0 );
 	
 	buf[iWrote ++] = '\"';
@@ -1168,7 +1191,7 @@ CString CVarinfoTree::toStringLiteralFormat( const char *src )
 //------------------------------------------------
 // mptype の文字列を得る
 //------------------------------------------------
-static const char *getMPTypeString( int mptype )
+static const char* getMPTypeString( int mptype )
 {
 	switch ( mptype ) {
 		case MPTYPE_NONE:    return "(unknown)";
@@ -1214,13 +1237,16 @@ static const char *getMPTypeString( int mptype )
 	}
 }
 
-//**********************************************************
-//    変数の初期化
-//**********************************************************
-const char *stc_fmt_elemname[5] = {
-	""         "\0%d%d%d",
-	BracketIdxL "%d"         BracketIdxR "\0%d%d",
-	BracketIdxL "%d, %d"     BracketIdxR "\0%d",
-	BracketIdxL "%d, %d, %d" BracketIdxR,
-	BracketIdxL "%d, %d, %d, ?"
-};
+CString makeArrayIndexString(uint dim, uint const indexes[])
+{
+	switch (dim) {
+		case 0: return BracketIdxL BracketIdxR;
+		case 1: return strf(BracketIdxL "%d"             BracketIdxR, indexes[0]);
+		case 2: return strf(BracketIdxL "%d, %d"         BracketIdxR, indexes[0], indexes[1]);
+		case 3: return strf(BracketIdxL "%d, %d, %d"     BracketIdxR, indexes[0], indexes[1], indexes[2]);
+		case 4: return strf(BracketIdxL "%d, %d, %d, %d" BracketIdxR, indexes[0], indexes[1], indexes[2], indexes[3]);
+		default:
+			return "(invalid index)";
+	}
+}
+

@@ -13,10 +13,12 @@
 #include "vartree.h"
 #include "config_mng.h"
 #include "WrapCall.h"
+#include "ClhspDebugInfo.h"
 
 #include <fstream>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 namespace Dialog
 {
@@ -57,7 +59,7 @@ HWND getVarTreeHandle() { return hVarTree; }
 //------------------------------------------------
 // ウィンドウ・オブジェクトの生成
 //------------------------------------------------
-static HWND GenerateObj( HWND parent, char *name, char *ttl, int x, int y, int sx, int sy, int menu, HFONT font )
+static HWND GenerateObj( HWND parent, char* name, char* ttl, int x, int y, int sx, int sy, int menu, HFONT font )
 {
 	HWND h = CreateWindow(
 		name, ttl,
@@ -97,19 +99,19 @@ static void TabGeneralInit( void )
 // 全般タブの更新
 //------------------------------------------------
 static void SrcSync( const char* filepath, int line_num, bool bUpdateEdit, bool bUpdateBox );
-static void TabGeneral_AddItem( const char *sItem, const char *sValue, int iItem );
+static void TabGeneral_AddItem( const char* sItem, const char* sValue, int iItem );
 
 static void TabGeneralReset( void )
 {
 	int chk, tgmax;
-	char *p;
+	char* p;
 	char name[256];
 	char val[512];
 
 	ListView_DeleteAllItems( hGenList );
 	tgmax = 0;
 
-	p = g_debug->get_value( DEBUGINFO_GENERAL );		// HSP側に問い合わせ
+	p = g_dbginfo->debug->get_value( DEBUGINFO_GENERAL );		// HSP側に問い合わせ
 	strsp_ini();
 	for (;;) {
 		chk = strsp_get( p, name, 0, 255 );
@@ -145,13 +147,13 @@ static void TabGeneralReset( void )
 		tgmax ++;
 	} while ( false );
 	
-	g_debug->dbg_close( p );
+	g_dbginfo->debug->dbg_close( p );
 
-	SrcSync( g_debug->fname, g_debug->line, false, true );
+	SrcSync( g_dbginfo->debug->fname, g_dbginfo->debug->line, false, true );
 	return;
 }
 
-static void TabGeneral_AddItem( const char *sItem, const char *sValue, int iItem )
+static void TabGeneral_AddItem( const char* sItem, const char* sValue, int iItem )
 {
 	LV_ITEM item;
 	
@@ -159,11 +161,11 @@ static void TabGeneral_AddItem( const char *sItem, const char *sValue, int iItem
 	item.iItem    = iItem;
 	
 	item.iSubItem = 0;
-	item.pszText  = const_cast<char *>(sItem);
+	item.pszText  = const_cast<char*>(sItem);
 	ListView_InsertItem( hGenList, &item );
 	
 	item.iSubItem = 1;
-	item.pszText  = const_cast<char *>(sValue);
+	item.pszText  = const_cast<char*>(sValue);
 	ListView_SetItem( hGenList, &item );
 	return;
 }
@@ -174,16 +176,16 @@ static void TabGeneral_AddItem( const char *sItem, const char *sValue, int iItem
 static void CurrnetUpdate( void )
 {
 	char tmp[512];
-	char *fn;
-	g_debug->dbg_curinf();
-	fn = g_debug->fname;
+	char* fn;
+	g_dbginfo->debug->dbg_curinf();
+	fn = g_dbginfo->debug->fname;
 	if ( fn == NULL ) fn = "???";
-	sprintf_s( tmp, "%s\n( line : %d )", fn, g_debug->line );
+	sprintf_s( tmp, "%s\n( line : %d )", fn, g_dbginfo->debug->line );
 	SetWindowText( hSttCtrl, tmp );
 	
 #ifdef with_khad
 	if ( hKhad != NULL ) {
-		SendMessage( hKhad, UWM_KHAD_CURPOS, g_debug->line, (LPARAM)g_debug->fname );
+		SendMessage( hKhad, UWM_KHAD_CURPOS, g_dbginfo->debug->line, (LPARAM)g_dbginfo->debug->fname );
 	}
 #endif
 	return;
@@ -303,7 +305,7 @@ void TabLogCommit()
 //------------------------------------------------
 // ログメッセージに追加する
 //------------------------------------------------
-void logAdd( const char *str )
+void logAdd( const char* str )
 {
 	// 自動更新
 	if ( IsDlgButtonChecked( hLogPage, IDC_CHK_LOG_UPDATE ) ) {
@@ -462,7 +464,7 @@ static void SrcSync( const char* filepath, int line_num, bool bUpdateEdit, bool 
 //------------------------------------------------
 static void TabSrcUpdate()
 {
-	SrcSync( g_debug->fname, g_debug->line, true, false );
+	SrcSync( g_dbginfo->debug->fname, g_dbginfo->debug->line, true, false );
 }
 
 //------------------------------------------------
@@ -738,7 +740,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	}
 	case WM_NOTIFY:
 	{
-		NMHDR *nm = (NMHDR *)lp;		// タブコントロールのシート切り替え通知
+		NMHDR* nm = reinterpret_cast<NMHDR*>(lp);		// タブコントロールのシート切り替え通知
 		int cur   = TabCtrl_GetCurSel(hTabCtrl);
 		for ( int i = 0; i < TABDLGMAX; ++ i ) {
 			ShowWindow( hTabSheet[i], (i == cur) ? SW_SHOW : SW_HIDE );
@@ -799,7 +801,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 #ifdef with_WrapCall
 	case DWM_RequireDebugStruct:
 	//	TabLogAdd("connected with WrapCall\n");
-		return (LRESULT)( g_debug );
+		return (LRESULT)( g_dbginfo->debug );
 	case DWM_RequireMethodFunc:
 	{
 		WrapCall_RequireMethodFunc( reinterpret_cast<WrapCallMethod*>( lp ) );
@@ -892,7 +894,7 @@ void update()
 	switch( idxTab ) {
 		case 0:
 			TabGeneralReset();
-			SrcSync( g_debug->fname, g_debug->line, false, true );
+			SrcSync( g_dbginfo->debug->fname, g_dbginfo->debug->line, false, true );
 			break;
 		case 1:
 			TabVarsUpdate();

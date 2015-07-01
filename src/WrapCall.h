@@ -9,7 +9,7 @@
 # include "../../../../../../MakeHPI/WrapCall/WrapCallSdk.h"
 
 struct ResultNodeData {
-	STRUCTDAT* pStDat;
+	STRUCTDAT* stdat;
 	int sublev;
 	string valueString;						// 値の文字列化 (double, str, or int)
 	const ModcmdCallInfo* pCallInfoDepended;	// これに依存する呼び出し (存在する場合はこれの子ノードになる)

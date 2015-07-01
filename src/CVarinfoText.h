@@ -16,10 +16,10 @@ class CVarinfoText
 	//******************************************************
 private:
 	DebugInfo&  mdbginfo;
-	CString    *mpBuf;
+	CString*    mpBuf;
 	
-	PVal       *mpVar;
-	const char *mpName;
+	PVal*       mpVar;
+	const char* mpName;
 	
 	int mlenLimit;
 	
@@ -35,27 +35,27 @@ public:
 		return *mpBuf;
 	}
 	
-	void addVar( PVal *pval, const char *name );
-	void addSysvar( const char *name );
+	void addVar( PVal* pval, const char* name );
+	void addSysvar( const char* name );
 #ifdef with_WrapCall
-	void addCall( STRUCTDAT *pStDat, void *prmstk, int sublev, const char *name, const char* filename = nullptr, int line = -1 );
-	void addResult( STRUCTDAT *pStDat, void *ptr, int flag, int sublev, const char *name );
-	void addResult2( const CString& text, const char *name );
+	void addCall( STRUCTDAT* stdat, void* prmstk, int sublev, const char* name, const char* filename = nullptr, int line = -1 );
+	void addResult( STRUCTDAT* stdat, void* ptr, int flag, int sublev, const char* name );
+	void addResult2( const CString& text, const char* name );
 #endif
 	
 private:
 	// テキストの生成
 	void make( void );
-	void dumpVar( PVal *pval );
-	void dump( void *mem, size_t size );
+	void dumpVar( PVal* pval );
+	void dump( void* mem, size_t size );
 	
 	// 項目の追加
-//	void addItem( const char *name, const char *string );
-//	void addItem( const char *name, const char *format, ... );
+//	void addItem( const char* name, const char* string );
+//	void addItem( const char* name, const char* format, ... );
 	
 	// 文字列の連結
-	void cat ( const char *string );
-	void catf( const char *format, ... );
+	void cat ( const char* string );
+	void catf( const char* format, ... );
 	void cat_crlf( void );
 	
 	// その他

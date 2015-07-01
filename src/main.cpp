@@ -15,24 +15,16 @@
 
 #include "../../../../../openhsp/trunk/tools/win32/hsed3_footy2/interface.h"
 
-// グローバル変数
-HSP3DEBUG *g_debug;
-//HSPCTX*       ctx;
-//HSPEXINFO* exinfo;
-HINSTANCE g_hInstance;
-
-typedef BOOL (CALLBACK *HSP3DBGFUNC)(HSP3DEBUG *,int,int,int);
-
-//----------------------------------------------------------
-
 #include <deque>
 #include <vector>
 #include <list>
 #include <algorithm>
 #include <fstream>
+
 #include "module/mod_cstring.h"
 #include "module/mod_cast.h"
 #include "ClhspDebugInfo.h"
+#include "CAx.h"
 #include "CVarTree.h"
 //#include "CVarinfoTree.h"
 #include "CVarinfoText.h"
@@ -45,22 +37,24 @@ typedef BOOL (CALLBACK *HSP3DBGFUNC)(HSP3DEBUG *,int,int,int);
 #include "WrapCall.h"
 #include "with_Script.h"
 
-// グローバル変数
-static DebugInfo  g_dbginfo_inst;
-       DebugInfo* g_dbginfo      = &g_dbginfo_inst;
-static CVarTree*  stt_pSttVarTree = NULL;
-//static DynTree_t* stt_pDynTree  = NULL;
+typedef BOOL (CALLBACK* HSP3DBGFUNC)(HSP3DEBUG*,int,int,int);
 
-static bool stt_bStepRunning = false;		// ステップ実行中 (「脱出」等は除く)
-static int stt_sublev_for_stepover = -1;
+DebugInfo* g_dbginfo = nullptr;
+//HSP3DEBUG* g_debug;
+//HSPCTX*       ctx;
+//HSPEXINFO* exinfo;
+HINSTANCE g_hInstance;
+
+static CVarTree*  stt_pSttVarTree = nullptr;
+//static DynTree_t* stt_pDynTree  = nullptr;
 
 // ランタイムとの通信
-EXPORT BOOL WINAPI debugini( HSP3DEBUG *p1, int p2, int p3, int p4 );
-EXPORT BOOL WINAPI debug_notice( HSP3DEBUG *p1, int p2, int p3, int p4 );
+EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 );
+EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 );
 #ifndef clhsp
-EXPORT BOOL WINAPI debugbye( HSP3DEBUG *p1, int p2, int p3, int p4 );
+EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 );
 #endif
-static void CurrentUpdate( void );
+static void CurrentUpdate();
 
 // WrapCall 関連
 #ifdef with_WrapCall
@@ -84,8 +78,6 @@ static void WrapCallMethod_ResultReturning( unsigned int idx, const ModcmdCallIn
 
 static void InvokeThread();
 
-//----------------------------------------------------------
-
 //------------------------------------------------
 // Dllエントリーポイント
 //------------------------------------------------
@@ -98,7 +90,7 @@ int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 		
 		case DLL_PROCESS_DETACH:
 #ifndef clhsp
-			debugbye( g_debug, 0, 0, 0 );
+			debugbye( g_dbginfo->debug, 0, 0, 0 );
 #endif
 			Dialog::destroyMain();
 			break;
@@ -112,16 +104,14 @@ int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 //------------------------------------------------
 // debugini ptr  (type1)
 //------------------------------------------------
-EXPORT BOOL WINAPI debugini( HSP3DEBUG *p1, int p2, int p3, int p4 )
+EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
 	// グローバル変数の初期化
-	g_debug = p1;
+//	g_debug = p1;
 	ctx     = p1->hspctx;
 	exinfo  = ctx->exinfo2;
-	
-	g_dbginfo->debug  = p1;
-	g_dbginfo->ctx    = ctx;
-	g_dbginfo->exinfo = exinfo;
+
+	g_dbginfo = new DebugInfo(ctx, exinfo, p1);
 	
 	// 設定を読み込む
 	g_config.initialize();
@@ -129,10 +119,11 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG *p1, int p2, int p3, int p4 )
 //	DynTree::g_dbginfo = g_dbginfo;
 	
 	// ウィンドウの生成
-	HWND hDlg = Dialog::createMain();
+	HWND const hDlg = Dialog::createMain();
 	
 #ifdef with_WrapCall
-	g_dbginfo->exinfo->er = almighty_cast<int*>( hDlg );	// !! 不要になったが後方互換性のために一応置いておく、しばらくしたら消す
+//	g_dbginfo->exinfo->er = almighty_cast<int*>( hDlg );
+	// 不要になったが後方互換性のために一応置いておく、しばらくしたら消す
 #endif
 #ifdef with_Script
 	/*
@@ -159,21 +150,13 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG *p1, int p2, int p3, int p4 )
 // @prm p2 : 0 = stop event,
 // @       : 1 = send message (logmes)
 //------------------------------------------------
-EXPORT BOOL WINAPI debug_notice( HSP3DEBUG *p1, int p2, int p3, int p4 )
+EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
 	switch ( p2 ) {
 		// 実行が停止した (stop, wait, await, assert など)
 		case DebugNotice_Stop:
 		{
-			if ( stt_sublev_for_stepover >= 0 ) {
-				if ( ctx->sublev > stt_sublev_for_stepover ) {
-					g_debug->dbg_set( HSPDEBUG_STEPIN );		// stepin を繰り返す
-					break;
-				} else {
-					stt_sublev_for_stepover = -1;	// 終了
-				//	g_debug->dbg_set( HSPDEBUG_STOP );
-				}
-			}
+			if (Knowbug::continueConditionalRun()) break;
 			
 #ifdef with_WrapCall
 			UpdateCallNode( Dialog::getVarTreeHandle() );	// 呼び出しノード更新
@@ -197,7 +180,7 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG *p1, int p2, int p3, int p4 )
 // 
 // @ clhsp からは呼ばれるが、hsp なら自分で呼ぶ。
 //------------------------------------------------
-EXPORT BOOL WINAPI debugbye( HSP3DEBUG *p1, int p2, int p3, int p4 )
+EXPORT BOOL WINAPI debugbye( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
 	if ( !g_config->logPath.empty() ) {		// 自動ログ保存
 		Dialog::logSave( g_config->logPath.c_str() );
@@ -211,7 +194,7 @@ EXPORT BOOL WINAPI debugbye( HSP3DEBUG *p1, int p2, int p3, int p4 )
 	termConnectWithScript();
 #endif
 	if ( stt_pSttVarTree ) {
-		delete stt_pSttVarTree; stt_pSttVarTree = NULL;
+		delete stt_pSttVarTree; stt_pSttVarTree = nullptr;
 	}
 	return 0;
 }
@@ -222,12 +205,12 @@ EXPORT BOOL WINAPI debugbye( HSP3DEBUG *p1, int p2, int p3, int p4 )
 void CurrentUpdate( void )
 {
 	char tmp[512];
-	char *fn;
-	g_debug->dbg_curinf();
-	fn = g_debug->fname;
-	if ( fn == NULL ) fn = "???";
+	char* fn;
+	g_dbginfo->debug->dbg_curinf();
+	fn = g_dbginfo->debug->fname;
+	if ( !fn ) fn = "???";
 	
-	sprintf_s( tmp, "%s\n( line : %d )", fn, g_debug->line );
+	sprintf_s( tmp, "%s\n( line : %d )", fn, g_dbginfo->debug->line );
 	SetWindowText( Dialog::getSttCtrlHandle(), tmp );
 	return;
 }
@@ -235,35 +218,62 @@ void CurrentUpdate( void )
 namespace Knowbug
 {
 
+// ステップ実行中かどうかのフラグ
+// 「脱出」等の条件付き実行は除く。
+static bool bStepRunning = false;
+bool isStepRunning() { return bStepRunning; }
+
+// 条件付き実行の終了条件となる sublev
+static int sublevOfGoal = -1;
+
 //------------------------------------------------
 // 実行設定
 //------------------------------------------------
 void runStop()
 {
-	g_debug->dbg_set( HSPDEBUG_STOP );
+	g_dbginfo->debug->dbg_set( HSPDEBUG_STOP );
 }
 
 void run()
 {
-	g_debug->dbg_set( HSPDEBUG_RUN );
-	stt_bStepRunning = false;
+	g_dbginfo->debug->dbg_set( HSPDEBUG_RUN );
+	bStepRunning = false;
 }
 
 void runStepIn() {
-	stt_bStepRunning = true;				// 本当のステップ実行でのみフラグが立つ
-	g_debug->dbg_set( HSPDEBUG_STEPIN );
+	bStepRunning = true;		// 本当のステップ実行でのみフラグが立つ
+	g_dbginfo->debug->dbg_set( HSPDEBUG_STEPIN );
 }
 
 void runStepOver() { return runStepOut( ctx->sublev ); }
 void runStepOut()  { return runStepOut( ctx->sublev - 1 ); }
 
-void runStepOut( int sublev )				// ctx->sublev == sublev になるまで step を繰り返す
+void runStepOut(int sublev)			// ctx->sublev == sublev になるまで step を繰り返す
 {
-	if ( sublev < 0 ) return run();			// 最外周への脱出 = 無制限
-	stt_sublev_for_stepover = sublev;
-	stt_bStepRunning = false;
-	g_debug->dbg_set( HSPDEBUG_STEPIN );
+	if ( sublev < 0 ) return run();	// 最外周への脱出 = 無制限
+	sublevOfGoal = sublev;
+	bStepRunning = false;
+	g_dbginfo->debug->dbg_set( HSPDEBUG_STEPIN );
 	return;
+}
+
+//------------------------------------------------
+// 条件付き実行を続けるかどうか
+//
+// (そもそもしていない場合も「やめる」(false)を返す)
+//------------------------------------------------
+bool continueConditionalRun()
+{
+	if (sublevOfGoal >= 0) {
+		if (ctx->sublev > sublevOfGoal) {
+			g_dbginfo->debug->dbg_set(HSPDEBUG_STEPIN);		// stepin を繰り返す
+			return true;
+		} else {
+			sublevOfGoal = -1;	// 終了
+		//	g_dbginfo->debug->dbg_set( HSPDEBUG_STOP );
+		}
+	}
+	return false;
 }
 
 //------------------------------------------------
@@ -285,9 +295,9 @@ CVarTree* getSttVarTree()
 	CVarTree*& vartree = stt_pSttVarTree;
 	
 	// 変数リストを作る
-	if ( vartree == NULL ) {
+	if ( !vartree ) {
 		char name[0x100];
-		char* p = g_debug->get_varinf( NULL, 0xFF );	// HSP側に問い合わせ
+		char* p = g_dbginfo->debug->get_varinf( nullptr, 0xFF );	// HSP側に問い合わせ
 	//	SortNote( p );			// (-) ツリービュー側でソートするので不要
 		
 		vartree = new CVarTree( "", CVarTree::NodeType_Module );
@@ -300,7 +310,7 @@ CVarTree* getSttVarTree()
 			vartree->push_var( name );
 		}
 		
-		g_debug->dbg_close( p );
+		g_dbginfo->debug->dbg_close( p );
 	}
 	
 	return vartree;
@@ -352,7 +362,7 @@ void termNodeDynamic()
 ResultNodeData* NewResultNodeData( const ModcmdCallInfo& callinfo, void* ptr, int flag )
 {
 	auto pResult = new ResultNodeData;
-		pResult->pStDat      = callinfo.pStDat;
+		pResult->stdat      = callinfo.stdat;
 		pResult->sublev      = callinfo.sublev;
 		pResult->valueString = "";
 		pResult->pCallInfoDepended = callinfo.prev;
@@ -381,7 +391,7 @@ void OnBgnCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 	g_stkCallInfo.push_back( &callinfo );
 
 	// ノードの追加
-	if ( !stt_bStepRunning ) {
+	if ( !Knowbug::isStepRunning() ) {
 		g_cntWillAddCallNodes ++;		// 後で追加する
 	} else {
 		VarTree::AddCallNode( hwndTree, callinfo );
@@ -391,7 +401,7 @@ void OnBgnCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 	if ( Dialog::isLogCallings() ) {
 		CString logText = strf(
 			"[CallBgn] %s\t@%d of \"%s\"]\n",
-			STRUCTDAT_getName(callinfo.pStDat),
+			hpimod::STRUCTDAT_getName(callinfo.stdat),
 			callinfo.line,
 			callinfo.fname
 		);
@@ -418,7 +428,7 @@ void OnEndCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 	if ( Dialog::isLogCallings() ) {
 		CString logText = strf(
 			"[CallEnd] %s%s\n",
-			STRUCTDAT_getName(callinfo.pStDat),
+			hpimod::STRUCTDAT_getName(callinfo.stdat),
 			(pResult ? (" -> " + pResult->valueString).c_str() : "")
 		);
 		Knowbug::logmes( logText.c_str() );
@@ -433,7 +443,7 @@ void OnEndCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 	
 	// 返値ノードの追加
 	if ( pResult ) {
-		if ( !stt_bStepRunning ) {	// 後で追加する
+		if ( !Knowbug::isStepRunning() ) {	// 後で追加する
 			if ( pResult->pCallInfoDepended ) {
 				g_willAddResultNodes.push_back(pResult);
 			} else {
@@ -466,7 +476,7 @@ void OnResultReturning( HWND hwndTree, const ModcmdCallInfo& callinfo, void* ptr
 //------------------------------------------------
 void UpdateCallNode( HWND hwndTree )
 {
-	// 追加予定の返値ノードを実際に追加する
+	// 追加予定の返値ノードを実際に追加する (part1)
 	if ( g_config->bResultNode && g_willAddResultNodeIndepend ) {
 		VarTree::AddResultNode( hwndTree, g_willAddResultNodeIndepend );
 		g_willAddResultNodeIndepend = nullptr;
@@ -481,7 +491,7 @@ void UpdateCallNode( HWND hwndTree )
 		g_cntWillAddCallNodes = 0;
 	}
 	
-	// 追加予定の返値ノードを実際に追加する (2)
+	// 追加予定の返値ノードを実際に追加する (part2)
 	if ( g_config->bResultNode && !g_willAddResultNodes.empty() ) {
 		for each ( auto pResult in g_willAddResultNodes ) {
 			VarTree::AddResultNode( hwndTree, pResult );
@@ -529,6 +539,8 @@ void WrapCall_RequireMethodFunc( WrapCallMethod* methods )
 
 //------------------------------------------------
 // スレッド起動
+//
+// TODO: 作りかけすぎる
 //------------------------------------------------
 
 class ExecPtrThread
@@ -539,59 +551,9 @@ public:
 	}
 };
 
-std::map<std::string, std::vector<const unsigned short*>> g_cs_map;		// ファイル名, 行番号から cs 位置を特定する
-
-int tripeek(const unsigned char* p) { return (p[0] << 16 | p[1] << 8 | p[0]); }
-
-void AnalyzeDInfo()
-{
-	const unsigned short* cur_cs = ctx->mem_mcs;
-	const char* cur_fname;
-	int cur_line;
-	
-	auto const push_point = [&cur_fname, &cur_line, &cur_cs] {
-		auto iter = g_cs_map.find( cur_fname );
-		if ( iter == g_cs_map.end() ) {
-			iter = g_cs_map.insert(
-				std::pair<std::string, std::vector<const unsigned short*>>(
-					cur_fname, std::vector<const unsigned short*>()
-				)
-			).first;
-		}
-		iter->second.insert( iter->second.begin() + cur_line, cur_cs );
-	};
-	
-	for ( int i = 0;; ) {
-		switch ( ctx->mem_di[i] ) {
-			case 0xFF: return;
-			case 0xFE:
-			{
-				int idxDs = tripeek( &ctx->mem_di[i + 1] );
-				int line  = *reinterpret_cast<const unsigned short*>( &ctx->mem_di[i + 4] );
-				i += 6;
-				
-				if ( idxDs != 0 ) { cur_fname = &ctx->mem_mds[idxDs]; }
-				cur_line = line;
-				break;
-			}
-			case 0xFD: i += 6; break;		// 変数名指定 (無視)
-			case 0xFC:
-				cur_cs += *reinterpret_cast<const unsigned short*>( &ctx->mem_di[i + 1] );
-				push_point();
-				i += 2;
-				break;
-			default:
-				cur_cs += ctx->mem_di[i];
-				push_point();
-				i ++;
-				break;
-		}
-	}
-	return;
-}
-
 void threadFunc()
 {
+	/*
 	const unsigned short* mcs;
 	const unsigned short* mcs_bak;
 
@@ -600,11 +562,11 @@ void threadFunc()
 	for (;;) {
 		is_var_checked.clear();
 
-		std::vector<const unsigned short*>& vec = g_cs_map.at( g_debug->fname );
-		mcs = vec[g_debug->line];
+		std::map<int, csptr_t>& vec = g_dbginfo->ax->csMap.at( g_dbginfo->debug->fname );
+		mcs = vec[g_dbginfo->debug->line];
 		
 		if ( mcs >= mcs_bak ) {		// 順進  (!! 最初の mcs_bak 不定値)
-			for ( const unsigned short* p = mcs_bak; p <= mcs; ++ p ) {
+			for ( csptr_t p = mcs_bak; p <= mcs; ++ p ) {
 				const int c = *p;
 				int code;
 				if ( c & 0x8000 ) {
@@ -623,10 +585,10 @@ void threadFunc()
 		mcs_bak = mcs;
 		Sleep(1);
 	}
+	//*/
 }
 
 void InvokeThread()
 {
-	AnalyzeDInfo();
-
+	//
 }

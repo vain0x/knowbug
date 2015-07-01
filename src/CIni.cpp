@@ -7,7 +7,7 @@
 
 #include "CIni.h"
 
-static const char *STR_BOOLEAN[2] = { "false", "true" };
+static const char* STR_BOOLEAN[2] = { "false", "true" };
 
 //##############################################################################
 //                定義部 : CIni
@@ -15,13 +15,13 @@ static const char *STR_BOOLEAN[2] = { "false", "true" };
 //------------------------------------------------
 // 構築
 //------------------------------------------------
-CIni::CIni( const char *fname )
-	: msFilename( NULL )
-	, msBuf     ( NULL )
+CIni::CIni( const char* fname )
+	: msFilename( nullptr )
+	, msBuf     ( nullptr )
 	, msizeBuf  ( stc_defaultBufSize )
 {
-	msFilename = (char *)std::malloc( (MAX_PATH + 1) * sizeof(char) );
-	msBuf      = (char *)std::malloc( msizeBuf * sizeof(char) );
+	msFilename = reinterpret_cast<char*>( std::malloc( (MAX_PATH + 1) * sizeof(char) ) );
+	msBuf      = reinterpret_cast<char*>( std::malloc( msizeBuf * sizeof(char) ) );
 	
 	if ( fname ) open( fname );
 	return;
@@ -34,11 +34,11 @@ CIni::~CIni()
 {
 	close();
 	
-	if ( msFilename != NULL ) std::free( msFilename );
-	if ( msBuf      != NULL ) std::free( msBuf );
+	if ( msFilename ) std::free( msFilename );
+	if ( msBuf      ) std::free( msBuf );
 	
-	msFilename = NULL;
-	msBuf      = NULL;
+	msFilename = nullptr;
+	msBuf      = nullptr;
 	msizeBuf   = 0;
 	return;
 }
@@ -46,7 +46,7 @@ CIni::~CIni()
 //------------------------------------------------
 // ファイルを開く
 //------------------------------------------------
-void CIni::open( const char *fname )
+void CIni::open( const char* fname )
 {
 	if ( !fname ) return;
 	
@@ -68,7 +68,7 @@ void CIni::close( void )
 //------------------------------------------------
 // [get] 論理値 (false | true, or 0 | non-0)
 //------------------------------------------------
-bool CIni::getBool( const char *sec, const char *key, bool defval )
+bool CIni::getBool( const char* sec, const char* key, bool defval )
 {
 	const size_t MinBufForBooleanString = 8;
 	reserve( MinBufForBooleanString );
@@ -86,7 +86,7 @@ bool CIni::getBool( const char *sec, const char *key, bool defval )
 //------------------------------------------------
 // [get] 整数値
 //------------------------------------------------
-int CIni::getInt( const char *sec, const char *key, int defval )
+int CIni::getInt( const char* sec, const char* key, int defval )
 {
 	return GetPrivateProfileIntA( sec, key, defval, msFilename );
 }
@@ -94,7 +94,7 @@ int CIni::getInt( const char *sec, const char *key, int defval )
 //------------------------------------------------
 // [get] 文字列
 //------------------------------------------------
-const char * CIni::getString( const char *sec, const char *key, const char *defval, size_t size )
+const char* CIni::getString( const char* sec, const char* key, const char* defval, size_t size )
 {
 	if ( size ) reserve( size );
 	
@@ -105,7 +105,7 @@ const char * CIni::getString( const char *sec, const char *key, const char *defv
 //------------------------------------------------
 // [set] 論理値
 //------------------------------------------------
-void CIni::setBool( const char *sec, const char *key, bool val )
+void CIni::setBool( const char* sec, const char* key, bool val )
 {
 	strcpy_s( msBuf, msizeBuf, STR_BOOLEAN[val ? 1 : 0] );		// 文字列で書き込む
 	
@@ -116,7 +116,7 @@ void CIni::setBool( const char *sec, const char *key, bool val )
 //------------------------------------------------
 // [set] 整数値
 //------------------------------------------------
-void CIni::setInt( const char *sec, const char *key, int val, int radix )
+void CIni::setInt( const char* sec, const char* key, int val, int radix )
 {
 	_itoa_s( val, msBuf, msizeBuf, radix );
 	
@@ -127,7 +127,7 @@ void CIni::setInt( const char *sec, const char *key, int val, int radix )
 //------------------------------------------------
 // [set] 文字列
 //------------------------------------------------
-void CIni::setString( const char *sec, const char *key, const char *val )
+void CIni::setString( const char* sec, const char* key, const char* val )
 {
 	sprintf_s( msBuf, msizeBuf, "\"%s\"", val );
 	
@@ -138,25 +138,25 @@ void CIni::setString( const char *sec, const char *key, const char *val )
 //------------------------------------------------
 // セクションを削除する
 //------------------------------------------------
-void CIni::removeSection( const char *sec )
+void CIni::removeSection( const char* sec )
 {
-	WritePrivateProfileStringA( sec, NULL, NULL, msFilename );
+	WritePrivateProfileStringA( sec, nullptr, nullptr, msFilename );
 	return;
 }
 
 //------------------------------------------------
 // キーを削除する
 //------------------------------------------------
-void CIni::removeKey( const char *sec, const char *key )
+void CIni::removeKey( const char* sec, const char* key )
 {
-	WritePrivateProfileStringA( sec, key, NULL, msFilename );
+	WritePrivateProfileStringA( sec, key, nullptr, msFilename );
 	return;
 }
 
 //------------------------------------------------
 // キーの有無
 //------------------------------------------------
-bool CIni::existsKey( const char *sec, const char *key )
+bool CIni::existsKey( const char* sec, const char* key )
 {
 	return ( getInt( sec, key, 0 ) != 0 )
 		&& ( getInt( sec, key, 1 ) != 1 )
@@ -171,6 +171,6 @@ void CIni::reserve( size_t newSize )
 	if ( newSize < msizeBuf ) return;
 	
 	msizeBuf = newSize + 0x100;
-	msBuf    = (char *)realloc( msBuf, msizeBuf * sizeof(char) );
+	msBuf    = reinterpret_cast<char*>( std::realloc( msBuf, msizeBuf * sizeof(char) ) );
 	return;
 }

@@ -68,8 +68,8 @@ public:
 	~CVarTree();
 	
 	// 情報
-	NodeType      getType( void ) const { return mType; }
-	const string& getName( void ) const { return mName; }
+	NodeType      getType() const { return mType; }
+	const string& getName() const { return mName; }
 	
 	// 要素の追加
 	void push_child ( const char* name, NodeType type );
@@ -77,8 +77,8 @@ public:
 	void push_module( const char* name ) { getChildModule( name ); }
 	
 	// 反復子の生成
-	iterator begin(void) const;
-	iterator   end(void) const;
+	iterator begin() const;
+	iterator   end() const;
 	
 private:
 	ChildrenIter_t getChildModule( const char* pModname );
@@ -89,8 +89,8 @@ private:
 	//    反復子のために公開 (危険)
 	//********************************************
 private:
-	ChildrenIter_t beginChildren( void ) const { return mpChildren->begin(); }
-	ChildrenIter_t   endChildren( void ) const { return mpChildren->end(); }
+	ChildrenIter_t beginChildren() const { return mpChildren->begin(); }
+	ChildrenIter_t   endChildren() const { return mpChildren->end(); }
 	
 };
 
@@ -124,7 +124,7 @@ public:
 	//--------------------------------------------
 	iterator( CVarTree* pOwner )
 		: mpOwner( pOwner )
-		, mpData ( NULL )
+		, mpData ( nullptr )
 	{
 		moveToBegin();
 		return;
@@ -203,11 +203,11 @@ private:
 	//--------------------------------------------
 	// 次に移動する
 	//--------------------------------------------
-	void moveToNext( void )
+	void moveToNext()
 	{
 		// 終端に来ていたら
 		if ( mIter == mpOwner->endChildren() ) {
-			mpData = NULL;
+			mpData = nullptr;
 			return;
 		}
 		
@@ -222,16 +222,16 @@ private:
 	//------------------------------------------------
 	// 先頭(begin)に移動する
 	//------------------------------------------------
-	void moveToBegin( void )
+	void moveToBegin()
 	{
 		if ( mpOwner->getType() == CVarTree::NodeType_Module ) {
 			mIter  = mpOwner->beginChildren();
-			mpData = NULL;
+			mpData = nullptr;
 			
 			moveToNext();	// 初期操作
 			
 		} else {
-			mpData = NULL;
+			mpData = nullptr;
 		}
 		return;
 	}
@@ -239,9 +239,9 @@ private:
 	//------------------------------------------------
 	// 終端(end)に移動する
 	//------------------------------------------------
-	void moveToEnd( void )
+	void moveToEnd()
 	{
-		mpData = NULL;
+		mpData = nullptr;
 		return;
 	}
 	
