@@ -22,6 +22,8 @@
 # include "D:/Docs/prg/cpp/MakeHPI/var_array/src/for_knowbug.var_array.h"	// あまりにも遠いのでフルパス
 #endif
 
+#include "with_ModPtr.h"
+
 static const char *getMPTypeString( int mptype );
 
 //##############################################################################
@@ -258,9 +260,6 @@ void CVarinfoLine::addItem_value( vartype_t type, void *ptr )
 #else
 		addItem_flexValue( ptr_cast<FlexValue *>(ptr) );
 #endif
-//	} else if ( type == HSPVAR_FLAG_STR ) {
-//		addItem_string( ptr_cast<char *>(ptr) );
-		
 #ifdef with_Assoc
 	// "assoc_k" 型
 	} else if ( strcmp(mdbginfo.exinfo->HspFunc_getproc(type)->vartype_name, "assoc_k") == 0 ) {
@@ -279,6 +278,14 @@ void CVarinfoLine::addItem_value( vartype_t type, void *ptr )
 		CArray* src = *ptr_cast<CArray**>( ptr );
 		addItem_array( src );
 #endif
+#ifdef with_ModPtr
+	} else if ( type == HSPVAR_FLAG_INT && ModPtr::isValid(*ptr_cast<int*>(ptr)) ) {
+		catf( "mp#%d->", ModPtr::getIdx(*ptr_cast<int*>(ptr)) );
+		addItem_flexValue( ModPtr::getValue(*ptr_cast<int*>(ptr)) );
+#endif
+//	} else if ( type == HSPVAR_FLAG_STR ) {
+//		addItem_string( ptr_cast<char *>(ptr) );
+		
 	} else {
 #ifdef clhsp
 		char *p = mdbginfo.debug->dbg_toString( type, ptr );
@@ -869,7 +876,17 @@ CString CVarinfoLine::getDbgString( vartype_t type, const void *pValue )
 		case HSPVAR_FLAG_COMOBJ:  return strf("comobj(0x%08X)",  address_cast( *ptr_cast<void **>(ptr) ));
 		case HSPVAR_FLAG_VARIANT: return strf("variant(0x%08X)", address_cast( *ptr_cast<void **>(ptr)) );
 		case HSPVAR_FLAG_DOUBLE:  return strf( "%f", *ptr_cast<double *>(ptr) );
-		case HSPVAR_FLAG_INT:     return strf( "%d", *ptr_cast<int *>(ptr) );
+		case HSPVAR_FLAG_INT:
+		{
+			int const val = *ptr_cast<int *>(ptr);
+#ifdef with_ModPtr
+			if ( ModPtr::isValid(val) ) {
+				return strf("mp#%d->", ModPtr::getIdx(val))
+					+ getDbgString( HSPVAR_FLAG_STRUCT, ModPtr::getValue(*ptr_cast<int*>(ptr)) );
+			}
+#endif
+			return strf("%d", val);
+		}
 		
 #if 0
 		case HSPVAR_FLAG_STRUCT:		// 拡張表示あり
@@ -993,6 +1010,15 @@ CString CVarinfoLine::getDbgString( vartype_t type, const void *pValue )
 				const char* bytes = ptr_cast<char*>( ptr );
 				const int   val   = bytes[0] << 16 | bytes[1] << 8 | bytes[2];		// 再構成
 				return strf( "%d", val );
+			}
+#endif
+#ifdef with_Modcmd
+			// "modcmd_k" 型
+			if ( strcmp(vartype_name, "modcmd_k") == 0 ) {
+				int const modcmd = *ptr_cast<int*>(ptr);
+				return strf("modcmd(%s)",
+					(modcmd == 0xFFFFFFFF) ? "" : &mdbginfo.ctx->mem_mds[mdbginfo.ctx->mem_finfo[modcmd].nameidx]
+				);
 			}
 #endif
 			return strf( "Unknown<%s>(0x%08X)", vartype_name, address_cast( ptr ) );

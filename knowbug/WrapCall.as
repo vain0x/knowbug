@@ -5,10 +5,14 @@
 
 #ifdef _DEBUG
 
-#regcmd "_hsp3hpi_init@4", "WrapCall.hpi"
-#cmd WrapCall_init		0x000
+#uselib "hsp3debug.dll"	// knowbug
+#cfunc knowbug_hwnd "_knowbug_hwnd@0"
 
-	WrapCall_init
+#uselib "WrapCall.hpi"
+#func WrapCall_init "_WrapCallInitialize@4" int
+#func WrapCall_term "_WrapCallTerminate@0"
+
+	WrapCall_init knowbug_hwnd()
 	
 #endif
 

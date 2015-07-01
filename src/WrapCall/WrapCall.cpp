@@ -62,9 +62,11 @@ static void PutLogMsgWarning( const char* log );
 // 
 // @ 実行開始時に呼ばれる (WrapCall_init 命令)。
 //------------------------------------------------
-void init(void)
+void init(HWND knowbug)
 {
-	g_hDbgWnd = reinterpret_cast<HWND>( exinfo->er );
+	if ( g_pWrapCallData ) return;
+	
+	g_hDbgWnd = knowbug; //reinterpret_cast<HWND>( exinfo->er );
 	g_pDebug  = reinterpret_cast<HSP3DEBUG*>(
 		SendMessage( g_hDbgWnd, DWM_RequireDebugStruct, 0, 0 )
 	);
@@ -101,12 +103,13 @@ void bgnCall( STRUCTDAT* pStDat )
 	
 	ModcmdCallInfo* const pCallInfo = new ModcmdCallInfo;
 	
+	g_pDebug->dbg_curinf();
+	pCallInfo->fname      = g_pDebug->fname;
+	pCallInfo->line       = g_pDebug->line;
 	pCallInfo->sublev     = ctx->sublev;
 	pCallInfo->looplev    = ctx->looplev;
 	pCallInfo->pStDat     = pStDat;
 	pCallInfo->prmstk_bak = ctx->prmstack;
-	pCallInfo->fname      = g_pDebug->fname;
-	pCallInfo->line       = g_pDebug->line;
 	
 	pCallInfo->next = nullptr;
 	if ( idx == 0 ) {

@@ -87,6 +87,7 @@
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'" />
     <TargetName Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'">hsp3debug</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'">hsp3debug</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -168,7 +169,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>hsp;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>hsp;with_ModPtr;with_Script;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
@@ -199,18 +200,28 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\module\compatible-header\hsp3plugin.compatible.cpp" />
+    <ClCompile Include="..\..\..\module\hsedsdk.cpp" />
     <ClCompile Include="..\..\..\module\mod_cstring.cpp" />
     <ClCompile Include="..\..\..\module\mod_debug.cpp" />
     <ClCompile Include="..\..\..\module\SortNote.cpp" />
     <ClCompile Include="..\..\..\module\strbuf.cpp" />
     <ClCompile Include="..\..\..\module\supio_win.cpp" />
     <ClCompile Include="CIni.cpp" />
+    <ClCompile Include="config_mng.cpp" />
     <ClCompile Include="CVarinfoLine.cpp" />
-    <ClCompile Include="CVarinfoText.cpp" />
+    <ClCompile Include="CVarinfoText.cpp">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="CVarinfoTree.cpp" />
     <ClCompile Include="CVarTree.cpp" />
+    <ClCompile Include="dialog.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SysvarData.cpp" />
+    <ClCompile Include="tab_log.cpp" />
+    <ClCompile Include="vartree.cpp" />
+    <ClCompile Include="with_ModPtr.cpp" />
+    <ClCompile Include="with_Script.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\..\MakeHPI\hpimod\var_assoc\for_knowbug.var_assoc.h" />
@@ -218,15 +229,18 @@
     <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\DbgWndMsg.h" />
     <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\ModcmdCallInfo.h" />
     <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\WrapCallSdk.h" />
+    <ClInclude Include="..\..\..\..\..\openhsp\trunk\tools\win32\hsed3_footy2\interface.h" />
     <ClInclude Include="..\..\..\chruntime\chdebug.h" />
     <ClInclude Include="..\..\..\chruntime\chstruct.h" />
     <ClInclude Include="..\..\..\chruntime\chvar_core.h" />
     <ClInclude Include="..\..\..\chruntime\gc.h" />
     <ClInclude Include="..\..\..\chruntime\mod_vector.h" />
     <ClInclude Include="..\..\..\module\compatible-header\hsp3debug.compatible.h" />
+    <ClInclude Include="..\..\..\module\compatible-header\hsp3plugin.compatible.h" />
     <ClInclude Include="..\..\..\module\compatible-header\hsp3struct.compatible.h" />
     <ClInclude Include="..\..\..\module\compatible-header\hspvar_core.compatible.h" />
     <ClInclude Include="..\..\..\module\func_isRange.h" />
+    <ClInclude Include="..\..\..\module\hsedsdk.h" />
     <ClInclude Include="..\..\..\module\mod_cast.h" />
     <ClInclude Include="..\..\..\module\mod_cstring.h" />
     <ClInclude Include="..\..\..\module\mod_debug.h" />
@@ -236,14 +250,22 @@
     <ClInclude Include="..\..\..\module\supio_win.h" />
     <ClInclude Include="CIni.h" />
     <ClInclude Include="ClhspDebugInfo.h" />
+    <ClInclude Include="CLogBuf.h" />
+    <ClInclude Include="config_mng.h" />
     <ClInclude Include="CVarinfoLine.h" />
     <ClInclude Include="CVarinfoText.h" />
     <ClInclude Include="CVarinfoTree.h" />
     <ClInclude Include="CVarTree.h" />
+    <ClInclude Include="dialog.h" />
     <ClInclude Include="hsp3compatible.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SysvarData.h" />
+    <ClInclude Include="tab_log.h" />
+    <ClInclude Include="vartree.h" />
+    <ClInclude Include="with_ModPtr.h" />
+    <ClInclude Include="with_Script.h" />
+    <ClInclude Include="WrapCall.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc" />

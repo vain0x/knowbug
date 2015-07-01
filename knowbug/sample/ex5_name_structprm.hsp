@@ -1,0 +1,29 @@
+// knowbug sample
+
+// メンバ変数や仮引数の識別子を knowbug に与える
+
+#include "../knowbug.as"
+
+;	assert
+
+	knowbug_namePrms "Point", "x_", "y_"				// メンバ変数 (順番重要)
+	knowbug_namePrms "Point_moveTo", "dstX", "dstY"
+	
+#module Point x_, y_
+
+#modinit int x, int y
+	Point_moveTo thismod, x, y
+	return
+	
+#modfunc Point_moveTo int dstX, int dstY
+	x_ = dstX
+	y_ = dstY
+	mes strf("now (%d, %d)", x_, y_) + 1 + 2
+	return
+#global
+
+	newmod pt, Point, 10, 20
+	
+	assert
+	Point_moveTo pt, 30, 40
+	stop

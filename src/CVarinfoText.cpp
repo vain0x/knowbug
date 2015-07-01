@@ -239,9 +239,13 @@ static const char *getMptypeString( STRUCTPRM *pStPrm )
 // 
 // @prm prmstk: NULL => 引数未確定
 //------------------------------------------------
-void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const char *name )
+void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const char *name, const char *filename, int line )
 {
-	catf( "関数名：%s", name );
+	if ( filename == nullptr ) {
+		catf( "関数名：%s", name );
+	} else {
+		catf( "関数名：%s (#%d of %s)", name, line, filename );
+	}
 	
 	// シグネチャ
 	{
@@ -284,7 +288,7 @@ void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const c
 		// メモリダンプ
 		dump( prmstk, pStDat->size );
 	}
-	
+
 	return;
 }
 

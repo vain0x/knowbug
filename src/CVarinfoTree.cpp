@@ -17,6 +17,9 @@
 # include "D:/Docs/prg/cpp/MakeHPI/var_array/src/for_knowbug.var_array.h"	// あまりにも遠いのでフルパス
 #endif
 
+#include "with_Script.h"
+#include "with_ModPtr.h"
+
 static const char *getMPTypeString( int mptype );
 
 //##############################################################################
@@ -280,33 +283,41 @@ void CVarinfoTree::addResult( void *ptr, vartype_t type, const char *name )
 //------------------------------------------------
 void CVarinfoTree::addItem_value( const BaseData& base, vartype_t type, void *ptr )
 {
+	const char* const vtname = mdbginfo.exinfo->HspFunc_getproc(type)->vartype_name;
+	
 	if ( type == HSPVAR_FLAG_STRUCT ) {
 #ifdef clhsp
 		addItem_modinst( base, *ptr_cast<ModInst **>(ptr) );
 #else
 		addItem_flexValue( base, ptr_cast<FlexValue *>(ptr) );
 #endif
-//	} else if ( type == HSPVAR_FLAG_STR ) {
-//		addItem_string( base, ptr_cast<char *>(ptr) );
-		
 #ifdef with_Assoc
 	// "assoc_k" 型
-	} else if ( strcmp(mdbginfo.exinfo->HspFunc_getproc(type)->vartype_name, "assoc_k") == 0 ) {
+	} else if ( strcmp(vtname, "assoc_k") == 0 ) {
 		CAssoc* src = *ptr_cast<CAssoc**>( ptr );
 		addItem_assoc( base, src );
 #endif
 #ifdef with_Vector
-	// "vector_d" 型
-	} else if ( strcmp(mdbginfo.exinfo->HspFunc_getproc(type)->vartype_name, "vector_k") == 0 ) {
+	// "vector_k" 型
+	} else if ( strcmp(vtname, "vector_k") == 0 ) {
 		CVector* src = *ptr_cast<CVector**>( ptr );
 		addItem_vector( base, src );
 #endif
 #ifdef with_Array
-	// "array_d" 型
-	} else if ( strcmp(mdbginfo.exinfo->HspFunc_getproc(type)->vartype_name, "array_k") == 0 ) {
+	// "array_k" 型
+	} else if ( strcmp(vtname, "array_k") == 0 ) {
 		CArray* src = *ptr_cast<CArray**>( ptr );
 		addItem_array( base, src );
 #endif
+#ifdef with_ModPtr
+	} else if ( type == HSPVAR_FLAG_INT && ModPtr::isValid(*ptr_cast<int*>(ptr)) ) {
+		CString name = strf( "%s = mp#%d", base.getName(), ModPtr::getIdx(*ptr_cast<int*>(ptr)) );
+		BaseData base2( name.c_str(), base.getIndent() );
+		addItem_flexValue( base2, ModPtr::getValue(*ptr_cast<int*>(ptr)) );
+#endif
+//	} else if ( type == HSPVAR_FLAG_STR ) {
+//		addItem_string( base, ptr_cast<char *>(ptr) );
+		
 	} else {
 #ifdef clhsp
 		char *p = mdbginfo.debug->dbg_toString( type, ptr );
@@ -609,7 +620,11 @@ void CVarinfoTree::addItem_prmstack(
 	 {
 		const void *member ( ptr_cast<const char *>(prmstack) + pStPrm->offset );
 		
-		sName = strf( BracketIdxL "%d" BracketIdxR, i );	// 仮の名称
+#ifdef with_Script
+		auto const name = getStPrmName( pStPrm );
+		if ( name ) { sName = name; } else
+#endif
+		{ sName = strf( BracketIdxL "%d" BracketIdxR, i ); }	// 仮の名称
 		baseChild.name = sName.c_str();
 		
 		addItem_member( baseChild, pStDat, pStPrm, member );
@@ -950,7 +965,13 @@ CString CVarinfoTree::getDbgString( vartype_t type, const void *pValue )
 		case HSPVAR_FLAG_DOUBLE:  return strf( "%.16f", *ptr_cast<double *>(ptr) );
 		case HSPVAR_FLAG_INT:
 		{
-			int val ( *ptr_cast<int *>(ptr) );
+			int const val = *ptr_cast<int*>(ptr);
+#ifdef with_ModPtr
+			if ( ModPtr::isValid(val) ) {
+				return strf("mp#%d", ModPtr::getIdx(val))
+					+ getDbgString( HSPVAR_FLAG_STRUCT, ModPtr::getValue(*ptr_cast<int*>(ptr)) );
+			}
+#endif
 			return strf( "%-10d (0x%08X)", val, val );
 		}
 		
@@ -1076,6 +1097,15 @@ CString CVarinfoTree::getDbgString( vartype_t type, const void *pValue )
 				const char* bytes = ptr_cast<char*>( ptr );
 				const int   val   = bytes[0] << 16 | bytes[1] << 8 | bytes[2];		// 再構成
 				return strf( "%-8d (0x%06X)", val, val );
+			}
+#endif
+#ifdef with_Modcmd
+			// "modcmd_k" 型
+			if ( strcmp(vartype_name, "modcmd_k") == 0 ) {
+				int const modcmd = *ptr_cast<int*>(ptr);
+				return strf("modcmd(%s)",
+					(modcmd == 0xFFFFFFFF) ? "" : &mdbginfo.ctx->mem_mds[mdbginfo.ctx->mem_finfo[modcmd].nameidx]
+				);
 			}
 #endif
 			return strf( "Unknown<%s>: 0x%08X", vartype_name, address_cast( ptr ) );
