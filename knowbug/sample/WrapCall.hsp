@@ -2,7 +2,8 @@
 
 #include "WrapCall.as"
 
-// デバッグウィンドウの「次行」ボタンを押しながら、+dynamic ノードを見る
+// WrapCall によって、ユーザ定義関数の呼び出しの変遷を追うことができる。
+// @ デバッグウィンドウの「次行」ボタンを押しながら、+dynamic ノードを見る。
 
 #module Point x, y
 
@@ -21,9 +22,13 @@
 	
 #global
 	
-	assert
+	assert		// ←いきなり止まるので
 	
 	newmod x, Point, 20, 30
+	assert
 	logmes point_toString(x)
+	
+	mes "a"
+	
 	
 ;	point_set x, 30, 40

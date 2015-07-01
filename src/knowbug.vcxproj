@@ -116,7 +116,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='[D] hsp-compatible|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>hsp;with_Vector;with_Multi;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>hsp;with_Vector;with_Assoc;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -168,7 +168,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='[R] hsp-compatible|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>hsp;with_Vector;with_Multi;with_WrapCall;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>hsp;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
@@ -205,6 +205,7 @@
     <ClCompile Include="..\..\..\module\strbuf.cpp" />
     <ClCompile Include="..\..\..\module\supio_win.cpp" />
     <ClCompile Include="CIni.cpp" />
+    <ClCompile Include="CVarinfoLine.cpp" />
     <ClCompile Include="CVarinfoText.cpp" />
     <ClCompile Include="CVarinfoTree.cpp" />
     <ClCompile Include="CVarTree.cpp" />
@@ -212,16 +213,16 @@
     <ClCompile Include="SysvarData.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\..\MakeHPI\var_multi\src\for_knowbug.h" />
-    <ClInclude Include="..\..\..\..\..\..\MakeHPI\var_vector\src\for_knowbug.h" />
+    <ClInclude Include="..\..\..\..\..\..\MakeHPI\hpimod\var_assoc\for_knowbug.var_assoc.h" />
+    <ClInclude Include="..\..\..\..\..\..\MakeHPI\hpimod\var_vector\for_knowbug.var_vector.h" />
     <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\DbgWndMsg.h" />
     <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\ModcmdCallInfo.h" />
     <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\WrapCallSdk.h" />
-    <ClInclude Include="..\..\..\hsp3\chdebug.h" />
-    <ClInclude Include="..\..\..\hsp3\chstruct.h" />
-    <ClInclude Include="..\..\..\hsp3\chvar_core.h" />
-    <ClInclude Include="..\..\..\hsp3\gc.h" />
-    <ClInclude Include="..\..\..\hsp3\mod_vector.h" />
+    <ClInclude Include="..\..\..\chruntime\chdebug.h" />
+    <ClInclude Include="..\..\..\chruntime\chstruct.h" />
+    <ClInclude Include="..\..\..\chruntime\chvar_core.h" />
+    <ClInclude Include="..\..\..\chruntime\gc.h" />
+    <ClInclude Include="..\..\..\chruntime\mod_vector.h" />
     <ClInclude Include="..\..\..\module\compatible-header\hsp3debug.compatible.h" />
     <ClInclude Include="..\..\..\module\compatible-header\hsp3struct.compatible.h" />
     <ClInclude Include="..\..\..\module\compatible-header\hspvar_core.compatible.h" />
@@ -235,6 +236,7 @@
     <ClInclude Include="..\..\..\module\supio_win.h" />
     <ClInclude Include="CIni.h" />
     <ClInclude Include="ClhspDebugInfo.h" />
+    <ClInclude Include="CVarinfoLine.h" />
     <ClInclude Include="CVarinfoText.h" />
     <ClInclude Include="CVarinfoTree.h" />
     <ClInclude Include="CVarTree.h" />

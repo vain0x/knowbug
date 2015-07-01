@@ -3,9 +3,9 @@
 #ifndef IG_HSP3DBGWIN_KNOWBUG_H
 #define IG_HSP3DBGWIN_KNOWBUG_H
 
-#include "hsp3/hsp3debug.h"
-#include "hsp3/hsp3struct.h"			// hsp3 core define
+#include "chruntime/hsp3debug.h"
+#include "chruntime/hsp3struct.h"			// hsp3 core define
 
-#include "hsp3/mod_vector.h"
+//#include "chruntime/mod_vector.h"
 
 #endif

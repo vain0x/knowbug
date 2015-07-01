@@ -112,7 +112,7 @@ STYLE DS_SETFONT | DS_CONTROL | WS_CHILD | WS_CLIPCHILDREN | WS_SYSMENU
 FONT 9, "ＭＳ ゴシック", 400, 0, 0x80
 BEGIN
     CONTROL         "",IDC_LV_GENERAL,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,6,6,228,222
-    PUSHBUTTON      "内容を更新",IDC_BTN_UPDATE,156,234,81,14
+    PUSHBUTTON      "更新",IDC_BTN_UPDATE,156,234,81,14
 END
 
 T_VAR DIALOGEX 0, 0, 242, 254
@@ -128,8 +128,11 @@ STYLE DS_SETFONT | DS_CONTROL | WS_CHILD | WS_CLIPCHILDREN | WS_SYSMENU
 FONT 9, "ＭＳ ゴシック", 400, 0, 0x80
 BEGIN
     EDITTEXT        IDC_LOG,6,6,228,234,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
-    CONTROL         "自動更新",IDC_CHK_UPDATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,240,48,12
-	CONTROL         "呼出履歴",IDC_CHK_CALOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,58,240,48,12
+    CONTROL         "自動更新",IDC_CHK_UPDATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,240,45,12
+	CONTROL         "呼出履歴",IDC_CHK_CALOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,55,240,45,12
+	PUSHBUTTON      "更新",IDC_BTN_LOG_UPDATE,105,240,40,13
+	PUSHBUTTON      "保存", IDC_BTN_LOG_SAVE,145,240,40,13
+	PUSHBUTTON      "初期化", IDC_BTN_LOG_CLEAR,185,240,45,13
 END
 
 
@@ -155,14 +158,13 @@ BEGIN
     BEGIN
         BLOCK "041104b0"
         BEGIN
-            VALUE "CompanyName", "上大"
+            VALUE "CompanyName", "uedai"
             VALUE "FileDescription", "debugger for hsp3"
-            VALUE "FileVersion", "1.0.7.0"
+            VALUE "FileVersion", "1.1.0.0"
             VALUE "InternalName", "knowbug.dll"
-            VALUE "LegalCopyright", "Copyright (C) 2011"
             VALUE "OriginalFilename", "hsp3debug.dll"
             VALUE "ProductName", "knowbug"
-            VALUE "ProductVersion", "1.0.7.0"
+            VALUE "ProductVersion", "1.1.0.0"
         END
     END
     BLOCK "VarFileInfo"

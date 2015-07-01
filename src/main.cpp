@@ -25,7 +25,8 @@ static HINSTANCE myinst;
 #define ID_BTN1 1000
 #define ID_BTN2 1001
 #define ID_BTN3 1002
-//#define ID_BTN4 1003
+#define ID_BTN4 1003
+#define ID_BTN5 1004
 
 #define TABDLGMAX 3
 #define myClass "KNOWBUG"
@@ -51,12 +52,16 @@ static HWND g_hBtn1;
 static HWND g_hBtn2;
 static HWND g_hBtn3;
 static HWND g_hBtn4;
+static HWND g_hBtn5;
 static HWND g_hSttCtrl;
 
 static HWND g_hLogPage;
 static HWND g_hLogEdit;
 static HWND g_hLogChkUpdate;
 static HWND g_hLogChkCalog;
+
+static HMENU g_hPopup;
+static HMENU g_hPopupOfVar;
 
 typedef BOOL (CALLBACK *HSP3DBGFUNC)(HSP3DEBUG *,int,int,int);
 
@@ -67,31 +72,46 @@ static HSPEXINFO* exinfo( NULL );
 
 //----------------------------------------------------------
 
+#include <deque>
 #include <vector>
+#include <list>
 #include "module/mod_cstring.h"
 #include "module/mod_cast.h"
 #include "ClhspDebugInfo.h"
 #include "CVarTree.h"
 //#include "CVarinfoTree.h"
 #include "CVarinfoText.h"
+#include "CVarinfoLine.h"
 #include "SysvarData.h"
 #include "CIni.h"
 #define dbgmsg(msg) MessageBox( NULL, msg, "Debug Window", MB_OK )
 
+// グローバル変数
 static DebugInfo  g_dbginfo_inst;
-static DebugInfo* g_dbginfo      ( &g_dbginfo_inst );
-static CVarTree*  stt_pSttVarTree( NULL );
-//static DynTree_t* stt_pDynTree   ( NULL );
-static CString*   stt_pLogmsg    ( NULL );
+static DebugInfo* g_dbginfo      = &g_dbginfo_inst;
+static CVarTree*  stt_pSttVarTree = NULL;
+//static DynTree_t* stt_pDynTree  = NULL;
+static CString*   stt_pLogmsg     = NULL;
+
+static int stt_sublev_for_stepover = -1;
+
+// 設定関連
 static std::vector<COLORREF> stt_clrTypeText;
-static bool stt_bCustomDraw   ( false );
-static int  stt_maxlenVarinfo ( 0 );
-static int  stt_tabwidth      ( 4 );
+static bool stt_bCustomDraw   = false;
+static int  stt_maxlenVarinfo = 0;
+static int  stt_tabwidth      = 4;
+static bool stt_bTopMost      = false;
+static CString stt_logPath    = "";
+static int  stt_logMaxlen     = 0x7FFF;
+static bool stt_bWordwrap     = false;
+static std::vector<CString> stt_extraTypeFormat;
 
 static void getConfig( void );
 
 static void setTabLength( HWND hEdit, const int tabwidth );
+static void setWordwrapStyle( HWND hEdit, bool bEnable );
 
+// 変数ツリー関連
 static CVarTree* getSttVarTree( void );
 static void VarTree_addNode( HWND hwndTree, HTREEITEM hParent, CVarTree& tree );
 static void VarTree_addNodeSysvar( HWND hwndTree, HTREEITEM hParent );
@@ -99,19 +119,26 @@ static LRESULT   VarTree_customDraw( HWND hwndTree, LPNMTVCUSTOMDRAW pnmcd );
 static vartype_t VarTree_getVartype( HWND hwndTree, HTREEITEM hItem );
 static CString   VarTree_getItemString( HWND hwndTree, HTREEITEM hItem );
 static LPARAM    VarTree_getItemLParam( HWND hwndTree, HTREEITEM hItem );
+static CString   VarTree_getItemVarText( HWND hwndTree, HTREEITEM hItem );
 
 static PVal *seekSttVar( const char *name );
 static vartype_t getVartype( const char *name );
 
 static inline bool isModuleNode( const char *name ) { return name[0] == '@' || name[0] == '+'; }
 static inline bool isSysvarNode( const char *name ) { return name[0] == '~'; }
+static inline bool isVarNode   ( const char *name ) { return !(isModuleNode(name) || isSysvarNode(name)); }
 
+// ログ関連
+static void TabLogSave( HWND hDlg, const char* filepath );
+
+// ランタイムとの通信
 EXPORT BOOL WINAPI debugini( HSP3DEBUG *p1, int p2, int p3, int p4 );
 EXPORT BOOL WINAPI debug_notice( HSP3DEBUG *p1, int p2, int p3, int p4 );
 #ifndef clhsp
 EXPORT BOOL WINAPI debugbye( HSP3DEBUG *p1, int p2, int p3, int p4 );
 #endif
 
+// WrapCall 関連
 #ifdef with_WrapCall
 # include "../../../../../../MakeHPI/WrapCall/ModcmdCallInfo.h"
 # include "../../../../../../MakeHPI/WrapCall/DbgWndMsg.h"
@@ -123,16 +150,19 @@ static HTREEITEM g_hNodeDynamic;
 static void VarTree_addNodeDynamic( HWND hwndTree, HTREEITEM hParent );
 
 static void AddCallNode ( HWND hwndTree, const ModcmdCallInfo& callinfo );
+static void RemoveCallNode( HWND hwndTree );
+static void UpdateCallNode( HWND hwndTree );
 static void OnBgnCalling( HWND hwndTree, const ModcmdCallInfo& callinfo );
 static void OnEndCalling( HWND hwndTree, const ModcmdCallInfo& callinfo );
 
 // methods
 static void WrapCallMethod_AddLog( const char* log );
 static void WrapCallMethod_BgnCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo );
-static void WrapCallMethod_EndCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo );
+static int  WrapCallMethod_EndCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo );
 
 #endif
 
+// khad 関連
 #ifdef with_khad
 # include "khAd.h"
 static HWND g_hKhad = NULL;
@@ -357,68 +387,13 @@ static void TabVarsReset( void )
 //------------------------------------------------
 static void TabVarsUpdate( void )
 {
-	HTREEITEM hItem  = TreeView_GetSelection( g_hVarTree );
-	CString   sItem  = VarTree_getItemString( g_hVarTree, hItem );
-	const char* name = sItem.c_str();
+	HTREEITEM hItem = TreeView_GetSelection( g_hVarTree );
+	if ( hItem == NULL ) return;
 	
-	// モジュールの情報
-	if ( name[0] == '@' || name[0] == '+' ) {
-		return;
-		
-	// 変数の情報
-	} else {
-	/*
-		// HSP側に問い合わせ
-		char *p = g_debug->get_varinf( name, GetTabVarsOption() );
-		
-		SetWindowText( g_hVarEdit, p );
-		
-		g_debug->dbg_close( p );
-	/*/
-		CVarinfoText *varinf( new CVarinfoText( *g_dbginfo, stt_maxlenVarinfo ) );
-		
-		// システム変数
-		if ( name[0] == '~' ) {
-			varinf->addSysvar( &name[1] );
-			
-#ifdef with_WrapCall
-		// 呼び出しの情報
-		} else if ( name[0] == '\'' ) {
-			//*
-			const ModcmdCallInfo* pCallInfo = almighty_cast<const ModcmdCallInfo*>(
-				VarTree_getItemLParam( g_hVarTree, hItem )
-			);
-			
-			if ( pCallInfo != NULL ) {
-				// prmstk は、次の要素の prmstk_bak か、ctx->prmstack にある。
-				HTREEITEM hNext = TreeView_GetNextItem( g_hVarTree, hItem, TVGN_NEXT );
-				void *prmstk = ( hNext == NULL )
-					? ctx->prmstack					// 末端 (最新の呼び出し)
-					: almighty_cast<const ModcmdCallInfo*>( VarTree_getItemLParam( g_hVarTree, hNext ) )->prmstk_bak
-				;
-				
-				varinf->addCall( pCallInfo->pStDat, prmstk, pCallInfo->sublev, &name[1] );
-			}
-			//*/
-#endif
-		// 静的変数
-		} else {
-			PVal *pval = seekSttVar( name );
-			
-			if ( pval == NULL ) {
-				dbgmsg( strf("[Error] \"%s\"は静的変数の名称ではない。", name).c_str() );
-				return;
-			}
-			
-			varinf->addVar( pval, name );
-		}
-		
-		SetWindowText( g_hVarEdit, varinf->getString().c_str() );
-		
-		delete varinf;
-	//*/
+	CString&& varinfoText = VarTree_getItemVarText( g_hVarTree, hItem );
+	if ( !varinfoText.empty() ) {
+		SetWindowText( g_hVarEdit, varinfoText.c_str() );
 	}
-
 	return;
 }
 
@@ -434,7 +409,7 @@ static void TabLogAdditionalUpdate( const char *text )
 	);
 	
 	int size = Edit_GetTextLength( g_hLogEdit );
-	Edit_SetSel( g_hLogEdit, size, size );		// 最後尾にキャレットを向ける
+	Edit_SetSel( g_hLogEdit, size, size );		// 最後尾にキャレットを置く
 	Edit_ReplaceSel( g_hLogEdit, text );		// 文字列(str)を追加する
 	Edit_ScrollCaret( g_hLogEdit );				// 画面を必要なだけスクロール
 	
@@ -477,6 +452,67 @@ static void TabLogAdd( const char *str )
 	return;
 }
 
+static void TabLogAddCrlf()
+{
+	TabLogAdd( "\r\n" );
+}
+
+//------------------------------------------------
+// ログメッセージを初期化する
+//------------------------------------------------
+static void TabLogClear()
+{
+	if ( stt_pLogmsg != NULL ) stt_pLogmsg->clear();
+	
+	Edit_SetSel( g_hLogEdit, 0, -1 );		// 最後尾にキャレットを向ける
+	Edit_ReplaceSel( g_hLogEdit, "" );		// 空っぽにする
+	return;
+}
+
+//------------------------------------------------
+// ログメッセージを保存する
+//------------------------------------------------
+static void TabLogSave( HWND hDlg )
+{
+	char filename[MAX_PATH + 1] = "";
+	char fullname[MAX_PATH + 1] = "hspdbg.log";
+	OPENFILENAME ofn = { 0 };
+		ofn.lStructSize    = sizeof(ofn);			// 構造体のサイズ
+		ofn.hwndOwner      = hDlg;					// コモンダイアログの親ウィンドウハンドル
+		ofn.lpstrFilter    = "log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";	// ファイルの種類
+		ofn.lpstrFile      = fullname;				// 選択されたファイル名(フルパス)を受け取る変数のアドレス
+		ofn.lpstrFileTitle = filename;				// 選択されたファイル名を受け取る変数のアドレス
+		ofn.nMaxFile       = sizeof(fullname);		// lpstrFileに指定した変数のサイズ
+		ofn.nMaxFileTitle  = sizeof(filename);		// lpstrFileTitleに指定した変数のサイズ
+		ofn.Flags          = OFN_OVERWRITEPROMPT;	// フラグ指定
+		ofn.lpstrTitle     = "名前を付けて保存";	// コモンダイアログのキャプション
+		ofn.lpstrDefExt    = "log";					// デフォルトのファイルの種類
+
+	if ( !GetSaveFileName( &ofn ) ) return;
+	
+	TabLogSave( hDlg, fullname );
+	return;
+}
+
+static void TabLogSave( HWND hDlg, const char* filepath )
+{
+	// ログメッセージを取り出す
+	int size = Edit_GetTextLength( g_hLogEdit );
+	char* buf = new char[size + 2];
+	GetWindowText( g_hLogEdit, buf, size + 1 );
+	
+	// 保存
+	HANDLE hFile = CreateFile( filepath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
+	if ( hFile != INVALID_HANDLE_VALUE ) {
+		DWORD writesize;
+		WriteFile( hFile, buf, size, &writesize, NULL );
+		CloseHandle( hFile );
+	}
+
+	delete buf;
+	return;
+}
+
 //------------------------------------------------
 // 全般タブ::プロシージャ
 //------------------------------------------------
@@ -513,18 +549,62 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			g_hVarTree = GetDlgItem( hDlg, IDC_VARTREE );
 			g_hVarEdit = GetDlgItem( hDlg, IDC_VARINFO );
 			
-			setTabLength( g_hVarEdit, stt_tabwidth );
+			setTabLength( g_hVarEdit, stt_tabwidth );	// タブ文字の長さ
+			setWordwrapStyle( g_hVarEdit, stt_bWordwrap );
 			
 			TabVarsReset();
+			
+			// ポップアップメニューの追加
+			g_hPopupOfVar = CreatePopupMenu();
+				AppendMenu( g_hPopupOfVar, MF_STRING, IDM_VAR_LOGGING, "ログ(&L)");	// 文は表示時に上書きされる
+				AppendMenu( g_hPopupOfVar, MF_STRING, IDM_VAR_UPDATE,  "更新(&U" );
 			return TRUE;
 			
-		/*
-		case WM_COMMAND:
-			switch ( LOWORD(wp) ) {
+		case WM_CONTEXTMENU:
+		{
+			// ツリー上で逆クリック
+			if ( wp == (WPARAM)g_hVarTree ) {
+				TV_HITTESTINFO tvHitTestInfo;
+					tvHitTestInfo.pt.x = LOWORD(lp);
+					tvHitTestInfo.pt.y = HIWORD(lp);
+				ScreenToClient( g_hVarTree, &tvHitTestInfo.pt );
+				const auto hItem = TreeView_HitTest( g_hVarTree, &tvHitTestInfo );	// 対象を確定
+				if ( hItem == NULL )  break;
+				
+				if ( tvHitTestInfo.flags & TVHT_ONITEMLABEL ) {		// 文字列アイテムの場合
+					const auto varname = VarTree_getItemString(g_hVarTree, hItem);
+					{
+						const auto menuText = strf( "「%s」をログ(&L)", varname.c_str() );
+						MENUITEMINFO menuInfo;
+							menuInfo.cbSize = sizeof(menuInfo);
+							menuInfo.fMask  = MIIM_STRING;
+							menuInfo.dwTypeData = const_cast<LPSTR>( menuText.c_str() );
+						SetMenuItemInfo( g_hPopupOfVar, IDM_VAR_LOGGING, FALSE, &menuInfo );
+					}
+					
+					// ポップアップメニューを表示する
+					const int idSelected = TrackPopupMenuEx(
+						g_hPopupOfVar, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD,
+						(int)LOWORD(lp), (int)HIWORD(lp), hDlgWnd, NULL
+					);
+					
+					switch ( idSelected ) {
+						case IDM_VAR_LOGGING:
+						{
+							CString&& varinfoText = VarTree_getItemVarText( g_hVarTree, hItem );
+							TabLogAdd( varinfoText.c_str() );		// logmes 送信
+							return TRUE;
+						}
+						case IDM_VAR_UPDATE:
+							TabVarsUpdate();
+							break;
+						default: break;
+					}
+					return TRUE;
+				}
 			}
-			return FALSE;
-		//*/
-			
+			break;
+		}
 		case WM_NOTIFY:
 		{
 			NMHDR* nmhdr = (LPNMHDR)lp;
@@ -571,9 +651,15 @@ LRESULT CALLBACK TabLogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			g_hLogChkCalog  = GetDlgItem( hDlg, IDC_CHK_CALOG );
 			
 			CheckDlgButton( g_hLogPage, IDC_CHK_UPDATE, BST_CHECKED );
+#ifdef with_WrapCall
 		//	CheckDlgButton( g_hLogPage, IDC_CHK_CALOG,  BST_CHECKED );
+#else
+			EnableWindow( g_hLogChkCalog, false );
+#endif
 			
 			setTabLength( g_hLogEdit, stt_tabwidth );
+			setWordwrapStyle( g_hLogEdit, stt_bWordwrap );
+			SendMessage( g_hLogEdit, EM_SETLIMITTEXT, (WPARAM) stt_logMaxlen, 0 );
 			return TRUE;
 			
 		case WM_COMMAND:
@@ -586,9 +672,17 @@ LRESULT CALLBACK TabLogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					}
 					break;
 					
-			//	case IDC_BTN_CLEAR:
-			//		TabLogClear();
-			//		break;
+				case IDC_BTN_LOG_UPDATE:
+					TabLogCommit();
+					break;
+					
+				case IDC_BTN_LOG_SAVE:
+					TabLogSave( hDlg );
+					break;
+					
+				case IDC_BTN_LOG_CLEAR:
+					TabLogClear();
+					break;
 			}
 			return FALSE;
 	}
@@ -600,23 +694,28 @@ LRESULT CALLBACK TabLogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 //------------------------------------------------
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
-	TCITEM	tc;
-	RECT	rt;
-	LPPOINT pt = (LPPOINT) &rt;
-	HFONT hf;
-
 	switch ( msg ) {
 
 	// 初期化
 	case WM_CREATE:
+	{
+		TCITEM tc;
+		RECT rt;
+		LPPOINT pt = (LPPOINT) &rt;
 		
-		hf = (HFONT)GetStockObject( DEFAULT_GUI_FONT );
-		g_hTabCtrl = GenerateObj( hDlg, WC_TABCONTROL, "", DIALOG_X0, DIALOG_Y0, DIALOG_X1, DIALOG_Y2, IDU_TAB, hf );
-		g_hSttCtrl = GenerateObj( hDlg, "static",    "",  DIALOG_X0 + 180, DIALOG_Y1 + 4, DIALOG_X1 - 180, 48, 0, hf );
-		g_hBtn1    = GenerateObj( hDlg, "button", "実行", DIALOG_X0 +   8, DIALOG_Y1 + 4, 80, 24, ID_BTN1, hf );
-		g_hBtn2    = GenerateObj( hDlg, "button", "次行", DIALOG_X0 +  88, DIALOG_Y1 + 4, 40, 24, ID_BTN2, hf );
-	//	g_hBtn4    = GenerateObj( hDlg, "button", "脱出", DIALOG_X0 + 128, DIALOG_Y1 + 4, 40, 24, ID_BTN4, hf );		// 追加
-		g_hBtn3    = GenerateObj( hDlg, "button", "停止", DIALOG_X0 + 128, DIALOG_Y1 + 4, 40, 24, ID_BTN3, hf );
+		// ポップアップメニューを生成
+		g_hPopup   = CreatePopupMenu();
+			AppendMenu( g_hPopup, (stt_bTopMost ? MFS_CHECKED : MFS_UNCHECKED), IDM_TOPMOST, "常に最前面に表示する(&T)" );
+		
+		// ダイアログオブジェクトを生成
+		HFONT hFont = (HFONT)GetStockObject( DEFAULT_GUI_FONT );
+		g_hTabCtrl = GenerateObj( hDlg, WC_TABCONTROL, "", DIALOG_X0, DIALOG_Y0, DIALOG_X1, DIALOG_Y2, IDU_TAB, hFont );
+		g_hSttCtrl = GenerateObj( hDlg, "static",    "",  DIALOG_X0 + 210, DIALOG_Y1 + 4, DIALOG_X1 - 210, 48, 0, hFont );
+		g_hBtn1    = GenerateObj( hDlg, "button", "実行", DIALOG_X0 +   8, DIALOG_Y1 + 4, 40, 24, ID_BTN1, hFont );
+		g_hBtn2    = GenerateObj( hDlg, "button", "次行", DIALOG_X0 +  48, DIALOG_Y1 + 4, 40, 24, ID_BTN2, hFont );	
+		g_hBtn3    = GenerateObj( hDlg, "button", "停止", DIALOG_X0 +  88, DIALOG_Y1 + 4, 40, 24, ID_BTN3, hFont );
+		g_hBtn4    = GenerateObj( hDlg, "button", "次飛", DIALOG_X0 + 128, DIALOG_Y1 + 4, 40, 24, ID_BTN4, hFont );		// 追加
+		g_hBtn5    = GenerateObj( hDlg, "button", "脱出", DIALOG_X0 + 168, DIALOG_Y1 + 4, 40, 24, ID_BTN5, hFont );		// 追加
 		
 		// 全般タブを追加
 		tc.mask = TCIF_TEXT;
@@ -635,7 +734,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		tc.pszText = "ログ";
 		TabCtrl_InsertItem(g_hTabCtrl, 2, &tc);
 		g_hTabSheet[2] = CreateDialog( myinst, "T_LOG", hDlg, (DLGPROC) TabLogProc );
-
+		
 		//GetClientRect(g_hTabCtrl, &rt);
 		SetRect( &rt, 8, DIALOG_Y2 + 4, DIALOG_X1 + 8, DIALOG_Y1 + 4 );
 		//TabCtrl_AdjustRect(g_hTabCtrl, FALSE, &rt);
@@ -656,48 +755,81 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		// デフォルトで左側のタブを表示
 		ShowWindow( g_hTabSheet[0], SW_SHOW );
 		return TRUE;
-
+	}
 	case WM_NOTIFY:
 	{
 		NMHDR *nm = (NMHDR *)lp;		// タブコントロールのシート切り替え通知
 		int cur   = TabCtrl_GetCurSel(g_hTabCtrl);
 		for ( int i = 0; i < TABDLGMAX; ++ i ) {
-			if ( i == cur ) {
-				ShowWindow( g_hTabSheet[i], SW_SHOW );
-			} else {
-				ShowWindow( g_hTabSheet[i], SW_HIDE );
-			}
+			ShowWindow( g_hTabSheet[i], (i == cur) ? SW_SHOW : SW_HIDE );
 		}
 		break;
 	}
 	case WM_COMMAND:
 		switch ( LOWORD(wp) ) {
-		case ID_BTN1:
-			g_debug->dbg_set( HSPDEBUG_RUN );
-			SetWindowText( g_hSttCtrl, "" );
-			break;
-		case ID_BTN2:
-			g_debug->dbg_set( HSPDEBUG_STEPIN );
-			SetWindowText( g_hSttCtrl, "" );
-			break;
-			/*
-		case ID_BTN4:
-		//	g_debug->dbg_set( HSPDEBUG_STEPOUT );
-			sublev_for_steprun = ctx->sublev - 1;
-			g_debug->dbg_set( HSPDEBUG_RUN );
-			SetWindowText( g_hSttCtrl, "" );
-			break;
-			//*/
-		case ID_BTN3:
-			g_debug->dbg_set( HSPDEBUG_STOP );
-			break;
+			case ID_BTN1: LRun:
+				g_debug->dbg_set( HSPDEBUG_RUN );
+				SetWindowText( g_hSttCtrl, "" );
+				break;
+			case ID_BTN2: LStepIn:
+				g_debug->dbg_set( HSPDEBUG_STEPIN );
+				SetWindowText( g_hSttCtrl, "" );
+				break;
+				//*
+			case ID_BTN3:
+				g_debug->dbg_set( HSPDEBUG_STOP );
+				break;
+			case ID_BTN4:
+			//	g_debug->dbg_set( HSPDEBUG_STEPOVER ); break;
+				stt_sublev_for_stepover = ctx->sublev;
+				goto LStepIn;
+				//*/
+			case ID_BTN5:
+			//	g_debug->dbg_set( HSPDEBUG_STEPOUT ); break;
+				if ( ctx->sublev == 0 ) goto LRun;			// 最外周からは脱出できないので
+				stt_sublev_for_stepover = ctx->sublev - 1;
+				goto LStepIn;
 		}
 		break;
 		
+	case WM_CONTEXTMENU:		// ポップアップメニュー表示
+	{
+		POINT pt;
+		GetCursorPos( &pt );	// カーソル位置 (スクリーン座標)
+		
+		// ポップアップメニューを表示する
+		const int idSelected = TrackPopupMenuEx(
+			g_hPopup, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, hDlg, NULL
+		);
+		switch ( idSelected ) {
+			case IDM_TOPMOST:
+			{
+				stt_bTopMost = !stt_bTopMost;		// 反転
+				
+				MENUITEMINFO menuInfo;
+					menuInfo.cbSize = sizeof(menuInfo);
+					menuInfo.fMask  = MIIM_STATE;
+					menuInfo.fState = ( stt_bTopMost ? MFS_CHECKED : MFS_UNCHECKED );
+					
+				SetWindowPos(	// 最前面
+					hDlgWnd, (stt_bTopMost ? HWND_TOPMOST : HWND_NOTOPMOST),
+					0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)
+				);
+				
+				SetMenuItemInfo( g_hPopup, IDM_TOPMOST, FALSE, &menuInfo );
+				break;
+			}
+			default: break;
+		}
+		return TRUE;
+	}
+	
 	case WM_CLOSE:
 		return FALSE;
 		
 	case WM_DESTROY:
+		DestroyMenu( g_hPopup );      g_hPopup      = nullptr;
+		DestroyMenu( g_hPopupOfVar ); g_hPopupOfVar = nullptr;
 		PostQuitMessage(0);
 		break;
 		
@@ -790,6 +922,12 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG *p1, int p2, int p3, int p4 )
 	if ( hDlgWnd == NULL ) {
 		MessageBox( NULL, "Debug window initalizing failed.", "Error", 0 );
 	}
+	
+	SetWindowPos(	// 最前面
+		hDlgWnd, (stt_bTopMost ? HWND_TOPMOST : HWND_NOTOPMOST),
+		0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)
+	);
+	
 	ShowWindow( hDlgWnd, SW_SHOW );
     UpdateWindow( hDlgWnd );
 	
@@ -812,6 +950,20 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG *p1, int p2, int p3, int p4 )
 		// 実行が停止した (stop, wait, await, assert など)
 		case DebugNotice_Stop:
 		{
+			if ( stt_sublev_for_stepover >= 0 ) {
+				if ( ctx->sublev > stt_sublev_for_stepover ) {
+					g_debug->dbg_set( HSPDEBUG_STEPIN );		// stepin を繰り返す
+					break;
+				} else {
+					stt_sublev_for_stepover = -1;	// 終了
+				//	g_debug->dbg_set( HSPDEBUG_STOP );
+				}
+			}
+			
+#ifdef with_WrapCall
+			UpdateCallNode( g_hVarTree );		// 呼び出しノード更新
+#endif
+			
 			CurrnetUpdate();
 			int idxTab = TabCtrl_GetCurSel(g_hTabCtrl);
 			switch( idxTab ) {
@@ -827,8 +979,8 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG *p1, int p2, int p3, int p4 )
 		
 		// logmes 命令が呼ばれた
 		case DebugNotice_Logmes:
-			strcat_s( ctx->stmp, 1024, "\r\n" );
 			TabLogAdd( ctx->stmp );
+			TabLogAddCrlf();
 			break;
 	}
 	return 0;
@@ -836,9 +988,15 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG *p1, int p2, int p3, int p4 )
 
 //------------------------------------------------
 // debugbye ptr  (type1)
+// 
+// @ clhsp からは呼ばれるが、hsp なら自分で呼ぶ。
 //------------------------------------------------
 EXPORT BOOL WINAPI debugbye( HSP3DEBUG *p1, int p2, int p3, int p4 )
 {
+	if ( !stt_logPath.empty() ) {		// 自動ログ保存
+		TabLogSave( hDlgWnd, stt_logPath.c_str() );
+	}
+	
 #ifdef with_khad
 	if ( g_hKhad ) SendMessage( g_hKhad, UWM_KHAD_BYE, 0, 0 );
 #endif
@@ -871,10 +1029,11 @@ static void getConfig( void )
 		sprintf_s( ownpath, "%s%s", drive, dir );
 	}
 	
-	CIni ini( strf("%sknowbug.ini", ownpath).c_str() );
+	CString const ownpath_full = strf("%sknowbug.ini", ownpath);
+	CIni ini( ownpath_full.c_str() );
 	
 	// カスタムドローするかどうか
-	stt_bCustomDraw = ini.getInt( "ColorType", "bCustomDraw", FALSE ) != FALSE;
+	stt_bCustomDraw = ini.getBool( "ColorType", "bCustomDraw", false );
 	
 	char stmp[256] = "";
 	
@@ -890,9 +1049,19 @@ static void getConfig( void )
 	
 	// 最大表示データ量
 	stt_maxlenVarinfo = ini.getInt( "Varinfo", "maxlen", 0x1000 - 1 );
+	stt_logMaxlen     = ini.getInt( "Log",     "maxlen", 0x20000 );
 	
 	// タブ文字幅
-	stt_tabwidth = ini.getInt( "Interface", "tabwidth", 4 );
+	stt_tabwidth  = ini.getInt( "Interface", "tabwidth", 4 );
+	
+	// 右端で折り返すか否か
+	stt_bWordwrap = ini.getBool( "Interface", "bWordwrap", false );
+	
+	// 最前面ウィンドウか否か
+	stt_bTopMost = ini.getBool( "Window", "bTopMost", false );
+	
+	// 自動保存パス
+	stt_logPath = ini.getString( "Log", "autoSavePath", "" );
 	
 	return;
 }
@@ -902,7 +1071,7 @@ static void getConfig( void )
 //------------------------------------------------
 static void setTabLength( HWND hEdit, const int tabwidth )
 {
-	const HDC hdc = GetDC(hEdit);
+	HDC const hdc = GetDC(hEdit);
 	{
 		TEXTMETRIC tm;
 		if ( GetTextMetrics(hdc, &tm) ) {
@@ -911,6 +1080,21 @@ static void setTabLength( HWND hEdit, const int tabwidth )
 		}
 	}
 	ReleaseDC(g_hVarEdit, hdc);
+	return;
+}
+
+//------------------------------------------------
+// EditControl の「右端で折り返す」か否か
+//------------------------------------------------
+static void setWordwrapStyle( HWND hEdit, bool bEnable )
+{
+	LONG const Style_HorzScroll = WS_HSCROLL | ES_AUTOHSCROLL;
+	LONG const style = GetWindowLongPtr(hEdit, GWL_STYLE);
+	
+	SetWindowLongPtr( hEdit, GWL_STYLE,
+		stt_bWordwrap ? (style &~ Style_HorzScroll) : (style | Style_HorzScroll)
+	);
+	SetWindowPos( hEdit, NULL, 0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED) );
 	return;
 }
 
@@ -1049,7 +1233,7 @@ static CString VarTree_getItemString( HWND hwndTree, HTREEITEM hItem )
 	TVITEM ti;
 	ti.hItem      = hItem;
 	ti.mask       = TVIF_TEXT;
-	ti.pszText    = &stmp[0];
+	ti.pszText    = stmp;
 	ti.cchTextMax = sizeof(stmp) - 1;
 	
 	if ( TreeView_GetItem( hwndTree, &ti ) ) {
@@ -1161,10 +1345,137 @@ static vartype_t getVartype( const char *name )
 	return HSPVAR_FLAG_NONE;
 }
 
+//------------------------------------------------
+// 変数情報のテキストを取得する
+//------------------------------------------------
+static CString VarTree_getItemVarText( HWND hwndTree, HTREEITEM hItem )
+{
+	const CString itemText = VarTree_getItemString( hwndTree, hItem );
+	const char*   name     = itemText.c_str();
+	
+	// ルート
+	if ( name[0] == '@' || name[0] == '+' ) {
+		CVarinfoLine* varinf = new CVarinfoLine( *g_dbginfo, stt_maxlenVarinfo );
+		
+#ifdef with_WrapCall
+		// 呼び出し履歴
+		if ( strcmp(name, "+dynamic") == 0 ) {
+			size_t const lenCall = g_stkCallinfo.size();
+			if ( lenCall != 0 ) {
+				varinf->cat( "[呼び出し履歴]" );
+				varinf->cat_crlf();
+				
+				for ( uint i = 0; i < lenCall; ++ i ) {
+					auto pCallInfo = g_stkCallinfo[i];
+					auto prmstk    = ( i == lenCall - 1 )
+						? ctx->prmstack
+						: g_stkCallinfo[i + 1]->prmstk_bak;
+					varinf->addCall( pCallInfo->pStDat, prmstk );
+					varinf->cat_crlf();
+				}
+			}
+		} else
+#endif
+		// システム変数
+		if ( strcmp(name, "+sysvar") == 0 ) {
+			varinf->cat( "[システム変数]" );
+			varinf->cat_crlf();
+			
+			for ( int i = 0; i < SysvarCount; ++ i ) {
+				varinf->catf("%s\t= ", SysvarData[i].name );
+				varinf->addSysvar( i );
+				varinf->cat_crlf();
+			}
+			
+		// モジュール
+		} else if ( name[0] == '@' ) {
+			varinf->catf( "[%s]", name );
+			varinf->cat_crlf();
+			
+			for ( HTREEITEM hElem = TreeView_GetNextItem( hwndTree, hItem, TVGN_CHILD )
+				; hElem != NULL
+				; hElem  = TreeView_GetNextSibling( hwndTree, hElem )
+			) {
+				CString&& _nodetext = VarTree_getItemString( hwndTree, hElem );
+				const char* const nodetext = _nodetext.c_str();
+				
+				if ( isModuleNode(nodetext) ) {		// 入れ子モジュール
+					varinf->cat( nodetext );		// 名前を出力するだけ
+				} else {
+					auto&& varname_specific = _nodetext.substr( 0, _nodetext.find('@') );	// 最初の '@' 以下を切り捨てる
+					varinf->catf( "%s\t= ", varname_specific.c_str() );
+					varinf->addVar( seekSttVar(nodetext) );
+				}
+				varinf->cat_crlf();
+			}
+		}	// 他 => 無視
+		
+		CString result = varinf->getString();		// 返却用にコピー
+		delete varinf;
+		
+		return result;
+		
+	// リーフ
+	} else {
+	/*
+		// HSP側に問い合わせ
+		char *p = g_debug->get_varinf( name, GetTabVarsOption() );
+		
+		SetWindowText( g_hVarEdit, p );
+		
+		g_debug->dbg_close( p );
+	/*/
+		
+		CVarinfoText* varinf = new CVarinfoText( *g_dbginfo, stt_maxlenVarinfo );
+		
+		// システム変数
+		if ( name[0] == '~' ) {
+			varinf->addSysvar( &name[1] );
+			
+	#ifdef with_WrapCall
+		// 呼び出しの情報
+		} else if ( name[0] == '\'' ) {
+			//*
+			const ModcmdCallInfo* pCallInfo = almighty_cast<const ModcmdCallInfo*>(
+				VarTree_getItemLParam( g_hVarTree, hItem )
+			);
+			
+			if ( pCallInfo != NULL ) {
+				// prmstk は、次の要素の prmstk_bak か、ctx->prmstack にある。
+				HTREEITEM hNext = TreeView_GetNextItem( g_hVarTree, hItem, TVGN_NEXT );
+				void *prmstk = ( hNext == NULL )
+					? ctx->prmstack					// 末端 (最新の呼び出し)
+					: almighty_cast<const ModcmdCallInfo*>( VarTree_getItemLParam( g_hVarTree, hNext ) )->prmstk_bak
+				;
+				
+				varinf->addCall( pCallInfo->pStDat, prmstk, pCallInfo->sublev, &name[1] );
+			}
+			//*/
+	#endif
+		// 静的変数
+		} else {
+			PVal *pval = seekSttVar( name );
+			
+			if ( pval == NULL ) {
+				return strf("[Error] \"%s\"は静的変数の名称ではない。\n参照：静的変数が存在しないときにこのエラーが生じることがある。", name);
+			}
+			
+			varinf->addVar( pval, name );
+		}
+		
+		CString result = varinf->getString();	// 返却用にコピー
+		
+		delete varinf;
+		return result;
+	}
+}
+
 //##############################################################################
 //                WrapCall 関連
 //##############################################################################
 #ifdef with_WrapCall
+
+static size_t g_cntWillAddNodes = 0;	// 次の更新で追加すべきノード数
 
 //------------------------------------------------
 // 呼び出し開始
@@ -1174,17 +1485,21 @@ void OnBgnCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 	g_stkCallinfo.push_back( &callinfo );
 	
 	// ノードの追加
-	AddCallNode( hwndTree, callinfo );
+	if ( g_dbginfo->ctx->runmode == RUNMODE_RUN ) {
+		g_cntWillAddNodes ++;		// 後で追加する
+	} else {
+		AddCallNode( hwndTree, callinfo );
+	}
 	
 	// ログ出力
 	if ( IsDlgButtonChecked( g_hLogPage, IDC_CHK_CALOG ) ) {
-		TabLogAdd(
-			strf( "[CallBgn] %s\t@%d of \"%s\"]\n",
-				&ctx->mem_mds[callinfo.pStDat->nameidx],
-				callinfo.line,
-				callinfo.fname
-			).c_str()
+		CString logText = strf(
+			"[CallBgn] %s\t@%d of \"%s\"]\n",
+			&ctx->mem_mds[callinfo.pStDat->nameidx],
+			callinfo.line,
+			callinfo.fname
 		);
+		TabLogAdd( logText.c_str() );
 	}
 	
 	return;
@@ -1199,27 +1514,15 @@ void OnEndCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 	
 	// ログ出力
 	if ( IsDlgButtonChecked( g_hLogPage, IDC_CHK_CALOG ) ) {
-		TabLogAdd(
-			strf("[CallEnd] %s\n", &ctx->mem_mds[callinfo.pStDat->nameidx]).c_str()
-		);
+		CString logText = strf("[CallEnd] %s\n", &ctx->mem_mds[callinfo.pStDat->nameidx]);
+		TabLogAdd( logText.c_str() );
 	}
 	
 	// ノードを削除
-	{
-		HTREEITEM hChild = TreeView_GetChild( hwndTree, g_hNodeDynamic );
-		if ( hChild == NULL ) return;		// error
-		
-		// 末子を取得
-		for ( HTREEITEM hNext = hChild
-			; hNext != NULL
-			; hNext = TreeView_GetNextSibling( hwndTree, hChild )
-		) {
-			hChild = hNext;
-		}
-		
-		// 削除
-	//	TreeView_SelectItem( hwndTree, hChild ); dbgmsg ("deleting the selected node");
-		TreeView_DeleteItem( hwndTree, hChild );
+	if ( g_cntWillAddNodes > 0 ) {
+		g_cntWillAddNodes --;			// やっぱり追加しない
+	} else {
+		RemoveCallNode( hwndTree );		// 既に追加していたので除去される
 	}
 	
 	g_stkCallinfo.pop_back();
@@ -1252,14 +1555,60 @@ void AddCallNode( HWND hwndTree, const ModcmdCallInfo& callinfo )
 }
 
 //------------------------------------------------
+// 呼び出しノードを削除
+//------------------------------------------------
+void RemoveCallNode( HWND hwndTree )
+{
+	HTREEITEM hChild = TreeView_GetChild( hwndTree, g_hNodeDynamic );
+	if ( hChild == NULL ) return;		// error
+	
+	// 末子を取得
+	for ( HTREEITEM hNext = hChild
+		; hNext != NULL
+		; hNext = TreeView_GetNextSibling( hwndTree, hChild )
+	) {
+		hChild = hNext;
+	}
+
+	// フォーカスを回避 (削除するノードが選択状態なら、その兄ノードを選択する)
+	if ( TreeView_GetSelection(hwndTree) == hChild ) {
+		HTREEITEM hUpper = TreeView_GetPrevSibling( hwndTree, hChild );
+		if ( hUpper == NULL ) hUpper = g_hNodeDynamic;		// 呼び出しノードが無いので "+dynamic" を選択
+		
+		TreeView_SelectItem( hwndTree, hUpper );
+	}
+	
+	// 削除
+//	TreeView_SelectItem( hwndTree, hChild ); dbgmsg ("deleting the selected node");
+	TreeView_DeleteItem( hwndTree, hChild );
+	
+	return;
+}
+
+//------------------------------------------------
+// 呼び出しノード更新
+//------------------------------------------------
+void UpdateCallNode( HWND hwndTree )
+{
+	// 追加予定ノードを実際に追加する
+	if ( g_cntWillAddNodes > 0 ) {
+		size_t const lenStk = g_stkCallinfo.size() ;
+		for ( size_t i = lenStk - g_cntWillAddNodes; i < lenStk; ++ i ) {
+			AddCallNode( hwndTree, *g_stkCallinfo[i] );
+		}
+		g_cntWillAddNodes = 0;
+	}
+	
+	return;
+}
+
+//------------------------------------------------
 // WrapCall メソッド
 //------------------------------------------------
 static void WrapCallMethod_AddLog( const char* log )
 {
-	if ( log != ctx->stmp ) {
-		strncpy( ctx->stmp, log, 0x400 - 1 );
-	}
-	debug_notice( g_dbginfo->debug, DebugNotice_Logmes, 0, 0 );	// ctx->stmp
+	TabLogAdd( log );
+	TabLogAddCrlf();
 }
 
 static void WrapCallMethod_BgnCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo )
@@ -1267,9 +1616,10 @@ static void WrapCallMethod_BgnCalling( unsigned int idx, const ModcmdCallInfo* p
 	OnBgnCalling( g_hVarTree, *pCallInfo );
 }
 
-static void WrapCallMethod_EndCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo )
+static int WrapCallMethod_EndCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo )
 {
 	OnEndCalling( g_hVarTree, *pCallInfo );
+	return RUNMODE_RUN;
 }
 
 #endif

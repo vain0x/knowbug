@@ -7,6 +7,8 @@
 
 #include "CIni.h"
 
+static const char *STR_BOOLEAN[2] = { "false", "true" };
+
 //##############################################################################
 //                定義部 : CIni
 //##############################################################################
@@ -64,6 +66,24 @@ void CIni::close( void )
 }
 
 //------------------------------------------------
+// [get] 論理値 (false | true, or 0 | non-0)
+//------------------------------------------------
+bool CIni::getBool( const char *sec, const char *key, bool defval )
+{
+	const size_t MinBufForBooleanString = 8;
+	reserve( MinBufForBooleanString );
+	GetPrivateProfileStringA( sec, key, STR_BOOLEAN[defval ? 1 : 0], msBuf, MinBufForBooleanString - 1, msFilename );
+
+	CharLower( msBuf );		// 小文字にする
+	
+	// false
+	if ( strcmp(msBuf, "0") == 0 || strcmp(msBuf, STR_BOOLEAN[0]) == 0 ) {
+		return false;
+	}
+	return true;
+}
+
+//------------------------------------------------
 // [get] 整数値
 //------------------------------------------------
 int CIni::getInt( const char *sec, const char *key, int defval )
@@ -80,6 +100,17 @@ const char * CIni::getString( const char *sec, const char *key, const char *defv
 	
 	GetPrivateProfileStringA( sec, key, defval, msBuf, msizeBuf - 1, msFilename );
 	return msBuf;
+}
+
+//------------------------------------------------
+// [set] 論理値
+//------------------------------------------------
+void CIni::setBool( const char *sec, const char *key, bool val )
+{
+	strcpy_s( msBuf, msizeBuf, STR_BOOLEAN[val ? 1 : 0] );		// 文字列で書き込む
+	
+	WritePrivateProfileStringA( sec, key, msBuf, msFilename );
+	return;
 }
 
 //------------------------------------------------

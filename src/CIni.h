@@ -23,9 +23,11 @@ public:
 	void open( const char *fname );
 	void close( void );
 	
-	int getInt( const char *sec, const char *key, int defval = 0 );
+	bool getBool( const char *sec, const char *key, bool defval = false );
+	int  getInt ( const char *sec, const char *key, int defval = 0 );
 	const char *getString( const char *sec, const char *key, const char *defval = "", size_t size = 0 );
 	
+	void setBool  ( const char *sec, const char *key, bool val = false );
 	void setInt   ( const char *sec, const char *key, int val, int radix = 10 );
 	void setString( const char *sec, const char *key, const char *val );
 	

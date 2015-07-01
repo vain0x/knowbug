@@ -128,9 +128,9 @@ void bgnCall( STRUCTDAT* pStDat )
 //------------------------------------------------
 // 呼び出しの完了
 //------------------------------------------------
-void endCall( void* p, vartype_t vt )
+int endCall( void* p, vartype_t vt )
 {
-	if ( g_pWrapCallData->empty() ) return;
+	if ( g_pWrapCallData->empty() ) return RUNMODE_RUN;
 	
 	unsigned int idx = g_pWrapCallData->size() - 1;
 	const ModcmdCallInfo* pCallInfo = g_pWrapCallData->pInfCalling->at( idx );
@@ -156,13 +156,13 @@ void endCall( void* p, vartype_t vt )
 	if ( p != NULL ) setLastResult( p, vt );
 	
 	// DebugWindow への通知
-	g_pWrapCallData->methods.EndCalling( idx, pCallInfo );
+	int result = g_pWrapCallData->methods.EndCalling( idx, pCallInfo );
 	
 	// 呼び出しデータの除去
 	g_pWrapCallData->pInfCalling->pop_back();
 	delete pCallInfo;
 	
-	return;
+	return result;
 }
 
 //------------------------------------------------

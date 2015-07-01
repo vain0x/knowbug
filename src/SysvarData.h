@@ -3,7 +3,7 @@
 #ifndef IG_SYSVAR_DATA_H
 #define IG_SYSVAR_DATA_H
 
-#include "hsp3/hsp3struct.h"
+#include "chruntime/hsp3struct.h"
 
 struct StSysvarData
 {

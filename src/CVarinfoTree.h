@@ -6,11 +6,10 @@
 #include "ClhspDebugInfo.h"
 #include "module/mod_cstring.h"
 
-#ifdef with_Multi
-class CMulti;
-#endif
-#ifdef with_Vector
+#if defined(with_Assoc) || defined(with_Vector) || defined(with_Array)
+class CAssoc;
 class CVector;
+class CArray;
 #endif
 
 //##############################################################################
@@ -71,6 +70,7 @@ private:
 	void addItem_value    ( const BaseData& base, vartype_t type, void *ptr );
 	void addItem_var      ( const BaseData& base, PVal *pval );
 	void addItem_varScalar( const BaseData& base, PVal *pval );
+	void addItem_varScalar( const BaseData& base, PVal *pval, APTR aptr );
 	void addItem_varArray ( const BaseData& base, PVal *pval );
 	void addItem_varStr   ( const BaseData& base, PVal *pval, bool bScalar );
 #ifdef clhsp
@@ -82,11 +82,17 @@ private:
 #endif
 	void addItem_prmstack ( const BaseData& base, STRUCTDAT *pStDat, STRUCTPRM *pStPrm, const void *prmstack );
 	void addItem_member   ( const BaseData& base, STRUCTDAT *pStDat, STRUCTPRM *pStPrm, const void *member );
-#ifdef with_Multi
-	void addItem_multi    ( const BaseData& base, CMulti* src );
+#ifdef with_Assoc
+	void addItem_assoc    ( const BaseData& base, CAssoc* src );
 #endif
 #ifdef with_Vector
 	void addItem_vector   ( const BaseData& base, CVector* src );
+#endif
+#ifdef with_Array
+	void addItem_array    ( const BaseData& base, CArray* src );
+#endif
+#ifdef with_ExtraBasics
+//	template<class TNumeric> CString dbgstr_extraBasic( const BaseData& base, const TNumeric src );
 #endif
 //	void addItem_string   ( const BaseData& base, const char *src );
 	

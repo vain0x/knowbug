@@ -15,7 +15,7 @@ struct WrapCallMethod
 	void (*AddLog)( const char* log );
 	
 	void (*BgnCalling)( unsigned int idx, const ModcmdCallInfo* pCallInfo );
-	void (*EndCalling)( unsigned int idx, const ModcmdCallInfo* pCallInfo );
+	int  (*EndCalling)( unsigned int idx, const ModcmdCallInfo* pCallInfo );
 };
 
 #endif

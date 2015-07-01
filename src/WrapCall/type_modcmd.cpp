@@ -41,9 +41,14 @@ int modcmd_cmdfunc( int cmdid )
 	
 	WrapCall::bgnCall( pStDat );
 	
-	int result = g_modcmd_cmdfunc_impl( cmdid );
+	int result = g_modcmd_cmdfunc_impl( cmdid );	// 常に RUNMODE_RUN を返却する (HSP3.3現在)
 	
-	WrapCall::endCall();
+	int resultWrap = WrapCall::endCall();
+	
+	if ( result == RUNMODE_RUN && resultWrap != result ) {
+		result = resultWrap;
+	}
+	
 	return result;
 }
 

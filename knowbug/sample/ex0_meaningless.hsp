@@ -1,0 +1,48 @@
+// knowbug デバッグ用適当サンプル
+	randomize
+	
+#undef  mes
+#define global mes(%1="") mes@hsp "" + (%1) : logmes@hsp "" + (%1)
+
+#module
+
+#deffunc func3 str msg, int a, int b, int c, array arr
+	mes "<func3>"
+	mes msg
+	assert
+	mes "</func3>"
+	return
+
+#deffunc func2 str msg, var v, local x, local arr, local i
+	mes "<func2>"
+	
+	x = rnd(100)
+	i = 0
+	dim arr, 5, 2, 3
+	repeat length3(arr) : cnt_2 = cnt
+	repeat length2(arr) : cnt_1 = cnt
+	repeat length (arr) : cnt_0 = cnt
+		arr(cnt_0, cnt_1, cnt_2) = i : i ++
+		if ( i == 23 ) : assert
+	loop
+	loop
+	loop
+	
+	func3 msg, 2, 5, 6, v
+	mes "repeat."
+	func3 msg + ", again", 5, 1, 2, arr
+	mes "</func2>"
+	return
+	
+#deffunc func1 int a, var v
+	mes "<func1>"
+	func2 "do", v
+	mes "</func1>"
+	return
+
+#global
+
+	mes "Hello, world!"
+	repeat 4 : k(cnt) = double(cnt) : loop
+	func1 777, k(1)
+	stop

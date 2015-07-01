@@ -68,7 +68,7 @@ void CVarinfoText::make( void )
 	);
 	catf( "モード：%s", getModeString( pval->mode ) );
 	catf( "アドレス：0x%08X, 0x%08X", address_cast(pval->pt), address_cast(pval->master) );
-	catf( "サイズ：using %d in %d [byte]", pval->size, bufsize );
+	catf( "サイズ：using %d of %d [byte]", pval->size, bufsize );
 	
 	cat_crlf();
 	
@@ -334,7 +334,8 @@ void CVarinfoText::catf( const char *format, ... )
 	va_list   arglist;
 	va_start( arglist, format );
 	
-	cat( vstrf( format, arglist ).c_str() );
+	CString s = vstrf( format, arglist );
+	cat( s.c_str() );
 	
 	va_end( arglist );
 	return;

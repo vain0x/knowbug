@@ -3,7 +3,7 @@
 #ifndef IG_HSP3COMPATIBLE_H
 #define IG_HSP3COMPATIBLE_H
 
-#include "hsp3/hspvar_core.h"
+#include "chruntime/hspvar_core.h"
 
 //##############################################################################
 //                宣言部 : 削除された定義

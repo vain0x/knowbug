@@ -16,7 +16,13 @@
 #define IDC_VARTREE                     1019
 #define IDC_CHK_UPDATE                  1024
 #define IDC_CHK_CALOG                   1025
-#define IDC_BTN_CLEAR                   1026
+#define IDC_BTN_LOG_UPDATE              1026
+#define IDC_BTN_LOG_SAVE                1027
+#define IDC_BTN_LOG_CLEAR               1028
+
+#define IDM_TOPMOST     4001
+#define IDM_VAR_LOGGING 4002
+#define IDM_VAR_UPDATE  4003
 
 // Next default values for new objects
 // 

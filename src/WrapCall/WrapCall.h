@@ -21,7 +21,7 @@ extern void init(void);
 extern void term(void);
 
 extern void bgnCall( STRUCTDAT* pStDat );
-extern void endCall( void* p = NULL, vartype_t vt = HSPVAR_FLAG_NONE );
+extern int  endCall( void* p = NULL, vartype_t vt = HSPVAR_FLAG_NONE );
 
 };
 
