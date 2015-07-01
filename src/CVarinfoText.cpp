@@ -82,8 +82,6 @@ void CVarinfoText::make( void )
 		size_t len( sTree.size() );		// mlenLimit は越えてない
 		cat( sTree.c_str() );
 		
-		mlenLimit -= len;
-		
 		delete varinf;
 	}
 	
@@ -184,12 +182,10 @@ void CVarinfoText::addSysvar( const char *name )
 		size_t len = sTree.length();
 		cat( sTree.c_str() );				// 内容を連結する
 		
-		mlenLimit -= len;
 		delete varinf;
 	}
 	
 	if ( pDumped != NULL ) {
-		cat_crlf();
 		dump( pDumped, sizeToDump );
 	}
 	
@@ -240,6 +236,8 @@ static const char *getMptypeString( STRUCTPRM *pStPrm )
 
 //------------------------------------------------
 // 呼び出しデータから生成
+// 
+// @prm prmstk: NULL => 引数未確定
 //------------------------------------------------
 void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const char *name )
 {
@@ -263,8 +261,10 @@ void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const c
 		cat( sPrm.c_str() );
 	}
 	
+	cat_crlf();
+	
 	if ( prmstk == NULL ) {
-		cat( "(unknown arguments)" );
+		cat("[展開中]");
 	} else {
 		// 変数の内容に関する情報
 		{
@@ -287,6 +287,44 @@ void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const c
 	
 	return;
 }
+
+//------------------------------------------------
+// 返値データから生成
+//------------------------------------------------
+void CVarinfoText::addResult( STRUCTDAT *pStDat, void *ptr, int flag, int sublev, const char *name )
+{
+	HspVarProc* pHvp = mdbginfo.exinfo->HspFunc_getproc( flag );
+	int bufsize = pHvp->GetSize( ptr_cast<PDAT*>(ptr) );
+	
+	catf( "関数名：%s", name );
+	cat_crlf();
+	
+	// 変数の内容に関する情報
+	{
+		CVarinfoTree *varinf( new CVarinfoTree( mdbginfo, mlenLimit ) );
+		
+		varinf->addResult( ptr, flag, name );
+		
+		const CString& sTree( varinf->getString() );
+		size_t len( sTree.size() );		// mlenLimit は越えてない
+		cat( sTree.c_str() );
+		
+		mlenLimit -= len;
+		
+		delete varinf;
+	}
+	
+	// メモリダンプ
+	dump( ptr, static_cast<size_t>(bufsize) );
+	return;
+}
+
+void CVarinfoText::addResult2( const CString& text, const char *name )
+{
+	cat(text.c_str());
+	return;
+}
+
 #endif
 
 //**********************************************************

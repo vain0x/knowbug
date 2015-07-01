@@ -38,7 +38,9 @@ public:
 	void addVar( PVal *pval, const char *name );
 	void addSysvar( const char *name );
 #ifdef with_WrapCall
-	void addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const char *name );
+	void addCall( STRUCTDAT *pStDat, void *prmstk, int sublev, const char *name );
+	void addResult( STRUCTDAT *pStDat, void *ptr, int flag, int sublev, const char *name );
+	void addResult2( const CString& text, const char *name );
 #endif
 	
 private:

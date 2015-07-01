@@ -244,9 +244,31 @@ void CVarinfoTree::addSysvar( int idx, const char* name, void** ppDumped, size_t
 void CVarinfoTree::addCall( STRUCTDAT *pStDat, void *prmstk, const char *name )
 {
 	BaseData base ( name, getIndent() );
-	if ( prmstk ) {
+	
+	catf(
+		"%s%s%s:", base.getIndent(), name,
+		(pStDat->index == STRUCTDAT_INDEX_CFUNC ? "()" : "")		// 関数なら () をつける
+	);
+	
+	// 実引数
+	if ( prmstk == NULL ) {
+		mlvNest ++;
+		catf("%s([展開中])", getIndent());
+		mlvNest --;
+	} else {
 		addItem_prmstack( base, pStDat, &mdbginfo.ctx->mem_minfo[pStDat->prmindex], prmstk );
 	}
+	return;
+}
+
+//------------------------------------------------
+// [add] 返値
+//------------------------------------------------
+void CVarinfoTree::addResult( void *ptr, vartype_t type, const char *name )
+{
+	BaseData base( name, getIndent() );
+	
+	addItem_value( base, type, ptr );
 	return;
 }
 
@@ -350,13 +372,13 @@ void CVarinfoTree::addItem_var( const BaseData& base, PVal *pval )
 //------------------------------------------------
 // [add][item] 単体変数
 // 
-// @ 要素 [0] の値を出力する。
+// @ 要素の値を出力する。
 //------------------------------------------------
 void CVarinfoTree::addItem_varScalar( const CVarinfoTree::BaseData& base, PVal *pval )
 {
 	HspVarProc *pHvp( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
 	
-	addItem_value( base, pval->flag, pval->pt );
+	addItem_value( base, pval->flag, pHvp->GetPtr(pval) );
 	return;
 }
 
@@ -373,7 +395,7 @@ void CVarinfoTree::addItem_varScalar( const BaseData& base, PVal *pval, APTR apt
 // [add][item] 配列変数 (array)
 // 
 // @ vector 型は来ない。
-// @prm base : 親要素(配列変数)のある深さ
+// @prm base : 子要素(配列変数)のある深さ
 //------------------------------------------------
 void CVarinfoTree::addItem_varArray( const CVarinfoTree::BaseData& base, PVal *pval )
 {
@@ -633,7 +655,7 @@ void CVarinfoTree::addItem_member(
 			if ( pStPrm->mptype == MPTYPE_SINGLEVAR ) {
 				addItem_varScalar( base, pVarDat->pval, pVarDat->aptr );
 			} else {
-				addItem_varArray( base, pVarDat->pval );
+				addItem_var( base, pVarDat->pval );
 			}
 			break;
 		}
@@ -899,8 +921,7 @@ void CVarinfoTree::catf( const char *format, ... )
 	CString stmp( vstrf( format, arglist ) );
 	size_t   len( stmp.length() );
 	
-	cat( stmp.c_str(), len + 2 );		// 2 は crlf の分
-	cat_crlf();
+	cat( stmp.c_str(), len );
 	
 	va_end( arglist );
 	return;

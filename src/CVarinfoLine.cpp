@@ -227,9 +227,20 @@ void CVarinfoLine::addSysvar( int idx )
 //------------------------------------------------
 void CVarinfoLine::addCall( STRUCTDAT *pStDat, void *prmstk )
 {
-	if ( prmstk ) {
+	if ( prmstk == NULL ) {
+		catf( "%s([展開中]) ", &mdbginfo.ctx->mem_mds[ pStDat->nameidx ] );
+	} else {
 		addItem_prmstack( pStDat, &mdbginfo.ctx->mem_minfo[pStDat->prmindex], prmstk );
 	}
+	return;
+}
+
+//------------------------------------------------
+// [add] 返値
+//------------------------------------------------
+void CVarinfoLine::addResult( void* ptr, vartype_t type )
+{
+	addItem_value( type, ptr );
 	return;
 }
 
@@ -331,7 +342,7 @@ void CVarinfoLine::addItem_varScalar( PVal *pval )
 {
 	HspVarProc *pHvp( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
 	
-	addItem_value( pval->flag, pval->pt );
+	addItem_value( pval->flag, pHvp->GetPtr(pval) );
 	return;
 }
 
@@ -574,7 +585,7 @@ void CVarinfoLine::addItem_member(
 			if ( pStPrm->mptype == MPTYPE_SINGLEVAR ) {
 				addItem_varScalar( pVarDat->pval, pVarDat->aptr );
 			} else {
-				addItem_varArray( pVarDat->pval );
+				addItem_var( pVarDat->pval );
 			}
 			break;
 		}

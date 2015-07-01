@@ -40,14 +40,15 @@ public:
 	void addModInst( ModInst *mv );
 	void addFlexValue( FlexValue *fv );
 	void addCall( STRUCTDAT *pStDat, void *prmstk );
+	void addResult( void* ptr, vartype_t type );
 	
 	const CString& getString(void) const
 	{
 		return *mpBuf;
 	}
 	
-private:
 	// 項目の追加
+private:
 	void addItem_value    ( vartype_t type, void *ptr );
 	void addItem_var      ( PVal *pval );
 	void addItem_varScalar( PVal *pval );

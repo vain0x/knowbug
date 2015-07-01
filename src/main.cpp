@@ -93,6 +93,7 @@ static CVarTree*  stt_pSttVarTree = NULL;
 //static DynTree_t* stt_pDynTree  = NULL;
 static CString*   stt_pLogmsg     = NULL;
 
+static bool stt_bStepRunning = false;
 static int stt_sublev_for_stepover = -1;
 
 // 設定関連
@@ -104,6 +105,7 @@ static bool stt_bTopMost      = false;
 static CString stt_logPath    = "";
 static int  stt_logMaxlen     = 0x7FFF;
 static bool stt_bWordwrap     = false;
+static bool stt_bResultNode   = false;
 static std::vector<CString> stt_extraTypeFormat;
 
 static void getConfig( void );
@@ -117,8 +119,6 @@ static void VarTree_addNode( HWND hwndTree, HTREEITEM hParent, CVarTree& tree );
 static void VarTree_addNodeSysvar( HWND hwndTree, HTREEITEM hParent );
 static LRESULT   VarTree_customDraw( HWND hwndTree, LPNMTVCUSTOMDRAW pnmcd );
 static vartype_t VarTree_getVartype( HWND hwndTree, HTREEITEM hItem );
-static CString   VarTree_getItemString( HWND hwndTree, HTREEITEM hItem );
-static LPARAM    VarTree_getItemLParam( HWND hwndTree, HTREEITEM hItem );
 static CString   VarTree_getItemVarText( HWND hwndTree, HTREEITEM hItem );
 
 static PVal *seekSttVar( const char *name );
@@ -126,7 +126,13 @@ static vartype_t getVartype( const char *name );
 
 static inline bool isModuleNode( const char *name ) { return name[0] == '@' || name[0] == '+'; }
 static inline bool isSysvarNode( const char *name ) { return name[0] == '~'; }
-static inline bool isVarNode   ( const char *name ) { return !(isModuleNode(name) || isSysvarNode(name)); }
+static inline bool isCallNode  ( const char *name ) { return name[0] == '\''; }
+static inline bool isResultNode( const char *name ) { return name[0] == '"'; }
+static inline bool isVarNode   ( const char *name ) { return !(isModuleNode(name) || isSysvarNode(name) || isCallNode(name) || isResultNode(name)); }
+
+static CString TreeView_GetItemString( HWND hwndTree, HTREEITEM hItem );
+static LPARAM  TreeView_GetItemLParam( HWND hwndTree, HTREEITEM hItem );
+static void    TreeView_EscapeFocus( HWND hwndTree, HTREEITEM hItem );
 
 // ログ関連
 static void TabLogSave( HWND hDlg, const char* filepath );
@@ -144,21 +150,39 @@ EXPORT BOOL WINAPI debugbye( HSP3DEBUG *p1, int p2, int p3, int p4 );
 # include "../../../../../../MakeHPI/WrapCall/DbgWndMsg.h"
 # include "../../../../../../MakeHPI/WrapCall/WrapCallSdk.h"
 
-static std::vector<const ModcmdCallInfo*> g_stkCallinfo;
+struct ResultNodeData {
+	STRUCTDAT* pStDat;
+	int sublev;
+	CString valueString;						// 値の文字列化 (double, str, or int)
+	const ModcmdCallInfo* pCallInfoDepended;	// これに依存する呼び出し (存在する場合はこれの子ノードになる)
+};
+
+static std::vector<const ModcmdCallInfo*> g_stkCallInfo;
+static const ResultNodeData*              g_pLastResult = nullptr;
 static HTREEITEM g_hNodeDynamic;
 
+static void termNodeDynamic();
+
 static void VarTree_addNodeDynamic( HWND hwndTree, HTREEITEM hParent );
+static void CallTree_RemoveDependResult( HWND hwndTree, HTREEITEM hItem );
 
 static void AddCallNode ( HWND hwndTree, const ModcmdCallInfo& callinfo );
-static void RemoveCallNode( HWND hwndTree );
+static void RemoveCallNode( HWND hwndTree, const ModcmdCallInfo& callinfo );
 static void UpdateCallNode( HWND hwndTree );
+static void AddResultNode( HWND hwndTree, const ResultNodeData* pResult );
+static void RemoveResultNode( HWND hwndTree, HTREEITEM hResult );
+
 static void OnBgnCalling( HWND hwndTree, const ModcmdCallInfo& callinfo );
 static void OnEndCalling( HWND hwndTree, const ModcmdCallInfo& callinfo );
+static void OnResultReturning( HWND hwndTree, const ModcmdCallInfo& callinfo, void* ptr, int flag );
+
+static void* ModcmdCallInfo_getPrmstk(const ModcmdCallInfo& callinfo);
 
 // methods
 static void WrapCallMethod_AddLog( const char* log );
 static void WrapCallMethod_BgnCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo );
 static int  WrapCallMethod_EndCalling( unsigned int idx, const ModcmdCallInfo* pCallInfo );
+static void WrapCallMethod_ResultReturning( unsigned int idx, const ModcmdCallInfo* pCallInfo, void* ptr, int flag );
 
 #endif
 
@@ -167,6 +191,8 @@ static int  WrapCallMethod_EndCalling( unsigned int idx, const ModcmdCallInfo* p
 # include "khAd.h"
 static HWND g_hKhad = NULL;
 #endif
+
+inline const char* STRUCTDAT_getName(const STRUCTDAT* pStDat) { return &ctx->mem_mds[pStDat->nameidx]; }
 
 //----------------------------------------------------------
 
@@ -558,6 +584,8 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			g_hPopupOfVar = CreatePopupMenu();
 				AppendMenu( g_hPopupOfVar, MF_STRING, IDM_VAR_LOGGING, "ログ(&L)");	// 文は表示時に上書きされる
 				AppendMenu( g_hPopupOfVar, MF_STRING, IDM_VAR_UPDATE,  "更新(&U" );
+				AppendMenu( g_hPopupOfVar, MF_SEPARATOR, 0, 0 );
+				AppendMenu( g_hPopupOfVar, MF_STRING, IDM_VAR_STEPOUT, "脱出(&O)" );
 			return TRUE;
 			
 		case WM_CONTEXTMENU:
@@ -572,7 +600,7 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				if ( hItem == NULL )  break;
 				
 				if ( tvHitTestInfo.flags & TVHT_ONITEMLABEL ) {		// 文字列アイテムの場合
-					const auto varname = VarTree_getItemString(g_hVarTree, hItem);
+					const auto varname = TreeView_GetItemString(g_hVarTree, hItem);
 					{
 						const auto menuText = strf( "「%s」をログ(&L)", varname.c_str() );
 						MENUITEMINFO menuInfo;
@@ -581,6 +609,9 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 							menuInfo.dwTypeData = const_cast<LPSTR>( menuText.c_str() );
 						SetMenuItemInfo( g_hPopupOfVar, IDM_VAR_LOGGING, FALSE, &menuInfo );
 					}
+					
+					// 「脱出」は呼び出しノードに対してのみ有効
+					EnableMenuItem( g_hPopupOfVar, IDM_VAR_STEPOUT, (isCallNode(varname.c_str()) ? MFS_ENABLED : MFS_DISABLED) );
 					
 					// ポップアップメニューを表示する
 					const int idSelected = TrackPopupMenuEx(
@@ -598,6 +629,15 @@ LRESULT CALLBACK TabVarsProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 						case IDM_VAR_UPDATE:
 							TabVarsUpdate();
 							break;
+						case IDM_VAR_STEPOUT:		// 呼び出しノードと仮定してよい
+						{
+							auto const pCallInfo = almighty_cast<const ModcmdCallInfo*>( TreeView_GetItemLParam(g_hVarTree, hItem) );
+							stt_sublev_for_stepover = pCallInfo->sublev;	// 対象が実行される前まで進む
+							g_debug->dbg_set( HSPDEBUG_STEPIN );
+							SetWindowText( g_hSttCtrl, "" );
+							stt_bStepRunning = true;
+							break;
+						}
 						default: break;
 					}
 					return TRUE;
@@ -770,10 +810,12 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			case ID_BTN1: LRun:
 				g_debug->dbg_set( HSPDEBUG_RUN );
 				SetWindowText( g_hSttCtrl, "" );
+				stt_bStepRunning = false;
 				break;
 			case ID_BTN2: LStepIn:
 				g_debug->dbg_set( HSPDEBUG_STEPIN );
 				SetWindowText( g_hSttCtrl, "" );
+				stt_bStepRunning = true;
 				break;
 				//*
 			case ID_BTN3:
@@ -786,7 +828,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				//*/
 			case ID_BTN5:
 			//	g_debug->dbg_set( HSPDEBUG_STEPOUT ); break;
-				if ( ctx->sublev == 0 ) goto LRun;			// 最外周からは脱出できないので
+				if ( ctx->sublev == 0 ) goto LRun;			// 最外周からの脱出 = 無制限
 				stt_sublev_for_stepover = ctx->sublev - 1;
 				goto LStepIn;
 		}
@@ -810,13 +852,12 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					menuInfo.cbSize = sizeof(menuInfo);
 					menuInfo.fMask  = MIIM_STATE;
 					menuInfo.fState = ( stt_bTopMost ? MFS_CHECKED : MFS_UNCHECKED );
+				SetMenuItemInfo( g_hPopup, IDM_TOPMOST, FALSE, &menuInfo );
 					
 				SetWindowPos(	// 最前面
 					hDlgWnd, (stt_bTopMost ? HWND_TOPMOST : HWND_NOTOPMOST),
 					0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)
 				);
-				
-				SetMenuItemInfo( g_hPopup, IDM_TOPMOST, FALSE, &menuInfo );
 				break;
 			}
 			default: break;
@@ -840,9 +881,10 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	case DWM_RequireMethodFunc:
 	{
 		WrapCallMethod* methods = almighty_cast<WrapCallMethod*>( lp );
-		methods->AddLog     = WrapCallMethod_AddLog;
-		methods->BgnCalling = WrapCallMethod_BgnCalling;
-		methods->EndCalling = WrapCallMethod_EndCalling;
+		methods->AddLog          = WrapCallMethod_AddLog;
+		methods->BgnCalling      = WrapCallMethod_BgnCalling;
+		methods->EndCalling      = WrapCallMethod_EndCalling;
+		methods->ResultReturning = WrapCallMethod_ResultReturning;
 		return 0;
 	}
 #endif
@@ -1000,6 +1042,9 @@ EXPORT BOOL WINAPI debugbye( HSP3DEBUG *p1, int p2, int p3, int p4 )
 #ifdef with_khad
 	if ( g_hKhad ) SendMessage( g_hKhad, UWM_KHAD_BYE, 0, 0 );
 #endif
+#ifdef with_WrapCall
+	if ( g_hNodeDynamic ) termNodeDynamic();
+#endif
 	if ( stt_pSttVarTree ) {
 		delete stt_pSttVarTree; stt_pSttVarTree = NULL;
 	}
@@ -1063,6 +1108,9 @@ static void getConfig( void )
 	// 自動保存パス
 	stt_logPath = ini.getString( "Log", "autoSavePath", "" );
 	
+	// 返値ノードを使うか
+	stt_bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
+	
 	return;
 }
 
@@ -1095,6 +1143,55 @@ static void setWordwrapStyle( HWND hEdit, bool bEnable )
 		stt_bWordwrap ? (style &~ Style_HorzScroll) : (style | Style_HorzScroll)
 	);
 	SetWindowPos( hEdit, NULL, 0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED) );
+	return;
+}
+
+//------------------------------------------------
+// ツリービューの項目ラベルを取得する
+//------------------------------------------------
+static CString TreeView_GetItemString( HWND hwndTree, HTREEITEM hItem )
+{
+	char stmp[256];
+	
+	TVITEM ti;
+	ti.hItem      = hItem;
+	ti.mask       = TVIF_TEXT;
+	ti.pszText    = stmp;
+	ti.cchTextMax = sizeof(stmp) - 1;
+	
+	if ( TreeView_GetItem( hwndTree, &ti ) ) {
+		return stmp;
+	} else {
+		return "";
+	}
+}
+
+//------------------------------------------------
+// ツリービューのノードに関連する lparam 値を取得する
+//------------------------------------------------
+static LPARAM TreeView_GetItemLParam( HWND hwndTree, HTREEITEM hItem )
+{
+	TVITEM ti;
+	ti.hItem = hItem;
+	ti.mask  = TVIF_PARAM;
+	
+	TreeView_GetItem( hwndTree, &ti );
+	return ti.lParam;
+}
+
+//------------------------------------------------
+// ツリービューのフォーカスを回避する
+// @public
+// @ 削除するノードが選択状態なら、その兄ノードか親ノードを選択する)
+//------------------------------------------------
+static void TreeView_EscapeFocus( HWND hwndTree, HTREEITEM hItem )
+{
+	if ( TreeView_GetSelection(hwndTree) == hItem ) {
+		HTREEITEM hUpper = TreeView_GetPrevSibling( hwndTree, hItem );
+		if ( hUpper == NULL ) hUpper = TreeView_GetParent(hwndTree, hItem);
+		
+		TreeView_SelectItem( hwndTree, hUpper );
+	}
 	return;
 }
 
@@ -1224,39 +1321,6 @@ static void VarTree_addNodeDynamic( HWND hwndTree, HTREEITEM hParent )
 #endif
 
 //------------------------------------------------
-// 変数ツリーの項目名を取得する
-//------------------------------------------------
-static CString VarTree_getItemString( HWND hwndTree, HTREEITEM hItem )
-{
-	char stmp[256];
-	
-	TVITEM ti;
-	ti.hItem      = hItem;
-	ti.mask       = TVIF_TEXT;
-	ti.pszText    = stmp;
-	ti.cchTextMax = sizeof(stmp) - 1;
-	
-	if ( TreeView_GetItem( hwndTree, &ti ) ) {
-		return stmp;
-	} else {
-		return "";
-	}
-}
-
-//------------------------------------------------
-// 変数ツリーの lparam 値を取得する
-//------------------------------------------------
-static LPARAM VarTree_getItemLParam( HWND hwndTree, HTREEITEM hItem )
-{
-	TVITEM ti;
-	ti.hItem = hItem;
-	ti.mask  = TVIF_PARAM;
-	
-	TreeView_GetItem( hwndTree, &ti );
-	return ti.lParam;
-}
-
-//------------------------------------------------
 // 変数ツリーの NM_CUSTOMDRAW を処理する
 //------------------------------------------------
 static LRESULT VarTree_customDraw( HWND hwndTree, LPNMTVCUSTOMDRAW pnmcd )
@@ -1267,7 +1331,7 @@ static LRESULT VarTree_customDraw( HWND hwndTree, LPNMTVCUSTOMDRAW pnmcd )
 	} else if ( pnmcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT ) {
 		
 		HTREEITEM hItem ( almighty_cast<HTREEITEM>( pnmcd->nmcd.dwItemSpec ) );//( TreeView_GetSelection(hwndTree) );
-		CString   sItem ( VarTree_getItemString( hwndTree, hItem ) );
+		CString   sItem ( TreeView_GetItemString( hwndTree, hItem ) );
 		const char *name ( sItem.c_str() );
 		
 		if ( isModuleNode(name) ) {
@@ -1299,7 +1363,7 @@ static LRESULT VarTree_customDraw( HWND hwndTree, LPNMTVCUSTOMDRAW pnmcd )
 //------------------------------------------------
 static vartype_t VarTree_getVartype( HWND hwndTree, HTREEITEM hItem )
 {
-	CString    sItem( VarTree_getItemString( hwndTree, hItem ) );
+	CString    sItem( TreeView_GetItemString( hwndTree, hItem ) );
 	const char *name( sItem.c_str() );
 	
 	return getVartype( name );
@@ -1350,29 +1414,30 @@ static vartype_t getVartype( const char *name )
 //------------------------------------------------
 static CString VarTree_getItemVarText( HWND hwndTree, HTREEITEM hItem )
 {
-	const CString itemText = VarTree_getItemString( hwndTree, hItem );
+	const CString itemText = TreeView_GetItemString( hwndTree, hItem );
 	const char*   name     = itemText.c_str();
 	
 	// ルート
-	if ( name[0] == '@' || name[0] == '+' ) {
-		CVarinfoLine* varinf = new CVarinfoLine( *g_dbginfo, stt_maxlenVarinfo );
+	if ( isModuleNode(name) ) {
+		auto varinf = new CVarinfoLine( *g_dbginfo, stt_maxlenVarinfo );
 		
 #ifdef with_WrapCall
 		// 呼び出し履歴
 		if ( strcmp(name, "+dynamic") == 0 ) {
-			size_t const lenCall = g_stkCallinfo.size();
-			if ( lenCall != 0 ) {
-				varinf->cat( "[呼び出し履歴]" );
+			size_t const lenCall = g_stkCallInfo.size();
+			varinf->cat( "[呼び出し履歴]" );
+			varinf->cat_crlf();
+			
+			for ( uint i = 0; i < lenCall; ++ i ) {
+				auto const pCallInfo = g_stkCallInfo[i];
+				varinf->addCall( pCallInfo->pStDat, ModcmdCallInfo_getPrmstk(*pCallInfo) );
 				varinf->cat_crlf();
-				
-				for ( uint i = 0; i < lenCall; ++ i ) {
-					auto pCallInfo = g_stkCallinfo[i];
-					auto prmstk    = ( i == lenCall - 1 )
-						? ctx->prmstack
-						: g_stkCallinfo[i + 1]->prmstk_bak;
-					varinf->addCall( pCallInfo->pStDat, prmstk );
-					varinf->cat_crlf();
-				}
+			}
+			
+			// 最後の返値
+			if ( stt_bResultNode && g_pLastResult != nullptr ) {
+				CString result = "-> " + g_pLastResult->valueString;
+				varinf->cat( result.c_str() );
 			}
 		} else
 #endif
@@ -1387,8 +1452,8 @@ static CString VarTree_getItemVarText( HWND hwndTree, HTREEITEM hItem )
 				varinf->cat_crlf();
 			}
 			
-		// モジュール
-		} else if ( name[0] == '@' ) {
+		// モジュール (@...)
+		} else {
 			varinf->catf( "[%s]", name );
 			varinf->cat_crlf();
 			
@@ -1396,7 +1461,7 @@ static CString VarTree_getItemVarText( HWND hwndTree, HTREEITEM hItem )
 				; hElem != NULL
 				; hElem  = TreeView_GetNextSibling( hwndTree, hElem )
 			) {
-				CString&& _nodetext = VarTree_getItemString( hwndTree, hElem );
+				CString&& _nodetext = TreeView_GetItemString( hwndTree, hElem );
 				const char* const nodetext = _nodetext.c_str();
 				
 				if ( isModuleNode(nodetext) ) {		// 入れ子モジュール
@@ -1429,28 +1494,25 @@ static CString VarTree_getItemVarText( HWND hwndTree, HTREEITEM hItem )
 		CVarinfoText* varinf = new CVarinfoText( *g_dbginfo, stt_maxlenVarinfo );
 		
 		// システム変数
-		if ( name[0] == '~' ) {
+		if ( isSysvarNode(name) ) {
 			varinf->addSysvar( &name[1] );
 			
 	#ifdef with_WrapCall
 		// 呼び出しの情報
-		} else if ( name[0] == '\'' ) {
-			//*
-			const ModcmdCallInfo* pCallInfo = almighty_cast<const ModcmdCallInfo*>(
-				VarTree_getItemLParam( g_hVarTree, hItem )
+		} else if ( isCallNode(name) ) {
+			auto const pCallInfo = almighty_cast<const ModcmdCallInfo*>(
+				TreeView_GetItemLParam( g_hVarTree, hItem )
 			);
 			
 			if ( pCallInfo != NULL ) {
-				// prmstk は、次の要素の prmstk_bak か、ctx->prmstack にある。
-				HTREEITEM hNext = TreeView_GetNextItem( g_hVarTree, hItem, TVGN_NEXT );
-				void *prmstk = ( hNext == NULL )
-					? ctx->prmstack					// 末端 (最新の呼び出し)
-					: almighty_cast<const ModcmdCallInfo*>( VarTree_getItemLParam( g_hVarTree, hNext ) )->prmstk_bak
-				;
-				
-				varinf->addCall( pCallInfo->pStDat, prmstk, pCallInfo->sublev, &name[1] );
+				varinf->addCall( pCallInfo->pStDat, ModcmdCallInfo_getPrmstk(*pCallInfo), pCallInfo->sublev, &name[1] );
 			}
-			//*/
+		// 返値データ
+		} else if ( stt_bResultNode && isResultNode(name) ) {
+			auto const pResult = almighty_cast<const ResultNodeData*>(
+				TreeView_GetItemLParam( g_hVarTree, hItem )
+			);
+			varinf->addResult2( pResult->valueString, STRUCTDAT_getName(pResult->pStDat) );
 	#endif
 		// 静的変数
 		} else {
@@ -1475,18 +1537,96 @@ static CString VarTree_getItemVarText( HWND hwndTree, HTREEITEM hItem )
 //##############################################################################
 #ifdef with_WrapCall
 
-static size_t g_cntWillAddNodes = 0;	// 次の更新で追加すべきノード数
+static size_t g_cntWillAddCallNodes = 0;	// 次の更新で追加すべきノード数
+
+static std::vector<ResultNodeData*> g_willAddResultNodes;		// 次の更新で追加すべき返値ノード
+static ResultNodeData* g_willAddResultNodeIndepend = nullptr;	// 〃 ( +dynamic 直下 )
+
+//------------------------------------------------
+// Dynamic 関連のデータをすべて破棄する
+//------------------------------------------------
+void termNodeDynamic()
+{
+	if ( stt_bResultNode ) {
+		delete g_willAddResultNodeIndepend; g_willAddResultNodeIndepend = nullptr;
+		for each ( auto it in g_willAddResultNodes ) delete it;
+		g_willAddResultNodes.clear();
+		
+		CallTree_RemoveDependResult( g_hVarTree, g_hNodeDynamic );
+	}
+	return;
+}
+
+//------------------------------------------------
+// ResultNodeData の生成
+// 
+// @ OnEndCaling でしか呼ばれない。
+//------------------------------------------------
+ResultNodeData* NewResultNodeData( const ModcmdCallInfo& callinfo, void* ptr, int flag )
+{
+	auto pResult = new ResultNodeData;
+		pResult->pStDat      = callinfo.pStDat;
+		pResult->sublev      = callinfo.sublev;
+		pResult->valueString = "";
+		pResult->pCallInfoDepended = callinfo.prev;
+	
+	{
+		auto const varinf = new CVarinfoLine( *g_dbginfo, stt_maxlenVarinfo );
+		varinf->addResult( ptr, flag );
+		
+		pResult->valueString = varinf->getString();
+		
+		delete varinf;
+	}
+	return pResult;		// delete 義務
+}
+
+ResultNodeData* NewResultNodeData( const ModcmdCallInfo& callinfo, PVal* pvResult )
+{
+	return NewResultNodeData( callinfo, pvResult->pt, pvResult->flag );
+}
+
+//------------------------------------------------
+// 依存していた返値ノードをすべて削除する
+// 
+// @ 終了時に hItem = g_hNodeDynamic で呼ばれるかも。
+//------------------------------------------------
+static void CallTree_RemoveDependResult( HWND hwndTree, HTREEITEM hItem )
+{
+	for ( HTREEITEM hChild = TreeView_GetChild( hwndTree, hItem )
+		; hChild != NULL
+		;
+	) {
+		HTREEITEM hNext = TreeView_GetNextSibling( hwndTree, hChild );
+		CString&& nodeName = TreeView_GetItemString(hwndTree, hChild);
+		if ( isResultNode(nodeName.c_str()) ) {
+			RemoveResultNode( hwndTree, hChild );
+		}
+		hChild = hNext;
+	}
+	return;
+}
+
+//------------------------------------------------
+// prmstack を参照する
+//------------------------------------------------
+static void* ModcmdCallInfo_getPrmstk(const ModcmdCallInfo& callinfo)
+{
+	if ( callinfo.next == nullptr ) { return ctx->prmstack; }			// 最新の呼び出し
+	if ( callinfo.isRunning() ) { return callinfo.next->prmstk_bak; }	// 実行中の呼び出し (引数展開が終了している)
+	return nullptr;		// 引数展開中 (スタックフレームが未完成なので prmstack は参照できない)
+}
 
 //------------------------------------------------
 // 呼び出し開始
 //------------------------------------------------
 void OnBgnCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 {
-	g_stkCallinfo.push_back( &callinfo );
+	g_stkCallInfo.push_back( &callinfo );
 	
 	// ノードの追加
-	if ( g_dbginfo->ctx->runmode == RUNMODE_RUN ) {
-		g_cntWillAddNodes ++;		// 後で追加する
+	if ( !stt_bStepRunning ) {
+		g_cntWillAddCallNodes ++;		// 後で追加する
 	} else {
 		AddCallNode( hwndTree, callinfo );
 	}
@@ -1495,12 +1635,14 @@ void OnBgnCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 	if ( IsDlgButtonChecked( g_hLogPage, IDC_CHK_CALOG ) ) {
 		CString logText = strf(
 			"[CallBgn] %s\t@%d of \"%s\"]\n",
-			&ctx->mem_mds[callinfo.pStDat->nameidx],
+			STRUCTDAT_getName(callinfo.pStDat),
 			callinfo.line,
 			callinfo.fname
 		);
 		TabLogAdd( logText.c_str() );
 	}
+	
+	ctx->retval_level = -1;
 	
 	return;
 }
@@ -1510,22 +1652,56 @@ void OnBgnCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 //------------------------------------------------
 void OnEndCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 {
-	if ( g_stkCallinfo.empty() ) return;
+	if ( g_stkCallInfo.empty() ) return;
+	
+	auto const pResult = stt_bResultNode && ( ctx->retval_level == ctx->sublev + 1 )
+		? NewResultNodeData( callinfo, *exinfo->mpval )
+		: nullptr;
 	
 	// ログ出力
 	if ( IsDlgButtonChecked( g_hLogPage, IDC_CHK_CALOG ) ) {
-		CString logText = strf("[CallEnd] %s\n", &ctx->mem_mds[callinfo.pStDat->nameidx]);
+		CString logText = strf(
+			"[CallEnd] %s%s\n",
+			STRUCTDAT_getName(callinfo.pStDat),
+			(pResult ? (" -> " + pResult->valueString).c_str() : "")
+		);
 		TabLogAdd( logText.c_str() );
 	}
 	
 	// ノードを削除
-	if ( g_cntWillAddNodes > 0 ) {
-		g_cntWillAddNodes --;			// やっぱり追加しない
+	if ( g_cntWillAddCallNodes > 0 ) {
+		g_cntWillAddCallNodes --;				// やっぱり追加しない
 	} else {
-		RemoveCallNode( hwndTree );		// 既に追加していたので除去される
+		RemoveCallNode( hwndTree, callinfo );	// 既に追加していたので除去される
 	}
 	
-	g_stkCallinfo.pop_back();
+	// 返値ノードの追加
+	if ( pResult ) {
+		if ( !stt_bStepRunning ) {	// 後で追加する
+			if ( pResult->pCallInfoDepended ) {
+				g_willAddResultNodes.push_back(pResult);
+			} else {
+				delete g_willAddResultNodeIndepend;
+				g_willAddResultNodeIndepend = pResult;
+			}
+		} else {
+			AddResultNode( hwndTree, pResult );
+		}
+	}
+	
+	g_stkCallInfo.pop_back();
+	return;
+}
+
+//------------------------------------------------
+// 返値返却
+// 
+// @ 返値があれば、OnEndCalling の直前に呼ばれる。
+// @ ptr, flag はすぐに死んでしまうので、
+// @	今のうちに文字列化しておく。
+//------------------------------------------------
+void OnResultReturning( HWND hwndTree, const ModcmdCallInfo& callinfo, void* ptr, int flag )
+{
 	return;
 }
 
@@ -1534,15 +1710,15 @@ void OnEndCalling( HWND hwndTree, const ModcmdCallInfo& callinfo )
 //------------------------------------------------
 void AddCallNode( HWND hwndTree, const ModcmdCallInfo& callinfo )
 {
-	char name[128];
-	sprintf_s( name, "'%s", &g_dbginfo->ctx->mem_mds[callinfo.pStDat->nameidx] );
+	char name[128] = "'";
+	strcpy_s( &name[1], sizeof(name) - 1, STRUCTDAT_getName(callinfo.pStDat) );
 	
 	TVINSERTSTRUCT tvis = { 0 };
 	tvis.hParent      = g_hNodeDynamic;
 	tvis.hInsertAfter = TVI_LAST;
 	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
 	tvis.item.pszText = name;
-	tvis.item.lParam  = almighty_cast<LPARAM>( &callinfo );
+	tvis.item.lParam  = almighty_cast<LPARAM>( &callinfo );		// lparam に ModcmdCallInfo を設定する
 	
 	HTREEITEM hChild = TreeView_InsertItem( hwndTree, &tvis );
 	
@@ -1550,38 +1726,33 @@ void AddCallNode( HWND hwndTree, const ModcmdCallInfo& callinfo )
 	if ( TreeView_GetChild( g_hVarTree, g_hNodeDynamic ) == hChild ) {
 		TreeView_Expand( g_hVarTree, g_hNodeDynamic, TVE_EXPAND );
 	}
-	
 	return;
 }
 
 //------------------------------------------------
-// 呼び出しノードを削除
+// (最後の) 呼び出しノードを削除
 //------------------------------------------------
-void RemoveCallNode( HWND hwndTree )
+void RemoveCallNode( HWND hwndTree, const ModcmdCallInfo& callinfo )
 {
-	HTREEITEM hChild = TreeView_GetChild( hwndTree, g_hNodeDynamic );
-	if ( hChild == NULL ) return;		// error
+	HTREEITEM hLast = TreeView_GetChild( hwndTree, g_hNodeDynamic );
+	if ( hLast == NULL ) return;		// error
 	
 	// 末子を取得
-	for ( HTREEITEM hNext = hChild
+	for ( HTREEITEM hNext = hLast
 		; hNext != NULL
-		; hNext = TreeView_GetNextSibling( hwndTree, hChild )
+		; hNext = TreeView_GetNextSibling( hwndTree, hLast )
 	) {
-		hChild = hNext;
+		hLast = hNext;
 	}
-
-	// フォーカスを回避 (削除するノードが選択状態なら、その兄ノードを選択する)
-	if ( TreeView_GetSelection(hwndTree) == hChild ) {
-		HTREEITEM hUpper = TreeView_GetPrevSibling( hwndTree, hChild );
-		if ( hUpper == NULL ) hUpper = g_hNodeDynamic;		// 呼び出しノードが無いので "+dynamic" を選択
-		
-		TreeView_SelectItem( hwndTree, hUpper );
-	}
+	
+	// フォーカスを回避
+	TreeView_EscapeFocus( hwndTree, hLast );
 	
 	// 削除
-//	TreeView_SelectItem( hwndTree, hChild ); dbgmsg ("deleting the selected node");
-	TreeView_DeleteItem( hwndTree, hChild );
-	
+	if ( stt_bResultNode ) {
+		CallTree_RemoveDependResult( hwndTree, hLast );	// 依存していた返値ノードを除去する
+	}
+	TreeView_DeleteItem( hwndTree, hLast );
 	return;
 }
 
@@ -1590,14 +1761,98 @@ void RemoveCallNode( HWND hwndTree )
 //------------------------------------------------
 void UpdateCallNode( HWND hwndTree )
 {
-	// 追加予定ノードを実際に追加する
-	if ( g_cntWillAddNodes > 0 ) {
-		size_t const lenStk = g_stkCallinfo.size() ;
-		for ( size_t i = lenStk - g_cntWillAddNodes; i < lenStk; ++ i ) {
-			AddCallNode( hwndTree, *g_stkCallinfo[i] );
-		}
-		g_cntWillAddNodes = 0;
+	// 追加予定の返値ノードを実際に追加する
+	if ( stt_bResultNode && g_willAddResultNodeIndepend ) {
+		AddResultNode( hwndTree, g_willAddResultNodeIndepend );
+		g_willAddResultNodeIndepend = nullptr;
 	}
+	
+	// 追加予定の呼び出しノードを実際に追加する
+	if ( g_cntWillAddCallNodes > 0 ) {
+		size_t const lenStk = g_stkCallInfo.size() ;
+		for ( size_t i = lenStk - g_cntWillAddCallNodes; i < lenStk; ++ i ) {
+			AddCallNode( hwndTree, *g_stkCallInfo[i] );
+		}
+		g_cntWillAddCallNodes = 0;
+	}
+	
+	// 追加予定の返値ノードを実際に追加する (2)
+	if ( stt_bResultNode && !g_willAddResultNodes.empty() ) {
+		for each ( auto pResult in g_willAddResultNodes ) {
+			AddResultNode( hwndTree, pResult );
+		}
+		g_willAddResultNodes.clear();
+	}
+	return;
+}
+
+//------------------------------------------------
+// 返値ノードを追加
+//------------------------------------------------
+void AddResultNode( HWND hwndTree, const ResultNodeData* pResult )
+{
+	HTREEITEM hElem;
+	if ( pResult->pCallInfoDepended ) {
+		for ( hElem = TreeView_GetChild( hwndTree, g_hNodeDynamic )
+			; hElem != NULL
+			; hElem = TreeView_GetNextSibling( hwndTree, hElem )
+		) {
+			auto const pCallInfo = almighty_cast<const ModcmdCallInfo*>(TreeView_GetItemLParam(hwndTree, hElem));
+			if ( pCallInfo == pResult->pCallInfoDepended ) break;
+		}
+		if ( hElem == NULL ) {		// 依存元がなければ追加しない
+			delete pResult;
+			return;
+		}
+		
+		if ( pResult->pCallInfoDepended->isRunning() ) {
+			CallTree_RemoveDependResult( hwndTree, hElem );
+		}
+	} else {
+		CallTree_RemoveDependResult( hwndTree, g_hNodeDynamic );
+		hElem = g_hNodeDynamic;
+	}
+	
+	char name[128] = "\"";
+	strcpy_s( &name[1], sizeof(name) - 1, STRUCTDAT_getName(pResult->pStDat) );
+	
+	TVINSERTSTRUCT tvis = { 0 };
+		tvis.hParent      = hElem;	// 依存元を親にする
+		tvis.hInsertAfter = TVI_LAST;
+		tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
+		tvis.item.pszText = name;
+		tvis.item.lParam  = almighty_cast<LPARAM>( pResult );
+	
+	// 挿入
+	HTREEITEM hChild = TreeView_InsertItem( hwndTree, &tvis );
+	
+	// 第一ノードなら自動的に開く
+	if ( TreeView_GetChild( g_hVarTree, hElem ) == hChild ) {
+		TreeView_Expand( g_hVarTree, hElem, TVE_EXPAND );
+	}
+	
+	g_pLastResult = pResult;		// 最後の返値を更新
+	return;
+}
+
+//------------------------------------------------
+// 返値ノードを削除
+//------------------------------------------------
+void RemoveResultNode( HWND hwndTree, HTREEITEM hResult )
+{
+	// すべての子ノードを削除する
+	CallTree_RemoveDependResult( hwndTree, hResult );
+	
+	// フォーカスを回避
+	TreeView_EscapeFocus( hwndTree, hResult );
+	
+	// 関連していた返値ノードデータを破棄
+	auto pResult = almighty_cast<ResultNodeData*>( TreeView_GetItemLParam( hwndTree, hResult ) );
+	if ( g_pLastResult == pResult ) g_pLastResult = nullptr;
+	delete pResult;
+	
+	// 削除
+	TreeView_DeleteItem( hwndTree, hResult );
 	
 	return;
 }
@@ -1620,6 +1875,11 @@ static int WrapCallMethod_EndCalling( unsigned int idx, const ModcmdCallInfo* pC
 {
 	OnEndCalling( g_hVarTree, *pCallInfo );
 	return RUNMODE_RUN;
+}
+
+static void WrapCallMethod_ResultReturning( unsigned int idx, const ModcmdCallInfo* pCallInfo, void* ptr, int flag )
+{
+//	OnResultReturning( g_hVarTree, *pCallInfo, ptr, flag );
 }
 
 #endif

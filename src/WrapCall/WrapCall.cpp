@@ -36,6 +36,8 @@ public:
 	
 	~WrapCallData()
 	{
+		for each ( auto pCallInfo in *pInfCalling ) { delete pCallInfo; }
+		pInfCalling->clear();
 		delete pInfCalling; pInfCalling = NULL;
 		return;
 	}
@@ -95,7 +97,9 @@ static char stt_buf[1024];	// 一時バッファ
 //------------------------------------------------
 void bgnCall( STRUCTDAT* pStDat )
 {
-	ModcmdCallInfo* pCallInfo = new ModcmdCallInfo;
+	unsigned int const idx = g_pWrapCallData->size();
+	
+	ModcmdCallInfo* const pCallInfo = new ModcmdCallInfo;
 	
 	pCallInfo->sublev     = ctx->sublev;
 	pCallInfo->looplev    = ctx->looplev;
@@ -104,10 +108,18 @@ void bgnCall( STRUCTDAT* pStDat )
 	pCallInfo->fname      = g_pDebug->fname;
 	pCallInfo->line       = g_pDebug->line;
 	
-	g_pWrapCallData->pInfCalling->push_back( pCallInfo );
-	unsigned int idx = g_pWrapCallData->size() - 1;
+	pCallInfo->next = nullptr;
+	if ( idx == 0 ) {
+		pCallInfo->prev = nullptr;
+	} else {
+		ModcmdCallInfo* const pCallInfoPrev = g_pWrapCallData->pInfCalling->back();
+		pCallInfo->prev = pCallInfoPrev;
+		pCallInfoPrev->next = pCallInfo;
+	}
 	
-	// ログ出力
+	g_pWrapCallData->pInfCalling->push_back( pCallInfo );
+	
+	// ログ出力 (knowbug が行う)
 	/*
 	{
 		printf( stt_buf, "[CallBgn] %s\t@%d of \"%s\"]",
@@ -132,7 +144,7 @@ int endCall( void* p, vartype_t vt )
 {
 	if ( g_pWrapCallData->empty() ) return RUNMODE_RUN;
 	
-	unsigned int idx = g_pWrapCallData->size() - 1;
+	unsigned int const idx = g_pWrapCallData->size() - 1;
 	const ModcmdCallInfo* pCallInfo = g_pWrapCallData->pInfCalling->at( idx );
 	
 	// エラーの指摘
@@ -153,12 +165,18 @@ int endCall( void* p, vartype_t vt )
 	//*/
 	
 	// (あれば) 返値の更新
-	if ( p != NULL ) setLastResult( p, vt );
+	if ( p != NULL ) {
+		setLastResult( p, vt );
+		g_pWrapCallData->methods.ResultReturning( idx, pCallInfo, p, vt );
+	}
 	
 	// DebugWindow への通知
 	int result = g_pWrapCallData->methods.EndCalling( idx, pCallInfo );
 	
 	// 呼び出しデータの除去
+	if ( pCallInfo->prev != nullptr ) {
+		const_cast<ModcmdCallInfo*>(pCallInfo->prev)->next = nullptr;
+	}
 	g_pWrapCallData->pInfCalling->pop_back();
 	delete pCallInfo;
 	
@@ -167,6 +185,8 @@ int endCall( void* p, vartype_t vt )
 
 //------------------------------------------------
 // 最後の返値を設定する
+// 
+// @ すぐに使えなくなるので注意。
 //------------------------------------------------
 void setLastResult( void* p, vartype_t vt )
 {

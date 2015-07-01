@@ -1,11 +1,23 @@
 
+	WrapCall.hpi
+	
+＊概要
 	TYPE_MODCMD の処理をラップし、ユーザ定義命令・関数の呼び出しを DebugWindow (Knowbug) に通知する。
 	
 	ラッピングは終了時に解く。
 		そうしないと、var_multi との併用で謎のランタイムエラーを引き起こす。
 	
+	knowbug と通信するために exinfo->er を用いる。
+	
 ＊メモ
 	・HSP3TYPEINFO が静的配列で管理されていることを前提とする。
+	
+＠更新履歴
+2012.09/10
+	ModcmdCallInfo を双方向リストにした。
+	返値が返却されたときに通知 ResultReturning を送るようにした。
+	終了時に、ModcmdCallInfo をすべて削除するようにした。
+		途中で終了したとき、それらを delete することなく終了していた。
 	
 2012.05.27 (Sun)
 	返値 (RUNMODE) を、本来の返値が RUNMODE_RUN であれば、

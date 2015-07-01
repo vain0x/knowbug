@@ -59,7 +59,7 @@ public:
 	void addModInst( ModInst *mv, const char *name );
 	void addFlexValue( FlexValue *fv, const char *name );
 	void addCall( STRUCTDAT *pStDat, void *prmstk, const char *name );
-	
+	void addResult( void *ptr, vartype_t type, const char *name );
 	const CString& getString(void) const
 	{
 		return *mpBuf;

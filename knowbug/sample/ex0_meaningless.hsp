@@ -23,7 +23,7 @@
 	repeat length2(arr) : cnt_1 = cnt
 	repeat length (arr) : cnt_0 = cnt
 		arr(cnt_0, cnt_1, cnt_2) = i : i ++
-		if ( i == 23 ) : assert
+	;	if ( i == 23 ) : assert
 	loop
 	loop
 	loop
@@ -43,6 +43,6 @@
 #global
 
 	mes "Hello, world!"
-	repeat 4 : k(cnt) = double(cnt) : loop
+	repeat 4 : k(cnt) = cnt : loop
 	func1 777, k(1)
 	stop

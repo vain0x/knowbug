@@ -1,0 +1,40 @@
+// knowbug sample
+
+// ˆË‘¶ŠÖŒW
+
+#module
+
+#deffunc output str msg
+	logmes msg
+	mes msg
+	return
+
+#defcfunc X int a, int b
+	mes "X" + dbgpair(a, b)
+	;assert
+	return a + b
+	
+#defcfunc Y int a, int b
+	mes "Y" + dbgpair(a, b)
+	return a * b
+	
+#deffunc Z int k
+	repeat k
+		mes X(k, cnt)
+	loop
+	stt_counter += k
+	output str(stt_counter)
+	assert
+	return stt_counter
+	
+#global
+
+	width 100, 100, ginfo_dispx - 200, ginfo_dispy - 200
+	assert
+	;mes X(1, 2)					// ’Êí
+;	mes X(2, 3) + Y(5, 7)		// •À—§
+;	mes X( Y(2, 3), 6 )			// X ‚Í Y ‚ÉˆË‘¶‚µ‚Ä‚¢‚é
+;	Z 3							// Z ‚Í output ‚ğŠÜ‚Ş
+;	mes X( Y(2, 3), Y(5, 7) )	// X ‚Í2‚Â‚Ì Y ‚ÉˆË‘¶‚µ‚Ä‚¢‚é
+	mes X(Y(2, 3), 1) + X(3, 4)
+	

@@ -16,6 +16,7 @@ struct WrapCallMethod
 	
 	void (*BgnCalling)( unsigned int idx, const ModcmdCallInfo* pCallInfo );
 	int  (*EndCalling)( unsigned int idx, const ModcmdCallInfo* pCallInfo );
+	void (*ResultReturning)( unsigned int idx, const ModcmdCallInfo* pCallInfo, void* ptr, int flag );
 };
 
 #endif
