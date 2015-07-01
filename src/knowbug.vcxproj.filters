@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="class">
+      <UniqueIdentifier>{275ea044-7b87-4f01-a1ec-78305b577e21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="class2">
+      <UniqueIdentifier>{1332dcd6-5056-4dc1-8ed2-891dde29a3d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="clhsp-header">
+      <UniqueIdentifier>{fa7d5d12-ae2c-461d-8023-f7bd820fb6f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="compatible-header">
+      <UniqueIdentifier>{91971cad-184c-4292-bd50-e81fa7267b8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="module">
+      <UniqueIdentifier>{0e8e0823-bb97-4d73-81f7-d399e205e61d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\module\mod_cstring.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\module\mod_debug.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\module\SortNote.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\module\strbuf.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\module\supio_win.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="CIni.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="CVarinfoText.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
+    <ClCompile Include="CVarinfoTree.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
+    <ClCompile Include="CVarTree.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="SysvarData.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\hsp3\chdebug.h">
+      <Filter>clhsp-header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\hsp3\chstruct.h">
+      <Filter>clhsp-header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\hsp3\chvar_core.h">
+      <Filter>clhsp-header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\hsp3\gc.h">
+      <Filter>clhsp-header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\hsp3\mod_vector.h">
+      <Filter>clhsp-header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\module\compatible-header\hsp3debug.compatible.h">
+      <Filter>compatible-header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\module\compatible-header\hsp3struct.compatible.h">
+      <Filter>compatible-header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\module\compatible-header\hspvar_core.compatible.h">
+      <Filter>compatible-header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\module\func_isRange.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\module\mod_cast.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\module\mod_cstring.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\module\mod_debug.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\module\SortNote.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\module\strbuf.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\module\supio.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\module\supio_win.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="CIni.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="ClhspDebugInfo.h">
+      <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="CVarinfoText.h">
+      <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="CVarinfoTree.h">
+      <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="CVarTree.h">
+      <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="hsp3compatible.h">
+      <Filter>clhsp-header</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SysvarData.h">
+      <Filter>class</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="knowbug.rc">
+      <Filter>リソース ファイル</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
