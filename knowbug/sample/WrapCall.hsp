@@ -1,0 +1,29 @@
+// WrapCall test
+
+#include "WrapCall.as"
+
+// デバッグウィンドウの「次行」ボタンを押しながら、+dynamic ノードを見る
+
+#module Point x, y
+
+#modinit int x_, int y_
+	point_set thismod, x_, y_
+	return
+	
+#modfunc point_set int x_, int y_,  local z
+	logmes "old: " + point_toString(thismod)
+	x = x_
+	y = y_
+	return
+	
+#modcfunc point_toString
+	return strf("(%d, %d)", x, y)
+	
+#global
+	
+	assert
+	
+	newmod x, Point, 20, 30
+	logmes point_toString(x)
+	
+;	point_set x, 30, 40

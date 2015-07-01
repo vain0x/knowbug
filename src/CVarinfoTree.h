@@ -6,13 +6,20 @@
 #include "ClhspDebugInfo.h"
 #include "module/mod_cstring.h"
 
+#ifdef with_Multi
+class CMulti;
+#endif
+#ifdef with_Vector
+class CVector;
+#endif
+
 //##############################################################################
 //                宣言部 : CVarinfoTree
 //##############################################################################
 class CVarinfoTree
 {
 private:
-	static const int stc_cntUnitIndent = 3;		// 字下げ単位量
+	static const int stc_cntUnitIndent = 1;		// 字下げ単位量
 	
 	struct BaseData
 	{
@@ -49,8 +56,10 @@ public:
 	~CVarinfoTree();
 	
 	void addVar( PVal *pval, const char *name );
+	void addSysvar( int idx, const char* name, void** ppDumped, size_t* pSizeToDump );
 	void addModInst( ModInst *mv, const char *name );
 	void addFlexValue( FlexValue *fv, const char *name );
+	void addCall( STRUCTDAT *pStDat, void *prmstk, const char *name );
 	
 	const CString& getString(void) const
 	{
@@ -64,22 +73,35 @@ private:
 	void addItem_varScalar( const BaseData& base, PVal *pval );
 	void addItem_varArray ( const BaseData& base, PVal *pval );
 	void addItem_varStr   ( const BaseData& base, PVal *pval, bool bScalar );
+#ifdef clhsp
 	void addItem_vector   ( const BaseData& base, Vector *vec, int length );
 	void addItem_vecelem  ( const BaseData& base, VecElem *vecelem, int idx );
 	void addItem_modinst  ( const BaseData& base, ModInst *mv );
+#else
 	void addItem_flexValue( const BaseData& base, FlexValue *fv );
+#endif
 	void addItem_prmstack ( const BaseData& base, STRUCTDAT *pStDat, STRUCTPRM *pStPrm, const void *prmstack );
 	void addItem_member   ( const BaseData& base, STRUCTDAT *pStDat, STRUCTPRM *pStPrm, const void *member );
+#ifdef with_Multi
+	void addItem_multi    ( const BaseData& base, CMulti* src );
+#endif
+#ifdef with_Vector
+	void addItem_vector   ( const BaseData& base, CVector* src );
+#endif
 //	void addItem_string   ( const BaseData& base, const char *src );
 	
 	// 文字列の連結
+	void cat( const char *src );
 	void catf( const char *format, ... );
 	void cat_crlf( void );
+private:
+	void cat( const char *src, size_t len );
 	
+public:
 	// その他
 	CString getIndent(void) const
 	{
-		return CString( mlvNest * stc_cntUnitIndent, ' ' );
+		return CString( mlvNest * stc_cntUnitIndent, '\t' );
 	}
 	
 	// デバッグ文字列の生成

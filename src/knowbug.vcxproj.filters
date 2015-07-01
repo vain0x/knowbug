@@ -28,6 +28,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
     </Filter>
+    <Filter Include="WrapCall">
+      <UniqueIdentifier>{8edddfd0-21dc-4014-a397-d3b7bd1f0ef4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="var_extra">
+      <UniqueIdentifier>{91cc624b-f272-4337-8d5b-2ad048d6db7c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\module\mod_cstring.cpp">
@@ -139,6 +145,21 @@
     </ClInclude>
     <ClInclude Include="SysvarData.h">
       <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\DbgWndMsg.h">
+      <Filter>WrapCall</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\ModcmdCallInfo.h">
+      <Filter>WrapCall</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\..\MakeHPI\WrapCall\WrapCallSdk.h">
+      <Filter>WrapCall</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\..\MakeHPI\var_multi\src\CMulti.h">
+      <Filter>var_extra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\..\MakeHPI\var_vector\src\CVector.h">
+      <Filter>var_extra</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

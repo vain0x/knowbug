@@ -15,4 +15,13 @@ struct DebugInfo
 	HSP3DEBUG* debug;
 };
 
+// その他
+static const char *getModeString( varmode_t mode )
+{
+	return	( mode <= HSPVAR_MODE_NONE   ) ? "無効" :
+			( mode == HSPVAR_MODE_MALLOC ) ? "実体" :
+			( mode == HSPVAR_MODE_CLONE  ) ? "クローン" : "???"
+	;
+}
+
 #endif

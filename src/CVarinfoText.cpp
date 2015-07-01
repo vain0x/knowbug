@@ -52,22 +52,23 @@ void CVarinfoText::addVar( PVal *pval, const char *name )
 //------------------------------------------------
 void CVarinfoText::make( void )
 {
-	PVal *& pval = mpVar;
+	PVal*& pval = mpVar;
 	
-	HspVarProc *pHvp ( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
+	HspVarProc* pHvp = mdbginfo.exinfo->HspFunc_getproc( pval->flag );
+	int bufsize; 
+	void* pMemBlock = pHvp->GetBlockSize( pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize) );
 	
 	// 変数に関する情報
 	catf( "変数名：%s", mpName );
-	catf( "変数型：%s", pHvp->vartype_name );
-	catf( "配列 " BracketIdxL "%d, %d, %d" BracketIdxR,
+	catf( "変数型：%s " BracketIdxL "%d, %d, %d" BracketIdxR,
+		pHvp->vartype_name,
 		PValLength( pHvp, pval, 1 ),
 		PValLength( pHvp, pval, 2 ),
 		PValLength( pHvp, pval, 3 )
 	);
 	catf( "モード：%s", getModeString( pval->mode ) );
-	catf( "アドレス：0x%08X", address_cast(pval->pt) );
-	catf( "マスター：0x%08X", address_cast(pval->master) );
-	catf( "使用サイズ：%d (bytes)",   pval->size );
+	catf( "アドレス：0x%08X, 0x%08X", address_cast(pval->pt), address_cast(pval->master) );
+	catf( "サイズ：using %d in %d [byte]", pval->size, bufsize );
 	
 	cat_crlf();
 	
@@ -87,11 +88,12 @@ void CVarinfoText::make( void )
 	}
 	
 	// メモリダンプ
-	dumpVar( pval );
+	dump( pMemBlock, static_cast<size_t>(bufsize) );
 	
 	return;
 }
 
+/*
 //------------------------------------------------
 // 変数をメモリダンプする
 //------------------------------------------------
@@ -102,12 +104,13 @@ void CVarinfoText::dumpVar( PVal *pval )
 	HspVarCoreReset( pval );
 	HspVarProc *pHvp ( mdbginfo.exinfo->HspFunc_getproc( pval->flag ) );
 	void *ptr ( pHvp->GetPtr( pval ) );
-	void *mem ( pHvp->GetBlockSize( pval, ptr_cast<PDAT *>(ptr), ptr_cast<int *>(&size) ) );
+	void *mem (  );
 	
 	dump( mem, size );
 	
 	return;
 }
+//*/
 
 //------------------------------------------------
 // メモリダンプを追加する
@@ -118,7 +121,7 @@ void CVarinfoText::dump( void *mem, size_t bufsize )
 	size_t size( bufsize );
 	
 	if ( size > stc_maxsize ) {
-		catf( "全%dバイトの内、%dバイトのみをダンプします。", bufsize, stc_maxsize );
+		catf( "全%d[byte]の内、%d[byte]のみをダンプします。", bufsize, stc_maxsize );
 		size = stc_maxsize;
 	}
 	
@@ -141,9 +144,6 @@ void CVarinfoText::dump( void *mem, size_t bufsize )
 		
 		cat( tline );
 	}
-	
-	cat_crlf();
-	catf( "バッファサイズ：%d (bytes)", bufsize );
 	
 	return;
 }
@@ -169,122 +169,24 @@ void CVarinfoText::addSysvar( const char *name )
 	HspVarProc *pHvp ( mdbginfo.exinfo->HspFunc_getproc( type ) );
 	
 	catf( "変数名：%s\t(システム変数)", mpName );
-	catf( "変数型：%s" , pHvp->vartype_name );
+	catf( "変数型：%s", pHvp->vartype_name );
 	cat_crlf();
 	
 	void  *pDumped   ( NULL );
 	size_t sizeToDump( 0 );
-	
-	switch ( idx ) {
-		// 整数値
-		case SysvarId_Stat:
-		case SysvarId_IParam:
-		case SysvarId_WParam:
-		case SysvarId_LParam:
-		case SysvarId_StrSize:
-		case SysvarId_Looplev:
-		case SysvarId_Sublev:
-		case SysvarId_Err:
-	//	case SysvarId_MouseX:
-	//	case SysvarId_MouseY:
-	//	case SysvarId_MouseW:
-		{
-			int *p;
-			switch ( idx ) {
-				case SysvarId_Stat:    p = &mdbginfo.ctx->stat;    break;
-				case SysvarId_IParam:  p = &mdbginfo.ctx->iparam;  break;
-				case SysvarId_WParam:  p = &mdbginfo.ctx->wparam;  break;
-				case SysvarId_LParam:  p = &mdbginfo.ctx->lparam;  break;
-				case SysvarId_StrSize: p = &mdbginfo.ctx->strsize; break;
-				case SysvarId_Looplev: p = &mdbginfo.ctx->looplev; break;
-				case SysvarId_Sublev:  p = &mdbginfo.ctx->sublev;  break;
-				case SysvarId_Err:     p = ptr_cast<int *>( &mdbginfo.ctx->err ); break;
-			}
-			catf( "%s = %-10d (0x%08X)", name, *p, *p );
-			pDumped    = p;
-			sizeToDump = sizeof(int);
-			break;
-		}
-		// refstr
-		case SysvarId_Refstr:
-		{
-			char *& str = mdbginfo.ctx->refstr;
-			catf( "%s = %s", name, str );
-			pDumped    = str;
-			sizeToDump = HSPCTX_REFSTR_MAX;
-			break;
-		}
-		// refdval
-		case SysvarId_Refdval:
-		{
-			double& dval = mdbginfo.ctx->refdval;
-			catf( "%s = %.16f", name, dval );
-			pDumped    = &dval;
-			sizeToDump = sizeof(dval);
-			break;
-		}
-		// cnt
-		case SysvarId_Cnt:
-		{
-			int lvLoop ( mdbginfo.ctx->looplev );
-			if ( lvLoop == 0 ) {
-				cat( "cnt = (out of loop)" );
-			} else {
-				cat( "cnt:" );
-				
-				for ( ; lvLoop > 0; -- lvLoop ) {
-#ifdef clhsp
-					int& cnt = mdbginfo.ctx->mem_loop[lvLoop].cnt;
-#else
-					int& cnt = ptr_cast<LOOPDAT *>( &mdbginfo.ctx->mem_loop )[lvLoop].cnt;
-#endif
-					catf( "   #%d = %d", lvLoop, cnt );
-				}
-			}
-			break;
-		}
-		// thismod
-		case SysvarId_Thismod:
-		{
-			if ( mdbginfo.ctx->prmstack != NULL ) {
-				MPThismod *thismod = ptr_cast<MPThismod *>( mdbginfo.ctx->prmstack );
-				
-				if ( thismod->magic == MODVAR_MAGICCODE ) {
-					CVarinfoTree varinf( mdbginfo );
-#ifdef clhsp
-					varinf.addModInst( thismod->mv, "thismod" );
-#else
-					PVal *pval( thismod->pval );
-					pval->offset = thismod->aptr;
-					
-					HspVarProc *pHvp( mdbginfo.exinfo->HspFunc_getproc(pval->flag) );
-					varinf.addFlexValue( ptr_cast<FlexValue *>(pHvp->GetPtr(pval)), "thismod" );
-				//	varinf.addVar( thismod->pval, "thismod" );
-#endif
-					cat( varinf.getString().c_str() );
-					break;
-				}
-			}
-			cat( "thismod = (nullmod or un-used)" );
-			break;
-		}
-		/*
-		// ginfo
-		case SysvarId_GInfo:
-		{
-			cat( "(未実装)" );
-			break;
-		}
-		//*/
-		/*
-		// dirinfo
-		case SysvarId_DirInfo:
-		{
-			cat( "(未実装)" );
-			break;
-		}
-		//*/
-	};
+
+	{
+		CVarinfoTree* varinf = new CVarinfoTree( mdbginfo, mlenLimit );
+		
+		varinf->addSysvar( idx, name, &pDumped, &sizeToDump );
+		
+		const CString& sTree = varinf->getString();
+		size_t len = sTree.length();
+		cat( sTree.c_str() );				// 内容を連結する
+		
+		mlenLimit -= len;
+		delete varinf;
+	}
 	
 	if ( pDumped != NULL ) {
 		cat_crlf();
@@ -293,6 +195,99 @@ void CVarinfoText::addSysvar( const char *name )
 	
 	return;
 }
+
+#if with_WrapCall
+//------------------------------------------------
+// 引数タイプの文字列を得る
+//------------------------------------------------
+static const char *getMptypeString( STRUCTPRM *pStPrm )
+{
+	switch ( pStPrm->mptype ) {
+	//	case MPTYPE_STRUCTTAG:   return "structtag";
+		case MPTYPE_LABEL:       return "label";
+		case MPTYPE_DNUM:        return "double";
+		case MPTYPE_INUM:        return "int";
+		case MPTYPE_LOCALSTRING: return "str";
+		case MPTYPE_STRUCT:      return "modcls";
+		case MPTYPE_MODULEVAR:   return "thismod";
+		case MPTYPE_IMODULEVAR:  return "thismod(new)";
+		case MPTYPE_TMODULEVAR:  return "thismod(delete)";
+		case MPTYPE_SINGLEVAR:   return "var";
+		case MPTYPE_ARRAYVAR:    return "array";
+		case MPTYPE_LOCALVAR:    return "local";
+#ifdef clhsp
+		case MPTYPE_ANY:         return "any";
+		case MPTYPE_VECTOR:      return "vector";
+		case MPTYPE_FLEX:        return "...";
+		default:
+			// モジュールクラス
+			if ( pStPrm->mptype >= MPTYPE_MODCLS_BIAS ) {
+				int idxFinfo( pStPrm->mptype - MPTYPE_MODCLS_BIAS );
+				return &mdbginfo.ctx->mem_mds[mdbginfo.ctx->mem_finfo[idxFinfo].nameidx];
+				
+				ModInst *mv( code_get_modinst() );
+				*ptr_cast<ModInst **>(out) = mv;
+				
+				if ( get_stprm(mv)->subid != idxFinfo ) {
+					throw runerr HSPERR_TYPE_MISMATCH;
+				}
+			}
+			break;
+#endif
+	}
+	return "";
+}
+
+//------------------------------------------------
+// 呼び出しデータから生成
+//------------------------------------------------
+void CVarinfoText::addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const char *name )
+{
+	catf( "関数名：%s", name );
+	
+	// シグネチャ
+	{
+		CString sPrm = "仮引数：(";
+		STRUCTPRM *pStPrm = &mdbginfo.ctx->mem_minfo[pStDat->prmindex];
+
+		if ( pStDat->prmmax == 0 ) {
+			sPrm += "void";
+		} else {
+			for ( int i = 0; i < pStDat->prmmax; ++ i ) {
+				if ( i !=0 ) sPrm += ", ";
+				sPrm += getMptypeString( pStPrm + i );
+			}
+		}
+		
+		sPrm += ")";
+		cat( sPrm.c_str() );
+	}
+	
+	if ( prmstk == NULL ) {
+		cat( "(unknown arguments)" );
+	} else {
+		// 変数の内容に関する情報
+		{
+			CVarinfoTree *varinf( new CVarinfoTree( mdbginfo, mlenLimit ) );
+			
+			varinf->addCall( pStDat, prmstk, name );
+			
+			const CString& sTree( varinf->getString() );
+			size_t len( sTree.size() );		// mlenLimit は越えてない
+			cat( sTree.c_str() );
+			
+			mlenLimit -= len;
+			
+			delete varinf;
+		}
+		
+		// メモリダンプ
+		dump( prmstk, pStDat->size );
+	}
+	
+	return;
+}
+#endif
 
 //**********************************************************
 //        下請け関数

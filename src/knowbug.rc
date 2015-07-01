@@ -73,7 +73,7 @@ BEGIN
         BOTTOMMARGIN, 248
     END
 
-    "T_VAR", DIALOG
+    "T_DAT", DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 234
@@ -129,6 +129,7 @@ FONT 9, "ＭＳ ゴシック", 400, 0, 0x80
 BEGIN
     EDITTEXT        IDC_LOG,6,6,228,234,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
     CONTROL         "自動更新",IDC_CHK_UPDATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,240,48,12
+	CONTROL         "呼出履歴",IDC_CHK_CALOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,58,240,48,12
 END
 
 
@@ -138,8 +139,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,4,0
- PRODUCTVERSION 1,0,4,0
+ FILEVERSION 1,0,7,0
+ PRODUCTVERSION 1,0,7,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -155,13 +156,13 @@ BEGIN
         BLOCK "041104b0"
         BEGIN
             VALUE "CompanyName", "上大"
-            VALUE "FileDescription", "debugger for hsp"
-            VALUE "FileVersion", "1.0.4.0"
+            VALUE "FileDescription", "debugger for hsp3"
+            VALUE "FileVersion", "1.0.7.0"
             VALUE "InternalName", "knowbug.dll"
-            VALUE "LegalCopyright", "Copyright (C) 2009"
+            VALUE "LegalCopyright", "Copyright (C) 2011"
             VALUE "OriginalFilename", "hsp3debug.dll"
             VALUE "ProductName", "knowbug"
-            VALUE "ProductVersion", "1.0.3.0"
+            VALUE "ProductVersion", "1.0.7.0"
         END
     END
     BLOCK "VarFileInfo"

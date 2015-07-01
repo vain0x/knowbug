@@ -37,6 +37,9 @@ public:
 	
 	void addVar( PVal *pval, const char *name );
 	void addSysvar( const char *name );
+#ifdef with_WrapCall
+	void addCall( STRUCTDAT* pStDat, void *prmstk, int sublev, const char *name );
+#endif
 	
 private:
 	// テキストの生成
@@ -54,13 +57,6 @@ private:
 	void cat_crlf( void );
 	
 	// その他
-	static const char *getModeString( varmode_t mode )
-	{
-		return	( mode <= HSPVAR_MODE_NONE   ) ? "無効" :
-				( mode == HSPVAR_MODE_MALLOC ) ? "実体" :
-				( mode == HSPVAR_MODE_CLONE  ) ? "クローン" : "???"
-		;
-	}
 	
 	//******************************************************
 	//    封印

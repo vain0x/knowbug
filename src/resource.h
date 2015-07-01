@@ -15,7 +15,8 @@
 #define IDC_MFCSHELLLIST1               1018
 #define IDC_VARTREE                     1019
 #define IDC_CHK_UPDATE                  1024
-#define IDC_BTN_CLEAR                   1025
+#define IDC_CHK_CALOG                   1025
+#define IDC_BTN_CLEAR                   1026
 
 // Next default values for new objects
 // 

@@ -21,13 +21,16 @@ static StSysvarData SysvarData[]
 	{ "refdval", HSPVAR_FLAG_DOUBLE },
 	{ "thismod", HSPVAR_FLAG_STRUCT },
 	{ "cnt",     HSPVAR_FLAG_INT },
-	{ "iparam",  HSPVAR_FLAG_INT },
-	{ "wparam",  HSPVAR_FLAG_INT },
-	{ "lparam",  HSPVAR_FLAG_INT },
+	{ "params",  HSPVAR_FLAG_INT },
+//	{ "iparam",  HSPVAR_FLAG_INT },
+//	{ "wparam",  HSPVAR_FLAG_INT },
+//	{ "lparam",  HSPVAR_FLAG_INT },
+	{ "notebuf", HSPVAR_FLAG_STR },
 	{ "strsize", HSPVAR_FLAG_INT },
 	{ "looplev", HSPVAR_FLAG_INT },
 	{ "sublev",  HSPVAR_FLAG_INT },
 	{ "err",     HSPVAR_FLAG_INT },
+	
 //	{ "mousex",  HSPVAR_FLAG_INT },
 //	{ "mousey",  HSPVAR_FLAG_INT },
 //	{ "mousew",  HSPVAR_FLAG_INT },
@@ -44,9 +47,11 @@ enum SysvarId
 	SysvarId_Refdval,		// refdval
 	SysvarId_Thismod,		// thismod
 	SysvarId_Cnt,			// cnt
-	SysvarId_IParam,		// iparam
-	SysvarId_WParam,		// wparam
-	SysvarId_LParam,		// lparam
+	SysvarId_Params,		// (params)
+//	SysvarId_IParam,		// iparam
+//	SysvarId_WParam,		// wparam
+//	SysvarId_LParam,		// lparam
+	SysvarId_NoteBuf,		// notebuf
 	SysvarId_StrSize,		// strsize
 	SysvarId_Looplev,		// looplev
 	SysvarId_Sublev,		// sublev
