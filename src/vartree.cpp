@@ -1,4 +1,4 @@
-
+ï»¿
 #include <Windows.h>
 #include <CommCtrl.h>
 
@@ -35,15 +35,15 @@ HTREEITEM getLogNodeHandle() { return g_hNodeLog; }
 static HTREEITEM g_hNodeDynamic;
 static void AddNodeDynamic();
 
-// ƒcƒŠ[ƒrƒ…[‚ÉŠÜ‚Ü‚ê‚é•Ô’lƒm[ƒh‚Ìƒf[ƒ^
+// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã«å«ã¾ã‚Œã‚‹è¿”å€¤ãƒãƒ¼ãƒ‰ã®ãƒ‡ãƒ¼ã‚¿
 using resultDataPtr_t = std::shared_ptr<ResultNodeData>;
 static std::map<HTREEITEM, resultDataPtr_t> g_allResultData;
-static HTREEITEM g_lastIndependedResultNode;	// ”ñˆË‘¶‚È•Ô’lƒm[ƒh
+static HTREEITEM g_lastIndependedResultNode;	// éä¾å­˜ãªè¿”å€¤ãƒãƒ¼ãƒ‰
 
-// “®“Iƒm[ƒh‚Ì’Ç‰ÁEœ‹‚Ì’x‰„‚ÌŠÇ—
-static size_t g_cntWillAddCallNodes = 0;						// Ÿ‚ÌXV‚Å’Ç‰Á‚·‚×‚«ƒm[ƒh”
-static std::vector<resultDataPtr_t> g_willAddResultNodes;		// Ÿ‚ÌXV‚Å’Ç‰Á‚·‚×‚«•Ô’lƒm[ƒh
-static resultDataPtr_t g_willAddResultNodeIndepend = nullptr;	// Ÿ‚ÌXV‚Å’Ç‰Á‚·‚×‚«”ñˆË‘¶‚È•Ô’lƒm[ƒh
+// å‹•çš„ãƒãƒ¼ãƒ‰ã®è¿½åŠ ãƒ»é™¤å»ã®é…å»¶ã®ç®¡ç†
+static size_t g_cntWillAddCallNodes = 0;						// æ¬¡ã®æ›´æ–°ã§è¿½åŠ ã™ã¹ããƒãƒ¼ãƒ‰æ•°
+static std::vector<resultDataPtr_t> g_willAddResultNodes;		// æ¬¡ã®æ›´æ–°ã§è¿½åŠ ã™ã¹ãè¿”å€¤ãƒãƒ¼ãƒ‰
+static resultDataPtr_t g_willAddResultNodeIndepend = nullptr;	// æ¬¡ã®æ›´æ–°ã§è¿½åŠ ã™ã¹ãéä¾å­˜ãªè¿”å€¤ãƒãƒ¼ãƒ‰
 
 static void AddCallNodeImpl(ModcmdCallInfo const& callinfo);
 static void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult);
@@ -54,7 +54,7 @@ static ResultNodeData* FindLastIndependedResultData();
 #endif
 
 //------------------------------------------------
-// ƒcƒŠ[ƒrƒ…[‚Ìƒm[ƒh‚Ì LPARAM ‚ÌŒ^’è‹`
+// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã®ãƒãƒ¼ãƒ‰ã® LPARAM ã®å‹å®šç¾©
 //------------------------------------------------
 bool VarNode::isTypeOf(char const* s)
 {
@@ -94,7 +94,7 @@ lparam_t TreeView_MyLParam(HWND hTree, HTREEITEM hItem, Tag*)
 }
 
 //------------------------------------------------
-// •Ï”ƒcƒŠ[‚Ì‰Šú‰»
+// å¤‰æ•°ãƒ„ãƒªãƒ¼ã®åˆæœŸåŒ–
 //------------------------------------------------
 void init()
 {
@@ -107,7 +107,7 @@ void init()
 	g_hNodeLog    = AddNodeSystem("+log", SystemNodeId::Log);
 	AddNodeSystem("+general", SystemNodeId::General);
 
-	//@, +dynamic ‚ÍŠJ‚¢‚Ä‚¨‚­
+	//@, +dynamic ã¯é–‹ã„ã¦ãŠã
 #ifdef with_WrapCall
 	TreeView_Expand(hwndVarTree, g_hNodeDynamic, TVE_EXPAND);
 #endif
@@ -115,12 +115,12 @@ void init()
 	assert(TreeView_GetItemString(hwndVarTree, hRoot) == CStaticVarTree::ModuleName_Global);
 	TreeView_Expand(hwndVarTree, hRoot, TVE_EXPAND);
 
-	TreeView_EnsureVisible(hwndVarTree, hRoot); //ƒgƒbƒv‚Ü‚ÅƒXƒNƒ[ƒ‹
+	TreeView_EnsureVisible(hwndVarTree, hRoot); //ãƒˆãƒƒãƒ—ã¾ã§ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«
 	TreeView_SelectItem(hwndVarTree, hRoot);
 }
 
 //------------------------------------------------
-// •Ï”ƒcƒŠ[I—¹
+// å¤‰æ•°ãƒ„ãƒªãƒ¼çµ‚äº†æ™‚
 //------------------------------------------------
 void term()
 {
@@ -128,7 +128,7 @@ void term()
 	if ( auto const hVarTree = Dialog::getVarTreeHandle() ) {
 		RemoveDependingResultNodes(g_hNodeDynamic);
 
-		// dynamic ŠÖ˜A‚Ìƒf[ƒ^‚ğíœ‚·‚é (•K—v‚È‚³‚»‚¤)
+		// dynamic é–¢é€£ã®ãƒ‡ãƒ¼ã‚¿ã‚’å‰Šé™¤ã™ã‚‹ (å¿…è¦ãªã•ãã†)
 		if ( usesResultNodes() ) {
 			g_willAddResultNodeIndepend = nullptr;
 			g_willAddResultNodes.clear();
@@ -138,7 +138,7 @@ void term()
 }
 
 //------------------------------------------------
-// Ã“I•Ï”ƒŠƒXƒg‚ğæ“¾‚·‚é
+// é™çš„å¤‰æ•°ãƒªã‚¹ãƒˆã‚’å–å¾—ã™ã‚‹
 //------------------------------------------------
 static CStaticVarTree const& getSttVarTree()
 {
@@ -154,7 +154,7 @@ static CStaticVarTree const& getSttVarTree()
 }
 
 //------------------------------------------------
-// ƒcƒŠ[ƒrƒ…[‚É—v‘f‚ğ‘}“ü‚·‚é
+// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã«è¦ç´ ã‚’æŒ¿å…¥ã™ã‚‹
 //------------------------------------------------
 template<typename Tag>
 static HTREEITEM TreeView_MyInsertItem(HTREEITEM hParent, char const* name, bool sorts, typename Tag::lparam_t lp, Tag* = nullptr)
@@ -169,7 +169,7 @@ static HTREEITEM TreeView_MyInsertItem(HTREEITEM hParent, char const* name, bool
 }
 
 //------------------------------------------------
-// •Ï”ƒcƒŠ[‚Éƒm[ƒh‚ğ’Ç‰Á‚·‚é
+// å¤‰æ•°ãƒ„ãƒªãƒ¼ã«ãƒãƒ¼ãƒ‰ã‚’è¿½åŠ ã™ã‚‹
 //------------------------------------------------
 void AddNodeModule(HTREEITEM hParent, CStaticVarTree const& tree)
 {
@@ -187,7 +187,7 @@ void AddNodeModule(HTREEITEM hParent, CStaticVarTree const& tree)
 }
 
 //------------------------------------------------
-// •Ï”ƒcƒŠ[‚ÉƒVƒXƒeƒ€ƒm[ƒh‚ğ’Ç‰Á‚·‚é
+// å¤‰æ•°ãƒ„ãƒªãƒ¼ã«ã‚·ã‚¹ãƒ†ãƒ ãƒãƒ¼ãƒ‰ã‚’è¿½åŠ ã™ã‚‹
 //------------------------------------------------
 HTREEITEM AddNodeSystem(char const* name, SystemNodeId id) {
 	assert(SystemNode::isTypeOf(name));
@@ -195,13 +195,13 @@ HTREEITEM AddNodeSystem(char const* name, SystemNodeId id) {
 }
 
 //------------------------------------------------
-// •Ï”ƒcƒŠ[‚ÉƒVƒXƒeƒ€•Ï”ƒm[ƒh‚ğ’Ç‰Á‚·‚é
+// å¤‰æ•°ãƒ„ãƒªãƒ¼ã«ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ãƒãƒ¼ãƒ‰ã‚’è¿½åŠ ã™ã‚‹
 //------------------------------------------------
 void AddNodeSysvar()
 {
 	HTREEITEM const hNodeSysvar = AddNodeSystem("+sysvar", SystemNodeId::Sysvar);
 
-	// ƒVƒXƒeƒ€•Ï”‚ÌƒŠƒXƒg‚ğ’Ç‰Á‚·‚é
+	// ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ã®ãƒªã‚¹ãƒˆã‚’è¿½åŠ ã™ã‚‹
 	for ( int i = 0; i < Sysvar::Count; ++ i ) {
 		string const name = strf( "~%s", Sysvar::List[i].name );
 		TreeView_MyInsertItem<SysvarNode>(hNodeSysvar, name.c_str(), false, static_cast<Sysvar::Id>(i));
@@ -210,7 +210,7 @@ void AddNodeSysvar()
 
 #ifdef with_WrapCall
 //------------------------------------------------
-// •Ï”ƒcƒŠ[‚É“®“I•Ï”ƒm[ƒh‚ğ’Ç‰Á‚·‚é
+// å¤‰æ•°ãƒ„ãƒªãƒ¼ã«å‹•çš„å¤‰æ•°ãƒãƒ¼ãƒ‰ã‚’è¿½åŠ ã™ã‚‹
 //------------------------------------------------
 void AddNodeDynamic()
 {
@@ -219,7 +219,7 @@ void AddNodeDynamic()
 #endif
 
 //------------------------------------------------
-// •Ï”ƒcƒŠ[‚Ì NM_CUSTOMDRAW ‚ğˆ—‚·‚é
+// å¤‰æ•°ãƒ„ãƒªãƒ¼ã® NM_CUSTOMDRAW ã‚’å‡¦ç†ã™ã‚‹
 //------------------------------------------------
 LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 {
@@ -229,7 +229,7 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 	} else if ( pnmcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT ) {
 		auto const hItem = reinterpret_cast<HTREEITEM>(pnmcd->nmcd.dwItemSpec);
 
-		// ‘I‘ğó‘Ô‚È‚çF•ª‚¯‚µ‚È‚¢
+		// é¸æŠçŠ¶æ…‹ãªã‚‰è‰²åˆ†ã‘ã—ãªã„
 		if ( TreeView_GetItemState(hwndVarTree, hItem, 0) & TVIS_SELECTED ) {
 			return 0;
 		}
@@ -237,7 +237,7 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 		string const sItem = TreeView_GetItemString( hwndVarTree, hItem );
 		char const* const name = sItem.c_str();
 
-		// ŒÄ‚Ño‚µƒm[ƒh
+		// å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰
 		if ( InvokeNode::isTypeOf(name) ) {
 			auto const idx = TreeView_MyLParam<InvokeNode>(hwndVarTree, hItem);
 			if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
@@ -251,7 +251,7 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 				}
 			}
 
-		// ‚»‚Ì‘¼
+		// ãã®ä»–
 		} else {
 			vartype_t const vtype = getVartypeOfNode(hItem);
 			if ( 0 < vtype && vtype < HSPVAR_FLAG_USERDEF ) {
@@ -271,7 +271,7 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 }
 
 //------------------------------------------------
-// •Ï”ƒcƒŠ[‚Ì—v‘f‚ÌŒ^‚ğæ“¾‚·‚é
+// å¤‰æ•°ãƒ„ãƒªãƒ¼ã®è¦ç´ ã®å‹ã‚’å–å¾—ã™ã‚‹
 //------------------------------------------------
 vartype_t getVartypeOfNode( HTREEITEM hItem )
 {
@@ -295,7 +295,7 @@ vartype_t getVartypeOfNode( HTREEITEM hItem )
 }
 
 //------------------------------------------------
-// •Ï”î•ñ‚ÌƒeƒLƒXƒg‚ğæ“¾‚·‚é
+// å¤‰æ•°æƒ…å ±ã®ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—ã™ã‚‹
 //------------------------------------------------
 std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 {
@@ -360,17 +360,17 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 
 #ifdef with_WrapCall
 //------------------------------------------------
-// ŒÄ‚Ño‚µƒm[ƒh‚ğ’Ç‰Á
+// å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ã‚’è¿½åŠ 
 //------------------------------------------------
 void AddCallNode(ModcmdCallInfo const& callinfo)
 {
-	// ”ñˆË‘¶‚È•Ô’lƒm[ƒh‚ğœ‹
+	// éä¾å­˜ãªè¿”å€¤ãƒãƒ¼ãƒ‰ã‚’é™¤å»
 	if ( usesResultNodes() ) {
 		RemoveLastIndependedResultNode();
 	}
 
 	if ( !Knowbug::isStepRunning() ) {
-		// Ÿ‚É’â~‚µ‚½‚Æ‚«‚É‚Ü‚Æ‚ß‚Ä’Ç‰Á‚·‚é
+		// æ¬¡ã«åœæ­¢ã—ãŸã¨ãã«ã¾ã¨ã‚ã¦è¿½åŠ ã™ã‚‹
 		++g_cntWillAddCallNodes;
 	} else {
 		AddCallNodeImpl(callinfo);
@@ -383,22 +383,22 @@ void AddCallNodeImpl(ModcmdCallInfo const& callinfo)
 	strcpy_s(&name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(callinfo.stdat));
 	HTREEITEM const hChild = TreeView_MyInsertItem<InvokeNode>(g_hNodeDynamic, name, false, callinfo.idx);
 
-	// ‘æˆêƒm[ƒh‚È‚ç©“®“I‚ÉŠJ‚­
+	// ç¬¬ä¸€ãƒãƒ¼ãƒ‰ãªã‚‰è‡ªå‹•çš„ã«é–‹ã
 	if ( TreeView_GetChild( hwndVarTree, g_hNodeDynamic ) == hChild ) {
 		TreeView_Expand( hwndVarTree, g_hNodeDynamic, TVE_EXPAND );
 	}
 }
 
 //------------------------------------------------
-// ÅŒã‚ÌŒÄ‚Ño‚µƒm[ƒh‚ğíœ
+// æœ€å¾Œã®å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ã‚’å‰Šé™¤
 //------------------------------------------------
 void RemoveLastCallNode()
 {
 	if ( g_cntWillAddCallNodes > 0 ) {
-		--g_cntWillAddCallNodes;		// ‚â‚Á‚Ï‚è’Ç‰Á‚µ‚È‚¢
+		--g_cntWillAddCallNodes;		// ã‚„ã£ã±ã‚Šè¿½åŠ ã—ãªã„
 
 	} else {
-		// ––q‚É•Ô’lƒm[ƒh‚ª‚ ‚ê‚Îíœ‚·‚é
+		// æœ«å­ã«è¿”å€¤ãƒãƒ¼ãƒ‰ãŒã‚ã‚Œã°å‰Šé™¤ã™ã‚‹
 		if ( usesResultNodes() ) {
 			RemoveLastIndependedResultNode();
 		}
@@ -414,29 +414,29 @@ void RemoveLastCallNode()
 }
 
 //------------------------------------------------
-// •Ô’lƒm[ƒh‚ğ’Ç‰Á
+// è¿”å€¤ãƒãƒ¼ãƒ‰ã‚’è¿½åŠ 
 /*
-•Ô’lƒf[ƒ^ ptr ‚Ì¶‘¶ŠúŠÔ‚Í¡‚¾‚¯‚È‚Ì‚ÅA¡‚Ì‚¤‚¿‚É•¶š—ñ‰»‚µ‚È‚¯‚ê‚Î‚¢‚¯‚È‚¢B
-•Ô’lƒm[ƒh‚àAŒÄ‚Ño‚µƒm[ƒh‚Æ“¯—l‚ÉAŸ‚ÉÀs‚ª’â~‚µ‚½‚Æ‚«‚É‚Ü‚Æ‚ß‚Ä’Ç‰Á‚·‚éB
+è¿”å€¤ãƒ‡ãƒ¼ã‚¿ ptr ã®ç”Ÿå­˜æœŸé–“ã¯ä»Šã ã‘ãªã®ã§ã€ä»Šã®ã†ã¡ã«æ–‡å­—åˆ—åŒ–ã—ãªã‘ã‚Œã°ã„ã‘ãªã„ã€‚
+è¿”å€¤ãƒãƒ¼ãƒ‰ã‚‚ã€å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ã¨åŒæ§˜ã«ã€æ¬¡ã«å®Ÿè¡ŒãŒåœæ­¢ã—ãŸã¨ãã«ã¾ã¨ã‚ã¦è¿½åŠ ã™ã‚‹ã€‚
 
-uA( B() )v‚Ì‚æ‚¤‚ÉAƒ†[ƒU’è‹`ƒRƒ}ƒ“ƒh‚Ìˆø”®‚Ì’†‚Åƒ†[ƒU’è‹`ŠÖ”‚ªŒÄ‚Î‚ê‚Ä‚¢‚éó‘Ô‚ğA
-uA ‚Í B ‚ÉˆË‘¶‚·‚év‚Æ•\Œ»‚·‚é‚±‚Æ‚É‚·‚éBA ‚àƒ†[ƒU’è‹`ŠÖ”‚Å‚ ‚éê‡‚Ì‚İl‚¦‚éB
-‚±‚Ì‚Æ‚« B ‚ÌÀs‚ªI—¹‚µ‚Ä‚©‚ç A ‚ÌÀs‚ªn‚Ü‚éB
-B ‚Ì•Ô’lƒm[ƒh‚ÍAA ‚ÌŒÄ‚Ño‚µƒm[ƒh‚Ìqƒm[ƒh‚Æ‚µ‚Ä’Ç‰Á‚³‚ê‚éB
+ã€ŒA( B() )ã€ã®ã‚ˆã†ã«ã€ãƒ¦ãƒ¼ã‚¶å®šç¾©ã‚³ãƒãƒ³ãƒ‰ã®å¼•æ•°å¼ã®ä¸­ã§ãƒ¦ãƒ¼ã‚¶å®šç¾©é–¢æ•°ãŒå‘¼ã°ã‚Œã¦ã„ã‚‹çŠ¶æ…‹ã‚’ã€
+ã€ŒA ã¯ B ã«ä¾å­˜ã™ã‚‹ã€ã¨è¡¨ç¾ã™ã‚‹ã“ã¨ã«ã™ã‚‹ã€‚A ã‚‚ãƒ¦ãƒ¼ã‚¶å®šç¾©é–¢æ•°ã§ã‚ã‚‹å ´åˆã®ã¿è€ƒãˆã‚‹ã€‚
+ã“ã®ã¨ã B ã®å®Ÿè¡ŒãŒçµ‚äº†ã—ã¦ã‹ã‚‰ A ã®å®Ÿè¡ŒãŒå§‹ã¾ã‚‹ã€‚
+B ã®è¿”å€¤ãƒãƒ¼ãƒ‰ã¯ã€A ã®å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ã®å­ãƒãƒ¼ãƒ‰ã¨ã—ã¦è¿½åŠ ã•ã‚Œã‚‹ã€‚
 
-•\¦‚ª‚²‚¿‚á‚²‚¿‚á‚µ‚È‚¢‚æ‚¤‚ÉA•Ô’lƒm[ƒh‚Í‹ß‚¢‚¤‚¿‚Éíœ‚³‚ê‚éB
-‹ï‘Ì“I‚É‚ÍAˆÈ‰º‚Ì’Ê‚èF
-1. ”ñˆË‘¶‚È•Ô’lƒm[ƒh‚ÍAŸ‚ÉŒÄ‚Ño‚µƒm[ƒh‚©”ñˆË‘¶‚È•Ô’lƒm[ƒh‚ª’Ç‰Á‚³‚ê‚é’¼‘OA
-	‚Ü‚½‚ÍŒÄ‚Ño‚µƒm[ƒh‚ªíœ‚³‚ê‚é’¼‘O‚Éæ‚èœ‚©‚ê‚éB
-2. ˆË‘¶‚·‚é•Ô’lƒm[ƒh‚ÍA‚»‚ÌˆË‘¶æ‚ÌŒÄ‚Ño‚µƒm[ƒh‚ªíœ‚³‚ê‚é‚Æ‚«‚Éæ‚èœ‚©‚ê‚éB
-3. Às‚ªI—¹‚µ‚½‚Æ‚«A‚·‚×‚Ä‚Ì•Ô’lƒm[ƒh‚ªæ‚èœ‚©‚ê‚éB
+è¡¨ç¤ºãŒã”ã¡ã‚ƒã”ã¡ã‚ƒã—ãªã„ã‚ˆã†ã«ã€è¿”å€¤ãƒãƒ¼ãƒ‰ã¯è¿‘ã„ã†ã¡ã«å‰Šé™¤ã•ã‚Œã‚‹ã€‚
+å…·ä½“çš„ã«ã¯ã€ä»¥ä¸‹ã®é€šã‚Šï¼š
+1. éä¾å­˜ãªè¿”å€¤ãƒãƒ¼ãƒ‰ã¯ã€æ¬¡ã«å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ã‹éä¾å­˜ãªè¿”å€¤ãƒãƒ¼ãƒ‰ãŒè¿½åŠ ã•ã‚Œã‚‹ç›´å‰ã€
+	ã¾ãŸã¯å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ãŒå‰Šé™¤ã•ã‚Œã‚‹ç›´å‰ã«å–ã‚Šé™¤ã‹ã‚Œã‚‹ã€‚
+2. ä¾å­˜ã™ã‚‹è¿”å€¤ãƒãƒ¼ãƒ‰ã¯ã€ãã®ä¾å­˜å…ˆã®å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ãŒå‰Šé™¤ã•ã‚Œã‚‹ã¨ãã«å–ã‚Šé™¤ã‹ã‚Œã‚‹ã€‚
+3. å®Ÿè¡ŒãŒçµ‚äº†ã—ãŸã¨ãã€ã™ã¹ã¦ã®è¿”å€¤ãƒãƒ¼ãƒ‰ãŒå–ã‚Šé™¤ã‹ã‚Œã‚‹ã€‚
 */
 //------------------------------------------------
 void AddResultNode(ModcmdCallInfo const& callinfo, std::shared_ptr<ResultNodeData> pResult)
 {
 	assert(!!pResult);
 
-	// Às’† => Ÿ‚É’â~‚µ‚½‚Æ‚«‚É’Ç‰Á‚·‚é
+	// å®Ÿè¡Œä¸­ => æ¬¡ã«åœæ­¢ã—ãŸã¨ãã«è¿½åŠ ã™ã‚‹
 	if ( !Knowbug::isStepRunning() ) {
 		if ( pResult->pCallInfoDepended ) {
 			g_willAddResultNodes.push_back(pResult);
@@ -453,22 +453,22 @@ void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
 	HTREEITEM const hParent = FindDependedCallNode(pResult.get());
 	if ( !hParent ) return;
 
-	// ”ñˆË‘¶‚È•Ô’lƒm[ƒh‚Í‚X1ŒÂ‚ÉŒÀ‚ç‚ê‚é
+	// éä¾å­˜ãªè¿”å€¤ãƒãƒ¼ãƒ‰ã¯é«˜ã€…1å€‹ã«é™ã‚‰ã‚Œã‚‹
 	if ( hParent == g_hNodeDynamic ) {
 		RemoveLastIndependedResultNode();
 	}
 
-	// ‘}“ü
+	// æŒ¿å…¥
 	char name[128] = "\"";
 	strcpy_s( &name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(pResult->stdat) );
 	HTREEITEM const hChild = TreeView_MyInsertItem<ResultNode>(hParent, name, false, nullptr);
 
-	// ‘æˆêƒm[ƒh‚È‚ç©“®“I‚ÉŠJ‚­
+	// ç¬¬ä¸€ãƒãƒ¼ãƒ‰ãªã‚‰è‡ªå‹•çš„ã«é–‹ã
 	if ( TreeView_GetChild( hwndVarTree, hParent ) == hChild ) {
 		TreeView_Expand( hwndVarTree, hParent, TVE_EXPAND );
 	}
 
-	// •Ô’lƒm[ƒhƒf[ƒ^‚ğ•Û‘¶‚µ‚Ä‚¨‚­
+	// è¿”å€¤ãƒãƒ¼ãƒ‰ãƒ‡ãƒ¼ã‚¿ã‚’ä¿å­˜ã—ã¦ãŠã
 	g_allResultData.emplace(hChild, pResult);
 
 	if ( hParent == g_hNodeDynamic ) {
@@ -477,13 +477,13 @@ void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
 }
 
 //------------------------------------------------
-// ˆË‘¶Œ³‚ÌŒÄ‚Ño‚µƒm[ƒh‚ğ’T‚· (failure: nullptr)
+// ä¾å­˜å…ƒã®å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ã‚’æ¢ã™ (failure: nullptr)
 //
-// @ ˆË‘¶Œ³‚ªƒcƒŠ[ƒrƒ…[‚É‚È‚¯‚ê‚Î¸”s‚Æ‚·‚éB
+// @ ä¾å­˜å…ƒãŒãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã«ãªã‘ã‚Œã°å¤±æ•—ã¨ã™ã‚‹ã€‚
 //------------------------------------------------
 HTREEITEM FindDependedCallNode(ResultNodeData* pResult)
 {
-	// ˆË‘¶‚³‚ê‚Ä‚¢‚é‚È‚çA‚»‚ÌŒÄ‚Ño‚µƒm[ƒh‚ğŒŸõ‚·‚é
+	// ä¾å­˜ã•ã‚Œã¦ã„ã‚‹ãªã‚‰ã€ãã®å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ã‚’æ¤œç´¢ã™ã‚‹
 	if ( pResult->pCallInfoDepended ) {
 		HTREEITEM hItem = nullptr;
 		for ( hItem = TreeView_GetChild(hwndVarTree, g_hNodeDynamic)
@@ -495,23 +495,23 @@ HTREEITEM FindDependedCallNode(ResultNodeData* pResult)
 		}
 		return hItem;
 
-	// ”ñˆË‘¶‚È‚çA+dynamic ’¼‰º‚É’Ç‰Á‚·‚é
+	// éä¾å­˜ãªã‚‰ã€+dynamic ç›´ä¸‹ã«è¿½åŠ ã™ã‚‹
 	} else {
 		return g_hNodeDynamic;
 	}
 }
 
 //------------------------------------------------
-// •Ô’lƒm[ƒh‚ğíœ
+// è¿”å€¤ãƒãƒ¼ãƒ‰ã‚’å‰Šé™¤
 //------------------------------------------------
 void RemoveResultNode(HTREEITEM hResult)
 {
-	// Œ»ó•Ô’lƒm[ƒh‚ÉˆË‘¶‚·‚é•Ô’lƒm[ƒh‚Í‘}“ü‚³‚ê‚È‚¢
+	// ç¾çŠ¶è¿”å€¤ãƒãƒ¼ãƒ‰ã«ä¾å­˜ã™ã‚‹è¿”å€¤ãƒãƒ¼ãƒ‰ã¯æŒ¿å…¥ã•ã‚Œãªã„
 	//RemoveDependingResultNodes(hResult);
 
 	TreeView_EscapeFocus(hwndVarTree, hResult);
 
-	// ŠÖ˜A‚µ‚Ä‚¢‚½•Ô’lƒm[ƒhƒf[ƒ^‚ğ”jŠü
+	// é–¢é€£ã—ã¦ã„ãŸè¿”å€¤ãƒãƒ¼ãƒ‰ãƒ‡ãƒ¼ã‚¿ã‚’ç ´æ£„
 	{
 		size_t const cnt = g_allResultData.erase(hResult);
 		assert(cnt == 1);
@@ -521,13 +521,13 @@ void RemoveResultNode(HTREEITEM hResult)
 }
 
 //------------------------------------------------
-// ˆË‘¶‚µ‚Ä‚¢‚é•Ô’lƒm[ƒh‚ğ‚·‚×‚Äíœ‚·‚é
+// ä¾å­˜ã—ã¦ã„ã‚‹è¿”å€¤ãƒãƒ¼ãƒ‰ã‚’ã™ã¹ã¦å‰Šé™¤ã™ã‚‹
 //------------------------------------------------
 static void RemoveDependingResultNodes(HTREEITEM hItem)
 {
 	if ( !usesResultNodes() ) return;
 
-	// +dynamic ’¼‰º‚Ì•Ô’lƒm[ƒh‚Í”ñˆË‘¶‚È‚à‚Ì‚Å‚ ‚èA‚»‚ê‚Í––q‚Ì‚X1‚Â‚ÉŒÀ‚ç‚ê‚é
+	// +dynamic ç›´ä¸‹ã®è¿”å€¤ãƒãƒ¼ãƒ‰ã¯éä¾å­˜ãªã‚‚ã®ã§ã‚ã‚Šã€ãã‚Œã¯æœ«å­ã®é«˜ã€…1ã¤ã«é™ã‚‰ã‚Œã‚‹
 	if ( hItem == g_hNodeDynamic ) {
 		RemoveLastIndependedResultNode();
 		return;
@@ -552,7 +552,7 @@ static void RemoveDependingResultNodes(HTREEITEM hItem)
 }
 
 //------------------------------------------------
-// (ÅŒã‚Ì)”ñˆË‘¶‚È•Ô’lƒm[ƒh‚ğíœ‚·‚é
+// (æœ€å¾Œã®)éä¾å­˜ãªè¿”å€¤ãƒãƒ¼ãƒ‰ã‚’å‰Šé™¤ã™ã‚‹
 //------------------------------------------------
 void RemoveLastIndependedResultNode()
 {
@@ -564,7 +564,7 @@ void RemoveLastIndependedResultNode()
 }
 
 //------------------------------------------------
-// (ÅŒã‚Ì)”ñˆË‘¶‚È•Ô’lƒm[ƒhƒf[ƒ^‚ğ’T‚·
+// (æœ€å¾Œã®)éä¾å­˜ãªè¿”å€¤ãƒãƒ¼ãƒ‰ãƒ‡ãƒ¼ã‚¿ã‚’æ¢ã™
 //------------------------------------------------
 ResultNodeData* FindLastIndependedResultData()
 {
@@ -576,11 +576,11 @@ ResultNodeData* FindLastIndependedResultData()
 }
 
 //------------------------------------------------
-// ŒÄ‚Ño‚µƒm[ƒhXV
+// å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰æ›´æ–°
 //------------------------------------------------
 void UpdateCallNode()
 {
-	// ’Ç‰Á—\’è‚ÌŒÄ‚Ño‚µƒm[ƒh‚ğÀÛ‚É’Ç‰Á‚·‚é
+	// è¿½åŠ äºˆå®šã®å‘¼ã³å‡ºã—ãƒãƒ¼ãƒ‰ã‚’å®Ÿéš›ã«è¿½åŠ ã™ã‚‹
 	if ( g_cntWillAddCallNodes > 0 ) {
 		auto const&& range = WrapCall::getCallInfoRange();
 		size_t const lenStk = std::distance(range.first, range.second);
@@ -590,15 +590,15 @@ void UpdateCallNode()
 		g_cntWillAddCallNodes = 0;
 	}
 
-	// ’Ç‰Á—\’è‚Ì•Ô’lƒm[ƒh‚ğÀÛ‚É’Ç‰Á‚·‚é
+	// è¿½åŠ äºˆå®šã®è¿”å€¤ãƒãƒ¼ãƒ‰ã‚’å®Ÿéš›ã«è¿½åŠ ã™ã‚‹
 	if ( usesResultNodes() ) {
-		// ”ñˆË‘¶‚È‚à‚Ì
+		// éä¾å­˜ãªã‚‚ã®
 		if ( g_willAddResultNodeIndepend ) {
 			AddResultNodeImpl(g_willAddResultNodeIndepend);
 			g_willAddResultNodeIndepend = nullptr;
 		}
 
-		// ˆË‘¶‚³‚ê‚Ä‚¢‚é‚à‚Ì
+		// ä¾å­˜ã•ã‚Œã¦ã„ã‚‹ã‚‚ã®
 		if ( !g_willAddResultNodes.empty() ) {
 			for ( auto const& pResult : g_willAddResultNodes ) {
 				AddResultNodeImpl(pResult);
@@ -612,7 +612,7 @@ void UpdateCallNode()
 } // namespace VarTree
 
 //------------------------------------------------
-// ResultNodeData ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ResultNodeData ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 //------------------------------------------------
 #include "module/CStrBuf.h"
 namespace WrapCall

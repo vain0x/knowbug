@@ -1,7 +1,7 @@
-#ifndef IG_RESULT_NODE_DATA_H
+﻿#ifndef IG_RESULT_NODE_DATA_H
 #define IG_RESULT_NODE_DATA_H
 
-// todo: WrapCall �{�̂Ƃ͂��܂�֌W���Ȃ��̂œK�؂Ȉʒu�Ɉړ�������
+// todo: WrapCall 本体とはあまり関係がないので適切な位置に移動させる
 
 #include <memory>
 
@@ -17,13 +17,13 @@ namespace WrapCall
 	{
 		stdat_t stdat;
 
-		// �Ԓl�̌^
+		// 返値の型
 		vartype_t vtype;
 
-		// �l�̕�����
+		// 値の文字列化
 		string valueString;
 
-		// ����Ɉˑ�����Ăяo�� (���݂���ꍇ�͂���̎q�m�[�h�ɂȂ�)
+		// これに依存する呼び出し (存在する場合はこれの子ノードになる)
 		optional_ref<ModcmdCallInfo const> pCallInfoDepended;
 
 	public:

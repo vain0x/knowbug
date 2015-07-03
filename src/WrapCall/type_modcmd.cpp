@@ -1,6 +1,6 @@
-// WrapCall - type modcmd
+ï»¿// WrapCall - type modcmd
 
-// TYPE_MODCMD ‚Ìˆ—‚ğƒ‰ƒbƒv‚µAƒ†[ƒU’è‹`ŠÖ”‚ÌŒÄ‚Ño‚µEI—¹‚ğ’Ê’m‚·‚éB
+// TYPE_MODCMD ã®å‡¦ç†ã‚’ãƒ©ãƒƒãƒ—ã—ã€ãƒ¦ãƒ¼ã‚¶å®šç¾©é–¢æ•°ã®å‘¼ã³å‡ºã—ãƒ»çµ‚äº†ã‚’é€šçŸ¥ã™ã‚‹ã€‚
 
 #include "type_modcmd.h"
 #include "WrapCall.h"
@@ -8,12 +8,12 @@
 static int   modcmd_cmdfunc(int cmd);
 static void* modcmd_reffunc(int* type_res, int cmd);
 
-// •Ï”
+// å¤‰æ•°
 static int   (*g_modcmd_cmdfunc_impl)(int)       = nullptr;
 static void* (*g_modcmd_reffunc_impl)(int*, int) = nullptr;
 
 //------------------------------------------------
-// TYPE_MODCMD ‚Ìˆ—‚ğæ‚Áæ‚é
+// TYPE_MODCMD ã®å‡¦ç†ã‚’ä¹—ã£å–ã‚‹
 //------------------------------------------------
 void modcmd_init(HSP3TYPEINFO* info)
 {
@@ -25,7 +25,7 @@ void modcmd_init(HSP3TYPEINFO* info)
 }
 
 //------------------------------------------------
-// TYPE_MODCMD ‚Ìˆ—‚ğŒ³‚É–ß‚·
+// TYPE_MODCMD ã®å‡¦ç†ã‚’å…ƒã«æˆ»ã™
 //------------------------------------------------
 void modcmd_term(HSP3TYPEINFO* info)
 {
@@ -39,7 +39,7 @@ void modcmd_term(HSP3TYPEINFO* info)
 }
 
 //------------------------------------------------
-// [modcmd] –½—ßƒRƒ}ƒ“ƒh
+// [modcmd] å‘½ä»¤ã‚³ãƒãƒ³ãƒ‰
 //------------------------------------------------
 int modcmd_cmdfunc(int cmdid)
 {
@@ -52,7 +52,7 @@ int modcmd_cmdfunc(int cmdid)
 }
 
 //------------------------------------------------
-// [modcmd] ŠÖ”ƒRƒ}ƒ“ƒh
+// [modcmd] é–¢æ•°ã‚³ãƒãƒ³ãƒ‰
 //------------------------------------------------
 void* modcmd_reffunc(int* type_res, int cmdid)
 {

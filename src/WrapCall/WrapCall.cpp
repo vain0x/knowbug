@@ -1,4 +1,4 @@
-// WrapCall
+ï»¿// WrapCall
 
 #include <vector>
 
@@ -15,26 +15,26 @@ namespace WrapCall
 static stkCallInfo_t g_stkCallInfo;
 
 //------------------------------------------------
-// ƒvƒ‰ƒOƒCƒ“‰Šú‰»ŠÖ”
+// ãƒ—ãƒ©ã‚°ã‚¤ãƒ³åˆæœŸåŒ–é–¢æ•°
 //------------------------------------------------
 EXPORT void WINAPI hsp3hpi_init_wrapcall(HSP3TYPEINFO* info)
 {
 	hsp3sdk_init(info);
 
-	// ‰Šú‰»
+	// åˆæœŸåŒ–
 	auto const typeinfo = &info[- info->type];
 	modcmd_init(&typeinfo[TYPE_MODCMD]);
 	g_stkCallInfo.reserve(32);
 }
 
 //------------------------------------------------
-// ŒÄ‚Ño‚µ‚ÌŠJn
+// å‘¼ã³å‡ºã—ã®é–‹å§‹
 //------------------------------------------------
 void bgnCall(stdat_t stdat)
 {
 	g_dbginfo->updateCurInf();
 
-	// ŒÄ‚Ño‚µƒŠƒXƒg‚É’Ç‰Á
+	// å‘¼ã³å‡ºã—ãƒªã‚¹ãƒˆã«è¿½åŠ 
 	size_t const idx = g_stkCallInfo.size();
 	g_stkCallInfo.push_back(std::make_unique<ModcmdCallInfo>(
 		stdat, ctx->prmstack, ctx->sublev, ctx->looplev,
@@ -43,12 +43,12 @@ void bgnCall(stdat_t stdat)
 
 	auto& callinfo = *g_stkCallInfo.back();
 
-	// DebugWindow ‚Ö‚Ì’Ê’m
+	// DebugWindow ã¸ã®é€šçŸ¥
 	Knowbug::bgnCalling(callinfo);
 }
 
 //------------------------------------------------
-// ŒÄ‚Ño‚µ‚ÌŠ®—¹
+// å‘¼ã³å‡ºã—ã®å®Œäº†
 //------------------------------------------------
 void endCall()
 {
@@ -61,23 +61,23 @@ void endCall(PDAT* p, vartype_t vt)
 
 	auto const& callinfo = *g_stkCallInfo.back();
 
-	// Œx
+	// è­¦å‘Š
 	if ( ctx->looplev != callinfo.looplev ) {
-		Knowbug::logmesWarning( "ŒÄ‚Ño‚µ’†‚É“ü‚Á‚½ loop ‚©‚çA³í‚É’Eo‚¹‚¸AŒÄ‚Ño‚µ‚ªI—¹‚µ‚½B" );
+		Knowbug::logmesWarning( "å‘¼ã³å‡ºã—ä¸­ã«å…¥ã£ãŸ loop ã‹ã‚‰ã€æ­£å¸¸ã«è„±å‡ºã›ãšã€å‘¼ã³å‡ºã—ãŒçµ‚äº†ã—ãŸã€‚" );
 	}
 
 	if ( ctx->sublev != callinfo.sublev ) {
-		Knowbug::logmesWarning("ŒÄ‚Ño‚µ’†‚É“ü‚Á‚½ƒTƒuƒ‹[ƒ`ƒ“‚©‚çA³í‚É’Eo‚¹‚¸AŒÄ‚Ño‚µ‚ªI—¹‚µ‚½B");
+		Knowbug::logmesWarning("å‘¼ã³å‡ºã—ä¸­ã«å…¥ã£ãŸã‚µãƒ–ãƒ«ãƒ¼ãƒãƒ³ã‹ã‚‰ã€æ­£å¸¸ã«è„±å‡ºã›ãšã€å‘¼ã³å‡ºã—ãŒçµ‚äº†ã—ãŸã€‚");
 	}
 
-	// DebugWindow ‚Ö‚Ì’Ê’m
+	// DebugWindow ã¸ã®é€šçŸ¥
 	Knowbug::endCalling(callinfo, p, vt);
 
 	g_stkCallInfo.pop_back();
 }
 
 //------------------------------------------------
-// callinfo ƒXƒ^ƒbƒN‚Ö‚ÌƒAƒNƒZƒX
+// callinfo ã‚¹ã‚¿ãƒƒã‚¯ã¸ã®ã‚¢ã‚¯ã‚»ã‚¹
 //------------------------------------------------
 ModcmdCallInfo const* getCallInfoAt(size_t idx)
 {

@@ -1,4 +1,4 @@
-// WrapCall header
+﻿// WrapCall header
 
 #ifndef IG_WRAP_CALL_H
 #define IG_WRAP_CALL_H

@@ -1,4 +1,4 @@
-// WrapCall - type modcmd header
+﻿// WrapCall - type modcmd header
 
 #ifndef IG_TYPE_MODCMD_H
 #define IG_TYPE_MODCMD_H

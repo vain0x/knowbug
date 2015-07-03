@@ -1,4 +1,4 @@
-﻿
+
 #include "module/CIni.h"
 #include "module/strf.h"
 

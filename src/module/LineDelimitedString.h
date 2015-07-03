@@ -1,4 +1,4 @@
-#ifndef IG_LINE_DELIMITED_STRING_H
+ï»¿#ifndef IG_LINE_DELIMITED_STRING_H
 #define IG_LINE_DELIMITED_STRING_H
 
 #include <string>
@@ -13,14 +13,14 @@ static size_t countIndents(char const* s)
 	return i;
 }
 
-//s‚²‚Æ‚É‹æØ‚ç‚ê‚½•ÏX•s‰Â‚È•¶š—ñ
+//è¡Œã”ã¨ã«åŒºåˆ‡ã‚‰ã‚ŒãŸå¤‰æ›´ä¸å¯ãªæ–‡å­—åˆ—
 class LineDelimitedString {
 	using string = std::string;
 
 	string base_;
 
-	//[i]: is–Ú‚Ìæ“ª‚Ìš‰º‚°Œã‚Ö‚Ì“Yš
-	//back(): ––”ö‚Ö‚Ì“Yš
+	//[i]: iè¡Œç›®ã®å…ˆé ­ã®å­—ä¸‹ã’å¾Œã¸ã®æ·»å­—
+	//back(): æœ«å°¾ã¸ã®æ·»å­—
 	std::vector<size_t> index_;
 
 public:

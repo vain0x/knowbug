@@ -1,9 +1,9 @@
-
+ï»¿
 #include <vector>
 #include "GuiUtility.h"
 
 //------------------------------------------------
-// ƒEƒBƒ“ƒhƒE‚ğÅ‘O–Ê‚É‚·‚é
+// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’æœ€å‰é¢ã«ã™ã‚‹
 //------------------------------------------------
 void Window_SetTopMost(HWND hwnd, bool isTopMost)
 {
@@ -14,7 +14,7 @@ void Window_SetTopMost(HWND hwnd, bool isTopMost)
 }
 
 //------------------------------------------------
-// EditControl ‚Ìƒ^ƒu•¶š•‚ğ•ÏX‚·‚é
+// EditControl ã®ã‚¿ãƒ–æ–‡å­—å¹…ã‚’å¤‰æ›´ã™ã‚‹
 //------------------------------------------------
 void Edit_SetTabLength(HWND hEdit, const int tabwidth)
 {
@@ -30,7 +30,7 @@ void Edit_SetTabLength(HWND hEdit, const int tabwidth)
 }
 
 //------------------------------------------------
-// EditControl ‚Ì•¶š—ñ‚Ì’u‚«Š·‚¦
+// EditControl ã®æ–‡å­—åˆ—ã®ç½®ãæ›ãˆ
 //------------------------------------------------
 void Edit_UpdateText(HWND hwnd, char const* s)
 {
@@ -45,7 +45,7 @@ void Edit_SetSelLast(HWND hwnd) {
 }
 
 //------------------------------------------------
-// ƒcƒŠ[ƒrƒ…[‚Ì€–Úƒ‰ƒxƒ‹‚ğæ“¾‚·‚é
+// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã®é …ç›®ãƒ©ãƒ™ãƒ«ã‚’å–å¾—ã™ã‚‹
 //------------------------------------------------
 string TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem)
 {
@@ -61,7 +61,7 @@ string TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem)
 }
 
 //------------------------------------------------
-// ƒcƒŠ[ƒrƒ…[‚Ìƒm[ƒh‚ÉŠÖ˜A‚·‚é lparam ’l‚ğæ“¾‚·‚é
+// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã®ãƒãƒ¼ãƒ‰ã«é–¢é€£ã™ã‚‹ lparam å€¤ã‚’å–å¾—ã™ã‚‹
 //------------------------------------------------
 LPARAM TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem)
 {
@@ -74,9 +74,9 @@ LPARAM TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem)
 }
 
 //------------------------------------------------
-// ƒcƒŠ[ƒrƒ…[‚ÌƒtƒH[ƒJƒX‚ğ‰ñ”ğ‚·‚é
+// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã®ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã‚’å›é¿ã™ã‚‹
 // 
-// @ ‘ÎÛ‚Ìƒm[ƒh‚ª‘I‘ğó‘Ô‚È‚çA‚»‚ÌŒZƒm[ƒh‚©eƒm[ƒh‚ğ‘I‘ğ‚·‚éB
+// @ å¯¾è±¡ã®ãƒãƒ¼ãƒ‰ãŒé¸æŠçŠ¶æ…‹ãªã‚‰ã€ãã®å…„ãƒãƒ¼ãƒ‰ã‹è¦ªãƒãƒ¼ãƒ‰ã‚’é¸æŠã™ã‚‹ã€‚
 //------------------------------------------------
 void TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem)
 {
@@ -89,7 +89,7 @@ void TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem)
 }
 
 //------------------------------------------------
-// ––qƒm[ƒh‚ğæ“¾‚·‚é (failure: nullptr)
+// æœ«å­ãƒãƒ¼ãƒ‰ã‚’å–å¾—ã™ã‚‹ (failure: nullptr)
 //------------------------------------------------
 HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
 {

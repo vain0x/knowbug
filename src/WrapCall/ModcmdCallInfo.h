@@ -1,10 +1,10 @@
-// struct ModcmdCallInfo
+ï»¿// struct ModcmdCallInfo
 
 #ifndef IG_STRUCT_MODCMD_CALL_INFO_H
 #define IG_STRUCT_MODCMD_CALL_INFO_H
 
-//unhookable invocation cc modinit/modterm/deffunc_onexit commands, and call by call.hpi
-// ‚±‚ê‚ç‚ÌŒÄ‚Ño‚µ‚Íprmstk‚ğ•ÏX‚·‚é‚É‚à‚©‚©‚í‚ç‚¸ŒŸ’m‚Å‚«‚È‚¢‚Ì‚ÅŠëŒ¯B
+//unhookable invocation â€¦â€¦ modinit/modterm/deffunc_onexit commands, and call by call.hpi
+// ã“ã‚Œã‚‰ã®å‘¼ã³å‡ºã—ã¯prmstkã‚’å¤‰æ›´ã™ã‚‹ã«ã‚‚ã‹ã‹ã‚ã‚‰ãšæ¤œçŸ¥ã§ããªã„ã®ã§å±é™ºã€‚
 
 #include "../main.h"
 #include "WrapCall.h"
@@ -14,24 +14,24 @@
 namespace WrapCall
 {
 
-// ŒÄ‚Ño‚µ’¼‘O‚Ìî•ñ
+// å‘¼ã³å‡ºã—ç›´å‰ã®æƒ…å ±
 struct ModcmdCallInfo
 {
-	// ŒÄ‚Ño‚³‚ê‚½ƒRƒ}ƒ“ƒh
+	// å‘¼ã³å‡ºã•ã‚ŒãŸã‚³ãƒãƒ³ãƒ‰
 	stdat_t const stdat;
 
-	// ŒÄ‚Ño‚µ’¼‘O‚Å‚Ì prmstk
+	// å‘¼ã³å‡ºã—ç›´å‰ã§ã® prmstk
 	void* const prmstk_bak;
 
-	// ŒÄ‚Ño‚µ’¼‘O‚Å‚ÌƒlƒXƒgƒŒƒxƒ‹
+	// å‘¼ã³å‡ºã—ç›´å‰ã§ã®ãƒã‚¹ãƒˆãƒ¬ãƒ™ãƒ«
 	int const sublev;
 	int const looplev;
 
-	// ŒÄ‚Ño‚³‚ê‚½ˆÊ’u
+	// å‘¼ã³å‡ºã•ã‚ŒãŸä½ç½®
 	char const* const fname;
 	int const line; //0-based
 
-	// g_stkCallInfo ‚É‚¨‚¯‚éˆÊ’u
+	// g_stkCallInfo ã«ãŠã‘ã‚‹ä½ç½®
 	size_t const idx;
 
 public:
@@ -46,39 +46,39 @@ public:
 		return getCallInfoAt(idx + 1);
 	}
 
-	//prmstk: ‚±‚ÌŒÄ‚Ño‚µ‚ÌÀˆø”î•ñ (failure: nullptr)
-	//safety: ‚±‚Ìprmstk‚ªŠmÀ‚ÉˆÀ‘S‚Å‚ ‚é‚©B
-	// prmstk‚Íhsp‚ÌƒXƒ^ƒbƒN‚©ƒƒ‚ƒŠƒv[ƒ‹ã‚ÉŠm•Û‚³‚ê‚é‚Ì‚ÅAƒƒ‚ƒŠƒAƒNƒZƒX‚Íí‚ÉˆÀ‘SB
+	//prmstk: ã“ã®å‘¼ã³å‡ºã—ã®å®Ÿå¼•æ•°æƒ…å ± (failure: nullptr)
+	//safety: ã“ã®prmstkãŒç¢ºå®Ÿã«å®‰å…¨ã§ã‚ã‚‹ã‹ã€‚
+	// prmstkã¯hspã®ã‚¹ã‚¿ãƒƒã‚¯ã‹ãƒ¡ãƒ¢ãƒªãƒ—ãƒ¼ãƒ«ä¸Šã«ç¢ºä¿ã•ã‚Œã‚‹ã®ã§ã€ãƒ¡ãƒ¢ãƒªã‚¢ã‚¯ã‚»ã‚¹ã¯å¸¸ã«å®‰å…¨ã€‚
 	std::pair<void*, bool> tryGetPrmstk() const
 	{
-		//‚±‚ê‚ªÅV‚ÌŒÄ‚Ño‚µ
+		//ã“ã‚ŒãŒæœ€æ–°ã®å‘¼ã³å‡ºã—
 		if ( !getNext() ) {
 			assert(sublev <= ctx->sublev);
-			//–{‘Ì‚©‚ç‚³‚ç‚É‘¼‚ÌƒTƒuƒ‹[ƒ`ƒ“‚ªÀs’†‚È‚çA‚»‚ê‚Íunhookable invocation‚Ì‰Â”\«‚ª‚ ‚é
+			//æœ¬ä½“ã‹ã‚‰ã•ã‚‰ã«ä»–ã®ã‚µãƒ–ãƒ«ãƒ¼ãƒãƒ³ãŒå®Ÿè¡Œä¸­ãªã‚‰ã€ãã‚Œã¯unhookable invocationã®å¯èƒ½æ€§ãŒã‚ã‚‹
 			bool const safe = ( ctx->sublev == sublev + 1 );
 
 			return { ctx->prmstack, safe };
 
-		//ŒÄ‚Ño‚µ‚ªÀs’†
-		//Ì Ÿ‚ÌŒÄ‚Ño‚µ‚ª‚ ‚èA‚»‚ê‚Í‚±‚ê‚ÌÀˆø”®‚©‚ç‚ÌŒÄ‚Ño‚µ‚Å‚Í‚È‚¢
-		//Ì Ÿ‚ÌŒÄ‚Ño‚µ‚ª‚ ‚èA‚»‚ê‚Í‚±‚ê‚Ì–{‘Ì(‚Ü‚½‚Í‚»‚ê‚æ‚è[‚¢ˆÊ’u)‚©‚çŒÄ‚Ño‚³‚ê‚Ä‚¢‚é
+		//å‘¼ã³å‡ºã—ãŒå®Ÿè¡Œä¸­
+		//â‡” æ¬¡ã®å‘¼ã³å‡ºã—ãŒã‚ã‚Šã€ãã‚Œã¯ã“ã‚Œã®å®Ÿå¼•æ•°å¼ã‹ã‚‰ã®å‘¼ã³å‡ºã—ã§ã¯ãªã„
+		//â‡” æ¬¡ã®å‘¼ã³å‡ºã—ãŒã‚ã‚Šã€ãã‚Œã¯ã“ã‚Œã®æœ¬ä½“(ã¾ãŸã¯ãã‚Œã‚ˆã‚Šæ·±ã„ä½ç½®)ã‹ã‚‰å‘¼ã³å‡ºã•ã‚Œã¦ã„ã‚‹
 		} else if ( sublev < getNext()->sublev ) {
 			assert(sublev + 1 <= getNext()->sublev);
-			//–{‘Ì‚©‚ç‚³‚ç‚É‘¼‚ÌƒTƒuƒ‹[ƒ`ƒ“‚ªÀs’†‚È‚çA‚»‚ê‚Íunhookable invocation‚Ì‰Â”\«‚ª‚ ‚é
+			//æœ¬ä½“ã‹ã‚‰ã•ã‚‰ã«ä»–ã®ã‚µãƒ–ãƒ«ãƒ¼ãƒãƒ³ãŒå®Ÿè¡Œä¸­ãªã‚‰ã€ãã‚Œã¯unhookable invocationã®å¯èƒ½æ€§ãŒã‚ã‚‹
 			bool const safe = (sublev + 1 == getNext()->sublev);
 
 			return { getNext()->prmstk_bak, safe };
 
-		// ˆø”“WŠJ’†
-		//Ìprmstack ‚Í–¢ì¬
+		// å¼•æ•°å±•é–‹ä¸­
+		//â‡”prmstack ã¯æœªä½œæˆ
 		} else {
 			return { nullptr, false };
 		}
 	}
 
-	// ‚±‚ÌŒÄ‚Ño‚µ‚ª’¼ÚˆË‘¶‚³‚ê‚Ä‚¢‚éŒÄ‚Ño‚µ‚ğ“¾‚éB(failure: nullptr)
-	// ğŒ‚É‚Â‚¢‚ÄF’¼‘O‚ÌŒÄ‚Ño‚µ‚ÅA‚»‚ê‚Æ sublev ‚ª“™‚µ‚¯‚ê‚ÎˆË‘¶ŠÖŒW‚É‚ ‚èA‚»‚¤‚Å‚È‚¯‚ê‚Î‚È‚¢
-	// ‚È‚¨A‚±‚ê‚àŠg’£ƒvƒ‰ƒOƒCƒ“‚Ì gosub ‚ğl—¶‚µ‚È‚¢B
+	// ã“ã®å‘¼ã³å‡ºã—ãŒç›´æ¥ä¾å­˜ã•ã‚Œã¦ã„ã‚‹å‘¼ã³å‡ºã—ã‚’å¾—ã‚‹ã€‚(failure: nullptr)
+	// æ¡ä»¶ã«ã¤ã„ã¦ï¼šç›´å‰ã®å‘¼ã³å‡ºã—ã§ã€ãã‚Œã¨ sublev ãŒç­‰ã—ã‘ã‚Œã°ä¾å­˜é–¢ä¿‚ã«ã‚ã‚Šã€ãã†ã§ãªã‘ã‚Œã°ãªã„
+	// ãªãŠã€ã“ã‚Œã‚‚æ‹¡å¼µãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã® gosub ã‚’è€ƒæ…®ã—ãªã„ã€‚
 	optional_ref<ModcmdCallInfo const> getDependedCallInfo() const
 	{
 		auto const prev = getPrev();
