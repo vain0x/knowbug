@@ -2,7 +2,11 @@
 #include <Windows.h>
 #include <CommCtrl.h>
 
+#include "module/GuiUtility.h"
+
 #include "main.h"
+#include "SysvarData.h"
+#include "DebugInfo.h"
 #include "dialog.h"
 #include "config_mng.h"
 
@@ -11,10 +15,8 @@
 #include "CVarinfoText.h"
 #include "CVardataString.h"
 
-#include "SysvarData.h"
-#include "DebugInfo.h"
-
-#include "module/GuiUtility.h"
+#include "WrapCall/WrapCall.h"
+#include "WrapCall/ModcmdCallInfo.h"
 
 #define hwndVarTree (Dialog::getVarTreeHandle())
 
@@ -31,6 +33,8 @@ HTREEITEM getScriptNodeHandle() { return g_hNodeScript; }
 HTREEITEM getLogNodeHandle() { return g_hNodeLog; }
 
 #ifdef with_WrapCall
+using WrapCall::ModcmdCallInfo;
+
 static HTREEITEM g_hNodeDynamic;
 static void AddNodeDynamic();
 
@@ -46,7 +50,7 @@ struct UnreflectedDynamicNodeInfo {
 };
 static UnreflectedDynamicNodeInfo g_unreflectedDynamicNodeInfo;
 
-static void AddCallNodeImpl(ModcmdCallInfo const& callinfo);
+static void AddCallNodeImpl(ModcmdCallInfo::shared_ptr_type const& callinfo);
 static void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult);
 static HTREEITEM FindDependedCallNode(ResultNodeData* pResult);
 static void RemoveDependingResultNodes(HTREEITEM hItem);
@@ -59,8 +63,13 @@ static ResultNodeData* FindLastIndependedResultData();
 //------------------------------------------------
 bool VarNode::isTypeOf(char const* s)
 {
-	return !(ModuleNode::isTypeOf(s) || SystemNode::isTypeOf(s) || SysvarNode::isTypeOf(s) || InvokeNode::isTypeOf(s) || ResultNode::isTypeOf(s));
+	return !(ModuleNode::isTypeOf(s) || SystemNode::isTypeOf(s) || SysvarNode::isTypeOf(s)
+#ifdef with_WrapCall
+	|| InvokeNode::isTypeOf(s) || ResultNode::isTypeOf(s)
+#endif //defined(with_WrapCall)
+	);
 }
+
 namespace Detail
 {
 	template<> struct Verify < ModuleNode > { static bool apply(char const*, ModuleNode::lparam_t value) {
@@ -72,12 +81,14 @@ namespace Detail
 	template<> struct Verify < SysvarNode > { static bool apply(char const* s, SysvarNode::lparam_t value) {
 		return (0 <= value && value < Sysvar::Count && Sysvar::trySeek(&s[1]) == value);
 	} };
+#ifdef with_WrapCall
 	template<> struct Verify < InvokeNode > { static bool apply(char const*, InvokeNode::lparam_t value) {
 		return (value >= 0);
 	} };
 	template<> struct Verify < ResultNode > { static bool apply(char const*, ResultNode::lparam_t value) {
 		return (value != nullptr);
 	} };
+#endif //defined(with_WrapCall)
 	template<> struct Verify < VarNode > { static bool apply(char const*, PVal* pval) {
 			return (pval && ctx->mem_var <= pval && pval < &ctx->mem_var[hpimod::cntSttVars()]);
 	} };
@@ -222,9 +233,10 @@ static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 		return true;
 	};
 
+#ifdef with_WrapCall
 	if ( InvokeNode::isTypeOf(name) ) {
 		auto const idx = TreeView_MyLParam<InvokeNode>(hwndVarTree, hItem);
-		if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
+		if ( auto const pCallInfo = WrapCall::tryGetCallInfoAt(idx) ) {
 			auto const key = (pCallInfo->stdat->index == STRUCTDAT_INDEX_FUNC)
 				? "__sttm__"
 				: "__func__";
@@ -233,7 +245,9 @@ static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 				return cont(iter->second);
 			}
 		}
-	} else {
+	} else
+#endif //defined(with_WrapCall)
+	{
 		vartype_t const vtype = getVartypeOfNode(hItem);
 		if ( 0 < vtype && vtype < HSPVAR_FLAG_USERDEF ) {
 			return cont(g_config->clrText[vtype]);
@@ -281,11 +295,13 @@ vartype_t getVartypeOfNode( HTREEITEM hItem )
 		Sysvar::Id const id = TreeView_MyLParam<SysvarNode>(hwndVarTree, hItem);
 		return Sysvar::List[id].type;
 
+#ifdef with_WrapCall
 	} else if ( ResultNode::isTypeOf(name.c_str()) ) {
 		auto const&& iter = g_allResultData.find(hItem);
 		if ( iter != g_allResultData.end() ) {
 			return iter->second->vtype;
 		}
+#endif //defined(with_WrapCall)
 	}
 	return HSPVAR_FLAG_NONE;
 }
@@ -333,18 +349,18 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 			Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
 			varinf.addSysvar(id);
 
-	#ifdef with_WrapCall
+#ifdef with_WrapCall
 		} else if ( InvokeNode::isTypeOf(name) ) {
 			auto const idx = TreeView_MyLParam<InvokeNode>( hwndVarTree, hItem );
-			if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
-				varinf.addCall(*pCallInfo);
+			if ( auto const pCallInfo = WrapCall::tryGetCallInfoAt(idx) ) {
+				varinf.addCall(pCallInfo);
 			}
 
 		} else if ( usesResultNodes() && ResultNode::isTypeOf(name) ) {
 			auto const&& iter = g_allResultData.find(hItem);
 			auto const pResult = (iter != g_allResultData.end() ? iter->second : nullptr);
-			varinf.addResult( pResult->stdat, pResult->valueString, hpimod::STRUCTDAT_getName(pResult->stdat) );
-	#endif
+			varinf.addResult( pResult->callinfo->stdat, pResult->valueString, hpimod::STRUCTDAT_getName(pResult->callinfo->stdat) );
+#endif
 		} else {
 			assert(VarNode::isTypeOf(name));
 			PVal* const pval = TreeView_MyLParam<VarNode>(hwndVarTree, hItem);
@@ -358,7 +374,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 //------------------------------------------------
 // 呼び出しノードを追加
 //------------------------------------------------
-void AddCallNode(ModcmdCallInfo const& callinfo)
+void AddCallNode(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
 	if ( usesResultNodes() ) {
 		RemoveLastIndependedResultNode();
@@ -372,11 +388,11 @@ void AddCallNode(ModcmdCallInfo const& callinfo)
 	}
 }
 
-void AddCallNodeImpl(ModcmdCallInfo const& callinfo)
+void AddCallNodeImpl(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
 	char name[128] = "'";
-	strcpy_s(&name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(callinfo.stdat));
-	HTREEITEM const hChild = TreeView_MyInsertItem<InvokeNode>(g_hNodeDynamic, name, false, callinfo.idx);
+	strcpy_s(&name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(callinfo->stdat));
+	HTREEITEM const hChild = TreeView_MyInsertItem<InvokeNode>(g_hNodeDynamic, name, false, callinfo->idx);
 
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, g_hNodeDynamic ) == hChild ) {
@@ -427,7 +443,7 @@ B の返値ノードは、A の呼び出しノードの子ノードとして追�
 3. 実行が終了したとき、すべての返値ノードが取り除かれる。
 */
 //------------------------------------------------
-void AddResultNode(ModcmdCallInfo const& callinfo, std::shared_ptr<ResultNodeData> pResult)
+void AddResultNode(ModcmdCallInfo::shared_ptr_type const& callinfo, std::shared_ptr<ResultNodeData> pResult)
 {
 	assert(!!pResult);
 
@@ -455,7 +471,7 @@ void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
 
 	// 挿入
 	char name[128] = "\"";
-	strcpy_s( &name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(pResult->stdat) );
+	strcpy_s( &name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(pResult->callinfo->stdat) );
 	HTREEITEM const hChild = TreeView_MyInsertItem<ResultNode>(hParent, name, false, nullptr);
 
 	// 第一ノードなら自動的に開く
@@ -486,7 +502,7 @@ HTREEITEM FindDependedCallNode(ResultNodeData* pResult)
 			; hItem = TreeView_GetNextSibling(hwndVarTree, hItem)
 		) {
 			int const idx = TreeView_MyLParam<InvokeNode>(hwndVarTree, hItem);
-			if ( WrapCall::getCallInfoAt(idx) == pResult->pCallInfoDepended ) break;
+			if ( WrapCall::tryGetCallInfoAt(idx) == pResult->pCallInfoDepended ) break;
 		}
 		return hItem;
 
@@ -580,7 +596,7 @@ void UpdateCallNode()
 		auto const&& range = WrapCall::getCallInfoRange();
 		size_t const lenStk = std::distance(range.first, range.second);
 		for ( size_t i = lenStk - g_unreflectedDynamicNodeInfo.countCallNodes; i < lenStk; ++i ) {
-			AddCallNodeImpl(*(range.first[i]));
+			AddCallNodeImpl(range.first[i]);
 		}
 		g_unreflectedDynamicNodeInfo.countCallNodes = 0;
 	}
@@ -603,6 +619,6 @@ void UpdateCallNode()
 		}
 	}
 }
-#endif
+#endif //defined(with_WrapCall)
 
 } // namespace VarTree

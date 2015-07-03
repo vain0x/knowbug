@@ -26,14 +26,6 @@ using hpimod::stprm_t;
 using hpimod::HSPVAR_FLAG_COMOBJ;
 using hpimod::HSPVAR_FLAG_VARIANT;
 
-#ifdef with_WrapCall
-namespace WrapCall
-{
-	struct ModcmdCallInfo;
-} //namespace WrapCall
-struct ResultNodeData;
-#endif
-
 //extern HSPCTX* ctx; // declared and defined in hsp3plugin.(h/cpp)
 //extern HSPEXINFO* exinfo;
 

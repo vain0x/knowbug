@@ -1,4 +1,6 @@
-﻿#include "../main.h"
+﻿#ifdef with_WrapCall
+
+#include "../main.h"
 
 #include "WrapCall.h"
 #include "type_modcmd.h"
@@ -10,8 +12,8 @@
 namespace Knowbug
 {
 
-extern void onBgnCalling(WrapCall::ModcmdCallInfo const& callinfo);
-extern void onEndCalling(WrapCall::ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype);
+extern void onBgnCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo);
+extern void onEndCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype);
 
 } //namespace Knowbug
 
@@ -44,12 +46,13 @@ void onBgnCalling(stdat_t stdat)
 
 	// 呼び出しリストに追加
 	size_t const idx = g_stkCallInfo.size();
-	g_stkCallInfo.push_back(std::make_unique<ModcmdCallInfo>(
+	g_stkCallInfo.emplace_back(new ModcmdCallInfo(
 		stdat, ctx->prmstack, ctx->sublev, ctx->looplev,
-		g_dbginfo->curFileName(), g_dbginfo->curLine(), idx
+		g_dbginfo->curFileName(), g_dbginfo->curLine(),
+		idx
 	));
 
-	auto& callinfo = *g_stkCallInfo.back();
+	auto& callinfo = g_stkCallInfo.back();
 
 	// DebugWindow への通知
 	Knowbug::onBgnCalling(callinfo);
@@ -62,14 +65,14 @@ void onEndCalling(PDAT* p, vartype_t vt)
 {
 	if (g_stkCallInfo.empty()) return;
 
-	auto const& callinfo = *g_stkCallInfo.back();
+	auto const& callinfo = g_stkCallInfo.back();
 
 	// 警告
-	if ( ctx->looplev != callinfo.looplev ) {
+	if ( ctx->looplev != callinfo->looplev ) {
 		Knowbug::logmesWarning("呼び出し中に入った loop から正常に脱出しないまま、呼び出しが終了した。");
 	}
 
-	if ( ctx->sublev != callinfo.sublev ) {
+	if ( ctx->sublev != callinfo->sublev ) {
 		Knowbug::logmesWarning("呼び出し中に入ったサブルーチンから正常に脱出しないまま、呼び出しが終了した。");
 	}
 
@@ -87,10 +90,10 @@ void onEndCalling()
 //------------------------------------------------
 // callinfo スタックへのアクセス
 //------------------------------------------------
-ModcmdCallInfo const* getCallInfoAt(size_t idx)
+ModcmdCallInfo::shared_ptr_type tryGetCallInfoAt(size_t idx)
 {
-	return ( 0 <= idx && idx < g_stkCallInfo.size() )
-		? g_stkCallInfo.at(idx).get()
+	return (0 <= idx && idx < g_stkCallInfo.size())
+		? g_stkCallInfo.at(idx)
 		: nullptr;
 }
 
@@ -100,3 +103,5 @@ stkCallInfoRange_t getCallInfoRange()
 }
 
 } //namespace WrapCall
+
+#endif //defined(with_WrapCall)

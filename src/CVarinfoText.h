@@ -5,6 +5,12 @@
 #include "module/CStrWriter.h"
 
 class StaticVarTree;
+struct ResultNodeData;
+
+namespace WrapCall
+{
+	struct ModcmdCallInfo;
+}
 
 namespace Sysvar
 {
@@ -20,7 +26,7 @@ public:
 	void addVar(PVal* pval, char const* name);
 	void addSysvar(Sysvar::Id id);
 #ifdef with_WrapCall
-	void addCall(WrapCall::ModcmdCallInfo const& callinfo);
+	void addCall(std::shared_ptr<WrapCall::ModcmdCallInfo const> const& callinfo);
 	void addResult(stdat_t stdat, string const& text, char const* name);
 #endif
 

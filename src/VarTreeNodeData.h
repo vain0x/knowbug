@@ -7,9 +7,11 @@
 #include "config_mng.h"
 #include "WrapCall/ModcmdCallInfo.h"
 
+#ifdef with_WrapCall
+
 struct ResultNodeData
 {
-	stdat_t stdat;
+	WrapCall::ModcmdCallInfo::shared_ptr_type callinfo;
 
 	// 返値の型
 	vartype_t vtype;
@@ -17,14 +19,14 @@ struct ResultNodeData
 	// 値の文字列化
 	string valueString;
 
-	// これに依存する呼び出し (存在する場合はこれの子ノードになる)
-	optional_ref<WrapCall::ModcmdCallInfo const> pCallInfoDepended;
+	// これに依存する呼び出し
+	WrapCall::ModcmdCallInfo::shared_ptr_type pCallInfoDepended;
 
 public:
-	ResultNodeData(WrapCall::ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vt);
-	ResultNodeData(WrapCall::ModcmdCallInfo const& callinfo, PVal* pvResult)
-		: ResultNodeData(callinfo, pvResult->pt, pvResult->flag)
-	{ }
+	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vt);
+	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PVal* pvResult);
 };
+
+#endif //defined(with_WrapCall)
 
 #endif

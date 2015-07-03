@@ -17,7 +17,9 @@
 
 #ifdef with_WrapCall
 # include "VarTreeNodeData.h"
-using namespace WrapCall;
+# include "WrapCall//WrapCall.h"
+# include "WrapCall/ModcmdCallInfo.h"
+using WrapCall::ModcmdCallInfo;
 #endif
 
 CVarinfoText::CVarinfoText()
@@ -95,21 +97,21 @@ void CVarinfoText::addSysvar(Sysvar::Id id)
 // 
 // @prm prmstk: nullptr => 引数未確定
 //------------------------------------------------
-void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
+void CVarinfoText::addCall(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
-	auto const stdat = callinfo.stdat;
+	auto const stdat = callinfo->stdat;
 	auto const name = hpimod::STRUCTDAT_getName(stdat);
 	getWriter().catln(
-		(callinfo.fname == nullptr)
+		(callinfo->fname == nullptr)
 			? strf("関数名：%s", name)
-			: strf("関数名：%s (#%d of %s)", name, callinfo.line + 1, callinfo.fname)
+			: strf("関数名：%s (#%d of %s)", name, callinfo->line + 1, callinfo->fname)
 	);
 
 	// シグネチャ
 	getWriter().catln(strf("仮引数：(%s)", stringizePrmlist(stdat)));
 	getWriter().catCrlf();
 
-	auto const&& prmstk_safety = callinfo.tryGetPrmstk();
+	auto const&& prmstk_safety = callinfo->tryGetPrmstk();
 	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
 			.addCall( stdat, prmstk_safety );
 

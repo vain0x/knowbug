@@ -1,6 +1,6 @@
-﻿// WrapCall - type modcmd
+﻿// TYPE_MODCMD の処理をラップし、ユーザ定義関数の呼び出し・終了を通知する。
 
-// TYPE_MODCMD の処理をラップし、ユーザ定義関数の呼び出し・終了を通知する。
+#ifdef with_WrapCall
 
 #include "type_modcmd.h"
 #include "WrapCall.h"
@@ -76,3 +76,5 @@ void* modcmd_reffunc(int* type_res, int cmdid)
 	WrapCall::onEndCalling(resultPtr, *type_res);
 	return resultPtr;
 }
+
+#endif //defined(With_WrapCall)

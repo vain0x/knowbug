@@ -6,23 +6,19 @@
 
 #include "main.h"
 #include "SysvarData.h"
-#include "module/strf.h"
 
 #ifdef with_WrapCall
 # include "WrapCall/ModcmdCallInfo.h"
 # include "VarTreeNodeData.h"
-using WrapCall::ModcmdCallInfo;
 #endif
 class StaticVarTree;
 
-namespace VarTree
-{
+namespace VarTree {
 
 void init();
 void term();
 
-LRESULT   customDraw(LPNMTVCUSTOMDRAW pnmcd);
-vartype_t getVartype(HTREEITEM hItem );
+LRESULT customDraw(LPNMTVCUSTOMDRAW pnmcd);
 std::shared_ptr<string const> getItemVarText(HTREEITEM hItem);
 
 HTREEITEM getScriptNodeHandle();
@@ -54,9 +50,11 @@ namespace Detail
 }
 struct ModuleNode : public Detail::NodeTag<'@', StaticVarTree const*> { };
 struct SystemNode : public Detail::NodeTag<'+', SystemNodeId> { };
-struct SysvarNode : public Detail::NodeTag<'~', Sysvar::Id> { }; 
+struct SysvarNode : public Detail::NodeTag<'~', Sysvar::Id> { };
+#ifdef with_WrapCall
 struct InvokeNode : public Detail::NodeTag<'\'', int> { };
 struct ResultNode : public Detail::NodeTag<'"', ResultNodeData*> { };
+#endif //defined(with_WrapCall)
 struct VarNode    : public Detail::NodeTag<'\0', PVal*> {
 	static bool isTypeOf(char const * s);
 };
@@ -65,12 +63,12 @@ lparam_t TreeView_MyLParam(HWND hTree, HTREEITEM hItem, Tag* = nullptr);
 
 #ifdef with_WrapCall
 
-void AddCallNode(ModcmdCallInfo const& callinfo);
+void AddCallNode(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo);
 void RemoveLastCallNode();
-void AddResultNode(ModcmdCallInfo const& callinfo, std::shared_ptr<ResultNodeData> pResult);
+void AddResultNode(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, std::shared_ptr<ResultNodeData> pResult);
 void RemoveResultNode( HTREEITEM hResult );
 void UpdateCallNode();
 
 #endif
 
-}
+} //namespace VarTree

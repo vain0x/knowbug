@@ -16,6 +16,7 @@
 #include "module/supio/supio.h"
 #include "module/GuiUtility.h"
 #include "module/LineDelimitedString.h"
+#include "module/strf.h"
 #include "WrapCall/WrapCall.h"
 
 #include "dialog.h"
@@ -244,9 +245,12 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 {
 	auto const nodeString = TreeView_GetItemString(hVarTree, hItem);
 	HMENU hPop;
+#ifdef with_WrapCall
 	if ( VarTree::InvokeNode::isTypeOf(nodeString.c_str()) ) {
 		hPop = hInvokeNodeMenu;
-	} else if ( VarTree::SystemNode::isTypeOf(nodeString.c_str())
+	} else
+#endif //defined(with_WrapCall)
+	if ( VarTree::SystemNode::isTypeOf(nodeString.c_str())
 		&& VarTree::TreeView_MyLParam<VarTree::SystemNode>(hVarTree, hItem) == VarTree::SystemNodeId::Log ) {
 		hPop = hLogNodeMenu;
 	} else {
@@ -266,14 +270,16 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 			Knowbug::logmes(getVarNodeString(hItem).c_str());
 			break;
 		}
+#ifdef with_WrapCall
 		case IDC_NODE_STEP_OUT: {
 			auto const idx = VarTree::TreeView_MyLParam<VarTree::InvokeNode>(hVarTree, hItem);
-			if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
+			if ( auto const pCallInfo = WrapCall::tryGetCallInfoAt(idx) ) {
 				// 対象が呼び出された階層まで進む
 				Knowbug::runStepReturn(pCallInfo->sublev);
 			}
 			break;
 		}
+#endif //defined(with_WrapCall)
 		case IDC_LOG_AUTO_SCROLL: {
 			bool& b = g_config->scrollsLogAutomatically;
 			b = !b;

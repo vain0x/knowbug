@@ -23,8 +23,9 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 );
 static void debugbye();
 
 // WrapCall 関連
+#include "WrapCall/WrapCall.h"
+#include "WrapCall/ModcmdCallInfo.h"
 #ifdef with_WrapCall
-# include "WrapCall/ModcmdCallInfo.h"
 using WrapCall::ModcmdCallInfo;
 #endif
 
@@ -188,7 +189,7 @@ void logmesWarning(char const* msg)
 //------------------------------------------------
 // WrapCall メソッド
 //------------------------------------------------
-void onBgnCalling(ModcmdCallInfo const& callinfo)
+void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
 	VarTree::AddCallNode(callinfo);
 
@@ -196,14 +197,14 @@ void onBgnCalling(ModcmdCallInfo const& callinfo)
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
 			"[CallBgn] %s\t%s]\r\n",
-			hpimod::STRUCTDAT_getName(callinfo.stdat),
-			DebugInfo::formatCurInfString(callinfo.fname, callinfo.line)
+			hpimod::STRUCTDAT_getName(callinfo->stdat),
+			DebugInfo::formatCurInfString(callinfo->fname, callinfo->line)
 		);
 		Knowbug::logmes(logText.c_str());
 	}
 }
 
-void onEndCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
+void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype)
 {
 	VarTree::RemoveLastCallNode();
 
@@ -222,7 +223,7 @@ void onEndCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
 			"[CallEnd] %s%s\r\n",
-			hpimod::STRUCTDAT_getName(callinfo.stdat),
+			hpimod::STRUCTDAT_getName(callinfo->stdat),
 			(pResult ? ("-> " + pResult->valueString) : "")
 		);
 		Knowbug::logmes(logText.c_str());
