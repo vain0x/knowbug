@@ -1,4 +1,4 @@
-﻿#ifdef with_WrapCall
+#ifdef with_WrapCall
 
 #include "VarTreeNodeData.h"
 #include "CVardataString.h"
@@ -16,10 +16,18 @@ ResultNodeData::ResultNodeData(ModcmdCallInfo::shared_ptr_type const& callinfo, 
 	, vtype(vt)
 	, pCallInfoDepended(callinfo->tryGetDependedCallInfo())
 {
-	auto p = std::make_shared<CStrBuf>();
-	CVardataStrWriter::create<CLineformedWriter>(p)
-		.addResult(hpimod::STRUCTDAT_getName(callinfo->stdat), ptr, vt);
-	valueString = p->getMove();
+	{
+		auto p = std::make_shared<CStrBuf>();
+		CVardataStrWriter::create<CTreeformedWriter>(p)
+			.addResult(callinfo->stdat, ptr, vt);
+		treeformedString = p->getMove();
+	}
+	{
+		auto p = std::make_shared<CStrBuf>();
+		CVardataStrWriter::create<CLineformedWriter>(p)
+			.addResult(callinfo->stdat, ptr, vt);
+		lineformedString = p->getMove();
+	}
 }
 
 #endif //defined(with_WrapCall)

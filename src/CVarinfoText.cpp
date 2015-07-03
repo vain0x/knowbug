@@ -100,6 +100,22 @@ void CVarinfoText::addSysvar(Sysvar::Id id)
 void CVarinfoText::addCall(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
 	auto const stdat = callinfo->stdat;
+	addCallSignature(callinfo, stdat);
+	getWriter().catCrlf();
+
+	auto const&& prmstk_safety = callinfo->tryGetPrmstk();
+	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
+			.addCall(stdat, prmstk_safety);
+
+	auto const prmstk = prmstk_safety.first;
+	if ( prmstk && g_config->showsVariableDump ) {
+		getWriter().catCrlf();
+		getWriter().catDump(prmstk, static_cast<size_t>(stdat->size));
+	}
+}
+
+void CVarinfoText::addCallSignature(ModcmdCallInfo::shared_ptr_type const& callinfo, stdat_t stdat)
+{
 	auto const name = hpimod::STRUCTDAT_getName(stdat);
 	getWriter().catln(
 		(callinfo->fname == nullptr)
@@ -109,27 +125,17 @@ void CVarinfoText::addCall(ModcmdCallInfo::shared_ptr_type const& callinfo)
 
 	// シグネチャ
 	getWriter().catln(strf("仮引数：(%s)", stringizePrmlist(stdat)));
-	getWriter().catCrlf();
-
-	auto const&& prmstk_safety = callinfo->tryGetPrmstk();
-	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
-			.addCall( stdat, prmstk_safety );
-
-	auto const prmstk = prmstk_safety.first;
-	if ( prmstk && g_config->showsVariableDump ) {
-		getWriter().catCrlf();
-		getWriter().catDump(prmstk, static_cast<size_t>(stdat->size));
-	}
 }
 
 //------------------------------------------------
 // 返値データから生成
 //------------------------------------------------
-void CVarinfoText::addResult( stdat_t stdat, string const& text, char const* name )
+void CVarinfoText::addResult(shared_ptr<ResultNodeData> const& result)
 {
-	getWriter().catln(strf("関数名：%s", name));
+	assert(!!result);
+	addCallSignature(result->callinfo, result->callinfo->stdat);
 	getWriter().catCrlf();
-	getWriter().cat(text);
+	getWriter().cat(result->treeformedString);
 }
 
 #endif
@@ -185,7 +191,7 @@ void CVarinfoText::addSysvarsOverview()
 // 
 // depends on WrapCall
 //------------------------------------------------
-void CVarinfoText::addCallsOverview(ResultNodeData const* pLastResult)
+void CVarinfoText::addCallsOverview(shared_ptr<ResultNodeData> const& pLastResult)
 {
 	getWriter().catln("[呼び出し履歴]");
 
@@ -197,7 +203,7 @@ void CVarinfoText::addCallsOverview(ResultNodeData const* pLastResult)
 
 	if ( pLastResult ) {
 		getWriter().cat("-> ");
-		getWriter().catln(pLastResult->valueString);
+		getWriter().catln(pLastResult->lineformedString);
 	}
 }
 #endif
@@ -209,9 +215,9 @@ void CVarinfoText::addGeneralOverview() {
 	getWriter().catln("[全般]");
 	for ( auto&& kv : g_dbginfo->fetchGeneralInfo() ) {
 		bool const isSysvar = (Sysvar::trySeek(kv.first.c_str()) != Sysvar::MAX);
-		if ( !isSysvar ){
-			getWriter().catln(kv.first + "\t= " + kv.second);
-		}
+		if ( isSysvar ) continue;
+
+		getWriter().catln(kv.first + "\t= " + kv.second);
 	}
 }
 

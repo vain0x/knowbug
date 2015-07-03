@@ -55,7 +55,7 @@ static void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult);
 static HTREEITEM FindDependedCallNode(ResultNodeData* pResult);
 static void RemoveDependingResultNodes(HTREEITEM hItem);
 static void RemoveLastIndependedResultNode();
-static ResultNodeData* FindLastIndependedResultData();
+static shared_ptr<ResultNodeData> FindLastIndependedResultData();
 #endif
 
 //------------------------------------------------
@@ -359,7 +359,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		} else if ( usesResultNodes() && ResultNode::isTypeOf(name) ) {
 			auto const&& iter = g_allResultData.find(hItem);
 			auto const pResult = (iter != g_allResultData.end() ? iter->second : nullptr);
-			varinf.addResult( pResult->callinfo->stdat, pResult->valueString, hpimod::STRUCTDAT_getName(pResult->callinfo->stdat) );
+			varinf.addResult(pResult);
 #endif
 		} else {
 			assert(VarNode::isTypeOf(name));
@@ -577,12 +577,12 @@ void RemoveLastIndependedResultNode()
 //------------------------------------------------
 // (最後の)非依存な返値ノードデータを探す
 //------------------------------------------------
-ResultNodeData* FindLastIndependedResultData()
+shared_ptr<ResultNodeData> FindLastIndependedResultData()
 {
 	if ( !g_lastIndependedResultNode ) return nullptr;
 	auto const&& iter = g_allResultData.find(g_lastIndependedResultNode);
 	return (iter != g_allResultData.end())
-		? iter->second.get()
+		? iter->second
 		: nullptr;
 }
 

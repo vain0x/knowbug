@@ -224,7 +224,7 @@ void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, va
 		string const logText = strf(
 			"[CallEnd] %s%s\r\n",
 			hpimod::STRUCTDAT_getName(callinfo->stdat),
-			(pResult ? ("-> " + pResult->valueString) : "")
+			(pResult ? ("-> " + pResult->lineformedString) : "")
 		);
 		Knowbug::logmes(logText.c_str());
 	}

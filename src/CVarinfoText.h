@@ -26,14 +26,17 @@ public:
 	void addVar(PVal* pval, char const* name);
 	void addSysvar(Sysvar::Id id);
 #ifdef with_WrapCall
-	void addCall(std::shared_ptr<WrapCall::ModcmdCallInfo const> const& callinfo);
-	void addResult(stdat_t stdat, string const& text, char const* name);
+	void addCall(shared_ptr<WrapCall::ModcmdCallInfo const> const& callinfo);
+	void addResult(shared_ptr<ResultNodeData> const& result);
+private:
+	void addCallSignature(shared_ptr<WrapCall::ModcmdCallInfo const> const& callinfo, stdat_t stdat);
+public:
 #endif
 
 	void addModuleOverview(char const* name, StaticVarTree const& tree);
 	void addSysvarsOverview();
 #ifdef with_WrapCall
-	void addCallsOverview(ResultNodeData const* pLastResult);
+	void addCallsOverview(shared_ptr<ResultNodeData> const& lastResult);
 #endif
 	void addGeneralOverview();
 

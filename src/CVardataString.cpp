@@ -192,6 +192,7 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 //------------------------------------------------
 void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> prmstk)
 {
+	assert(!!prmstk.first);
 	int prev_mptype = MPTYPE_NONE;
 	int i = 0;
 
@@ -357,11 +358,7 @@ void CVardataStrWriter::addSysvar(Sysvar::Id id)
 void CVardataStrWriter::addCall(stdat_t stdat, std::pair<void const*, bool> prmstk)
 {
 	char const* const name = hpimod::STRUCTDAT_getName(stdat);
-	addCall(name, stdat, prmstk);
-}
 
-void CVardataStrWriter::addCall(char const* name, stdat_t stdat, std::pair<void const*, bool> prmstk)
-{
 	getWriter().catNodeBegin(name, strf("%s(", name).c_str());
 	if ( !prmstk.first ) {
 		getWriter().catLeafExtra("arguments", "not_available");
@@ -371,16 +368,14 @@ void CVardataStrWriter::addCall(char const* name, stdat_t stdat, std::pair<void 
 	getWriter().catNodeEnd(")");
 }
 
-//------------------------------------------------
-// [add] 返値
-//------------------------------------------------
-void CVardataStrWriter::addResult(char const* name, PDAT const* ptr, vartype_t type)
+void CVardataStrWriter::addResult(stdat_t stdat, PDAT const* resultPtr, vartype_t resultType)
 {
-	//現在の実装では一行表示でしか呼ばれない
-	//ツリー形式にするなら文字列化の方法を考えなおす
-	assert(getWriter().isLineformed());
+	assert(!!resultPtr);
+	char const* const name = hpimod::STRUCTDAT_getName(stdat);
 
-	addValue(name, type, ptr);
+	getWriter().catNodeBegin(name, strf("%s => ", name).c_str());
+	addValue(".result", resultType, resultPtr);
+	getWriter().catNodeEnd("");
 }
 
 //------------------------------------------------

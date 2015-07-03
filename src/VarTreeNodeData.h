@@ -17,7 +17,8 @@ struct ResultNodeData
 	vartype_t vtype;
 
 	// 値の文字列化
-	string valueString;
+	string treeformedString;
+	string lineformedString;
 
 	// これに依存する呼び出し
 	WrapCall::ModcmdCallInfo::shared_ptr_type pCallInfoDepended;

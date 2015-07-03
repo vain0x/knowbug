@@ -16,9 +16,6 @@ class CAssoc;
 class CVector;
 class CArray;
 #endif
-#ifdef with_WrapCall
-struct ResultNodeData;
-#endif
 
 class CVardataStrWriter
 {
@@ -70,9 +67,10 @@ public:
 
 	void addSysvar(Sysvar::Id id);
 
+#ifdef with_WrapCall
 	void addCall(stdat_t stdat, std::pair<void const*, bool> prmstk);
-	void addCall(char const* name, stdat_t stdat, std::pair<void const*, bool> prmstk);
-	void addResult(char const* name, PDAT const* ptr, vartype_t type);
+	void addResult(stdat_t stdat, PDAT const* resultPtr, vartype_t type);
+#endif
 
 public:
 	CStructedStrWriter& getWriter() const { return *writer_; }
