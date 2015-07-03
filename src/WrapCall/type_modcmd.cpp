@@ -13,10 +13,23 @@ static int   (*g_modcmd_cmdfunc_impl)(int)       = nullptr;
 static void* (*g_modcmd_reffunc_impl)(int*, int) = nullptr;
 
 //------------------------------------------------
+// WrapCall のコールバック
+//------------------------------------------------
+namespace WrapCall {
+
+extern void onBgnCalling(stdat_t callee);
+extern void onEndCalling();
+extern void onEndCalling(PDAT* p, vartype_t vtype);
+
+} //namespace WrapCall
+
+//------------------------------------------------
 // TYPE_MODCMD の処理を乗っ取る
 //------------------------------------------------
 void modcmd_init(HSP3TYPEINFO* info)
 {
+	if ( g_modcmd_cmdfunc_impl ) return;
+
 	g_modcmd_cmdfunc_impl = info->cmdfunc;
 	g_modcmd_reffunc_impl = info->reffunc;
 
@@ -29,13 +42,13 @@ void modcmd_init(HSP3TYPEINFO* info)
 //------------------------------------------------
 void modcmd_term(HSP3TYPEINFO* info)
 {
-	if ( g_modcmd_cmdfunc_impl ) {
-		info->cmdfunc = g_modcmd_cmdfunc_impl;
-		info->reffunc = g_modcmd_reffunc_impl;
+	if ( !g_modcmd_cmdfunc_impl ) return;
 
-		g_modcmd_cmdfunc_impl = nullptr;
-		g_modcmd_reffunc_impl = nullptr;
-	}
+	info->cmdfunc = g_modcmd_cmdfunc_impl;
+	info->reffunc = g_modcmd_reffunc_impl;
+
+	g_modcmd_cmdfunc_impl = nullptr;
+	g_modcmd_reffunc_impl = nullptr;
 }
 
 //------------------------------------------------
@@ -45,10 +58,10 @@ int modcmd_cmdfunc(int cmdid)
 {
 	stdat_t const stdat = hpimod::getSTRUCTDAT(cmdid);
 
-	WrapCall::bgnCall(stdat);
-	int const result = g_modcmd_cmdfunc_impl(cmdid);
-	WrapCall::endCall();
-	return result;
+	WrapCall::onBgnCalling(stdat);
+	int const runmode = g_modcmd_cmdfunc_impl(cmdid);
+	WrapCall::onEndCalling();
+	return runmode;
 }
 
 //------------------------------------------------
@@ -58,8 +71,8 @@ void* modcmd_reffunc(int* type_res, int cmdid)
 {
 	stdat_t const stdat = hpimod::getSTRUCTDAT(cmdid);
 
-	WrapCall::bgnCall(stdat);
-	PDAT* const result = static_cast<PDAT*>(g_modcmd_reffunc_impl(type_res, cmdid));
-	WrapCall::endCall(result, *type_res);
-	return result;
+	WrapCall::onBgnCalling(stdat);
+	PDAT* const resultPtr = static_cast<PDAT*>(g_modcmd_reffunc_impl(type_res, cmdid));
+	WrapCall::onEndCalling(resultPtr, *type_res);
+	return resultPtr;
 }

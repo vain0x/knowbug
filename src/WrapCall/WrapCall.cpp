@@ -35,8 +35,10 @@ EXPORT void WINAPI hsp3hpi_init_wrapcall(HSP3TYPEINFO* info)
 
 //------------------------------------------------
 // 呼び出しの開始
+//
+// ラップされたコマンド処理関数から呼ばれる。
 //------------------------------------------------
-void bgnCall(stdat_t stdat)
+void onBgnCalling(stdat_t stdat)
 {
 	g_dbginfo->updateCurInf();
 
@@ -56,12 +58,7 @@ void bgnCall(stdat_t stdat)
 //------------------------------------------------
 // 呼び出しの完了
 //------------------------------------------------
-void endCall()
-{
-	return endCall(nullptr, HSPVAR_FLAG_NONE);
-}
-
-void endCall(PDAT* p, vartype_t vt)
+void onEndCalling(PDAT* p, vartype_t vt)
 {
 	if (g_stkCallInfo.empty()) return;
 
@@ -80,6 +77,11 @@ void endCall(PDAT* p, vartype_t vt)
 	Knowbug::onEndCalling(callinfo, p, vt);
 
 	g_stkCallInfo.pop_back();
+}
+
+void onEndCalling()
+{
+	return onEndCalling(nullptr, HSPVAR_FLAG_NONE);
 }
 
 //------------------------------------------------
