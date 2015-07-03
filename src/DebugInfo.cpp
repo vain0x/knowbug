@@ -4,20 +4,16 @@
 #include "DebugInfo.h"
 #include "CAx.h"
 #include "module/supio/supio.h"
+#include "module/strf.h"
 
 using namespace hpimod;
 
 DebugInfo::DebugInfo(HSP3DEBUG* debug)
-	: debug(debug)
-	, ax(new CAx())
+	: debug_(debug)
+	, ax_(new CAx())
 { }
 
 DebugInfo::~DebugInfo() {}
-
-string DebugInfo::getCurInfString() const
-{
-	return formatCurInfString(debug->fname, debug->line - 1);
-}
 
 string DebugInfo::formatCurInfString(char const* fname, int line)
 {
@@ -26,13 +22,12 @@ string DebugInfo::formatCurInfString(char const* fname, int line)
 
 std::vector<std::pair<string, string>> DebugInfo::fetchGeneralInfo() const
 {
-	std::vector<std::pair<string, string>> res;
-	res.reserve(20);
+	std::vector<std::pair<string, string>> info;
+	info.reserve(20);
 
-	// HSP側に問い合わせ
 	std::unique_ptr<char, void(*)(char*)> p(
-		debug->get_value(DEBUGINFO_GENERAL),
-		debug->dbg_close
+		debug_->get_value(DEBUGINFO_GENERAL),
+		debug_->dbg_close
 	);
 
 	strsp_ini();
@@ -47,7 +42,7 @@ std::vector<std::pair<string, string>> DebugInfo::fetchGeneralInfo() const
 			int const chk = strsp_get(p.get(), val, 0, sizeof(val) - 1);
 			if ( chk == 0 ) break;
 		}
-		res.emplace_back(name, val);
+		info.emplace_back(name, val);
 	}
 
 	// 拡張内容の追加
@@ -57,31 +52,31 @@ std::vector<std::pair<string, string>> DebugInfo::fetchGeneralInfo() const
 			// color
 			{
 				COLORREF const cref = pBmscr->color;
-				res.emplace_back("color",
+				info.emplace_back("color",
 					strf("(%d, %d, %d)", GetRValue(cref), GetGValue(cref), GetBValue(cref)));
 			}
 			// pos
-			res.emplace_back("pos", strf("(%d, %d)", pBmscr->cx, pBmscr->cy));
+			info.emplace_back("pos", strf("(%d, %d)", pBmscr->cx, pBmscr->cy));
 		}
 	}
-	return std::move(res);
+	return std::move(info);
 }
 
 std::vector<string> DebugInfo::fetchStaticVarNames() const
 {
-	std::vector<string> res;
-	res.reserve(hpimod::cntSttVars());
+	std::vector<string> names;
+	names.reserve(hpimod::cntSttVars());
 
 	std::unique_ptr<char, void(*)(char*)> p(
-		debug->get_varinf(nullptr, 0xFF),
-		debug->dbg_close
+		debug_->get_varinf(nullptr, 0xFF),
+		debug_->dbg_close
 	);
 	strsp_ini();
 	for ( ;; ) {
 		char name[0x100];
 		int const chk = strsp_get(p.get(), name, 0, sizeof(name) - 1);
 		if ( chk == 0 ) break;
-		res.emplace_back(name);
+		names.emplace_back(name);
 	}
-	return std::move(res);
+	return std::move(names);
 }

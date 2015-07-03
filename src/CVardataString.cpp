@@ -503,7 +503,7 @@ string nameFromStPrm(stprm_t stprm, int idx)
 {
 	int const subid = hpimod::findStPrmIndex(stprm);
 	if ( subid >= 0 ) {
-		if ( auto const name = g_dbginfo->ax->getPrmName(subid) ) {
+		if ( auto const name = g_dbginfo->getAx().getPrmName(subid) ) {
 			return hpimod::nameExcludingScopeResolution(name);
 
 		// thismod 引数
@@ -522,7 +522,7 @@ string nameFromStPrm(stprm_t stprm, int idx)
 string nameFromLabel(label_t lb)
 {
 	int const otIndex = hpimod::findOTIndex(lb);
-	if ( auto const name = g_dbginfo->ax->getLabelName(otIndex) ) {
+	if ( auto const name = g_dbginfo->getAx().getLabelName(otIndex) ) {
 		return strf("*%s", name);
 	} else {
 		return strf("label(0x%08X)", address_cast(lb));
