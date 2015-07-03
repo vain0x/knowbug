@@ -5,7 +5,7 @@
 #include "DebugInfo.h"
 #include "module/CStrWriter.h"
 
-class CStaticVarTree;
+class StaticVarTree;
 
 #ifdef with_WrapCall
 namespace WrapCall
@@ -32,7 +32,7 @@ public:
 	void addResult(stdat_t stdat, string const& text, char const* name);
 #endif
 
-	void addModuleOverview(char const* name, CStaticVarTree const& tree);
+	void addModuleOverview(char const* name, StaticVarTree const& tree);
 	void addSysvarsOverview();
 #ifdef with_WrapCall
 	void addCallsOverview(WrapCall::ResultNodeData const* pLastResult);

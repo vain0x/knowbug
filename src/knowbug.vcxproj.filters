@@ -48,9 +48,6 @@
     <ClCompile Include="CVarinfoText.cpp">
       <Filter>class</Filter>
     </ClCompile>
-    <ClCompile Include="CVarTree.cpp">
-      <Filter>class</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -108,12 +105,12 @@
     <ClCompile Include="..\hpimod\hpimod\stringization.cpp">
       <Filter>module\hpimod</Filter>
     </ClCompile>
+    <ClCompile Include="StaticVarTree.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CVarinfoText.h">
-      <Filter>class</Filter>
-    </ClInclude>
-    <ClInclude Include="CVarTree.h">
       <Filter>class</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -226,6 +223,9 @@
     </ClInclude>
     <ClInclude Include="..\hpimod\hpimod\stringization.h">
       <Filter>module\hpimod</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticVarTree.h">
+      <Filter>class</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -13,7 +13,7 @@
 using WrapCall::ModcmdCallInfo;
 using WrapCall::ResultNodeData;
 #endif
-class CStaticVarTree;
+class StaticVarTree;
 
 namespace VarTree
 {
@@ -52,7 +52,7 @@ namespace Detail
 		static bool apply(char const*, typename Tag::lparam_t const& value);
 	};
 }
-struct ModuleNode : public Detail::NodeTag<'@', CStaticVarTree const*> { };
+struct ModuleNode : public Detail::NodeTag<'@', StaticVarTree const*> { };
 struct SystemNode : public Detail::NodeTag<'+', SystemNodeId> { };
 struct SysvarNode : public Detail::NodeTag<'~', Sysvar::Id> { }; 
 struct InvokeNode : public Detail::NodeTag<'\'', int> { };

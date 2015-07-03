@@ -7,34 +7,39 @@
 #include <memory>
 #include <functional>
 
-class CStaticVarTree {
+// モジュールと静的変数からなる木
+class StaticVarTree
+{
 private:
 	using string = std::string;
 	struct Private;
 	std::unique_ptr<Private> p_;
 
+	StaticVarTree();
+	StaticVarTree(string const& name);
+	~StaticVarTree();
+
 public:
-	CStaticVarTree(string const& name);
-	~CStaticVarTree();
-
-	void pushVar(char const* name);
-
 	string const& getName() const;
 
+	//foreach
 	struct Visitor {
-		std::function<void(CStaticVarTree const&)> fModule;
+		std::function<void(StaticVarTree const&)> fModule;
 		std::function<void(string const&)> fVar;
 	};
 	void foreach(Visitor const&) const;
 
-	//helper
 	template<typename FModule, typename FVar>
-	void foreach(FModule&& fModule, FVar&& fVar) const { return foreach(Visitor { decltype(Visitor::fModule)(fModule), decltype(Visitor::fVar)(fVar) }); }
+	void foreach(FModule&& fModule, FVar&& fVar) const {
+		return foreach(Visitor {
+			decltype(Visitor::fModule)(fModule),
+			decltype(Visitor::fVar)(fVar)
+		});
+	}
 
 public:
 	static string const ModuleName_Global;
+	static StaticVarTree const& global();
 };
-
-using CVarTree = CStaticVarTree;
 
 #endif

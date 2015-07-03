@@ -181,7 +181,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="CVarinfoText.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="CVarTree.cpp" />
+    <ClCompile Include="StaticVarTree.cpp" />
     <ClCompile Include="DebugInfo.cpp" />
     <ClCompile Include="dialog.cpp" />
     <ClCompile Include="ExVardataString.cpp" />
@@ -215,7 +215,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="config_mng.h" />
     <ClInclude Include="CVardataString.h" />
     <ClInclude Include="CVarinfoText.h" />
-    <ClInclude Include="CVarTree.h" />
+    <ClInclude Include="StaticVarTree.h" />
     <ClInclude Include="DebugInfo.h" />
     <ClInclude Include="dialog.h" />
     <ClInclude Include="ExVardataString.h" />

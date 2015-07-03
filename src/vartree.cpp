@@ -7,7 +7,7 @@
 #include "config_mng.h"
 
 #include "vartree.h"
-#include "CVarTree.h"
+#include "StaticVarTree.h"
 #include "CVarinfoText.h"
 #include "CVardataString.h"
 
@@ -21,9 +21,8 @@
 namespace VarTree
 {
 
-static CStaticVarTree const& getSttVarTree();
 static vartype_t getVartypeOfNode(HTREEITEM hItem);
-static void AddNodeModule(HTREEITEM hParent, CVarTree const& tree);
+static void AddNodeModule(HTREEITEM hParent, StaticVarTree const& tree);
 static HTREEITEM AddNodeSystem(char const* name, SystemNodeId id);
 static void AddNodeSysvar();
 
@@ -98,7 +97,7 @@ lparam_t TreeView_MyLParam(HWND hTree, HTREEITEM hItem, Tag*)
 //------------------------------------------------
 void init()
 {
-	AddNodeModule(TVI_ROOT, getSttVarTree());
+	AddNodeModule(TVI_ROOT, StaticVarTree::global());
 #ifdef with_WrapCall
 	AddNodeDynamic();
 #endif
@@ -112,7 +111,7 @@ void init()
 	TreeView_Expand(hwndVarTree, g_hNodeDynamic, TVE_EXPAND);
 #endif
 	HTREEITEM const hRoot = TreeView_GetRoot(hwndVarTree);
-	assert(TreeView_GetItemString(hwndVarTree, hRoot) == CStaticVarTree::ModuleName_Global);
+	assert(TreeView_GetItemString(hwndVarTree, hRoot) == StaticVarTree::ModuleName_Global);
 	TreeView_Expand(hwndVarTree, hRoot, TVE_EXPAND);
 
 	TreeView_EnsureVisible(hwndVarTree, hRoot); //トップまでスクロール
@@ -138,22 +137,6 @@ void term()
 }
 
 //------------------------------------------------
-// 静的変数リストを取得する
-//------------------------------------------------
-static CStaticVarTree const& getSttVarTree()
-{
-	static std::unique_ptr<CStaticVarTree> stt_tree;
-	if ( !stt_tree ) {
-		stt_tree.reset(new CStaticVarTree(CStaticVarTree::ModuleName_Global));
-		auto const&& names = g_dbginfo->fetchStaticVarNames();
-		for ( auto const& name : names ) {
-			stt_tree->pushVar(name.c_str());
-		}
-	}
-	return *stt_tree;
-}
-
-//------------------------------------------------
 // ツリービューに要素を挿入する
 //------------------------------------------------
 template<typename Tag>
@@ -171,11 +154,11 @@ static HTREEITEM TreeView_MyInsertItem(HTREEITEM hParent, char const* name, bool
 //------------------------------------------------
 // 変数ツリーにノードを追加する
 //------------------------------------------------
-void AddNodeModule(HTREEITEM hParent, CStaticVarTree const& tree)
+void AddNodeModule(HTREEITEM hParent, StaticVarTree const& tree)
 {
 	auto const hElem = TreeView_MyInsertItem<ModuleNode>(hParent, tree.getName().c_str(), true, &tree);
 	tree.foreach(
-		[&](CStaticVarTree const& module) {
+		[&](StaticVarTree const& module) {
 			AddNodeModule(hElem, module);
 		},
 		[&](string const& varname) {

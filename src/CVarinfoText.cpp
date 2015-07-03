@@ -11,7 +11,7 @@
 
 #include "main.h"
 #include "SysvarData.h"
-#include "CVarTree.h"
+#include "StaticVarTree.h"
 #include "CVarinfoText.h"
 #include "CVardataString.h"
 
@@ -138,12 +138,12 @@ void CVarinfoText::addResult( stdat_t stdat, string const& text, char const* nam
 //------------------------------------------------
 // [add] モジュール概観
 //------------------------------------------------
-void CVarinfoText::addModuleOverview(char const* name, CStaticVarTree const& tree)
+void CVarinfoText::addModuleOverview(char const* name, StaticVarTree const& tree)
 {
 	getWriter().catln(strf("[%s]", name));
 
 	tree.foreach(
-		[&](CStaticVarTree const& module) {
+		[&](StaticVarTree const& module) {
 			// (入れ子の)モジュールは名前だけ表示しておく
 			getWriter().catln(module.getName());
 		},
