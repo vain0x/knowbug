@@ -37,12 +37,14 @@ static void AddNodeDynamic();
 // ツリービューに含まれる返値ノードのデータ
 using resultDataPtr_t = std::shared_ptr<ResultNodeData>;
 static std::map<HTREEITEM, resultDataPtr_t> g_allResultData;
-static HTREEITEM g_lastIndependedResultNode;	// 非依存な返値ノード
+static HTREEITEM g_lastIndependedResultNode; // 非依存な返値ノード
 
-// 動的ノードの追加・除去の遅延の管理
-static size_t g_cntWillAddCallNodes = 0;						// 次の更新で追加すべきノード数
-static std::vector<resultDataPtr_t> g_willAddResultNodes;		// 次の更新で追加すべき返値ノード
-static resultDataPtr_t g_willAddResultNodeIndepend = nullptr;	// 次の更新で追加すべき非依存な返値ノード
+struct UnreflectedDynamicNodeInfo {
+	size_t countCallNodes; // 次の更新で追加すべき呼び出しノードの個数
+	std::vector<resultDataPtr_t> resultNodes; // 次の更新で追加すべき返値ノード
+	resultDataPtr_t resultNodeIndepended;     // 次の更新で追加すべき非依存な返値ノード
+};
+static UnreflectedDynamicNodeInfo g_unreflectedDynamicNodeInfo;
 
 static void AddCallNodeImpl(ModcmdCallInfo const& callinfo);
 static void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult);
@@ -129,8 +131,7 @@ void term()
 
 		// dynamic 関連のデータを削除する (必要なさそう)
 		if ( usesResultNodes() ) {
-			g_willAddResultNodeIndepend = nullptr;
-			g_willAddResultNodes.clear();
+			g_unreflectedDynamicNodeInfo = UnreflectedDynamicNodeInfo {};
 		}
 	}
 #endif
@@ -347,16 +348,15 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 //------------------------------------------------
 void AddCallNode(ModcmdCallInfo const& callinfo)
 {
-	// 非依存な返値ノードを除去
 	if ( usesResultNodes() ) {
 		RemoveLastIndependedResultNode();
 	}
 
-	if ( !Knowbug::isStepRunning() ) {
-		// 次に停止したときにまとめて追加する
-		++g_cntWillAddCallNodes;
-	} else {
+	if ( Knowbug::isStepRunning() ) {
 		AddCallNodeImpl(callinfo);
+	} else {
+		// 次に停止したときにまとめて追加する
+		++g_unreflectedDynamicNodeInfo.countCallNodes;
 	}
 }
 
@@ -377,8 +377,8 @@ void AddCallNodeImpl(ModcmdCallInfo const& callinfo)
 //------------------------------------------------
 void RemoveLastCallNode()
 {
-	if ( g_cntWillAddCallNodes > 0 ) {
-		--g_cntWillAddCallNodes;		// やっぱり追加しない
+	if ( g_unreflectedDynamicNodeInfo.countCallNodes > 0 ) {
+		--g_unreflectedDynamicNodeInfo.countCallNodes;
 
 	} else {
 		// 末子に返値ノードがあれば削除する
@@ -419,15 +419,15 @@ void AddResultNode(ModcmdCallInfo const& callinfo, std::shared_ptr<ResultNodeDat
 {
 	assert(!!pResult);
 
-	// 実行中 => 次に停止したときに追加する
-	if ( !Knowbug::isStepRunning() ) {
-		if ( pResult->pCallInfoDepended ) {
-			g_willAddResultNodes.push_back(pResult);
-		} else {
-			g_willAddResultNodeIndepend = pResult;
-		}
-	} else {
+	if ( Knowbug::isStepRunning() ) {
 		AddResultNodeImpl(pResult);
+
+	} else {
+		if ( pResult->pCallInfoDepended ) {
+			g_unreflectedDynamicNodeInfo.resultNodes.emplace_back(std::move(pResult));
+		} else {
+			g_unreflectedDynamicNodeInfo.resultNodeIndepended = std::move(pResult);
+		}
 	}
 }
 
@@ -543,7 +543,7 @@ void RemoveLastIndependedResultNode()
 		RemoveResultNode(g_lastIndependedResultNode);
 		g_lastIndependedResultNode = nullptr;
 	}
-	g_willAddResultNodeIndepend = nullptr;
+	g_unreflectedDynamicNodeInfo.resultNodeIndepended = nullptr;
 }
 
 //------------------------------------------------
@@ -564,29 +564,30 @@ ResultNodeData* FindLastIndependedResultData()
 void UpdateCallNode()
 {
 	// 追加予定の呼び出しノードを実際に追加する
-	if ( g_cntWillAddCallNodes > 0 ) {
+	if ( g_unreflectedDynamicNodeInfo.countCallNodes > 0 ) {
 		auto const&& range = WrapCall::getCallInfoRange();
 		size_t const lenStk = std::distance(range.first, range.second);
-		for ( size_t i = lenStk - g_cntWillAddCallNodes; i < lenStk; ++i ) {
+		for ( size_t i = lenStk - g_unreflectedDynamicNodeInfo.countCallNodes; i < lenStk; ++i ) {
 			AddCallNodeImpl(*(range.first[i]));
 		}
-		g_cntWillAddCallNodes = 0;
+		g_unreflectedDynamicNodeInfo.countCallNodes = 0;
 	}
 
 	// 追加予定の返値ノードを実際に追加する
 	if ( usesResultNodes() ) {
 		// 非依存なもの
-		if ( g_willAddResultNodeIndepend ) {
-			AddResultNodeImpl(g_willAddResultNodeIndepend);
-			g_willAddResultNodeIndepend = nullptr;
+		if ( g_unreflectedDynamicNodeInfo.resultNodeIndepended ) {
+			resultDataPtr_t resultData = nullptr;
+			swap(resultData, g_unreflectedDynamicNodeInfo.resultNodeIndepended);
+			AddResultNodeImpl(resultData);
 		}
 
 		// 依存されているもの
-		if ( !g_willAddResultNodes.empty() ) {
-			for ( auto const& pResult : g_willAddResultNodes ) {
+		if ( !g_unreflectedDynamicNodeInfo.resultNodes.empty() ) {
+			for ( auto const& pResult : g_unreflectedDynamicNodeInfo.resultNodes ) {
 				AddResultNodeImpl(pResult);
 			}
-			g_willAddResultNodes.clear();
+			g_unreflectedDynamicNodeInfo.resultNodes.clear();
 		}
 	}
 }
