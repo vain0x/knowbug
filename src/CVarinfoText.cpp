@@ -9,13 +9,14 @@
 #include "hpimod/stringization.h"
 
 #include "main.h"
+#include "DebugInfo.h"
 #include "SysvarData.h"
 #include "StaticVarTree.h"
 #include "CVarinfoText.h"
 #include "CVardataString.h"
 
 #ifdef with_WrapCall
-# include "WrapCall/ResultNodeData.h"
+# include "VarTreeNodeData.h"
 using namespace WrapCall;
 #endif
 

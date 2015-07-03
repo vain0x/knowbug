@@ -17,10 +17,7 @@ class CVector;
 class CArray;
 #endif
 #ifdef with_WrapCall
-namespace WrapCall
-{
-	struct ResultNodeData;
-} // namespace WrapCall
+struct ResultNodeData;
 #endif
 
 class CVardataStrWriter

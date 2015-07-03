@@ -12,9 +12,9 @@
 #include "CVarinfoText.h"
 #include "CAx.h"
 #include "SysvarData.h"
+#include "config_mng.h"
 
 #include "with_ModPtr.h"
-#include "WrapCall/ResultNodeData.h"
 
 namespace VtTraits { using namespace hpimod::VtTraits; }
 using namespace hpimod::VtTraits::InternalVartypeTags;

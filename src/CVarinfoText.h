@@ -2,18 +2,10 @@
 #define IG_CLASS_VARINFO_TEXT_H
 
 #include "main.h"
-#include "DebugInfo.h"
 #include "module/CStrWriter.h"
 
 class StaticVarTree;
 
-#ifdef with_WrapCall
-namespace WrapCall
-{
-	struct ModcmdCallInfo;
-	struct ResultNodeData;
-}
-#endif
 namespace Sysvar
 {
 	enum Id;
@@ -35,7 +27,7 @@ public:
 	void addModuleOverview(char const* name, StaticVarTree const& tree);
 	void addSysvarsOverview();
 #ifdef with_WrapCall
-	void addCallsOverview(WrapCall::ResultNodeData const* pLastResult);
+	void addCallsOverview(ResultNodeData const* pLastResult);
 #endif
 	void addGeneralOverview();
 

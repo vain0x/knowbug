@@ -30,8 +30,8 @@ using hpimod::HSPVAR_FLAG_VARIANT;
 namespace WrapCall
 {
 	struct ModcmdCallInfo;
-	struct ResultNodeData;
-}
+} //namespace WrapCall
+struct ResultNodeData;
 #endif
 
 //extern HSPCTX* ctx; // declared and defined in hsp3plugin.(h/cpp)

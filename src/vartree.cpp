@@ -606,21 +606,3 @@ void UpdateCallNode()
 #endif
 
 } // namespace VarTree
-
-//------------------------------------------------
-// ResultNodeData コンストラクタ
-//------------------------------------------------
-#include "module/CStrBuf.h"
-namespace WrapCall
-{
-	ResultNodeData::ResultNodeData(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vt)
-		: stdat(callinfo.stdat)
-		, vtype(vt)
-		, pCallInfoDepended(callinfo.tryGetDependedCallInfo())
-	{
-		auto p = std::make_shared<CStrBuf>();
-		CVardataStrWriter::create<CLineformedWriter>(p)
-			.addResult(hpimod::STRUCTDAT_getName(stdat), ptr, vt);
-		valueString = p->getMove();
-	}
-}

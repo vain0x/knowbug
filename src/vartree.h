@@ -5,13 +5,13 @@
 #include <CommCtrl.h>
 
 #include "main.h"
+#include "SysvarData.h"
 #include "module/strf.h"
 
 #ifdef with_WrapCall
 # include "WrapCall/ModcmdCallInfo.h"
-# include "WrapCall/ResultNodeData.h"
+# include "VarTreeNodeData.h"
 using WrapCall::ModcmdCallInfo;
-using WrapCall::ResultNodeData;
 #endif
 class StaticVarTree;
 

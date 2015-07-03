@@ -111,6 +111,9 @@
     <ClCompile Include="WrapCall\ModcmdCallInfo.cpp">
       <Filter>WrapCall</Filter>
     </ClCompile>
+    <ClCompile Include="VarTreeNodeData.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CVarinfoText.h">
@@ -151,9 +154,6 @@
     </ClInclude>
     <ClInclude Include="module\CIni.h">
       <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="WrapCall\ResultNodeData.h">
-      <Filter>WrapCall</Filter>
     </ClInclude>
     <ClInclude Include="main.h">
       <Filter>ソース ファイル</Filter>
@@ -232,6 +232,9 @@
     </ClInclude>
     <ClInclude Include="module\utility.h">
       <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="VarTreeNodeData.h">
+      <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="module\pair_range.hpp">
       <Filter>module</Filter>
