@@ -2,7 +2,6 @@
 //windows APIまわりの宣言
 //hspsdkまわりの宣言
 //knowbugの宣言
-//汎用ユーティリティーの定義
 
 #ifndef IG_HSP3DBGWIN_KNOWBUG_H
 #define IG_HSP3DBGWIN_KNOWBUG_H
@@ -11,17 +10,13 @@
 #undef min
 #undef max
 
-#include <string>
-#include <memory>
-#include <cassert>
-#define assert_sentinel do { assert(false); throw; } while(false)
-
 #include "hsp3plugin.h"
 #undef stat
 #include "hpimod/basis.h"
 
-using std::string;
-using std::shared_ptr;
+#include "DebugInfo.h"
+#include "module/utility.h"
+
 using hpimod::vartype_t;
 using hpimod::varmode_t;
 using hpimod::label_t;
@@ -41,9 +36,6 @@ namespace WrapCall
 
 //extern HSPCTX* ctx; // declared and defined in hsp3plugin.(h/cpp)
 //extern HSPEXINFO* exinfo;
-
-struct DebugInfo;
-extern std::unique_ptr<DebugInfo> g_dbginfo;
 
 // knowbug コントロール
 namespace Knowbug
@@ -71,12 +63,5 @@ namespace Knowbug
 #endif
 
 } // namespace Knowbug
-
-//others
-
-template<typename T> using optional_ref = T*; //option<T&>
-
-template<typename T>
-static shared_ptr<T> shared_ptr_from_rawptr(T* p) { return shared_ptr<T>(p, [](void const*) {}); }
 
 #endif

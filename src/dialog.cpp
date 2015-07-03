@@ -58,13 +58,11 @@ static void setEditStyle(HWND hEdit, int maxlen);
 //------------------------------------------------
 static string const& getVarNodeString(HTREEITEM hItem)
 {
-	auto it = vartree_textCache.find(hItem);
-	if ( it == vartree_textCache.end() ) {
-		auto&& p = VarTree::getItemVarText(hItem);
-		it = vartree_textCache.emplace(hItem, p).first;
-	}
-	assert(it->second);
-	return *it->second;
+	auto&& stringPtr = map_find_or_insert(vartree_textCache, hItem, [&hItem]() {
+		return VarTree::getItemVarText(hItem);
+	});
+	assert(stringPtr);
+	return *stringPtr;
 }
 
 //------------------------------------------------
@@ -200,13 +198,12 @@ optional_ref<LineDelimitedString const> ReadFromSourceFile(char const* _filepath
 
 		// キャッシュから検索
 		static std::map<string const, LineDelimitedString> stt_cache;
-		auto iter = stt_cache.find(filepath);
-		if ( iter == stt_cache.end() ) {
+		auto& lds = map_find_or_insert(stt_cache, filepath, [&filepath]() {
 			std::ifstream ifs { filepath };
 			assert(ifs.is_open());
-			iter = stt_cache.emplace(filepath, ifs).first;
-		}
-		return &iter->second;
+			return LineDelimitedString(ifs);
+		});
+		return &lds;
 	}
 	return nullptr;
 }

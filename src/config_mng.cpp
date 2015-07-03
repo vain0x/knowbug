@@ -1,4 +1,4 @@
-
+﻿
 #include "module/CIni.h"
 #include "module/strf.h"
 
@@ -110,8 +110,8 @@ KnowbugConfig::KnowbugConfig()
 	};
 	for ( auto&& vsw2 : stc_vswInfoForInternal ) {
 		//doesn't overwrite writers of external Dll
-		if ( vswInfo.find(vsw2.vtname) == vswInfo.end() ) {
-			vswInfo.emplace(vsw2.vtname, VswInfo { nullptr, vsw2.addVar, vsw2.addValue });
-		}
+		map_find_or_insert(vswInfo, vsw2.vtname, [&vsw2]() {
+			return VswInfo { nullptr, vsw2.addVar, vsw2.addValue };
+		});
 	}
 }

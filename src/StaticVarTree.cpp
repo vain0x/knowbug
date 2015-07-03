@@ -1,7 +1,5 @@
-﻿#include <vector>
-#include <set>
-#include <map>
-#include "main.h"
+﻿#include <set>
+#include "module/utility.h"
 #include "DebugInfo.h"
 #include "StaticVarTree.h"
 
@@ -80,12 +78,11 @@ StaticVarTree& StaticVarTree::Private::insertModule(char const* pModname)
 		return child.p_->insertModule(modname2.c_str());
 
 	} else {
-		string modname = pModname;
-		auto it = modules_.find(modname);
-		if ( it == modules_.end() ) {
-			it = modules_.emplace(modname, std::make_unique<StaticVarTree>(modname)).first;
-		}
-		return *it->second;
+		string const modname = pModname;
+		auto&& node = map_find_or_insert(modules_, modname, [&modname]() {
+			return std::make_unique<StaticVarTree>(modname);
+		});
+		return *node;
 	}
 }
 
