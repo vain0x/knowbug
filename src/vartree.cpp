@@ -203,6 +203,52 @@ void AddNodeDynamic()
 #endif
 
 //------------------------------------------------
+// ノードに対応する文字色
+//
+// Return true iff text color is modified.
+//------------------------------------------------
+static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
+{
+	// 選択状態なら色分けしない
+	if ( TreeView_GetItemState(hwndVarTree, hItem, 0) & TVIS_SELECTED ) {
+		return false;
+	}
+
+	string const sItem = TreeView_GetItemString(hwndVarTree, hItem);
+	char const* const name = sItem.c_str();
+
+	auto const cont = [&pnmcd](COLORREF cref) {
+		pnmcd->clrText = cref;
+		return true;
+	};
+
+	if ( InvokeNode::isTypeOf(name) ) {
+		auto const idx = TreeView_MyLParam<InvokeNode>(hwndVarTree, hItem);
+		if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
+			auto const key = (pCallInfo->stdat->index == STRUCTDAT_INDEX_FUNC)
+				? "__sttm__"
+				: "__func__";
+			auto const&& iter = g_config->clrTextExtra.find(key);
+			if ( iter != g_config->clrTextExtra.end() ) {
+				return cont(iter->second);
+			}
+		}
+	} else {
+		vartype_t const vtype = getVartypeOfNode(hItem);
+		if ( 0 < vtype && vtype < HSPVAR_FLAG_USERDEF ) {
+			return cont(g_config->clrText[vtype]);
+
+		} else if ( vtype >= HSPVAR_FLAG_USERDEF ) {
+			auto const&& iter = g_config->clrTextExtra.find(hpimod::getHvp(vtype)->vartype_name);
+			if ( iter != g_config->clrTextExtra.end() ) {
+				return cont(iter->second);
+			}
+		}
+	}
+	return false;
+}
+
+//------------------------------------------------
 // 変数ツリーの NM_CUSTOMDRAW を処理する
 //------------------------------------------------
 LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
@@ -212,43 +258,9 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 
 	} else if ( pnmcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT ) {
 		auto const hItem = reinterpret_cast<HTREEITEM>(pnmcd->nmcd.dwItemSpec);
-
-		// 選択状態なら色分けしない
-		if ( TreeView_GetItemState(hwndVarTree, hItem, 0) & TVIS_SELECTED ) {
-			return 0;
-		}
-
-		string const sItem = TreeView_GetItemString( hwndVarTree, hItem );
-		char const* const name = sItem.c_str();
-
-		// 呼び出しノード
-		if ( InvokeNode::isTypeOf(name) ) {
-			auto const idx = TreeView_MyLParam<InvokeNode>(hwndVarTree, hItem);
-			if ( auto const pCallInfo = WrapCall::getCallInfoAt(idx) ) {
-				auto const&& iter = g_config->clrTextExtra.find(
-					(pCallInfo->stdat->index == STRUCTDAT_INDEX_CFUNC)
-					? "__func__" : "__sttm__"
-				);
-				if ( iter != g_config->clrTextExtra.end() ) {
-					pnmcd->clrText = iter->second;
-					return CDRF_NEWFONT;
-				}
-			}
-
-		// その他
-		} else {
-			vartype_t const vtype = getVartypeOfNode(hItem);
-			if ( 0 < vtype && vtype < HSPVAR_FLAG_USERDEF ) {
-				pnmcd->clrText = g_config->clrText[vtype];
-				return CDRF_NEWFONT;
-
-			} else if ( vtype >= HSPVAR_FLAG_USERDEF ) {
-				auto const&& iter = g_config->clrTextExtra.find(hpimod::getHvp(vtype)->vartype_name);
-				pnmcd->clrText = (iter != g_config->clrTextExtra.end())
-					? iter->second
-					: g_config->clrText[HSPVAR_FLAG_NONE];
-				return CDRF_NEWFONT;
-			}
+		bool const modified = customizeTextColorIfAble(hItem, pnmcd);
+		if ( modified ) {
+			return CDRF_NEWFONT;
 		}
 	}
 	return 0;
