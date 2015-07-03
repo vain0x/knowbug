@@ -1,14 +1,9 @@
-﻿// ax analyzer
-// dinfo を解析してラベル名、パラメータ名を収集する
-
-#ifndef IG_CLASS_AX_H
+﻿#ifndef IG_CLASS_AX_H
 #define IG_CLASS_AX_H
 
 #include <memory>
 #include <map>
 #include <algorithm>
-
-//#include "main.h"
 
 #include "hsp3plugin.h"
 #include "hpimod/basis.h"
@@ -17,6 +12,11 @@ static unsigned short wpeek(unsigned char const* p) { return *reinterpret_cast<u
 static unsigned int tripeek(unsigned char const* p) { return (p[0] | p[1] << 8 | p[2] << 16); }
 
 namespace hpimod {
+	
+// ax analyzer
+// dinfo を解析してラベル名、パラメータ名を収集する
+// 文字列ポインタ(char*)はすべて DInfo セグメント内を指す。
+// todo: 今更だが CHsp3Parser などの既存のものを使うべきかもしれない
 class CAx
 {
 private:
@@ -24,12 +24,13 @@ private:
 	using csMap_t = std::map<std::pair<char const*, int>, csptr_t>;
 
 private:
-	identTable_t labelNames;
-	identTable_t prmNames;
+	identTable_t labelNames_;
+	identTable_t paramNames_;
 
-	// ファイル名, 行番号から cs 位置を特定するためのもの (現在は未実装)
+	// (未実装)
+	// ファイル名, 行番号から cs 位置を特定するためのもの
 	// ただしファイル名は di の該当位置へのポインタに限る
-	csMap_t csMap;
+	csMap_t csMap_;
 
 public:
 	CAx() {
@@ -37,30 +38,30 @@ public:
 	}
 
 private:
-	// テーブルから識別子を検索 (failure: nullptr)
-	static char const* getIdentName(identTable_t const& table, int iparam) {
+	static char const* tryFindIdent(identTable_t const& table, int iparam) {
 		auto const iter = table.find(iparam);
 		return (iter != table.end()) ? iter->second : nullptr;
 	}
 
 public:
-	char const* getLabelName(int otindex) const { return getIdentName(labelNames, otindex); }
-	char const* getPrmName(int stprmidx) const { return getIdentName(prmNames, stprmidx); }
+	char const* tryFindLabelName(int otindex) const { return tryFindIdent(labelNames_, otindex); }
+	char const* tryFindParamName(int stprmidx) const { return tryFindIdent(paramNames_, stprmidx); }
 
 private:
-	enum DInfoCtx {	// ++ したいので enum class にしない
+	enum DInfoCtx {	// increment したいので enum class にしない
 		DInfoCtx_Default = 0,
 		DInfoCtx_LabelNames,
-		DInfoCtx_PrmNames,
+		DInfoCtx_ParamNames,
 		DInfoCtx_Max
 	};
+	static bool dictx_moveNext(int& ctx) { ++ctx; return ctx != DInfoCtx_Max; }
 
-	identTable_t* getIdentTableFromCtx(int dictx) {
+	identTable_t* tryFindIdentTableFromCtx(int dictx) {
 		switch ( dictx ) {
-			case DInfoCtx_Default:    return nullptr;	// 変数名は記録しない
-			case DInfoCtx_LabelNames: return &labelNames;
-			case DInfoCtx_PrmNames:   return &prmNames;
-			default: throw;
+			case DInfoCtx_Default:    return nullptr; // 変数名は記録しない
+			case DInfoCtx_LabelNames: return &labelNames_;
+			case DInfoCtx_ParamNames: return &paramNames_;
+			default: throw; //unreachable
 		}
 	}
 
@@ -81,8 +82,7 @@ private:
 		for ( int i = 0; i < ctx->hsphed->max_dinfo; ) {
 			switch ( ctx->mem_di[i] ) {
 				case 0xFF:
-					++dictx;	// enum を ++ する業
-					if ( dictx == DInfoCtx_Max ) {
+					if ( !dictx_moveNext(dictx) ) {
 						assert(i + 2 == ctx->hsphed->max_dinfo);
 						return;
 					}
@@ -104,10 +104,10 @@ private:
 				// 識別子指定
 				case 0xFD:
 				case 0xFB:
-					if ( auto const tbl = getIdentTableFromCtx(dictx) ) {
+					if ( auto const tbl = tryFindIdentTableFromCtx(dictx) ) {
 						auto const ident = &ctx->mem_mds[tripeek(&ctx->mem_di[i + 1])];
 						int const iparam = wpeek(&ctx->mem_di[i + 4]);
-						tbl->insert({ iparam, ident });
+						tbl->emplace(iparam, ident);
 					}
 					i += 6;
 					break;
