@@ -97,7 +97,7 @@ lparam_t TreeView_MyLParam(HWND hTree, HTREEITEM hItem, Tag*)
 //------------------------------------------------
 void init()
 {
-	AddNodeModule(TVI_ROOT, StaticVarTree::global());
+	AddNodeModule(TVI_ROOT, StaticVarTree::Global::instance());
 #ifdef with_WrapCall
 	AddNodeDynamic();
 #endif
@@ -111,7 +111,7 @@ void init()
 	TreeView_Expand(hwndVarTree, g_hNodeDynamic, TVE_EXPAND);
 #endif
 	HTREEITEM const hRoot = TreeView_GetRoot(hwndVarTree);
-	assert(TreeView_GetItemString(hwndVarTree, hRoot) == StaticVarTree::ModuleName_Global);
+	assert(TreeView_GetItemString(hwndVarTree, hRoot) == StaticVarTree::Global::Name);
 	TreeView_Expand(hwndVarTree, hRoot, TVE_EXPAND);
 
 	TreeView_EnsureVisible(hwndVarTree, hRoot); //トップまでスクロール

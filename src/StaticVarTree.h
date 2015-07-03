@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include "module/Singleton.h"
 
 // モジュールと静的変数からなる木
 class StaticVarTree
@@ -15,11 +16,12 @@ private:
 	struct Private;
 	std::unique_ptr<Private> p_;
 
-	StaticVarTree();
+public:
+	class Global;
+
 	StaticVarTree(string const& name);
 	~StaticVarTree();
 
-public:
 	string const& getName() const;
 
 	//foreach
@@ -36,10 +38,19 @@ public:
 			decltype(Visitor::fVar)(fVar)
 		});
 	}
+};
 
+// グローバル領域のノード
+class StaticVarTree::Global
+	: public StaticVarTree
+	, public Singleton<StaticVarTree::Global>
+{
 public:
-	static string const ModuleName_Global;
-	static StaticVarTree const& global();
+	static string const Name;
+	Global();
+
+private:
+	void addVar(const char* name);
 };
 
 #endif

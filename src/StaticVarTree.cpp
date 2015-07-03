@@ -5,7 +5,7 @@
 #include "DebugInfo.h"
 #include "StaticVarTree.h"
 
-string const StaticVarTree::ModuleName_Global = "@";
+string const StaticVarTree::Global::Name = "@";
 
 struct StaticVarTree::Private {
 	StaticVarTree& self;
@@ -14,7 +14,6 @@ struct StaticVarTree::Private {
 	std::map<string, std::unique_ptr<StaticVarTree>> modules_;
 
 public:
-	void pushVar(char const* name);
 	void insertVar(char const* name);
 	StaticVarTree& insertModule(char const* pModname);
 };
@@ -30,20 +29,31 @@ string const& StaticVarTree::getName() const {
 }
 
 //------------------------------------------------
+// グローバルノードを構築する
+//------------------------------------------------
+StaticVarTree::Global::Global()
+	: StaticVarTree(Name)
+{
+	auto const&& names = g_dbginfo->fetchStaticVarNames();
+	for ( auto const& name : names ) {
+		addVar(name.c_str());
+	}
+}
+
+//------------------------------------------------
 // 子ノードとして、変数ノードを追加する
 //------------------------------------------------
-void StaticVarTree::Private::pushVar(char const* name)
+void StaticVarTree::Global::addVar(char const* name)
 {
 	if ( name[0] == '@' ) return;
 
 	char const* const scopeResolution = std::strchr(name, '@');
-
-	// スコープ解決がある => 子ノードのモジュールに属す
 	if ( scopeResolution ) {
-		auto& child = insertModule(scopeResolution);
+		auto& child = p_->insertModule(scopeResolution);
 		child.p_->insertVar(name);
+
 	} else {
-		insertVar(name);
+		p_->insertVar(name);
 	}
 }
 
@@ -59,16 +69,14 @@ void StaticVarTree::Private::insertVar(char const* name)
 StaticVarTree& StaticVarTree::Private::insertModule(char const* pModname)
 {
 	assert(pModname[0] == '@');
-
-	// '@' を探す (後ろ優先、先頭にはマッチしない)
 	char const* const pModnameLast = std::strrchr(&pModname[1], '@');
 
-	// スコープ解決がある場合は、そのモジュール・ノードの子ノードから検索する
 	if ( pModnameLast ) {
-		// 最後のスコープ解決1つを取り除いた部分
-		auto const modname2 = string(pModname, pModnameLast);
-
+		// 末尾のスコープのモジュールを挿入する
 		auto& child = insertModule(pModnameLast);
+
+		// スコープを1段除いて、子モジュールに挿入する
+		auto const modname2 = string(pModname, pModnameLast);
 		return child.p_->insertModule(modname2.c_str());
 
 	} else {
@@ -91,19 +99,4 @@ void StaticVarTree::foreach(StaticVarTree::Visitor const& visitor) const {
 	for ( auto const& it : p_->vars_ ) {
 		visitor.fVar(it);
 	}
-}
-
-//------------------------------------------------
-// グローバルノードを構築する
-//------------------------------------------------
-StaticVarTree const& StaticVarTree::global() {
-	static std::unique_ptr<StaticVarTree> stt_tree;
-	if ( !stt_tree ) {
-		stt_tree.reset(new StaticVarTree(StaticVarTree::ModuleName_Global));
-		auto const&& names = g_dbginfo->fetchStaticVarNames();
-		for ( auto const& name : names ) {
-			stt_tree->p_->pushVar(name.c_str());
-		}
-	}
-	return *stt_tree;
 }
