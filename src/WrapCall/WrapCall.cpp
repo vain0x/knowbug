@@ -1,13 +1,19 @@
-﻿// WrapCall
-
-#include <vector>
-
-#include "../main.h"
-#include "../DebugInfo.h"
+﻿#include "../main.h"
 
 #include "WrapCall.h"
-#include "ModcmdCallInfo.h"
 #include "type_modcmd.h"
+#include "ModcmdCallInfo.h"
+
+//------------------------------------------------
+// Knowbug 側へのコールバック
+//------------------------------------------------
+namespace Knowbug
+{
+
+extern void onBgnCalling(WrapCall::ModcmdCallInfo const& callinfo);
+extern void onEndCalling(WrapCall::ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype);
+
+} //namespace Knowbug
 
 namespace WrapCall
 {
@@ -44,7 +50,7 @@ void bgnCall(stdat_t stdat)
 	auto& callinfo = *g_stkCallInfo.back();
 
 	// DebugWindow への通知
-	Knowbug::bgnCalling(callinfo);
+	Knowbug::onBgnCalling(callinfo);
 }
 
 //------------------------------------------------
@@ -71,7 +77,7 @@ void endCall(PDAT* p, vartype_t vt)
 	}
 
 	// DebugWindow への通知
-	Knowbug::endCalling(callinfo, p, vt);
+	Knowbug::onEndCalling(callinfo, p, vt);
 
 	g_stkCallInfo.pop_back();
 }
@@ -91,4 +97,4 @@ stkCallInfoRange_t getCallInfoRange()
 	return make_pair_range(g_stkCallInfo);
 }
 
-}
+} //namespace WrapCall

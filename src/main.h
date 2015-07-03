@@ -54,14 +54,6 @@ namespace Knowbug
 
 	extern void logmes(char const* msg); //自動改行なし
 	extern void logmesWarning(char const* msg);
-
-#ifdef with_WrapCall
-	// WrapCall 側から呼ばれる関数
-	using ModcmdCallInfo = ::WrapCall::ModcmdCallInfo;
-	extern void bgnCalling(ModcmdCallInfo const& callinfo);
-	extern void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype);
-#endif
-
 } // namespace Knowbug
 
 #endif

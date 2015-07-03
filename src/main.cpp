@@ -181,14 +181,14 @@ void logmesWarning(char const* msg)
 {
 	g_dbginfo->updateCurInf();
 	logmes(strf("warning: %s\r\nCurInf:%s\r\n",
-		msg, g_dbginfo->getCurInfString().c_str()).c_str());
+		msg, g_dbginfo->getCurInfString()).c_str());
 }
 
 #ifdef with_WrapCall
 //------------------------------------------------
 // WrapCall メソッド
 //------------------------------------------------
-void bgnCalling(ModcmdCallInfo const& callinfo)
+void onBgnCalling(ModcmdCallInfo const& callinfo)
 {
 	VarTree::AddCallNode(callinfo);
 
@@ -203,7 +203,7 @@ void bgnCalling(ModcmdCallInfo const& callinfo)
 	}
 }
 
-void endCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
+void onEndCalling(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vtype)
 {
 	VarTree::RemoveLastCallNode();
 
