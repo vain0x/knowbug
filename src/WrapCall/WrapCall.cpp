@@ -63,11 +63,11 @@ void endCall(PDAT* p, vartype_t vt)
 
 	// 警告
 	if ( ctx->looplev != callinfo.looplev ) {
-		Knowbug::logmesWarning( "呼び出し中に入った loop から、正常に脱出せず、呼び出しが終了した。" );
+		Knowbug::logmesWarning("呼び出し中に入った loop から正常に脱出しないまま、呼び出しが終了した。");
 	}
 
 	if ( ctx->sublev != callinfo.sublev ) {
-		Knowbug::logmesWarning("呼び出し中に入ったサブルーチンから、正常に脱出せず、呼び出しが終了した。");
+		Knowbug::logmesWarning("呼び出し中に入ったサブルーチンから正常に脱出しないまま、呼び出しが終了した。");
 	}
 
 	// DebugWindow への通知

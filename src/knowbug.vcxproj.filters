@@ -108,6 +108,9 @@
     <ClCompile Include="module\GuiUtility.cpp">
       <Filter>module</Filter>
     </ClCompile>
+    <ClCompile Include="WrapCall\ModcmdCallInfo.cpp">
+      <Filter>WrapCall</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CVarinfoText.h">

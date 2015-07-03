@@ -4,11 +4,7 @@
 #define IG_WRAP_CALL_H
 #ifdef with_WrapCall
 
-#include <vector>
-#include <memory>
-
 #include "../main.h"
-//#include "ModcmdCallInfo.h"
 
 namespace WrapCall
 {

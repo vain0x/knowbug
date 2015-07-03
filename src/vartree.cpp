@@ -616,7 +616,7 @@ namespace WrapCall
 	ResultNodeData::ResultNodeData(ModcmdCallInfo const& callinfo, PDAT* ptr, vartype_t vt)
 		: stdat(callinfo.stdat)
 		, vtype(vt)
-		, pCallInfoDepended(callinfo.getDependedCallInfo())
+		, pCallInfoDepended(callinfo.tryGetDependedCallInfo())
 	{
 		auto p = std::make_shared<CStrBuf>();
 		CVardataStrWriter::create<CLineformedWriter>(p)
