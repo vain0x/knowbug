@@ -24,7 +24,7 @@
 #include "DebugInfo.h"
 
 #define KnowbugAppName "Knowbug"
-#define KnowbugVersion "1.0b19"
+#define KnowbugVersion "1.0b20"
 
 namespace Dialog
 {
