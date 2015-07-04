@@ -7,8 +7,10 @@
 #include <winapifamily.h>
 #include "main.h"
 #include "module/strf.h"
+#include "module/CStrBuf.h"
 #include "DebugInfo.h"
 #include "CVarinfoText.h"
+#include "CVardataString.h"
 
 #include "config_mng.h"
 #include "dialog.h"
@@ -236,14 +238,16 @@ void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, va
 //##############################################################################
 //                スクリプト向けのAPI
 //##############################################################################
-//------------------------------------------------
-// 変数情報文字列 (refstr に出力)
-//------------------------------------------------
-EXPORT void WINAPI knowbug_getVarinfoString(char const* name, PVal* pval,  char* prefstr)
+EXPORT void WINAPI knowbug_writeVarinfoString(char const* name, PVal* pvalSrc, PVal* pvalDest)
 {
 	auto const varinf = std::make_unique<CVarinfoText>();
-	varinf->addVar(pval, name);
-	strcpy_s(prefstr, HSPCTX_REFSTR_MAX, varinf->getString().c_str());
+	varinf->addVar(pvalSrc, name);
+
+	if ( pvalDest->flag != HSPVAR_FLAG_STR ) {
+		if ( pvalDest->offset != 0 ) puterror(HSPERR_TYPE_MISMATCH);
+		exinfo->HspFunc_dim(pvalDest, HSPVAR_FLAG_STR, 0, 1, 0, 0, 0);
+	}
+	code_setva(pvalDest, pvalDest->offset, HSPVAR_FLAG_STR, varinf->getString().c_str());
 }
 
 //------------------------------------------------

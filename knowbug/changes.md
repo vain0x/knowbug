@@ -15,7 +15,6 @@
 
 #### 作業予定
 * #modinit, #modterm の発生、終了をスクリプト側から指定する方法を提供する。
-* APIが返す文字列は静的変数に書き込むべき
 * 与えられた項目を一覧表示する概観ノードの追加
 * SysvarとしてGinfo,dirinfo,mouse(x,y,w)の追加
 * hsphedの情報をvartreeに配置。
@@ -25,6 +24,7 @@
 
 #### 2015/07/04
 * knowbugVsw を使用するための writer オブジェクトをHSP側から操作するためのAPIを追加した。
+* knowbug_writeVarinfoString API が refstr ではなく静的変数に文字列を返すようにした。
 
 #### 2015/07/03
 * コードの整理。
