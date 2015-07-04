@@ -27,6 +27,7 @@
 	dim a, 2, 1, 3
 	a(0, 0, 2) = 7
 	mes "a ‚ÌÚ×î•ñF"
-	mes varinfstr(a)
+	assert
+	mes knowbug_varinfstr(a)
 	
 	stop

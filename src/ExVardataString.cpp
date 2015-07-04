@@ -1,14 +1,17 @@
 ﻿// 外部Dll用、VardataString 作成機能
 
+#include "module/CStrBuf.h"
 #include "module/CStrWriter.h"
 #include "hpimod/stringization.h"
 
 #include "main.h"
+#include "SysvarData.h"
 #include "ExVardataString.h"
 #include "CVardataString.h"
 
 // キャスト
-static CVardataStrWriter& vswriter(vswriter_t self) {
+static CVardataStrWriter& vswriter(vswriter_t self)
+{
 	return *reinterpret_cast<CVardataStrWriter*>(self);
 }
 
@@ -93,6 +96,36 @@ EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods()
 		g_knowbugVswMethods.isLineformWriter = knowbugVsw_isLineformWriter;
 	}
 	return &g_knowbugVswMethods;
+}
+
+//------------------------------------------------
+// HSPからの読み書き用
+//------------------------------------------------
+EXPORT vswriter_t WINAPI knowbugVsw_newTreeformedWriter()
+{
+	return new CVardataStrWriter(
+		CVardataStrWriter::create<CTreeformedWriter>(std::make_shared<CStrBuf>())
+	);
+}
+
+EXPORT vswriter_t WINAPI knowbugVsw_newLineformedWriter()
+{
+	return new CVardataStrWriter(
+		CVardataStrWriter::create<CLineformedWriter>(std::make_shared<CStrBuf>())
+	);
+}
+
+EXPORT void WINAPI knowbugVsw_deleteWriter(vswriter_t _w)
+{
+	if ( _w ) { delete &vswriter(_w); }
+}
+
+EXPORT char const* WINAPI knowbugVsw_dataPtr(vswriter_t _w, int* length)
+{
+	if ( !_w ) return nullptr;
+	auto& s = vswriter(_w).getString();
+	if ( length ) *length = s.size();
+	return s.c_str();
 }
 
 //------------------------------------------------

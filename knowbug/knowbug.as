@@ -16,7 +16,7 @@
 
 #module
 
-#func knowbug_getVarinfoString "_knowbug_getVarinfoString@12" sptr, pval,  prefstr
+#func knowbug_writeVarinfoString "_knowbug_writeVarinfoString@12" sptr, pval, pval
 #func knowbug_getCurrentModcmdName "_knowbug_getCurrentModcmdName@12" sptr, int, prefstr
 
 //------------------------------------------------
@@ -24,10 +24,11 @@
 // •Ï”‚ÌÚ×î•ñ‚ğ•\‚·•¶š—ñ‚ğ•Ô‚·
 //------------------------------------------------
 #define global ctype knowbug_varinfstr(%1) varinfstr@__knowbug(%1, "%1")
-#defcfunc varinfstr@__knowbug array v, str _name,  local name
+#defcfunc varinfstr@__knowbug array v, str _name,  local name, local buf
 	name = _name
-	knowbug_getVarinfoString strtrim(name), v
-	return refstr
+	sdim buf, 65535
+	knowbug_writeVarinfoString strtrim(name), v, buf
+	return buf
 	
 //------------------------------------------------
 // __func__

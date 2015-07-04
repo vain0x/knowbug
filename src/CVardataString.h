@@ -1,11 +1,9 @@
-﻿// 変数データの文字列を作るクラス
-
-#ifndef IG_CLASS_VARDATA_STRING_H
+﻿#ifndef IG_CLASS_VARDATA_STRING_H
 #define IG_CLASS_VARDATA_STRING_H
 
 #include "main.h"
 #include "DebugInfo.h"
-#include "SysvarData.h"
+#include "config_mng.h"
 
 class CStructedStrWriter;
 class CLineformedWriter;
@@ -16,21 +14,26 @@ class CAssoc;
 class CVector;
 class CArray;
 #endif
+namespace Sysvar {
+	enum Id;
+}
 
+// 変数データの文字列を作るクラス
 class CVardataStrWriter
 {
 private:
-	// 継承してもいいが、ここでは包含にしておく
 	std::unique_ptr<CStructedStrWriter> writer_;
 
 public:
 	CVardataStrWriter(CVardataStrWriter&& src);
 	~CVardataStrWriter();
+
 	template<typename TWriter>
 	static CVardataStrWriter create(std::shared_ptr<CStrBuf> buf)
 	{
 		return CVardataStrWriter(buf, static_cast<TWriter*>(nullptr));
 	}
+
 private:
 	template<typename TWriter>
 	CVardataStrWriter(std::shared_ptr<CStrBuf> buf,  TWriter* /* for template argument deduction */)
