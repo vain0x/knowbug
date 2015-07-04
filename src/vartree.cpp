@@ -86,7 +86,7 @@ namespace Detail
 		return (value >= 0);
 	} };
 	template<> struct Verify < ResultNode > { static bool apply(char const*, ResultNode::lparam_t value) {
-		return (value != nullptr);
+		return true;
 	} };
 #endif //defined(with_WrapCall)
 	template<> struct Verify < VarNode > { static bool apply(char const*, PVal* pval) {
@@ -501,6 +501,7 @@ HTREEITEM FindDependedCallNode(ResultNodeData* pResult)
 			; hItem != nullptr
 			; hItem = TreeView_GetNextSibling(hwndVarTree, hItem)
 		) {
+			if ( !InvokeNode::isTypeOf(TreeView_GetItemString(hwndVarTree, hItem).c_str()) ) continue;
 			int const idx = TreeView_MyLParam<InvokeNode>(hwndVarTree, hItem);
 			if ( WrapCall::tryGetCallInfoAt(idx) == pResult->pCallInfoDepended ) break;
 		}
