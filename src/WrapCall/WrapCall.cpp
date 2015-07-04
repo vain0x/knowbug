@@ -86,9 +86,9 @@ ModcmdCallInfo const* getCallInfoAt(size_t idx)
 		: nullptr;
 }
 
-std::pair<stkCallInfo_t::const_iterator, stkCallInfo_t::const_iterator> getCallInfoRange()
+stkCallInfoRange_t getCallInfoRange()
 {
-	return std::make_pair(g_stkCallInfo.begin(), g_stkCallInfo.end());
+	return make_pair_range(g_stkCallInfo);
 }
 
 }

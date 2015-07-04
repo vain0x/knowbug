@@ -5,7 +5,6 @@
 
 #include "module/strf.h"
 #include "module/ptr_cast.h"
-#include "module/map_iterator.h"
 #include "module/CStrBuf.h"
 #include "hpimod/stringization.h"
 
@@ -187,12 +186,11 @@ void CVarinfoText::addCallsOverview(ResultNodeData const* pLastResult)
 {
 	getWriter().catln("[呼び出し履歴]");
 
-	auto const range = WrapCall::getCallInfoRange();
-	std::for_each(range.first, range.second, [&](stkCallInfo_t::value_type const& pCallInfo) {
+	for ( auto& callinfo : WrapCall::getCallInfoRange() ) {
 		CVardataStrWriter::create<CLineformedWriter>(getBuf())
-			.addCall(pCallInfo->stdat, pCallInfo->tryGetPrmstk());
+			.addCall(callinfo->stdat, callinfo->tryGetPrmstk());
 		getWriter().catCrlf();
-	});
+	}
 
 	if ( pLastResult ) {
 		getWriter().cat("-> ");

@@ -230,6 +230,9 @@
     <ClInclude Include="module\utility.h">
       <Filter>module</Filter>
     </ClInclude>
+    <ClInclude Include="module\pair_range.hpp">
+      <Filter>module</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc">

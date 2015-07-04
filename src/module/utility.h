@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "pair_range.hpp"
 
 using std::string;
 using std::vector;
@@ -25,6 +26,7 @@ template<typename T> using optional_ref = T*;
 template<typename T>
 static shared_ptr<T> shared_ptr_from_rawptr(T* p) { return shared_ptr<T>(p, [](void const*) {}); }
 
+// Find key and return the value; Or insert the key with the value of f().
 template<typename Map, typename Key, typename Value = decltype(std::declval<Map>()[std::declval<Key>()]), typename Fun>
 static Value& map_find_or_insert(Map& m, Key const& key, Fun&& f)
 {

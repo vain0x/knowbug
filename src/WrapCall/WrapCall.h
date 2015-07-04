@@ -15,13 +15,14 @@ namespace WrapCall
 
 struct ModcmdCallInfo;
 using stkCallInfo_t = std::vector<std::unique_ptr<ModcmdCallInfo const>>;
+using stkCallInfoRange_t = pair_range<stkCallInfo_t::const_iterator>;
 
 extern void bgnCall(stdat_t callee);
 extern void endCall();
 extern void endCall(PDAT* p, vartype_t vtype);
 
 extern optional_ref<ModcmdCallInfo const> getCallInfoAt(size_t idx);
-extern std::pair<stkCallInfo_t::const_iterator, stkCallInfo_t::const_iterator> getCallInfoRange();
+extern stkCallInfoRange_t getCallInfoRange();
 
 };
 

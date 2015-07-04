@@ -215,6 +215,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="config_mng.h" />
     <ClInclude Include="CVardataString.h" />
     <ClInclude Include="CVarinfoText.h" />
+    <ClInclude Include="module\pair_range.hpp" />
     <ClInclude Include="module\utility.h" />
     <ClInclude Include="StaticVarTree.h" />
     <ClInclude Include="DebugInfo.h" />
