@@ -22,6 +22,9 @@
 
 ## 履歴
 
+#### 2015/07/07
+* x64ランタイムをサポート。(hsp3debug_64.dll)
+
 #### 2015/07/04
 * knowbugVsw を使用するための writer オブジェクトをHSP側から操作するためのAPIを追加した。
 * knowbug_writeVarinfoString API が refstr ではなく静的変数に文字列を返すようにした。

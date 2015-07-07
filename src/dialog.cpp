@@ -24,8 +24,15 @@
 #include "config_mng.h"
 #include "DebugInfo.h"
 
+#ifdef _M_X64
+# define KnowbugPlatformString "(x64)"
+#else //defined(_M_X64)
+# define KnowbugPlatformString "(x86)"
+#endif //defined(_M_X64)
 #define KnowbugAppName "Knowbug"
-#define KnowbugVersion "1.0b20"
+#define KnowbugVersion "1.0 b20 " KnowbugPlatformString
+static char const* const KnowbugMainWindowTitle = "Debug Window " KnowbugPlatformString;
+static char const* const KnowbugViewWindowTitle = "Knowbug View";
 
 namespace Dialog
 {
@@ -371,7 +378,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					case NM_CUSTOMDRAW: {
 						if ( !g_config->bCustomDraw ) break;
 						LRESULT const res = VarTree::customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
-						SetWindowLong(hDlg, DWL_MSGRESULT, res);
+						SetWindowLongPtr(hDlg, DWLP_MSGRESULT, res);
 						return TRUE;
 					}
 				}
@@ -449,11 +456,11 @@ void Dialog::createMain()
 	int const viewSizeX = g_config->viewSizeX, viewSizeY = g_config->viewSizeY;
 
 	//ビューウィンドウ
-	hViewWnd = MyCreateWindow("KnowbugViewWindow", ViewDialogProc, "Knowbug View", (WS_THICKFRAME),
+	hViewWnd = MyCreateWindow("KnowbugViewWindow", ViewDialogProc, KnowbugViewWindowTitle, (WS_THICKFRAME),
 		viewSizeX, viewSizeY,
 		dispx - mainSizeX - viewSizeX, 0
 	);
-	SetWindowLong(hViewWnd, GWL_EXSTYLE, GetWindowLongPtr(hViewWnd, GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
+	SetWindowLongPtr(hViewWnd, GWL_EXSTYLE, GetWindowLongPtr(hViewWnd, GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
 	{
 		HWND const hPane = CreateDialog(Knowbug::getInstance(), (LPCSTR)IDD_VIEW_PANE, hViewWnd, (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
@@ -467,7 +474,7 @@ void Dialog::createMain()
 	}
 
 	//メインウィンドウ
-	hDlgWnd = MyCreateWindow("KnowbugMainWindow", DlgProc, "Debug Window", 0x0000,
+	hDlgWnd = MyCreateWindow("KnowbugMainWindow", DlgProc, KnowbugMainWindowTitle, 0x0000,
 		mainSizeX, mainSizeY,
 		dispx - mainSizeX, 0
 	);

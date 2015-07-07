@@ -4,20 +4,25 @@
 #define IG_KNOWBUG_AS
 
 #ifdef _DEBUG
+#module
 
-#uselib "hsp3debug.dll"
-#cfunc _knowbug_hwnd@__knowbug "_knowbug_hwnd@0"
+#ifdef __hsp64__
+ #uselib "hsp3debug_64.dll"
+ #cfunc _knowbug_hwnd@__knowbug "knowbug_hwnd"
+ #func knowbug_writeVarinfoString "knowbug_writeVarinfoString" sptr, pval, pval
+ #func knowbug_getCurrentModcmdName "knowbug_getCurrentModcmdName" sptr, int, prefstr
+#else //defined(__hsp64__)
+ #uselib "hsp3debug.dll"
+ #cfunc _knowbug_hwnd@__knowbug "_knowbug_hwnd@0"
+ #func knowbug_writeVarinfoString "_knowbug_writeVarinfoString@12" sptr, pval, pval
+ #func knowbug_getCurrentModcmdName "_knowbug_getCurrentModcmdName@12" sptr, int, prefstr
+#endif //defined(__hsp64__)
 
 //------------------------------------------------
 // knowbug_hwnd
 // knowbug のウィンドウハンドル
 //------------------------------------------------
 #define global knowbug_hwnd _knowbug_hwnd@__knowbug()
-
-#module
-
-#func knowbug_writeVarinfoString "_knowbug_writeVarinfoString@12" sptr, pval, pval
-#func knowbug_getCurrentModcmdName "_knowbug_getCurrentModcmdName@12" sptr, int, prefstr
 
 //------------------------------------------------
 // knowbug_varinfstr( 変数 )
@@ -42,19 +47,6 @@
 	return refstr
 #endif
 
-#global
-
-#module
-#func global knowbugVsw_catLeaf       "_knowbugVsw_catLeaf@12"      int, str, str
-#func global knowbugVsw_catLeafExtra  "_knowbugVsw_catLeafExtra@12" int, str, str
-#func global knowbugVsw_catAttribute  "_knowbugVsw_catAttribute@12" int, str, str
-#func global knowbugVsw_catNodeBegin  "_knowbugVsw_catNodeBegin@12" int, str, str
-#func global knowbugVsw_catNodeEnd    "_knowbugVsw_catNodeEnd@8"    int, str
-#func global knowbugVsw_addVar        "_knowbugVsw_addVar@12"       int, str, pval
-#func global knowbugVsw_addVarScalar  "_knowbugVsw_addVarScalar@16" int, str, pval, int
-#func global knowbugVsw_addVarArray   "_knowbugVsw_addVarArray@12"  int, str, pval
-#func global knowbugVsw_addValue      "_knowbugVsw_addValue@12"     int, str, int, int
-#func global knowbugVsw_addSysvar     "_knowbugVsw_addSysvar@8"     int, str
 #global
 
 #else // defined(_DEBUG)

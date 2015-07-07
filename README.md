@@ -15,12 +15,11 @@ HSP3 用デバッグ・ウィンドウの非公式改造版です。
 
 ## 導入方法
 #### knowbug 本体
-0. HSPのフォルダにある「hsp3debug.dll」をバックアップします。
-  * ファイルの名前を「hsp3debug_default.dll」などに変更するのがよいでしょう。
-0. 同梱されている「hsp3debug_knowbug.dll」の名前を「hsp3debug.dll」に変え、
-HSPのフォルダに移動します。
+0. HSPのフォルダにある「hsp3debug.dll」の名前を変更します。
+0. knowbug フォルダにある「hsp3debug_knowbug.dll」の名前を「hsp3debug.dll」に変えて、HSPのフォルダに移動します。
 
 * 「HSPのフォルダ」とは、 HSPがインストールされているフォルダで、通常は「C:/Program Files/hsp34」となります。何にせよ「hsp3debug.dll」をみつけてください。
+* 64bit版を使うには、さらに「hsp3debug_64.dll」の名前を変更して、knowbug フォルダにある「hsp3debug_64_knowbug.dll」をHSPのフォルダに移動します。
 
 #### WrapCall
 0. 同梱されている「WrapCall.as」と「userdef.as」を common フォルダに移動します。
@@ -28,6 +27,7 @@ HSPのフォルダに移動します。
 
 * WrapCall はユーザ定義コマンドに関する機能に使います。無くても正常に動作します。
 * WrapCall は hgimg3 などの拡張ランタイムと併用することができません。拡張ランタイムを使用する場合は、WrapCall.as を \#include しないようにお願いします。
+* 64bit版ランタイムを使う際は、標準のヘッダ ``hsp3_64.as`` を WrapCall より前に \#include しておく必要があります。
 
 #### 設定ファイル「knowbug.ini」
 knowbug (hsp3debug.dll) と同じフォルダに置いておくと、起動時に読み込まれます。いくつかの機能の細かい設定が変更できます。
@@ -246,7 +246,7 @@ win32gui版では、カレント・ポジション (pos) とカレント色 (col
 ```
 
 ## 動作環境
-* HSP3.4β4 以降
+* HSP3.5 以降
 * OS: Windows 7
 
 これら以外では、動作を確認していません。サポートできない可能性も高いのでご了承ください。
