@@ -325,9 +325,9 @@ void CVardataStrWriter::addSysvar(Sysvar::Id id)
 				auto&& indexes = hpimod::PVal_indexesFromAptr(pval, aptr);
 				auto&& indexString = hpimod::stringizeArrayIndex(indexes);
 				auto const varName = hpimod::nameFromStaticVar(pval);
-				string&& name2 = (name
+				string&& name2 = (varName
 					? strf("%s (%s%s)", name, varName, indexString)
-					: strf("%s (%08X%s)", name, address_cast(pval), aptr));
+					: strf("%s (%p (%d))", name, cptr_cast<void*>(pval), aptr));
 				addVarScalar(name2.c_str(), pval, aptr);
 			} else {
 				getWriter().catLeafExtra(name, "not_exist");
@@ -395,8 +395,8 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 				? hpimod::literalFormString(s)
 				: string(s));
 		}
-		case HSPVAR_FLAG_COMOBJ:  return strf("comobj(0x%08X)", address_cast(*cptr_cast<void**>(ptr)));
-		case HSPVAR_FLAG_VARIANT: return strf("variant(0x%08X)", address_cast(*cptr_cast<void**>(ptr)));
+		case HSPVAR_FLAG_COMOBJ:  return strf("comobj(%p)", *cptr_cast<void**>(ptr));
+		case HSPVAR_FLAG_VARIANT: return strf("variant(%p)", *cptr_cast<void**>(ptr));
 		case HSPVAR_FLAG_DOUBLE:  return strf((bShort ? "%f" : "%.16f"), *cptr_cast<double*>(ptr));
 		case HSPVAR_FLAG_INT: {
 			int const val = VtTraits::derefValptr<vtInt>(ptr);
@@ -416,7 +416,7 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 			auto&& exScalar = stringizeExtraScalar(vtname, ptr, bShort, caught);
 			if ( caught ) return std::move(exScalar);
 #endif
-			return strf("unknown<%s>(0x%08X)", vtname, address_cast(ptr));
+			return strf("unknown<%s>(%p)", vtname, cptr_cast<void*>(ptr));
 		}
 	}
 }
@@ -520,6 +520,6 @@ string nameFromLabel(label_t lb)
 	if ( auto const name = g_dbginfo->getAx().tryFindLabelName(otIndex) ) {
 		return strf("*%s", name);
 	} else {
-		return strf("label(0x%08X)", address_cast(lb));
+		return strf("label(%p)", cptr_cast<void*>(lb));
 	}
 }

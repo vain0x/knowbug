@@ -49,7 +49,7 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 	getWriter().catln(strf("変数名：%s", name));
 	getWriter().catln(strf("変数型：%s", stringizeVartype(pval)));
 	if ( g_config->showsVariableAddress ) {
-		getWriter().catln(strf("アドレス：0x%08X, 0x%08X", address_cast(pval->pt), address_cast(pval->master)));
+		getWriter().catln(strf("アドレス：%p, %p", cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)));
 	}
 	if ( g_config->showsVariableSize ) {
 		getWriter().catln(strf("サイズ：using %d of %d [byte]", pval->size, bufsize));

@@ -79,11 +79,10 @@ KnowbugConfig::KnowbugConfig()
 			}
 
 #ifdef _DEBUG
-			Knowbug::logmes(strf("型 %s の拡張表示情報が読み込まれた。\r\nVswInfo { %08X, %08X, %08X }\r\n",
+			Knowbug::logmes(strf("型 %s の拡張表示情報が読み込まれた。\r\nVswInfo { %d, %d, %d }\r\n",
 				vtname,
-				static_cast<void const*>(hDll.get()), 
-				static_cast<void const*>(fAddVar),
-				static_cast<void const*>(fAddValue)).c_str());
+				hDll.get() != nullptr, fAddVar != nullptr, fAddValue != nullptr
+			).c_str());
 #endif
 			vswInfo.insert({ vtname, VswInfo { std::move(hDll), fAddVar, fAddValue } });
 		} else {
