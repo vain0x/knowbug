@@ -16,7 +16,7 @@ HSP3 用デバッグ・ウィンドウの非公式改造版です。
 ## 導入方法
 #### knowbug 本体
 0. HSPのフォルダにある「hsp3debug.dll」の名前を変更します。
-0. knowbug フォルダにある「hsp3debug_knowbug.dll」の名前を「hsp3debug.dll」に変えて、HSPのフォルダに移動します。
+0. [knowbug フォルダ](./knowbug)にある「hsp3debug_knowbug.dll」の名前を「hsp3debug.dll」に変えて、HSPのフォルダに移動します。
 
 * 「HSPのフォルダ」とは、 HSPがインストールされているフォルダで、通常は「C:/Program Files/hsp34」となります。何にせよ「hsp3debug.dll」をみつけてください。
 * 64bit版を使うには、さらに「hsp3debug_64.dll」の名前を変更して、knowbug フォルダにある「hsp3debug_64_knowbug.dll」をHSPのフォルダに移動します。
