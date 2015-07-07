@@ -147,11 +147,11 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 	}
 
 	if ( type == HSPVAR_FLAG_STRUCT ) {
-		addValueStruct(name, cptr_cast<FlexValue*>(ptr));
+		addValueStruct(name, VtTraits::asValptr<vtStruct>(ptr));
 
 #ifdef with_ModPtr
-	} else if ( type == HSPVAR_FLAG_INT && ModPtr::isValid(*cptr_cast<int*>(ptr)) ) {
-		auto const modptr = *cptr_cast<int*>(ptr);
+	} else if ( type == HSPVAR_FLAG_INT && ModPtr::isValid(VtTraits::derefValptr<vtInt>(ptr)) ) {
+		auto const modptr = VtTraits::derefValptr<vtInt>(ptr);
 		string const name2 = strf("%s = mp#%d", name, ModPtr::getIdx(modptr));
 		addValueStruct(name2.c_str(), ModPtr::getValue(modptr));
 #endif
@@ -254,7 +254,7 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 		case MPTYPE_IMODULEVAR:
 		case MPTYPE_TMODULEVAR: {
 			auto const thismod = cptr_cast<MPModVarData*>(member);
-			auto const fv = cptr_cast<FlexValue*>(hpimod::PVal_getPtr(thismod->pval, thismod->aptr));
+			auto const fv = VtTraits::asValptr<vtStruct>(hpimod::PVal_getPtr(thismod->pval, thismod->aptr));
 			addValueStruct(name, fv);
 			break;
 		}
@@ -395,7 +395,7 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 
 	switch ( type ) {
 		case HSPVAR_FLAG_STR: {
-			auto const s = cptr_cast<char*>(ptr);
+			char const* const s = VtTraits::asValptr<vtStr>(ptr);
 			return (bShort
 				? hpimod::literalFormString(s)
 				: string(s));
@@ -404,7 +404,7 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 		case HSPVAR_FLAG_VARIANT: return strf("variant(0x%08X)", address_cast(*cptr_cast<void**>(ptr)));
 		case HSPVAR_FLAG_DOUBLE:  return strf((bShort ? "%f" : "%.16f"), *cptr_cast<double*>(ptr));
 		case HSPVAR_FLAG_INT: {
-			int const val = *cptr_cast<int*>(ptr);
+			int const val = VtTraits::derefValptr<vtInt>(ptr);
 #ifdef with_ModPtr
 			assert(!ModPtr::isValid(val)); // addItem_value で処理されたはず
 #endif
@@ -412,7 +412,7 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 				? strf("%d", val)
 				: strf("%-10d (0x%08X)", val, val));
 		}
-		case HSPVAR_FLAG_LABEL: return nameFromLabel(*cptr_cast<label_t*>(ptr));
+		case HSPVAR_FLAG_LABEL:return nameFromLabel(VtTraits::derefValptr<vtLabel>(ptr));
 		default: {
 			auto const vtname = hpimod::getHvp(type)->vartype_name;
 
