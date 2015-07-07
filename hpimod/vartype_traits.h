@@ -41,7 +41,7 @@ namespace VtTraits
 		//------------------------------------------------
 		// 型タイプ値 (を返す関数)
 		//------------------------------------------------
-		template<typename Tag> static vartype_t vartype();
+		template<typename Tag> struct vartype;
 	}
 
 	//------------------------------------------------
@@ -54,6 +54,7 @@ namespace VtTraits
 	template<typename Tag> using master_t       = typename Impl::master_type<Tag>::type;
 
 	template<typename Tag> using basesize = Impl::basesize<Tag>;	// 変数テンプレートがないので ::value は外せない
+	template<typename Tag> using vartype = Impl::vartype<Tag>;
 
 	//------------------------------------------------
 	// value[] の型、のインターフェース的なもの
@@ -145,11 +146,11 @@ namespace VtTraits
 	{
 		using namespace InternalVartypeTags;
 
-		template<> static vartype_t vartype<vtLabel>()  { return HSPVAR_FLAG_LABEL; }
-		template<> static vartype_t vartype<vtStr>()    { return HSPVAR_FLAG_STR; }
-		template<> static vartype_t vartype<vtDouble>() { return HSPVAR_FLAG_DOUBLE; }
-		template<> static vartype_t vartype<vtInt>()    { return HSPVAR_FLAG_INT; }
-		template<> static vartype_t vartype<vtStruct>() { return HSPVAR_FLAG_STRUCT; }
+		template<> struct vartype<vtLabel>  { static vartype_t apply() { return HSPVAR_FLAG_LABEL; } };
+		template<> struct vartype<vtStr>    { static vartype_t apply() { return HSPVAR_FLAG_STR; } };
+		template<> struct vartype<vtDouble> { static vartype_t apply() { return HSPVAR_FLAG_DOUBLE; } };
+		template<> struct vartype<vtInt>    { static vartype_t apply() { return HSPVAR_FLAG_INT; } };
+		template<> struct vartype<vtStruct> { static vartype_t apply() { return HSPVAR_FLAG_STRUCT; } };
 	}
 
 	// str 型の特性の定義
@@ -181,7 +182,7 @@ namespace VtTraits
 	// 変数から実体ポインタを得る
 	template<typename Tag> static const_valptr_t<Tag> getValptr(PVal const* pval) {
 		static_assert(isNativeVartype<Tag>::value, "'getValptr' for non-NativeVartype types is undefined.");
-		assert(pval->flag == Impl::vartype<Tag>());
+		assert(pval->flag == vartype<Tag>::apply());
 		return asValptr<Tag>(pval->pt) + pval->offset;
 	}
 	template<typename Tag>

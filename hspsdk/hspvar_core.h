@@ -1,14 +1,8 @@
-﻿// (2014/09/17) 上大：実体ポインタを表している型(void* や char*)を PDAT* (あるいは PDAT const*) に書き換えた。HspVarProc::*I 系はそのまま。
-// (2014/09/20) 上大：PDAT 型の実体を void* から「構築できない構造体」にした。unsigned short const* -> PDAT const* の reinterpret_cast に問題を生じていたため。
-
-//
+﻿//
 //	hspvar.cpp header
 //
 #ifndef __hspvar_core_h
 #define __hspvar_core_h
-
-	// 変更点をわかりやすくするためのメタ
-	#define TypeRedefined(TypeModified, TypeOriginal) TypeModified	// 変更点を分かりやすくするため
 
 #define HSPVAR_FLAG_NONE 0
 #define HSPVAR_FLAG_LABEL 1
@@ -47,7 +41,11 @@
 
 #define HSPVAR_SUPPORT_MISCTYPE (HSPVAR_SUPPORT_ARRAYOBJ)
 
-//typedef void * PDAT;							// データの実態へのポインタ (例えば int 型なら int* = PDAT*)
+//変更点をわかりやすくするためのメタ記号
+#define TypeRedefined(TypeModified, TypeOriginal) TypeModified
+//PDAT*: データ実体へのポインタの総称型
+//通常のポインタと同様に、配列の先頭を指すこともある
+//(例えば int なら reinterpret_cast<int*>(p) (p: PDAT*型) でアクセスする)
 struct PDAT { PDAT() = delete; };
 typedef int APTR;								// 配列データへのオフセット値
 
@@ -145,25 +143,25 @@ typedef struct
 
 	//		演算用関数(型の一致が保障されます)
 	//
-	void (*AddI)( PDAT *pval, const void *val );
-	void (*SubI)( PDAT *pval, const void *val );
-	void (*MulI)( PDAT *pval, const void *val );
-	void (*DivI)( PDAT *pval, const void *val );
-	void (*ModI)( PDAT *pval, const void *val );
+	void (*AddI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*SubI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*MulI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*DivI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*ModI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
 
-	void (*AndI)( PDAT *pval, const void *val );
-	void (*OrI)( PDAT *pval, const void *val );
-	void (*XorI)( PDAT *pval, const void *val );
+	void (*AndI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*OrI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*XorI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
 
-	void (*EqI)( PDAT *pval, const void *val );
-	void (*NeI)( PDAT *pval, const void *val );
-	void (*GtI)( PDAT *pval, const void *val );
-	void (*LtI)( PDAT *pval, const void *val );
-	void (*GtEqI)( PDAT *pval, const void *val );
-	void (*LtEqI)( PDAT *pval, const void *val );
+	void (*EqI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*NeI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*GtI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*LtI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*GtEqI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*LtEqI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
 
-	void (*RrI)( PDAT *pval, const void *val );
-	void (*LrI)( PDAT *pval, const void *val );
+	void (*RrI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
+	void (*LrI)( PDAT *pval, TypeRedefined(const PDAT *, const void *) val );
 } HspVarProc;
 
 extern HspVarProc *hspvarproc;
@@ -253,6 +251,6 @@ inline PDAT *HspVarCorePtrAPTR( PVal *pv, APTR ofs )
 }
 
 
-	#undef TypeRedefined
+#undef TypeRedefined
 
 #endif
