@@ -6,52 +6,40 @@
 #include <functional>
 
 #include "hsp3plugin_custom.h"
+#include "vartype_traits.h"
 
 namespace hpimod {
-
-namespace Detail
-{
-	template<typename TResult, int vtype>
-	int SetReffuncResult(PDAT** ppResult, TResult const& src)
-	{
-		static TResult stt_result;
-
-		assert(ppResult);
-		stt_result = src;
-		*ppResult = reinterpret_cast<PDAT*>(&stt_result);
-		return vtype;
-	}
-}
 
 //------------------------------------------------
 // reffunc の返値を設定する
 //-----------------------------------------------
-static inline int SetReffuncResult(PDAT** ppResult, label_t const& src) {
-	return Detail::SetReffuncResult<label_t, HSPVAR_FLAG_LABEL>(ppResult, src);
-}
-static inline int SetReffuncResult(PDAT** ppResult, double const& src) {
-	return Detail::SetReffuncResult<double, HSPVAR_FLAG_DOUBLE>(ppResult, src);
-}
-static inline int SetReffuncResult(PDAT** ppResult, int const& src) {
-	return Detail::SetReffuncResult<int, HSPVAR_FLAG_INT>(ppResult, src);
+template<typename Tag>
+static int SetReffuncResult(PDAT** ppResult, VtTraits::const_value_t<Tag>& value, int vtype) {
+	assert(ppResult);
+	static VtTraits::value_t<Tag> stt_result;
+	stt_result = value;
+	*ppResult = VtTraits::asPDAT<Tag>(&stt_result);
+	return vtype;
+};
+
+template<typename T>
+static int SetReffuncResult(PDAT** ppResult, T const& value) {
+	using Tag = VtTraits::NativeVartypeTag<T>;
+	return SetReffuncResult<Tag>(ppResult, value, VtTraits::vartype<Tag>::apply());
 }
 
-static char stt_result_string[2048];
-
-static int SetReffuncResult( PDAT** ppResult, char const* const& src )
+static char stt_result_string[HSPCTX_REFSTR_MAX];
+static int SetReffuncResultString(PDAT** ppResult, std::function<void(char*, size_t)> lambda)
 {
 	assert(ppResult);
-	strcpy_s( stt_result_string, src );
-	*ppResult = reinterpret_cast<PDAT*>(stt_result_string);
+	lambda(stt_result_string, sizeof(stt_result_string));
+	*ppResult = VtTraits::asPDAT<vtStr>(stt_result_string);
 	return HSPVAR_FLAG_STR;
-//	return SetReffuncResultString( ppResult, [&src](char* p, int size) -> void { strcpy_s(p, size, src); } );
 }
-
-static int SetReffuncResultString( PDAT** ppResult, std::function<void(char*, size_t)> lambda )
+static int SetReffuncResult( PDAT** ppResult, char const* const& src )
 {
-	lambda( stt_result_string, sizeof(stt_result_string) );
-	*ppResult = reinterpret_cast<PDAT*>(stt_result_string);
-	return HSPVAR_FLAG_STR;
+	return SetReffuncResultString( ppResult,
+		[&src](char* p, int size) { strcpy_s(p, size, src); } );
 }
 } // namespace hpimod
 

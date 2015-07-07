@@ -8,6 +8,7 @@
 namespace hpimod {
 
 // 引数の取得
+extern PVal* code_get_var();
 //extern bool code_getva_ex(PVal** pval, APTR* aptr);
 extern size_t code_getds_ex(char** ppStr, char const* defstr = "");
 //extern int code_get_int_or_str(char** ppStr);
