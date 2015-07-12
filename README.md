@@ -29,8 +29,8 @@ HSP3 用デバッグ・ウィンドウの非公式改造版です。
 * WrapCall は hgimg3 などの拡張ランタイムと併用することができません。拡張ランタイムを使用する場合は、WrapCall.as を \#include しないようにお願いします。
 * 64bit版ランタイムを使う際は、標準のヘッダ ``hsp3_64.as`` を WrapCall より前に \#include しておく必要があります。
 
-#### 設定ファイル「knowbug.ini」
-knowbug (hsp3debug.dll) と同じフォルダに置いておくと、起動時に読み込まれます。いくつかの機能の細かい設定が変更できます。
+#### 設定ファイル
+[ini ファイル](./package/knowbug.ini) を knowbug (hsp3debug.dll) と同じフォルダに置いておくと、起動時に読み込まれます。
 
 * 具体的な設定については、設定ファイル内のコメントを参照してください。
 * 無くても正常に動作します。
@@ -265,14 +265,13 @@ win32gui版では、カレント・ポジション (pos) とカレント色 (col
 [changes.md](./package/changes.md) を参照してください。
 
 ## 権利
-knowbug は、公式のデバッガ hsp3debug.dll に、上大が手を加えたものです。
+knowbug は、公式のデバッガ hsp3debug.dll に、uedai が手を加えたものです。
 
-本ソフトの半分程度は、OpenHSP にあるコード、およびリソースを使用しています (<http://dev.onionsoft.net/trac/openhsp/browser/trunk/tools/win32/hsp3debug>)。[Lisense](http://dev.onionsoft.net/trac/openhsp/browser/trunk/License_j.txt)もご参照ください。
+本ソフトの半分程度は、[OpenHSP にあるコード、およびリソース](http://dev.onionsoft.net/trac/openhsp/browser/trunk/tools/win32/hsp3debug)を使用しています。[Lisense](http://dev.onionsoft.net/trac/openhsp/browser/trunk/License_j.txt)もご参照ください。
 
 ## 関連URL
 * プログラ広場 <http://prograpark.ninja-web.net/>:
   * バグ報告、意見、感想、要望などは、ここの[掲示板](http://uedai-kami.bbs.fc2.com/)までお願いします。
-  * 最新版は、ここの「[たまり場](http://prograpark.ninja-web.net/CollectField/)」にあります。
 * HSPTV! <http://hsp.tv/>:
   * HSP3 の公式サイトです。
 * OpenHSP <http://dev.onionsoft.net/trac/>:
