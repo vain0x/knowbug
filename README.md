@@ -11,15 +11,15 @@ HSP3 用デバッグ・ウィンドウの非公式改造版です。
 * モジュール変数の中身
 * 実行中のユーザ定義コマンドの実引数
 
-![スクリーンショット](./knowbug/screenshot/static_variables.png)
+![スクリーンショット](./package/screenshot/static_variables.png)
 
 ## 導入方法
 #### knowbug 本体
 0. HSPのフォルダにある「hsp3debug.dll」の名前を変更します。
-0. [knowbug フォルダ](./knowbug)にある「hsp3debug_knowbug.dll」の名前を「hsp3debug.dll」に変えて、HSPのフォルダに移動します。
+0. [package フォルダ](./package)にある「hsp3debug_knowbug.dll」の名前を「hsp3debug.dll」に変えて、HSPのフォルダに移動します。
 
 * 「HSPのフォルダ」とは、 HSPがインストールされているフォルダで、通常は「C:/Program Files/hsp34」となります。何にせよ「hsp3debug.dll」をみつけてください。
-* 64bit版を使うには、さらに「hsp3debug_64.dll」の名前を変更して、knowbug フォルダにある「hsp3debug_64_knowbug.dll」をHSPのフォルダに移動します。
+* 64bit版を使うには、さらに「hsp3debug_64.dll」の名前を変更して、package フォルダにある「hsp3debug_64_knowbug.dll」をHSPのフォルダに移動します。
 
 #### WrapCall
 0. 同梱されている「WrapCall.as」と「userdef.as」を common フォルダに移動します。
@@ -109,7 +109,7 @@ hsp3debug.dll を、元に戻します。
 	変数名	= 値
 	...
 ```
-![スクリーンショット](./knowbug/screenshot/module_overview.png)
+![スクリーンショット](./package/screenshot/module_overview.png)
 
 #### システム変数
 ルートに位置する「+sysvar」ノードの直下には、システム変数の項があります。
@@ -136,7 +136,7 @@ hsp3debug.dll を、元に戻します。
 #### 呼び出し
 WrapCall 対応版を使用している場合、「+dynamic」ノードが存在します。この直下には、呼び出されているユーザ定義コマンドを表すノードが実行に合わせて追加されます。
 
-![スクリーンショット](./knowbug/screenshot/arguments.png)
+![スクリーンショット](./package/screenshot/arguments.png)
 
 呼び出しを表すノードを選択すると、以下の形式で、その実引数を表示します：
 ```
@@ -262,7 +262,7 @@ win32gui版では、カレント・ポジション (pos) とカレント色 (col
 * '@' で始まる名前の静的変数のノードが表示されない。
 
 ## 予定と履歴
-[changes.md](./knowbug/changes.md) を参照してください。
+[changes.md](./package/changes.md) を参照してください。
 
 ## 権利
 knowbug は、公式のデバッガ hsp3debug.dll に、上大が手を加えたものです。

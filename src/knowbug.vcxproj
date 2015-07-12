@@ -394,7 +394,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ResourceCompile Include="knowbug.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\knowbug\changes.md" />
+    <None Include="..\changes.md" />
     <None Include="..\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

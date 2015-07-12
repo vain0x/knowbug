@@ -246,10 +246,10 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\knowbug\changes.md">
+    <None Include="..\README.md">
       <Filter>テキスト</Filter>
     </None>
-    <None Include="..\README.md">
+    <None Include="..\changes.md">
       <Filter>テキスト</Filter>
     </None>
   </ItemGroup>
