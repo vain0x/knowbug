@@ -10,22 +10,16 @@
 #include <map>
 #include <memory>
 #include "module/Singleton.h"
+#include "module/handle_deleter.hpp"
 
 #include <functional>
 #include "ExVardataString.h"
-
-namespace Detail
-{
-	struct moduleDeleter { using pointer = HMODULE; void operator()(HMODULE p) { FreeLibrary(p); } };
-};
-//RAII for Dll
-using moduleHandle_t = std::unique_ptr<HMODULE, Detail::moduleDeleter>;
 
 struct KnowbugConfig : public Singleton<KnowbugConfig>
 {
 	friend class Singleton<KnowbugConfig>;
 public:
-	using VswInfo = std::tuple<moduleHandle_t, addVarUserdef_t, addValueUserdef_t>;
+	using VswInfo = std::tuple<module_handle_t, addVarUserdef_t, addValueUserdef_t>;
 
 public:
 	//properties from ini (see it for detail)

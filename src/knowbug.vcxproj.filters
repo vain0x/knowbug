@@ -242,6 +242,9 @@
     <ClInclude Include="module\range_all.hpp">
       <Filter>module</Filter>
     </ClInclude>
+    <ClInclude Include="module\handle_deleter.hpp">
+      <Filter>module</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc">

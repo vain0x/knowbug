@@ -62,7 +62,7 @@ KnowbugConfig::KnowbugConfig()
 	auto const& keys = ini.enumKeys("VardataString/UserdefTypes");
 	for ( auto const& vtname : keys ) {
 		auto const dllPath = ini.getString("VardataString/UserdefTypes", vtname.c_str());
-		if ( moduleHandle_t hDll { LoadLibrary(dllPath) } ) {
+		if ( module_handle_t hDll { LoadLibrary(dllPath) } ) {
 			static char const* const stc_sec = "VardataString/UserdefTypes/Func";
 
 			auto const fnameAddVar = ini.getString(stc_sec, strf("%s.addVar", vtname).c_str());
