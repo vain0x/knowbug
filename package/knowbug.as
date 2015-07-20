@@ -48,7 +48,7 @@
 #defcfunc _lastModcmdName@__knowbug
 	knowbug_getCurrentModcmdName "main", 1
 	return refstr
-#endif
+#endif //!defined(__func__)
 
 #global
 
@@ -57,7 +57,9 @@
 #define global ctype knowbug_hwnd_main 0
 #define global ctype knowbug_hwnd_view 0
 #define global ctype knowbug_varinfstr(%1) ""
-#define global __func__ ""
+#ifndef __func__
+ #define global __func__ ""
+#endif //!defined(__func__)
 
 #endif // defined(_DEBUG)
 
