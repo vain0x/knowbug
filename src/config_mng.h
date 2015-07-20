@@ -36,6 +36,7 @@ public:
 	int  tabwidth;
 	int  maxLength, infiniteNest;
 	bool showsVariableAddress, showsVariableSize, showsVariableDump;
+	string prefixHiddenModule;
 	bool bResultNode;
 	bool bCustomDraw;
 	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;

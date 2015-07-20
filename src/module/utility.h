@@ -39,4 +39,16 @@ static Value& map_find_or_insert(Map& m, Key const& key, Fun&& f)
 	}
 }
 
+// Check the first range begins with the second range.
+template<typename Iter, typename IterSub>
+static bool begins_with(Iter&& begin, Iter&& end, IterSub&& begin_sub, IterSub&& end_sub)
+{
+	auto it = begin;
+	auto it_sub = begin_sub;
+	for ( ; it != end && it_sub != end_sub; ++it, ++it_sub ) {
+		if ( *it != *it_sub ) return false;
+	}
+	return true;
+}
+
 #endif

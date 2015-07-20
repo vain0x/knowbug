@@ -32,6 +32,7 @@ KnowbugConfig::KnowbugConfig()
 	showsVariableAddress = ini.getBool("Varinfo", "showsVariableAddress", true);
 	showsVariableSize    = ini.getBool("Varinfo", "showsVariableSize", true);
 	showsVariableDump    = ini.getBool("Varinfo", "showsVariableDump", true);
+	prefixHiddenModule   = ini.getString("Varinfo", "prefixHiddenModule", "@__");
 
 	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
 	bCustomDraw = ini.getBool( "ColorType", "bCustomDraw", false );
