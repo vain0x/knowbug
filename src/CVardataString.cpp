@@ -155,9 +155,31 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 		string const name2 = strf("%s = mp#%d", name, ModPtr::getIdx(modptr));
 		addValueStruct(name2.c_str(), ModPtr::getValue(modptr));
 #endif
+	} else if ( type == HSPVAR_FLAG_STR ) {
+		addValueString(name, VtTraits::asValptr<vtStr>(ptr));
+
 	} else {
 		auto const&& dbgstr = stringizeSimpleValue(type, ptr, getWriter().isLineformed());
 		getWriter().catLeaf(name, dbgstr.c_str());
+	}
+}
+
+//------------------------------------------------
+// [add][item] string
+//------------------------------------------------
+void CVardataStrWriter::addValueString(char const* name, char const* str)
+{
+	if ( getWriter().isLineformed() ) {
+		getWriter().catLeaf(name, hpimod::literalFormString(str).c_str());
+
+	} else {
+		if ( strstr(str, "\r\n") ) {
+			getWriter().catNodeBegin(name, CLineformedWriter::stc_strUnused);
+			getWriter().cat(str);
+			getWriter().catNodeEnd(CLineformedWriter::stc_strUnused);
+		} else {
+			getWriter().catLeaf(name, str);
+		}
 	}
 }
 
@@ -385,16 +407,12 @@ void CVardataStrWriter::addResult(stdat_t stdat, PDAT const* resultPtr, vartype_
 //------------------------------------------------
 string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 {
-	assert(type != HSPVAR_FLAG_STRUCT);
 	assert(ptr);
 
 	switch ( type ) {
-		case HSPVAR_FLAG_STR: {
-			char const* const s = VtTraits::asValptr<vtStr>(ptr);
-			return (bShort
-				? hpimod::literalFormString(s)
-				: string(s));
-		}
+		case HSPVAR_FLAG_STR:
+		case HSPVAR_FLAG_STRUCT: assert_sentinel;
+
 		case HSPVAR_FLAG_COMOBJ:  return strf("comobj(%p)", *cptr_cast<void**>(ptr));
 		case HSPVAR_FLAG_VARIANT: return strf("variant(%p)", *cptr_cast<void**>(ptr));
 		case HSPVAR_FLAG_DOUBLE:  return strf((bShort ? "%f" : "%.16f"), *cptr_cast<double*>(ptr));

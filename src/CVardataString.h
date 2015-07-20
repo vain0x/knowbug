@@ -51,6 +51,7 @@ private:
 	void addVarArrayRec(PVal const* pval, size_t const (&cntElem)[hpimod::ArrayDimMax + 1], size_t idxDim, APTR aptr_offset);
 public:
 	void addValue(char const* name, vartype_t type, PDAT const* ptr);
+	void addValueString(char const* name, char const* str);
 	void addValueStruct(char const* name, FlexValue const* fv);
 
 #ifdef with_Assoc
