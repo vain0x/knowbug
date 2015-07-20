@@ -239,6 +239,9 @@
     <ClInclude Include="module\pair_range.hpp">
       <Filter>module</Filter>
     </ClInclude>
+    <ClInclude Include="module\range_all.hpp">
+      <Filter>module</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc">

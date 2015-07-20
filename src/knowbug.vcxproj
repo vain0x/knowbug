@@ -366,6 +366,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="CVardataString.h" />
     <ClInclude Include="CVarinfoText.h" />
     <ClInclude Include="module\pair_range.hpp" />
+    <ClInclude Include="module\range_all.hpp" />
     <ClInclude Include="module\utility.h" />
     <ClInclude Include="StaticVarTree.h" />
     <ClInclude Include="DebugInfo.h" />

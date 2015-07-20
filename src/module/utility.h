@@ -9,6 +9,7 @@
 #include <vector>
 #include <map>
 #include "pair_range.hpp"
+#include "range_all.hpp"
 
 using std::string;
 using std::vector;
