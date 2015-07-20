@@ -568,3 +568,8 @@ EXPORT HWND WINAPI knowbug_hwnd()
 {
 	return Dialog::getKnowbugHandle();
 }
+
+EXPORT HWND WINAPI knowbug_hwndView()
+{
+	return Dialog::hViewWnd;
+}
