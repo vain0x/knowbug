@@ -73,7 +73,7 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
 	switch ( p2 ) {
-		// 実行が停止した (stop, wait, await, assert など)
+		// 実行が停止した (assert、ステップ実行の完了時など)
 		case hpimod::DebugNotice_Stop: {
 			if (Knowbug::continueConditionalRun()) break;
 
