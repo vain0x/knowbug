@@ -338,6 +338,10 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					ShellExecute(nullptr, "open", g_config->selfPath().c_str(), nullptr, "", SW_SHOWDEFAULT);
 					break;
 				}
+				case IDC_UPDATE: {
+					UpdateView();
+					break;
+				}
 				case IDC_HELP_VER: {
 					MessageBox(nullptr, strf("%s ver%s", KnowbugAppName, KnowbugVersion).c_str(), KnowbugAppName, MB_OK);
 					break;
