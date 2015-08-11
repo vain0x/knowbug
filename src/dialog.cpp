@@ -64,13 +64,13 @@ static void setEditStyle(HWND hEdit, int maxlen);
 //------------------------------------------------
 // ノード文字列の取得 (memoized)
 //------------------------------------------------
-static string const& getVarNodeString(HTREEITEM hItem)
+static std::shared_ptr<string const> getVarNodeString(HTREEITEM hItem)
 {
 	auto&& stringPtr = map_find_or_insert(vartree_textCache, hItem, [&hItem]() {
 		return VarTree::getItemVarText(hItem);
 	});
 	assert(stringPtr);
-	return *stringPtr;
+	return stringPtr;
 }
 
 //------------------------------------------------
@@ -99,8 +99,8 @@ static void UpdateView()
 			stt_prevSelection = hItem;
 		}
 
-		string const& varinfoText = getVarNodeString(hItem);
-		SetWindowText(hViewEdit, varinfoText.c_str());
+		std::shared_ptr<string const> varinfoText = getVarNodeString(hItem);
+		SetWindowText(hViewEdit, varinfoText->c_str());
 
 		//+script ノードなら現在の実行位置を選択
 		if ( hItem == VarTree::getScriptNodeHandle() ) {
@@ -290,7 +290,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 		case 0: break;
 		case IDC_NODE_UPDATE: UpdateView(); break;
 		case IDC_NODE_LOG: {
-			Knowbug::logmes(getVarNodeString(hItem).c_str());
+			Knowbug::logmes(getVarNodeString(hItem)->c_str());
 			break;
 		}
 #ifdef with_WrapCall
