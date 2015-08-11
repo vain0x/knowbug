@@ -81,9 +81,7 @@ static void SaveViewCaret()
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
 	if ( hItem != nullptr ) {
 		int const vcaret = Edit_GetFirstVisibleLine(hViewEdit);
-		if ( vcaret != 0 ) {
-			vartree_vcaret[hItem] = vcaret;
-		}
+		vartree_vcaret[hItem] = vcaret;
 	}
 }
 
@@ -94,6 +92,13 @@ static void UpdateView()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
 	if ( hItem ) {
+		static HTREEITEM stt_prevSelection = nullptr;
+		if ( hItem == stt_prevSelection ) {
+			SaveViewCaret();
+		} else {
+			stt_prevSelection = hItem;
+		}
+
 		string const& varinfoText = getVarNodeString(hItem);
 		SetWindowText(hViewEdit, varinfoText.c_str());
 
