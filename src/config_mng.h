@@ -31,6 +31,7 @@ public:
 	int  maxLength, infiniteNest;
 	bool showsVariableAddress, showsVariableSize, showsVariableDump;
 	string prefixHiddenModule;
+	bool cachesVardataString;
 	bool bResultNode;
 	bool bCustomDraw;
 	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;

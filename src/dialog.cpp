@@ -66,9 +66,13 @@ static void setEditStyle(HWND hEdit, int maxlen);
 //------------------------------------------------
 static std::shared_ptr<string const> getVarNodeString(HTREEITEM hItem)
 {
-	auto&& stringPtr = map_find_or_insert(vartree_textCache, hItem, [&hItem]() {
+	auto&& get = [&hItem]() {
 		return VarTree::getItemVarText(hItem);
-	});
+	};
+	auto&& stringPtr =
+		(g_config->cachesVardataString)
+		? map_find_or_insert(vartree_textCache, hItem, std::move(get))
+		: get();
 	assert(stringPtr);
 	return stringPtr;
 }
