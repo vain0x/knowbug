@@ -131,23 +131,34 @@ namespace LogBox {
 	static HWND hwnd_;
 	static string buf_;
 
-	void init(HWND hwnd) {
+	void init(HWND hwnd)
+	{
 		hwnd_ = hwnd;
 	}
-	string const& get() {
+	string const& get()
+	{
 		return buf_;
 	}
-	void clearImpl() {
+	void clearImpl()
+	{
 		buf_.clear();
 	}
-	void clear() {
+	void clear()
+	{
 		if ( !g_config->warnsBeforeClearingLog
 			|| MessageBox(hDlgWnd, "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL) == IDOK ) {
 			clearImpl();
 		}
 	}
-	void commit(char const* textAdd) {
+	void commit(char const* textAdd)
+	{
 		buf_ += textAdd;
+
+		//キャッシュを消して更新
+		vartree_textCache.erase(VarTree::getLogNodeHandle());
+		if ( TreeView_GetSelection(hVarTree) == VarTree::getLogNodeHandle() ) {
+			UpdateView();
+		}
 	}
 	void add(char const* str) {
 		if ( !str || str[0] == '\0' ) return;
