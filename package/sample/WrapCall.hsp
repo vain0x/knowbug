@@ -1,6 +1,6 @@
 // WrapCall test
 
-#include "WrapCall.as"
+#include "../WrapCall.as"
 
 // WrapCall によって、ユーザ定義関数の呼び出しの変遷を追うことができる。
 // @ デバッグウィンドウの「次行」ボタンを押しながら、+dynamic ノードを見る。
