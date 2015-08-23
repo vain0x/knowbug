@@ -1,3 +1,8 @@
+# linguist-language settings for HSP3 
+*.hs  linguist-language=HDL Help Source
+*.hsp linguist-language=HSP3
+*.as  linguist-language=HSP3
+
 ###############################################################################
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
