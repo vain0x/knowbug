@@ -263,7 +263,7 @@ win32gui版では、カレント・ポジション (pos) とカレント色 (col
 * '@' で始まる名前の静的変数のノードが表示されない。
 
 ## 予定と履歴
-[changes.md](./package/changes.md) を参照してください。
+[changes.md](./changes.md) を参照してください。
 
 ## 権利
 knowbug は、公式のデバッガ hsp3debug.dll に、uedai が手を加えたものです。
