@@ -30,7 +30,7 @@
 # define KnowbugPlatformString "(x86)"
 #endif //defined(_M_X64)
 #define KnowbugAppName "Knowbug"
-#define KnowbugVersion "1.0 b20 " KnowbugPlatformString
+#define KnowbugVersion "1.20" " " KnowbugPlatformString
 static char const* const KnowbugMainWindowTitle = "Debug Window " KnowbugPlatformString;
 static char const* const KnowbugViewWindowTitle = "Knowbug View";
 
