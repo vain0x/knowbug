@@ -18,8 +18,7 @@
 #define IDC_UPDATE                              40010
 #define IDC_OPEN_CURRENT_SCRIPT                 40021
 #define IDC_OPEN_INI                            40011
-#define IDC_HELP_DEVREPOS                       40012
-#define IDC_HELP_VER                            40013
+#define IDC_OPEN_KNOWBUG_REPOS                  40012
 #define IDC_NODE_UPDATE                         40014
 #define IDC_NODE_LOG                            40015
 #define IDC_NODE_STEP_OUT                       40016

@@ -362,11 +362,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					UpdateView();
 					break;
 				}
-				case IDC_HELP_VER: {
-					MessageBox(nullptr, strf("%s ver%s", KnowbugAppName, KnowbugVersion).c_str(), KnowbugAppName, MB_OK);
-					break;
-				}
-				case IDC_HELP_DEVREPOS: {
+				case IDC_OPEN_KNOWBUG_REPOS: {
 					ShellExecute(nullptr, "open", "https://github.com/vain0/knowbug", nullptr, "", SW_SHOWDEFAULT);
 					break;
 				}
