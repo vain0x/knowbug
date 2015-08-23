@@ -1,5 +1,5 @@
 ﻿# knowbug
-* version: 1.20
+* version: 1.21
 
 ## 概要
 HSP3 用デバッグ・ウィンドウの非公式改造版です。
