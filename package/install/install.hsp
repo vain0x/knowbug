@@ -1,0 +1,119 @@
+// knowbug をインストールまたはアンインストールするスクリプト
+
+// 「HSP (&P)」→「Debugウィンドウ表示 (&D)」のチェックを外してから起動してください。
+
+#define global app_name "knowbug_installer"
+#define global _debug2 1
+
+#include "fileTranser.hsp"
+
+#module
+
+#define failure 0
+#define success 1
+#define url_releases "https://github.com/vain0/knowbug/releases"
+
+#deffunc app_main
+
+	dir_package = getpath(dir_cur, 32)
+	dst_names = "hsp3debug.dll",         "hsp3debug_64.dll",         "common\\WrapCall.as", "common\\knowbug\\knowbug.as", "common\\knowbug\\knowbugVsw.as"
+	src_names = "hsp3debug_knowbug.dll", "hsp3debug_64_knowbug.dll", "WrapCall.as",         "knowbug.as",                  "knowbugVsw.as"
+	cnt_files = length(dst_names)
+	assert cnt_files == length(src_names)
+	
+	dir_bak = dir_exe + "\\_bak"
+	now_str = strf("%04d-%02d-%02d=%02d-%02d", gettime(0), gettime(1), gettime(3), gettime(4), gettime(5))
+	
+	dialog "インストールまたはアップデートを行いますか？", 2, app_name
+	if ( stat == 6 ) {
+		install
+		return
+	}
+	
+	dialog "アンインストールを行いますか？", 2, app_name
+	if ( stat == 6 ) {
+		uninstall
+		return
+	}
+	return
+	
+#deffunc install
+	
+	if ( package_contains_all_files() == failure ) {
+		dialog "knowbug が見つかりません。\nパッケージ版 (knowbug-package.zip) をダウンロードし、そのなかにある knwobug_inst_uninst.hsp を起動してください。", 1, app_name
+		exec url_releases, 16
+		return
+	}
+	
+	backup
+	store
+	
+	fileTranser_exec
+	if ( stat == failure ) {
+		dialog "インストールの途中で失敗しました。", 1, app_name
+	} else {
+		dialog "インストールが正常に完了しました。", 0, app_name
+	}
+	return
+	
+// インストールしたいファイルが全部ある？
+#defcfunc package_contains_all_files  \
+	local i
+	
+	for i, 0, cnt_files
+		exist dir_package + "\\" + src_names(cnt)
+		if ( strsize <= 0 ) { return failure }
+	next
+	return success
+	
+// 既存ファイルをバックアップする
+#deffunc backup  \
+	local src_path, local dst_path
+	
+	make_dir_for_backups
+	
+	repeat cnt_files
+		src_path = dir_exe + "\\" + dst_names(cnt)
+		dst_path = dir_bak + "\\" + now_str + "\\" + dst_names(cnt)
+		
+		exist src_path
+		if ( strsize >= 0 ) {
+			fileTranser_add src_path, dst_path
+		} else {
+			mes "ファイル " + src_path + " はバックアップしませんでした。"
+		}
+	loop
+	return
+	
+// バックアップ用のフォルダを作る
+#deffunc make_dir_for_backups
+	
+	mkdir_unless_exists dir_bak
+	repeat cnt_files
+		mkdir_unless_exists dir_bak + "\\" + now_str
+	loop
+	return
+	
+// パッケージのファイルをHSPフォルダに移動する
+#deffunc store  \
+	local src_path, local dst_path
+	
+	repeat cnt_files
+		src_path = dir_package + "\\" + src_names(cnt)
+		dst_path = dir_exe     + "\\" + dst_names(cnt)
+		fileTranser_add src_path, dst_path
+	loop
+	return
+	
+#deffunc uninstall
+	dialog "アンインストールはまだ未実装です。すみません。", 1, app_name
+	return
+	
+#global
+
+	app_main
+	
+#ifdef _debug2
+	stop
+#endif
+	end : end
