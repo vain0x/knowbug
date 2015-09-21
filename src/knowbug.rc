@@ -34,7 +34,13 @@
 LANGUAGE LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN
 IDR_MAIN_MENU MENUEX
 {
-    POPUP "メニュー(&M)", 0, 0, 0
+	POPUP "栞(&B)", 0, 0, 0
+	{
+		MENUITEM "ログ(&L)", IDC_GOTO_LOG, 0, 0
+		MENUITEM "スクリプト(&S)", IDC_GOTO_SCRIPT, 0, 0
+	}
+	MENUITEM "更新(&U)", IDC_UPDATE, 0, 0
+    POPUP "設定(&S)", 0, 0, 0
     {
 		MENUITEM "常に最前面に表示する(&T)", IDC_TOPMOST, 0, 0
 		MENUITEM "", 0, MFT_SEPARATOR, 0
@@ -42,12 +48,6 @@ IDR_MAIN_MENU MENUEX
 		MENUITEM "設定ファイルを開く(&S)", IDC_OPEN_INI, 0, 0
 		MENUITEM "", 0, MFT_SEPARATOR, 0
 		MENUITEM "Knowbugリポジトリ(&H)", IDC_OPEN_KNOWBUG_REPOS, 0, 0
-	}
-	MENUITEM "更新(&U)", IDC_UPDATE, 0, 0
-	POPUP "栞(&B)", 0, 0, 0
-	{
-		MENUITEM "ログ(&L)", IDC_GOTO_LOG, 0, 0
-		MENUITEM "スクリプト(&S)", IDC_GOTO_SCRIPT, 0, 0
 	}
 }
 
