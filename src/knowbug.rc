@@ -42,8 +42,13 @@ IDR_MAIN_MENU MENUEX
 		MENUITEM "設定ファイルを開く(&S)", IDC_OPEN_INI, 0, 0
 		MENUITEM "", 0, MFT_SEPARATOR, 0
 		MENUITEM "Knowbugリポジトリ(&H)", IDC_OPEN_KNOWBUG_REPOS, 0, 0
-    }
-    MENUITEM "更新(&U)", IDC_UPDATE, 0, 0
+	}
+	MENUITEM "更新(&U)", IDC_UPDATE, 0, 0
+	POPUP "栞(&B)", 0, 0, 0
+	{
+		MENUITEM "ログ(&L)", IDC_GOTO_LOG, 0, 0
+		MENUITEM "スクリプト(&S)", IDC_GOTO_SCRIPT, 0, 0
+	}
 }
 
 

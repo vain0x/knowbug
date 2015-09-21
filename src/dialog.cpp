@@ -366,6 +366,14 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					ShellExecute(nullptr, "open", "https://github.com/vain0/knowbug", nullptr, "", SW_SHOWDEFAULT);
 					break;
 				}
+				case IDC_GOTO_LOG: {
+					TreeView_SelectItem(hVarTree, VarTree::getLogNodeHandle());
+					break;
+				}
+				case IDC_GOTO_SCRIPT: {
+					TreeView_SelectItem(hVarTree, VarTree::getScriptNodeHandle());
+					break;
+				}
 			}
 			break;
 
