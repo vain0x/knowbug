@@ -28,13 +28,16 @@ struct ModcmdCallInfo
 	// 呼び出された位置
 	char const* const fname;
 	int const line; //0-based
+
+	// 呼び出し時の tick count
+	unsigned long long const tick;
 	
 	// g_stkCallInfo における位置
 	size_t const idx;
 
 public:
-	ModcmdCallInfo(stdat_t stdat, void* prmstk_bak, int sublev, int looplev, char const* fname, int line, size_t idx)
-		: stdat(stdat), prmstk_bak(prmstk_bak), sublev(sublev), looplev(looplev), fname(fname), line(line), idx(idx)
+	ModcmdCallInfo(stdat_t stdat, void* prmstk_bak, int sublev, int looplev, char const* fname, int line, unsigned long long tick, size_t idx)
+		: stdat(stdat), prmstk_bak(prmstk_bak), sublev(sublev), looplev(looplev), fname(fname), line(line), tick(tick), idx(idx)
 	{ }
 
 	shared_ptr_type tryGetPrev() const;

@@ -208,6 +208,16 @@ void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 
 void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype)
 {
+	auto const span = GetTickCount64() - callinfo->tick;
+	if ( span > 50 ) {
+		Knowbug::logmes(
+			strf("%06dms %22s %s\r\n"
+			, span
+			, hpimod::STRUCTDAT_getName(callinfo->stdat)
+			, DebugInfo::formatCurInfString(callinfo->fname, callinfo->line)
+			).c_str());
+	}
+
 	VarTree::RemoveLastCallNode();
 
 	// 返値ノードデータの生成

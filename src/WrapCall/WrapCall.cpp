@@ -44,11 +44,14 @@ void onBgnCalling(stdat_t stdat)
 {
 	g_dbginfo->updateCurInf();
 
+	auto const tick = GetTickCount64();
+
 	// 呼び出しリストに追加
 	size_t const idx = g_stkCallInfo.size();
 	g_stkCallInfo.emplace_back(new ModcmdCallInfo(
 		stdat, ctx->prmstack, ctx->sublev, ctx->looplev,
 		g_dbginfo->curFileName(), g_dbginfo->curLine(),
+		tick,
 		idx
 	));
 
