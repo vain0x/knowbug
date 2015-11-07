@@ -7,7 +7,7 @@
 
 #module knowbugVsw vsw_
 
-#ifdef __hsp64__
+#ifdef __hsp64__@
  #uselib "hsp3debug_64.dll"
  #func global knowbugVsw_catLeaf       "knowbugVsw_catLeaf"      int, sptr, sptr
  #func global knowbugVsw_catLeafExtra  "knowbugVsw_catLeafExtra" int, sptr, sptr
@@ -24,7 +24,7 @@
  #cfunc knowbugVsw_newLineformedWriter "knowbugVsw_newLineformedWriter"
  #func  knowbugVsw_deleteWriter "knowbugVsw_deleteWriter" int
  #cfunc knowbugVsw_dataPtr      "knowbugVsw_dataPtr" int, int
-#else //defined(__hsp64__)
+#else //defined(__hsp64__@)
  #uselib "hsp3debug.dll"
  #func global knowbugVsw_catLeaf       "_knowbugVsw_catLeaf@12"      int, sptr, sptr
  #func global knowbugVsw_catLeafExtra  "_knowbugVsw_catLeafExtra@12" int, sptr, sptr
@@ -41,7 +41,7 @@
  #cfunc knowbugVsw_newLineformedWriter "_knowbugVsw_newLineformedWriter@0"
  #func  knowbugVsw_deleteWriter "_knowbugVsw_deleteWriter@4" int
  #cfunc knowbugVsw_dataPtr      "_knowbugVsw_dataPtr@8" int, int
-#endif //defined(__hsp64__)
+#endif //defined(__hsp64__@)
 
 #modinit int isLineformed
 	if ( isLineformed ) {

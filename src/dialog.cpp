@@ -30,7 +30,7 @@
 # define KnowbugPlatformString "(x86)"
 #endif //defined(_M_X64)
 #define KnowbugAppName "Knowbug"
-#define KnowbugVersion "v1.20" " " KnowbugPlatformString
+#define KnowbugVersion "v1.21" " " KnowbugPlatformString
 static char const* const KnowbugMainWindowTitle = KnowbugAppName " " KnowbugVersion;
 static char const* const KnowbugViewWindowTitle = "Knowbug View";
 
@@ -364,6 +364,14 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				}
 				case IDC_OPEN_KNOWBUG_REPOS: {
 					ShellExecute(nullptr, "open", "https://github.com/vain0/knowbug", nullptr, "", SW_SHOWDEFAULT);
+					break;
+				}
+				case IDC_GOTO_LOG: {
+					TreeView_SelectItem(hVarTree, VarTree::getLogNodeHandle());
+					break;
+				}
+				case IDC_GOTO_SCRIPT: {
+					TreeView_SelectItem(hVarTree, VarTree::getScriptNodeHandle());
 					break;
 				}
 			}
