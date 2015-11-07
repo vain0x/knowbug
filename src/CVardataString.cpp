@@ -31,6 +31,24 @@ CVardataStrWriter::~CVardataStrWriter() {}
 string const& CVardataStrWriter::getString() const { return getWriter().get(); }
 
 //------------------------------------------------
+// 枝刈りを試みる
+// この関数は ptr が指す何らかのデータを探索する直前にだけ呼ばれる。
+// ptr が探索済みなら値の表示を省略し、true を返す。
+//------------------------------------------------
+bool CVardataStrWriter::tryPrune(char const* name, void const* ptr) const
+{
+	if ( visited_.count(ptr) != 0 ) {
+		auto& ref_name = visited_[ptr];
+		getWriter().catLeafExtra(name, strf("(ref: %s)", ref_name).c_str());
+		return true;
+
+	} else {
+		visited_.emplace(ptr, name);
+		return false;
+	}
+}
+
+//------------------------------------------------
 // [add][item] 変数
 //------------------------------------------------
 void CVardataStrWriter::addVar(char const* name, PVal const* pval)
@@ -188,6 +206,7 @@ void CVardataStrWriter::addValueString(char const* name, char const* str)
 //------------------------------------------------
 void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 {
+	if ( tryPrune(name, fv) ) return;
 	assert(fv);
 
 	if ( !fv->ptr || fv->type == FLEXVAL_TYPE_NONE ) {
