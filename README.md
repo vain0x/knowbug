@@ -129,7 +129,7 @@ hsp3debug.dll を、元に戻します。
 ```
 
 * notebuf:
-  * 「notebuf」はシステム変数ではありませんが、最後に notepad_sel 命令で指定された (まだ notepad_unsel されていない) バッファを表示します。
+  * 「notebuf」はシステム変数ではありませんが、最後に notesel 命令で指定された (まだ notensel されていない) バッファを表示します。
 
 「+sysvar」ノード自体を選択すると、システム変数の一覧が表示されます。
 
