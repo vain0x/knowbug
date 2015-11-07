@@ -23,7 +23,7 @@ KnowbugConfig::KnowbugConfig()
 	CIni ini { selfPath().c_str() };
 
 	bTopMost   = ini.getBool( "Window", "bTopMost", false );
-	viewSizeX  = ini.getInt("Window", "viewSizeX", 300);
+	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
 	viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
 	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
 
