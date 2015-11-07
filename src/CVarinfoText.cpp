@@ -46,13 +46,13 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 		hvp->GetBlockSize(pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize));
 
 	// 変数に関する情報
-	getWriter().catln(strf("変数名：%s", name));
-	getWriter().catln(strf("変数型：%s", stringizeVartype(pval)));
+	getWriter().catln(strf("変数名: %s", name));
+	getWriter().catln(strf("変数型: %s", stringizeVartype(pval)));
 	if ( g_config->showsVariableAddress ) {
-		getWriter().catln(strf("アドレス：%p, %p", cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)));
+		getWriter().catln(strf("アドレス: %p, %p", cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)));
 	}
 	if ( g_config->showsVariableSize ) {
-		getWriter().catln(strf("サイズ：%d / %d [byte]", pval->size, bufsize));
+		getWriter().catln(strf("サイズ: %d / %d [byte]", pval->size, bufsize));
 	}
 	getWriter().catCrlf();
 
@@ -74,7 +74,7 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 //------------------------------------------------
 void CVarinfoText::addSysvar(Sysvar::Id id)
 {
-	getWriter().catln(strf("変数名：%s\t(システム変数)", Sysvar::List[id].name));
+	getWriter().catln(strf("変数名: %s\t(システム変数)", Sysvar::List[id].name));
 	getWriter().catCrlf();
 	{
 		CVardataStrWriter::create<CTreeformedWriter>(getBuf())
@@ -119,12 +119,12 @@ void CVarinfoText::addCallSignature(ModcmdCallInfo::shared_ptr_type const& calli
 	auto const name = hpimod::STRUCTDAT_getName(stdat);
 	getWriter().catln(
 		(callinfo->fname == nullptr)
-			? strf("関数名：%s", name)
-			: strf("関数名：%s (#%d of %s)", name, callinfo->line + 1, callinfo->fname)
+			? strf("関数名: %s", name)
+			: strf("関数名: %s (#%d of %s)", name, callinfo->line + 1, callinfo->fname)
 	);
 
 	// シグネチャ
-	getWriter().catln(strf("仮引数：(%s)", stringizePrmlist(stdat)));
+	getWriter().catln(strf("仮引数: (%s)", stringizePrmlist(stdat)));
 }
 
 //------------------------------------------------
