@@ -52,7 +52,7 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 		getWriter().catln(strf("アドレス：%p, %p", cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)));
 	}
 	if ( g_config->showsVariableSize ) {
-		getWriter().catln(strf("サイズ：using %d of %d [byte]", pval->size, bufsize));
+		getWriter().catln(strf("サイズ：%d / %d [byte]", pval->size, bufsize));
 	}
 	getWriter().catCrlf();
 
