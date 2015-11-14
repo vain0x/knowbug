@@ -15,6 +15,7 @@
 #include "config_mng.h"
 #include "dialog.h"
 #include "vartree.h"
+#include "Tree/Node.h"
 
 static HINSTANCE g_hInstance;
 std::unique_ptr<DebugInfo> g_dbginfo;
@@ -61,6 +62,8 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 	g_config.initialize();
 
 	Dialog::createMain();
+
+	auto& glob = DataTree::NodeGlobal::instance();
 	return 0;
 }
 
@@ -82,6 +85,8 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 			VarTree::UpdateCallNode();
 #endif
 			Dialog::update();
+
+			DataTree::NodeGlobal::instance().updateStateAll();
 			break;
 		}
 		case hpimod::DebugNotice_Logmes:

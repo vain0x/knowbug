@@ -43,6 +43,9 @@
     <Filter Include="module\cppformat">
       <UniqueIdentifier>{28c463bf-4ac1-41cd-b962-e422ed5235ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="class\Tree">
+      <UniqueIdentifier>{022fe0d3-0191-475e-b499-06a398943769}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CVarinfoText.cpp">
@@ -113,6 +116,18 @@
     </ClCompile>
     <ClCompile Include="VarTreeNodeData.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\Node.cpp">
+      <Filter>class\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\NodeVar.cpp">
+      <Filter>class\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\NodeValue.cpp">
+      <Filter>class\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\NodeModule.cpp">
+      <Filter>class\Tree</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -247,6 +262,15 @@
     </ClInclude>
     <ClInclude Include="ExVswInternal.h">
       <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree\Node.h">
+      <Filter>class\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree\Visitor.h">
+      <Filter>class\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree\Observer.h">
+      <Filter>class\Tree</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
