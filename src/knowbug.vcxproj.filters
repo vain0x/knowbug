@@ -245,6 +245,9 @@
     <ClInclude Include="module\handle_deleter.hpp">
       <Filter>module</Filter>
     </ClInclude>
+    <ClInclude Include="ExVswInternal.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc">
