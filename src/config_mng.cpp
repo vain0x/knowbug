@@ -87,6 +87,7 @@ KnowbugConfig::KnowbugConfig()
 	for ( auto const& vtname : keys ) {
 		auto const dllPath = ini.getString("VardataString/UserdefTypes", vtname.c_str());
 		if ( module_handle_t hDll { LoadLibrary(dllPath) } ) {
+			auto const fReceive  = loadVswFunc<receiveVswMethods_t>(ini, hDll.get(), vtname.c_str(), "receiveVswMethods");
 			auto const fAddVar   = loadVswFunc<addVarUserdef_t  >(ini, hDll.get(), vtname.c_str(), "addVar");
 			auto const fAddValue = loadVswFunc<addValueUserdef_t>(ini, hDll.get(), vtname.c_str(), "addValue");
 
@@ -98,6 +99,9 @@ KnowbugConfig::KnowbugConfig()
 #endif
 			tryRegisterVswInfo(vtname
 				, VswInfo { std::move(hDll), fAddVar, fAddValue });
+			if ( fReceive ) {
+				fReceive(knowbug_getVswMethods());
+			}
 		} else {
 			Knowbug::logmesWarning(strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s\r\n",
 				vtname, dllPath).c_str());
