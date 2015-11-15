@@ -3,6 +3,7 @@
 #include "module/strf.h"
 
 #include "config_mng.h"
+#include "ExVswInternal.h"
 
 KnowbugConfig::SingletonAccessor g_config;
 
@@ -94,22 +95,7 @@ KnowbugConfig::KnowbugConfig()
 	}
 
 	// 拙作プラグイン拡張型表示がなければ追加しておく
-	struct VswInfoForInternal { string vtname; addVarUserdef_t addVar; addValueUserdef_t addValue; };
-	static VswInfoForInternal const stc_vswInfoForInternal[] = {
-#ifdef with_Assoc
-		{ "assoc_k", nullptr, knowbugVsw_addValueAssoc },
-#endif
-#ifdef with_Vector
-		{ "vector_k", knowbugVsw_addVarVector, knowbugVsw_addValueVector },
-#endif
-#ifdef with_Array
-		{ "array_k", knowbugVsw_addVarArray, knowbugVsw_addValueArray },
-#endif
-#ifdef with_Modcmd
-		{ "modcmd_k", nullptr, knowbugVsw_addValueModcmd },
-#endif
-	};
-	for ( auto&& vsw2 : stc_vswInfoForInternal ) {
+	for ( auto&& vsw2 : vswInfoForInternal() ) {
 		//doesn't overwrite writers of external Dll
 		map_find_or_insert(vswInfo, vsw2.vtname, [&vsw2]() {
 			return VswInfo { nullptr, vsw2.addVar, vsw2.addValue };

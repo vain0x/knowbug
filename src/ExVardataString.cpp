@@ -7,6 +7,7 @@
 #include "main.h"
 #include "SysvarData.h"
 #include "ExVardataString.h"
+#include "ExVswInternal.h"
 #include "CVardataString.h"
 
 // キャスト
@@ -126,6 +127,28 @@ EXPORT char const* WINAPI knowbugVsw_dataPtr(vswriter_t _w, int* length)
 	auto& s = vswriter(_w).getString();
 	if ( length ) *length = s.size();
 	return s.c_str();
+}
+
+//------------------------------------------------
+// 拙作プラグイン拡張型表示の情報
+//------------------------------------------------
+std::vector<VswInfoForInternal> const& vswInfoForInternal()
+{
+	static std::vector<VswInfoForInternal> vswi {
+#ifdef with_Assoc
+		{ "assoc_k", nullptr, knowbugVsw_addValueAssoc },
+#endif
+#ifdef with_Vector
+		{ "vector_k", knowbugVsw_addVarVector, knowbugVsw_addValueVector },
+#endif
+#ifdef with_Array
+		{ "array_k", knowbugVsw_addVarArray, knowbugVsw_addValueArray },
+#endif
+#ifdef with_Modcmd
+		{ "modcmd_k", nullptr, knowbugVsw_addValueModcmd },
+#endif
+	};
+	return vswi;
 }
 
 //------------------------------------------------
