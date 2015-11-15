@@ -5,6 +5,15 @@
 #include <vector>
 #include "ExVardataString.h"
 
+#ifdef with_ExtraBasics
+extern void WINAPI knowbugVsw_addValueBool(vswriter_t, char const* name, void const* ptr);
+extern void WINAPI knowbugVsw_addValueSChar(vswriter_t, char const* name, void const* ptr);
+extern void WINAPI knowbugVsw_addValueSShort(vswriter_t, char const* name, void const* ptr);
+extern void WINAPI knowbugVsw_addValueUShort(vswriter_t, char const* name, void const* ptr);
+extern void WINAPI knowbugVsw_addValueUInt(vswriter_t, char const* name, void const* ptr);
+extern void WINAPI knowbugVsw_addValueSLong(vswriter_t, char const* name, void const* ptr);
+extern void WINAPI knowbugVsw_addValueULong(vswriter_t, char const* name, void const* ptr);
+#endif
 #ifdef with_Assoc
 extern void WINAPI knowbugVsw_addValueAssoc(vswriter_t, char const* name, void const* ptr);
 #endif
