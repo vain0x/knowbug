@@ -17,6 +17,11 @@ public:
 
 	TVisitor& getCallback() const { return cb_; }
 
+	void visit(NodeLoop*)   override {}
+	void visit(NodeModule*) override {}
+	void visit(NodeArray*)  override {}
+	void visit(NodeValue*)  override {}
+
 private:
 	TVisitor& cb_;
 };

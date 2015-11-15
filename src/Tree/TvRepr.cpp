@@ -45,7 +45,7 @@ void TvRepr::spawnRoot(NodeGlobal* root)
 	insertItem(root, root->getName(), TVI_ROOT, TVI_LAST);
 }
 	
-void TvRepr::TvAppendObserver::visit1(tree_t newChild)
+void TvRepr::TvAppendObserver::visit0(tree_t newChild)
 {
 	auto const parent = newChild->getParent();
 	assert(parent);
@@ -56,7 +56,7 @@ void TvRepr::TvAppendObserver::visit1(tree_t newChild)
 		, TVI_LAST);
 }
 
-void TvRepr::TvRemoveObserver::visit1(tree_t removed)
+void TvRepr::TvRemoveObserver::visit0(tree_t removed)
 {
 	auto const hItem = getCallback().tryFindTvItem(removed);
 	assert(hItem);

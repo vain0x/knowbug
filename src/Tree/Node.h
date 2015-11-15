@@ -71,7 +71,7 @@ public:
 	children_t const& getChildren() { return children_; }
 
 protected:
-	void rename(string const& name) { name_ = std::move(name); }
+	void rename(string const& name) { name_ = name; }
 	
 	tree_t addChild(tree_t child);
 	tree_t replaceChild(children_t::iterator& pos, tree_t child);

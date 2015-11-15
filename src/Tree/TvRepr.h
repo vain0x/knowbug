@@ -43,13 +43,7 @@ private:
 		TvAppendObserver(TvRepr& r) : IObserver(r) {}
 
 	public:
-		void visit0(tree_t t) override { t->acceptVisitor(*this); }
-
-		void visit(NodeLoop* t)     override { visit1(t); }
-		void visit(NodeModule* t)   override { visit1(t); }
-		void visit(NodeArray* t)    override { visit1(t); }
-		void visit(NodeValue* t)    override { visit1(t); }
-		void visit1(tree_t t);
+		void visit0(tree_t t) override;
 	};
 
 	class TvRemoveObserver
@@ -59,13 +53,7 @@ private:
 		TvRemoveObserver(TvRepr& r) : IObserver(r) { }
 
 	public:
-		void visit0(tree_t t) override { t->acceptVisitor(*this); }
-
-		void visit(NodeLoop* t)     override { visit1(t); }
-		void visit(NodeModule* t)   override { visit1(t); }
-		void visit(NodeArray* t)    override { visit1(t); }
-		void visit(NodeValue* t)    override { visit1(t); }
-		void visit1(tree_t t);
+		void visit0(tree_t t) override;
 	};
 
 	struct Impl;
