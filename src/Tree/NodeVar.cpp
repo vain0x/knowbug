@@ -7,9 +7,9 @@
 namespace DataTree {
 
 /**
-’lƒm[ƒh‚Ì¶¬
+å€¤ãƒŽãƒ¼ãƒ‰ã®ç”Ÿæˆ
 
-Šg’£Œ^‚É‚Â‚¢‚Ä‚ÍHPI‚É”C‚¹‚éB
+æ‹¡å¼µåž‹ã«ã¤ã„ã¦ã¯HPIã«ä»»ã›ã‚‹ã€‚
 //*/
 static NodeValue* new_nodeValue_impl(tree_t parent, string const& name, PDAT const* p, vartype_t vt)
 {
@@ -32,9 +32,7 @@ NodeArray::NodeArray(tree_t parent, string const& name, PVal* pval)
 	: INode(parent, name)
 	, pval_(pval)
 	, cur_ {}
-{
-	updateStateAll();
-}
+{}
 
 void NodeArray::addElem(size_t aptr)
 {
@@ -55,7 +53,7 @@ bool NodeArray::updateState(tree_t childOrNull)
 {
 	if ( !getParent()->updateState(this) ) return false;
 
-	// ‘O‰ñ‚ÌXVŽž‚Æ‚Íƒf[ƒ^‚É˜A‘±«‚ª‚È‚¢‚ÆŽv‚í‚ê‚éê‡
+	// å‰å›žã®æ›´æ–°æ™‚ã¨ã¯ãƒ‡ãƒ¼ã‚¿ã«é€£ç¶šæ€§ãŒãªã„ã¨æ€ã‚ã‚Œã‚‹å ´åˆ
 	bool const rebuilt =
 		( cur_.mode != pval_->mode
 		|| cur_.flag != pval_->flag

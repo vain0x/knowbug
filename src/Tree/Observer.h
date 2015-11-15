@@ -6,6 +6,19 @@
 namespace DataTree
 {;
 
-using IObserver = IVisitor;
+template<class TVisitor>
+class IObserver
+	: public IVisitor
+{
+public:
+	IObserver(TVisitor& cb)
+		: cb_(cb)
+	{}
+
+	TVisitor& getCallback() const { return cb_; }
+
+private:
+	TVisitor& cb_;
+};
 
 }

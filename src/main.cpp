@@ -16,6 +16,7 @@
 #include "dialog.h"
 #include "vartree.h"
 #include "Tree/Node.h"
+#include "Tree/TvRepr.h"
 
 static HINSTANCE g_hInstance;
 std::unique_ptr<DebugInfo> g_dbginfo;
@@ -63,6 +64,8 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 
 	Dialog::createMain();
 
+	static auto tvrepr =
+		std::make_unique<DataTree::TvRepr>(Dialog::getVarTreeHandle());
 	auto& glob = DataTree::NodeGlobal::instance();
 	return 0;
 }

@@ -94,6 +94,8 @@ static void SaveViewCaret()
 //------------------------------------------------
 static void UpdateView()
 {
+	return;
+
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
 	if ( hItem ) {
 		static HTREEITEM stt_prevSelection = nullptr;

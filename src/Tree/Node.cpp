@@ -13,10 +13,17 @@ static bool vartype_isKnown(vartype_t vt)
 	return HSPVAR_FLAG_LABEL <= vt && vt <= HSPVAR_FLAG_INT;
 }
 
-// ŠÏ‘ªŽÒ
+// è¦³æ¸¬è€…
 std::vector<TreeObservers> stt_observers;
 void registerObserver(TreeObservers r) { stt_observers.push_back(r); }
 static std::vector<TreeObservers>& getObservers() { return stt_observers; }
+
+void NodeGlobal::spawnRoot()
+{
+	for ( auto& r : getObservers() ) {
+		r.spawnRoot(this);
+	}
+}
 
 tree_t INode::addChild(tree_t child)
 {

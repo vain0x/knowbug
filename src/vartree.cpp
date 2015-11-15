@@ -285,6 +285,8 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 //------------------------------------------------
 vartype_t getVartypeOfNode( HTREEITEM hItem )
 {
+	return HSPVAR_FLAG_NONE;
+
 	string const&& name = TreeView_GetItemString(hwndVarTree, hItem);
 
 	if ( VarNode::isTypeOf(name.c_str()) ) {
@@ -309,8 +311,10 @@ vartype_t getVartypeOfNode( HTREEITEM hItem )
 //------------------------------------------------
 // 変数情報のテキストを取得する
 //------------------------------------------------
-std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
+std::shared_ptr<string const> getItemVarText(HTREEITEM hItem)
 {
+	return std::make_shared<string const>("<ON DEBUG>");
+
 	string const&& itemText = TreeView_GetItemString( hwndVarTree, hItem );
 	char const* const name = itemText.c_str();
 

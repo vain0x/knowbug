@@ -344,6 +344,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="Tree\NodeModule.cpp" />
     <ClCompile Include="Tree\NodeValue.cpp" />
     <ClCompile Include="Tree\NodeVar.cpp" />
+    <ClCompile Include="Tree\TvRepr.cpp" />
     <ClCompile Include="vartree.cpp" />
     <ClCompile Include="VarTreeNodeData.cpp" />
     <ClCompile Include="with_ModPtr.cpp" />
@@ -392,6 +393,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="SysvarData.h" />
     <ClInclude Include="Tree\Node.h" />
     <ClInclude Include="Tree\Observer.h" />
+    <ClInclude Include="Tree\TvRepr.h" />
     <ClInclude Include="Tree\Visitor.h" />
     <ClInclude Include="vartree.h" />
     <ClInclude Include="VarTreeNodeData.h" />

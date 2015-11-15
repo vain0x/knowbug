@@ -1,27 +1,29 @@
 
 #pragma once
 
+#include <functional>
 #include "../main.h"
 #include "../module/utility.h"
 #include "../module/Singleton.h"
+#include "Node.dec.h"
 #include "Visitor.h"
 #include "Observer.h"
 
 namespace DataTree {
 
-// ‡”Ô‚ğ•Ï‚¦‚Ä‚Í‚¢‚¯‚È‚¢
 struct TreeObservers
 {
-	IObserver* appendObserver;
-	IObserver* removeObserver;
+	std::function<void(NodeGlobal*)> spawnRoot;
+	IVisitor* appendObserver;
+	IVisitor* removeObserver;
 };
 extern std::vector<TreeObservers> stt_observers;
 extern void registerObserver(TreeObservers obs);
 
 /**
-ƒf[ƒ^ƒcƒŠ[
+ãƒ‡ãƒ¼ã‚¿ãƒ„ãƒªãƒ¼
 
-HSP‚Ì’l‚ğ–Ø\‘¢‚Æ‚µ‚Äæ‚èˆµ‚¤ƒCƒ“ƒ^[ƒtƒFƒCƒX
+HSPã®å€¤ã‚’æœ¨æ§‹é€ ã¨ã—ã¦å–ã‚Šæ‰±ã†ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ã‚¤ã‚¹
 //*/
 class ITree
 {
@@ -41,16 +43,16 @@ protected:
 
 public:
 	/**
-	ó‹µ‚É‡‚í‚¹‚Ä–Ø\‘¢‚ğXV‚·‚é
+	çŠ¶æ³ã«åˆã‚ã›ã¦æœ¨æ§‹é€ ã‚’æ›´æ–°ã™ã‚‹
 
-	child != nullptr ‚Ìê‡‚ÍAchild ‚Í•K‚¸’¼Ú‚Ìqƒm[ƒh‚Å‚ ‚éB
-	‚±‚Ì‚Æ‚«‚ÍAqƒm[ƒh‚ÌXV‚ğs‚í‚È‚¢Bchild ‚ª¶‘¶‚µ‚Ä‚¢‚éê‡‚É‚©‚¬‚è true ‚ğ•Ô‚·B
+	child != nullptr ã®å ´åˆã¯ã€child ã¯å¿…ãšç›´æ¥ã®å­ãƒãƒ¼ãƒ‰ã§ã‚ã‚‹ã€‚
+	ã“ã®ã¨ãã¯ã€å­ãƒãƒ¼ãƒ‰ã®æ›´æ–°ã‚’è¡Œã‚ãªã„ã€‚child ãŒç”Ÿå­˜ã—ã¦ã„ã‚‹å ´åˆã«ã‹ãã‚Š true ã‚’è¿”ã™ã€‚
 	//*/
 	virtual bool updateState(tree_t child_opt) = 0;
 
 	void updateStateAll() { updateState(nullptr); }
 
-	// XVó‘Ô
+	// æ›´æ–°çŠ¶æ…‹
 public:
 	enum class UpdatedState { None, Shallow, Deep };
 	void setUpdatedState(UpdatedState s) { updatedState_ = s; }
@@ -147,6 +149,7 @@ class NodeGlobal
 	NodeGlobal();
 
 private:
+	void spawnRoot();
 	bool contains(char const* name) const override { return true; }
 	string unscope(string const& scopedName) const override;
 };
@@ -193,7 +196,7 @@ private:
 	vartype_t vt_;
 };
 
-// ’lƒm[ƒh‚Ìƒeƒ“ƒvƒŒ[ƒg
+// å€¤ãƒãƒ¼ãƒ‰ã®ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆ
 template<class TSelf, class TVal, vartype_t Vartype>
 class TNodeValue
 	: public NodeValue

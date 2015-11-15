@@ -23,7 +23,7 @@ bool NodeModule::contains(char const* name) const
 	size_t const lenModule = getName().length();
 	size_t const lenName = strlen(name);
 
-	// name ‚Ì––”ö‚ª "@ƒ‚ƒWƒ…[ƒ‹–¼" ‚Å‚ ‚ê‚Î‚æ‚¢
+	// name ã®æœ«å°¾ãŒ "@ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«å" ã§ã‚ã‚Œã°ã‚ˆã„
 	return (lenName > lenModule + 1)
 		&& name[lenName - lenModule - 1] == '@'
 		&& (&name[lenName - lenModule]) == getName();
@@ -65,8 +65,8 @@ NodeModule& NodeModule::findModule(char const* scopeRes)
 	} else {
 		string const submodName = &scopeRes[1];
 
-		// ƒ‚ƒWƒ…[ƒ‹–¼‚ÅŒŸõ
-		// TODO: unordered_map ‚©‰½‚©‚Å’T‚·
+		// ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«åã§æ¤œç´¢
+		// TODO: unordered_map ã‹ä½•ã‹ã§æ¢ã™
 		NodeModule* submod = nullptr;
 		for ( auto const it : getChildren() ) {
 			submod = dynamic_cast<NodeModule*>(it);
@@ -87,11 +87,12 @@ NodeModule* NodeModule::addModule(string const& rawName)
 }
 
 /**
-ƒOƒ[ƒoƒ‹—Ìˆæ‚Ì‰Šú‰»
+ã‚°ãƒ­ãƒ¼ãƒãƒ«é ˜åŸŸã®åˆæœŸåŒ–
 //*/
 NodeGlobal::NodeGlobal()
-	: NodeModule(nullptr, "")
+	: NodeModule(nullptr, "@")
 {
+	spawnRoot();
 	for ( string const& name : g_dbginfo->fetchStaticVarNames() ) {
 		addVar(name.c_str());
 	}
