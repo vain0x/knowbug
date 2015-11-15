@@ -19,7 +19,21 @@ struct KnowbugConfig : public Singleton<KnowbugConfig>
 {
 	friend class Singleton<KnowbugConfig>;
 public:
-	using VswInfo = std::tuple<module_handle_t, addVarUserdef_t, addValueUserdef_t>;
+	struct VswInfo
+	{
+		module_handle_t inst;
+		addVarUserdef_t addVar;
+		addValueUserdef_t addValue;
+
+	public:
+		//workaround for VC++2013
+		VswInfo(VswInfo&& r)
+			: inst(std::move(r.inst)), addVar(r.addVar), addValue(r.addValue)
+		{}
+		VswInfo(module_handle_t&& inst, addVarUserdef_t addVar, addValueUserdef_t addValue)
+			: inst(std::move(inst)), addVar(addVar), addValue(addValue)
+		{}
+	};
 
 public:
 	//properties from ini (see it for detail)
