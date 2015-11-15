@@ -76,7 +76,7 @@ protected:
 	tree_t addChild(tree_t child);
 	tree_t replaceChild(children_t::iterator& pos, tree_t child);
 	void removeChild(children_t::iterator& pos);
-	void removeChildAll();
+	void eraseChildrenAll();
 
 private:
 	tree_t parent_;

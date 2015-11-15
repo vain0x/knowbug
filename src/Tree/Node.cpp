@@ -20,7 +20,7 @@ static std::vector<TreeObservers>& getObservers() { return stt_observers; }
 
 Node::~Node()
 {
-	removeChildAll();
+	eraseChildrenAll();
 }
 
 tree_t Node::addChild(tree_t child)
@@ -48,11 +48,12 @@ void Node::removeChild(children_t::iterator& pos)
 	delete child; child = nullptr;
 }
 
-void Node::removeChildAll()
+void Node::eraseChildrenAll()
 {
 	for ( auto iter = children_.begin(); iter != children_.end(); ++iter) {
 		removeChild(iter);
 	}
+	children_.clear();
 }
 
 void NodeRoot::spawnRoot()
@@ -65,7 +66,6 @@ void NodeRoot::spawnRoot()
 NodeRoot::NodeRoot()
 	: Node(this, string("(root)"))
 {
-
 	addChild(new NodeGlobal(this));
 }
 

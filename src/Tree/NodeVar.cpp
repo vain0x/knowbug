@@ -40,7 +40,7 @@ bool NodeArray::updateState(tree_t childOrNull)
 
 	if ( rebuilt ) {
 		cur_ = PVal {};
-		removeChildAll();
+		eraseChildrenAll();
 	}
 
 	size_t const oldCntElems = hpimod::PVal_cntElems(&cur_);
