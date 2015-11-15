@@ -50,7 +50,7 @@ public:
 	bool bCustomDraw;
 	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;
 	std::map<string, COLORREF> clrTextExtra;
-	std::map<string, VswInfo> vswInfo;
+	std::map<vartype_t, VswInfo> vswInfo;
 	string logPath;
 	bool warnsBeforeClearingLog;
 	bool scrollsLogAutomatically;
@@ -63,6 +63,7 @@ public:
 
 private:
 	KnowbugConfig();
+	bool tryRegisterVswInfo(string const& vtname, VswInfo vswi);
 
 public:
 	//to jusitify existent codes (such as g_config->property)
