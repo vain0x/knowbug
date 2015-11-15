@@ -50,7 +50,7 @@ void NodeModule::addVar(char const* name)
 void NodeModule::addVarUnscoped(char const* fullName, string const& rawName)
 {
 	assert(rawName.find('@') == string::npos);
-	addChild(new NodeArray(this, rawName, hpimod::seekSttVar(fullName)));
+	addChild<NodeArray>(this, rawName, hpimod::seekSttVar(fullName));
 }
 
 NodeModule& NodeModule::findModule(char const* scopeRes)
@@ -68,8 +68,8 @@ NodeModule& NodeModule::findModule(char const* scopeRes)
 		// モジュール名で検索
 		// TODO: unordered_map か何かで探す
 		NodeModule* submod = nullptr;
-		for ( auto const it : getChildren() ) {
-			submod = dynamic_cast<NodeModule*>(it);
+		for ( auto& it : getChildren() ) {
+			submod = dynamic_cast<NodeModule*>(it.get());
 			if ( submod && submod->getName() == submodName ) break;
 		}
 		if ( !submod ) {
@@ -81,9 +81,7 @@ NodeModule& NodeModule::findModule(char const* scopeRes)
 
 NodeModule* NodeModule::addModule(string const& rawName)
 {
-	auto const mod = new NodeModule(this, rawName);
-	addChild(mod);
-	return mod;
+	return addChild<NodeModule>(this, rawName);
 }
 
 NodeGlobal::NodeGlobal(tree_t parent)

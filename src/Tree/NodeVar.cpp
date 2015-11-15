@@ -16,13 +16,13 @@ void NodeArray::addElem(size_t aptr)
 {
 	auto&& name = hpimod::stringizeArrayIndex(hpimod::PVal_indexesFromAptr(pval_, aptr));
 	auto&& pdat = hpimod::PVal_getPtr(pval_, aptr);
-	addChild(new NodeValue(this, std::move(name), pdat, pval_->flag));
+	addChild<NodeValue>(this, std::move(name), pdat, pval_->flag);
 }
 
 void NodeArray::updateElem(size_t aptr)
 {
 	assert(aptr < getChildren().size());
-	auto&& child = getChildren()[aptr];
+	auto&& child = getChildren()[aptr].get();
 	assert(dynamic_cast<NodeValue*>(child) != nullptr);
 	static_cast<NodeValue*>(child)->setValptr(hpimod::PVal_getPtr(pval_, aptr));
 }

@@ -63,7 +63,7 @@ private:
 	UpdatedState updatedState_;
 
 protected:
-	using children_t = std::vector<tree_t>;
+	using children_t = std::vector<std::unique_ptr<Node>>;
 
 public:
 	tree_t getParent() const { return parent_; }
@@ -72,8 +72,17 @@ public:
 
 protected:
 	void rename(string const& name) { name_ = name; }
+
+	template<typename TNode, typename... Args>
+	TNode* addChild(Args&&... args)
+	{
+		auto const child = new TNode(std::forward<Args>(args)...);
+		children_.push_back(std::unique_ptr<Node>(child));
+		afterAddChild(child);
+		return child;
+	}
 	
-	tree_t addChild(tree_t child);
+	void afterAddChild(tree_t child);
 	tree_t replaceChild(children_t::iterator& pos, tree_t child);
 	void removeChild(children_t::iterator& pos);
 	void eraseChildrenAll();
@@ -144,7 +153,7 @@ private:
 class NodeGlobal
 	: public NodeModule
 {
-	friend class NodeRoot;
+public:
 	NodeGlobal(tree_t parent);
 	
 	bool updateState(tree_t childOrNull) override;

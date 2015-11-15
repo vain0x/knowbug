@@ -23,19 +23,17 @@ Node::~Node()
 	eraseChildrenAll();
 }
 
-tree_t Node::addChild(tree_t child)
+void Node::afterAddChild(tree_t child)
 {
 	for ( auto& r : getObservers() ) {
 		r.appendObserver->visit0(child);
 	}
-	children_.push_back(child);
-	return child;
 }
 
 tree_t Node::replaceChild(children_t::iterator& pos, tree_t child)
 {
 	removeChild(pos);
-	*pos = child;
+	pos->reset(child);
 	return child;
 }
 
@@ -43,9 +41,9 @@ void Node::removeChild(children_t::iterator& pos)
 {
 	auto& child = *pos;
 	for ( auto& r : getObservers() ) {
-		r.removeObserver->visit0(child);
+		r.removeObserver->visit0(child.get());
 	}
-	delete child; child = nullptr;
+	child.reset();
 }
 
 void Node::eraseChildrenAll()
@@ -66,7 +64,7 @@ void NodeRoot::spawnRoot()
 NodeRoot::NodeRoot()
 	: Node(this, string("(root)"))
 {
-	addChild(new NodeGlobal(this));
+	addChild<NodeGlobal>(this);
 }
 
 bool NodeRoot::updateState(tree_t childOrNull)
