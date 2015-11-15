@@ -1,4 +1,4 @@
-
+﻿
 #pragma once
 
 #include <functional>
@@ -187,6 +187,17 @@ public:
 		, vt_(vt)
 	{}
 
+	void acceptVisitor(IVisitor& visitor) override
+	{
+		acceptVisitorTemplate<NodeValue>(visitor);
+	}
+
+	// Default implementation for scalar types
+	bool updateState(tree_t chlidOrNull) override
+	{
+		return getParent()->updateState(this);
+	}
+
 	vartype_t getVartype() const { return vt_; }
 	PDAT const* getValptr() const { return pdat_; }
 	void setValptr(PDAT const* pdat) { pdat_ = pdat; }
@@ -195,75 +206,6 @@ private:
 	PDAT const* pdat_;
 	vartype_t vt_;
 };
-
-// 値ノードのテンプレート
-template<class TSelf, class TVal, vartype_t Vartype>
-class TNodeValue
-	: public NodeValue
-{
-public:
-	using value_type = TVal;
-
-public:
-	TNodeValue(tree_t parent, string const& name, PDAT const* pdat)
-		: NodeValue(parent, name, pdat, Vartype)
-	{}
-
-public:
-	void acceptVisitor(IVisitor& visitor) override {
-		acceptVisitorTemplate<TSelf>(visitor);
-	}
-
-	// Default implementation for scalar types
-	bool updateState(tree_t chlidOrNull) override
-	{
-		return getParent()->updateState(this);
-	}
-};
-
-class NodeUnknown
-	: public NodeValue
-{
-public:
-	NodeUnknown(tree_t parent, string const& name, PDAT const* pdat, vartype_t vt)
-		: NodeValue(parent, name, pdat, vt)
-	{}
-
-	void acceptVisitor(IVisitor& visitor) override
-	{
-		acceptVisitorTemplate<NodeUnknown>(visitor);
-	}
-
-	bool updateState(tree_t childOrNull) override
-	{
-		return getParent()->updateState(this);
-	}
-};
-
-#define NV_NEWTYPE(_Kls, _Type, _Flag) \
-	class _Kls : public TNodeValue<_Kls, _Type, _Flag>      \
-	{ public: \
-		_Kls(tree_t parent, string const& name, PDAT const* pdat)   \
-			: TNodeValue(parent, name, pdat) \
-		{} \
-	}; \
-	//
-
-NV_NEWTYPE(NodeLabel,   label_t,     HSPVAR_FLAG_LABEL );
-NV_NEWTYPE(NodeString,  char const*, HSPVAR_FLAG_STR   );
-NV_NEWTYPE(NodeDouble,  double,      HSPVAR_FLAG_DOUBLE);
-NV_NEWTYPE(NodeInt,     int,         HSPVAR_FLAG_INT   );
-
-#undef NV_NEWTYPE
-
-/*
-class NodeModInst
-	: public NodeValue<NodeModInst, FlexValue const*, HSPVAR_FLAG_STRUCT, INode>
-{
-public:
-	NodeModInst(tree_t parent, FlexValue const* p);
-};
-//*/
 
 /*
 class NodePrmStk

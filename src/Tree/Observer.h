@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Node.dec.h"
 #include "Visitor.h"

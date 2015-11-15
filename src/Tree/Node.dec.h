@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 namespace DataTree
 {
@@ -19,13 +19,6 @@ class NodeModule;
 class NodeArray;
 
 class NodeValue;
-class NodeLabel;
-class NodeString;
-class NodeDouble;
-class NodeInt;
-class NodeModInst;
-class NodeUnknown;
-
 class NodePrmStk;
 
 }

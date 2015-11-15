@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <Windows.h>
 #include <CommCtrl.h>
@@ -48,11 +48,7 @@ private:
 		void visit(NodeLoop* t)     override { visit1(t); }
 		void visit(NodeModule* t)   override { visit1(t); }
 		void visit(NodeArray* t)    override { visit1(t); }
-		void visit(NodeLabel* t)    override { visit1(t); }
-		void visit(NodeString* t)   override { visit1(t); }
-		void visit(NodeDouble* t)   override { visit1(t); }
-		void visit(NodeInt* t)      override { visit1(t); }
-		void visit(NodeUnknown* t)  override { visit1(t); }
+		void visit(NodeValue* t)    override { visit1(t); }
 
 		void visit1(INode* t);
 		void visit1(ILeaf*) { }
@@ -70,11 +66,7 @@ private:
 		void visit(NodeLoop* t)     override { visit1(t); }
 		void visit(NodeModule* t)   override { visit1(t); }
 		void visit(NodeArray* t)    override { visit1(t); }
-		void visit(NodeLabel* t)    override { visit1(t); }
-		void visit(NodeString* t)   override { visit1(t); }
-		void visit(NodeDouble* t)   override { visit1(t); }
-		void visit(NodeInt* t)      override { visit1(t); }
-		void visit(NodeUnknown* t)  override { visit1(t); }
+		void visit(NodeValue* t)    override { visit1(t); }
 
 		void visit1(INode* t);
 		void visit1(ILeaf*) {}
