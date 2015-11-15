@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Node.dec.h"
+#include "Node_fwd.h"
 #include "Visitor.h"
 
 namespace DataTree

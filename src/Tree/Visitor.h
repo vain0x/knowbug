@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Node.dec.h"
+#include "Node_fwd.h"
 
 namespace DataTree
 {

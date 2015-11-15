@@ -5,7 +5,6 @@
 #include "../main.h"
 #include "../module/utility.h"
 #include "../module/Singleton.h"
-#include "Node.dec.h"
 #include "Visitor.h"
 #include "Observer.h"
 
