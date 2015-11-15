@@ -22,7 +22,7 @@ KnowbugConfig::KnowbugConfig()
 {
 	hspDir = SelfDir();
 	CIni ini { selfPath().c_str() };
-
+	
 	bTopMost   = ini.getBool( "Window", "bTopMost", false );
 	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
 	viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
@@ -59,6 +59,8 @@ KnowbugConfig::KnowbugConfig()
 			clrTextExtra.emplace(key, cref);
 		}
 	}
+
+	vswInfo.resize(HSPVAR_FLAG_MAX + ctx->hsphed->max_varhpi);
 
 	// 拙作プラグイン拡張型表示
 	for ( auto&& vsw2 : vswInfoForInternal() ) {
@@ -108,5 +110,7 @@ bool KnowbugConfig::tryRegisterVswInfo(string const& vtname, VswInfo vswi)
 	if ( !hvp ) return false;
 
 	vartype_t const vtflag = hvp->flag;
-	return vswInfo.emplace(vtflag, std::move(vswi)).second;
+	assert(0 < vtflag && vtflag < vswInfo.size());
+	vswInfo[vtflag] = std::move(vswi);
+	return true;
 }

@@ -27,12 +27,21 @@ public:
 
 	public:
 		//workaround for VC++2013
-		VswInfo(VswInfo&& r)
-			: inst(std::move(r.inst)), addVar(r.addVar), addValue(r.addValue)
+		VswInfo()
+			: inst {}, addVar {}, addValue {}
 		{}
+		VswInfo(VswInfo&& r)
+		{
+			*this = std::move(r);
+		}
 		VswInfo(module_handle_t&& inst, addVarUserdef_t addVar, addValueUserdef_t addValue)
 			: inst(std::move(inst)), addVar(addVar), addValue(addValue)
 		{}
+		VswInfo& operator=(VswInfo&& r)
+		{
+			inst = std::move(r.inst); addVar = r.addVar; addValue = r.addValue;
+			return *this;
+		}
 	};
 
 public:
@@ -50,7 +59,7 @@ public:
 	bool bCustomDraw;
 	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;
 	std::map<string, COLORREF> clrTextExtra;
-	std::map<vartype_t, VswInfo> vswInfo;
+	std::vector<VswInfo> vswInfo;
 	string logPath;
 	bool warnsBeforeClearingLog;
 	bool scrollsLogAutomatically;
