@@ -17,9 +17,11 @@ int.receiveVswMethods="_receiveVswMethods@4"
 int.addValue="_addValueInt@12"
 ```
 
-## サンプル
+## 実行例
 ```hsp
   repeat 16
     ι(cnt) = cnt
   loop
 ```
+
+![実行例](https://pbs.twimg.com/media/CT3DkXwUsAQouwR.png)
