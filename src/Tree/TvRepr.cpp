@@ -32,37 +32,32 @@ public:
 TvRepr::TvRepr(HWND hTv)
 	: m(new Impl(hTv, TvAppendObserver(*this), TvRemoveObserver(*this)))
 {
-	using namespace std::placeholders;
-	auto&& spawnRoot = std::bind(&TvRepr::spawnRoot, this, _1);
-	registerObserver({ std::move(spawnRoot), &m->appendObserver, &m->removeObserver });
+	auto&& do_nothing = [](NodeRoot*) {};
+	registerObserver({ do_nothing, &m->appendObserver, &m->removeObserver });
 }
 
 TvRepr::~TvRepr()
 {}
-
-void TvRepr::spawnRoot(NodeGlobal* root)
-{
-	insertItem(root, root->getName(), TVI_ROOT, TVI_LAST);
-}
 	
 void TvRepr::TvAppendObserver::visit0(tree_t newChild)
 {
 	auto const parent = newChild->getParent();
-	assert(parent);
+
 	getCallback().insertItem
 		( newChild
 		, newChild->getName()
-		, getCallback().tryFindTvItem(parent)
+		, (parent == &NodeRoot::instance()
+			? TVI_ROOT
+			: getCallback().tryFindTvItem(parent))
 		, TVI_LAST);
 }
 
 void TvRepr::TvRemoveObserver::visit0(tree_t removed)
 {
-	auto const hItem = getCallback().tryFindTvItem(removed);
-	assert(hItem);
-	TreeView_DeleteItem(getCallback().m->hTv_, hItem);
-
-	getCallback().m->itemFromNode_.erase(removed);
+	if ( auto const hItem = getCallback().tryFindTvItem(removed) ) {
+		TreeView_DeleteItem(getCallback().m->hTv_, hItem);
+		getCallback().m->itemFromNode_.erase(removed);
+	}
 }
 
 HTREEITEM TvRepr::tryFindTvItem(tree_t node) const

@@ -66,7 +66,7 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 
 	static auto tvrepr =
 		std::make_unique<DataTree::TvRepr>(Dialog::getVarTreeHandle());
-	auto& glob = DataTree::NodeGlobal::instance();
+	auto& root = DataTree::NodeRoot::instance();
 	return 0;
 }
 
@@ -89,7 +89,7 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 #endif
 			Dialog::update();
 
-			DataTree::NodeGlobal::instance().updateStateAll();
+			DataTree::NodeRoot::instance().updateStateAll();
 			break;
 		}
 		case hpimod::DebugNotice_Logmes:

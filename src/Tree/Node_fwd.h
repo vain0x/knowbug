@@ -6,6 +6,7 @@ namespace DataTree
 class Node;
 using tree_t = Node*;
 
+class NodeRoot;
 class NodeLoop;
 
 class NodeGlobal;

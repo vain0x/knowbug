@@ -86,16 +86,22 @@ NodeModule* NodeModule::addModule(string const& rawName)
 	return mod;
 }
 
-/**
-グローバル領域の初期化
-//*/
-NodeGlobal::NodeGlobal()
-	: NodeModule(nullptr, "@")
+NodeGlobal::NodeGlobal(tree_t parent)
+	: NodeModule(parent, "@")
+	, uninitialized_(true)
+{}
+
+void NodeGlobal::init()
 {
-	spawnRoot();
 	for ( string const& name : g_dbginfo->fetchStaticVarNames() ) {
 		addVar(name.c_str());
 	}
+}
+
+bool NodeGlobal::updateState(tree_t childOrNull)
+{
+	if ( uninitialized_ ) { uninitialized_ = false; init(); }
+	return this->NodeModule::updateState(childOrNull);
 }
 
 string NodeGlobal::unscope(string const& scopedName) const

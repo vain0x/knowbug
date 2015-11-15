@@ -17,6 +17,7 @@ public:
 
 	TVisitor& getCallback() const { return cb_; }
 
+	void visit(NodeRoot*)   override {}
 	void visit(NodeLoop*)   override {}
 	void visit(NodeModule*) override {}
 	void visit(NodeArray*)  override {}

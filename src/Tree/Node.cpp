@@ -18,13 +18,6 @@ std::vector<TreeObservers> stt_observers;
 void registerObserver(TreeObservers r) { stt_observers.push_back(r); }
 static std::vector<TreeObservers>& getObservers() { return stt_observers; }
 
-void NodeGlobal::spawnRoot()
-{
-	for ( auto& r : getObservers() ) {
-		r.spawnRoot(this);
-	}
-}
-
 Node::~Node()
 {
 	removeChildAll();
@@ -60,6 +53,30 @@ void Node::removeChildAll()
 	for ( auto iter = children_.begin(); iter != children_.end(); ++iter) {
 		removeChild(iter);
 	}
+}
+
+void NodeRoot::spawnRoot()
+{
+	for ( auto& r : getObservers() ) {
+		r.spawnRoot(this);
+	}
+}
+
+NodeRoot::NodeRoot()
+	: Node(this, string("(root)"))
+{
+
+	addChild(new NodeGlobal(this));
+}
+
+bool NodeRoot::updateState(tree_t childOrNull)
+{
+	if ( !childOrNull ) {
+		for ( auto& child : getChildren() ) {
+			child->updateStateAll();
+		}
+	}
+	return true;
 }
 
 }

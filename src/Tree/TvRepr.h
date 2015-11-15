@@ -30,7 +30,7 @@ public:
 	}
 
 private:
-	void spawnRoot(NodeGlobal* node);
+	void spawnRoot(NodeRoot* root);
 	void TvRepr::insertItem(tree_t node, string name, HTREEITEM hParent, HTREEITEM hInsertAfter);
 
 	friend class TvAppendObserver;

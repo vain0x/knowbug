@@ -12,7 +12,7 @@ namespace DataTree {
 
 struct TreeObservers
 {
-	std::function<void(NodeGlobal*)> spawnRoot;
+	std::function<void(NodeRoot*)> spawnRoot;
 	IVisitor* appendObserver;
 	IVisitor* removeObserver;
 };
@@ -84,6 +84,25 @@ private:
 	children_t children_;
 };
 
+// 仮想的なルートノード
+class NodeRoot
+	: public Node
+	, public Singleton<NodeRoot>
+{
+	friend class Singleton<NodeRoot>;
+	NodeRoot();
+
+	void spawnRoot();
+
+public:
+	void acceptVisitor(IVisitor& visitor) override
+	{
+		visitor.visit(this);
+	}
+
+	bool updateState(tree_t chlidOrNull) override;
+};
+
 class NodeLoop
 	: public Node
 {
@@ -124,15 +143,18 @@ private:
 
 class NodeGlobal
 	: public NodeModule
-	, public Singleton<NodeGlobal>
 {
-	friend class Singleton<NodeGlobal>;
-	NodeGlobal();
+	friend class NodeRoot;
+	NodeGlobal(tree_t parent);
+	
+	bool updateState(tree_t childOrNull) override;
 
 private:
-	void spawnRoot();
+	void init();
 	bool contains(char const* name) const override { return true; }
 	string unscope(string const& scopedName) const override;
+
+	bool uninitialized_;
 };
 
 class NodeArray
