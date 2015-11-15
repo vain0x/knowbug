@@ -87,7 +87,7 @@ KnowbugConfig::KnowbugConfig()
 				hDll.get() != nullptr, fAddVar != nullptr, fAddValue != nullptr
 			).c_str());
 #endif
-			vswInfo.insert({ vtname, VswInfo { std::move(hDll), fAddVar, fAddValue } });
+			vswInfo.emplace(vtname, VswInfo { std::move(hDll), fAddVar, fAddValue });
 		} else {
 			Knowbug::logmesWarning(strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s\r\n",
 				vtname, dllPath).c_str());

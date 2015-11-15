@@ -54,12 +54,13 @@ bool CVardataStrWriter::tryPrune(char const* name, void const* ptr) const
 void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 {
 	assert(!!pval);
-	auto const hvp = hpimod::getHvp(pval->flag);
 
+	// 拡張型
 	if ( pval->flag >= HSPVAR_FLAG_USERDEF ) {
+		auto const hvp = hpimod::getHvp(pval->flag);
 		auto const&& iter = g_config->vswInfo.find(hvp->vartype_name);
 		if ( iter != g_config->vswInfo.end() ) {
-			if ( addVarUserdef_t const addVar = std::get<1>(iter->second) ) {
+			if ( addVarUserdef_t const addVar = iter->second.addVar ) {
 				return addVar(this, name, pval);
 			}
 		}
@@ -157,7 +158,7 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 	if ( type >= HSPVAR_FLAG_USERDEF ) {
 		auto const iter = g_config->vswInfo.find(hpimod::getHvp(type)->vartype_name);
 		if ( iter != g_config->vswInfo.end() ) {
-			if ( addValueUserdef_t const addValue = std::get<2>(iter->second) ) {
+			if ( addValueUserdef_t const addValue = iter->second.addValue ) {
 				addValue(this, name, ptr);
 				return;
 			}
