@@ -136,6 +136,7 @@ EXPORT char const* WINAPI knowbugVsw_dataPtr(vswriter_t _w, int* length)
 std::vector<VswInfoForInternal> const& vswInfoForInternal()
 {
 	static std::vector<VswInfoForInternal> vswi {
+		{ "int", nullptr, knowbugVsw_addValueInt },
 #ifdef with_ExtraBasics
 		{ "bool", nullptr, knowbugVsw_addValueBool },
 		{ "char", nullptr, knowbugVsw_addValueSChar },
@@ -156,6 +157,9 @@ std::vector<VswInfoForInternal> const& vswInfoForInternal()
 #endif
 #ifdef with_Modcmd
 		{ "modcmd_k", nullptr, knowbugVsw_addValueModcmd },
+#endif
+#ifdef with_ModPtr
+		{ "int", nullptr, knowbugVsw_addValueIntOrModPtr },
 #endif
 	};
 	return vswi;
@@ -299,7 +303,7 @@ void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const
 //------------------------------------------------
 #ifdef with_Modcmd
 
-extern void WINAPI knowbugVsw_addValueModcmd(vswriter_t _w, char const* name, void const* ptr)
+void WINAPI knowbugVsw_addValueModcmd(vswriter_t _w, char const* name, void const* ptr)
 {
 	int const modcmd = *reinterpret_cast<int const*>(ptr);
 	knowbugVsw_catLeaf(_w, name, strf("modcmd(%s)",
@@ -310,8 +314,40 @@ extern void WINAPI knowbugVsw_addValueModcmd(vswriter_t _w, char const* name, vo
 #endif
 
 //------------------------------------------------
+// modptr の拡張表示
+//------------------------------------------------
+#ifdef with_ModPtr
+
+#include "hpimod/vartype_traits.h"
+#include "with_ModPtr.h"
+
+void WINAPI knowbugVsw_addValueIntOrModPtr(vswriter_t _w, char const* name, void const* ptr)
+{
+	using namespace hpimod;
+	using namespace hpimod::VtTraits::InternalVartypeTags;
+
+	int const& val = *cptr_cast<int*>(ptr);
+	if ( ModPtr::isValid(val) ) {
+		string const name2 = strf("%s = mp#%d", name, ModPtr::getIdx(val));
+		vswriter(_w).addValueStruct(name2.c_str(), ModPtr::getValue(val));
+	} else {
+		knowbugVsw_addValueInt(_w, name, ptr);
+	}
+}
+#endif
+
+//------------------------------------------------
 // スカラー型の拡張表示
 //------------------------------------------------
+ void WINAPI knowbugVsw_addValueInt(vswriter_t _w, char const* name, void const* ptr)
+{
+	int const& val = *cptr_cast<int*>(ptr);
+	auto& s = (knowbugVsw_isLineformWriter(_w))
+		? strf("%d", val)
+		: strf("%-10d (0x%08X)", val, val);
+	vswriter(_w).getWriter().catLeaf(name, s.c_str());
+}
+
 #ifdef with_ExtraBasics
 
 static void catLeaf(vswriter_t _w, char const* name, char const* short_str, char const* long_str)
