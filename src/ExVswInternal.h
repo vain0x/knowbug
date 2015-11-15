@@ -28,3 +28,4 @@ struct VswInfoForInternal
 };
 
 extern std::vector<VswInfoForInternal> const& vswInfoForInternal();
+extern void sendVswMethods(HMODULE hDll);

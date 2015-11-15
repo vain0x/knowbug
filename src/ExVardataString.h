@@ -14,6 +14,7 @@ EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods();
 using knowbug_getVswMethods_t = KnowbugVswMethods const*(CALLBACK*)();
 
 // functions called from knowbug
+using receiveVswMethods_t = void(CALLBACK*)(KnowbugVswMethods const*);
 using addVarUserdef_t = void(CALLBACK*)(vswriter_t, char const* name, PVal const* pval);
 using addValueUserdef_t = void(CALLBACK*)(vswriter_t, char const* name, void const* ptr);
 
