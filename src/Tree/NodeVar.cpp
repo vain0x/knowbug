@@ -7,7 +7,7 @@
 namespace DataTree {
 
 NodeArray::NodeArray(tree_t parent, string const& name, PVal* pval)
-	: INode(parent, name)
+	: Node(parent, name)
 	, pval_(pval)
 	, cur_ {}
 {}

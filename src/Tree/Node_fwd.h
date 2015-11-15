@@ -3,9 +3,8 @@
 namespace DataTree
 {
 
-class ITree;
-class INode;
-using tree_t = ITree*;
+class Node;
+using tree_t = Node*;
 
 class NodeLoop;
 

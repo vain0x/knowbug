@@ -25,7 +25,12 @@ void NodeGlobal::spawnRoot()
 	}
 }
 
-tree_t INode::addChild(tree_t child)
+Node::~Node()
+{
+	removeChildAll();
+}
+
+tree_t Node::addChild(tree_t child)
 {
 	for ( auto& r : getObservers() ) {
 		r.appendObserver->visit0(child);
@@ -34,14 +39,14 @@ tree_t INode::addChild(tree_t child)
 	return child;
 }
 
-tree_t INode::replaceChild(children_t::iterator& pos, tree_t child)
+tree_t Node::replaceChild(children_t::iterator& pos, tree_t child)
 {
 	removeChild(pos);
 	*pos = child;
 	return child;
 }
 
-void INode::removeChild(children_t::iterator& pos)
+void Node::removeChild(children_t::iterator& pos)
 {
 	auto& child = *pos;
 	for ( auto& r : getObservers() ) {
@@ -50,7 +55,7 @@ void INode::removeChild(children_t::iterator& pos)
 	delete child; child = nullptr;
 }
 
-void INode::removeChildAll()
+void Node::removeChildAll()
 {
 	for ( auto iter = children_.begin(); iter != children_.end(); ++iter) {
 		removeChild(iter);

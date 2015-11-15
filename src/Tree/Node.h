@@ -24,10 +24,14 @@ extern void registerObserver(TreeObservers obs);
 
 HSPの値を木構造として取り扱うインターフェイス
 //*/
-class ITree
+class Node
 {
 public:
-	virtual ~ITree() { }
+	Node(tree_t parent, string const& name)
+		: parent_(parent), name_(name)
+	{}
+
+	virtual ~Node();
 
 	virtual void acceptVisitor(IVisitor& visitor) = 0;
 
@@ -35,9 +39,8 @@ protected:
 	template<typename TNode>
 	void acceptVisitorTemplate(IVisitor& visitor)
 	{
-		auto const p = dynamic_cast<TNode*>(this);
-		assert(p != nullptr);
-		visitor.visit(p);
+		assert(dynamic_cast<TNode*>(this) != nullptr);
+		visitor.visit(static_cast<TNode*>(this));
 	}
 
 public:
@@ -58,24 +61,10 @@ public:
 	UpdatedState getUpdatedState() const { return updatedState_; }
 private:
 	UpdatedState updatedState_;
-};
 
-class INode
-	: public ITree
-{
 protected:
-	typedef std::vector<tree_t> children_t;
+	using children_t = std::vector<tree_t>;
 
-public:
-	INode(tree_t parent, string const& name)
-		: ITree(), parent_(parent), name_(name)
-	{ }
-
-	virtual ~INode()
-	{
-		removeChildAll();
-	}
-	
 public:
 	tree_t getParent() const { return parent_; }
 	string const& getName() const { return name_; }
@@ -96,11 +85,11 @@ private:
 };
 
 class NodeLoop
-	: public INode
+	: public Node
 {
 public:
 	NodeLoop(tree_t parent, tree_t ancestor)
-		: INode(parent, string("(loop)"))
+		: Node(parent, string("(loop)"))
 	{ }
 
 	void acceptVisitor(IVisitor& visitor) override {
@@ -109,7 +98,7 @@ public:
 };
 
 class NodeModule
-	: public INode
+	: public Node
 {
 public:
 	NodeModule(tree_t parent, string const& name);
@@ -147,7 +136,7 @@ private:
 };
 
 class NodeArray
-	: public INode
+	: public Node
 {
 public:
 	NodeArray(tree_t parent, string const& name, PVal* pval);
@@ -170,11 +159,11 @@ private:
 };
 
 class NodeValue
-	: public INode
+	: public Node
 {
 public:
 	NodeValue(tree_t parent, string const& name, PDAT const* pdat, vartype_t vt)
-		: INode(parent, name)
+		: Node(parent, name)
 		, pdat_(pdat)
 		, vt_(vt)
 	{}

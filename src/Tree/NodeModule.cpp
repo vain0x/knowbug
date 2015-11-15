@@ -5,7 +5,7 @@
 namespace DataTree {
 
 NodeModule::NodeModule(tree_t parent, string const& name)
-	: INode(parent, name)
+	: Node(parent, name)
 {}
 
 bool NodeModule::updateState(tree_t child_opt)
