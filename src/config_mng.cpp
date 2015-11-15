@@ -60,6 +60,12 @@ KnowbugConfig::KnowbugConfig()
 		}
 	}
 
+	// 拙作プラグイン拡張型表示
+	for ( auto&& vsw2 : vswInfoForInternal() ) {
+		tryRegisterVswInfo(vsw2.vtname
+			, VswInfo { nullptr, vsw2.addVar, vsw2.addValue });
+	}
+
 	// 拡張型の変数データを文字列化する関数
 	auto const& keys = ini.enumKeys("VardataString/UserdefTypes");
 	for ( auto const& vtname : keys ) {
@@ -87,18 +93,20 @@ KnowbugConfig::KnowbugConfig()
 				hDll.get() != nullptr, fAddVar != nullptr, fAddValue != nullptr
 			).c_str());
 #endif
-			vswInfo.emplace(vtname, VswInfo { std::move(hDll), fAddVar, fAddValue });
+			tryRegisterVswInfo(vtname
+				, VswInfo { std::move(hDll), fAddVar, fAddValue });
 		} else {
 			Knowbug::logmesWarning(strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s\r\n",
 				vtname, dllPath).c_str());
 		}
 	}
+}
 
-	// 拙作プラグイン拡張型表示がなければ追加しておく
-	for ( auto&& vsw2 : vswInfoForInternal() ) {
-		//doesn't overwrite writers of external Dll
-		map_find_or_insert(vswInfo, vsw2.vtname, [&vsw2]() {
-			return VswInfo { nullptr, vsw2.addVar, vsw2.addValue };
-		});
-	}
+bool KnowbugConfig::tryRegisterVswInfo(string const& vtname, VswInfo vswi)
+{
+	auto const hvp = hpimod::seekHvp(vtname.c_str());
+	if ( !hvp ) return false;
+
+	vartype_t const vtflag = hvp->flag;
+	return vswInfo.emplace(vtflag, std::move(vswi)).second;
 }

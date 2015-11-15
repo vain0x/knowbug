@@ -57,8 +57,7 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 
 	// 拡張型
 	if ( pval->flag >= HSPVAR_FLAG_USERDEF ) {
-		auto const hvp = hpimod::getHvp(pval->flag);
-		auto const&& iter = g_config->vswInfo.find(hvp->vartype_name);
+		auto const&& iter = g_config->vswInfo.find(pval->flag);
 		if ( iter != g_config->vswInfo.end() ) {
 			if ( addVarUserdef_t const addVar = iter->second.addVar ) {
 				return addVar(this, name, pval);
@@ -156,7 +155,7 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 
 	// 拡張型
 	if ( type >= HSPVAR_FLAG_USERDEF ) {
-		auto const iter = g_config->vswInfo.find(hpimod::getHvp(type)->vartype_name);
+		auto const iter = g_config->vswInfo.find(type);
 		if ( iter != g_config->vswInfo.end() ) {
 			if ( addValueUserdef_t const addValue = iter->second.addValue ) {
 				addValue(this, name, ptr);
