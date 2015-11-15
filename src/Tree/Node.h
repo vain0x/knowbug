@@ -108,13 +108,6 @@ public:
 	}
 };
 
-class ILeaf
-	: public ITree
-{
-public:
-	ILeaf() { }
-};
-
 class NodeModule
 	: public INode
 {

@@ -278,6 +278,9 @@
     <ClInclude Include="Tree\TvRepr.h">
       <Filter>class\Tree</Filter>
     </ClInclude>
+    <ClInclude Include="Tree\Node_fwd.h">
+      <Filter>class\Tree</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc">

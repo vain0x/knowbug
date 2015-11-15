@@ -5,8 +5,6 @@ namespace DataTree
 
 class ITree;
 class INode;
-class ILeaf;
-
 using tree_t = ITree*;
 
 class NodeLoop;

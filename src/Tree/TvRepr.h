@@ -49,9 +49,7 @@ private:
 		void visit(NodeModule* t)   override { visit1(t); }
 		void visit(NodeArray* t)    override { visit1(t); }
 		void visit(NodeValue* t)    override { visit1(t); }
-
 		void visit1(INode* t);
-		void visit1(ILeaf*) { }
 	};
 
 	class TvRemoveObserver
@@ -67,9 +65,7 @@ private:
 		void visit(NodeModule* t)   override { visit1(t); }
 		void visit(NodeArray* t)    override { visit1(t); }
 		void visit(NodeValue* t)    override { visit1(t); }
-
 		void visit1(INode* t);
-		void visit1(ILeaf*) {}
 	};
 
 	struct Impl;

@@ -392,6 +392,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="resource.h" />
     <ClInclude Include="SysvarData.h" />
     <ClInclude Include="Tree\Node.h" />
+    <ClInclude Include="Tree\Node_fwd.h" />
     <ClInclude Include="Tree\Observer.h" />
     <ClInclude Include="Tree\TvRepr.h" />
     <ClInclude Include="Tree\Visitor.h" />
