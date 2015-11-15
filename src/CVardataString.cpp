@@ -154,12 +154,6 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 	if ( type == HSPVAR_FLAG_STRUCT ) {
 		addValueStruct(name, VtTraits::asValptr<vtStruct>(ptr));
 
-#ifdef with_ModPtr
-	} else if ( type == HSPVAR_FLAG_INT && ModPtr::isValid(VtTraits::derefValptr<vtInt>(ptr)) ) {
-		auto const modptr = VtTraits::derefValptr<vtInt>(ptr);
-		string const name2 = strf("%s = mp#%d", name, ModPtr::getIdx(modptr));
-		addValueStruct(name2.c_str(), ModPtr::getValue(modptr));
-#endif
 	} else if ( type == HSPVAR_FLAG_STR ) {
 		addValueString(name, VtTraits::asValptr<vtStr>(ptr));
 
@@ -417,20 +411,13 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 
 	switch ( type ) {
 		case HSPVAR_FLAG_STR:
+		case HSPVAR_FLAG_INT:
 		case HSPVAR_FLAG_STRUCT: assert_sentinel;
 
 		case HSPVAR_FLAG_COMOBJ:  return strf("comobj(%p)", *cptr_cast<void**>(ptr));
 		case HSPVAR_FLAG_VARIANT: return strf("variant(%p)", *cptr_cast<void**>(ptr));
 		case HSPVAR_FLAG_DOUBLE:  return strf((bShort ? "%f" : "%.16f"), *cptr_cast<double*>(ptr));
-		case HSPVAR_FLAG_INT: {
-			int const val = VtTraits::derefValptr<vtInt>(ptr);
-#ifdef with_ModPtr
-			assert(!ModPtr::isValid(val)); // addItem_value で処理されたはず
-#endif
-			return (bShort
-				? strf("%d", val)
-				: strf("%-10d (0x%08X)", val, val));
-		}
+
 		case HSPVAR_FLAG_LABEL:return nameFromLabel(VtTraits::derefValptr<vtLabel>(ptr));
 		default: {
 			auto const vtname = hpimod::getHvp(type)->vartype_name;
