@@ -85,7 +85,7 @@ NodeModule* NodeModule::addModule(string const& rawName)
 }
 
 NodeGlobal::NodeGlobal(tree_t parent)
-	: NodeModule(parent, "@")
+	: NodeModule(parent, "")
 	, uninitialized_(true)
 {}
 

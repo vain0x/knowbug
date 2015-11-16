@@ -39,17 +39,15 @@ TvRepr::TvRepr(HWND hTv)
 TvRepr::~TvRepr()
 {}
 	
-void TvRepr::TvAppendObserver::visit0(tree_t newChild)
+void TvRepr::TvAppendObserver::insert(tree_t newChild, std::string const& name)
 {
 	auto const parent = newChild->getParent();
+	auto const hParent =
+		(parent == &NodeRoot::instance()
+		? TVI_ROOT
+		: getCallback().tryFindTvItem(parent));
 
-	getCallback().insertItem
-		( newChild
-		, newChild->getName()
-		, (parent == &NodeRoot::instance()
-			? TVI_ROOT
-			: getCallback().tryFindTvItem(parent))
-		, TVI_LAST);
+	getCallback().insertItem(newChild, name, hParent, TVI_LAST);
 }
 
 void TvRepr::TvRemoveObserver::visit0(tree_t removed)
