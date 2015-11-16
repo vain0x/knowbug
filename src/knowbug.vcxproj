@@ -362,7 +362,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="..\hpimod\hspsdk\hsp3struct.h" />
     <ClInclude Include="..\hpimod\hspsdk\hspvar_core.h" />
     <ClInclude Include="..\hpimod\hspsdk\hspwnd.h" />
-    <ClInclude Include="CAx.h" />
     <ClInclude Include="config_mng.h" />
     <ClInclude Include="CVardataString.h" />
     <ClInclude Include="CVarinfoText.h" />

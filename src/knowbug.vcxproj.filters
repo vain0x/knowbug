@@ -143,9 +143,6 @@
     <ClInclude Include="with_ModPtr.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CAx.h">
-      <Filter>class</Filter>
-    </ClInclude>
     <ClInclude Include="WrapCall\ModcmdCallInfo.h">
       <Filter>WrapCall</Filter>
     </ClInclude>
