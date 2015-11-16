@@ -43,6 +43,9 @@
     <Filter Include="module\cppformat">
       <UniqueIdentifier>{28c463bf-4ac1-41cd-b962-e422ed5235ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="module\hpiutil">
+      <UniqueIdentifier>{4f3119dd-ce77-4b7e-a8d4-476f69a7386d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CVarinfoText.cpp">
@@ -113,6 +116,9 @@
     </ClCompile>
     <ClCompile Include="VarTreeNodeData.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hpiutil\stringify.cpp">
+      <Filter>module\hpiutil</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -247,6 +253,18 @@
     </ClInclude>
     <ClInclude Include="ExVswInternal.h">
       <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hpiutil\hpiutil.hpp">
+      <Filter>module\hpiutil</Filter>
+    </ClInclude>
+    <ClInclude Include="hpiutil\vector_view.hpp">
+      <Filter>module\hpiutil</Filter>
+    </ClInclude>
+    <ClInclude Include="hpiutil\hpiutil_fwd.hpp">
+      <Filter>module\hpiutil</Filter>
+    </ClInclude>
+    <ClInclude Include="hpiutil\dinfo.hpp">
+      <Filter>module\hpiutil</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -6,6 +6,7 @@
 #include "module/CStrBuf.h"
 #include "hpimod/vartype_traits.h"
 #include "hpimod/stringization.h"
+#include "hpiutil/hpiutil.hpp"
 
 #include "main.h"
 #include "CVardataString.h"
@@ -20,9 +21,6 @@ namespace VtTraits { using namespace hpimod::VtTraits; }
 using namespace hpimod::VtTraits::InternalVartypeTags;
 
 static string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort);
-static string nameFromModuleClass(stdat_t stdat, bool bClone);
-static string nameFromStPrm(stprm_t stprm, int idx);
-static string nameFromLabel(label_t lb);
 
 CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src) : writer_(std::move(src.writer_)) {}
 CVardataStrWriter::~CVardataStrWriter() {}
@@ -196,7 +194,7 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 	} else {
 		auto const stdat = hpimod::FlexValue_getModule(fv);
 		auto const modclsNameString =
-			nameFromModuleClass(stdat, hpimod::FlexValue_isClone(fv));
+			hpiutil::nameFromModuleClass(stdat, hpimod::FlexValue_isClone(fv));
 
 		getWriter().catNodeBegin(name, (modclsNameString + "{").c_str());
 		getWriter().catAttribute("modcls", modclsNameString.c_str());
@@ -229,7 +227,7 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> 
 			getWriter().cat(" ");
 		}
 
-		addParameter(nameFromStPrm(&stprm, i).c_str(), stdat, &stprm, member, prmstk.second);
+		addParameter(hpiutil::nameFromStPrm(&stprm, i).c_str(), stdat, &stprm, member, prmstk.second);
 
 		// structtag isn't a member
 		if ( stprm.mptype != MPTYPE_STRUCTTAG ) { ++i; }
@@ -418,56 +416,10 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 		case HSPVAR_FLAG_VARIANT: return strf("variant(%p)", *cptr_cast<void**>(ptr));
 		case HSPVAR_FLAG_DOUBLE:  return strf((bShort ? "%f" : "%.16f"), *cptr_cast<double*>(ptr));
 
-		case HSPVAR_FLAG_LABEL:return nameFromLabel(VtTraits::derefValptr<vtLabel>(ptr));
+		case HSPVAR_FLAG_LABEL: return hpiutil::nameFromLabel(VtTraits::derefValptr<vtLabel>(ptr));
 		default: {
 			auto const vtname = hpimod::getHvp(type)->vartype_name;
 			return strf("unknown<%s>(%p)", vtname, cptr_cast<void*>(ptr));
 		}
-	}
-}
-
-//------------------------------------------------
-// モジュールクラス名を表す文字列
-//------------------------------------------------
-string nameFromModuleClass(stdat_t stdat, bool bClone)
-{
-	auto const modclsName = hpimod::STRUCTDAT_getName(stdat);
-	return (bClone
-		? strf("%s&", modclsName)
-		: modclsName);
-}
-
-//------------------------------------------------
-// 構造体パラメータの名前
-// 
-// デバッグ情報から取得する。なければ「(idx)」とする。
-//------------------------------------------------
-string nameFromStPrm(stprm_t stprm, int idx)
-{
-	int const subid = hpimod::findStPrmIndex(stprm);
-	if ( subid >= 0 ) {
-		if ( auto const name = g_dbginfo->getAx().tryFindParamName(subid) ) {
-			return hpimod::nameExcludingScopeResolution(name);
-
-		// thismod 引数
-		} else if ( stprm->mptype == MPTYPE_MODULEVAR || stprm->mptype == MPTYPE_IMODULEVAR || stprm->mptype == MPTYPE_TMODULEVAR ) {
-			return "thismod";
-		}
-	}
-	return hpimod::stringizeArrayIndex({ idx });
-}
-
-//------------------------------------------------
-// ラベルの名前
-// 
-// デバッグ情報から取得する。なければ「label(address)」とする。
-//------------------------------------------------
-string nameFromLabel(label_t lb)
-{
-	int const otIndex = hpimod::findOTIndex(lb);
-	if ( auto const name = g_dbginfo->getAx().tryFindLabelName(otIndex) ) {
-		return strf("*%s", name);
-	} else {
-		return strf("label(%p)", cptr_cast<void*>(lb));
 	}
 }
