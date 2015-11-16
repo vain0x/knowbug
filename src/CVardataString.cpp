@@ -5,13 +5,11 @@
 #include "module/CStrWriter.h"
 #include "module/CStrBuf.h"
 #include "hpimod/vartype_traits.h"
-#include "hpimod/stringization.h"
 #include "hpiutil/hpiutil.hpp"
 
 #include "main.h"
 #include "CVardataString.h"
 #include "CVarinfoText.h"
-#include "CAx.h"
 #include "SysvarData.h"
 #include "config_mng.h"
 
@@ -56,7 +54,7 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 		return addVar(this, name, pval);
 	}
 	
-	if ( hpimod::PVal_isStandardArray(pval) ) {
+	if ( hpiutil::PVal_isStandardArray(pval) ) {
 		addVarArray(name, pval);
 	} else {
 		addVarScalar(name, pval, 0);
@@ -70,12 +68,12 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 //------------------------------------------------
 void CVardataStrWriter::addVarScalar(char const* name, PVal const* pval)
 {
-	addValue(name, pval->flag, hpimod::PVal_getPtr(pval));
+	addValue(name, pval->flag, hpiutil::PVal_getPtr(pval));
 }
 
 void CVardataStrWriter::addVarScalar(char const* name, PVal const* pval, APTR aptr)
 {
-	addValue(name, pval->flag, hpimod::PVal_getPtr(pval, aptr));
+	addValue(name, pval->flag, hpiutil::PVal_getPtr(pval, aptr));
 }
 
 //------------------------------------------------
@@ -83,8 +81,8 @@ void CVardataStrWriter::addVarScalar(char const* name, PVal const* pval, APTR ap
 //------------------------------------------------
 void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 {
-	auto const hvp = hpimod::getHvp(pval->flag);
-	size_t const cntElem = hpimod::PVal_cntElems(pval);
+	auto const hvp = hpiutil::varproc(pval->flag);
+	size_t const cntElem = hpiutil::PVal_cntElems(pval);
 
 	getWriter().catNodeBegin(name, strf("<%s>[", hvp->vartype_name).c_str());
 
@@ -93,20 +91,20 @@ void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 		getWriter().catAttribute("type", stringizeVartype(pval).c_str());
 
 		for ( size_t i = 0; i < cntElem; ++i ) {
-			auto&& indexes = hpimod::PVal_indexesFromAptr(pval, i);
+			auto&& indexes = hpiutil::PVal_indexesFromAptr(pval, i);
 
 			// 要素の値を追加
-			string const nameChild = hpimod::stringizeArrayIndex(indexes);
+			string const nameChild = hpiutil::stringifyArrayIndex(indexes);
 			addVarScalar(nameChild.c_str(), pval, i);
 		}
 
 	// 一行文字列の場合
 	} else if ( cntElem > 0 ) {
-		size_t const dim = hpimod::PVal_maxDim(pval);
+		size_t const dim = hpiutil::PVal_maxDim(pval);
 
 		// cntElems[1 + i] = 部分i次元配列の要素数
 		// (例えば配列 int(2, 3, 4) だと、cntElems = {1, 2, 2*3, 2*3*4, 0})
-		size_t cntElems[1 + hpimod::ArrayDimMax] = { 1 };
+		size_t cntElems[1 + hpiutil::ArrayDimMax] = { 1 };
 		for ( size_t i = 0; i < dim && pval->len[i + 1] > 0; ++i ) {
 			cntElems[i + 1] = pval->len[i + 1] * cntElems[i];
 		}
@@ -117,7 +115,7 @@ void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 	getWriter().catNodeEnd("]");
 }
 
-void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const (&cntElems)[hpimod::ArrayDimMax + 1], size_t idxDim, APTR aptr_offset)
+void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const (&cntElems)[hpiutil::ArrayDimMax + 1], size_t idxDim, APTR aptr_offset)
 {
 	assert(getWriter().isLineformed());
 	for ( int i = 0; i < pval->len[idxDim + 1]; ++i ) {
@@ -167,7 +165,7 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 void CVardataStrWriter::addValueString(char const* name, char const* str)
 {
 	if ( getWriter().isLineformed() ) {
-		getWriter().catLeaf(name, hpimod::literalFormString(str).c_str());
+		getWriter().catLeaf(name, hpiutil::literalFormString(str).c_str());
 
 	} else {
 		if ( strstr(str, "\r\n") ) {
@@ -192,9 +190,9 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 		getWriter().catLeafExtra(name, "nullmod");
 
 	} else {
-		auto const stdat = hpimod::FlexValue_getModule(fv);
+		auto const stdat = hpiutil::FlexValue_module(fv);
 		auto const modclsNameString =
-			hpiutil::nameFromModuleClass(stdat, hpimod::FlexValue_isClone(fv));
+			hpiutil::nameFromModuleClass(stdat, hpiutil::FlexValue_isClone(fv));
 
 		getWriter().catNodeBegin(name, (modclsNameString + "{").c_str());
 		getWriter().catAttribute("modcls", modclsNameString.c_str());
@@ -216,8 +214,8 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> 
 	int prev_mptype = MPTYPE_NONE;
 	int i = 0;
 
-	std::for_each(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat), [&](STRUCTPRM const& stprm) {
-		auto const member = hpimod::Prmstack_getMemberPtr(prmstk.first, &stprm);
+	for ( auto& stprm : hpiutil::STRUCTDAT_params(stdat) ) {
+		auto const member = hpiutil::Prmstack_memberPtr(prmstk.first, &stprm);
 
 		// if treeformed: put an additional ' ' before 'local' parameters
 		if ( !getWriter().isLineformed()
@@ -231,7 +229,7 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> 
 
 		// structtag isn't a member
 		if ( stprm.mptype != MPTYPE_STRUCTTAG ) { ++i; }
-	});
+	}
 }
 
 //------------------------------------------------
@@ -275,7 +273,7 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 		case MPTYPE_IMODULEVAR:
 		case MPTYPE_TMODULEVAR: {
 			auto const thismod = cptr_cast<MPModVarData*>(member);
-			auto const fv = VtTraits::asValptr<vtStruct>(hpimod::PVal_getPtr(thismod->pval, thismod->aptr));
+			auto const fv = VtTraits::asValptr<vtStruct>(hpiutil::PVal_getPtr(thismod->pval, thismod->aptr));
 			addValueStruct(name, fv);
 			break;
 		}
@@ -342,9 +340,9 @@ void CVardataStrWriter::addSysvar(Sysvar::Id id)
 			if ( PVal const* const pval = ctx->note_pval ) {
 				APTR const aptr = ctx->note_aptr;
 
-				auto&& indexes = hpimod::PVal_indexesFromAptr(pval, aptr);
-				auto&& indexString = hpimod::stringizeArrayIndex(indexes);
-				auto const varName = hpimod::nameFromStaticVar(pval);
+				auto&& indexes = hpiutil::PVal_indexesFromAptr(pval, aptr);
+				auto&& indexString = hpiutil::stringifyArrayIndex(indexes);
+				auto const varName = hpiutil::nameFromStaticVar(pval);
 				string&& name2 = (varName
 					? strf("%s (%s%s)", name, varName, indexString)
 					: strf("%s (%p (%d))", name, cptr_cast<void*>(pval), aptr));
@@ -377,7 +375,7 @@ void CVardataStrWriter::addSysvar(Sysvar::Id id)
 //------------------------------------------------
 void CVardataStrWriter::addCall(stdat_t stdat, std::pair<void const*, bool> prmstk)
 {
-	char const* const name = hpimod::STRUCTDAT_getName(stdat);
+	char const* const name = hpiutil::STRUCTDAT_name(stdat);
 
 	getWriter().catNodeBegin(name, strf("%s(", name).c_str());
 	if ( !prmstk.first ) {
@@ -391,7 +389,7 @@ void CVardataStrWriter::addCall(stdat_t stdat, std::pair<void const*, bool> prms
 void CVardataStrWriter::addResult(stdat_t stdat, PDAT const* resultPtr, vartype_t resultType)
 {
 	assert(!!resultPtr);
-	char const* const name = hpimod::STRUCTDAT_getName(stdat);
+	char const* const name = hpiutil::STRUCTDAT_name(stdat);
 
 	getWriter().catNodeBegin(name, strf("%s => ", name).c_str());
 	addValue(".result", resultType, resultPtr);
@@ -418,7 +416,7 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 
 		case HSPVAR_FLAG_LABEL: return hpiutil::nameFromLabel(VtTraits::derefValptr<vtLabel>(ptr));
 		default: {
-			auto const vtname = hpimod::getHvp(type)->vartype_name;
+			auto const vtname = hpiutil::varproc(type)->vartype_name;
 			return strf("unknown<%s>(%p)", vtname, cptr_cast<void*>(ptr));
 		}
 	}

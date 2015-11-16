@@ -57,7 +57,7 @@ FlexValue* tryGetThismod()
 		if ( thismod->magic == MODVAR_MAGICCODE ) {
 			PVal* const pval = thismod->pval;
 			if ( pval->flag == HSPVAR_FLAG_STRUCT ) {
-				auto const fv = ptr_cast<FlexValue*>(hpimod::PVal_getPtr(pval, thismod->aptr));
+				auto const fv = ptr_cast<FlexValue*>(hpiutil::PVal_getPtr(pval, thismod->aptr));
 				return fv;
 			}
 		}
@@ -79,9 +79,9 @@ std::pair<void const*, size_t> tryDump(Id id)
 			APTR  const aptr = ctx->note_aptr;
 			if ( pval && pval->flag == HSPVAR_FLAG_STR ) {
 				int size;
-				auto const data = hpimod::getHvp(HSPVAR_FLAG_STR)->GetBlockSize(
+				auto const data = hpiutil::varproc(HSPVAR_FLAG_STR)->GetBlockSize(
 					pval,
-					ptr_cast<PDAT*>(hpimod::PVal_getPtr(pval, aptr)),
+					ptr_cast<PDAT*>(hpiutil::PVal_getPtr(pval, aptr)),
 					&size
 				);
 				return std::make_pair(data, static_cast<size_t>(size));

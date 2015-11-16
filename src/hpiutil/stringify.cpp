@@ -23,6 +23,14 @@ DInfo& DInfo::instance()
 	return *inst;
 }
 
+char const* nameFromStaticVar(PVal const* pval)
+{
+	ptrdiff_t const index = detail::indexFrom(staticVars(), pval);
+	return (index >= 0)
+		? exinfo->HspFunc_varname(static_cast<int>(index))
+		: nullptr;
+}
+
 std::string nameFromModuleClass(stdat_t stdat, bool isClone)
 {
 	std::string&& modclsName = STRUCTDAT_name(stdat);

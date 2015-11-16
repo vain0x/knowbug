@@ -38,6 +38,9 @@ enum DebugNotice
 // 定数 /MPTYPE_(\w+)/ の値に対応する適当な名前を得る
 extern char const* nameFromMPType(int mptype);
 
+// 静的変数の名前を得る (失敗時は nullptr)
+extern char const* nameFromStaticVar(PVal const* pval);
+
 // モジュールクラス名を得る (クローンなら末尾に `&` をつける)
 extern std::string nameFromModuleClass(stdat_t stdat, bool isClone);
 

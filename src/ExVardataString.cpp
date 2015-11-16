@@ -3,7 +3,6 @@
 #include "module/ptr_cast.h"
 #include "module/CStrBuf.h"
 #include "module/CStrWriter.h"
-#include "hpimod/stringization.h"
 
 #include "main.h"
 #include "SysvarData.h"
@@ -61,7 +60,7 @@ EXPORT void WINAPI knowbugVsw_addPrmstack(vswriter_t _w, STRUCTDAT const* stdat,
 }
 EXPORT void WINAPI knowbugVsw_addStPrm(vswriter_t _w, char const* name, STRUCTPRM const* stprm, void const* ptr)
 {
-	vswriter(_w).addParameter(name, hpimod::STRUCTPRM_getStDat(stprm), stprm, ptr, true);
+	vswriter(_w).addParameter(name, hpiutil::STRUCTPRM_stdat(stprm), stprm, ptr, true);
 }
 EXPORT void WINAPI knowbugVsw_addSysvar(vswriter_t _w, char const* name)
 {
@@ -182,7 +181,7 @@ void WINAPI knowbugVsw_addValueAssoc(vswriter_t _w, char const* name, void const
 		return;
 	}
 
-	auto const hvp = hpimod::seekHvp(assoc_vartype_name);
+	auto const hvp = hpiutil::tryFindHvp(assoc_vartype_name);
 	StAssocMapList* const head = (reinterpret_cast<GetMapList_t>(hvp->user))(src);
 
 	// 要素なし
@@ -239,7 +238,7 @@ void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void cons
 		return;
 	}
 
-	auto const hvp = hpimod::seekHvp(vector_vartype_name);
+	auto const hvp = hpiutil::tryFindHvp(vector_vartype_name);
 	int len;
 	PVal** const pvals = (reinterpret_cast<GetVectorList_t>(hvp->user))(src, &len);
 
@@ -255,7 +254,7 @@ void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void cons
 		knowbugVsw_catAttribute(_w, "length", strf("%d", len).c_str());
 
 		for ( int i = 0; i < len; ++i ) {
-			knowbugVsw_addVar(_w, hpimod::stringizeArrayIndex({ i }).c_str(), pvals[i]);
+			knowbugVsw_addVar(_w, hpiutil::stringifyArrayIndex({ i }).c_str(), pvals[i]);
 			//dbgout("%p: idx = %d, pval = %p, next = %p", list, idx, list->pval, list->next );
 		}
 
@@ -284,7 +283,7 @@ void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const
 		return;
 	}
 
-	auto const hvp = hpimod::seekHvp(array_vartype_name);
+	auto const hvp = hpiutil::seekHvp(array_vartype_name);
 	PVal* const pvInner = (reinterpret_cast<GetArray_t>(hvp->user))(src);
 
 	// 要素なし
@@ -307,7 +306,7 @@ void WINAPI knowbugVsw_addValueModcmd(vswriter_t _w, char const* name, void cons
 {
 	int const modcmd = *reinterpret_cast<int const*>(ptr);
 	knowbugVsw_catLeaf(_w, name, strf("modcmd(%s)",
-		(modcmd == 0xFFFFFFFF) ? "" : hpimod::STRUCTDAT_getName(hpimod::getSTRUCTDAT(modcmd))
+		(modcmd == 0xFFFFFFFF) ? "" : hpiutil::STRUCTDAT_name(&hpiutil::finfo()[modcmd])
 	).c_str());
 }
 
@@ -318,14 +317,10 @@ void WINAPI knowbugVsw_addValueModcmd(vswriter_t _w, char const* name, void cons
 //------------------------------------------------
 #ifdef with_ModPtr
 
-#include "hpimod/vartype_traits.h"
 #include "with_ModPtr.h"
 
 void WINAPI knowbugVsw_addValueIntOrModPtr(vswriter_t _w, char const* name, void const* ptr)
 {
-	using namespace hpimod;
-	using namespace hpimod::VtTraits::InternalVartypeTags;
-
 	int const& val = *cptr_cast<int*>(ptr);
 	if ( ModPtr::isValid(val) ) {
 		string const name2 = strf("%s = mp#%d", name, ModPtr::getIdx(val));

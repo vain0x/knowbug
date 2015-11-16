@@ -16,13 +16,10 @@ class DebugInfo
 	using string = std::string;
 
 	HSP3DEBUG* const debug_;
-	std::unique_ptr<hpimod::CAx> const ax_;
 
 public:
 	DebugInfo(HSP3DEBUG* debug);
 	~DebugInfo();
-
-	hpimod::CAx const& getAx() const { return *ax_; }
 
 	bool setStepMode(int mode) { return (debug_->dbg_set(mode) >= 0); }
 
