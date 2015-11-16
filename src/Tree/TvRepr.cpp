@@ -33,7 +33,7 @@ TvRepr::TvRepr(HWND hTv)
 	: m(new Impl(hTv, TvAppendObserver(*this), TvRemoveObserver(*this)))
 {
 	auto&& do_nothing = [](NodeRoot*) {};
-	registerObserver({ do_nothing, &m->appendObserver, &m->removeObserver });
+	NodeRoot::instance().registerObserver({ do_nothing, &m->appendObserver, &m->removeObserver });
 }
 
 TvRepr::~TvRepr()

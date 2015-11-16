@@ -13,10 +13,10 @@ static bool vartype_isKnown(vartype_t vt)
 	return HSPVAR_FLAG_LABEL <= vt && vt <= HSPVAR_FLAG_INT;
 }
 
-// 観測者
-std::vector<TreeObservers> stt_observers;
-void registerObserver(TreeObservers r) { stt_observers.push_back(r); }
-static std::vector<TreeObservers>& getObservers() { return stt_observers; }
+static std::vector<TreeObservers> const& getObservers() 
+{
+	return NodeRoot::instance().getObservers();
+}
 
 Node::~Node()
 {
@@ -63,18 +63,30 @@ void NodeRoot::spawnRoot()
 
 NodeRoot::NodeRoot()
 	: Node(this, string("(root)"))
+	, uninitialized_ { true }
 {
 	addChild<NodeGlobal>();
 }
 
 bool NodeRoot::updateState(tree_t childOrNull)
 {
+	if ( uninitialized_ ) {
+		uninitialized_ = false;
+		spawnRoot();
+		addChild<NodeGlobal>();
+	}
+
 	if ( !childOrNull ) {
 		for ( auto& child : getChildren() ) {
 			child->updateStateAll();
 		}
 	}
 	return true;
+}
+
+void NodeRoot::registerObserver(TreeObservers r)
+{
+	observers_.push_back(r);
 }
 
 }

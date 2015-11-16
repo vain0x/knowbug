@@ -16,8 +16,6 @@ struct TreeObservers
 	IVisitor* appendObserver;
 	IVisitor* removeObserver;
 };
-extern std::vector<TreeObservers> stt_observers;
-extern void registerObserver(TreeObservers obs);
 
 /**
 データツリー
@@ -110,6 +108,13 @@ public:
 	}
 
 	bool updateState(tree_t chlidOrNull) override;
+
+	void registerObserver(TreeObservers obs);
+	std::vector<TreeObservers> const& getObservers() const { return observers_; }
+
+private:
+	std::vector<TreeObservers> observers_;
+	bool uninitialized_;
 };
 
 class NodeLoop
