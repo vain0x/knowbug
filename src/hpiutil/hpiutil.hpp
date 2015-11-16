@@ -217,4 +217,24 @@ static PDAT const* PVal_getPtr(PVal const* pval)
 	return PVal_getPtr(pval, pval->offset);
 }
 
+// 値へのアクセス (なるべくC++の型を割り当てる)
+template<typename R
+	, typename FunLabel, typename FunStr, typename FunDouble, typename FunInt, typename FunStruct
+	, typename FunDefault>
+auto dispatchValue
+	( PDAT const* pdat, vartype_t vtype
+	, FunLabel&& fLabel, FunStr&& fStr, FunDouble&& fDouble, FunInt&& fInt, FunStruct&& fStruct
+	, FunDefault&& fDef)
+	-> R
+{
+	switch ( vtype ) {
+		case HSPVAR_FLAG_LABEL:  return fLabel(*reinterpret_cast<label_t const*>(pdat));
+		case HSPVAR_FLAG_STR:    return fStr(reinterpret_cast<char const*>(pdat));
+		case HSPVAR_FLAG_DOUBLE: return fDouble(*reinterpret_cast<double const*>(pdat));
+		case HSPVAR_FLAG_INT:    return fInt(*reinterpret_cast<int const*>(pdat));
+		case HSPVAR_FLAG_STRUCT: return fStruct(*reinterpret_cast<FlexValue const*>(pdat));
+		default: return fDef(pdat, vtype);
+	}
 }
+
+} // namespace hpiutil
