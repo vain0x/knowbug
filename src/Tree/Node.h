@@ -195,7 +195,7 @@ private:
 };
 
 class NodeValue
-	: public Node
+	: virtual public Node
 {
 public:
 	NodeValue(tree_t parent, string const& name, PDAT const* pdat, vartype_t vt)
@@ -224,28 +224,65 @@ private:
 	vartype_t vt_;
 };
 
-/*
-class NodePrmStk
-	: public IPolyNode
+// prmstack 上の実引数データに対応するノード
+class NodeParam
+	: public Node
 {
 public:
-	NodePrmStk(tree_t parent, string name, void* prmstk, stdat_t stdat);
-	NodePrmStk(tree_t parent, string name, void* prmstk, stprm_t stprm);
+	NodeParam(tree_t parent, string const& name);
 
+private:
+	int mptype_;
+};
+
+// prmstack を所有するノードの挙動を補助するクラス
+class NodePrmstack
+	: virtual public Node
+{
 public:
-	void acceptVisitor(IVisitor& visitor) override {
-		acceptVisitorTemplate<NodePrmStk>(visitor);
-	}
+	NodePrmstack(void const* prmstack, stdat_t stdat);
+	NodePrmstack(void const* prmstack, stprm_t stprm);
+
+	NodePrmstack()
+		: NodePrmstack { nullptr, static_cast<stdat_t>(nullptr) }
+	{}
+
+	bool updateMembers(tree_t childOrNull);
+
+protected:
+	void addChildren();
 
 private:
-	void initialize();
-	void add( size_t idx, void* member, stprm_t stprm );
-	
-private:
-	void* prmstk_;
+	void const* prmstack_; // Never nullptr
 	stdat_t stdat_;
 	stprm_t stprm_;
 };
-//*/
+
+class NodeStruct
+	: public NodeValue
+	, public NodePrmstack
+{
+public:
+	NodeStruct(tree_t parent, string const& name, PDAT const* pdat)
+		: Node { parent, name }
+		, NodeValue { parent, name, pdat, HSPVAR_FLAG_STRUCT }
+		, NodePrmstack { }
+	{}
+
+	void acceptVisitor(IVisitor& visitor) override
+	{
+		Node::acceptVisitorTemplate<NodeStruct>(visitor);
+	}
+
+	bool updateState(tree_t) override;
+
+private:
+	FlexValue const* getFv() const
+	{
+		return reinterpret_cast<FlexValue const*>(getValptr());
+	}
+
+	FlexValue fv_;
+};
 
 }

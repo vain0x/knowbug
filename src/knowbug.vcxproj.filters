@@ -123,13 +123,13 @@
     <ClCompile Include="Tree\NodeVar.cpp">
       <Filter>class\Tree</Filter>
     </ClCompile>
-    <ClCompile Include="Tree\NodeValue.cpp">
-      <Filter>class\Tree</Filter>
-    </ClCompile>
     <ClCompile Include="Tree\NodeModule.cpp">
       <Filter>class\Tree</Filter>
     </ClCompile>
     <ClCompile Include="Tree\TvRepr.cpp">
+      <Filter>class\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\NodeStruct.cpp">
       <Filter>class\Tree</Filter>
     </ClCompile>
   </ItemGroup>

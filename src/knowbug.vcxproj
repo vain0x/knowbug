@@ -342,7 +342,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="SysvarData.cpp" />
     <ClCompile Include="Tree\Node.cpp" />
     <ClCompile Include="Tree\NodeModule.cpp" />
-    <ClCompile Include="Tree\NodeValue.cpp" />
+    <ClCompile Include="Tree\NodeStruct.cpp" />
     <ClCompile Include="Tree\NodeVar.cpp" />
     <ClCompile Include="Tree\TvRepr.cpp" />
     <ClCompile Include="vartree.cpp" />

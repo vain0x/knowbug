@@ -16,7 +16,12 @@ void NodeArray::addElem(size_t aptr)
 {
 	auto&& name = hpimod::stringizeArrayIndex(hpimod::PVal_indexesFromAptr(pval_, aptr));
 	auto&& pdat = hpimod::PVal_getPtr(pval_, aptr);
-	addChild<NodeValue>(std::move(name), pdat, pval_->flag);
+
+	if ( pval_->flag == HSPVAR_FLAG_STRUCT ) {
+		addChild<NodeStruct>(std::move(name), pdat);
+	} else {
+		addChild<NodeValue>(std::move(name), pdat, pval_->flag);
+	}
 }
 
 void NodeArray::updateElem(size_t aptr)

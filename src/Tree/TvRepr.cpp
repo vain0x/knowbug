@@ -38,7 +38,7 @@ TvRepr::TvRepr(HWND hTv)
 
 TvRepr::~TvRepr()
 {}
-	
+
 void TvRepr::TvAppendObserver::insert(tree_t newChild, std::string const& name)
 {
 	auto const parent = newChild->getParent();

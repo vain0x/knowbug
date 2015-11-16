@@ -17,6 +17,7 @@ class NodeModule;
 class NodeArray;
 
 class NodeValue;
+class NodeStruct;
 class NodePrmStk;
 
 }
