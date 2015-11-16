@@ -7,10 +7,7 @@
 #include "hsp3struct.h"
 #include "hspvar_core.h"
 
-namespace hpimod { class CAx; }
-
 // HSP3DEBUG wrapper
-// with CAx
 class DebugInfo
 {
 	using string = std::string;
