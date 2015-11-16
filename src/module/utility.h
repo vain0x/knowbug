@@ -20,6 +20,12 @@ using std::unique_ptr;
 // unreachable code
 #define assert_sentinel do { assert(false); throw; } while(false)
 
+#ifdef _DEBUG
+# define DbgArea /* empty */
+#else
+# define DbgArea if ( false )
+#endif
+
 // optional<T&>
 template<typename T> using optional_ref = T*;
 

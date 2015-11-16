@@ -6,7 +6,6 @@
 #include "module/strf.h"
 #include "module/ptr_cast.h"
 #include "module/CStrBuf.h"
-#include "hpimod/stringization.h"
 
 #include "main.h"
 #include "DebugInfo.h"
@@ -40,7 +39,7 @@ string&& CVarinfoText::getStringMove() {
 //------------------------------------------------
 void CVarinfoText::addVar( PVal* pval, char const* name )
 {
-	auto const hvp = hpimod::getHvp(pval->flag);
+	auto const hvp = hpiutil::varproc(pval->flag);
 	int bufsize;
 	void const* const pMemBlock =
 		hvp->GetBlockSize(pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize));
@@ -116,7 +115,7 @@ void CVarinfoText::addCall(ModcmdCallInfo::shared_ptr_type const& callinfo)
 
 void CVarinfoText::addCallSignature(ModcmdCallInfo::shared_ptr_type const& callinfo, stdat_t stdat)
 {
-	auto const name = hpimod::STRUCTDAT_getName(stdat);
+	auto const name = hpiutil::STRUCTDAT_name(stdat);
 	getWriter().catln(
 		(callinfo->fname == nullptr)
 			? strf("関数名: %s", name)
@@ -156,11 +155,11 @@ void CVarinfoText::addModuleOverview(char const* name, StaticVarTree const& tree
 			getWriter().catln(module.getName());
 		},
 		[&](string const& varname) {
-			auto const shortName = hpimod::nameExcludingScopeResolution(varname);
+			auto const shortName = hpiutil::nameExcludingScopeResolution(varname);
 			getWriter().cat(shortName + "\t= ");
 			{
 				CVardataStrWriter::create<CLineformedWriter>(getBuf())
-					.addVar(varname.c_str(), hpimod::seekSttVar(varname.c_str()));
+					.addVar(varname.c_str(), hpiutil::seekSttVar(varname.c_str()));
 			}
 			getWriter().catCrlf();
 		}
@@ -227,10 +226,10 @@ void CVarinfoText::addGeneralOverview() {
 string stringizePrmlist(stdat_t stdat)
 {
 	string s = "";
-	std::for_each(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat), [&](STRUCTPRM const& stprm) {
+	for ( auto& stprm : hpiutil::STRUCTDAT_params(stdat) ) {
 		if ( !s.empty() ) s += ", ";
-		s += hpimod::nameFromMPType(stprm.mptype);
-	});
+		s += hpiutil::nameFromMPType(stprm.mptype);
+	}
 	return s;
 }
 
@@ -246,18 +245,18 @@ static char const* typeQualifierStringFromVarmode(varmode_t mode)
 //------------------------------------------------
 string stringizeVartype(PVal const* pval)
 {
-	size_t const maxDim = hpimod::PVal_maxDim(pval);
+	size_t const maxDim = hpiutil::PVal_maxDim(pval);
 
 	string const arrayType =
 		(maxDim == 0) ? "(empty)" :
-		(maxDim == 1) ? hpimod::stringizeArrayIndex({ pval->len[1] }) :
+		(maxDim == 1) ? hpiutil::stringifyArrayIndex({ pval->len[1] }) :
 		strf("%s (%d in total)",
-			hpimod::stringizeArrayIndex(std::vector<int>(&pval->len[1], &pval->len[1] + maxDim)),
-			hpimod::PVal_cntElems(pval))
+			hpiutil::stringifyArrayIndex(std::vector<int>(&pval->len[1], &pval->len[1] + maxDim)),
+			hpiutil::PVal_cntElems(pval))
 	;
 
 	return strf("%s%s %s",
-		hpimod::getHvp(pval->flag)->vartype_name,
+		hpiutil::varproc(pval->flag)->vartype_name,
 		typeQualifierStringFromVarmode(pval->mode),
 		arrayType
 	);

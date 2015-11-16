@@ -90,7 +90,7 @@ namespace Detail
 	} };
 #endif //defined(with_WrapCall)
 	template<> struct Verify < VarNode > { static bool apply(char const*, PVal* pval) {
-			return (pval && ctx->mem_var <= pval && pval < &ctx->mem_var[hpimod::cntSttVars()]);
+		return (pval && hpiutil::staticVars().begin() <= pval && pval < hpiutil::staticVars().end());
 	} };
 }
 
@@ -174,7 +174,7 @@ void AddNodeModule(HTREEITEM hParent, StaticVarTree const& tree)
 			AddNodeModule(hElem, module);
 		},
 		[&](string const& varname) {
-			PVal* const pval = hpimod::seekSttVar(varname.c_str());
+			PVal* const pval = hpiutil::seekSttVar(varname.c_str());
 			assert(!!pval);
 			TreeView_MyInsertItem<VarNode>(hElem, varname.c_str(), true, pval);
 		}
@@ -253,7 +253,7 @@ static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 			return cont(g_config->clrText[vtype]);
 
 		} else if ( vtype >= HSPVAR_FLAG_USERDEF ) {
-			auto const&& iter = g_config->clrTextExtra.find(hpimod::getHvp(vtype)->vartype_name);
+			auto const&& iter = g_config->clrTextExtra.find(hpiutil::varproc(vtype)->vartype_name);
 			if ( iter != g_config->clrTextExtra.end() ) {
 				return cont(iter->second);
 			}
@@ -391,7 +391,7 @@ void AddCallNode(ModcmdCallInfo::shared_ptr_type const& callinfo)
 void AddCallNodeImpl(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
 	char name[128] = "'";
-	strcpy_s(&name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(callinfo->stdat));
+	strcpy_s(&name[1], sizeof(name) - 1, hpiutil::STRUCTDAT_name(callinfo->stdat));
 	HTREEITEM const hChild = TreeView_MyInsertItem<InvokeNode>(g_hNodeDynamic, name, false, callinfo->idx);
 
 	// 第一ノードなら自動的に開く
@@ -471,7 +471,7 @@ void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
 
 	// 挿入
 	char name[128] = "\"";
-	strcpy_s( &name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(pResult->callinfo->stdat) );
+	strcpy_s( &name[1], sizeof(name) - 1, hpiutil::STRUCTDAT_name(pResult->callinfo->stdat) );
 	HTREEITEM const hChild = TreeView_MyInsertItem<ResultNode>(hParent, name, false, nullptr);
 
 	// 第一ノードなら自動的に開く
