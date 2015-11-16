@@ -329,6 +329,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="hpiutil\stringify.cpp" />
     <ClCompile Include="StaticVarTree.cpp" />
     <ClCompile Include="DebugInfo.cpp" />
     <ClCompile Include="dialog.cpp" />
@@ -366,6 +367,10 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="CVardataString.h" />
     <ClInclude Include="CVarinfoText.h" />
     <ClInclude Include="ExVswInternal.h" />
+    <ClInclude Include="hpiutil\dinfo.hpp" />
+    <ClInclude Include="hpiutil\hpiutil.hpp" />
+    <ClInclude Include="hpiutil\hpiutil_fwd.hpp" />
+    <ClInclude Include="hpiutil\vector_view.hpp" />
     <ClInclude Include="module\handle_deleter.hpp" />
     <ClInclude Include="module\pair_range.hpp" />
     <ClInclude Include="module\range_all.hpp" />
