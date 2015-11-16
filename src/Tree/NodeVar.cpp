@@ -16,7 +16,7 @@ void NodeArray::addElem(size_t aptr)
 {
 	auto&& name = hpimod::stringizeArrayIndex(hpimod::PVal_indexesFromAptr(pval_, aptr));
 	auto&& pdat = hpimod::PVal_getPtr(pval_, aptr);
-	addChild<NodeValue>(this, std::move(name), pdat, pval_->flag);
+	addChild<NodeValue>(std::move(name), pdat, pval_->flag);
 }
 
 void NodeArray::updateElem(size_t aptr)

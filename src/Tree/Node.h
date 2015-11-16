@@ -76,7 +76,7 @@ protected:
 	template<typename TNode, typename... Args>
 	TNode* addChild(Args&&... args)
 	{
-		auto const child = new TNode(std::forward<Args>(args)...);
+		auto const child = new TNode(this, std::forward<Args>(args)...);
 		children_.push_back(std::unique_ptr<Node>(child));
 		afterAddChild(child);
 		return child;

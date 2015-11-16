@@ -64,7 +64,7 @@ void NodeRoot::spawnRoot()
 NodeRoot::NodeRoot()
 	: Node(this, string("(root)"))
 {
-	addChild<NodeGlobal>(this);
+	addChild<NodeGlobal>();
 }
 
 bool NodeRoot::updateState(tree_t childOrNull)

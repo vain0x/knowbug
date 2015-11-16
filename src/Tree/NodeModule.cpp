@@ -50,7 +50,7 @@ void NodeModule::addVar(char const* name)
 void NodeModule::addVarUnscoped(char const* fullName, string const& rawName)
 {
 	assert(rawName.find('@') == string::npos);
-	addChild<NodeArray>(this, rawName, hpimod::seekSttVar(fullName));
+	addChild<NodeArray>(rawName, hpimod::seekSttVar(fullName));
 }
 
 NodeModule& NodeModule::findModule(char const* scopeRes)
@@ -81,7 +81,7 @@ NodeModule& NodeModule::findModule(char const* scopeRes)
 
 NodeModule* NodeModule::addModule(string const& rawName)
 {
-	return addChild<NodeModule>(this, rawName);
+	return addChild<NodeModule>(rawName);
 }
 
 NodeGlobal::NodeGlobal(tree_t parent)
