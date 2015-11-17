@@ -5,7 +5,6 @@
 #include "module/CStrWriter.h"
 
 #include "main.h"
-#include "SysvarData.h"
 #include "ExVardataString.h"
 #include "ExVswInternal.h"
 #include "CVardataString.h"
@@ -64,8 +63,8 @@ EXPORT void WINAPI knowbugVsw_addStPrm(vswriter_t _w, char const* name, STRUCTPR
 }
 EXPORT void WINAPI knowbugVsw_addSysvar(vswriter_t _w, char const* name)
 {
-	auto const id = Sysvar::trySeek(name);
-	if ( id != Sysvar::Id::MAX ) {
+	auto const id = hpiutil::Sysvar::trySeek(name);
+	if ( id != hpiutil::Sysvar::Id::MAX ) {
 		vswriter(_w).addSysvar(id);
 
 	} else {

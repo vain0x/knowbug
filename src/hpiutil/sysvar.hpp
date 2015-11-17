@@ -1,8 +1,9 @@
 ﻿#pragma once
+
 #include <array>
 #include <utility>
-#include "hsp3struct.h"
 
+namespace hpiutil {
 namespace Sysvar {
 
 struct Info {
@@ -51,3 +52,4 @@ extern FlexValue* tryGetThismod();
 extern std::pair<void const*, size_t> tryDump(Id id);
 
 } //namespace Sysvar
+} // namespace hpiutil

@@ -54,9 +54,6 @@
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="SysvarData.cpp">
-      <Filter>class</Filter>
-    </ClCompile>
     <ClCompile Include="config_mng.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -120,6 +117,9 @@
     <ClCompile Include="hpiutil\stringify.cpp">
       <Filter>module\hpiutil</Filter>
     </ClCompile>
+    <ClCompile Include="hpiutil\sysvar.cpp">
+      <Filter>module\hpiutil</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CVarinfoText.h">
@@ -127,9 +127,6 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="SysvarData.h">
-      <Filter>class</Filter>
     </ClInclude>
     <ClInclude Include="config_mng.h">
       <Filter>ソース ファイル</Filter>
@@ -261,6 +258,9 @@
       <Filter>module\hpiutil</Filter>
     </ClInclude>
     <ClInclude Include="hpiutil\dinfo.hpp">
+      <Filter>module\hpiutil</Filter>
+    </ClInclude>
+    <ClInclude Include="hpiutil\sysvar.hpp">
       <Filter>module\hpiutil</Filter>
     </ClInclude>
   </ItemGroup>

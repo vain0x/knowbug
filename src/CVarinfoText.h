@@ -12,11 +12,6 @@ namespace WrapCall
 	struct ModcmdCallInfo;
 }
 
-namespace Sysvar
-{
-	enum Id;
-}
-
 // 変数データテキスト生成クラス
 class CVarinfoText
 {
@@ -24,7 +19,7 @@ public:
 	CVarinfoText();
 
 	void addVar(PVal* pval, char const* name);
-	void addSysvar(Sysvar::Id id);
+	void addSysvar(hpiutil::Sysvar::Id id);
 #ifdef with_WrapCall
 	void addCall(shared_ptr<WrapCall::ModcmdCallInfo const> const& callinfo);
 	void addResult(shared_ptr<ResultNodeData> const& result);

@@ -330,6 +330,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="hpiutil\stringify.cpp" />
+    <ClCompile Include="hpiutil\sysvar.cpp" />
     <ClCompile Include="StaticVarTree.cpp" />
     <ClCompile Include="DebugInfo.cpp" />
     <ClCompile Include="dialog.cpp" />
@@ -340,7 +341,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="module\CStrWriter.cpp" />
     <ClCompile Include="module\GuiUtility.cpp" />
     <ClCompile Include="module\supio\supio.cpp" />
-    <ClCompile Include="SysvarData.cpp" />
     <ClCompile Include="vartree.cpp" />
     <ClCompile Include="VarTreeNodeData.cpp" />
     <ClCompile Include="with_ModPtr.cpp" />
@@ -369,6 +369,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="hpiutil\dinfo.hpp" />
     <ClInclude Include="hpiutil\hpiutil.hpp" />
     <ClInclude Include="hpiutil\hpiutil_fwd.hpp" />
+    <ClInclude Include="hpiutil\sysvar.hpp" />
     <ClInclude Include="hpiutil\vector_view.hpp" />
     <ClInclude Include="module\handle_deleter.hpp" />
     <ClInclude Include="module\pair_range.hpp" />
@@ -389,7 +390,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="module\strf.h" />
     <ClInclude Include="module\supio\supio.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="SysvarData.h" />
     <ClInclude Include="vartree.h" />
     <ClInclude Include="VarTreeNodeData.h" />
     <ClInclude Include="with_ModPtr.h" />

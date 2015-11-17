@@ -10,6 +10,7 @@
 
 #include "hpiutil_fwd.hpp"
 #include "vector_view.hpp"
+#include "sysvar.hpp"
 
 namespace hpiutil {
 
