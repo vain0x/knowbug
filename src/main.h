@@ -10,10 +10,7 @@
 #undef min
 #undef max
 
-#include "hsp3plugin.h"
-#undef stat
 #include "hpiutil/hpiutil.hpp"
-
 #include "DebugInfo.h"
 #include "module/utility.h"
 
