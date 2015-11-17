@@ -56,7 +56,7 @@ void modcmd_term(HSP3TYPEINFO* info)
 //------------------------------------------------
 int modcmd_cmdfunc(int cmdid)
 {
-	stdat_t const stdat = hpimod::getSTRUCTDAT(cmdid);
+	stdat_t const stdat = &hpiutil::finfo()[cmdid];
 
 	WrapCall::onBgnCalling(stdat);
 	int const runmode = g_modcmd_cmdfunc_impl(cmdid);
@@ -69,7 +69,7 @@ int modcmd_cmdfunc(int cmdid)
 //------------------------------------------------
 void* modcmd_reffunc(int* type_res, int cmdid)
 {
-	stdat_t const stdat = hpimod::getSTRUCTDAT(cmdid);
+	stdat_t const stdat = &hpiutil::finfo()[cmdid];
 
 	WrapCall::onBgnCalling(stdat);
 	PDAT* const resultPtr = static_cast<PDAT*>(g_modcmd_reffunc_impl(type_res, cmdid));

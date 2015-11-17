@@ -111,7 +111,7 @@ KnowbugConfig::KnowbugConfig()
 
 bool KnowbugConfig::tryRegisterVswInfo(string const& vtname, VswInfo vswi)
 {
-	auto const hvp = hpimod::seekHvp(vtname.c_str());
+	auto const hvp = hpiutil::tryFindHvp(vtname.c_str());
 	if ( !hvp ) return false;
 
 	vartype_t const vtflag = hvp->flag;

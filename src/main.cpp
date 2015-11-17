@@ -74,7 +74,7 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
 	switch ( p2 ) {
 		// 実行が停止した (assert、ステップ実行の完了時など)
-		case hpimod::DebugNotice_Stop: {
+		case hpiutil::DebugNotice_Stop: {
 			if (Knowbug::continueConditionalRun()) break;
 
 			g_dbginfo->updateCurInf();
@@ -84,7 +84,7 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 			Dialog::update();
 			break;
 		}
-		case hpimod::DebugNotice_Logmes:
+		case hpiutil::DebugNotice_Logmes:
 			strcat_s(ctx->stmp, HSPCTX_REFSTR_MAX, "\r\n");
 			Knowbug::logmes(ctx->stmp);
 			break;
@@ -199,7 +199,7 @@ void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
 			"[CallBgn] %s\t%s]\r\n",
-			hpimod::STRUCTDAT_getName(callinfo->stdat),
+			hpiutil::STRUCTDAT_name(callinfo->stdat),
 			DebugInfo::formatCurInfString(callinfo->fname, callinfo->line)
 		);
 		Knowbug::logmes(logText.c_str());
@@ -225,7 +225,7 @@ void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, va
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
 			"[CallEnd] %s%s\r\n",
-			hpimod::STRUCTDAT_getName(callinfo->stdat),
+			hpiutil::STRUCTDAT_name(callinfo->stdat),
 			(pResult ? ("-> " + pResult->lineformedString) : "")
 		);
 		Knowbug::logmes(logText.c_str());
@@ -261,7 +261,7 @@ EXPORT void WINAPI knowbug_getCurrentModcmdName(char const* strNone, int n, char
 	auto const&& range = WrapCall::getCallInfoRange();
 	if ( std::distance(range.first, range.second) > n ) {
 		auto const stdat = (*(range.second - (n + 1)))->stdat;
-		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, hpimod::STRUCTDAT_getName(stdat));
+		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, hpiutil::STRUCTDAT_name(stdat));
 	} else {
 		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, strNone);
 	}

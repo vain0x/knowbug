@@ -4,10 +4,9 @@
 #include <cstring>
 #include <algorithm>
 
-#include "module/ptr_cast.h"
-#include "main.h"
-#include "SysvarData.h"
+#include "hpiutil.hpp"
 
+namespace hpiutil {
 namespace Sysvar
 {
 
@@ -41,7 +40,7 @@ int& getIntRef(Id id)
 			static_assert(sizeof(int) == sizeof(ctx->err), "");
 			return reinterpret_cast<int&>(ctx->err);
 		}
-		default: assert_sentinel;
+		default: assert(false); throw;
 	}
 }
 
@@ -53,11 +52,11 @@ int& getIntRef(Id id)
 FlexValue* tryGetThismod()
 {
 	if ( ctx->prmstack ) {
-		auto const thismod = ptr_cast<MPModVarData*>(ctx->prmstack);
+		auto const thismod = reinterpret_cast<MPModVarData*>(ctx->prmstack);
 		if ( thismod->magic == MODVAR_MAGICCODE ) {
 			PVal* const pval = thismod->pval;
 			if ( pval->flag == HSPVAR_FLAG_STRUCT ) {
-				auto const fv = ptr_cast<FlexValue*>(hpimod::PVal_getPtr(pval, thismod->aptr));
+				auto const fv = reinterpret_cast<FlexValue*>(hpiutil::PVal_getPtr(pval, thismod->aptr));
 				return fv;
 			}
 		}
@@ -79,9 +78,9 @@ std::pair<void const*, size_t> tryDump(Id id)
 			APTR  const aptr = ctx->note_aptr;
 			if ( pval && pval->flag == HSPVAR_FLAG_STR ) {
 				int size;
-				auto const data = hpimod::getHvp(HSPVAR_FLAG_STR)->GetBlockSize(
+				auto const data = hpiutil::varproc(HSPVAR_FLAG_STR)->GetBlockSize(
 					pval,
-					ptr_cast<PDAT*>(hpimod::PVal_getPtr(pval, aptr)),
+					hpiutil::PVal_getPtr(pval, aptr),
 					&size
 				);
 				return std::make_pair(data, static_cast<size_t>(size));
@@ -104,3 +103,4 @@ std::pair<void const*, size_t> tryDump(Id id)
 }
 
 } //namespace Sysvar
+} // namespace hpiutil
