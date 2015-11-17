@@ -9,13 +9,12 @@
 struct KnowbugVswMethods;
 typedef void* vswriter_t;
 
-#ifdef HSP_DEBUGGER
-// functions for getting Knowbug APIs
+// functions to get Knowbug APIs
 EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods();
-#endif
 using knowbug_getVswMethods_t = KnowbugVswMethods const*(CALLBACK*)();
 
 // functions called from knowbug
+using receiveVswMethods_t = void(CALLBACK*)(KnowbugVswMethods const*);
 using addVarUserdef_t = void(CALLBACK*)(vswriter_t, char const* name, PVal const* pval);
 using addValueUserdef_t = void(CALLBACK*)(vswriter_t, char const* name, void const* ptr);
 
@@ -40,25 +39,5 @@ struct KnowbugVswMethods
 	// others
 	BOOL (CALLBACK *isLineformWriter)(vswriter_t);
 };
-
-// internal writers
-#ifdef HSP_DEBUGGER
-
-#ifdef with_Assoc
-extern void WINAPI knowbugVsw_addValueAssoc(vswriter_t, char const* name, void const* ptr);
-#endif
-#ifdef with_Vector
-extern void WINAPI knowbugVsw_addVarVector(vswriter_t, char const* name, PVal const* pval);
-extern void WINAPI knowbugVsw_addValueVector(vswriter_t, char const* name, void const* ptr);
-#endif
-#ifdef with_Array
-extern void WINAPI knowbugVsw_addVarArray(vswriter_t, char const* name, PVal const* pval);
-extern void WINAPI knowbugVsw_addValueArray(vswriter_t, char const* name, void const* ptr);
-#endif
-#ifdef with_Modcmd
-extern void WINAPI knowbugVsw_addValueModcmd(vswriter_t, char const* name, void const* ptr);
-#endif
-
-#endif
 
 #endif

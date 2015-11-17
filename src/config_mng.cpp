@@ -3,6 +3,7 @@
 #include "module/strf.h"
 
 #include "config_mng.h"
+#include "ExVswInternal.h"
 
 KnowbugConfig::SingletonAccessor g_config;
 
@@ -17,11 +18,25 @@ static string SelfDir() {
 	return string(drive) + dir;
 }
 
+template<typename T>
+T loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawName)
+{
+	static char const* const stc_sec = "VardataString/UserdefTypes/Func";
+
+	auto const funcName = ini.getString(stc_sec, strf("%s.%s", vtname, rawName).c_str());
+	auto const f = (T)(GetProcAddress(hDll, funcName));
+	if ( funcName[0] != '\0' && !f ) {
+		Knowbug::logmesWarning(strf("拡張型表示用の %s 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n",
+			rawName, vtname, funcName).c_str());
+	}
+	return f;
+}
+
 KnowbugConfig::KnowbugConfig()
 {
 	hspDir = SelfDir();
 	CIni ini { selfPath().c_str() };
-
+	
 	bTopMost   = ini.getBool( "Window", "bTopMost", false );
 	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
 	viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
@@ -59,26 +74,22 @@ KnowbugConfig::KnowbugConfig()
 		}
 	}
 
+	vswInfo.resize(HSPVAR_FLAG_MAX + ctx->hsphed->max_varhpi);
+
+	// 拙作プラグイン拡張型表示
+	for ( auto&& vsw2 : vswInfoForInternal() ) {
+		tryRegisterVswInfo(vsw2.vtname
+			, VswInfo { nullptr, vsw2.addVar, vsw2.addValue });
+	}
+
 	// 拡張型の変数データを文字列化する関数
 	auto const& keys = ini.enumKeys("VardataString/UserdefTypes");
 	for ( auto const& vtname : keys ) {
 		auto const dllPath = ini.getString("VardataString/UserdefTypes", vtname.c_str());
 		if ( module_handle_t hDll { LoadLibrary(dllPath) } ) {
-			static char const* const stc_sec = "VardataString/UserdefTypes/Func";
-
-			auto const fnameAddVar = ini.getString(stc_sec, strf("%s.addVar", vtname).c_str());
-			auto const fAddVar = (addVarUserdef_t)GetProcAddress(hDll.get(), fnameAddVar);
-			if ( fnameAddVar[0] != '\0' && !fAddVar ) {
-				Knowbug::logmesWarning(strf("拡張型表示用の addVar 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n",
-					vtname, fnameAddVar).c_str());
-			}
-
-			auto const fnameAddValue = ini.getString(stc_sec, strf("%s.addValue", vtname).c_str());
-			auto const fAddValue = (addValueUserdef_t)GetProcAddress(hDll.get(), fnameAddValue);
-			if ( fnameAddValue[0] != '\0' && !fAddValue ) {
-				Knowbug::logmesWarning(strf("拡張型表示用の addValue 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n",
-					vtname, fnameAddValue).c_str());
-			}
+			auto const fReceive  = loadVswFunc<receiveVswMethods_t>(ini, hDll.get(), vtname.c_str(), "receiveVswMethods");
+			auto const fAddVar   = loadVswFunc<addVarUserdef_t  >(ini, hDll.get(), vtname.c_str(), "addVar");
+			auto const fAddValue = loadVswFunc<addValueUserdef_t>(ini, hDll.get(), vtname.c_str(), "addValue");
 
 #ifdef _DEBUG
 			Knowbug::logmes(strf("型 %s の拡張表示情報が読み込まれた。\r\nVswInfo { %d, %d, %d }\r\n",
@@ -86,33 +97,25 @@ KnowbugConfig::KnowbugConfig()
 				hDll.get() != nullptr, fAddVar != nullptr, fAddValue != nullptr
 			).c_str());
 #endif
-			vswInfo.insert({ vtname, VswInfo { std::move(hDll), fAddVar, fAddValue } });
+			tryRegisterVswInfo(vtname
+				, VswInfo { std::move(hDll), fAddVar, fAddValue });
+			if ( fReceive ) {
+				fReceive(knowbug_getVswMethods());
+			}
 		} else {
 			Knowbug::logmesWarning(strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s\r\n",
 				vtname, dllPath).c_str());
 		}
 	}
+}
 
-	// 拙作プラグイン拡張型表示がなければ追加しておく
-	struct VswInfoForInternal { string vtname; addVarUserdef_t addVar; addValueUserdef_t addValue; };
-	static VswInfoForInternal const stc_vswInfoForInternal[] = {
-#ifdef with_Assoc
-		{ "assoc_k", nullptr, knowbugVsw_addValueAssoc },
-#endif
-#ifdef with_Vector
-		{ "vector_k", knowbugVsw_addVarVector, knowbugVsw_addValueVector },
-#endif
-#ifdef with_Array
-		{ "array_k", knowbugVsw_addVarArray, knowbugVsw_addValueArray },
-#endif
-#ifdef with_Modcmd
-		{ "modcmd_k", nullptr, knowbugVsw_addValueModcmd },
-#endif
-	};
-	for ( auto&& vsw2 : stc_vswInfoForInternal ) {
-		//doesn't overwrite writers of external Dll
-		map_find_or_insert(vswInfo, vsw2.vtname, [&vsw2]() {
-			return VswInfo { nullptr, vsw2.addVar, vsw2.addValue };
-		});
-	}
+bool KnowbugConfig::tryRegisterVswInfo(string const& vtname, VswInfo vswi)
+{
+	auto const hvp = hpimod::seekHvp(vtname.c_str());
+	if ( !hvp ) return false;
+
+	vartype_t const vtflag = hvp->flag;
+	assert(0 < vtflag && vtflag < vswInfo.size());
+	vswInfo[vtflag] = std::move(vswi);
+	return true;
 }
