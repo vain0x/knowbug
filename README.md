@@ -6,9 +6,9 @@ HSP3 用デバッグ・ウィンドウの非公式改造版です。
 
 主に「変数」タブの機能を拡張しており、以下のものの表示に対応しています。
 
-* int の16進数併記
-* 多次元配列の2次元目以降
-* モジュール変数の中身
+* int の16進数表現の併記
+* 多次元配列の2次元全要素
+* モジュール変数のメンバ変数
 * 実行中のユーザ定義コマンドの実引数
 
 ![スクリーンショット](./package/screenshot/static_variables.png)
@@ -19,25 +19,25 @@ HSP3 用デバッグ・ウィンドウの非公式改造版です。
 0. HSPのフォルダにある「hsp3debug.dll」の名前を変更します。
 0. [package フォルダ](./package)にある「hsp3debug_knowbug.dll」の名前を「hsp3debug.dll」に変えて、HSPのフォルダに移動します。
 
-* 「HSPのフォルダ」とは、 HSPがインストールされているフォルダで、通常は「C:/Program Files/hsp34」となります。何にせよ「hsp3debug.dll」をみつけてください。
-* 64bit版を使うには、さらに「hsp3debug_64_knowbug.dll」も「hsp3debug_64.dll」という名前にしてHSPのフォルダに移動します。
+* 「HSPのフォルダ」の正確な位置は、HSPスクリプトエディタで ``mes dir_exe`` を実行すると分かります。
+* 64bit版を使うには、「hsp3debug_64_knowbug.dll」も「hsp3debug_64.dll」という名前にして、HSPのフォルダに移動します。
 
 #### WrapCall
 0. 同梱されている「WrapCall.as」と「userdef.as」を common フォルダに移動します。
   * 既に userdef.as を使っている方は、上書きではなく追記してください。
 
-* WrapCall はユーザ定義コマンドに関する機能に使います。無くても正常に動作します。
+* WrapCall はユーザ定義コマンドに関する機能に用いられます。無くても正常に動作します。
 * WrapCall は hgimg3 などの拡張ランタイムと併用することができません。拡張ランタイムを使用する場合は、WrapCall.as を \#include しないようにお願いします。
 * 64bit版ランタイムを使う際は、標準のヘッダ ``hsp3_64.as`` を WrapCall より前に \#include しておく必要があります。
 
 #### 設定ファイル
-[ini ファイル](./package/knowbug.ini) を knowbug (hsp3debug.dll) と同じフォルダに置いておくと、起動時に読み込まれます。
+[設定ファイル](./package/knowbug.ini) を knowbug (hsp3debug.dll) と同じフォルダに置いておくと、起動時に読み込まれます。
 
 * 具体的な設定については、設定ファイル内のコメントを参照してください。
 * 無くても正常に動作します。
 
 ## 除去方法
-「導入方法」と逆の操作をします。なおレジストリなどに記録は残していません。
+「導入方法」と逆の操作をします。なおレジストリなどにデータは残りません。
 
 0. knowbug (ファイル名 hsp3debug.dll) を削除し、バックアップしておいた、元々の
 hsp3debug.dll を、元に戻します。
