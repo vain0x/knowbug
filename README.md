@@ -259,12 +259,15 @@ knowbug は、公式のデバッガ hsp3debug.dll に、uedai が手を加えた
 本ソフトの半分程度は、[OpenHSP にあるコード、およびリソース](http://dev.onionsoft.net/trac/openhsp/browser/trunk/tools/win32/hsp3debug)を使用しています。[Lisense](http://dev.onionsoft.net/trac/openhsp/browser/trunk/License_j.txt)もご参照ください。
 
 ## 関連URL
-* プログラ広場 <http://prograpark.ninja-web.net/>:
-  * バグ報告、意見、感想、要望などは、ここの[掲示板](http://uedai-kami.bbs.fc2.com/)までお願いします。
+バグ報告、意見、要望などは、[GitHub の Issue 表](https://github.com/vain0/knowbug/issues) または [プログラ広場の掲示板](http://uedai-kami.bbs.fc2.com/) までお願いします。
+
+* knowbug on GitHub <https://github.com/vain0/knowbug/>:
+  * knowbug のソースコードをアップロードしています。
+  * [リリース一覧](https://github.com/vain0/knowbug/releases)
+  * [既知の不具合の一覧](https://github.com/vain0/knowbug/labels/bug)
+
 * HSPTV! <http://hsp.tv/>:
   * HSP3 の公式サイトです。
 * OpenHSP <http://dev.onionsoft.net/trac/>:
   * プロジェクト OpenHSP のリポジトリがあるサイトです。
   * HSPはここで開発されています。
-* knowbug on GitHub <https://github.com/vain0/knowbug/>:
-  * knowbug のソースコードをアップロードしています。
