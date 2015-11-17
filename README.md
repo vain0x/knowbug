@@ -1,7 +1,4 @@
-﻿# knowbug
-* version: 1.22
-
-## 概要
+﻿# knowbug v1.22
 HSP3 用デバッグ・ウィンドウの非公式改造版です。
 
 ![スクリーンショット](./package/screenshot/static_variables.png)
