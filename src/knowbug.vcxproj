@@ -321,7 +321,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\cppformat\format.cc" />
-    <ClCompile Include="..\hpimod\hpimod\stringization.cpp" />
     <ClCompile Include="config_mng.cpp" />
     <ClCompile Include="CVardataString.cpp" />
     <ClCompile Include="CVarinfoText.cpp">
@@ -349,13 +348,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="WrapCall\WrapCall.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\crouton\src\var_assoc\for_knowbug.var_assoc.h" />
-    <ClInclude Include="..\..\crouton\src\var_vector\for_knowbug.var_vector.h" />
     <ClInclude Include="..\cppformat\format.h" />
-    <ClInclude Include="..\hpimod\hpimod\basis.h" />
-    <ClInclude Include="..\hpimod\hpimod\hsp3plugin_custom.h" />
-    <ClInclude Include="..\hpimod\hpimod\stringization.h" />
-    <ClInclude Include="..\hpimod\hpimod\vartype_traits.h" />
     <ClInclude Include="config_mng.h" />
     <ClInclude Include="CVardataString.h" />
     <ClInclude Include="CVarinfoText.h" />
