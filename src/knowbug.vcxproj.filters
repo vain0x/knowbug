@@ -22,17 +22,11 @@
     <Filter Include="WrapCall">
       <UniqueIdentifier>{8edddfd0-21dc-4014-a397-d3b7bd1f0ef4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="module\hpimod">
-      <UniqueIdentifier>{bbb14e3b-4dd2-4d95-a2a6-47582d419246}</UniqueIdentifier>
-    </Filter>
     <Filter Include="module\hspsdk">
       <UniqueIdentifier>{17c74d29-3bdd-4bf7-9dc7-6b32e63b3d22}</UniqueIdentifier>
     </Filter>
     <Filter Include="module\supio">
       <UniqueIdentifier>{cd734d7f-d06a-49c4-8e72-a35f933343e9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="module\hpimod\myPluginTypeInterface">
-      <UniqueIdentifier>{9576ee6a-db55-4763-bd10-935a31013f74}</UniqueIdentifier>
     </Filter>
     <Filter Include="テキスト">
       <UniqueIdentifier>{832353c6-8f2f-44a8-b714-e0445d320023}</UniqueIdentifier>
@@ -92,9 +86,6 @@
     </ClCompile>
     <ClCompile Include="..\cppformat\format.cc">
       <Filter>module\cppformat</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hpimod\hpimod\stringization.cpp">
-      <Filter>module\hpimod</Filter>
     </ClCompile>
     <ClCompile Include="StaticVarTree.cpp">
       <Filter>class</Filter>
@@ -173,29 +164,11 @@
     <ClInclude Include="module\CStrBuf.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="..\hpimod\hpimod\basis.h">
-      <Filter>module\hpimod</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hpimod\hsp3plugin_custom.h">
-      <Filter>module\hpimod</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hpimod\vartype_traits.h">
-      <Filter>module\hpimod</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\crouton\src\var_assoc\for_knowbug.var_assoc.h">
-      <Filter>module\hpimod\myPluginTypeInterface</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\crouton\src\var_vector\for_knowbug.var_vector.h">
-      <Filter>module\hpimod\myPluginTypeInterface</Filter>
-    </ClInclude>
     <ClInclude Include="module\LineDelimitedString.h">
       <Filter>module</Filter>
     </ClInclude>
     <ClInclude Include="..\cppformat\format.h">
       <Filter>module\cppformat</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hpimod\stringization.h">
-      <Filter>module\hpimod</Filter>
     </ClInclude>
     <ClInclude Include="StaticVarTree.h">
       <Filter>class</Filter>
