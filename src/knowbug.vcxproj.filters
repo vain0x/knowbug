@@ -31,9 +31,6 @@
     <Filter Include="module\supio">
       <UniqueIdentifier>{cd734d7f-d06a-49c4-8e72-a35f933343e9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="module\hspsdk\hsed3_footy2">
-      <UniqueIdentifier>{7c999e1d-cb21-4a82-8e64-7751fabf60c9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="module\hpimod\myPluginTypeInterface">
       <UniqueIdentifier>{9576ee6a-db55-4763-bd10-935a31013f74}</UniqueIdentifier>
     </Filter>
@@ -90,9 +87,6 @@
     <ClCompile Include="module\CStrBuf.cpp">
       <Filter>module</Filter>
     </ClCompile>
-    <ClCompile Include="..\hpimod\hspsdk\hsp3plugin.cpp">
-      <Filter>module\hspsdk</Filter>
-    </ClCompile>
     <ClCompile Include="DebugInfo.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -119,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="hpiutil\sysvar.cpp">
       <Filter>module\hpiutil</Filter>
+    </ClCompile>
+    <ClCompile Include="hpiutil\hspsdk\hsp3plugin.cpp">
+      <Filter>module\hspsdk</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -175,24 +172,6 @@
     </ClInclude>
     <ClInclude Include="module\CStrBuf.h">
       <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hsp3struct.h">
-      <Filter>module\hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hspvar_core.h">
-      <Filter>module\hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hspwnd.h">
-      <Filter>module\hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hsp3debug.h">
-      <Filter>module\hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hsp3plugin.h">
-      <Filter>module\hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpimod\hspsdk\hsed3_footy2\interface.h">
-      <Filter>module\hspsdk\hsed3_footy2</Filter>
     </ClInclude>
     <ClInclude Include="..\hpimod\hpimod\basis.h">
       <Filter>module\hpimod</Filter>
@@ -265,6 +244,24 @@
     </ClInclude>
     <ClInclude Include="hpiutil\vartype_traits.hpp">
       <Filter>module\hpiutil</Filter>
+    </ClInclude>
+    <ClInclude Include="hpiutil\hspsdk\hsp3struct.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="hpiutil\hspsdk\hspvar_core.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="hpiutil\hspsdk\hspwnd.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="hpiutil\hspsdk\hsp3debug.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="hpiutil\hspsdk\hsp3plugin.h">
+      <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="hpiutil\hspsdk\win32gui\hspwnd_win.h">
+      <Filter>module\hspsdk</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
