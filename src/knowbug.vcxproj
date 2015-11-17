@@ -370,6 +370,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="hpiutil\hpiutil.hpp" />
     <ClInclude Include="hpiutil\hpiutil_fwd.hpp" />
     <ClInclude Include="hpiutil\sysvar.hpp" />
+    <ClInclude Include="hpiutil\vartype_traits.hpp" />
     <ClInclude Include="hpiutil\vector_view.hpp" />
     <ClInclude Include="module\handle_deleter.hpp" />
     <ClInclude Include="module\pair_range.hpp" />

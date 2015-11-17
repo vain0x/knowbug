@@ -263,6 +263,9 @@
     <ClInclude Include="hpiutil\sysvar.hpp">
       <Filter>module\hpiutil</Filter>
     </ClInclude>
+    <ClInclude Include="hpiutil\vartype_traits.hpp">
+      <Filter>module\hpiutil</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc">

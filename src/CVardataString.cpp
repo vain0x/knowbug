@@ -4,7 +4,6 @@
 #include "module/ptr_cast.h"
 #include "module/CStrWriter.h"
 #include "module/CStrBuf.h"
-#include "hpimod/vartype_traits.h"
 #include "hpiutil/hpiutil.hpp"
 
 #include "main.h"
@@ -14,8 +13,7 @@
 
 #include "with_ModPtr.h"
 
-namespace VtTraits { using namespace hpimod::VtTraits; }
-using namespace hpimod::VtTraits::InternalVartypeTags;
+using namespace hpiutil::internal_vartype_tags;
 
 CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src) : writer_(std::move(src.writer_)) {}
 CVardataStrWriter::~CVardataStrWriter() {}
@@ -282,25 +280,25 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 		case MPTYPE_IMODULEVAR:
 		case MPTYPE_TMODULEVAR: {
 			auto const thismod = cptr_cast<MPModVarData*>(member);
-			auto const fv = VtTraits::asValptr<vtStruct>(hpiutil::PVal_getPtr(thismod->pval, thismod->aptr));
+			auto const fv = hpiutil::asValptr<vtStruct>(hpiutil::PVal_getPtr(thismod->pval, thismod->aptr));
 			addValueStruct(name, fv);
 			break;
 		}
 		//	case MPTYPE_STRING:
 		case MPTYPE_LOCALSTRING:
-			addValue(name, HSPVAR_FLAG_STR, VtTraits::asPDAT<vtStr>(*cptr_cast<char**>(member)));
+			addValue(name, HSPVAR_FLAG_STR, hpiutil::asPDAT<vtStr>(*cptr_cast<char**>(member)));
 			break;
 
 		case MPTYPE_DNUM:
-			addValue(name, HSPVAR_FLAG_DOUBLE, VtTraits::asPDAT<vtDouble>(cptr_cast<double*>(member)));
+			addValue(name, HSPVAR_FLAG_DOUBLE, hpiutil::asPDAT<vtDouble>(cptr_cast<double*>(member)));
 			break;
 
 		case MPTYPE_INUM:
-			addValue(name, HSPVAR_FLAG_INT, VtTraits::asPDAT<vtInt>(cptr_cast<int*>(member)));
+			addValue(name, HSPVAR_FLAG_INT, hpiutil::asPDAT<vtInt>(cptr_cast<int*>(member)));
 			break;
 
 		case MPTYPE_LABEL:
-			addValue(name, HSPVAR_FLAG_LABEL, VtTraits::asPDAT<vtLabel>(cptr_cast<label_t*>(member)));
+			addValue(name, HSPVAR_FLAG_LABEL, hpiutil::asPDAT<vtLabel>(cptr_cast<label_t*>(member)));
 			break;
 
 		default:
@@ -324,11 +322,11 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 
 	switch ( id ) {
 		case Sysvar::Id::Refstr:
-			addValue(name, HSPVAR_FLAG_STR, VtTraits::asPDAT<vtStr>(ctx->refstr));
+			addValue(name, HSPVAR_FLAG_STR, hpiutil::asPDAT<vtStr>(ctx->refstr));
 			break;
 
 		case Sysvar::Id::Refdval:
-			addValue(name, HSPVAR_FLAG_DOUBLE, VtTraits::asPDAT<vtDouble>(&ctx->refdval));
+			addValue(name, HSPVAR_FLAG_DOUBLE, hpiutil::asPDAT<vtDouble>(&ctx->refdval));
 			break;
 
 		case Sysvar::Id::Cnt:
@@ -338,7 +336,7 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 				for ( int i = 0; i < ctx->looplev; ++ i ) {
 					auto const lvLoop = ctx->looplev - i;
 					addValue(strf("#%d", lvLoop).c_str(), HSPVAR_FLAG_INT,
-						VtTraits::asPDAT<vtInt>(&ctx->mem_loop[lvLoop].cnt));
+						hpiutil::asPDAT<vtInt>(&ctx->mem_loop[lvLoop].cnt));
 				}
 				getWriter().catNodeEnd("]");
 			} else {
@@ -372,7 +370,7 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 			break;
 		default:
 			if ( Sysvar::List[id].type == HSPVAR_FLAG_INT ) {
-				addValue(name, HSPVAR_FLAG_INT, VtTraits::asPDAT<vtInt>(&Sysvar::getIntRef(id)));
+				addValue(name, HSPVAR_FLAG_INT, hpiutil::asPDAT<vtInt>(&Sysvar::getIntRef(id)));
 				break;
 			}
 			assert_sentinel;
