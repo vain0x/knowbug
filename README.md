@@ -48,7 +48,7 @@ hsp3debug.dll を、元に戻します。
 これら以外では、動作を確認していません。サポートできない可能性も高いのでご了承ください。
 
 ## 権利
-knowbug は、公式のデバッガ hsp3debug.dll に、uedai が手を加えたものです。
+knowbug は、公式のデバッガ hsp3debug.dll に、ue_dai が手を加えたものです。
 
 本ソフトの半分程度は、[OpenHSP にあるコード、およびリソース](http://dev.onionsoft.net/trac/openhsp/browser/trunk/tools/win32/hsp3debug)を使用しています。[ライセンス](./package/Lisense/License_j.txt)も参照してください。
 
