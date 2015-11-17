@@ -10,7 +10,6 @@
 #include "main.h"
 #include "CVardataString.h"
 #include "CVarinfoText.h"
-#include "SysvarData.h"
 #include "config_mng.h"
 
 #include "with_ModPtr.h"
@@ -317,8 +316,10 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 // 
 // @result: メモリダンプするバッファとサイズ
 //------------------------------------------------
-void CVardataStrWriter::addSysvar(Sysvar::Id id)
+void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 {
+	using namespace hpiutil;
+
 	char const* const name = Sysvar::List[id].name;
 
 	switch ( id ) {

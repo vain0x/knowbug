@@ -5,7 +5,6 @@
 #include "module/GuiUtility.h"
 
 #include "main.h"
-#include "SysvarData.h"
 #include "DebugInfo.h"
 #include "dialog.h"
 #include "config_mng.h"
@@ -79,7 +78,7 @@ namespace Detail
 		return true;
 	} };
 	template<> struct Verify < SysvarNode > { static bool apply(char const* s, SysvarNode::lparam_t value) {
-		return (0 <= value && value < Sysvar::Count && Sysvar::trySeek(&s[1]) == value);
+		return (0 <= value && value < hpiutil::Sysvar::Count && hpiutil::Sysvar::trySeek(&s[1]) == value);
 	} };
 #ifdef with_WrapCall
 	template<> struct Verify < InvokeNode > { static bool apply(char const*, InvokeNode::lparam_t value) {
@@ -194,6 +193,8 @@ HTREEITEM AddNodeSystem(char const* name, SystemNodeId id) {
 //------------------------------------------------
 void AddNodeSysvar()
 {
+	using namespace hpiutil;
+
 	HTREEITEM const hNodeSysvar = AddNodeSystem("+sysvar", SystemNodeId::Sysvar);
 
 	// システム変数のリストを追加する
@@ -292,8 +293,8 @@ vartype_t getVartypeOfNode( HTREEITEM hItem )
 		return pval->flag;
 
 	} else if ( SysvarNode::isTypeOf(name.c_str()) ) {
-		Sysvar::Id const id = TreeView_MyLParam<SysvarNode>(hwndVarTree, hItem);
-		return Sysvar::List[id].type;
+		auto const id = TreeView_MyLParam<SysvarNode>(hwndVarTree, hItem);
+		return hpiutil::Sysvar::List[id].type;
 
 #ifdef with_WrapCall
 	} else if ( ResultNode::isTypeOf(name.c_str()) ) {
@@ -346,7 +347,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		}
 	} else {
 		if ( SysvarNode::isTypeOf(name) ) {
-			Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
+			auto const id = static_cast<hpiutil::Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
 			varinf.addSysvar(id);
 
 #ifdef with_WrapCall

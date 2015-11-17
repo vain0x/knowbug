@@ -9,7 +9,6 @@
 
 #include "main.h"
 #include "DebugInfo.h"
-#include "SysvarData.h"
 #include "StaticVarTree.h"
 #include "CVarinfoText.h"
 #include "CVardataString.h"
@@ -71,9 +70,9 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 //------------------------------------------------
 // システム変数データから生成
 //------------------------------------------------
-void CVarinfoText::addSysvar(Sysvar::Id id)
+void CVarinfoText::addSysvar(hpiutil::Sysvar::Id id)
 {
-	getWriter().catln(strf("変数名: %s\t(システム変数)", Sysvar::List[id].name));
+	getWriter().catln(strf("変数名: %s\t(システム変数)", hpiutil::Sysvar::List[id].name));
 	getWriter().catCrlf();
 	{
 		CVardataStrWriter::create<CTreeformedWriter>(getBuf())
@@ -83,7 +82,7 @@ void CVarinfoText::addSysvar(Sysvar::Id id)
 
 	// メモリダンプ
 	if ( g_config->showsVariableDump ) {
-		auto const&& dump = Sysvar::tryDump(id);
+		auto const&& dump = hpiutil::Sysvar::tryDump(id);
 		if ( dump.first ) {
 			getWriter().catDump(dump.first, dump.second);
 		}
@@ -171,6 +170,8 @@ void CVarinfoText::addModuleOverview(char const* name, StaticVarTree const& tree
 //------------------------------------------------
 void CVarinfoText::addSysvarsOverview()
 {
+	using namespace hpiutil;
+
 	getWriter().catln("[システム変数]");
 
 	for ( int i = 0; i < Sysvar::Count; ++i ) {
@@ -213,7 +214,7 @@ void CVarinfoText::addCallsOverview(shared_ptr<ResultNodeData> const& pLastResul
 void CVarinfoText::addGeneralOverview() {
 	getWriter().catln("[全般]");
 	for ( auto&& kv : g_dbginfo->fetchGeneralInfo() ) {
-		bool const isSysvar = (Sysvar::trySeek(kv.first.c_str()) != Sysvar::MAX);
+		bool const isSysvar = (hpiutil::Sysvar::trySeek(kv.first.c_str()) != hpiutil::Sysvar::MAX);
 		if ( isSysvar ) continue;
 
 		getWriter().catln(kv.first + "\t= " + kv.second);

@@ -5,7 +5,6 @@
 #include <CommCtrl.h>
 
 #include "main.h"
-#include "SysvarData.h"
 
 #ifdef with_WrapCall
 # include "WrapCall/ModcmdCallInfo.h"
@@ -50,7 +49,7 @@ namespace Detail
 }
 struct ModuleNode : public Detail::NodeTag<'@', StaticVarTree const*> { };
 struct SystemNode : public Detail::NodeTag<'+', SystemNodeId> { };
-struct SysvarNode : public Detail::NodeTag<'~', Sysvar::Id> { };
+struct SysvarNode : public Detail::NodeTag<'~', hpiutil::Sysvar::Id> { };
 #ifdef with_WrapCall
 struct InvokeNode : public Detail::NodeTag<'\'', int> { };
 struct ResultNode : public Detail::NodeTag<'"', ResultNodeData*> { };

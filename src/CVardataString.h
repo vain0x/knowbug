@@ -14,9 +14,6 @@ class CAssoc;
 class CVector;
 class CArray;
 #endif
-namespace Sysvar {
-	enum Id;
-}
 
 // 変数データの文字列を作るクラス
 class CVardataStrWriter
@@ -70,7 +67,7 @@ public:
 	void addPrmstack(stdat_t stdat, std::pair<void const*, bool> prmstk);
 	void addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member, bool isSafe);
 
-	void addSysvar(Sysvar::Id id);
+	void addSysvar(hpiutil::Sysvar::Id id);
 
 #ifdef with_WrapCall
 	void addCall(stdat_t stdat, std::pair<void const*, bool> prmstk);
