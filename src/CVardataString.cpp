@@ -18,8 +18,6 @@
 namespace VtTraits { using namespace hpimod::VtTraits; }
 using namespace hpimod::VtTraits::InternalVartypeTags;
 
-static string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort);
-
 CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src) : writer_(std::move(src.writer_)) {}
 CVardataStrWriter::~CVardataStrWriter() {}
 
@@ -147,16 +145,28 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 		return;
 	}
 
-	if ( type == HSPVAR_FLAG_STRUCT ) {
-		addValueStruct(name, VtTraits::asValptr<vtStruct>(ptr));
+	auto&& addValueLeaf = [&](string const& repr) {
+		getWriter().catLeaf(name, repr.c_str());
+	};
 
-	} else if ( type == HSPVAR_FLAG_STR ) {
-		addValueString(name, VtTraits::asValptr<vtStr>(ptr));
-
-	} else {
-		auto const&& dbgstr = stringizeSimpleValue(type, ptr, getWriter().isLineformed());
-		getWriter().catLeaf(name, dbgstr.c_str());
-	}
+	hpiutil::dispatchValue<void>(ptr, type
+		, [&](label_t lb)          { addValueLeaf(hpiutil::nameFromLabel(lb)); }
+		, [&](char const* str)     { addValueString(name, str); }
+		, [&](double val) {
+				addValueLeaf(strf((getWriter().isLineformed() ? "%f" : "%.16f"), val));
+			}
+		, [&](int val) {
+				addValueLeaf((getWriter().isLineformed()
+					? strf("%d", val)
+					: strf("%-10d (0x%08X)", val, val)
+					));
+			}
+		, [&](FlexValue const& fv) { addValueStruct(name, &fv); }
+		, [&](PDAT const* p, vartype_t vtype) {
+				auto const vtname = hpiutil::varproc(type)->vartype_name;
+				addValueLeaf(strf("unknown<%s>(%p)", vtname, cptr_cast<void*>(ptr)));
+			}
+		);
 }
 
 //------------------------------------------------
@@ -394,30 +404,4 @@ void CVardataStrWriter::addResult(stdat_t stdat, PDAT const* resultPtr, vartype_
 	getWriter().catNodeBegin(name, strf("%s => ", name).c_str());
 	addValue(".result", resultType, resultPtr);
 	getWriter().catNodeEnd("");
-}
-
-//------------------------------------------------
-// 単純な値を文字列化する
-//
-// @ addItem_value でフックされる型はここに来ない。
-//------------------------------------------------
-string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
-{
-	assert(ptr);
-
-	switch ( type ) {
-		case HSPVAR_FLAG_STR:
-		case HSPVAR_FLAG_INT:
-		case HSPVAR_FLAG_STRUCT: assert_sentinel;
-
-		case HSPVAR_FLAG_COMOBJ:  return strf("comobj(%p)", *cptr_cast<void**>(ptr));
-		case HSPVAR_FLAG_VARIANT: return strf("variant(%p)", *cptr_cast<void**>(ptr));
-		case HSPVAR_FLAG_DOUBLE:  return strf((bShort ? "%f" : "%.16f"), *cptr_cast<double*>(ptr));
-
-		case HSPVAR_FLAG_LABEL: return hpiutil::nameFromLabel(VtTraits::derefValptr<vtLabel>(ptr));
-		default: {
-			auto const vtname = hpiutil::varproc(type)->vartype_name;
-			return strf("unknown<%s>(%p)", vtname, cptr_cast<void*>(ptr));
-		}
-	}
 }
