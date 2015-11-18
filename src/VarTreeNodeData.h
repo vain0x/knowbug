@@ -19,8 +19,9 @@ public:
 		assert(pval_);
 	}
 
-	auto name() const -> string const& { return name_; }
+	auto name() const -> string override { return name_; }
 	auto pval() const -> PVal* { return pval_; }
+
 	auto vartype() const -> vartype_t override { return pval_->flag; }
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fVar(*this); }
@@ -34,9 +35,9 @@ class VTNodeSysvar
 	hpiutil::Sysvar::Id id_;
 public:
 	auto id() const -> hpiutil::Sysvar::Id { return id_; }
-	auto name() const -> char const* { return hpiutil::Sysvar::List[id_].name; }
+	auto name() const -> string override { return hpiutil::Sysvar::List[id_].name; }
 	
-	auto vartype() const /* override */ -> vartype_t
+	auto vartype() const -> vartype_t override
 	{
 		return hpiutil::Sysvar::List[id_].type;
 	}
@@ -55,6 +56,7 @@ class VTNodeSysvarList
 public:
 	auto sysvarList() const -> decltype(sysvar_) const& { return sysvar_; }
 
+	auto name() const -> string override { return "+sysvar"; }
 	void acceptVisitor(Visitor& visitor) const override { visitor.fSysvarList(*this); }
 };
 
@@ -65,6 +67,7 @@ class VTNodeDynamic
 	friend class Singleton<VTNodeDynamic>;
 
 public:
+	auto name() const -> string override { return "+dynamic"; }
 	void acceptVisitor(Visitor& visitor) const override { visitor.fDynamic(*this); }
 };
 
@@ -75,6 +78,7 @@ class VTNodeScript
 	friend class Singleton<VTNodeScript>;
 
 public:
+	auto name() const -> string override { return "+script"; }
 	void acceptVisitor(Visitor& visitor) const override { visitor.fScript(*this); }
 };
 
@@ -85,6 +89,7 @@ class VTNodeLog
 	friend class Singleton<VTNodeLog>;
 
 public:
+	auto name() const -> string override { return "+log"; }
 	void acceptVisitor(Visitor& visitor) const override { visitor.fLog(*this); }
 };
 
@@ -95,6 +100,7 @@ class VTNodeGeneral
 	friend class Singleton<VTNodeGeneral>;
 
 public:
+	auto name() const -> string override { return "+general"; }
 	void acceptVisitor(Visitor& visitor) const override { visitor.fGeneral(*this); }
 };
 
@@ -111,7 +117,7 @@ public:
 	VTNodeModule(string const& name);
 	virtual ~VTNodeModule();
 
-	string const& getName() const;
+	auto name() const -> string override;
 
 	//foreach
 	struct Visitor
@@ -170,6 +176,7 @@ public:
 	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PVal const* pvResult);
 
 	auto vartype() const -> vartype_t override { return vtype; }
+	auto name() const -> string override { return callinfo->name(); }
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fResult(*this); }
 };

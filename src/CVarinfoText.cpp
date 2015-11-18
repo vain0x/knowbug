@@ -113,7 +113,7 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 
 void CVarinfoText::addCallSignature(ModcmdCallInfo const& callinfo, stdat_t stdat)
 {
-	auto const name = hpiutil::STRUCTDAT_name(stdat);
+	auto&& name = callinfo.name();
 	getWriter().catln(
 		(callinfo.fname == nullptr)
 			? strf("関数名: %s", name)
@@ -149,7 +149,7 @@ void CVarinfoText::addModuleOverview(char const* name, VTNodeModule const& tree)
 	tree.foreach(
 		[&](shared_ptr<VTNodeModule const> const& module) {
 			// (入れ子の)モジュールは名前だけ表示しておく
-			getWriter().catln(module->getName());
+			getWriter().catln(module->name());
 		},
 		[&](string const& varname) {
 			auto const shortName = hpiutil::nameExcludingScopeResolution(varname);

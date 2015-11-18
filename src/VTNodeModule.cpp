@@ -24,7 +24,8 @@ VTNodeModule::VTNodeModule(string const& name)
 
 VTNodeModule::~VTNodeModule() {}
 
-string const& VTNodeModule::getName() const {
+auto VTNodeModule::name() const -> string
+{
 	return p_->name_;
 }
 

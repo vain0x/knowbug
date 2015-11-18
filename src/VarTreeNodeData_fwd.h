@@ -44,5 +44,6 @@ public:
 	};
 	virtual void acceptVisitor(Visitor& visitor) const = 0;
 
+	virtual auto name() const -> string { return "(anonymous)"; }
 	virtual auto vartype() const -> vartype_t { return HSPVAR_FLAG_NONE; }
 };

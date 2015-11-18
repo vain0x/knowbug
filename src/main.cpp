@@ -197,7 +197,7 @@ void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
 			"[CallBgn] %s\t%s]\r\n",
-			hpiutil::STRUCTDAT_name(callinfo->stdat),
+			callinfo->name(),
 			DebugInfo::formatCurInfString(callinfo->fname, callinfo->line)
 		);
 		Knowbug::logmes(logText.c_str());
@@ -212,7 +212,7 @@ void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, va
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
 			"[CallEnd] %s%s\r\n",
-			hpiutil::STRUCTDAT_name(callinfo->stdat),
+			callinfo->name(),\
 			(pResult ? ("-> " + pResult->lineformedString) : "")
 		);
 		Knowbug::logmes(logText.c_str());
@@ -247,8 +247,8 @@ EXPORT void WINAPI knowbug_getCurrentModcmdName(char const* strNone, int n, char
 #ifdef with_WrapCall
 	auto const&& range = WrapCall::getCallInfoRange();
 	if ( std::distance(range.first, range.second) > n ) {
-		auto const stdat = (*(range.second - (n + 1)))->stdat;
-		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, hpiutil::STRUCTDAT_name(stdat));
+		auto&& callinfo = *(range.second - (n + 1));
+		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, callinfo->name().c_str());
 	} else {
 		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, strNone);
 	}

@@ -49,6 +49,8 @@ public:
 	// この呼び出しを実引数式に含む呼び出し
 	shared_ptr_type tryGetDependedCallInfo() const;
 
+	auto name() const -> string override { return hpiutil::STRUCTDAT_name(stdat); }
+
 	void acceptVisitor(Visitor& visitor) const override { visitor.fInvoke(*this); }
 };
 

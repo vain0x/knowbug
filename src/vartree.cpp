@@ -142,7 +142,7 @@ static void TreeView_MyDeleteItem(HTREEITEM hItem)
 //------------------------------------------------
 void AddNodeModule(HTREEITEM hParent, shared_ptr<VTNodeModule const> tree)
 {
-	auto const hElem = TreeView_MyInsertItem(hParent, tree->getName().c_str(), true, tree);
+	auto const hElem = TreeView_MyInsertItem(hParent, tree->name().c_str(), true, tree);
 	tree->foreach(
 		[&](shared_ptr<VTNodeModule const> const& module) {
 			AddNodeModule(hElem, module);
@@ -270,7 +270,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 
 		void fModule(VTNodeModule const& node) override
 		{
-			varinf.addModuleOverview(node.getName().c_str(), node);
+			varinf.addModuleOverview(node.name().c_str(), node);
 		}
 		void fVar(VTNodeVar const& node) override
 		{
@@ -347,10 +347,9 @@ void OnBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 
 void AddCallNodeImpl(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
-	char name[128] = "'";
-	strcpy_s(&name[1], sizeof(name) - 1, hpiutil::STRUCTDAT_name(callinfo->stdat));
+	string name = "'" + callinfo->name();
 	HTREEITEM const hChild =
-		TreeView_MyInsertItem(g_hNodeDynamic, name, false, callinfo);
+		TreeView_MyInsertItem(g_hNodeDynamic, name.c_str(), false, callinfo);
 
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, g_hNodeDynamic ) == hChild ) {
@@ -446,9 +445,8 @@ void AddResultNodeImpl(resultDataPtr_t const& pResult)
 	}
 
 	// 挿入
-	char name[128] = "\"";
-	strcpy_s( &name[1], sizeof(name) - 1, hpiutil::STRUCTDAT_name(pResult->callinfo->stdat) );
-	HTREEITEM const hChild = TreeView_MyInsertItem(hParent, name, false, pResult);
+	string name = "\"" + pResult->name();
+	HTREEITEM const hChild = TreeView_MyInsertItem(hParent, name.c_str(), false, pResult);
 
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, hParent ) == hChild ) {
