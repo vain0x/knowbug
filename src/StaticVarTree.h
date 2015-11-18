@@ -20,7 +20,7 @@ public:
 	class Global;
 
 	StaticVarTree(string const& name);
-	~StaticVarTree();
+	virtual ~StaticVarTree();
 
 	string const& getName() const;
 
