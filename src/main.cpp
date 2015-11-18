@@ -78,9 +78,7 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 			if (Knowbug::continueConditionalRun()) break;
 
 			g_dbginfo->updateCurInf();
-#ifdef with_WrapCall
-			VarTree::UpdateCallNode();
-#endif
+			VarTree::update();
 			Dialog::update();
 			break;
 		}
@@ -193,7 +191,7 @@ void logmesWarning(char const* msg)
 //------------------------------------------------
 void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
-	VarTree::AddCallNode(callinfo);
+	VarTree::OnBgnCalling(callinfo);
 
 	// ログ出力
 	if ( Dialog::logsCalling() ) {
@@ -208,18 +206,7 @@ void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 
 void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype)
 {
-	VarTree::RemoveLastCallNode();
-
-	// 返値ノードデータの生成
-	// ptr の生存期限が今だけなので、今作るしかない
-	auto&& pResult =
-		(usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
-		? std::make_shared<ResultNodeData>(callinfo, ptr, vtype)
-		: nullptr;
-
-	if ( pResult ) {
-		VarTree::AddResultNode(callinfo, pResult);
-	}
+	auto&& pResult = VarTree::OnEndCalling(callinfo, ptr, vtype);
 
 	// ログ出力
 	if ( Dialog::logsCalling() ) {

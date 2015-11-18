@@ -16,6 +16,7 @@ namespace VarTree {
 
 void init();
 void term();
+void update();
 
 LRESULT customDraw(LPNMTVCUSTOMDRAW pnmcd);
 std::shared_ptr<string const> getItemVarText(HTREEITEM hItem);
@@ -62,11 +63,8 @@ lparam_t TreeView_MyLParam(HWND hTree, HTREEITEM hItem, Tag* = nullptr);
 
 #ifdef with_WrapCall
 
-void AddCallNode(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo);
-void RemoveLastCallNode();
-void AddResultNode(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, shared_ptr<ResultNodeData const> const& pResult);
-void RemoveResultNode( HTREEITEM hResult );
-void UpdateCallNode();
+void OnBgnCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo);
+auto OnEndCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vtype) -> shared_ptr<ResultNodeData const>;
 
 #endif
 

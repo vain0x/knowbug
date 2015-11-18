@@ -49,7 +49,9 @@ struct UnreflectedDynamicNodeInfo {
 };
 static UnreflectedDynamicNodeInfo g_unreflectedDynamicNodeInfo;
 
+static void UpdateCallNode();
 static void AddCallNodeImpl(ModcmdCallInfo::shared_ptr_type const& callinfo);
+static void AddResultNode(ModcmdCallInfo::shared_ptr_type const& callinfo, resultDataPtr_t const& pResult);
 static void AddResultNodeImpl(resultDataPtr_t const& pResult);
 static HTREEITEM FindDependedCallNode(resultDataPtr_t const& pResult);
 static void RemoveDependingResultNodes(HTREEITEM hItem);
@@ -145,6 +147,11 @@ void term()
 		}
 	}
 #endif
+}
+
+void update()
+{
+	UpdateCallNode();
 }
 
 //------------------------------------------------
@@ -375,7 +382,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 //------------------------------------------------
 // 呼び出しノードを追加
 //------------------------------------------------
-void AddCallNode(ModcmdCallInfo::shared_ptr_type const& callinfo)
+void OnBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
 	if ( usesResultNodes() ) {
 		RemoveLastIndependedResultNode();
@@ -423,6 +430,24 @@ void RemoveLastCallNode()
 		RemoveDependingResultNodes(hLast);
 		TreeView_DeleteItem(hwndVarTree, hLast);
 	}
+}
+
+auto OnEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vtype)
+	-> shared_ptr<ResultNodeData const>
+{
+	// 返値ノードデータの生成
+	// ptr の生存期限が今だけなので、今作るしかない
+	auto&& pResult =
+		(usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
+		? std::make_shared<ResultNodeData>(callinfo, ptr, vtype)
+		: nullptr;
+	
+	RemoveLastCallNode();
+
+	if ( pResult ) {
+		AddResultNode(callinfo, pResult);
+	}
+	return pResult;
 }
 
 //------------------------------------------------
