@@ -3,8 +3,8 @@
 
 #include "main.h"
 #include "VarTreeNodeData_fwd.h"
-#include "StaticVarTree.h"
 #include "WrapCall/ModcmdCallInfo.h"
+#include "module/Singleton.h"
 
 class VTNodeVar
 	: public VTNodeData
@@ -96,6 +96,56 @@ class VTNodeGeneral
 
 public:
 	void acceptVisitor(Visitor& visitor) const override { visitor.fGeneral(*this); }
+};
+
+class VTNodeModule
+	: public VTNodeData
+{
+private:
+	struct Private;
+	std::unique_ptr<Private> p_;
+
+public:
+	class Global;
+
+	VTNodeModule(string const& name);
+	virtual ~VTNodeModule();
+
+	string const& getName() const;
+
+	//foreach
+	struct Visitor
+	{
+		std::function<void(shared_ptr<VTNodeModule const> const&)> fModule;
+		std::function<void(string const&)> fVar;
+	};
+	void foreach(Visitor const&) const;
+
+	template<typename FModule, typename FVar>
+	void foreach(FModule&& fModule, FVar&& fVar) const
+	{
+		return foreach(Visitor {
+			decltype(Visitor::fModule)(fModule),
+			decltype(Visitor::fVar)(fVar)
+		});
+	}
+
+	// accept
+	void acceptVisitor(VTNodeData::Visitor& visitor) const override { visitor.fModule(*this); }
+	shared_ptr<VTNodeVar> tryFindVarNode(string const& name) const;
+};
+
+// グローバル領域のノード
+class VTNodeModule::Global
+	: public VTNodeModule
+	, public Singleton<VTNodeModule::Global>
+{
+public:
+	static string const Name;
+	Global();
+
+private:
+	void addVar(const char* name);
 };
 
 #ifdef with_WrapCall

@@ -4,7 +4,7 @@
 #include "main.h"
 #include "module/CStrWriter.h"
 
-class StaticVarTree;
+class VTNodeModule;
 struct ResultNodeData;
 
 namespace WrapCall
@@ -28,7 +28,7 @@ private:
 public:
 #endif
 
-	void addModuleOverview(char const* name, StaticVarTree const& tree);
+	void addModuleOverview(char const* name, VTNodeModule const& tree);
 	void addSysvarsOverview();
 #ifdef with_WrapCall
 	void addCallsOverview(optional_ref<ResultNodeData const> lastResult);

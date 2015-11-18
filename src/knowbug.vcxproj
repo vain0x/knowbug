@@ -330,7 +330,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="hpiutil\hspsdk\hsp3plugin.cpp" />
     <ClCompile Include="hpiutil\stringify.cpp" />
     <ClCompile Include="hpiutil\sysvar.cpp" />
-    <ClCompile Include="StaticVarTree.cpp" />
+    <ClCompile Include="VTNodeModule.cpp" />
     <ClCompile Include="DebugInfo.cpp" />
     <ClCompile Include="dialog.cpp" />
     <ClCompile Include="ExVardataString.cpp" />
@@ -369,7 +369,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="module\pair_range.hpp" />
     <ClInclude Include="module\range_all.hpp" />
     <ClInclude Include="module\utility.h" />
-    <ClInclude Include="StaticVarTree.h" />
     <ClInclude Include="DebugInfo.h" />
     <ClInclude Include="dialog.h" />
     <ClInclude Include="ExVardataString.h" />

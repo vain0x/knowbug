@@ -10,7 +10,6 @@
 #include "config_mng.h"
 
 #include "vartree.h"
-#include "StaticVarTree.h"
 #include "CVarinfoText.h"
 #include "CVardataString.h"
 
@@ -23,7 +22,7 @@ namespace VarTree
 {
 
 static HTREEITEM AddNodeSystem(char const* name, shared_ptr<VTNodeData const> node);
-static void AddNodeModule(HTREEITEM hParent, shared_ptr<StaticVarTree const> node);
+static void AddNodeModule(HTREEITEM hParent, shared_ptr<VTNodeModule const> node);
 static void AddNodeSysvar();
 
 static HTREEITEM g_hNodeScript, g_hNodeLog;
@@ -62,7 +61,7 @@ static auto FindLastIndependedResultData() -> shared_ptr<ResultNodeData const>;
 //------------------------------------------------
 void init()
 {
-	AddNodeModule(TVI_ROOT, shared_ptr_from_rawptr(&StaticVarTree::Global::instance()));
+	AddNodeModule(TVI_ROOT, shared_ptr_from_rawptr(&VTNodeModule::Global::instance()));
 #ifdef with_WrapCall
 	AddNodeDynamic();
 #endif
@@ -76,7 +75,7 @@ void init()
 	TreeView_Expand(hwndVarTree, g_hNodeDynamic, TVE_EXPAND);
 #endif
 	HTREEITEM const hRoot = TreeView_GetRoot(hwndVarTree);
-	assert(TreeView_GetItemString(hwndVarTree, hRoot) == StaticVarTree::Global::Name);
+	assert(TreeView_GetItemString(hwndVarTree, hRoot) == VTNodeModule::Global::Name);
 	TreeView_Expand(hwndVarTree, hRoot, TVE_EXPAND);
 
 	TreeView_EnsureVisible(hwndVarTree, hRoot); //トップまでスクロール
@@ -141,11 +140,11 @@ static void TreeView_MyDeleteItem(HTREEITEM hItem)
 //------------------------------------------------
 // 変数ツリーにノードを追加する
 //------------------------------------------------
-void AddNodeModule(HTREEITEM hParent, shared_ptr<StaticVarTree const> tree)
+void AddNodeModule(HTREEITEM hParent, shared_ptr<VTNodeModule const> tree)
 {
 	auto const hElem = TreeView_MyInsertItem(hParent, tree->getName().c_str(), true, tree);
 	tree->foreach(
-		[&](shared_ptr<StaticVarTree const> const& module) {
+		[&](shared_ptr<VTNodeModule const> const& module) {
 			AddNodeModule(hElem, module);
 		},
 		[&](string const& varname) {

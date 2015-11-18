@@ -2,34 +2,33 @@
 #include "module/utility.h"
 #include "DebugInfo.h"
 #include "config_mng.h"
-#include "StaticVarTree.h"
 #include "VarTreeNodeData.h"
 
-string const StaticVarTree::Global::Name = "@";
+string const VTNodeModule::Global::Name = "@";
 
-struct StaticVarTree::Private
+struct VTNodeModule::Private
 {
-	StaticVarTree& self;
+	VTNodeModule& self;
 	string const name_;
 	std::map<string, shared_ptr<VTNodeVar>> vars_;
-	std::map<string, shared_ptr<StaticVarTree>> modules_;
+	std::map<string, shared_ptr<VTNodeModule>> modules_;
 
 public:
 	void insertVar(char const* name);
-	shared_ptr<StaticVarTree> insertModule(char const* pModname);
+	shared_ptr<VTNodeModule> insertModule(char const* pModname);
 };
 
-StaticVarTree::StaticVarTree(string const& name)
+VTNodeModule::VTNodeModule(string const& name)
 	: p_(new Private { *this, name })
 { }
 
-StaticVarTree::~StaticVarTree() {}
+VTNodeModule::~VTNodeModule() {}
 
-string const& StaticVarTree::getName() const {
+string const& VTNodeModule::getName() const {
 	return p_->name_;
 }
 
-auto StaticVarTree::tryFindVarNode(std::string const& name) const -> shared_ptr<VTNodeVar>
+auto VTNodeModule::tryFindVarNode(std::string const& name) const -> shared_ptr<VTNodeVar>
 {
 	auto&& it = p_->vars_.find(name);
 	return ( it != p_->vars_.end() ) ? it->second : nullptr;
@@ -38,8 +37,8 @@ auto StaticVarTree::tryFindVarNode(std::string const& name) const -> shared_ptr<
 //------------------------------------------------
 // グローバルノードを構築する
 //------------------------------------------------
-StaticVarTree::Global::Global()
-	: StaticVarTree(Name)
+VTNodeModule::Global::Global()
+	: VTNodeModule(Name)
 {
 	auto const&& names = g_dbginfo->fetchStaticVarNames();
 	for ( auto const& name : names ) {
@@ -50,7 +49,7 @@ StaticVarTree::Global::Global()
 //------------------------------------------------
 // 子ノードとして、変数ノードを追加する
 //------------------------------------------------
-void StaticVarTree::Global::addVar(char const* name)
+void VTNodeModule::Global::addVar(char const* name)
 {
 	if ( name[0] == '@' ) return;
 
@@ -65,7 +64,7 @@ void StaticVarTree::Global::addVar(char const* name)
 	}
 }
 
-void StaticVarTree::Private::insertVar(char const* name)
+void VTNodeModule::Private::insertVar(char const* name)
 {
 	PVal* const pval = hpiutil::seekSttVar(name);
 	assert(pval);
@@ -78,7 +77,7 @@ void StaticVarTree::Private::insertVar(char const* name)
 // 子ノードの、指定した名前のモジュール・ノードを取得する
 // なければ挿入する
 //------------------------------------------------
-shared_ptr<StaticVarTree> StaticVarTree::Private::insertModule(char const* pModname)
+shared_ptr<VTNodeModule> VTNodeModule::Private::insertModule(char const* pModname)
 {
 	assert(pModname[0] == '@');
 
@@ -102,7 +101,7 @@ shared_ptr<StaticVarTree> StaticVarTree::Private::insertModule(char const* pModn
 	} else {
 		string const modname = pModname;
 		auto&& node = map_find_or_insert(modules_, modname, [&modname]() {
-			return std::make_shared<StaticVarTree>(modname);
+			return std::make_shared<VTNodeModule>(modname);
 		});
 		return node;
 	}
@@ -111,7 +110,7 @@ shared_ptr<StaticVarTree> StaticVarTree::Private::insertModule(char const* pModn
 //------------------------------------------------
 // 浅い横断
 //------------------------------------------------
-void StaticVarTree::foreach(StaticVarTree::Visitor const& visitor) const {
+void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const {
 	for ( auto&& kv : p_->modules_ ) {
 		visitor.fModule(kv.second);
 	}

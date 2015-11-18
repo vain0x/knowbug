@@ -87,9 +87,6 @@
     <ClCompile Include="..\cppformat\format.cc">
       <Filter>module\cppformat</Filter>
     </ClCompile>
-    <ClCompile Include="StaticVarTree.cpp">
-      <Filter>class</Filter>
-    </ClCompile>
     <ClCompile Include="module\GuiUtility.cpp">
       <Filter>module</Filter>
     </ClCompile>
@@ -106,6 +103,9 @@
       <Filter>module\hspsdk</Filter>
     </ClCompile>
     <ClCompile Include="VarTreeNodeData.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
+    <ClCompile Include="VTNodeModule.cpp">
       <Filter>class</Filter>
     </ClCompile>
   </ItemGroup>
@@ -169,9 +169,6 @@
     </ClInclude>
     <ClInclude Include="..\cppformat\format.h">
       <Filter>module\cppformat</Filter>
-    </ClInclude>
-    <ClInclude Include="StaticVarTree.h">
-      <Filter>class</Filter>
     </ClInclude>
     <ClInclude Include="module\GuiUtility.h">
       <Filter>module</Filter>

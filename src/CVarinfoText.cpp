@@ -9,12 +9,11 @@
 
 #include "main.h"
 #include "DebugInfo.h"
-#include "StaticVarTree.h"
 #include "CVarinfoText.h"
 #include "CVardataString.h"
+#include "VarTreeNodeData.h"
 
 #ifdef with_WrapCall
-# include "VarTreeNodeData.h"
 # include "WrapCall//WrapCall.h"
 # include "WrapCall/ModcmdCallInfo.h"
 using WrapCall::ModcmdCallInfo;
@@ -143,12 +142,12 @@ void CVarinfoText::addResult(ResultNodeData const& result)
 //------------------------------------------------
 // [add] モジュール概観
 //------------------------------------------------
-void CVarinfoText::addModuleOverview(char const* name, StaticVarTree const& tree)
+void CVarinfoText::addModuleOverview(char const* name, VTNodeModule const& tree)
 {
 	getWriter().catln(strf("[%s]", name));
 
 	tree.foreach(
-		[&](shared_ptr<StaticVarTree const> const& module) {
+		[&](shared_ptr<VTNodeModule const> const& module) {
 			// (入れ子の)モジュールは名前だけ表示しておく
 			getWriter().catln(module->getName());
 		},

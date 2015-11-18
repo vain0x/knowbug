@@ -4,7 +4,7 @@
 #include <memory>
 #include <functional>
 
-//class VTNodeModule;
+class VTNodeModule;
 class VTNodeVar;
 class VTNodeSysvarList;
 class VTNodeSysvar;
@@ -14,9 +14,6 @@ class VTNodeDynamic;
 class VTNodeScript;
 class VTNodeLog;
 class VTNodeGeneral;
-
-class StaticVarTree;
-using VTNodeModule = StaticVarTree;
 
 namespace WrapCall { struct ModcmdCallInfo; }
 using VTNodeInvoke = WrapCall::ModcmdCallInfo;
