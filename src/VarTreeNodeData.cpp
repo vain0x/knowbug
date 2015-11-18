@@ -5,6 +5,11 @@
 #include "module/CStrWriter.h"
 #include "vartree.h"
 
+auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
+{
+	return shared_ptr_from_rawptr(&VTNodeSysvarList::instance());
+}
+
 VTNodeSysvarList::VTNodeSysvarList()
 {
 	for ( int i = 0; i < hpiutil::Sysvar::Count; ++i ) {

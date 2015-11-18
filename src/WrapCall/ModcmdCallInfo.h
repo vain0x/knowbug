@@ -50,6 +50,7 @@ public:
 	shared_ptr_type tryGetDependedCallInfo() const;
 
 	auto name() const -> string override { return hpiutil::STRUCTDAT_name(stdat); }
+	auto parent() const -> shared_ptr<VTNodeData> override;
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fInvoke(*this); }
 };

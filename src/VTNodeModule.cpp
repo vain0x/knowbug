@@ -9,6 +9,7 @@ string const VTNodeModule::Global::Name = "@";
 struct VTNodeModule::Private
 {
 	VTNodeModule& self;
+	VTNodeData* parent_;
 	string const name_;
 	std::map<string, shared_ptr<VTNodeVar>> vars_;
 	std::map<string, shared_ptr<VTNodeModule>> modules_;
@@ -18,8 +19,8 @@ public:
 	shared_ptr<VTNodeModule> insertModule(char const* pModname);
 };
 
-VTNodeModule::VTNodeModule(string const& name)
-	: p_(new Private { *this, name })
+VTNodeModule::VTNodeModule(VTNodeData* parent_, string const& name)
+	: p_(new Private { *this, parent_, name })
 { }
 
 VTNodeModule::~VTNodeModule() {}
@@ -27,6 +28,11 @@ VTNodeModule::~VTNodeModule() {}
 auto VTNodeModule::name() const -> string
 {
 	return p_->name_;
+}
+
+auto VTNodeModule::parent() const -> shared_ptr<VTNodeData>
+{
+	return (p_->parent_ ? p_->parent_->shared_from_this() : nullptr);
 }
 
 auto VTNodeModule::tryFindVarNode(std::string const& name) const -> shared_ptr<VTNodeVar>
@@ -39,7 +45,7 @@ auto VTNodeModule::tryFindVarNode(std::string const& name) const -> shared_ptr<V
 // グローバルノードを構築する
 //------------------------------------------------
 VTNodeModule::Global::Global()
-	: VTNodeModule(Name)
+	: VTNodeModule(nullptr, Name)
 {
 	auto const&& names = g_dbginfo->fetchStaticVarNames();
 	for ( auto const& name : names ) {
@@ -71,7 +77,7 @@ void VTNodeModule::Private::insertVar(char const* name)
 	assert(pval);
 
 	vars_.emplace(std::string(name)
-		, std::make_shared<VTNodeVar>(std::string(name), pval));
+		, std::make_shared<VTNodeVar>(&self, std::string(name), pval));
 }
 
 //------------------------------------------------
@@ -101,8 +107,8 @@ shared_ptr<VTNodeModule> VTNodeModule::Private::insertModule(char const* pModnam
 		
 	} else {
 		string const modname = pModname;
-		auto&& node = map_find_or_insert(modules_, modname, [&modname]() {
-			return std::make_shared<VTNodeModule>(modname);
+		auto&& node = map_find_or_insert(modules_, modname, [&]() {
+			return std::make_shared<VTNodeModule>(&self, modname);
 		});
 		return node;
 	}

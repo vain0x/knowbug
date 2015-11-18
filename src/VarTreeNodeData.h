@@ -9,12 +9,13 @@
 class VTNodeVar
 	: public VTNodeData
 {
+	VTNodeData* parent_;
 	string const name_;
 	PVal* const pval_;
 
 public:
-	VTNodeVar(string const& name, PVal* pval)
-		: name_(name), pval_(pval)
+	VTNodeVar(VTNodeData* parent, string const& name, PVal* pval)
+		: parent_(parent), name_(name), pval_(pval)
 	{
 		assert(pval_);
 	}
@@ -23,6 +24,11 @@ public:
 	auto pval() const -> PVal* { return pval_; }
 
 	auto vartype() const -> vartype_t override { return pval_->flag; }
+
+	auto parent() const -> shared_ptr<VTNodeData> override
+	{
+		return (parent_ ? parent_->shared_from_this() : nullptr);
+	}
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fVar(*this); }
 };
@@ -41,6 +47,7 @@ public:
 	{
 		return hpiutil::Sysvar::List[id_].type;
 	}
+	auto parent() const -> shared_ptr<VTNodeData> override;
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fSysvar(*this); }
 };
@@ -114,10 +121,11 @@ private:
 public:
 	class Global;
 
-	VTNodeModule(string const& name);
+	VTNodeModule(VTNodeData* parent, string const& name);
 	virtual ~VTNodeModule();
 
 	auto name() const -> string override;
+	auto parent() const -> shared_ptr<VTNodeData> override;
 
 	//foreach
 	struct Visitor
@@ -177,6 +185,13 @@ public:
 
 	auto vartype() const -> vartype_t override { return vtype; }
 	auto name() const -> string override { return callinfo->name(); }
+
+	auto parent() const -> shared_ptr<VTNodeData> override
+	{
+		return ( pCallInfoDepended )
+			? std::static_pointer_cast<VTNodeData>(pCallInfoDepended)
+			: shared_ptr_from_rawptr<VTNodeData>(&VTNodeDynamic::instance());
+	}
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fResult(*this); }
 };
