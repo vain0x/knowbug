@@ -270,19 +270,29 @@ static void CurrentUpdate()
 //------------------------------------------------
 void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 {
-	auto const nodeString = TreeView_GetItemString(hVarTree, hItem);
-	HMENU hPop;
-#ifdef with_WrapCall
-	if ( VarTree::InvokeNode::isTypeOf(nodeString.c_str()) ) {
-		hPop = hInvokeNodeMenu;
-	} else
-#endif //defined(with_WrapCall)
-	if ( VarTree::SystemNode::isTypeOf(nodeString.c_str())
-		&& VarTree::TreeView_MyLParam<VarTree::SystemNode>(hVarTree, hItem) == VarTree::SystemNodeId::Log ) {
-		hPop = hLogNodeMenu;
-	} else {
-		hPop = hNodeMenu;
-	}
+	struct GetPopMenu
+		: public VTNodeData::Visitor
+	{
+		void fInvoke(VTNodeInvoke const&) override
+		{
+			hPop = hInvokeNodeMenu;
+		}
+		void fLog(VTNodeLog const&) override
+		{
+			hPop = hLogNodeMenu;
+		}
+		HMENU apply(VTNodeData& node)
+		{
+			hPop = hNodeMenu; // default
+			node.acceptVisitor(*this);
+			return hPop;
+		}
+	private:
+		HMENU hPop;
+	};
+
+	auto const node = VarTree::TreeView_MyLParam(hVarTree, hItem);
+	HMENU const hPop = GetPopMenu {}.apply(*node);
 
 	// ポップアップメニューを表示する
 	int const idSelected = TrackPopupMenuEx(
@@ -299,8 +309,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 		}
 #ifdef with_WrapCall
 		case IDC_NODE_STEP_OUT: {
-			auto const idx = VarTree::TreeView_MyLParam<VarTree::InvokeNode>(hVarTree, hItem);
-			if ( auto const pCallInfo = WrapCall::tryGetCallInfoAt(idx) ) {
+			if ( auto const pCallInfo = dynamic_cast<VTNodeInvoke*>(node) ) {
 				// 対象が呼び出された階層まで進む
 				Knowbug::runStepReturn(pCallInfo->sublev);
 			}
