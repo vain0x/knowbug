@@ -8,7 +8,10 @@
 
 class VTNodeVar
 	: public VTNodeData
-{};
+{
+public:
+	void acceptVisitor(Visitor& visitor) const override { visitor.fVar(*this); }
+};
 
 class VTNodeSysvarList
 	: public VTNodeData
