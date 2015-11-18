@@ -22,7 +22,7 @@ public:
 	void addSysvar(hpiutil::Sysvar::Id id);
 #ifdef with_WrapCall
 	void addCall(shared_ptr<WrapCall::ModcmdCallInfo const> const& callinfo);
-	void addResult(shared_ptr<ResultNodeData> const& result);
+	void addResult(ResultNodeData const& result);
 private:
 	void addCallSignature(shared_ptr<WrapCall::ModcmdCallInfo const> const& callinfo, stdat_t stdat);
 public:

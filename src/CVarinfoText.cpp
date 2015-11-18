@@ -128,12 +128,11 @@ void CVarinfoText::addCallSignature(ModcmdCallInfo::shared_ptr_type const& calli
 //------------------------------------------------
 // 返値データから生成
 //------------------------------------------------
-void CVarinfoText::addResult(shared_ptr<ResultNodeData> const& result)
+void CVarinfoText::addResult(ResultNodeData const& result)
 {
-	assert(!!result);
-	addCallSignature(result->callinfo, result->callinfo->stdat);
+	addCallSignature(result.callinfo, result.callinfo->stdat);
 	getWriter().catCrlf();
-	getWriter().cat(result->treeformedString);
+	getWriter().cat(result.treeformedString);
 }
 
 #endif

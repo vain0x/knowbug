@@ -362,7 +362,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		} else if ( usesResultNodes() && ResultNode::isTypeOf(name) ) {
 			auto const&& iter = g_allResultData.find(hItem);
 			auto const pResult = (iter != g_allResultData.end() ? iter->second : nullptr);
-			varinf.addResult(pResult);
+			varinf.addResult(*pResult);
 #endif
 		} else {
 			assert(VarNode::isTypeOf(name));
