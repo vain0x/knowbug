@@ -8,7 +8,10 @@
 
 class VTNodeVar
 	: public VTNodeData
-{};
+{
+public:
+	void acceptVisitor(Visitor& visitor) override { visitor.fVar(*this); }
+};
 
 class VTNodeSysvarList
 	: public VTNodeData
@@ -26,6 +29,8 @@ class VTNodeDynamic
 	, public Singleton<VTNodeDynamic>
 {
 	friend class Singleton<VTNodeDynamic>;
+public:
+	void acceptVisitor(Visitor& visitor) override { visitor.fDynamic(*this); }
 };
 
 class VTNodeScript
@@ -53,6 +58,8 @@ class VTNodeGeneral
 	, public Singleton<VTNodeGeneral>
 {
 	friend class Singleton<VTNodeGeneral>;
+public:
+	void acceptVisitor(Visitor& visitor) override { visitor.fGeneral(*this); }
 };
 
 #ifdef with_WrapCall
