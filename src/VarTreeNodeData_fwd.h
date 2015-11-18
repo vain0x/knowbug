@@ -32,16 +32,16 @@ public:
 	// visitor
 	struct Visitor
 	{
-		std::function<void(VTNodeModule     const&)> fModule;
-		std::function<void(VTNodeVar        const&)> fVar;
-		std::function<void(VTNodeSysvarList const&)> fSysvarList;
-		std::function<void(VTNodeSysvar     const&)> fSysvar;
-		std::function<void(VTNodeDynamic    const&)> fDynamic;
-		std::function<void(VTNodeInvoke     const&)> fInvoke;
-		std::function<void(VTNodeResult     const&)> fResult;
-		std::function<void(VTNodeScript     const&)> fScript;
-		std::function<void(VTNodeLog        const&)> fLog;
-		std::function<void(VTNodeGeneral    const&)> fGeneral;
+		virtual void fModule    (VTNodeModule     const&) {}
+		virtual void fVar       (VTNodeVar        const&) {}
+		virtual void fSysvarList(VTNodeSysvarList const&) {}
+		virtual void fSysvar    (VTNodeSysvar     const&) {}
+		virtual void fDynamic   (VTNodeDynamic    const&) {}
+		virtual void fInvoke    (VTNodeInvoke     const&) {}
+		virtual void fResult    (VTNodeResult     const&) {}
+		virtual void fScript    (VTNodeScript     const&) {}
+		virtual void fLog       (VTNodeLog        const&) {}
+		virtual void fGeneral   (VTNodeGeneral    const&) {}
 	};
 	virtual void acceptVisitor(Visitor& visitor) = 0;
 };
