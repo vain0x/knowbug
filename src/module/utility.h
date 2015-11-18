@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <functional>
 #include "pair_range.hpp"
 #include "range_all.hpp"
 

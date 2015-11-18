@@ -386,6 +386,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="resource.h" />
     <ClInclude Include="vartree.h" />
     <ClInclude Include="VarTreeNodeData.h" />
+    <ClInclude Include="VarTreeNodeData_fwd.h" />
     <ClInclude Include="with_ModPtr.h" />
     <ClInclude Include="WrapCall\ModcmdCallInfo.h" />
     <ClInclude Include="WrapCall\type_modcmd.h" />

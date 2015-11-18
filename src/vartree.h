@@ -5,11 +5,11 @@
 #include <CommCtrl.h>
 
 #include "main.h"
-
 #ifdef with_WrapCall
 # include "WrapCall/ModcmdCallInfo.h"
-# include "VarTreeNodeData.h"
 #endif
+#include "VarTreeNodeData.h"
+
 class StaticVarTree;
 
 namespace VarTree {
