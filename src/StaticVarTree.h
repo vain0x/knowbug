@@ -6,10 +6,12 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include "VarTreeNodeData_fwd.h"
 #include "module/Singleton.h"
 
 // モジュールと静的変数からなる木
 class StaticVarTree
+	: public VTNodeData
 {
 private:
 	using string = std::string;
@@ -38,6 +40,9 @@ public:
 			decltype(Visitor::fVar)(fVar)
 		});
 	}
+
+	// accept
+	void acceptVisitor(VTNodeData::Visitor& visitor) const override { visitor.fModule(*this); }
 };
 
 // グローバル領域のノード

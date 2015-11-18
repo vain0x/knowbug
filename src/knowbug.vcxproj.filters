@@ -96,9 +96,6 @@
     <ClCompile Include="WrapCall\ModcmdCallInfo.cpp">
       <Filter>WrapCall</Filter>
     </ClCompile>
-    <ClCompile Include="VarTreeNodeData.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="hpiutil\stringify.cpp">
       <Filter>module\hpiutil</Filter>
     </ClCompile>
@@ -107,6 +104,9 @@
     </ClCompile>
     <ClCompile Include="hpiutil\hspsdk\hsp3plugin.cpp">
       <Filter>module\hspsdk</Filter>
+    </ClCompile>
+    <ClCompile Include="VarTreeNodeData.cpp">
+      <Filter>class</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -185,9 +185,6 @@
     <ClInclude Include="module\utility.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="VarTreeNodeData.h">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="module\pair_range.hpp">
       <Filter>module</Filter>
     </ClInclude>
@@ -235,6 +232,12 @@
     </ClInclude>
     <ClInclude Include="hpiutil\hspsdk\win32gui\hspwnd_win.h">
       <Filter>module\hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="VarTreeNodeData_fwd.h">
+      <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="VarTreeNodeData.h">
+      <Filter>class</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
