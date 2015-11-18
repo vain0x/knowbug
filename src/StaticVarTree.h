@@ -29,7 +29,7 @@ public:
 
 	//foreach
 	struct Visitor {
-		std::function<void(StaticVarTree const&)> fModule;
+		std::function<void(shared_ptr<StaticVarTree const> const&)> fModule;
 		std::function<void(string const&)> fVar;
 	};
 	void foreach(Visitor const&) const;

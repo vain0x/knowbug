@@ -22,9 +22,8 @@
 namespace VarTree
 {
 
-static vartype_t getVartypeOfNode(HTREEITEM hItem);
-static void AddNodeModule(HTREEITEM hParent, StaticVarTree const& tree);
-static HTREEITEM AddNodeSystem(char const* name, VTNodeData* node);
+static HTREEITEM AddNodeSystem(char const* name, shared_ptr<VTNodeData const> node);
+static void AddNodeModule(HTREEITEM hParent, shared_ptr<StaticVarTree const> node);
 static void AddNodeSysvar();
 
 static HTREEITEM g_hNodeScript, g_hNodeLog;
@@ -39,7 +38,6 @@ static void AddNodeDynamic();
 
 // ツリービューに含まれる返値ノードのデータ
 using resultDataPtr_t = shared_ptr<ResultNodeData const>;
-static std::map<HTREEITEM, resultDataPtr_t> g_allResultData;
 static HTREEITEM g_lastIndependedResultNode; // 非依存な返値ノード
 
 struct UnreflectedDynamicNodeInfo {
@@ -64,14 +62,14 @@ static auto FindLastIndependedResultData() -> shared_ptr<ResultNodeData const>;
 //------------------------------------------------
 void init()
 {
-	AddNodeModule(TVI_ROOT, StaticVarTree::Global::instance());
+	AddNodeModule(TVI_ROOT, shared_ptr_from_rawptr(&StaticVarTree::Global::instance()));
 #ifdef with_WrapCall
 	AddNodeDynamic();
 #endif
 	AddNodeSysvar();
-	g_hNodeScript = AddNodeSystem("+script", &VTNodeScript::instance());
-	g_hNodeLog    = AddNodeSystem("+log", &VTNodeLog::instance());
-	AddNodeSystem("+general", &VTNodeGeneral::instance());
+	g_hNodeScript = AddNodeSystem("+script", shared_ptr_from_rawptr(&VTNodeScript::instance()));
+	g_hNodeLog    = AddNodeSystem("+log", shared_ptr_from_rawptr(&VTNodeLog::instance()));
+	AddNodeSystem("+general", shared_ptr_from_rawptr(&VTNodeGeneral::instance()));
 
 	//@, +dynamic は開いておく
 #ifdef with_WrapCall
@@ -110,36 +108,50 @@ void update()
 //------------------------------------------------
 // ツリービューに要素を挿入する
 //------------------------------------------------
-static HTREEITEM TreeView_MyInsertItem(HTREEITEM hParent, char const* name, bool sorts, VTNodeData const* node)
+static HTREEITEM TreeView_MyInsertItem
+	( HTREEITEM hParent
+	, char const* name
+	, bool sorts
+	, shared_ptr<VTNodeData const> node)
 {
 	TVINSERTSTRUCT tvis {};
 	tvis.hParent = hParent;
 	tvis.hInsertAfter = (sorts ? TVI_SORT : TVI_LAST);
-	tvis.item.mask = TVIF_TEXT | TVIF_PARAM;
+	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
+	tvis.item.lParam  = (LPARAM)node.get();
 	tvis.item.pszText = const_cast<char*>(name);
-	tvis.item.lParam = (LPARAM)(node);
+
 	return TreeView_InsertItem(hwndVarTree, &tvis);
 }
 
-auto TreeView_MyLParam(HWND hTree, HTREEITEM hItem) -> VTNodeData*
+auto getNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData const>
 {
-	return reinterpret_cast<VTNodeData*>(TreeView_GetItemLParam(hTree, hItem));
+	auto const lp = reinterpret_cast<VTNodeData const*>(TreeView_GetItemLParam(hwndVarTree, hItem));
+	assert(lp);
+	auto&& p = lp->shared_from_this();
+	assert(p);
+	return p;
+}
+
+static void TreeView_MyDeleteItem(HTREEITEM hItem)
+{
+	TreeView_DeleteItem(hwndVarTree, hItem);
 }
 
 //------------------------------------------------
 // 変数ツリーにノードを追加する
 //------------------------------------------------
-void AddNodeModule(HTREEITEM hParent, StaticVarTree const& tree)
+void AddNodeModule(HTREEITEM hParent, shared_ptr<StaticVarTree const> tree)
 {
-	auto const hElem = TreeView_MyInsertItem(hParent, tree.getName().c_str(), true, &tree);
-	tree.foreach(
-		[&](StaticVarTree const& module) {
+	auto const hElem = TreeView_MyInsertItem(hParent, tree->getName().c_str(), true, tree);
+	tree->foreach(
+		[&](shared_ptr<StaticVarTree const> const& module) {
 			AddNodeModule(hElem, module);
 		},
 		[&](string const& varname) {
-			auto&& varNode = tree.tryFindVarNode(varname.c_str());
+			auto&& varNode = tree->tryFindVarNode(varname.c_str());
 			assert(varNode);
-			TreeView_MyInsertItem(hElem, varname.c_str(), true, varNode.get());
+			TreeView_MyInsertItem(hElem, varname.c_str(), /* sorts */ true, varNode);
 		}
 	);
 }
@@ -147,9 +159,9 @@ void AddNodeModule(HTREEITEM hParent, StaticVarTree const& tree)
 //------------------------------------------------
 // 変数ツリーにシステムノードを追加する
 //------------------------------------------------
-HTREEITEM AddNodeSystem(char const* name, VTNodeData* node)
+HTREEITEM AddNodeSystem(char const* name, shared_ptr<VTNodeData const> node)
 {
-	return TreeView_MyInsertItem(TVI_ROOT, name, false, node);
+	return TreeView_MyInsertItem(TVI_ROOT, name, /* sorts */ false, node);
 }
 
 //------------------------------------------------
@@ -160,11 +172,12 @@ void AddNodeSysvar()
 	using namespace hpiutil;
 
 	auto&& root = VTNodeSysvarList::instance();
-	HTREEITEM const hNodeSysvar = AddNodeSystem("+sysvar", &root);
+	HTREEITEM const hNodeSysvar = AddNodeSystem("+sysvar", shared_ptr_from_rawptr(&root));
 
 	for ( VTNodeSysvar const& node : root.sysvarList() ) {
 		string const name = strf( "~%s", node.name() );
-		TreeView_MyInsertItem(hNodeSysvar, name.c_str(), /* sorts */ false, &node);
+		TreeView_MyInsertItem(hNodeSysvar, name.c_str()
+			, /* sorts */ false, shared_ptr_from_rawptr(&node));
 	}
 }
 
@@ -174,7 +187,7 @@ void AddNodeSysvar()
 //------------------------------------------------
 void AddNodeDynamic()
 {
-	g_hNodeDynamic = AddNodeSystem("+dynamic", &VTNodeDynamic::instance());
+	g_hNodeDynamic = AddNodeSystem("+dynamic", shared_ptr_from_rawptr(&VTNodeDynamic::instance()));
 }
 #endif
 
@@ -198,10 +211,11 @@ static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 		return true;
 	};
 
-	auto const node = TreeView_MyLParam(hwndVarTree, hItem);
+	auto const node = getNodeData(hItem);
+	if ( !node ) return false;
 
 #ifdef with_WrapCall
-	if ( auto const pCallInfo = dynamic_cast<VTNodeInvoke*>(node) ) {
+	if ( auto const pCallInfo = std::dynamic_pointer_cast<VTNodeInvoke const>(node) ) {
 			auto const key = (pCallInfo->stdat->index == STRUCTDAT_INDEX_FUNC)
 				? "__sttm__"
 				: "__func__";
@@ -302,7 +316,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 			varinf.addResult(node);
 		}
 #endif
-		auto apply(VTNodeData& node) -> shared_ptr<string const>
+		auto apply(VTNodeData const& node) -> shared_ptr<string const>
 		{
 			node.acceptVisitor(*this);
 			return (result)
@@ -311,8 +325,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		}
 	};
 
-	auto const node = TreeView_MyLParam(hwndVarTree, hItem);
-	return GetText {}.apply(*node);
+	return GetText {}.apply(*getNodeData(hItem));
 }
 
 #ifdef with_WrapCall
@@ -338,7 +351,7 @@ void AddCallNodeImpl(ModcmdCallInfo::shared_ptr_type const& callinfo)
 	char name[128] = "'";
 	strcpy_s(&name[1], sizeof(name) - 1, hpiutil::STRUCTDAT_name(callinfo->stdat));
 	HTREEITEM const hChild =
-		TreeView_MyInsertItem(g_hNodeDynamic, name, false, callinfo.get());
+		TreeView_MyInsertItem(g_hNodeDynamic, name, false, callinfo);
 
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, g_hNodeDynamic ) == hChild ) {
@@ -362,11 +375,11 @@ void RemoveLastCallNode()
 
 		HTREEITEM const hLast = TreeView_GetChildLast(hwndVarTree, g_hNodeDynamic);
 		if ( !hLast ) return;
-		assert(dynamic_cast<VTNodeInvoke*>(TreeView_MyLParam(hwndVarTree, hLast)));
+		assert(std::dynamic_pointer_cast<VTNodeInvoke const>(getNodeData(hLast)));
 
 		TreeView_EscapeFocus(hwndVarTree, hLast);
 		RemoveDependingResultNodes(hLast);
-		TreeView_DeleteItem(hwndVarTree, hLast);
+		TreeView_MyDeleteItem(hLast);
 	}
 }
 
@@ -436,15 +449,12 @@ void AddResultNodeImpl(resultDataPtr_t const& pResult)
 	// 挿入
 	char name[128] = "\"";
 	strcpy_s( &name[1], sizeof(name) - 1, hpiutil::STRUCTDAT_name(pResult->callinfo->stdat) );
-	HTREEITEM const hChild = TreeView_MyInsertItem(hParent, name, false, pResult.get());
+	HTREEITEM const hChild = TreeView_MyInsertItem(hParent, name, false, pResult);
 
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, hParent ) == hChild ) {
 		TreeView_Expand( hwndVarTree, hParent, TVE_EXPAND );
 	}
-
-	// 返値ノードデータを保存しておく
-	g_allResultData.emplace(hChild, pResult);
 
 	if ( hParent == g_hNodeDynamic ) {
 		g_lastIndependedResultNode = hChild;
@@ -465,7 +475,7 @@ HTREEITEM FindDependedCallNode(resultDataPtr_t const& pResult)
 			; hItem != nullptr
 			; hItem = TreeView_GetNextSibling(hwndVarTree, hItem)
 		) {
-			auto const node = dynamic_cast<VTNodeInvoke*>(TreeView_MyLParam(hwndVarTree, hItem));
+			auto&& node = std::dynamic_pointer_cast<VTNodeInvoke const>(getNodeData(hItem));
 			if ( !node ) continue;
 			if ( WrapCall::tryGetCallInfoAt(node->idx) == pResult->pCallInfoDepended ) break;
 		}
@@ -486,14 +496,7 @@ void RemoveResultNode(HTREEITEM hResult)
 	//RemoveDependingResultNodes(hResult);
 
 	TreeView_EscapeFocus(hwndVarTree, hResult);
-
-	// 関連していた返値ノードデータを破棄
-	{
-		size_t const cnt = g_allResultData.erase(hResult);
-		assert(cnt == 1);
-	}
-
-	TreeView_DeleteItem(hwndVarTree, hResult);
+	TreeView_MyDeleteItem(hResult);
 }
 
 //------------------------------------------------
@@ -514,8 +517,8 @@ static void RemoveDependingResultNodes(HTREEITEM hItem)
 		;
 	) {
 		HTREEITEM const hNext = TreeView_GetNextSibling(hwndVarTree, hChild);
-		auto const lp = TreeView_MyLParam(hwndVarTree, hChild);
-		if ( auto const node = dynamic_cast<VTNodeResult*>(lp) ) {
+		auto&& lp = getNodeData(hChild);
+		if ( auto const node = std::dynamic_pointer_cast<VTNodeResult const>(lp) ) {
 			RemoveResultNode(hChild);
 		}
 		hChild = hNext;
@@ -540,10 +543,8 @@ void RemoveLastIndependedResultNode()
 auto FindLastIndependedResultData() -> shared_ptr<ResultNodeData const>
 {
 	if ( !g_lastIndependedResultNode ) return nullptr;
-	auto const&& iter = g_allResultData.find(g_lastIndependedResultNode);
-	return (iter != g_allResultData.end())
-		? iter->second
-		: nullptr;
+	return std::dynamic_pointer_cast<ResultNodeData const>(
+		getNodeData(g_lastIndependedResultNode));
 }
 
 //------------------------------------------------

@@ -7,7 +7,8 @@
 
 string const StaticVarTree::Global::Name = "@";
 
-struct StaticVarTree::Private {
+struct StaticVarTree::Private
+{
 	StaticVarTree& self;
 	string const name_;
 	std::map<string, shared_ptr<VTNodeVar>> vars_;
@@ -112,7 +113,7 @@ shared_ptr<StaticVarTree> StaticVarTree::Private::insertModule(char const* pModn
 //------------------------------------------------
 void StaticVarTree::foreach(StaticVarTree::Visitor const& visitor) const {
 	for ( auto&& kv : p_->modules_ ) {
-		visitor.fModule(*kv.second);
+		visitor.fModule(kv.second);
 	}
 	for ( auto const& it : p_->vars_ ) {
 		visitor.fVar(it.first);

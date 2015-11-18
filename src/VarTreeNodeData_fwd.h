@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <memory>
 #include <functional>
 
 //class VTNodeModule;
@@ -25,6 +26,7 @@ using VTNodeResult = ResultNodeData;
 
 // ツリービューのノードに対応するクラスのインターフェイス
 class VTNodeData
+	: public std::enable_shared_from_this<VTNodeData>
 {
 public:
 	virtual ~VTNodeData() {}

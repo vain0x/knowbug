@@ -281,7 +281,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 		{
 			hPop = hLogNodeMenu;
 		}
-		HMENU apply(VTNodeData& node)
+		HMENU apply(VTNodeData const& node)
 		{
 			hPop = hNodeMenu; // default
 			node.acceptVisitor(*this);
@@ -291,7 +291,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 		HMENU hPop;
 	};
 
-	auto const node = VarTree::TreeView_MyLParam(hVarTree, hItem);
+	auto&& node = VarTree::getNodeData(hItem);
 	HMENU const hPop = GetPopMenu {}.apply(*node);
 
 	// ポップアップメニューを表示する
@@ -309,7 +309,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 		}
 #ifdef with_WrapCall
 		case IDC_NODE_STEP_OUT: {
-			if ( auto const pCallInfo = dynamic_cast<VTNodeInvoke*>(node) ) {
+			if ( auto const pCallInfo = std::dynamic_pointer_cast<VTNodeInvoke const>(node) ) {
 				// 対象が呼び出された階層まで進む
 				Knowbug::runStepReturn(pCallInfo->sublev);
 			}

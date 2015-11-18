@@ -19,12 +19,11 @@ void term();
 void update();
 
 LRESULT customDraw(LPNMTVCUSTOMDRAW pnmcd);
-std::shared_ptr<string const> getItemVarText(HTREEITEM hItem);
+auto getItemVarText(HTREEITEM hItem) -> shared_ptr<string const>;
+auto getNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData const>;
 
 HTREEITEM getScriptNodeHandle();
 HTREEITEM getLogNodeHandle();
-
-auto TreeView_MyLParam(HWND hTree, HTREEITEM hItem) -> VTNodeData*;
 
 #ifdef with_WrapCall
 

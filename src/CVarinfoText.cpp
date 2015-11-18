@@ -148,9 +148,9 @@ void CVarinfoText::addModuleOverview(char const* name, StaticVarTree const& tree
 	getWriter().catln(strf("[%s]", name));
 
 	tree.foreach(
-		[&](StaticVarTree const& module) {
+		[&](shared_ptr<StaticVarTree const> const& module) {
 			// (入れ子の)モジュールは名前だけ表示しておく
-			getWriter().catln(module.getName());
+			getWriter().catln(module->getName());
 		},
 		[&](string const& varname) {
 			auto const shortName = hpiutil::nameExcludingScopeResolution(varname);
