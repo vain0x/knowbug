@@ -182,9 +182,6 @@
     <ClInclude Include="module\strf.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="module\utility.h">
-      <Filter>module</Filter>
-    </ClInclude>
     <ClInclude Include="module\pair_range.hpp">
       <Filter>module</Filter>
     </ClInclude>
@@ -238,6 +235,9 @@
     </ClInclude>
     <ClInclude Include="VarTreeNodeData.h">
       <Filter>class</Filter>
+    </ClInclude>
+    <ClInclude Include="module\utility.h">
+      <Filter>module</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
