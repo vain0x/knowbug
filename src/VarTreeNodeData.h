@@ -5,6 +5,22 @@
 #include "VarTreeNodeData_fwd.h"
 #include "WrapCall/ModcmdCallInfo.h"
 #include "module/Singleton.h"
+#include "module/utility.h"
+
+template<typename T>
+struct SharedSingleton
+	: public Singleton<T>
+{
+	static auto make_shared() -> std::shared_ptr<T>
+	{
+		static auto instance_ = std::make_shared<T>();
+		return instance_;
+	}
+	static T& instance()
+	{
+		return *make_shared();
+	}
+};
 
 class VTNodeVar
 	: public VTNodeData
@@ -54,7 +70,7 @@ public:
 
 class VTNodeSysvarList
 	: public VTNodeData
-	, public Singleton<VTNodeSysvarList>
+	, public SharedSingleton<VTNodeSysvarList>
 {
 	friend class Singleton<VTNodeSysvarList>;
 	VTNodeSysvarList();
@@ -69,7 +85,7 @@ public:
 
 class VTNodeDynamic
 	: public VTNodeData
-	, public Singleton<VTNodeDynamic>
+	, public SharedSingleton<VTNodeDynamic>
 {
 	friend class Singleton<VTNodeDynamic>;
 
@@ -80,7 +96,7 @@ public:
 
 class VTNodeScript
 	: public VTNodeData
-	, public Singleton<VTNodeScript>
+	, public SharedSingleton<VTNodeScript>
 {
 	friend class Singleton<VTNodeScript>;
 
@@ -91,7 +107,7 @@ public:
 
 class VTNodeLog
 	: public VTNodeData
-	, public Singleton<VTNodeLog>
+	, public SharedSingleton<VTNodeLog>
 {
 	friend class Singleton<VTNodeLog>;
 
@@ -102,7 +118,7 @@ public:
 
 class VTNodeGeneral
 	: public VTNodeData
-	, public Singleton<VTNodeGeneral>
+	, public SharedSingleton<VTNodeGeneral>
 {
 	friend class Singleton<VTNodeGeneral>;
 
@@ -152,7 +168,7 @@ public:
 // グローバル領域のノード
 class VTNodeModule::Global
 	: public VTNodeModule
-	, public Singleton<VTNodeModule::Global>
+	, public SharedSingleton<VTNodeModule::Global>
 {
 public:
 	static string const Name;
@@ -190,7 +206,7 @@ public:
 	{
 		return ( pCallInfoDepended )
 			? std::static_pointer_cast<VTNodeData>(pCallInfoDepended)
-			: shared_ptr_from_rawptr<VTNodeData>(&VTNodeDynamic::instance());
+			: VTNodeDynamic::make_shared();
 	}
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fResult(*this); }

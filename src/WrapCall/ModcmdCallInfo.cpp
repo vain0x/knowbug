@@ -61,7 +61,7 @@ ModcmdCallInfo::shared_ptr_type ModcmdCallInfo::tryGetDependedCallInfo() const
 
 auto ModcmdCallInfo::parent() const -> shared_ptr<VTNodeData>
 {
-	return shared_ptr_from_rawptr(&VTNodeDynamic::instance());
+	return VTNodeDynamic::make_shared();
 }
 
 } //namespace WrapCall

@@ -61,14 +61,14 @@ static auto FindLastIndependedResultData() -> shared_ptr<ResultNodeData const>;
 //------------------------------------------------
 void init()
 {
-	AddNodeModule(TVI_ROOT, shared_ptr_from_rawptr(&VTNodeModule::Global::instance()));
+	AddNodeModule(TVI_ROOT, VTNodeModule::Global::make_shared());
 #ifdef with_WrapCall
 	AddNodeDynamic();
 #endif
 	AddNodeSysvar();
-	g_hNodeScript = AddNodeSystem("+script", shared_ptr_from_rawptr(&VTNodeScript::instance()));
-	g_hNodeLog    = AddNodeSystem("+log", shared_ptr_from_rawptr(&VTNodeLog::instance()));
-	AddNodeSystem("+general", shared_ptr_from_rawptr(&VTNodeGeneral::instance()));
+	g_hNodeScript = AddNodeSystem("+script", VTNodeScript::make_shared());
+	g_hNodeLog    = AddNodeSystem("+log", VTNodeLog::make_shared());
+	AddNodeSystem("+general", VTNodeGeneral::make_shared());
 
 	//@, +dynamic は開いておく
 #ifdef with_WrapCall
@@ -170,10 +170,10 @@ void AddNodeSysvar()
 {
 	using namespace hpiutil;
 
-	auto&& root = VTNodeSysvarList::instance();
-	HTREEITEM const hNodeSysvar = AddNodeSystem("+sysvar", shared_ptr_from_rawptr(&root));
+	auto&& root = VTNodeSysvarList::make_shared();
+	HTREEITEM const hNodeSysvar = AddNodeSystem("+sysvar", root);
 
-	for ( VTNodeSysvar const& node : root.sysvarList() ) {
+	for ( VTNodeSysvar const& node : root->sysvarList() ) {
 		string const name = strf( "~%s", node.name() );
 		TreeView_MyInsertItem(hNodeSysvar, name.c_str()
 			, /* sorts */ false, shared_ptr_from_rawptr(&node));
@@ -186,7 +186,7 @@ void AddNodeSysvar()
 //------------------------------------------------
 void AddNodeDynamic()
 {
-	g_hNodeDynamic = AddNodeSystem("+dynamic", shared_ptr_from_rawptr(&VTNodeDynamic::instance()));
+	g_hNodeDynamic = AddNodeSystem("+dynamic", VTNodeDynamic::make_shared());
 }
 #endif
 
