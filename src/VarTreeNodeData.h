@@ -13,16 +13,32 @@ public:
 	void acceptVisitor(Visitor& visitor) override { visitor.fVar(*this); }
 };
 
+class VTNodeSysvar
+	: public VTNodeData
+{
+	friend class VTNodeSysvarList; // To initialize this
+
+	hpiutil::Sysvar::Id id_;
+public:
+	auto id() const -> hpiutil::Sysvar::Id { return id_; }
+	auto name() const -> char const* { return hpiutil::Sysvar::List[id_].name; }
+
+	void acceptVisitor(Visitor& visitor) override { visitor.fSysvar(*this); }
+};
+
 class VTNodeSysvarList
 	: public VTNodeData
 	, public Singleton<VTNodeSysvarList>
 {
 	friend class Singleton<VTNodeSysvarList>;
-};
+	VTNodeSysvarList();
 
-class VTNodeSysvar
-	: public VTNodeData
-{};
+	std::array<VTNodeSysvar, hpiutil::Sysvar::Count> sysvar_;
+public:
+	auto sysvarList() const -> decltype(sysvar_) const& { return sysvar_; }
+
+	void acceptVisitor(Visitor& visitor) override { visitor.fSysvarList(*this); }
+};
 
 class VTNodeDynamic
 	: public VTNodeData

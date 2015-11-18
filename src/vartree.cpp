@@ -183,8 +183,8 @@ void AddNodeModule(HTREEITEM hParent, StaticVarTree const& tree)
 //------------------------------------------------
 // 変数ツリーにシステムノードを追加する
 //------------------------------------------------
-HTREEITEM AddNodeSystem(char const* name, SystemNodeId id) {
-	assert(SystemNode::isTypeOf(name));
+HTREEITEM AddNodeSystem(char const* name, SystemNodeId id)
+{
 	return TreeView_MyInsertItem<SystemNode>(TVI_ROOT, name, false, id);
 }
 
@@ -197,10 +197,12 @@ void AddNodeSysvar()
 
 	HTREEITEM const hNodeSysvar = AddNodeSystem("+sysvar", SystemNodeId::Sysvar);
 
+	auto&& root = VTNodeSysvarList::instance();
+
 	// システム変数のリストを追加する
-	for ( int i = 0; i < Sysvar::Count; ++ i ) {
-		string const name = strf( "~%s", Sysvar::List[i].name );
-		TreeView_MyInsertItem<SysvarNode>(hNodeSysvar, name.c_str(), false, static_cast<Sysvar::Id>(i));
+	for ( VTNodeSysvar const& node : root.sysvarList() ) {
+		string const name = strf( "~%s", node.name() );
+		TreeView_MyInsertItem<SysvarNode>(hNodeSysvar, name.c_str(), /* sorts */ false, node.id());
 	}
 }
 

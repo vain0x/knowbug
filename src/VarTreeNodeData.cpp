@@ -1,9 +1,17 @@
-#ifdef with_WrapCall
 
 #include "VarTreeNodeData.h"
 #include "CVardataString.h"
 #include "module/CStrBuf.h"
 #include "module/CStrWriter.h"
+
+VTNodeSysvarList::VTNodeSysvarList()
+{
+	for ( int i = 0; i < hpiutil::Sysvar::Count; ++i ) {
+		sysvar_[i].id_ = static_cast<hpiutil::Sysvar::Id>(i);
+	}
+}
+
+#ifdef with_WrapCall
 
 using WrapCall::ModcmdCallInfo;
 
