@@ -25,6 +25,7 @@ public:
 	virtual ~StaticVarTree();
 
 	string const& getName() const;
+	auto tryFindVarNode(string const& name) const -> shared_ptr<VTNodeVar>;
 
 	//foreach
 	struct Visitor {

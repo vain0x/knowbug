@@ -3,13 +3,14 @@
 #include "DebugInfo.h"
 #include "config_mng.h"
 #include "StaticVarTree.h"
+#include "VarTreeNodeData.h"
 
 string const StaticVarTree::Global::Name = "@";
 
 struct StaticVarTree::Private {
 	StaticVarTree& self;
 	string const name_;
-	std::set<string> vars_;
+	std::map<string, shared_ptr<VTNodeVar>> vars_;
 	std::map<string, shared_ptr<StaticVarTree>> modules_;
 
 public:
@@ -25,6 +26,12 @@ StaticVarTree::~StaticVarTree() {}
 
 string const& StaticVarTree::getName() const {
 	return p_->name_;
+}
+
+auto StaticVarTree::tryFindVarNode(std::string const& name) const -> shared_ptr<VTNodeVar>
+{
+	auto&& it = p_->vars_.find(name);
+	return ( it != p_->vars_.end() ) ? it->second : nullptr;
 }
 
 //------------------------------------------------
@@ -59,7 +66,11 @@ void StaticVarTree::Global::addVar(char const* name)
 
 void StaticVarTree::Private::insertVar(char const* name)
 {
-	vars_.insert(name);
+	PVal* const pval = hpiutil::seekSttVar(name);
+	assert(pval);
+
+	vars_.emplace(std::string(name)
+		, std::make_shared<VTNodeVar>(std::string(name), pval));
 }
 
 //------------------------------------------------
@@ -104,6 +115,6 @@ void StaticVarTree::foreach(StaticVarTree::Visitor const& visitor) const {
 		visitor.fModule(*kv.second);
 	}
 	for ( auto const& it : p_->vars_ ) {
-		visitor.fVar(it);
+		visitor.fVar(it.first);
 	}
 }

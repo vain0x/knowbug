@@ -9,7 +9,17 @@
 class VTNodeVar
 	: public VTNodeData
 {
+	string const name_;
+	PVal* const pval_;
+
 public:
+	VTNodeVar(string const& name, PVal* pval)
+		: name_(name), pval_(pval)
+	{}
+
+	auto name() const -> string const& { return name_; }
+	auto pval() const -> PVal* { return pval_; }
+
 	void acceptVisitor(Visitor& visitor) const override { visitor.fVar(*this); }
 };
 
