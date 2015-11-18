@@ -43,6 +43,7 @@ public:
 
 	// accept
 	void acceptVisitor(VTNodeData::Visitor& visitor) { visitor.fModule(*this); }
+	shared_ptr<VTNodeVar> tryFindVarNode(string const& name) const;
 };
 
 // グローバル領域のノード
