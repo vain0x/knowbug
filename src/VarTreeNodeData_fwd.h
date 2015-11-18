@@ -27,7 +27,7 @@ class VTNodeData
 {
 public:
 	VTNodeData();
-	virtual ~VTNodeData() {}
+	virtual ~VTNodeData();
 
 	// visitor
 	struct Visitor
@@ -61,11 +61,22 @@ protected:
 	bool update(bool deep)
 	{
 		if ( parent() && !parent()->update(false) ) return false;
-		if ( uninitialized_ ) { uninitialized_ = false; init(); }
+		if ( uninitialized_ ) { uninitialized_ = false; onInit(); init(); }
 		return updateSub(deep);
 	}
 
 	virtual void init() {}
 	virtual bool updateSub(bool deep) { return true; }
 	bool uninitialized_;
+
+private:
+	void onInit();
+
+public:
+	struct Observer : Visitor
+	{
+		virtual void onInit(VTNodeData&) {}
+		virtual void onTerm(VTNodeData&) {}
+	};
+	static void registerObserver(shared_ptr<Observer> obs);
 };

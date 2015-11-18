@@ -5,9 +5,32 @@
 #include "module/CStrWriter.h"
 #include "vartree.h"
 
+static vector<shared_ptr<VTNodeData::Observer>> g_observers;
+
+void VTNodeData::registerObserver(shared_ptr<Observer> obs)
+{
+	g_observers.emplace_back(std::move(obs));
+}
+
 VTNodeData::VTNodeData()
 	: uninitialized_(true)
 {}
+
+void VTNodeData::onInit()
+{
+	assert(!uninitialized_);
+	for ( auto& obs : g_observers ) {
+		obs->onInit(*this);
+	}
+}
+
+VTNodeData::~VTNodeData()
+{
+	if ( uninitialized_ ) return;
+	for ( auto& obs : g_observers ) {
+		obs->onTerm(*this);
+	}
+}
 
 auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
 {
