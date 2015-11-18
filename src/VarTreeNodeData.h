@@ -24,8 +24,8 @@ struct ResultNodeData
 	WrapCall::ModcmdCallInfo::shared_ptr_type pCallInfoDepended;
 
 public:
-	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vt);
-	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PVal* pvResult);
+	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vt);
+	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PVal const* pvResult);
 };
 
 #endif //defined(with_WrapCall)

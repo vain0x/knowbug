@@ -38,7 +38,7 @@ static HTREEITEM g_hNodeDynamic;
 static void AddNodeDynamic();
 
 // ツリービューに含まれる返値ノードのデータ
-using resultDataPtr_t = std::shared_ptr<ResultNodeData>;
+using resultDataPtr_t = shared_ptr<ResultNodeData const>;
 static std::map<HTREEITEM, resultDataPtr_t> g_allResultData;
 static HTREEITEM g_lastIndependedResultNode; // 非依存な返値ノード
 
@@ -50,11 +50,11 @@ struct UnreflectedDynamicNodeInfo {
 static UnreflectedDynamicNodeInfo g_unreflectedDynamicNodeInfo;
 
 static void AddCallNodeImpl(ModcmdCallInfo::shared_ptr_type const& callinfo);
-static void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult);
-static HTREEITEM FindDependedCallNode(ResultNodeData* pResult);
+static void AddResultNodeImpl(resultDataPtr_t const& pResult);
+static HTREEITEM FindDependedCallNode(resultDataPtr_t const& pResult);
 static void RemoveDependingResultNodes(HTREEITEM hItem);
 static void RemoveLastIndependedResultNode();
-static shared_ptr<ResultNodeData> FindLastIndependedResultData();
+static auto FindLastIndependedResultData() -> shared_ptr<ResultNodeData const>;
 #endif
 
 //------------------------------------------------
@@ -444,7 +444,7 @@ B の返値ノードは、A の呼び出しノードの子ノードとして追�
 3. 実行が終了したとき、すべての返値ノードが取り除かれる。
 */
 //------------------------------------------------
-void AddResultNode(ModcmdCallInfo::shared_ptr_type const& callinfo, std::shared_ptr<ResultNodeData> pResult)
+void AddResultNode(ModcmdCallInfo::shared_ptr_type const& callinfo, resultDataPtr_t const& pResult)
 {
 	assert(!!pResult);
 
@@ -460,9 +460,9 @@ void AddResultNode(ModcmdCallInfo::shared_ptr_type const& callinfo, std::shared_
 	}
 }
 
-void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
+void AddResultNodeImpl(resultDataPtr_t const& pResult)
 {
-	HTREEITEM const hParent = FindDependedCallNode(pResult.get());
+	HTREEITEM const hParent = FindDependedCallNode(pResult);
 	if ( !hParent ) return;
 
 	// 非依存な返値ノードは高々1個に限られる
@@ -493,7 +493,7 @@ void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
 //
 // @ 依存元がツリービューになければ失敗とする。
 //------------------------------------------------
-HTREEITEM FindDependedCallNode(ResultNodeData* pResult)
+HTREEITEM FindDependedCallNode(resultDataPtr_t const& pResult)
 {
 	// 依存されているなら、その呼び出しノードを検索する
 	if ( pResult->pCallInfoDepended ) {
@@ -579,7 +579,7 @@ void RemoveLastIndependedResultNode()
 //------------------------------------------------
 // (最後の)非依存な返値ノードデータを探す
 //------------------------------------------------
-shared_ptr<ResultNodeData> FindLastIndependedResultData()
+auto FindLastIndependedResultData() -> shared_ptr<ResultNodeData const>
 {
 	if ( !g_lastIndependedResultNode ) return nullptr;
 	auto const&& iter = g_allResultData.find(g_lastIndependedResultNode);

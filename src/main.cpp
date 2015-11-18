@@ -212,7 +212,7 @@ void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, va
 
 	// 返値ノードデータの生成
 	// ptr の生存期限が今だけなので、今作るしかない
-	auto const pResult =
+	auto&& pResult =
 		(usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
 		? std::make_shared<ResultNodeData>(callinfo, ptr, vtype)
 		: nullptr;

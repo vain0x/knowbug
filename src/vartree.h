@@ -64,7 +64,7 @@ lparam_t TreeView_MyLParam(HWND hTree, HTREEITEM hItem, Tag* = nullptr);
 
 void AddCallNode(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo);
 void RemoveLastCallNode();
-void AddResultNode(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, std::shared_ptr<ResultNodeData> pResult);
+void AddResultNode(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, shared_ptr<ResultNodeData const> const& pResult);
 void RemoveResultNode( HTREEITEM hResult );
 void UpdateCallNode();
 

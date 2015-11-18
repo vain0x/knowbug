@@ -4,14 +4,15 @@
 #include "CVardataString.h"
 #include "module/CStrBuf.h"
 #include "module/CStrWriter.h"
+#include "vartree.h"
 
 using WrapCall::ModcmdCallInfo;
 
-ResultNodeData::ResultNodeData(ModcmdCallInfo::shared_ptr_type const& callinfo, PVal* pvResult)
+ResultNodeData::ResultNodeData(ModcmdCallInfo::shared_ptr_type const& callinfo, PVal const* pvResult)
 	: ResultNodeData(callinfo, pvResult->pt, pvResult->flag)
 { }
 
-ResultNodeData::ResultNodeData(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vt)
+ResultNodeData::ResultNodeData(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vt)
 	: callinfo(callinfo)
 	, vtype(vt)
 	, pCallInfoDepended(callinfo->tryGetDependedCallInfo())
