@@ -44,4 +44,6 @@ public:
 		virtual void fGeneral   (VTNodeGeneral    const&) {}
 	};
 	virtual void acceptVisitor(Visitor& visitor) = 0;
+
+	virtual auto vartype() const -> vartype_t { return HSPVAR_FLAG_NONE; }
 };

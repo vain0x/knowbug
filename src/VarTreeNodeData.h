@@ -15,10 +15,14 @@ class VTNodeVar
 public:
 	VTNodeVar(string const& name, PVal* pval)
 		: name_(name), pval_(pval)
-	{}
+	{
+		assert(pval_);
+	}
 
 	auto name() const -> string const& { return name_; }
 	auto pval() const -> PVal* { return pval_; }
+
+	auto vartype() /* override */ const -> vartype_t { return pval_->flag; }
 
 	void acceptVisitor(Visitor& visitor) override { visitor.fVar(*this); }
 };
@@ -32,6 +36,11 @@ class VTNodeSysvar
 public:
 	auto id() const -> hpiutil::Sysvar::Id { return id_; }
 	auto name() const -> char const* { return hpiutil::Sysvar::List[id_].name; }
+	
+	auto vartype() const /* override */ -> vartype_t
+	{
+		return hpiutil::Sysvar::List[id_].type;
+	}
 
 	void acceptVisitor(Visitor& visitor) override { visitor.fSysvar(*this); }
 };
@@ -108,6 +117,8 @@ struct ResultNodeData
 public:
 	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vt);
 	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PVal* pvResult);
+
+	auto vartype() const /* override */ -> vartype_t { return vtype; }
 
 	void acceptVisitor(Visitor& visitor) override { visitor.fResult(*this); }
 };
