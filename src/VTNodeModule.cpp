@@ -45,7 +45,7 @@ auto VTNodeModule::tryFindVarNode(std::string const& name) const -> shared_ptr<V
 // グローバルノードを構築する
 //------------------------------------------------
 VTNodeModule::Global::Global()
-	: VTNodeModule(nullptr, Name)
+	: VTNodeModule(&VTNodeRoot::instance(), Name)
 {}
 
 void VTNodeModule::Global::init()

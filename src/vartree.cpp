@@ -81,13 +81,19 @@ private:
 		TvRepr& self;
 
 	public:
-		TvObserver(TvRepr& self) : self(self) {}
+		TvObserver(TvRepr& self)
+			: self(self)
+		{
+			self.itemFromNode_[&VTNodeRoot::instance()] = TVI_ROOT;
+		}
 
 		void onInit(VTNodeData& node) override
 		{
+			if ( !node.parent() ) return; // VTNodeRoot
+
 			auto&& hParent = self.itemFromNode(node.parent().get());
 			auto&& hItem = TreeView_MyInsertItem
-				( (hParent ? hParent : TVI_ROOT)
+				( hParent
 				, node.name().c_str()
 				, false
 				, node.shared_from_this());
@@ -114,19 +120,7 @@ void init()
 {
 	g_tv.reset(new TvRepr());
 
-	static auto roots = vector<shared_ptr<VTNodeData>>
-		{ VTNodeModule::Global::make_shared()
-#ifdef with_WrapCall
-		, VTNodeDynamic::make_shared()
-#endif
-		, VTNodeSysvarList::make_shared()
-		, VTNodeScript::make_shared()
-		, VTNodeLog::make_shared()
-		, VTNodeGeneral::make_shared()
-		};
-	for ( auto&& e : roots ) {
-		e->updateDeep();
-	}
+	VTNodeRoot::make_shared()->updateDeep();
 
 #ifdef with_WrapCall
 	g_hNodeDynamic = g_tv->itemFromNode(VTNodeDynamic::make_shared().get());

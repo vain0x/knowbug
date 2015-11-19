@@ -32,6 +32,31 @@ VTNodeData::~VTNodeData()
 	}
 }
 
+auto VTNodeRoot::children() -> std::vector<std::weak_ptr<VTNodeData>> const&
+{
+	static std::vector<std::weak_ptr<VTNodeData>> stt_children =
+		{ VTNodeModule::Global::make_shared()
+#ifdef with_WrapCall
+		, VTNodeDynamic::make_shared()
+#endif
+		, VTNodeSysvarList::make_shared()
+		, VTNodeScript::make_shared()
+		, VTNodeLog::make_shared()
+		, VTNodeGeneral::make_shared()
+		};
+	return stt_children;
+}
+
+bool VTNodeRoot::updateSub(bool deep)
+{
+	if ( deep ) {
+		for ( auto&& node_w : children() ) {
+			if ( auto&& node = node_w.lock() ) { node->updateDeep(); }
+		}
+	}
+	return true;
+}
+
 auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
 {
 	return VTNodeSysvarList::make_shared();
