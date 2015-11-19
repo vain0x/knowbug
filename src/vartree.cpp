@@ -173,6 +173,7 @@ auto getNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>
 
 static void TreeView_MyDeleteItem(HTREEITEM hItem)
 {
+	TreeView_EscapeFocus(hwndVarTree, hItem);
 	TreeView_DeleteItem(hwndVarTree, hItem);
 }
 
