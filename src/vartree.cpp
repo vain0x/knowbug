@@ -150,6 +150,12 @@ void term()
 
 void update()
 {
+	if ( auto&& hItem = TreeView_GetSelection(hwndVarTree) ) {
+		if ( auto&& node = getNodeData(hItem) ) {
+			node->updateShallow();
+		}
+	}
+
 #ifdef with_WrapCall
 	VTNodeDynamic::make_shared()->updateDeep();
 #endif

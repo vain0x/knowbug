@@ -44,8 +44,7 @@ void VTNodeData::onTerm()
 
 void VTNodeData::terminate()
 {
-	if ( state_ == State::Uninit ) return;
-	assert(state_ == State::Init);
+	if ( state_ != State::Init ) return;
 	state_ = State::Term;
 	terminateSub();
 	onTerm();
