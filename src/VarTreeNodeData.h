@@ -11,17 +11,17 @@
 
 struct ResultNodeData
 {
-	WrapCall::ModcmdCallInfo::shared_ptr_type callinfo;
+	WrapCall::ModcmdCallInfo::shared_ptr_type const callinfo;
 
 	// 返値の型
-	vartype_t vtype;
+	vartype_t const vtype;
 
 	// 値の文字列化
-	string treeformedString;
-	string lineformedString;
+	string const treeformedString;
+	string const lineformedString;
 
 	// これに依存する呼び出し
-	WrapCall::ModcmdCallInfo::shared_ptr_type pCallInfoDepended;
+	WrapCall::ModcmdCallInfo::shared_ptr_type const pCallInfoDepended;
 
 public:
 	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vt);
