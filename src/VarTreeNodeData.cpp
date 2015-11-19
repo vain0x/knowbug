@@ -12,8 +12,9 @@ auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
 
 VTNodeSysvarList::VTNodeSysvarList()
 {
-	for ( int i = 0; i < hpiutil::Sysvar::Count; ++i ) {
-		sysvar_[i].id_ = static_cast<hpiutil::Sysvar::Id>(i);
+	for ( size_t i = 0; i < hpiutil::Sysvar::Count; ++i ) {
+		auto const id = static_cast<hpiutil::Sysvar::Id>(i);
+		sysvar_.emplace_back(std::make_shared<VTNodeSysvar>(id));
 	}
 }
 

@@ -54,8 +54,13 @@ class VTNodeSysvar
 {
 	friend class VTNodeSysvarList; // To initialize this
 
-	hpiutil::Sysvar::Id id_;
+	hpiutil::Sysvar::Id const id_;
+
 public:
+	VTNodeSysvar(hpiutil::Sysvar::Id id)
+		: id_(id)
+	{}
+
 	auto id() const -> hpiutil::Sysvar::Id { return id_; }
 	auto name() const -> string override { return hpiutil::Sysvar::List[id_].name; }
 	
@@ -75,7 +80,7 @@ class VTNodeSysvarList
 	friend class Singleton<VTNodeSysvarList>;
 	VTNodeSysvarList();
 
-	std::array<VTNodeSysvar, hpiutil::Sysvar::Count> sysvar_;
+	vector<shared_ptr<VTNodeSysvar>> sysvar_;
 public:
 	auto sysvarList() const -> decltype(sysvar_) const& { return sysvar_; }
 

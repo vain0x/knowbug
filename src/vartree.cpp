@@ -173,10 +173,10 @@ void AddNodeSysvar()
 	auto&& root = VTNodeSysvarList::make_shared();
 	HTREEITEM const hNodeSysvar = AddNodeSystem("+sysvar", root);
 
-	for ( VTNodeSysvar const& node : root->sysvarList() ) {
-		string const name = strf( "~%s", node.name() );
+	for ( auto const& node : root->sysvarList() ) {
+		string const name = strf( "~%s", node->name() );
 		TreeView_MyInsertItem(hNodeSysvar, name.c_str()
-			, /* sorts */ false, shared_ptr_from_rawptr(&node));
+			, /* sorts */ false, node);
 	}
 }
 
