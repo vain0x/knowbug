@@ -5,17 +5,31 @@
 #include "module/CStrWriter.h"
 #include "vartree.h"
 
+VTNodeData::VTNodeData()
+	: uninitialized_(true)
+{}
+
 auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
 {
 	return VTNodeSysvarList::make_shared();
 }
 
-VTNodeSysvarList::VTNodeSysvarList()
+void VTNodeSysvarList::init()
 {
 	for ( size_t i = 0; i < hpiutil::Sysvar::Count; ++i ) {
 		auto const id = static_cast<hpiutil::Sysvar::Id>(i);
 		sysvar_.emplace_back(std::make_shared<VTNodeSysvar>(id));
 	}
+}
+
+bool VTNodeSysvarList::updateSub(bool deep)
+{
+	if ( deep ) {
+		for ( auto&& sysvar : sysvarList() ) {
+			sysvar->updateDeep();
+		}
+	}
+	return true;
 }
 
 #ifdef with_WrapCall

@@ -61,6 +61,8 @@ static auto FindLastIndependedResultData() -> shared_ptr<ResultNodeData const>;
 //------------------------------------------------
 void init()
 {
+	VTNodeModule::Global::make_shared()->updateDeep();
+
 	AddNodeModule(TVI_ROOT, VTNodeModule::Global::make_shared());
 #ifdef with_WrapCall
 	AddNodeDynamic();

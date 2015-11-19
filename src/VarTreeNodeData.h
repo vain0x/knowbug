@@ -78,7 +78,6 @@ class VTNodeSysvarList
 	, public SharedSingleton<VTNodeSysvarList>
 {
 	friend class Singleton<VTNodeSysvarList>;
-	VTNodeSysvarList();
 
 	vector<shared_ptr<VTNodeSysvar>> sysvar_;
 public:
@@ -86,6 +85,10 @@ public:
 
 	auto name() const -> string override { return "+sysvar"; }
 	void acceptVisitor(Visitor& visitor) const override { visitor.fSysvarList(*this); }
+
+protected:
+	void init() override;
+	bool updateSub(bool deep) override;
 };
 
 class VTNodeDynamic
@@ -147,6 +150,7 @@ public:
 
 	auto name() const -> string override;
 	auto parent() const -> shared_ptr<VTNodeData> override;
+	bool updateSub(bool deep) override;
 
 	//foreach
 	struct Visitor
@@ -181,6 +185,9 @@ public:
 
 private:
 	void addVar(const char* name);
+
+protected:
+	void init() override;
 };
 
 #ifdef with_WrapCall

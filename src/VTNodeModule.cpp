@@ -46,6 +46,9 @@ auto VTNodeModule::tryFindVarNode(std::string const& name) const -> shared_ptr<V
 //------------------------------------------------
 VTNodeModule::Global::Global()
 	: VTNodeModule(nullptr, Name)
+{}
+
+void VTNodeModule::Global::init()
 {
 	auto const&& names = g_dbginfo->fetchStaticVarNames();
 	for ( auto const& name : names ) {
@@ -124,4 +127,20 @@ void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const {
 	for ( auto const& it : p_->vars_ ) {
 		visitor.fVar(it.first);
 	}
+}
+
+//------------------------------------------------
+// 更新
+//------------------------------------------------
+bool VTNodeModule::updateSub(bool deep)
+{
+	if ( deep ) {
+		for ( auto&& kv : p_->modules_ ) {
+			kv.second->updateDeep();
+		}
+		for ( auto&& kv : p_->vars_ ) {
+			kv.second->updateDeep();
+		}
+	}
+	return true;
 }
