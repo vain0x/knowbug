@@ -9,14 +9,11 @@ class VTNodeVar;
 class VTNodeSysvarList;
 class VTNodeSysvar;
 class VTNodeDynamic;
-//class VTNodeInvoke;
+class VTNodeInvoke;
 //class VTNodeResult;
 class VTNodeScript;
 class VTNodeLog;
 class VTNodeGeneral;
-
-namespace WrapCall { struct ModcmdCallInfo; }
-using VTNodeInvoke = WrapCall::ModcmdCallInfo;
 
 struct ResultNodeData;
 using VTNodeResult = ResultNodeData;

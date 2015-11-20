@@ -212,6 +212,28 @@ protected:
 
 #ifdef with_WrapCall
 
+class VTNodeInvoke
+	: public VTNodeData
+{
+	WrapCall::ModcmdCallInfo::shared_ptr_type callinfo_;
+	vector<shared_ptr<ResultNodeData>> results_;
+
+public:
+	VTNodeInvoke(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo)
+		: callinfo_(callinfo)
+	{}
+
+	auto callinfo() const -> WrapCall::ModcmdCallInfo const& { return *callinfo_; }
+	void addResultDependent(shared_ptr<ResultNodeData> const& result);
+
+	auto name() const -> string override { return callinfo_->name(); }
+	auto parent() const -> shared_ptr<VTNodeData> override;
+
+	void acceptVisitor(Visitor& visitor) const override { visitor.fInvoke(*this); }
+protected:
+	bool updateSub(bool deep) override;
+};
+
 struct ResultNodeData
 	: public VTNodeData
 {
@@ -236,9 +258,13 @@ public:
 
 	auto parent() const -> shared_ptr<VTNodeData> override
 	{
+		//TODO: Dynamic が nodeInvoke の列を持てば、そこから辿れる
+		/*
 		return ( pCallInfoDepended )
 			? std::static_pointer_cast<VTNodeData>(pCallInfoDepended)
 			: VTNodeDynamic::make_shared();
+			//*/
+		return VTNodeDynamic::make_shared();
 	}
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fResult(*this); }

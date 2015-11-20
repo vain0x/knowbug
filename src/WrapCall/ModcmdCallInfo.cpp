@@ -2,7 +2,6 @@
 
 #include "WrapCall.h"
 #include "ModcmdCallInfo.h"
-#include "../VarTreeNodeData.h"
 
 //unhookable invocation …… modinit/modterm/deffunc_onexit commands, and call's by call.hpi
 // これらの呼び出しはprmstkを変更するにもかかわらず検知できない。
@@ -57,11 +56,6 @@ ModcmdCallInfo::shared_ptr_type ModcmdCallInfo::tryGetDependedCallInfo() const
 	return (optPrev && optPrev->sublev == sublev)
 		? optPrev
 		: nullptr;
-}
-
-auto ModcmdCallInfo::parent() const -> shared_ptr<VTNodeData>
-{
-	return VTNodeDynamic::make_shared();
 }
 
 } //namespace WrapCall

@@ -12,7 +12,6 @@ namespace WrapCall
 
 // 呼び出し直前の情報
 struct ModcmdCallInfo
-	: public VTNodeData
 {
 	using shared_ptr_type = std::shared_ptr<ModcmdCallInfo const>;
 	using weak_ptr_type = std::weak_ptr<ModcmdCallInfo const>;
@@ -49,10 +48,7 @@ public:
 	// この呼び出しを実引数式に含む呼び出し
 	shared_ptr_type tryGetDependedCallInfo() const;
 
-	auto name() const -> string override { return hpiutil::STRUCTDAT_name(stdat); }
-	auto parent() const -> shared_ptr<VTNodeData> override;
-
-	void acceptVisitor(Visitor& visitor) const override { visitor.fInvoke(*this); }
+	auto name() const -> string { return hpiutil::STRUCTDAT_name(stdat); }
 };
 
 } //namespace WrapCall

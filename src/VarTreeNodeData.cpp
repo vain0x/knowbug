@@ -84,6 +84,26 @@ bool VTNodeSysvarList::updateSub(bool deep)
 
 using WrapCall::ModcmdCallInfo;
 
+auto VTNodeInvoke::parent() const -> shared_ptr<VTNodeData>
+{
+	return VTNodeDynamic::make_shared();
+}
+
+void VTNodeInvoke::addResultDependent(shared_ptr<ResultNodeData> const& result)
+{
+	results_.emplace_back(result);
+}
+
+bool VTNodeInvoke::updateSub(bool deep)
+{
+	if ( deep ) {
+		for ( auto& e : results_ ) {
+			e->updateDeep();
+		}
+	}
+	return true;
+}
+
 template<typename TWriter>
 static string stringFromResultData(ModcmdCallInfo const& callinfo, PDAT const* ptr, vartype_t vt)
 {

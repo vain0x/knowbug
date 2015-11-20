@@ -220,8 +220,8 @@ static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 	if ( !node ) return false;
 
 #ifdef with_WrapCall
-	if ( auto const pCallInfo = std::dynamic_pointer_cast<VTNodeInvoke const>(node) ) {
-			auto const key = (pCallInfo->stdat->index == STRUCTDAT_INDEX_FUNC)
+	if ( auto const nodeInvoke = std::dynamic_pointer_cast<VTNodeInvoke const>(node) ) {
+			auto const key = (nodeInvoke->callinfo().stdat->index == STRUCTDAT_INDEX_FUNC)
 				? "__sttm__"
 				: "__func__";
 			auto const&& iter = g_config->clrTextExtra.find(key);
@@ -313,7 +313,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		}
 		void fInvoke(VTNodeInvoke const& node) override
 		{
-			varinf.addCall(node);
+			varinf.addCall(node.callinfo());
 		}
 		void fResult(VTNodeResult const& node) override
 		{
@@ -355,7 +355,8 @@ void AddCallNodeImpl(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
 	string name = "'" + callinfo->name();
 	HTREEITEM const hChild =
-		TreeView_MyInsertItem(g_hNodeDynamic, name.c_str(), false, callinfo);
+		TreeView_MyInsertItem(g_hNodeDynamic, name.c_str(), false
+			, std::make_shared<VTNodeInvoke>(callinfo));
 
 	// 第一ノードなら自動的に開く
 	if ( TreeView_GetChild( hwndVarTree, g_hNodeDynamic ) == hChild ) {
@@ -480,7 +481,7 @@ HTREEITEM FindDependedCallNode(resultDataPtr_t const& pResult)
 		) {
 			auto&& node = std::dynamic_pointer_cast<VTNodeInvoke const>(getNodeData(hItem));
 			if ( !node ) continue;
-			if ( WrapCall::tryGetCallInfoAt(node->idx) == pResult->pCallInfoDepended ) break;
+			if ( WrapCall::tryGetCallInfoAt(node->callinfo().idx) == pResult->pCallInfoDepended ) break;
 		}
 		return hItem;
 
