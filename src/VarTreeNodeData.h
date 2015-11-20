@@ -107,18 +107,6 @@ protected:
 	bool updateSub(bool deep) override;
 };
 
-class VTNodeDynamic
-	: public VTNodeData
-	, public SharedSingleton<VTNodeDynamic>
-{
-	friend class Singleton<VTNodeDynamic>;
-
-public:
-	auto name() const -> string override { return "+dynamic"; }
-	auto parent() const -> shared_ptr<VTNodeData> override { return VTNodeRoot::make_shared(); }
-	void acceptVisitor(Visitor& visitor) const override { visitor.fDynamic(*this); }
-};
-
 class VTNodeScript
 	: public VTNodeData
 	, public SharedSingleton<VTNodeScript>
@@ -212,6 +200,30 @@ protected:
 
 #ifdef with_WrapCall
 
+class VTNodeDynamic
+	: public VTNodeData
+	, public SharedSingleton<VTNodeDynamic>
+{
+	friend class Singleton<VTNodeDynamic>;
+
+	vector<shared_ptr<VTNodeInvoke>> children_;
+	shared_ptr<VTNodeResult> independentResult_;
+public:
+	void addInvokeNode(shared_ptr<VTNodeInvoke> node);
+	void eraseLastInvokeNode();
+	void addResultNodeIndepent(shared_ptr<VTNodeResult> node);
+
+	auto invokeNodes() const -> decltype(children_) const& { return children_; }
+	auto lastIndependentResult() const -> decltype(independentResult_) const& { return independentResult_; }
+
+	auto name() const -> string override { return "+dynamic"; }
+	auto parent() const -> shared_ptr<VTNodeData> override { return VTNodeRoot::make_shared(); }
+	void acceptVisitor(Visitor& visitor) const override { visitor.fDynamic(*this); }
+
+protected:
+	bool updateSub(bool deep) override;
+};
+
 class VTNodeInvoke
 	: public VTNodeData
 {
@@ -253,19 +265,11 @@ public:
 	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vt);
 	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PVal const* pvResult);
 
+	auto dependedNode() const -> shared_ptr<VTNodeInvoke>;
+
 	auto vartype() const -> vartype_t override { return vtype; }
 	auto name() const -> string override { return callinfo->name(); }
-
-	auto parent() const -> shared_ptr<VTNodeData> override
-	{
-		//TODO: Dynamic が nodeInvoke の列を持てば、そこから辿れる
-		/*
-		return ( pCallInfoDepended )
-			? std::static_pointer_cast<VTNodeData>(pCallInfoDepended)
-			: VTNodeDynamic::make_shared();
-			//*/
-		return VTNodeDynamic::make_shared();
-	}
+	auto parent() const -> shared_ptr<VTNodeData> override;
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fResult(*this); }
 };

@@ -84,6 +84,36 @@ bool VTNodeSysvarList::updateSub(bool deep)
 
 using WrapCall::ModcmdCallInfo;
 
+void VTNodeDynamic::addInvokeNode(shared_ptr<VTNodeInvoke> node)
+{
+	independentResult_ = nullptr;
+
+	children_.emplace_back(std::move(node));
+}
+
+void VTNodeDynamic::addResultNodeIndepent(shared_ptr<VTNodeResult> node)
+{
+	independentResult_ = std::move(node);
+}
+
+void VTNodeDynamic::eraseLastInvokeNode()
+{
+	children_.pop_back();
+}
+
+bool VTNodeDynamic::updateSub(bool deep)
+{
+	if ( deep ) {
+		for ( auto& e : children_ ) {
+			e->updateDeep();
+		}
+		if ( independentResult_ ) {
+			independentResult_->updateDeep();
+		}
+	}
+	return true;
+}
+
 auto VTNodeInvoke::parent() const -> shared_ptr<VTNodeData>
 {
 	return VTNodeDynamic::make_shared();
@@ -124,5 +154,26 @@ ResultNodeData::ResultNodeData(ModcmdCallInfo::shared_ptr_type const& callinfo, 
 	, treeformedString(stringFromResultData<CTreeformedWriter>(*callinfo, ptr, vt))
 	, lineformedString(stringFromResultData<CLineformedWriter>(*callinfo, ptr, vt))
 { }
+
+auto ResultNodeData::dependedNode() const -> shared_ptr<VTNodeInvoke>
+{
+	if ( pCallInfoDepended ) {
+		auto&& inv = VTNodeDynamic::make_shared()->invokeNodes();
+		size_t const idx = pCallInfoDepended->idx;
+		if ( idx < inv.size() ) {
+			return inv[idx];
+		}
+	}
+	return nullptr;
+}
+
+auto ResultNodeData::parent() const -> shared_ptr<VTNodeData>
+{
+	if ( auto&& node = dependedNode() ) {
+		return node;
+	} else {
+		return VTNodeDynamic::make_shared();
+	}
+}
 
 #endif //defined(with_WrapCall)
