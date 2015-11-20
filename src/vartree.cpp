@@ -42,6 +42,8 @@ static auto TreeView_MyInsertItem
 	, shared_ptr<VTNodeData> node) -> HTREEITEM;
 static void TreeView_MyDeleteItem(HTREEITEM hItem);
 
+static auto makeNodeName(VTNodeData const& node) -> string;
+
 // TvRepr
 class TvRepr
 {
@@ -80,7 +82,7 @@ private:
 			auto&& hParent = self.itemFromNode(node.parent().get());
 			auto&& hItem = TreeView_MyInsertItem
 				( hParent
-				, node.name().c_str()
+				, makeNodeName(node).c_str()
 				, false
 				, node.shared_from_this());
 			self.itemFromNode_.emplace(&node, hItem);
@@ -175,6 +177,26 @@ static void TreeView_MyDeleteItem(HTREEITEM hItem)
 {
 	TreeView_EscapeFocus(hwndVarTree, hItem);
 	TreeView_DeleteItem(hwndVarTree, hItem);
+}
+
+// ノードにつけるべき名前
+auto makeNodeName(VTNodeData const& node) -> string
+{
+	struct matcher : VTNodeData::Visitor
+	{
+		string result;
+		string apply(VTNodeData const& node)
+		{
+			result = node.name(); // default
+			node.acceptVisitor(*this);
+			return std::move(result);
+		}
+
+		void fInvoke(VTNodeInvoke const& node) override { result = "\'" + node.name(); }
+		void fResult(VTNodeResult const& node) override { result = "\"" + node.name(); }
+	};
+
+	return matcher {}.apply(node);
 }
 
 //------------------------------------------------
