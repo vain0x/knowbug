@@ -64,10 +64,13 @@ auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
 
 void VTNodeSysvarList::init()
 {
+	auto&& sysvars = std::make_unique<sysvar_list_t>();
 	for ( size_t i = 0; i < hpiutil::Sysvar::Count; ++i ) {
 		auto const id = static_cast<hpiutil::Sysvar::Id>(i);
-		sysvar_.emplace_back(std::make_shared<VTNodeSysvar>(id));
+		sysvars->at(i) = std::make_shared<VTNodeSysvar>(id);
 	}
+
+	sysvar_ = std::move(sysvars);
 }
 
 bool VTNodeSysvarList::updateSub(bool deep)

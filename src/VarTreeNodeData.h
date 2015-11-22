@@ -93,10 +93,11 @@ class VTNodeSysvarList
 	, public SharedSingleton<VTNodeSysvarList>
 {
 	friend class Singleton<VTNodeSysvarList>;
+	using sysvar_list_t = std::array<shared_ptr<VTNodeSysvar>, hpiutil::Sysvar::Count>;
 
-	vector<shared_ptr<VTNodeSysvar>> sysvar_;
+	unique_ptr<sysvar_list_t const> sysvar_;
 public:
-	auto sysvarList() const -> decltype(sysvar_) const& { return sysvar_; }
+	auto sysvarList() const -> sysvar_list_t const& { return *sysvar_; }
 
 	auto name() const -> string override { return "+sysvar"; }
 	auto parent() const -> shared_ptr<VTNodeData> override { return VTNodeRoot::make_shared(); }
