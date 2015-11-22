@@ -40,7 +40,7 @@ protected:
 class VTNodeVar
 	: public VTNodeData
 {
-	VTNodeData* parent_;
+	VTNodeData* const parent_;
 	string const name_;
 	PVal* const pval_;
 
