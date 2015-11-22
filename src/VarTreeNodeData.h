@@ -211,14 +211,14 @@ class VTNodeDynamic
 	friend class Singleton<VTNodeDynamic>;
 
 	vector<shared_ptr<VTNodeInvoke>> children_;
-	shared_ptr<VTNodeResult> independentResult_;
+	shared_ptr<VTNodeResult> independedResult_;
 public:
 	void addInvokeNode(shared_ptr<VTNodeInvoke> node);
 	void eraseLastInvokeNode();
-	void addResultNodeIndepent(shared_ptr<VTNodeResult> node);
+	void addResultNodeIndepended(shared_ptr<VTNodeResult> node);
 
 	auto invokeNodes() const -> decltype(children_) const& { return children_; }
-	auto lastIndependentResult() const -> decltype(independentResult_) const& { return independentResult_; }
+	auto lastIndependedResult() const -> decltype(independedResult_) const& { return independedResult_; }
 
 	auto name() const -> string override { return "+dynamic"; }
 	auto parent() const -> shared_ptr<VTNodeData> override { return VTNodeRoot::make_shared(); }
@@ -241,7 +241,7 @@ public:
 	{}
 
 	auto callinfo() const -> WrapCall::ModcmdCallInfo const& { return *callinfo_; }
-	void addResultDependent(shared_ptr<ResultNodeData> const& result);
+	void addResultDepended(shared_ptr<ResultNodeData> const& result);
 
 	auto name() const -> string override { return callinfo_->name(); }
 	auto parent() const -> shared_ptr<VTNodeData> override;
