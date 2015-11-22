@@ -46,23 +46,36 @@ void VTNodeData::terminate()
 {
 	if ( state_ != State::Init ) return;
 	state_ = State::Term;
-	terminateSub();
+	updateSub(true);
 	onTerm();
 }
 
 bool VTNodeData::update(bool up, bool deep)
 {
-	if ( up && parent() && !parent()->updateShallow()
-		|| state_ == State::Term ) return false;
-
-	if ( state_ == State::Uninit ) {
-		state_ = State::Init;
-		onInit();
-		init();
+	if ( auto&& p = parent() ) {
+		if ( (up && !p->updateShallow())  // 今回の更新で親が死んだ
+			|| p->state_ == State::Term   // 親の死が伝搬されてきた
+		) {
+			terminate();
+			return false;
+		}
 	}
 
-	assert(state_ == State::Init);
-	return updateSub(deep);
+	switch ( state_ ) {
+		case State::Uninit:
+			state_ = State::Init;
+			onInit();
+			init();
+			// fall through
+		case State::Init:
+			return updateSub(deep);
+
+		case State::Term:
+			terminate();
+			return false;
+		default:
+			assert_sentinel;
+	}
 }
 
 auto VTNodeRoot::children() -> std::vector<std::weak_ptr<VTNodeData>> const&
@@ -90,15 +103,6 @@ bool VTNodeRoot::updateSub(bool deep)
 	return true;
 }
 
-void VTNodeRoot::terminateSub()
-{
-	for ( auto&& node_w : children() ) {
-		if ( auto&& node = node_w.lock() ) {
-			node->terminate();
-		}
-	}
-}
-
 auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
 {
 	return VTNodeSysvarList::make_shared();
@@ -123,14 +127,6 @@ bool VTNodeSysvarList::updateSub(bool deep)
 		}
 	}
 	return true;
-}
-
-void VTNodeSysvarList::terminateSub()
-{
-	auto&& sysvars = std::move(sysvar_);
-	for ( auto&& sysvar : *sysvars ) {
-		sysvar->terminate();
-	}
 }
 
 #ifdef with_WrapCall
@@ -172,15 +168,6 @@ bool VTNodeDynamic::updateSub(bool deep)
 	return true;
 }
 
-void VTNodeDynamic::terminateSub()
-{
-	auto children = std::move(children_);
-	auto result = std::move(independedResult_);
-
-	for ( auto& e : children ) { e->terminate(); }
-	if ( result ) { result->terminate(); }
-}
-
 auto VTNodeInvoke::parent() const -> shared_ptr<VTNodeData>
 {
 	return VTNodeDynamic::make_shared();
@@ -202,12 +189,6 @@ bool VTNodeInvoke::updateSub(bool deep)
 		}
 	}
 	return true;
-}
-
-void VTNodeInvoke::terminateSub()
-{
-	auto results = std::move(results_);
-	for ( auto& e : results ) { e->terminate(); }
 }
 
 template<typename TWriter>

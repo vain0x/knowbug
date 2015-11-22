@@ -57,6 +57,7 @@ public:
 	bool updateDeep()        { return update(true, true); }
 	bool updateDownShallow() { return update(false, false); }
 	bool updateDownDeep()    { return update(false, true); }
+	void terminate();
 protected:
 	/**
 	Updates this node.
@@ -69,11 +70,6 @@ protected:
 
 	virtual void init() {}
 	virtual bool updateSub(bool deep) { return true; }
-
-public:
-	void terminate();
-protected:
-	virtual void terminateSub() {}
 
 private:
 	void onInit();
