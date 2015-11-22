@@ -321,7 +321,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 #ifdef with_WrapCall
 		void fDynamic(VTNodeDynamic const&) override
 		{
-			varinf.addCallsOverview(VTNodeDynamic::make_shared()->lastIndependentResult().get());
+			varinf.addCallsOverview(VTNodeDynamic::make_shared()->lastIndependedResult().get());
 		}
 		void fInvoke(VTNodeInvoke const& node) override
 		{
@@ -392,9 +392,9 @@ void AddResultNode(ModcmdCallInfo::shared_ptr_type const& callinfo, resultDataPt
 	assert(!!pResult);
 
 	if ( auto&& node = pResult->dependedNode() ) {
-		node->addResultDependent(pResult);
+		node->addResultDepended(pResult);
 	} else {
-		VTNodeDynamic::make_shared()->addResultNodeIndepent(pResult);
+		VTNodeDynamic::make_shared()->addResultNodeIndepended(pResult);
 	}
 }
 

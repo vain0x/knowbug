@@ -96,14 +96,14 @@ using WrapCall::ModcmdCallInfo;
 
 void VTNodeDynamic::addInvokeNode(shared_ptr<VTNodeInvoke> node)
 {
-	independentResult_ = nullptr;
+	independedResult_ = nullptr;
 
 	children_.emplace_back(std::move(node));
 }
 
-void VTNodeDynamic::addResultNodeIndepent(shared_ptr<VTNodeResult> node)
+void VTNodeDynamic::addResultNodeIndepended(shared_ptr<VTNodeResult> node)
 {
-	independentResult_ = std::move(node);
+	independedResult_ = std::move(node);
 }
 
 void VTNodeDynamic::eraseLastInvokeNode()
@@ -117,8 +117,8 @@ bool VTNodeDynamic::updateSub(bool deep)
 		for ( auto& e : children_ ) {
 			e->updateDownDeep();
 		}
-		if ( independentResult_ ) {
-			independentResult_->updateDownDeep();
+		if ( independedResult_ ) {
+			independedResult_->updateDownDeep();
 		}
 	}
 	return true;
@@ -129,7 +129,7 @@ auto VTNodeInvoke::parent() const -> shared_ptr<VTNodeData>
 	return VTNodeDynamic::make_shared();
 }
 
-void VTNodeInvoke::addResultDependent(shared_ptr<ResultNodeData> const& result)
+void VTNodeInvoke::addResultDepended(shared_ptr<ResultNodeData> const& result)
 {
 	results_.emplace_back(result);
 }
