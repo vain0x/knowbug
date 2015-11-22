@@ -9,7 +9,7 @@ string const VTNodeModule::Global::Name = "@";
 struct VTNodeModule::Private
 {
 	VTNodeModule& self;
-	VTNodeData* parent_;
+	VTNodeData* const parent_;
 	string const name_;
 	std::map<string, shared_ptr<VTNodeVar>> vars_;
 	std::map<string, shared_ptr<VTNodeModule>> modules_;
