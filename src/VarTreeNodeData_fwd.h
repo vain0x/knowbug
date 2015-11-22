@@ -46,6 +46,13 @@ public:
 	virtual auto name() const -> string { return "(anonymous)"; }
 	virtual auto vartype() const -> vartype_t { return HSPVAR_FLAG_NONE; }
 
+protected:
+	enum class State
+	{
+		Uninit, Init, Term
+	};
+	State state_;
+public:
 	bool updateShallow()     { return update(true, false); }
 	bool updateDeep()        { return update(true, true); }
 	bool updateDownShallow() { return update(false, false); }
@@ -58,19 +65,19 @@ protected:
 	otherwise, the parent node is uptodate and still exists.
 	If `deep` is `true`, also updates children.
 	//*/
-	bool update(bool up, bool deep)
-	{
-		if ( up && parent() && !parent()->updateShallow() ) return false;
-		if ( uninitialized_ ) { uninitialized_ = false; onInit(); init(); }
-		return updateSub(deep);
-	}
+	bool update(bool up, bool deep);
 
 	virtual void init() {}
 	virtual bool updateSub(bool deep) { return true; }
-	bool uninitialized_;
+
+public:
+	void terminate();
+protected:
+	virtual void terminateSub() {}
 
 private:
 	void onInit();
+	void onTerm();
 
 public:
 	struct Observer : Visitor

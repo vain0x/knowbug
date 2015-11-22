@@ -142,3 +142,16 @@ bool VTNodeModule::updateSub(bool deep)
 	}
 	return true;
 }
+
+void VTNodeModule::terminateSub()
+{
+	auto modules = std::move(p_->modules_);
+	auto vars    = std::move(p_->vars_);
+
+	for ( auto&& kv : modules ) {
+		kv.second->terminate();
+	}
+	for ( auto&& kv : vars ) {
+		kv.second->terminate();
+	}
+}

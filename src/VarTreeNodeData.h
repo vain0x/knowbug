@@ -35,6 +35,7 @@ public:
 	void acceptVisitor(Visitor& visitor) const override { assert(false); }
 protected:
 	bool updateSub(bool deep) override;
+	void terminateSub() override;
 };
 
 class VTNodeVar
@@ -106,6 +107,7 @@ public:
 protected:
 	void init() override;
 	bool updateSub(bool deep) override;
+	void terminateSub() override;
 };
 
 class VTNodeScript
@@ -160,6 +162,7 @@ public:
 	auto name() const -> string override;
 	auto parent() const -> shared_ptr<VTNodeData> override;
 	bool updateSub(bool deep) override;
+	void terminateSub() override;
 
 	//foreach
 	struct Visitor
@@ -223,6 +226,7 @@ public:
 
 protected:
 	bool updateSub(bool deep) override;
+	void terminateSub() override;
 };
 
 class VTNodeInvoke
@@ -245,6 +249,7 @@ public:
 	void acceptVisitor(Visitor& visitor) const override { visitor.fInvoke(*this); }
 protected:
 	bool updateSub(bool deep) override;
+	void terminateSub() override;
 };
 
 struct ResultNodeData

@@ -20,23 +20,50 @@ void VTNodeData::unregisterObserver(shared_ptr<Observer> obs)
 }
 
 VTNodeData::VTNodeData()
-	: uninitialized_(true)
+	: state_(State::Uninit)
 {}
+
+VTNodeData::~VTNodeData()
+{
+	assert(state_ != State::Init);
+}
 
 void VTNodeData::onInit()
 {
-	assert(!uninitialized_);
 	for ( auto& obs : g_observers ) {
 		obs->onInit(*this);
 	}
 }
 
-VTNodeData::~VTNodeData()
+void VTNodeData::onTerm()
 {
-	if ( uninitialized_ ) return;
 	for ( auto& obs : g_observers ) {
 		obs->onTerm(*this);
 	}
+}
+
+void VTNodeData::terminate()
+{
+	if ( state_ == State::Uninit ) return;
+	assert(state_ == State::Init);
+	state_ = State::Term;
+	terminateSub();
+	onTerm();
+}
+
+bool VTNodeData::update(bool up, bool deep)
+{
+	if ( up && parent() && !parent()->updateShallow()
+		|| state_ == State::Term ) return false;
+
+	if ( state_ == State::Uninit ) {
+		state_ = State::Init;
+		onInit();
+		init();
+	}
+
+	assert(state_ == State::Init);
+	return updateSub(deep);
 }
 
 auto VTNodeRoot::children() -> std::vector<std::weak_ptr<VTNodeData>> const&
@@ -62,6 +89,15 @@ bool VTNodeRoot::updateSub(bool deep)
 		}
 	}
 	return true;
+}
+
+void VTNodeRoot::terminateSub()
+{
+	for ( auto&& node_w : children() ) {
+		if ( auto&& node = node_w.lock() ) {
+			node->terminate();
+		}
+	}
 }
 
 auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
@@ -90,25 +126,38 @@ bool VTNodeSysvarList::updateSub(bool deep)
 	return true;
 }
 
+void VTNodeSysvarList::terminateSub()
+{
+	auto&& sysvars = std::move(sysvar_);
+	for ( auto&& sysvar : *sysvars ) {
+		sysvar->terminate();
+	}
+}
+
 #ifdef with_WrapCall
 
 using WrapCall::ModcmdCallInfo;
 
 void VTNodeDynamic::addInvokeNode(shared_ptr<VTNodeInvoke> node)
 {
-	independentResult_ = nullptr;
+	addResultNodeIndepent(nullptr);
 
 	children_.emplace_back(std::move(node));
 }
 
 void VTNodeDynamic::addResultNodeIndepent(shared_ptr<VTNodeResult> node)
 {
+	if ( independentResult_ ) {
+		independentResult_->terminate();
+	}
 	independentResult_ = std::move(node);
 }
 
 void VTNodeDynamic::eraseLastInvokeNode()
 {
+	auto child = std::move(children_.back());
 	children_.pop_back();
+	child->terminate();
 }
 
 bool VTNodeDynamic::updateSub(bool deep)
@@ -124,6 +173,15 @@ bool VTNodeDynamic::updateSub(bool deep)
 	return true;
 }
 
+void VTNodeDynamic::terminateSub()
+{
+	auto children = std::move(children_);
+	auto result = std::move(independentResult_);
+
+	for ( auto& e : children ) { e->terminate(); }
+	if ( result ) { result->terminate(); }
+}
+
 auto VTNodeInvoke::parent() const -> shared_ptr<VTNodeData>
 {
 	return VTNodeDynamic::make_shared();
@@ -136,12 +194,21 @@ void VTNodeInvoke::addResultDependent(shared_ptr<ResultNodeData> const& result)
 
 bool VTNodeInvoke::updateSub(bool deep)
 {
+	if ( callinfo().idx >= VTNodeDynamic::make_shared()->invokeNodes().size() ) {
+		return false;
+	}
 	if ( deep ) {
 		for ( auto& e : results_ ) {
 			e->updateDownDeep();
 		}
 	}
 	return true;
+}
+
+void VTNodeInvoke::terminateSub()
+{
+	auto results = std::move(results_);
+	for ( auto& e : results ) { e->terminate(); }
 }
 
 template<typename TWriter>

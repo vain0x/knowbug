@@ -141,6 +141,7 @@ void init()
 //------------------------------------------------
 void term()
 {
+	VTNodeRoot::make_shared()->terminate();
 	g_tv.reset();
 }
 
