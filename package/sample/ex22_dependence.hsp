@@ -3,6 +3,9 @@
 // ˆË‘¶ŠÖŒW
 // —v‚·‚é‚ÉŒÄ‚Ño‚µ‚Ì‡”Ô‚Æ sublev
 
+#define global ctype dbgpair(%1,%2) \
+	({"(%1,%2) = ("} + (%1) + ", " + (%2) + ")")
+
 #module
 
 #deffunc output str msg

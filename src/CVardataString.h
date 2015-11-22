@@ -23,6 +23,7 @@ class CVardataStrWriter
 {
 private:
 	std::unique_ptr<CStructedStrWriter> writer_;
+	mutable std::map<void const*, string> visited_;
 
 public:
 	CVardataStrWriter(CVardataStrWriter&& src);
@@ -78,6 +79,9 @@ public:
 
 public:
 	CStructedStrWriter& getWriter() const { return *writer_; }
+
+private:
+	bool tryPrune(char const* name, void const* ptr) const;
 };
 
 #endif
