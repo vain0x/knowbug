@@ -50,7 +50,12 @@ class TvRepr
 public:
 	TvRepr()
 	{
-		VTNodeData::registerObserver(std::make_shared<TvObserver>(*this));
+		observer_ = std::make_shared<TvObserver>(*this);
+		VTNodeData::registerObserver(observer_);
+	}
+	~TvRepr()
+	{
+		VTNodeData::unregisterObserver(observer_);
 	}
 
 	auto itemFromNode(VTNodeData const* p) -> HTREEITEM
@@ -99,6 +104,7 @@ private:
 
 private:
 	std::map<VTNodeData const*, HTREEITEM> itemFromNode_;
+	shared_ptr<TvObserver> observer_;
 };
 
 static std::unique_ptr<TvRepr> g_tv;

@@ -12,6 +12,13 @@ void VTNodeData::registerObserver(shared_ptr<Observer> obs)
 	g_observers.emplace_back(std::move(obs));
 }
 
+void VTNodeData::unregisterObserver(shared_ptr<Observer> obs)
+{
+	for ( auto& e : g_observers ) {
+		if ( e == obs ) { e = std::make_shared<Observer>(); }
+	}
+}
+
 VTNodeData::VTNodeData()
 	: uninitialized_(true)
 {}

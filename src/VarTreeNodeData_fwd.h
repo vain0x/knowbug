@@ -79,4 +79,5 @@ public:
 		virtual void onTerm(VTNodeData&) {}
 	};
 	static void registerObserver(shared_ptr<Observer> obs);
+	static void unregisterObserver(shared_ptr<Observer> obs);
 };
