@@ -5,7 +5,6 @@
 #include "module/GuiUtility.h"
 
 #include "main.h"
-#include "SysvarData.h"
 #include "DebugInfo.h"
 #include "dialog.h"
 #include "config_mng.h"
@@ -79,7 +78,7 @@ namespace Detail
 		return true;
 	} };
 	template<> struct Verify < SysvarNode > { static bool apply(char const* s, SysvarNode::lparam_t value) {
-		return (0 <= value && value < Sysvar::Count && Sysvar::trySeek(&s[1]) == value);
+		return (0 <= value && value < hpiutil::Sysvar::Count && hpiutil::Sysvar::trySeek(&s[1]) == value);
 	} };
 #ifdef with_WrapCall
 	template<> struct Verify < InvokeNode > { static bool apply(char const*, InvokeNode::lparam_t value) {
@@ -90,7 +89,7 @@ namespace Detail
 	} };
 #endif //defined(with_WrapCall)
 	template<> struct Verify < VarNode > { static bool apply(char const*, PVal* pval) {
-			return (pval && ctx->mem_var <= pval && pval < &ctx->mem_var[hpimod::cntSttVars()]);
+		return (pval && hpiutil::staticVars().begin() <= pval && pval < hpiutil::staticVars().end());
 	} };
 }
 
@@ -174,7 +173,7 @@ void AddNodeModule(HTREEITEM hParent, StaticVarTree const& tree)
 			AddNodeModule(hElem, module);
 		},
 		[&](string const& varname) {
-			PVal* const pval = hpimod::seekSttVar(varname.c_str());
+			PVal* const pval = hpiutil::seekSttVar(varname.c_str());
 			assert(!!pval);
 			TreeView_MyInsertItem<VarNode>(hElem, varname.c_str(), true, pval);
 		}
@@ -194,6 +193,8 @@ HTREEITEM AddNodeSystem(char const* name, SystemNodeId id) {
 //------------------------------------------------
 void AddNodeSysvar()
 {
+	using namespace hpiutil;
+
 	HTREEITEM const hNodeSysvar = AddNodeSystem("+sysvar", SystemNodeId::Sysvar);
 
 	// システム変数のリストを追加する
@@ -253,7 +254,7 @@ static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 			return cont(g_config->clrText[vtype]);
 
 		} else if ( vtype >= HSPVAR_FLAG_USERDEF ) {
-			auto const&& iter = g_config->clrTextExtra.find(hpimod::getHvp(vtype)->vartype_name);
+			auto const&& iter = g_config->clrTextExtra.find(hpiutil::varproc(vtype)->vartype_name);
 			if ( iter != g_config->clrTextExtra.end() ) {
 				return cont(iter->second);
 			}
@@ -292,8 +293,8 @@ vartype_t getVartypeOfNode( HTREEITEM hItem )
 		return pval->flag;
 
 	} else if ( SysvarNode::isTypeOf(name.c_str()) ) {
-		Sysvar::Id const id = TreeView_MyLParam<SysvarNode>(hwndVarTree, hItem);
-		return Sysvar::List[id].type;
+		auto const id = TreeView_MyLParam<SysvarNode>(hwndVarTree, hItem);
+		return hpiutil::Sysvar::List[id].type;
 
 #ifdef with_WrapCall
 	} else if ( ResultNode::isTypeOf(name.c_str()) ) {
@@ -346,7 +347,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		}
 	} else {
 		if ( SysvarNode::isTypeOf(name) ) {
-			Sysvar::Id const id = static_cast<Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
+			auto const id = static_cast<hpiutil::Sysvar::Id>(TreeView_GetItemLParam(hwndVarTree, hItem));
 			varinf.addSysvar(id);
 
 #ifdef with_WrapCall
@@ -391,7 +392,7 @@ void AddCallNode(ModcmdCallInfo::shared_ptr_type const& callinfo)
 void AddCallNodeImpl(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
 	char name[128] = "'";
-	strcpy_s(&name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(callinfo->stdat));
+	strcpy_s(&name[1], sizeof(name) - 1, hpiutil::STRUCTDAT_name(callinfo->stdat));
 	HTREEITEM const hChild = TreeView_MyInsertItem<InvokeNode>(g_hNodeDynamic, name, false, callinfo->idx);
 
 	// 第一ノードなら自動的に開く
@@ -471,7 +472,7 @@ void AddResultNodeImpl(std::shared_ptr<ResultNodeData> pResult)
 
 	// 挿入
 	char name[128] = "\"";
-	strcpy_s( &name[1], sizeof(name) - 1, hpimod::STRUCTDAT_getName(pResult->callinfo->stdat) );
+	strcpy_s( &name[1], sizeof(name) - 1, hpiutil::STRUCTDAT_name(pResult->callinfo->stdat) );
 	HTREEITEM const hChild = TreeView_MyInsertItem<ResultNode>(hParent, name, false, nullptr);
 
 	// 第一ノードなら自動的に開く

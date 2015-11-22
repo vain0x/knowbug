@@ -6,11 +6,9 @@
 #include "module/strf.h"
 #include "module/ptr_cast.h"
 #include "module/CStrBuf.h"
-#include "hpimod/stringization.h"
 
 #include "main.h"
 #include "DebugInfo.h"
-#include "SysvarData.h"
 #include "StaticVarTree.h"
 #include "CVarinfoText.h"
 #include "CVardataString.h"
@@ -40,7 +38,7 @@ string&& CVarinfoText::getStringMove() {
 //------------------------------------------------
 void CVarinfoText::addVar( PVal* pval, char const* name )
 {
-	auto const hvp = hpimod::getHvp(pval->flag);
+	auto const hvp = hpiutil::varproc(pval->flag);
 	int bufsize;
 	void const* const pMemBlock =
 		hvp->GetBlockSize(pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize));
@@ -72,9 +70,9 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 //------------------------------------------------
 // システム変数データから生成
 //------------------------------------------------
-void CVarinfoText::addSysvar(Sysvar::Id id)
+void CVarinfoText::addSysvar(hpiutil::Sysvar::Id id)
 {
-	getWriter().catln(strf("変数名: %s\t(システム変数)", Sysvar::List[id].name));
+	getWriter().catln(strf("変数名: %s\t(システム変数)", hpiutil::Sysvar::List[id].name));
 	getWriter().catCrlf();
 	{
 		CVardataStrWriter::create<CTreeformedWriter>(getBuf())
@@ -84,7 +82,7 @@ void CVarinfoText::addSysvar(Sysvar::Id id)
 
 	// メモリダンプ
 	if ( g_config->showsVariableDump ) {
-		auto const&& dump = Sysvar::tryDump(id);
+		auto const&& dump = hpiutil::Sysvar::tryDump(id);
 		if ( dump.first ) {
 			getWriter().catDump(dump.first, dump.second);
 		}
@@ -116,7 +114,7 @@ void CVarinfoText::addCall(ModcmdCallInfo::shared_ptr_type const& callinfo)
 
 void CVarinfoText::addCallSignature(ModcmdCallInfo::shared_ptr_type const& callinfo, stdat_t stdat)
 {
-	auto const name = hpimod::STRUCTDAT_getName(stdat);
+	auto const name = hpiutil::STRUCTDAT_name(stdat);
 	getWriter().catln(
 		(callinfo->fname == nullptr)
 			? strf("関数名: %s", name)
@@ -156,11 +154,11 @@ void CVarinfoText::addModuleOverview(char const* name, StaticVarTree const& tree
 			getWriter().catln(module.getName());
 		},
 		[&](string const& varname) {
-			auto const shortName = hpimod::nameExcludingScopeResolution(varname);
+			auto const shortName = hpiutil::nameExcludingScopeResolution(varname);
 			getWriter().cat(shortName + "\t= ");
 			{
 				CVardataStrWriter::create<CLineformedWriter>(getBuf())
-					.addVar(varname.c_str(), hpimod::seekSttVar(varname.c_str()));
+					.addVar(varname.c_str(), hpiutil::seekSttVar(varname.c_str()));
 			}
 			getWriter().catCrlf();
 		}
@@ -172,6 +170,8 @@ void CVarinfoText::addModuleOverview(char const* name, StaticVarTree const& tree
 //------------------------------------------------
 void CVarinfoText::addSysvarsOverview()
 {
+	using namespace hpiutil;
+
 	getWriter().catln("[システム変数]");
 
 	for ( int i = 0; i < Sysvar::Count; ++i ) {
@@ -214,7 +214,7 @@ void CVarinfoText::addCallsOverview(shared_ptr<ResultNodeData> const& pLastResul
 void CVarinfoText::addGeneralOverview() {
 	getWriter().catln("[全般]");
 	for ( auto&& kv : g_dbginfo->fetchGeneralInfo() ) {
-		bool const isSysvar = (Sysvar::trySeek(kv.first.c_str()) != Sysvar::MAX);
+		bool const isSysvar = (hpiutil::Sysvar::trySeek(kv.first.c_str()) != hpiutil::Sysvar::MAX);
 		if ( isSysvar ) continue;
 
 		getWriter().catln(kv.first + "\t= " + kv.second);
@@ -227,10 +227,10 @@ void CVarinfoText::addGeneralOverview() {
 string stringizePrmlist(stdat_t stdat)
 {
 	string s = "";
-	std::for_each(hpimod::STRUCTDAT_getStPrm(stdat), hpimod::STRUCTDAT_getStPrmEnd(stdat), [&](STRUCTPRM const& stprm) {
+	for ( auto& stprm : hpiutil::STRUCTDAT_params(stdat) ) {
 		if ( !s.empty() ) s += ", ";
-		s += hpimod::nameFromMPType(stprm.mptype);
-	});
+		s += hpiutil::nameFromMPType(stprm.mptype);
+	}
 	return s;
 }
 
@@ -246,18 +246,18 @@ static char const* typeQualifierStringFromVarmode(varmode_t mode)
 //------------------------------------------------
 string stringizeVartype(PVal const* pval)
 {
-	size_t const maxDim = hpimod::PVal_maxDim(pval);
+	size_t const maxDim = hpiutil::PVal_maxDim(pval);
 
 	string const arrayType =
 		(maxDim == 0) ? "(empty)" :
-		(maxDim == 1) ? hpimod::stringizeArrayIndex({ pval->len[1] }) :
+		(maxDim == 1) ? hpiutil::stringifyArrayIndex({ pval->len[1] }) :
 		strf("%s (%d in total)",
-			hpimod::stringizeArrayIndex(std::vector<int>(&pval->len[1], &pval->len[1] + maxDim)),
-			hpimod::PVal_cntElems(pval))
+			hpiutil::stringifyArrayIndex(std::vector<int>(&pval->len[1], &pval->len[1] + maxDim)),
+			hpiutil::PVal_cntElems(pval))
 	;
 
 	return strf("%s%s %s",
-		hpimod::getHvp(pval->flag)->vartype_name,
+		hpiutil::varproc(pval->flag)->vartype_name,
 		typeQualifierStringFromVarmode(pval->mode),
 		arrayType
 	);

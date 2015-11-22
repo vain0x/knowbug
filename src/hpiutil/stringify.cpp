@@ -1,12 +1,70 @@
 
-#include <string>
-#include <vector>
 #include <sstream>
+#include "hpiutil.hpp"
+#include "DInfo.hpp"
 
-#include "hsp3plugin_custom.h"
-#include "stringization.h"
+namespace hpiutil {
+	
+namespace detail {
 
-namespace hpimod {
+template<typename T>
+static ptrdiff_t indexFrom(std::vector_view<T> const& v, T const* p)
+{
+	return (v.begin() <= p && p < v.end())
+		? std::distance(v.begin(), p)
+		: (-1);
+}
+
+} // namespace detail
+
+DInfo& DInfo::instance()
+{
+	static std::unique_ptr<DInfo> inst { new DInfo {} };
+	return *inst;
+}
+
+char const* nameFromStaticVar(PVal const* pval)
+{
+	ptrdiff_t const index = detail::indexFrom(staticVars(), pval);
+	return (index >= 0)
+		? exinfo->HspFunc_varname(static_cast<int>(index))
+		: nullptr;
+}
+
+std::string nameFromModuleClass(stdat_t stdat, bool isClone)
+{
+	std::string&& modclsName = STRUCTDAT_name(stdat);
+	return (isClone
+		? modclsName + "&"
+		: modclsName);
+}
+
+std::string nameFromStPrm(stprm_t stprm, int idx)
+{
+	ptrdiff_t const subid = detail::indexFrom(minfo(), stprm);
+	if ( subid >= 0 ) {
+		if ( auto const name = DInfo::instance().tryFindParamName(subid) ) {
+			return nameExcludingScopeResolution(name);
+
+		// thismod 引数
+		} else if ( stprm->mptype == MPTYPE_MODULEVAR || stprm->mptype == MPTYPE_IMODULEVAR || stprm->mptype == MPTYPE_TMODULEVAR ) {
+			return "thismod";
+		}
+	}
+	return stringifyArrayIndex({ idx });
+}
+
+std::string nameFromLabel(label_t lb)
+{
+	int const otIndex = detail::indexFrom(labels(), lb);
+	char buf[64];
+	if ( auto const name = DInfo::instance().tryFindLabelName(otIndex) ) {
+		std::sprintf(buf, "*%s", name);
+	} else {
+		std::sprintf(buf, "label(%p)", static_cast<void const*>(lb));
+	}
+	return std::string(buf);
+}
 
 char const* nameFromMPType(int mptype)
 {
@@ -45,9 +103,6 @@ char const* nameFromMPType(int mptype)
 	}
 }
 
-//------------------------------------------------
-// 文字列を文字列リテラルの形式に変換する
-//------------------------------------------------
 std::string literalFormString(char const* src)
 {
 	size_t const maxlen = (std::strlen(src) * 2) + 2;
@@ -87,30 +142,24 @@ std::string literalFormString(char const* src)
 	return std::string { buf.data() };
 }
 
-//------------------------------------------------
-// 配列添字の文字列
-//------------------------------------------------
-std::string stringizeArrayIndex(std::vector<int> const& indexes)
+std::string stringifyArrayIndex(std::vector<int> const& indexes)
 {
 	std::ostringstream os;
-	os << BracketIdxL;
+	os << "(";
 	for ( size_t i = 0; i < indexes.size(); ++i ) {
 		if ( i != 0 ) os << ", ";
 		os << indexes[i];
 	}
-	os << BracketIdxR;
+	os << ")";
 	return os.str();
 }
 
-//------------------------------------------------
-// スコープ解決を取り除いた名前
-//------------------------------------------------
 std::string nameExcludingScopeResolution(std::string const& name)
 {
-	size_t const idxScopeResolution = name.find('@');
-	return (idxScopeResolution != std::string::npos
-		? name.substr(0, idxScopeResolution)
+	size_t const indexScopeRes = name.find('@');
+	return (indexScopeRes != std::string::npos
+		? name.substr(0, indexScopeRes)
 		: name);
 }
 
-} //namespace hpimod
+} // namespace hpiutil
