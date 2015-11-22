@@ -20,7 +20,6 @@ namespace VtTraits { using namespace hpimod::VtTraits; }
 using namespace hpimod::VtTraits::InternalVartypeTags;
 
 static string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort);
-static string stringizeExtraScalar(char const* vtname, PDAT const* ptr, bool bShort, bool& caught);
 static string nameFromModuleClass(stdat_t stdat, bool bClone);
 static string nameFromStPrm(stprm_t stprm, int idx);
 static string nameFromLabel(label_t lb);
@@ -54,15 +53,9 @@ bool CVardataStrWriter::tryPrune(char const* name, void const* ptr) const
 void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 {
 	assert(!!pval);
-	auto const hvp = hpimod::getHvp(pval->flag);
 
-	if ( pval->flag >= HSPVAR_FLAG_USERDEF ) {
-		auto const&& iter = g_config->vswInfo.find(hvp->vartype_name);
-		if ( iter != g_config->vswInfo.end() ) {
-			if ( addVarUserdef_t const addVar = std::get<1>(iter->second) ) {
-				return addVar(this, name, pval);
-			}
-		}
+	if ( addVarUserdef_t const addVar = g_config->vswInfo[pval->flag].addVar ) {
+		return addVar(this, name, pval);
 	}
 	
 	if ( hpimod::PVal_isStandardArray(pval) ) {
@@ -153,26 +146,14 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 		return;
 	}
 
-	// 拡張型
-	if ( type >= HSPVAR_FLAG_USERDEF ) {
-		auto const iter = g_config->vswInfo.find(hpimod::getHvp(type)->vartype_name);
-		if ( iter != g_config->vswInfo.end() ) {
-			if ( addValueUserdef_t const addValue = std::get<2>(iter->second) ) {
-				addValue(this, name, ptr);
-				return;
-			}
-		}
+	if ( addValueUserdef_t const addValue = g_config->vswInfo[type].addValue ) {
+		addValue(this, name, ptr);
+		return;
 	}
 
 	if ( type == HSPVAR_FLAG_STRUCT ) {
 		addValueStruct(name, VtTraits::asValptr<vtStruct>(ptr));
 
-#ifdef with_ModPtr
-	} else if ( type == HSPVAR_FLAG_INT && ModPtr::isValid(VtTraits::derefValptr<vtInt>(ptr)) ) {
-		auto const modptr = VtTraits::derefValptr<vtInt>(ptr);
-		string const name2 = strf("%s = mp#%d", name, ModPtr::getIdx(modptr));
-		addValueStruct(name2.c_str(), ModPtr::getValue(modptr));
-#endif
 	} else if ( type == HSPVAR_FLAG_STR ) {
 		addValueString(name, VtTraits::asValptr<vtStr>(ptr));
 
@@ -430,90 +411,20 @@ string stringizeSimpleValue(vartype_t type, PDAT const* ptr, bool bShort)
 
 	switch ( type ) {
 		case HSPVAR_FLAG_STR:
+		case HSPVAR_FLAG_INT:
 		case HSPVAR_FLAG_STRUCT: assert_sentinel;
 
 		case HSPVAR_FLAG_COMOBJ:  return strf("comobj(%p)", *cptr_cast<void**>(ptr));
 		case HSPVAR_FLAG_VARIANT: return strf("variant(%p)", *cptr_cast<void**>(ptr));
 		case HSPVAR_FLAG_DOUBLE:  return strf((bShort ? "%f" : "%.16f"), *cptr_cast<double*>(ptr));
-		case HSPVAR_FLAG_INT: {
-			int const val = VtTraits::derefValptr<vtInt>(ptr);
-#ifdef with_ModPtr
-			assert(!ModPtr::isValid(val)); // addItem_value で処理されたはず
-#endif
-			return (bShort
-				? strf("%d", val)
-				: strf("%-10d (0x%08X)", val, val));
-		}
+
 		case HSPVAR_FLAG_LABEL:return nameFromLabel(VtTraits::derefValptr<vtLabel>(ptr));
 		default: {
 			auto const vtname = hpimod::getHvp(type)->vartype_name;
-
-#ifdef with_ExtraBasics
-			bool caught;
-			auto&& exScalar = stringizeExtraScalar(vtname, ptr, bShort, caught);
-			if ( caught ) return std::move(exScalar);
-#endif
 			return strf("unknown<%s>(%p)", vtname, cptr_cast<void*>(ptr));
 		}
 	}
 }
-
-#ifdef with_ExtraBasics
-string stringizeExtraScalar(char const* vtname, PDAT const* ptr, bool bShort, bool& caught)
-{
-	caught = true;
-	bool bSigned = false;
-
-	if ( strcmp(vtname, "bool") == 0 ) {
-		static char const* const bool_name[2] = { "false", "true" };
-		return bool_name[*cptr_cast<bool*>(ptr) ? 1 : 0];
-
-		// char (signed char とする)
-	} else if (
-		(strcmp(vtname, "char") == 0 || strcmp(vtname, "signed_char") == 0) && (bSigned = true)
-		|| (strcmp(vtname, "uchar") == 0 || strcmp(vtname, "unsigned_char") == 0)
-		) {
-		int const val = bSigned ? *cptr_cast<signed char*>(ptr) : *cptr_cast<unsigned char*>(ptr);
-		return (val == 0) ? string("0 ('\\0')") : strf("%-3d '%c'", static_cast<int>(val), static_cast<char>(val));
-
-		// short
-	} else if (
-		(strcmp(vtname, "short") == 0 || strcmp(vtname, "signed_short") == 0) && (bSigned = true)
-		|| (strcmp(vtname, "ushort") == 0 || strcmp(vtname, "unsigned_short") == 0)
-		) {
-		int const val = static_cast<int>(bSigned ? *cptr_cast<signed short*>(ptr) : *cptr_cast<unsigned short*>(ptr));
-		return (bShort ? strf("%d", val) : strf("%-6d (0x%04X)", val, static_cast<short>(val)));
-
-		// unsigned int
-	} else if ( strcmp(vtname, "uint") == 0 || strcmp(vtname, "unsigned_int") == 0 ) {
-		auto const val = *cptr_cast<unsigned int*>(ptr);
-		return (bShort ? strf("%d", val) : strf("%-10d (0x%08X)", val, val));
-
-		// long
-	} else if (
-		(strcmp(vtname, "long") == 0 || strcmp(vtname, "signed_long") == 0) && (bSigned = true)
-		|| (strcmp(vtname, "ulong") == 0 || strcmp(vtname, "unsigned_long") == 0)
-		) {
-		auto const   signed_val = *cptr_cast<long long*>(ptr);
-		auto const unsigned_val = *cptr_cast<unsigned long long*>(ptr);
-		return (bShort
-			? strf("%d", (bSigned ? signed_val : unsigned_val))
-			: strf("%d (0x%16X)", (bSigned ? signed_val : unsigned_val), signed_val)
-			);
-		// おまけ
-	} else if ( strcmp(vtname, "tribyte") == 0 ) {
-		auto const bytes = cptr_cast<char*>(ptr);
-		int const val = bytes[0] << 16 | bytes[1] << 8 | bytes[2];
-		return (bShort
-			? strf("%d", val)
-			: strf("%-8d (0x%06X)", val, val)
-			);
-	} else {
-		caught = false;
-		return string();
-	}
-}
-#endif
 
 //------------------------------------------------
 // モジュールクラス名を表す文字列
