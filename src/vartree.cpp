@@ -90,13 +90,16 @@ private:
 				, makeNodeName(node).c_str()
 				, false
 				, node.shared_from_this());
-			self.itemFromNode_.emplace(&node, hItem);
+
+			assert(self.itemFromNode_[&node] == nullptr);
+			self.itemFromNode_[&node] = hItem;
 
 			// TODO: @, +dynamic, 呼び出しノードは自動的に開く
 		}
 		void onTerm(VTNodeData& node) override
 		{
 			if ( auto&& hItem = self.itemFromNode(&node) ) {
+				self.itemFromNode_[&node] = nullptr;
 				TreeView_MyDeleteItem(hItem);
 			}
 		}
