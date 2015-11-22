@@ -61,8 +61,6 @@ void VTNodeModule::Global::init()
 //------------------------------------------------
 void VTNodeModule::Global::addVar(char const* name)
 {
-	if ( name[0] == '@' ) return;
-
 	char const* const scopeResolution = std::strchr(name, '@');
 	if ( scopeResolution ) {
 		if ( auto child = p_->insertModule(scopeResolution) ) {
