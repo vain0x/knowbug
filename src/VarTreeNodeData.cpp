@@ -51,7 +51,7 @@ bool VTNodeRoot::updateSub(bool deep)
 {
 	if ( deep ) {
 		for ( auto&& node_w : children() ) {
-			if ( auto&& node = node_w.lock() ) { node->updateDeep(); }
+			if ( auto&& node = node_w.lock() ) { node->updateDownDeep(); }
 		}
 	}
 	return true;
@@ -77,7 +77,7 @@ bool VTNodeSysvarList::updateSub(bool deep)
 {
 	if ( deep ) {
 		for ( auto&& sysvar : sysvarList() ) {
-			sysvar->updateDeep();
+			sysvar->updateDownDeep();
 		}
 	}
 	return true;
@@ -108,10 +108,10 @@ bool VTNodeDynamic::updateSub(bool deep)
 {
 	if ( deep ) {
 		for ( auto& e : children_ ) {
-			e->updateDeep();
+			e->updateDownDeep();
 		}
 		if ( independentResult_ ) {
-			independentResult_->updateDeep();
+			independentResult_->updateDownDeep();
 		}
 	}
 	return true;
@@ -131,7 +131,7 @@ bool VTNodeInvoke::updateSub(bool deep)
 {
 	if ( deep ) {
 		for ( auto& e : results_ ) {
-			e->updateDeep();
+			e->updateDownDeep();
 		}
 	}
 	return true;

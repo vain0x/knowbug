@@ -134,10 +134,10 @@ bool VTNodeModule::updateSub(bool deep)
 {
 	if ( deep ) {
 		for ( auto&& kv : p_->modules_ ) {
-			kv.second->updateDeep();
+			kv.second->updateDownDeep();
 		}
 		for ( auto&& kv : p_->vars_ ) {
-			kv.second->updateDeep();
+			kv.second->updateDownDeep();
 		}
 	}
 	return true;

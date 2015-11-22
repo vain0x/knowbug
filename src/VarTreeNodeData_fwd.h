@@ -46,18 +46,21 @@ public:
 	virtual auto name() const -> string { return "(anonymous)"; }
 	virtual auto vartype() const -> vartype_t { return HSPVAR_FLAG_NONE; }
 
-	void updateShallow() { update(false); }
-	void updateDeep() { update(true); }
-
+	bool updateShallow()     { return update(true, false); }
+	bool updateDeep()        { return update(true, true); }
+	bool updateDownShallow() { return update(false, false); }
+	bool updateDownDeep()    { return update(false, true); }
 protected:
 	/**
-	Updates the parent node and this node itself.
+	Updates this node.
+	Returns `false` if this node or one of the ancestors has vanished.
+	If `up` is `true`, also updates its parent;
+	otherwise, the parent node is uptodate and still exists.
 	If `deep` is `true`, also updates children.
-	Returns `false` if this node vanish.
 	//*/
-	bool update(bool deep)
+	bool update(bool up, bool deep)
 	{
-		if ( parent() && !parent()->update(false) ) return false;
+		if ( up && parent() && !parent()->updateShallow() ) return false;
 		if ( uninitialized_ ) { uninitialized_ = false; onInit(); init(); }
 		return updateSub(deep);
 	}
