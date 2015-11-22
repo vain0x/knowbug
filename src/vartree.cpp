@@ -325,7 +325,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		switch ( TreeView_MyLParam<SystemNode>(hwndVarTree, hItem) ) {
 #ifdef with_WrapCall
 			case SystemNodeId::Dynamic:
-				varinf.addCallsOverview(FindLastIndependedResultData());
+				varinf.addCallsOverview(FindLastIndependedResultData().get());
 				break;
 #endif
 			case SystemNodeId::Sysvar:
@@ -354,13 +354,13 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		} else if ( InvokeNode::isTypeOf(name) ) {
 			auto const idx = TreeView_MyLParam<InvokeNode>( hwndVarTree, hItem );
 			if ( auto const pCallInfo = WrapCall::tryGetCallInfoAt(idx) ) {
-				varinf.addCall(pCallInfo);
+				varinf.addCall(*pCallInfo);
 			}
 
 		} else if ( usesResultNodes() && ResultNode::isTypeOf(name) ) {
 			auto const&& iter = g_allResultData.find(hItem);
 			auto const pResult = (iter != g_allResultData.end() ? iter->second : nullptr);
-			varinf.addResult(pResult);
+			varinf.addResult(*pResult);
 #endif
 		} else {
 			assert(VarNode::isTypeOf(name));

@@ -95,13 +95,13 @@ void CVarinfoText::addSysvar(hpiutil::Sysvar::Id id)
 // 
 // @prm prmstk: nullptr => 引数未確定
 //------------------------------------------------
-void CVarinfoText::addCall(ModcmdCallInfo::shared_ptr_type const& callinfo)
+void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 {
-	auto const stdat = callinfo->stdat;
+	auto const stdat = callinfo.stdat;
 	addCallSignature(callinfo, stdat);
 	getWriter().catCrlf();
 
-	auto const&& prmstk_safety = callinfo->tryGetPrmstk();
+	auto const&& prmstk_safety = callinfo.tryGetPrmstk();
 	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
 			.addCall(stdat, prmstk_safety);
 
@@ -112,13 +112,13 @@ void CVarinfoText::addCall(ModcmdCallInfo::shared_ptr_type const& callinfo)
 	}
 }
 
-void CVarinfoText::addCallSignature(ModcmdCallInfo::shared_ptr_type const& callinfo, stdat_t stdat)
+void CVarinfoText::addCallSignature(ModcmdCallInfo const& callinfo, stdat_t stdat)
 {
 	auto const name = hpiutil::STRUCTDAT_name(stdat);
 	getWriter().catln(
-		(callinfo->fname == nullptr)
+		(callinfo.fname == nullptr)
 			? strf("関数名: %s", name)
-			: strf("関数名: %s (#%d of %s)", name, callinfo->line + 1, callinfo->fname)
+			: strf("関数名: %s (#%d of %s)", name, callinfo.line + 1, callinfo.fname)
 	);
 
 	// シグネチャ
@@ -128,12 +128,11 @@ void CVarinfoText::addCallSignature(ModcmdCallInfo::shared_ptr_type const& calli
 //------------------------------------------------
 // 返値データから生成
 //------------------------------------------------
-void CVarinfoText::addResult(shared_ptr<ResultNodeData> const& result)
+void CVarinfoText::addResult(ResultNodeData const& result)
 {
-	assert(!!result);
-	addCallSignature(result->callinfo, result->callinfo->stdat);
+	addCallSignature(*result.callinfo, result.callinfo->stdat);
 	getWriter().catCrlf();
-	getWriter().cat(result->treeformedString);
+	getWriter().cat(result.treeformedString);
 }
 
 #endif
@@ -191,7 +190,7 @@ void CVarinfoText::addSysvarsOverview()
 // 
 // depends on WrapCall
 //------------------------------------------------
-void CVarinfoText::addCallsOverview(shared_ptr<ResultNodeData> const& pLastResult)
+void CVarinfoText::addCallsOverview(optional_ref<ResultNodeData const> pLastResult)
 {
 	getWriter().catln("[呼び出し履歴]");
 
