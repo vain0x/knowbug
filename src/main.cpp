@@ -191,7 +191,7 @@ void logmesWarning(char const* msg)
 //------------------------------------------------
 void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
-	VarTree::OnBgnCalling(callinfo);
+	VTRoot::dynamic()->onBgnCalling(callinfo);
 
 	// ログ出力
 	if ( Dialog::logsCalling() ) {
@@ -206,7 +206,7 @@ void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 
 void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype)
 {
-	auto&& pResult = VarTree::OnEndCalling(callinfo, ptr, vtype);
+	auto&& pResult = VTRoot::dynamic()->onEndCalling(callinfo, ptr, vtype);
 
 	// ログ出力
 	if ( Dialog::logsCalling() ) {

@@ -25,11 +25,4 @@ auto tryGetNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>;
 HTREEITEM getScriptNodeHandle();
 HTREEITEM getLogNodeHandle();
 
-#ifdef with_WrapCall
-
-void OnBgnCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo);
-auto OnEndCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vtype) -> shared_ptr<ResultNodeData const>;
-
-#endif
-
 } //namespace VarTree

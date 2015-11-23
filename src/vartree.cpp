@@ -33,8 +33,6 @@ static HTREEITEM g_hNodeDynamic;
 using resultDataPtr_t = shared_ptr<ResultNodeData>;
 static HTREEITEM g_lastIndependedResultNode; // 非依存な返値ノード
 
-static void AddResultNode(ModcmdCallInfo::shared_ptr_type const& callinfo, resultDataPtr_t const& pResult);
-
 #endif
 
 static auto TreeView_MyInsertItem
@@ -350,60 +348,5 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		return std::make_shared<string>("(not_available)");
 	}
 }
-
-#ifdef with_WrapCall
-
-void OnBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
-{
-	auto&& node = std::make_shared<VTNodeInvoke>(callinfo);
-	VTRoot::dynamic()->addInvokeNode(std::move(node));
-}
-
-auto OnEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vtype)
-	-> shared_ptr<ResultNodeData const>
-{
-	// 返値ノードデータの生成
-	// ptr の生存期限が今だけなので、他のことをする前に、文字列化などの処理を済ませておく必要がある。
-	auto&& pResult =
-		(usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
-		? std::make_shared<ResultNodeData>(callinfo, ptr, vtype)
-		: nullptr;
-
-	VTRoot::dynamic()->eraseLastInvokeNode();
-	
-	if ( pResult ) {
-		AddResultNode(callinfo, pResult);
-	}
-	return pResult;
-}
-
-/**
-返値ノードを追加
-
-「A( B() )」のように、ユーザ定義コマンドの引数式の中でユーザ定義関数が呼ばれている状態を、
-「A は B に依存する」と表現することにする。A もユーザ定義関数である場合のみ考える。
-このとき B の実行が終了してから A の実行が始まる。
-B の返値ノードは、A の呼び出しノードの子ノードとして追加される。
-
-表示がごちゃごちゃしないように、返値ノードは近いうちに削除される。
-具体的には、以下の通り：
-1. 非依存な返値ノードは、次に呼び出しノードか非依存な返値ノードが追加される直前、
-	または呼び出しノードが削除される直前に取り除かれる。
-2. 依存する返値ノードは、その依存先の呼び出しノードが削除されるときに取り除かれる。
-3. 実行が終了したとき、すべての返値ノードが取り除かれる。
-*/
-
-void AddResultNode(ModcmdCallInfo::shared_ptr_type const& callinfo, resultDataPtr_t const& pResult)
-{
-	assert(!!pResult);
-
-	if ( auto&& node = pResult->dependedNode() ) {
-		node->addResultDepended(pResult);
-	} else {
-		VTRoot::dynamic()->addResultNodeIndepended(pResult);
-	}
-}
-
-#endif //defined(with_WrapCall)
 
 } // namespace VarTree

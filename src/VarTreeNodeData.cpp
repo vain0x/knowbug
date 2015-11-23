@@ -124,6 +124,36 @@ bool VTNodeDynamic::updateSub(bool deep)
 	return true;
 }
 
+void VTNodeDynamic::onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
+{
+	auto&& node = std::make_shared<VTNodeInvoke>(callinfo);
+	addInvokeNode(std::move(node));
+}
+
+auto VTNodeDynamic::onEndCalling
+	( ModcmdCallInfo::shared_ptr_type const& callinfo
+	, PDAT const* ptr, vartype_t vtype)
+	-> shared_ptr<ResultNodeData const>
+{
+	// 返値ノードデータの生成
+	// ptr の生存期限が今だけなので、他のことをする前に、文字列化などの処理を済ませておく必要がある。
+	auto&& pResult =
+		(usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
+		? std::make_shared<ResultNodeData>(callinfo, ptr, vtype)
+		: nullptr;
+
+	if ( pResult ) {
+		if ( auto&& node = pResult->dependedNode() ) {
+			node->addResultDepended(pResult);
+		} else {
+			addResultNodeIndepended(pResult);
+		}
+	}
+
+	eraseLastInvokeNode();
+	return pResult;
+}
+
 auto VTNodeInvoke::parent() const -> shared_ptr<VTNodeData>
 {
 	return VTRoot::dynamic();

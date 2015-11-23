@@ -183,6 +183,9 @@ public:
 	auto invokeNodes() const -> decltype(children_) const& { return children_; }
 	auto lastIndependedResult() const -> decltype(independedResult_) const& { return independedResult_; }
 
+	void onBgnCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo);
+	auto onEndCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vtype) -> shared_ptr<ResultNodeData const>;
+
 	auto name() const -> string override { return "+dynamic"; }
 	auto parent() const -> shared_ptr<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fDynamic(*this); }
