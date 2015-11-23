@@ -20,7 +20,7 @@ void update();
 
 LRESULT customDraw(LPNMTVCUSTOMDRAW pnmcd);
 auto getItemVarText(HTREEITEM hItem) -> shared_ptr<string const>;
-auto getNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>;
+auto tryGetNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>;
 
 HTREEITEM getScriptNodeHandle();
 HTREEITEM getLogNodeHandle();

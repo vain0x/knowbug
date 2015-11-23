@@ -173,13 +173,15 @@ static HTREEITEM TreeView_MyInsertItem
 	return TreeView_InsertItem(hwndVarTree, &tvis);
 }
 
-auto getNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>
+auto tryGetNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>
 {
 	auto const lp = reinterpret_cast<VTNodeData*>(TreeView_GetItemLParam(hwndVarTree, hItem));
 	assert(lp);
-	auto&& p = lp->shared_from_this();
-	assert(p);
-	return p;
+	try {
+		return lp->shared_from_this();
+	} catch ( std::bad_weak_ptr const& ) {
+		return nullptr;
+	}
 }
 
 static void TreeView_MyDeleteItem(HTREEITEM hItem)
@@ -228,7 +230,7 @@ static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 		return true;
 	};
 
-	auto const node = getNodeData(hItem);
+	auto const node = tryGetNodeData(hItem);
 	if ( !node ) return false;
 
 #ifdef with_WrapCall
@@ -342,7 +344,11 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		}
 	};
 
-	return GetText {}.apply(*getNodeData(hItem));
+	if ( auto&& node = tryGetNodeData(hItem) ) {
+		return GetText {}.apply(*node);
+	} else {
+		return std::make_shared<string>("(not_available)");
+	}
 }
 
 #ifdef with_WrapCall

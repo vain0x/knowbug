@@ -291,7 +291,8 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 		HMENU hPop;
 	};
 
-	auto&& node = VarTree::getNodeData(hItem);
+	auto&& node = VarTree::tryGetNodeData(hItem);
+	if ( !node ) return;
 	HMENU const hPop = GetPopMenu {}.apply(*node);
 
 	// ポップアップメニューを表示する
