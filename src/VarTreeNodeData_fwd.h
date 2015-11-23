@@ -4,6 +4,7 @@
 #include <memory>
 #include <functional>
 
+class VTRoot;
 class VTNodeModule;
 class VTNodeVar;
 class VTNodeSysvarList;

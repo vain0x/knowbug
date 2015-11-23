@@ -247,11 +247,11 @@ public:
 
 #endif //defined(with_WrapCall)
 
-class VTNodeRoot
+class VTRoot
 	: public VTNodeData
-	, public SharedSingleton<VTNodeRoot>
+	, public SharedSingleton<VTRoot>
 {
-	friend struct SharedSingleton<VTNodeRoot>;
+	friend struct SharedSingleton<VTRoot>;
 
 public:
 	static auto children()->std::vector<std::weak_ptr<VTNodeData>> const&;

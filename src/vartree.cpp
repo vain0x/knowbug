@@ -77,12 +77,12 @@ private:
 		TvObserver(TvRepr& self)
 			: self(self)
 		{
-			self.itemFromNode_[&VTNodeRoot::instance()] = TVI_ROOT;
+			self.itemFromNode_[&VTRoot::instance()] = TVI_ROOT;
 		}
 
 		void onInit(VTNodeData& node) override
 		{
-			if ( !node.parent() ) return; // VTNodeRoot
+			if ( !node.parent() ) return; // VTRoot
 
 			auto&& hParent = self.itemFromNode(node.parent().get());
 			auto&& hItem = TreeView_MyInsertItem
@@ -119,7 +119,7 @@ void init()
 {
 	g_tv.reset(new TvRepr());
 
-	VTNodeRoot::make_shared()->updateDeep();
+	VTRoot::make_shared()->updateDeep();
 
 #ifdef with_WrapCall
 	g_hNodeDynamic = g_tv->itemFromNode(VTNodeDynamic::make_shared().get());
