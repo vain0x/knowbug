@@ -122,10 +122,10 @@ void init()
 	VTRoot::make_shared()->updateDeep();
 
 #ifdef with_WrapCall
-	g_hNodeDynamic = g_tv->itemFromNode(VTNodeDynamic::make_shared().get());
+	g_hNodeDynamic = g_tv->itemFromNode(VTRoot::dynamic().get());
 #endif
-	g_hNodeScript  = g_tv->itemFromNode(VTNodeScript::make_shared().get());
-	g_hNodeLog     = g_tv->itemFromNode(VTNodeLog::make_shared().get());
+	g_hNodeScript  = g_tv->itemFromNode(VTRoot::script().get());
+	g_hNodeLog     = g_tv->itemFromNode(VTRoot::log().get());
 	
 	//@, +dynamic は開いておく
 #ifdef with_WrapCall
@@ -150,7 +150,7 @@ void term()
 void update()
 {
 #ifdef with_WrapCall
-	VTNodeDynamic::make_shared()->updateDeep();
+	VTRoot::dynamic()->updateDeep();
 #endif
 }
 
@@ -323,7 +323,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 #ifdef with_WrapCall
 		void fDynamic(VTNodeDynamic const&) override
 		{
-			varinf.addCallsOverview(VTNodeDynamic::make_shared()->lastIndependedResult().get());
+			varinf.addCallsOverview(VTRoot::dynamic()->lastIndependedResult().get());
 		}
 		void fInvoke(VTNodeInvoke const& node) override
 		{
@@ -356,7 +356,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 void OnBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
 	auto&& node = std::make_shared<VTNodeInvoke>(callinfo);
-	VTNodeDynamic::make_shared()->addInvokeNode(std::move(node));
+	VTRoot::dynamic()->addInvokeNode(std::move(node));
 }
 
 auto OnEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vtype)
@@ -369,7 +369,7 @@ auto OnEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* p
 		? std::make_shared<ResultNodeData>(callinfo, ptr, vtype)
 		: nullptr;
 
-	VTNodeDynamic::make_shared()->eraseLastInvokeNode();
+	VTRoot::dynamic()->eraseLastInvokeNode();
 	
 	if ( pResult ) {
 		AddResultNode(callinfo, pResult);
@@ -400,7 +400,7 @@ void AddResultNode(ModcmdCallInfo::shared_ptr_type const& callinfo, resultDataPt
 	if ( auto&& node = pResult->dependedNode() ) {
 		node->addResultDepended(pResult);
 	} else {
-		VTNodeDynamic::make_shared()->addResultNodeIndepended(pResult);
+		VTRoot::dynamic()->addResultNodeIndepended(pResult);
 	}
 }
 

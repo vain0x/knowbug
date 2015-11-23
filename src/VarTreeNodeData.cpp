@@ -41,7 +41,7 @@ VTNodeData::~VTNodeData()
 
 auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
 {
-	return VTNodeSysvarList::make_shared();
+	return VTRoot::sysvarList();
 }
 
 void VTNodeSysvarList::init()
@@ -126,7 +126,7 @@ bool VTNodeDynamic::updateSub(bool deep)
 
 auto VTNodeInvoke::parent() const -> shared_ptr<VTNodeData>
 {
-	return VTNodeDynamic::make_shared();
+	return VTRoot::dynamic();
 }
 
 void VTNodeInvoke::addResultDepended(shared_ptr<ResultNodeData> const& result)
@@ -157,7 +157,7 @@ static auto tryFindDependedNode(ModcmdCallInfo const* callinfo) -> shared_ptr<VT
 {
 	if ( callinfo ) {
 		if ( auto&& ci_depended = callinfo->tryGetDependedCallInfo() ) {
-			auto&& inv = VTNodeDynamic::make_shared()->invokeNodes();
+			auto&& inv = VTRoot::dynamic()->invokeNodes();
 			if ( ci_depended->idx < inv.size() ) {
 				return inv[ci_depended->idx];
 			}
@@ -188,24 +188,31 @@ auto ResultNodeData::parent() const -> shared_ptr<VTNodeData>
 	if ( auto&& node = dependedNode() ) {
 		return node;
 	} else {
-		return VTNodeDynamic::make_shared();
+		return VTRoot::dynamic();
 	}
 }
 
 #endif //defined(with_WrapCall)
 
+VTRoot::VTRoot()
+	: global_    (new VTNodeModule::Global { this })
+	, dynamic_   (new VTNodeDynamic        {})
+	, sysvarList_(new VTNodeSysvarList     {})
+	, script_    (new VTNodeScript         {})
+	, log_       (new VTNodeLog            {})
+	, general_   (new VTNodeGeneral        {})
+{}
+
 auto VTRoot::children() -> std::vector<std::weak_ptr<VTNodeData>> const&
 {
 	static std::vector<std::weak_ptr<VTNodeData>> stt_children =
-	{ VTNodeModule::Global::make_shared()
-#ifdef with_WrapCall
-	, VTNodeDynamic::make_shared()
-#endif
-	, VTNodeSysvarList::make_shared()
-	, VTNodeScript::make_shared()
-	, VTNodeLog::make_shared()
-	, VTNodeGeneral::make_shared()
-	};
+		{ global_
+		, dynamic_
+		, sysvarList_
+		, script_
+		, log_
+		, general_
+		};
 	return stt_children;
 }
 
@@ -213,7 +220,9 @@ bool VTRoot::updateSub(bool deep)
 {
 	if ( deep ) {
 		for ( auto&& node_w : children() ) {
-			if ( auto&& node = node_w.lock() ) { node->updateDownDeep(); }
+			if ( auto&& node = node_w.lock() ) {
+				node->updateDownDeep();
+			}
 		}
 	}
 	return true;

@@ -60,9 +60,8 @@ public:
 
 class VTNodeSysvarList
 	: public VTNodeData
-	, public SharedSingleton<VTNodeSysvarList>
 {
-	friend class Singleton<VTNodeSysvarList>;
+	friend class VTRoot;
 	using sysvar_list_t = std::array<shared_ptr<VTNodeSysvar>, hpiutil::Sysvar::Count>;
 
 	unique_ptr<sysvar_list_t const> sysvar_;
@@ -80,9 +79,8 @@ protected:
 
 class VTNodeScript
 	: public VTNodeData
-	, public SharedSingleton<VTNodeScript>
 {
-	friend class Singleton<VTNodeScript>;
+	friend class VTRoot;
 
 public:
 	auto name() const -> string override { return "+script"; }
@@ -92,9 +90,8 @@ public:
 
 class VTNodeLog
 	: public VTNodeData
-	, public SharedSingleton<VTNodeLog>
 {
-	friend class Singleton<VTNodeLog>;
+	friend class VTRoot;
 
 public:
 	auto name() const -> string override { return "+log"; }
@@ -104,9 +101,8 @@ public:
 
 class VTNodeGeneral
 	: public VTNodeData
-	, public SharedSingleton<VTNodeGeneral>
 {
-	friend class Singleton<VTNodeGeneral>;
+	friend class VTRoot;
 
 public:
 	auto name() const -> string override { return "+general"; }
@@ -156,11 +152,12 @@ public:
 // グローバル領域のノード
 class VTNodeModule::Global
 	: public VTNodeModule
-	, public SharedSingleton<VTNodeModule::Global>
 {
+	friend class VTRoot;
+
 public:
 	static string const Name;
-	Global();
+	Global(VTRoot* parent);
 
 private:
 	void addVar(const char* name);
@@ -173,9 +170,8 @@ protected:
 
 class VTNodeDynamic
 	: public VTNodeData
-	, public SharedSingleton<VTNodeDynamic>
 {
-	friend class Singleton<VTNodeDynamic>;
+	friend class VTRoot;
 
 	vector<shared_ptr<VTNodeInvoke>> children_;
 	shared_ptr<VTNodeResult> independedResult_;
@@ -252,9 +248,24 @@ class VTRoot
 	, public SharedSingleton<VTRoot>
 {
 	friend struct SharedSingleton<VTRoot>;
+	VTRoot();
 
+	shared_ptr<VTNodeModule::Global> global_;
+	shared_ptr<VTNodeDynamic>        dynamic_;
+	shared_ptr<VTNodeSysvarList>     sysvarList_;
+	shared_ptr<VTNodeScript>         script_;
+	shared_ptr<VTNodeGeneral>        general_;
+	shared_ptr<VTNodeLog>            log_;
+
+private:
+	auto children() -> std::vector<std::weak_ptr<VTNodeData>> const&;
 public:
-	static auto children()->std::vector<std::weak_ptr<VTNodeData>> const&;
+	static auto global()     -> shared_ptr<VTNodeModule::Global> const& { return instance().global_; }
+	static auto dynamic()    -> shared_ptr<VTNodeDynamic>        const& { return instance().dynamic_; }
+	static auto sysvarList() -> shared_ptr<VTNodeSysvarList>     const& { return instance().sysvarList_; }
+	static auto script()     -> shared_ptr<VTNodeScript>         const& { return instance().script_; }
+	static auto general()    -> shared_ptr<VTNodeGeneral>        const& { return instance().general_; }
+	static auto log()        -> shared_ptr<VTNodeLog>            const& { return instance().log_; }
 
 	auto parent() const -> shared_ptr<VTNodeData> override { return nullptr; }
 	void acceptVisitor(Visitor& visitor) const override { assert(false); }
