@@ -7,21 +7,6 @@
 #include "module/Singleton.h"
 #include "module/utility.h"
 
-template<typename T>
-struct SharedSingleton
-	: public Singleton<T>
-{
-	static auto make_shared() -> std::shared_ptr<T>
-	{
-		static auto instance_ = std::make_shared<T>();
-		return instance_;
-	}
-	static T& instance()
-	{
-		return *make_shared();
-	}
-};
-
 class VTNodeRoot
 	: public VTNodeData
 	, public SharedSingleton<VTNodeRoot>
