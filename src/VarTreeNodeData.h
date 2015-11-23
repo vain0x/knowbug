@@ -86,6 +86,8 @@ class VTNodeScript
 
 	VTNodeScript();
 public:
+	auto searchFile(char const* fileRefName) const -> unique_ptr<string const>;
+
 	auto name() const -> string override { return "+script"; }
 	auto parent() const -> shared_ptr<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fScript(*this); }

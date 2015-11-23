@@ -207,21 +207,10 @@ namespace LogBox {
 // @ エディタ上で編集中の場合、ファイルの内容が実際と異なることがある。行番号のアウトレンジに注意。
 //------------------------------------------------
 
-static std::unique_ptr<string> TrySearchFile(char const* filepath) {
-	char* filename = nullptr;
-	char fullpath[MAX_PATH + 2] {};
-	if ( SearchPath(nullptr, filepath, nullptr, sizeof(fullpath), fullpath, &filename) ) {
-		return std::make_unique<string>(fullpath);
-	} else if ( SearchPath(g_config->commonPath().c_str(), filepath, nullptr, sizeof(fullpath), fullpath, &filename) ) {
-		return std::make_unique<string>(fullpath);
-	}
-	return nullptr;
-}
-
 // 読み込み処理
 optional_ref<LineDelimitedString const> ReadFromSourceFile(char const* _filepath)
 {
-	if ( auto const&& p = TrySearchFile(_filepath) ) {
+	if ( auto const&& p = VTRoot::script()->searchFile(_filepath) ) {
 		string const filepath = *p;
 
 		// キャッシュから検索
@@ -358,7 +347,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_CURRENT_SCRIPT: {
-					if ( auto const&& p = TrySearchFile(g_dbginfo->curFileName()) ) {
+					if ( auto const&& p = VTRoot::script()->searchFile(g_dbginfo->curFileName()) ) {
 						ShellExecute(nullptr, "open", p->c_str(), nullptr, "", SW_SHOWDEFAULT);
 					}
 					break;
