@@ -7,8 +7,11 @@
 
 struct VTNodeScript::Impl
 {
+	std::map<string const, LineDelimitedString> cache_;
+
 public:
 	auto searchFile(char const* fileName, char const* dir) -> unique_ptr<string const>;
+	auto fetchScript(char const* fileName) -> optional_ref<LineDelimitedString>;
 };
 
 VTNodeScript::VTNodeScript()
@@ -43,4 +46,45 @@ auto VTNodeScript::searchFile(char const* fileRefName) const -> unique_ptr<strin
 		return std::move(p);
 	}
 	return p_->searchFile(fileRefName, g_config->commonPath().c_str());
+}
+
+auto VTNodeScript::Impl::fetchScript(char const* fileRefName)
+	-> optional_ref<LineDelimitedString>
+{
+	if ( auto&& p = VTRoot::script()->searchFile(fileRefName) ) {
+		string const& filePath = *p;
+
+		auto& lds = map_find_or_insert(cache_, filePath, [&filePath] () {
+			std::ifstream ifs { filePath };
+			assert(ifs.is_open());
+			return LineDelimitedString(ifs);
+		});
+		return &lds;
+	} else {
+		return nullptr;
+	}
+}
+
+auto VTNodeScript::fetchScriptAll(char const* fileRefName) const
+	-> optional_ref<string const>
+{
+	if ( auto&& p = p_->fetchScript(fileRefName) ) {
+		return &p->get();
+	} else {
+		return nullptr;
+	}
+}
+
+auto VTNodeScript::fetchScriptLine(char const* fileRefName, size_t lineIndex) const
+	-> unique_ptr<string const>
+{
+	if ( auto&& p = p_->fetchScript(fileRefName) ) {
+		/**
+		編集中のファイルが実行されている場合、ファイルの内容が実際と異なることがある。
+		行番号のアウトレンジに注意。
+		//*/
+		return std::make_unique<string>(p->line(lineIndex));
+	} else {
+		return nullptr;
+	}
 }

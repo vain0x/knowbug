@@ -302,9 +302,9 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		{
 			result = shared_ptr_from_rawptr(&Dialog::LogBox::get());
 		}
-		void fScript(VTNodeScript const&) override
+		void fScript(VTNodeScript const& node) override
 		{
-			if ( auto const p = Dialog::tryGetCurrentScript() ) {
+			if ( auto&& p = node.fetchScriptAll(g_dbginfo->curFileName()) ) {
 				result = shared_ptr_from_rawptr(p);
 			} else {
 				result = std::make_shared<string>(g_dbginfo->getCurInfString());

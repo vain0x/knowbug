@@ -58,7 +58,6 @@ HWND getKnowbugHandle() { return hDlgWnd; }
 HWND getSttCtrlHandle() { return hSttCtrl; }
 HWND getVarTreeHandle() { return hVarTree; }
 
-static LineDelimitedString const* ReadFromSourceFile(char const* _filepath);
 static void setEditStyle(HWND hEdit, int maxlen);
 
 //------------------------------------------------
@@ -108,7 +107,6 @@ static void UpdateView()
 
 		//+script ノードなら現在の実行位置を選択
 		if ( hItem == VarTree::getScriptNodeHandle() ) {
-			auto const p = ReadFromSourceFile(g_dbginfo->curFileName());
 			int const iLine = g_dbginfo->curLine();
 			Edit_Scroll(hViewEdit, std::max(0, iLine - 3), 0);
 			Edit_SetSel(hViewEdit, Edit_LineIndex(hViewEdit, iLine), Edit_LineIndex(hViewEdit, iLine + 1));
@@ -202,48 +200,19 @@ namespace LogBox {
 } //namespace LogBox
 
 //------------------------------------------------
-// ソースファイルを開く
-//
-// @ エディタ上で編集中の場合、ファイルの内容が実際と異なることがある。行番号のアウトレンジに注意。
-//------------------------------------------------
-
-// 読み込み処理
-optional_ref<LineDelimitedString const> ReadFromSourceFile(char const* _filepath)
-{
-	if ( auto const&& p = VTRoot::script()->searchFile(_filepath) ) {
-		string const filepath = *p;
-
-		// キャッシュから検索
-		static std::map<string const, LineDelimitedString> stt_cache;
-		auto& lds = map_find_or_insert(stt_cache, filepath, [&filepath]() {
-			std::ifstream ifs { filepath };
-			assert(ifs.is_open());
-			return LineDelimitedString(ifs);
-		});
-		return &lds;
-	}
-	return nullptr;
-}
-
 // ソースタブを同期する
+//------------------------------------------------
 static void UpdateCurInfEdit(char const* filepath, int iLine)
 {
 	if ( !filepath || iLine < 0 ) return;
 	auto const&& curinf = DebugInfo::formatCurInfString(filepath, iLine);
 
-	if ( auto const p = ReadFromSourceFile(filepath) ) {
-		SetWindowText(hSrcLine, (curinf + "\r\n" + p->line(iLine)).c_str());
+	if ( auto&& p = VTRoot::script()->fetchScriptLine(filepath, iLine) ) {
+		SetWindowText(hSrcLine, (curinf + "\r\n" + *p).c_str());
 
 	} else {
 		SetWindowText(hSrcLine, curinf.c_str());
 	}
-}
-
-optional_ref<string const> tryGetCurrentScript() {
-	if ( auto const p = ReadFromSourceFile(g_dbginfo->curFileName()) ) {
-		return &p->get();
-	}
-	return nullptr;
 }
 
 //------------------------------------------------

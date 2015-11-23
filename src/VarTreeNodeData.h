@@ -87,6 +87,8 @@ class VTNodeScript
 	VTNodeScript();
 public:
 	auto searchFile(char const* fileRefName) const -> unique_ptr<string const>;
+	auto fetchScriptAll(char const* fileRefName) const -> optional_ref<string const>;
+	auto fetchScriptLine(char const* fileRefName, size_t lineIndex) const -> unique_ptr<string const>;
 
 	auto name() const -> string override { return "+script"; }
 	auto parent() const -> shared_ptr<VTNodeData> override;
