@@ -219,6 +219,19 @@ static string stringFromResultData(ModcmdCallInfo const& callinfo, PDAT const* p
 	return p->getMove();
 }
 
+static auto tryFindDependedNode(ModcmdCallInfo const* callinfo) -> shared_ptr<VTNodeInvoke>
+{
+	if ( callinfo ) {
+		if ( auto&& ci_depended = callinfo->tryGetDependedCallInfo() ) {
+			auto&& inv = VTNodeDynamic::make_shared()->invokeNodes();
+			if ( ci_depended->idx < inv.size() ) {
+				return inv[ci_depended->idx];
+			}
+		}
+	}
+	return nullptr;
+}
+
 ResultNodeData::ResultNodeData(ModcmdCallInfo::shared_ptr_type const& callinfo, PVal const* pvResult)
 	: ResultNodeData(callinfo, pvResult->pt, pvResult->flag)
 { }
@@ -226,21 +239,14 @@ ResultNodeData::ResultNodeData(ModcmdCallInfo::shared_ptr_type const& callinfo, 
 ResultNodeData::ResultNodeData(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vt)
 	: callinfo(callinfo)
 	, vtype(vt)
-	, pCallInfoDepended(callinfo->tryGetDependedCallInfo())
+	, invokeDepended(tryFindDependedNode(callinfo.get()))
 	, treeformedString(stringFromResultData<CTreeformedWriter>(*callinfo, ptr, vt))
 	, lineformedString(stringFromResultData<CLineformedWriter>(*callinfo, ptr, vt))
 { }
 
 auto ResultNodeData::dependedNode() const -> shared_ptr<VTNodeInvoke>
 {
-	if ( pCallInfoDepended ) {
-		auto&& inv = VTNodeDynamic::make_shared()->invokeNodes();
-		size_t const idx = pCallInfoDepended->idx;
-		if ( idx < inv.size() ) {
-			return inv[idx];
-		}
-	}
-	return nullptr;
+	return invokeDepended.lock();
 }
 
 auto ResultNodeData::parent() const -> shared_ptr<VTNodeData>
