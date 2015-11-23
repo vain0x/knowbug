@@ -39,31 +39,6 @@ VTNodeData::~VTNodeData()
 	}
 }
 
-auto VTNodeRoot::children() -> std::vector<std::weak_ptr<VTNodeData>> const&
-{
-	static std::vector<std::weak_ptr<VTNodeData>> stt_children =
-		{ VTNodeModule::Global::make_shared()
-#ifdef with_WrapCall
-		, VTNodeDynamic::make_shared()
-#endif
-		, VTNodeSysvarList::make_shared()
-		, VTNodeScript::make_shared()
-		, VTNodeLog::make_shared()
-		, VTNodeGeneral::make_shared()
-		};
-	return stt_children;
-}
-
-bool VTNodeRoot::updateSub(bool deep)
-{
-	if ( deep ) {
-		for ( auto&& node_w : children() ) {
-			if ( auto&& node = node_w.lock() ) { node->updateDownDeep(); }
-		}
-	}
-	return true;
-}
-
 auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
 {
 	return VTNodeSysvarList::make_shared();
@@ -80,6 +55,11 @@ void VTNodeSysvarList::init()
 	sysvar_ = std::move(sysvars);
 }
 
+auto VTNodeSysvarList::parent() const -> shared_ptr<VTNodeData>
+{
+	return VTNodeRoot::make_shared();
+}
+
 bool VTNodeSysvarList::updateSub(bool deep)
 {
 	if ( deep ) {
@@ -90,9 +70,29 @@ bool VTNodeSysvarList::updateSub(bool deep)
 	return true;
 }
 
+auto VTNodeScript::parent() const -> shared_ptr<VTNodeData>
+{
+	return VTNodeRoot::make_shared();
+}
+
+auto VTNodeLog::parent() const -> shared_ptr<VTNodeData>
+{
+	return VTNodeRoot::make_shared();
+}
+
+auto VTNodeGeneral::parent() const -> shared_ptr<VTNodeData>
+{
+	return VTNodeRoot::make_shared();
+}
+
 #ifdef with_WrapCall
 
 using WrapCall::ModcmdCallInfo;
+
+auto VTNodeDynamic::parent() const -> shared_ptr<VTNodeData>
+{
+	return VTNodeRoot::make_shared();
+}
 
 void VTNodeDynamic::addInvokeNode(shared_ptr<VTNodeInvoke> node)
 {
@@ -193,3 +193,28 @@ auto ResultNodeData::parent() const -> shared_ptr<VTNodeData>
 }
 
 #endif //defined(with_WrapCall)
+
+auto VTNodeRoot::children() -> std::vector<std::weak_ptr<VTNodeData>> const&
+{
+	static std::vector<std::weak_ptr<VTNodeData>> stt_children =
+	{ VTNodeModule::Global::make_shared()
+#ifdef with_WrapCall
+	, VTNodeDynamic::make_shared()
+#endif
+	, VTNodeSysvarList::make_shared()
+	, VTNodeScript::make_shared()
+	, VTNodeLog::make_shared()
+	, VTNodeGeneral::make_shared()
+	};
+	return stt_children;
+}
+
+bool VTNodeRoot::updateSub(bool deep)
+{
+	if ( deep ) {
+		for ( auto&& node_w : children() ) {
+			if ( auto&& node = node_w.lock() ) { node->updateDownDeep(); }
+		}
+	}
+	return true;
+}

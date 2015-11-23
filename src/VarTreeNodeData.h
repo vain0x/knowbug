@@ -7,21 +7,6 @@
 #include "module/Singleton.h"
 #include "module/utility.h"
 
-class VTNodeRoot
-	: public VTNodeData
-	, public SharedSingleton<VTNodeRoot>
-{
-	friend struct SharedSingleton<VTNodeRoot>;
-
-public:
-	static auto children() -> std::vector<std::weak_ptr<VTNodeData>> const&;
-	
-	auto parent() const -> shared_ptr<VTNodeData> override { return nullptr; }
-	void acceptVisitor(Visitor& visitor) const override { assert(false); }
-protected:
-	bool updateSub(bool deep) override;
-};
-
 class VTNodeVar
 	: public VTNodeData
 {
@@ -85,7 +70,7 @@ public:
 	auto sysvarList() const -> sysvar_list_t const& { return *sysvar_; }
 
 	auto name() const -> string override { return "+sysvar"; }
-	auto parent() const -> shared_ptr<VTNodeData> override { return VTNodeRoot::make_shared(); }
+	auto parent() const -> shared_ptr<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fSysvarList(*this); }
 
 protected:
@@ -101,7 +86,7 @@ class VTNodeScript
 
 public:
 	auto name() const -> string override { return "+script"; }
-	auto parent() const -> shared_ptr<VTNodeData> override { return VTNodeRoot::make_shared(); }
+	auto parent() const -> shared_ptr<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fScript(*this); }
 };
 
@@ -113,7 +98,7 @@ class VTNodeLog
 
 public:
 	auto name() const -> string override { return "+log"; }
-	auto parent() const -> shared_ptr<VTNodeData> override { return VTNodeRoot::make_shared(); }
+	auto parent() const -> shared_ptr<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fLog(*this); }
 };
 
@@ -125,7 +110,7 @@ class VTNodeGeneral
 
 public:
 	auto name() const -> string override { return "+general"; }
-	auto parent() const -> shared_ptr<VTNodeData> override { return VTNodeRoot::make_shared(); }
+	auto parent() const -> shared_ptr<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fGeneral(*this); }
 };
 
@@ -203,7 +188,7 @@ public:
 	auto lastIndependedResult() const -> decltype(independedResult_) const& { return independedResult_; }
 
 	auto name() const -> string override { return "+dynamic"; }
-	auto parent() const -> shared_ptr<VTNodeData> override { return VTNodeRoot::make_shared(); }
+	auto parent() const -> shared_ptr<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fDynamic(*this); }
 
 protected:
@@ -261,5 +246,20 @@ public:
 };
 
 #endif //defined(with_WrapCall)
+
+class VTNodeRoot
+	: public VTNodeData
+	, public SharedSingleton<VTNodeRoot>
+{
+	friend struct SharedSingleton<VTNodeRoot>;
+
+public:
+	static auto children()->std::vector<std::weak_ptr<VTNodeData>> const&;
+
+	auto parent() const -> shared_ptr<VTNodeData> override { return nullptr; }
+	void acceptVisitor(Visitor& visitor) const override { assert(false); }
+protected:
+	bool updateSub(bool deep) override;
+};
 
 #endif
