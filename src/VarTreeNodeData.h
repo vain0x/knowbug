@@ -81,7 +81,10 @@ class VTNodeScript
 	: public VTNodeData
 {
 	friend class VTRoot;
+	struct Impl;
+	unique_ptr<Impl> p_;
 
+	VTNodeScript();
 public:
 	auto name() const -> string override { return "+script"; }
 	auto parent() const -> shared_ptr<VTNodeData> override;

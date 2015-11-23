@@ -108,6 +108,9 @@
     <ClCompile Include="VTNodeModule.cpp">
       <Filter>class</Filter>
     </ClCompile>
+    <ClCompile Include="VTNodeScript.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CVarinfoText.h">

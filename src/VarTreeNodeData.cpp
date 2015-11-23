@@ -70,11 +70,6 @@ bool VTNodeSysvarList::updateSub(bool deep)
 	return true;
 }
 
-auto VTNodeScript::parent() const -> shared_ptr<VTNodeData>
-{
-	return VTRoot::make_shared();
-}
-
 auto VTNodeLog::parent() const -> shared_ptr<VTNodeData>
 {
 	return VTRoot::make_shared();
