@@ -260,7 +260,7 @@ struct ResultNodeData
 	string const lineformedString;
 
 	// これに依存する呼び出し
-	WrapCall::ModcmdCallInfo::shared_ptr_type const pCallInfoDepended;
+	std::weak_ptr<VTNodeInvoke> const invokeDepended;
 
 public:
 	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vt);
