@@ -1,5 +1,5 @@
 
-#include <set>
+#include <unordered_set>
 #include "main.h"
 #include "VarTreeNodeData.h"
 #include "config_mng.h"
@@ -7,6 +7,7 @@
 
 struct VTNodeScript::Impl
 {
+	std::unordered_set<string> userDirs_;
 	std::map<string const, LineDelimitedString> cache_;
 
 public:
@@ -34,6 +35,9 @@ auto VTNodeScript::Impl::searchFile(char const* fileRefName, char const* dir)
 			, fullPath.size(), fullPath.data(), &fileName)
 		!= 0;
 	if ( succeeded ) {
+		// 発見されたディレクトリを検索対象に追加する
+		userDirs_.emplace(string(fullPath.data(), fileName));
+
 		return std::make_unique<string>(fullPath.data());
 	} else {
 		return nullptr;
@@ -42,6 +46,11 @@ auto VTNodeScript::Impl::searchFile(char const* fileRefName, char const* dir)
 
 auto VTNodeScript::searchFile(char const* fileRefName) const -> unique_ptr<string const>
 {
+	for ( string const& dir : p_->userDirs_ ) {
+		if ( auto&& p = p_->searchFile(fileRefName, dir.c_str()) ) {
+			return std::move(p);
+		}
+	}
 	if ( auto&& p = p_->searchFile(fileRefName, nullptr) ) {
 		return std::move(p);
 	}
