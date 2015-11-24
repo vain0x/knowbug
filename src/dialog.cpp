@@ -316,7 +316,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_CURRENT_SCRIPT: {
-					if ( auto const&& p = VTRoot::script()->searchFile(g_dbginfo->curFileName()) ) {
+					if ( auto const&& p = VTRoot::script()->resolveRefName(g_dbginfo->curFileName()) ) {
 						ShellExecute(nullptr, "open", p->c_str(), nullptr, "", SW_SHOWDEFAULT);
 					}
 					break;

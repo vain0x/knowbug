@@ -15,7 +15,6 @@ struct VTNodeScript::Impl
 	std::map<string const, LineDelimitedString> cache_;
 
 public:
-	auto resolve(string const& fileRefName) -> shared_ptr<string const>;
 	auto searchFile(string const& fileName)->shared_ptr<string const>;
 	auto searchFile(string const& fileName, char const* dir)->shared_ptr<string const>;
 	auto fetchScript(char const* fileName) -> optional_ref<LineDelimitedString>;
@@ -77,39 +76,32 @@ auto VTNodeScript::Impl::searchFile(string const& fileRefName)
 	return searchFile(fileRefName, g_config->commonPath().c_str());
 }
 
-auto VTNodeScript::Impl::resolve(string const& fileRefName)
-	-> shared_ptr<string const>
-{
-	while ( !resolutionDone_ ) {
-		bool stuck = true;
-
-		for ( auto&& refName : hpiutil::fileRefNames() ) {
-			if ( fullPathFromRefName_.count(refName) != 0 ) continue;
-			if ( auto&& p = searchFile(refName) ) {
-				stuck = false;
-				if ( refName == fileRefName ) { return p; }
-			}
-		}
-
-		if ( stuck ) { resolutionDone_ = true; }
-	}
-	return fullPathFromRefName_[fileRefName];
-}
-
-auto VTNodeScript::searchFile(char const* fileRefName) const
+auto VTNodeScript::resolveRefName(string const& fileRefName) const
 	-> shared_ptr<string const>
 {
 	if ( auto&& p = p_->searchFile(fileRefName) ) {
 		return p;
-	} else {
-		return p_->resolve(fileRefName);
 	}
+
+	while ( !p_->resolutionDone_ ) {
+		bool stuck = true;
+
+		for ( auto&& refName : hpiutil::fileRefNames() ) {
+			if ( p_->fullPathFromRefName_.count(refName) != 0 ) continue;
+			if ( auto&& p = p_->searchFile(refName) ) {
+				stuck = false;
+				if ( refName == fileRefName ) { return p; }
+			}
+		}
+		if ( stuck ) { p_->resolutionDone_ = true; }
+	}
+	return p_->fullPathFromRefName_[fileRefName];
 }
 
 auto VTNodeScript::Impl::fetchScript(char const* fileRefName)
 	-> optional_ref<LineDelimitedString>
 {
-	if ( auto&& p = VTRoot::script()->searchFile(fileRefName) ) {
+	if ( auto&& p = VTRoot::script()->resolveRefName(fileRefName) ) {
 		string const& filePath = *p;
 
 		auto& lds = map_find_or_insert(cache_, filePath, [&filePath] () {
