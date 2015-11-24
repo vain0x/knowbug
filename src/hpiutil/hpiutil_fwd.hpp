@@ -1,6 +1,10 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+#include <unordered_set>
+
 #include <Windows.h>
 #include "hspsdk/hsp3plugin.h"
 #undef stat
@@ -56,6 +60,9 @@ extern std::string nameFromStPrm(stprm_t stprm, int index);
 DInfo からみつからなければ "label(%p)" が返る
 //*/
 extern std::string nameFromLabel(label_t lb);
+
+// ファイル参照名の一覧
+extern auto fileRefNames() -> std::unordered_set<std::string> const&;
 
 //文字列リテラル
 extern std::string literalFormString(char const* s);

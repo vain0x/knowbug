@@ -2,6 +2,7 @@
 #pragma once
 
 #include <map>
+#include <unordered_set>
 #include "hpiutil.hpp"
 
 namespace hpiutil {
@@ -27,6 +28,7 @@ private:
 	using ident_table_t = std::map<int, char const*>;
 	using cs_map_t = std::map<std::pair<char const*, int>, csptr_t>;
 
+	std::unordered_set<std::string> fileRefNames_;
 	ident_table_t labelNames_;
 	ident_table_t paramNames_;
 	cs_map_t csMap_;
@@ -46,6 +48,11 @@ public:
 	char const* tryFindParamName(int stprmIndex) const
 	{
 		return tryFindIdent(paramNames_, stprmIndex);
+	}
+
+	auto fileRefNames() const -> decltype(fileRefNames_) const&
+	{
+		return fileRefNames_;
 	}
 
 	void parse()
@@ -81,7 +88,10 @@ public:
 					int const idxDs = tripeek(&ctx->mem_di[i + 1]);
 					int const line = wpeek(&ctx->mem_di[i + 4]);
 
-					if ( idxDs != 0 ) { cur_fname = strData(idxDs); }
+					if ( idxDs != 0 ) {
+						cur_fname = strData(idxDs);
+						fileRefNames_.emplace(cur_fname);
+					}
 					cur_line = line;
 					i += 6;
 					break;

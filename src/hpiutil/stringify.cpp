@@ -162,4 +162,10 @@ std::string nameExcludingScopeResolution(std::string const& name)
 		: name);
 }
 
+// MEMO: DInfoにアクセスするためにここにあるが stringify ではない
+auto fileRefNames() -> std::unordered_set<std::string> const&
+{
+	return DInfo::instance().fileRefNames();
+}
+
 } // namespace hpiutil
