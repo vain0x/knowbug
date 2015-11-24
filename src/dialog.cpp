@@ -517,6 +517,8 @@ void Dialog::createMain()
 
 void Dialog::destroyMain()
 {
+	VarTree::term();
+
 	if ( hDlgWnd != nullptr ) {
 		DestroyWindow(hDlgWnd);
 		hDlgWnd = nullptr;
@@ -530,7 +532,7 @@ void Dialog::destroyMain()
 //------------------------------------------------
 void update()
 {
-
+	VarTree::update();
 	CurrentUpdate();
 	UpdateView();
 }

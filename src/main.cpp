@@ -78,7 +78,6 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 			if (Knowbug::continueConditionalRun()) break;
 
 			g_dbginfo->updateCurInf();
-			VarTree::update();
 			Dialog::update();
 			break;
 		}
@@ -95,7 +94,6 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 //------------------------------------------------
 void debugbye()
 {
-	VarTree::term();
 	Dialog::destroyMain();
 }
 
