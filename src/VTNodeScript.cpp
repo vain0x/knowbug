@@ -16,8 +16,8 @@ struct VTNodeScript::Impl
 
 public:
 	auto resolve(string const& fileRefName) -> shared_ptr<string const>;
-	auto searchFile(char const* fileName) -> shared_ptr<string const>;
-	auto searchFile(char const* fileName, char const* dir) -> shared_ptr<string const>;
+	auto searchFile(string const& fileName)->shared_ptr<string const>;
+	auto searchFile(string const& fileName, char const* dir)->shared_ptr<string const>;
 	auto fetchScript(char const* fileName) -> optional_ref<LineDelimitedString>;
 };
 
@@ -32,14 +32,14 @@ auto VTNodeScript::parent() const -> shared_ptr<VTNodeData>
 	return VTRoot::make_shared();
 }
 
-auto VTNodeScript::Impl::searchFile(char const* fileRefName, char const* dir)
+auto VTNodeScript::Impl::searchFile(string const& fileRefName, char const* dir)
 	-> shared_ptr<string const>
 {
 	char* fileName = nullptr;
 	std::array<char, MAX_PATH> fullPath {};
 	bool const succeeded =
 		SearchPath
-			( dir, fileRefName, /* lpExtenson = */ nullptr
+			( dir, fileRefName.c_str(), /* lpExtenson = */ nullptr
 			, fullPath.size(), fullPath.data(), &fileName)
 		!= 0;
 	if ( succeeded ) {
@@ -56,7 +56,7 @@ auto VTNodeScript::Impl::searchFile(char const* fileRefName, char const* dir)
 	}
 }
 
-auto VTNodeScript::Impl::searchFile(char const* fileRefName)
+auto VTNodeScript::Impl::searchFile(string const& fileRefName)
 	-> shared_ptr<string const>
 {
 	// ÉÅÉÇÇ©ÇÁì«Çﬁ
@@ -85,7 +85,7 @@ auto VTNodeScript::Impl::resolve(string const& fileRefName)
 
 		for ( auto&& refName : hpiutil::fileRefNames() ) {
 			if ( fullPathFromRefName_.count(refName) != 0 ) continue;
-			if ( auto&& p = searchFile(refName.c_str()) ) {
+			if ( auto&& p = searchFile(refName) ) {
 				stuck = false;
 				if ( refName == fileRefName ) { return p; }
 			}
