@@ -99,7 +99,10 @@ class VTNodeLog
 	: public VTNodeData
 {
 	friend class VTRoot;
+	struct Impl;
+	unique_ptr<Impl> p_;
 
+	VTNodeLog();
 public:
 	auto name() const -> string override { return "+log"; }
 	auto parent() const -> shared_ptr<VTNodeData> override;
