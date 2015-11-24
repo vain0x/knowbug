@@ -177,22 +177,9 @@ namespace LogBox {
 		}
 	}
 	void save() {
-		char filename[MAX_PATH + 1] = "";
-		char fullname[MAX_PATH + 1] = "hspdbg.log";
-		OPENFILENAME ofn = { 0 };
-			ofn.lStructSize    = sizeof(ofn);         // 構造体のサイズ
-			ofn.hwndOwner      = hDlgWnd;             // コモンダイアログの親ウィンドウハンドル
-			ofn.lpstrFilter    = "log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";	// ファイルの種類
-			ofn.lpstrFile      = fullname;            // 選択されたファイル名(フルパス)を受け取る変数のアドレス
-			ofn.lpstrFileTitle = filename;            // 選択されたファイル名を受け取る変数のアドレス
-			ofn.nMaxFile       = sizeof(fullname);    // lpstrFileに指定した変数のサイズ
-			ofn.nMaxFileTitle  = sizeof(filename);    // lpstrFileTitleに指定した変数のサイズ
-			ofn.Flags          = OFN_OVERWRITEPROMPT; // フラグ指定
-			ofn.lpstrTitle     = "名前を付けて保存";   // コモンダイアログのキャプション
-			ofn.lpstrDefExt    = "log";               // デフォルトのファイルの種類
-
-		if ( GetSaveFileName(&ofn) ) {
-			save(fullname);
+		char const* const filter = "log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";
+		if ( auto&& path = Dialog_SaveFileName(hDlgWnd, filter, "log", "hspdbg.log" ) ) {
+			save(path->c_str());
 		}
 	}
 } //namespace LogBox

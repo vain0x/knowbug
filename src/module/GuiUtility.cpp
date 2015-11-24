@@ -1,5 +1,6 @@
 ﻿
 #include <vector>
+#include <array>
 #include "GuiUtility.h"
 
 //------------------------------------------------
@@ -164,4 +165,27 @@ HTREEITEM TreeView_GetItemAtPoint(HWND hwndTree, POINT pt)
 	auto const hItem = TreeView_HitTest(hwndTree, &tvHitTestInfo);
 	return ((tvHitTestInfo.flags & TVHT_ONITEM) != 0)
 		? hItem : nullptr;
+}
+
+auto Dialog_SaveFileName(HWND owner
+	, char const* filter, char const* defaultFilter, char const* defaultFileName)
+	-> std::unique_ptr<string>
+{
+	std::array<char, MAX_PATH> fileName;
+	std::array<char, MAX_PATH> fullName;
+	std::strcpy(fullName.data(), defaultFileName);
+
+	OPENFILENAME ofn {};
+	ofn.lStructSize    = sizeof(ofn);
+	ofn.hwndOwner      = owner;
+	ofn.lpstrFilter    = filter;
+	ofn.lpstrFile      = fullName.data();
+	ofn.lpstrFileTitle = fileName.data();
+	ofn.nMaxFile       = fullName.size();
+	ofn.nMaxFileTitle  = fileName.size();
+	ofn.Flags          = OFN_OVERWRITEPROMPT;
+	ofn.lpstrTitle     = "名前を付けて保存";
+	ofn.lpstrDefExt    = defaultFilter;
+	return (GetSaveFileName(&ofn))
+		? std::make_unique<string>(fullName.data()) : nullptr;
 }
