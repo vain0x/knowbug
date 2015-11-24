@@ -274,15 +274,11 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 		}
 #endif //defined(with_WrapCall)
 		case IDC_LOG_AUTO_SCROLL: {
-			bool& b = g_config->scrollsLogAutomatically;
-			b = !b;
-			CheckMenuItem(hLogNodeMenu, IDC_LOG_AUTO_SCROLL, (b ? MF_CHECKED : MF_UNCHECKED));
+			Menu_ToggleCheck(hPop, IDC_LOG_AUTO_SCROLL, g_config->scrollsLogAutomatically);
 			break;
 		}
 		case IDC_LOG_INVOCATION: {
-			bool& b = g_config->logsInvocation;
-			b = !b;
-			CheckMenuItem(hLogNodeMenu, IDC_LOG_INVOCATION, (b ? MF_CHECKED : MF_UNCHECKED));
+			Menu_ToggleCheck(hPop, IDC_LOG_INVOCATION, g_config->logsInvocation);
 			break;
 		}
 		case IDC_LOG_SAVE: LogBox::save(); break;
@@ -306,9 +302,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				case IDC_BTN5: Knowbug::runStepOut();  break;
 
 				case IDC_TOPMOST: {
-					bool& b = g_config->bTopMost;
-					b = !b;
-					CheckMenuItem(hDlgMenu, IDC_TOPMOST, (b ? MF_CHECKED : MF_UNCHECKED));
+					Menu_ToggleCheck(hDlgMenu, IDC_TOPMOST, g_config->bTopMost);
 					for ( auto&& hwnd : windowHandles() ) {
 						Window_SetTopMost(hwnd, g_config->bTopMost);
 					}

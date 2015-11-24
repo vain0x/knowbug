@@ -14,6 +14,15 @@ void Window_SetTopMost(HWND hwnd, bool isTopMost)
 }
 
 //------------------------------------------------
+// メニュー項目のチェックを反転
+//------------------------------------------------
+void Menu_ToggleCheck(HMENU menu, UINT itemId, bool& checked)
+{
+	checked = !checked;
+	CheckMenuItem(menu, itemId, (checked ? MF_CHECKED : MF_UNCHECKED));
+}
+
+//------------------------------------------------
 // EditControl のタブ文字幅を変更する
 //------------------------------------------------
 void Edit_SetTabLength(HWND hEdit, const int tabwidth)
