@@ -52,29 +52,12 @@ static HWND hViewEdit;
 static HMENU hDlgMenu, hNodeMenu, hLogNodeMenu, hInvokeNodeMenu;
 
 static std::map<HTREEITEM, int> vartree_vcaret;
-static std::map<HTREEITEM, shared_ptr<string const>> vartree_textCache; //一回の停止中にのみ有効
 
 HWND getKnowbugHandle() { return hDlgWnd; }
 HWND getSttCtrlHandle() { return hSttCtrl; }
 HWND getVarTreeHandle() { return hVarTree; }
 
 static void setEditStyle(HWND hEdit, int maxlen);
-
-//------------------------------------------------
-// ノード文字列の取得 (memoized)
-//------------------------------------------------
-static std::shared_ptr<string const> getVarNodeString(HTREEITEM hItem)
-{
-	auto&& get = [&hItem]() {
-		return VarTree::getItemVarText(hItem);
-	};
-	auto&& stringPtr =
-		(g_config->cachesVardataString)
-		? map_find_or_insert(vartree_textCache, hItem, std::move(get))
-		: get();
-	assert(stringPtr);
-	return stringPtr;
-}
 
 //------------------------------------------------
 // ビューキャレット位置を変更
@@ -126,7 +109,7 @@ static void UpdateView()
 			stt_prevSelection = hItem;
 		}
 
-		std::shared_ptr<string const> varinfoText = getVarNodeString(hItem);
+		std::shared_ptr<string const> varinfoText = VarTree::getItemVarText(hItem);
 		Dialog::View::setText(varinfoText->c_str());
 
 		//+script ノードなら現在の実行位置を選択
@@ -172,7 +155,7 @@ namespace LogBox {
 		void afterAppend(char const* addition) override
 		{
 			//キャッシュを消して更新
-			vartree_textCache.erase(VarTree::getLogNodeHandle());
+			VarTree::eraseTextCache(VarTree::getLogNodeHandle());
 			if ( TreeView_GetSelection(hVarTree) == VarTree::getLogNodeHandle() ) {
 				UpdateView();
 			}
@@ -274,7 +257,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 		case 0: break;
 		case IDC_NODE_UPDATE: UpdateView(); break;
 		case IDC_NODE_LOG: {
-			Knowbug::logmes(getVarNodeString(hItem)->c_str());
+			Knowbug::logmes(VarTree::getItemVarText(hItem)->c_str());
 			break;
 		}
 #ifdef with_WrapCall
@@ -547,7 +530,6 @@ void Dialog::destroyMain()
 //------------------------------------------------
 void update()
 {
-	vartree_textCache.clear();
 
 	CurrentUpdate();
 	UpdateView();

@@ -18,6 +18,8 @@ void init();
 void term();
 void update();
 
+void eraseTextCache(HTREEITEM hItem);
+
 LRESULT customDraw(LPNMTVCUSTOMDRAW pnmcd);
 auto getItemVarText(HTREEITEM hItem) -> shared_ptr<string const>;
 auto tryGetNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>;

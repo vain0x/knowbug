@@ -25,6 +25,9 @@ static HTREEITEM g_hNodeScript, g_hNodeLog;
 HTREEITEM getScriptNodeHandle() { return g_hNodeScript; }
 HTREEITEM getLogNodeHandle() { return g_hNodeLog; }
 
+ //ノードの文字列のキャッシュ (停止中の間のみ有効)
+static std::map<HTREEITEM, shared_ptr<string const>> g_textCache;
+
 #ifdef with_WrapCall
 using WrapCall::ModcmdCallInfo;
 
@@ -147,6 +150,8 @@ void term()
 
 void update()
 {
+	g_textCache.clear();
+
 #ifdef with_WrapCall
 	VTRoot::dynamic()->updateDeep();
 #endif
@@ -342,11 +347,25 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		}
 	};
 
-	if ( auto&& node = tryGetNodeData(hItem) ) {
-		return GetText {}.apply(*node);
-	} else {
-		return std::make_shared<string>("(not_available)");
-	}
+	auto&& get = [&hItem] () {
+		if ( auto&& node = tryGetNodeData(hItem) ) {
+			return GetText {}.apply(*node);
+		} else {
+			return std::make_shared<string const>("(not_available)");
+		}
+	};
+
+	auto&& stringPtr =
+		(g_config->cachesVardataString)
+		? map_find_or_insert(g_textCache, hItem, std::move(get))
+		: get();
+	assert(stringPtr);
+	return stringPtr;
+}
+
+void eraseTextCache(HTREEITEM hItem)
+{
+	g_textCache.erase(hItem);
 }
 
 } // namespace VarTree
