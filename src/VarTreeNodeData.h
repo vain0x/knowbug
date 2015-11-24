@@ -104,6 +104,11 @@ class VTNodeLog
 
 	VTNodeLog();
 public:
+	auto str() const -> string const&;
+	bool save(char const* fileName) const;
+	void clear();
+	void append(char const* addition);
+
 	auto name() const -> string override { return "+log"; }
 	auto parent() const -> shared_ptr<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fLog(*this); }
