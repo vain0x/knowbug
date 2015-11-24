@@ -7,6 +7,12 @@
 #include <string>
 using string = std::string;
 
+HWND Window_Create
+	( char const* className, WNDPROC proc
+	, char const* caption, int windowStyles
+	, int sizeX, int sizeY, int posX, int posY
+	, HINSTANCE hInst );
+
 void Window_SetTopMost(HWND hwnd, bool isTopMost);
 
 void Menu_ToggleCheck(HMENU menu, UINT itemId, bool& checked);

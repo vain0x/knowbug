@@ -3,6 +3,45 @@
 #include "GuiUtility.h"
 
 //------------------------------------------------
+// 簡易ウィンドウ生成
+//------------------------------------------------
+HWND Window_Create
+	( char const* className, WNDPROC proc
+	, char const* caption, int windowStyles
+	, int sizeX, int sizeY, int posX, int posY
+	, HINSTANCE hInst)
+{
+	WNDCLASS wndclass;
+	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
+	wndclass.lpfnWndProc   = proc;
+	wndclass.cbClsExtra    = 0;
+	wndclass.cbWndExtra    = 0;
+	wndclass.hInstance     = hInst;
+	wndclass.hIcon         = nullptr;
+	wndclass.hCursor       = LoadCursor(nullptr, IDC_ARROW);
+	wndclass.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
+	wndclass.lpszMenuName  = nullptr;
+	wndclass.lpszClassName = className;
+	RegisterClass(&wndclass);
+
+	HWND const hWnd =
+		CreateWindow
+			( className, caption
+			, (WS_CAPTION | WS_VISIBLE | windowStyles)
+			, posX, posY, sizeX, sizeY
+			, /* parent = */ nullptr
+			, /* hMenu = */ nullptr
+			, hInst
+			, /* lparam = */ nullptr
+			);
+	if ( !hWnd ) {
+		MessageBox(nullptr, "Debug window initalizing failed.", "Error", 0);
+		abort();
+	}
+	return hWnd;
+}
+
+//------------------------------------------------
 // ウィンドウを最前面にする
 //------------------------------------------------
 void Window_SetTopMost(HWND hwnd, bool isTopMost)

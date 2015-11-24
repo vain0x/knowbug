@@ -402,38 +402,6 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 }
 
 //------------------------------------------------
-// 簡易ウィンドウ生成
-//------------------------------------------------
-static HWND MyCreateWindow(char const* className, WNDPROC proc, char const* caption, int windowStyles, int sizeX, int sizeY, int posX, int posY)
-{
-	WNDCLASS wndclass;
-	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
-	wndclass.lpfnWndProc   = proc;
-	wndclass.cbClsExtra    = 0;
-	wndclass.cbWndExtra    = 0;
-	wndclass.hInstance     = Knowbug::getInstance();
-	wndclass.hIcon         = nullptr;
-	wndclass.hCursor       = LoadCursor(nullptr, IDC_ARROW);
-	wndclass.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
-	wndclass.lpszMenuName  = nullptr;
-	wndclass.lpszClassName = className;
-	RegisterClass(&wndclass);
-	
-	HWND hWnd = CreateWindow(className, caption,
-		(WS_CAPTION | WS_VISIBLE | windowStyles),
-		posX, posY, sizeX, sizeY,
-		nullptr, nullptr,
-		Knowbug::getInstance(),
-		nullptr
-	);
-	if ( !hWnd ) {
-		MessageBox(nullptr, "Debug window initalizing failed.", "Error", 0);
-		abort();
-	}
-	return hWnd;
-}
-
-//------------------------------------------------
 // メインダイアログを生成する
 //------------------------------------------------
 void Dialog::createMain()
@@ -445,13 +413,20 @@ void Dialog::createMain()
 	int const viewSizeX = g_config->viewSizeX, viewSizeY = g_config->viewSizeY;
 
 	//ビューウィンドウ
-	hViewWnd = MyCreateWindow("KnowbugViewWindow", ViewDialogProc, KnowbugViewWindowTitle, (WS_THICKFRAME),
-		viewSizeX, viewSizeY,
-		dispx - mainSizeX - viewSizeX, 0
-	);
-	SetWindowLongPtr(hViewWnd, GWL_EXSTYLE, GetWindowLongPtr(hViewWnd, GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
+	hViewWnd =
+		Window_Create
+			( "KnowbugViewWindow", ViewDialogProc
+			, KnowbugViewWindowTitle, (WS_THICKFRAME)
+			, viewSizeX, viewSizeY
+			, dispx - mainSizeX - viewSizeX, 0
+			, Knowbug::getInstance());
+	SetWindowLongPtr(hViewWnd, GWL_EXSTYLE
+		, GetWindowLongPtr(hViewWnd, GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
 	{
-		HWND const hPane = CreateDialog(Knowbug::getInstance(), (LPCSTR)IDD_VIEW_PANE, hViewWnd, (DLGPROC)ViewDialogProc);
+		HWND const hPane =
+			CreateDialog(Knowbug::getInstance()
+				, (LPCSTR)IDD_VIEW_PANE
+				, hViewWnd, (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
 		setEditStyle(hViewEdit, g_config->maxLength);
 
@@ -463,12 +438,18 @@ void Dialog::createMain()
 	}
 
 	//メインウィンドウ
-	hDlgWnd = MyCreateWindow("KnowbugMainWindow", DlgProc, KnowbugMainWindowTitle, 0x0000,
-		mainSizeX, mainSizeY,
-		dispx - mainSizeX, 0
-	);
+	hDlgWnd =
+		Window_Create
+			( "KnowbugMainWindow", DlgProc
+			, KnowbugMainWindowTitle, 0x0000
+			, mainSizeX, mainSizeY
+			, dispx - mainSizeX, 0
+			, Knowbug::getInstance());
 	{
-		HWND const hPane = CreateDialog(Knowbug::getInstance(), (LPCSTR)IDD_MAIN_PANE, hDlgWnd, (DLGPROC)DlgProc);
+		HWND const hPane =
+			CreateDialog(Knowbug::getInstance()
+				, (LPCSTR)IDD_MAIN_PANE
+				, hDlgWnd, (DLGPROC)DlgProc);
 		ShowWindow(hPane, SW_SHOW);
 
 		//メニューバー
