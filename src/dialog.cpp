@@ -40,26 +40,28 @@ namespace Dialog
 static int const TABDLGMAX = 4;
 static int const CountStepButtons = 5;
 
-static HWND hDlgWnd;
 static std::array<HWND, CountStepButtons> hStepButtons;
 static HWND hSttCtrl;
 static HWND hVarTree;
 static HWND hSrcLine;
-
-static HWND hViewWnd;
 static HWND hViewEdit;
 
-static HMENU hDlgMenu, hNodeMenu, hLogNodeMenu, hInvokeNodeMenu;
+struct Resource
+{
+	window_handle_t mainWindow, viewWindow;
+	menu_handle_t dialogMenu, nodeMenu, invokeMenu, logMenu;
+};
+static unique_ptr<Resource> g_res;
 
 static std::map<HTREEITEM, int> vartree_vcaret;
 
-HWND getKnowbugHandle() { return hDlgWnd; }
+HWND getKnowbugHandle() { return g_res->mainWindow.get(); }
 HWND getSttCtrlHandle() { return hSttCtrl; }
 HWND getVarTreeHandle() { return hVarTree; }
 
 static auto windowHandles() -> std::vector<HWND>
 {
-	return std::vector<HWND> { hDlgWnd, hViewWnd };
+	return std::vector<HWND> { g_res->mainWindow.get(), g_res->viewWindow.get() };
 }
 static void setEditStyle(HWND hEdit, int maxlen);
 
@@ -149,7 +151,7 @@ namespace LogBox {
 	void clear()
 	{
 		if ( !g_config->warnsBeforeClearingLog
-			|| MessageBox(hDlgWnd, "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL) == IDOK ) {
+			|| MessageBox(g_res->mainWindow.get(), "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL) == IDOK ) {
 			VTRoot::log()->clear();
 		}
 	}
@@ -173,12 +175,12 @@ namespace LogBox {
 
 	void save(char const* filepath) {
 		if ( !VTRoot::log()->save(filepath) ) {
-			MessageBox(hDlgWnd, "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
+			MessageBox(g_res->mainWindow.get(), "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
 		}
 	}
 	void save() {
 		char const* const filter = "log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";
-		if ( auto&& path = Dialog_SaveFileName(hDlgWnd, filter, "log", "hspdbg.log" ) ) {
+		if ( auto&& path = Dialog_SaveFileName(g_res->mainWindow.get(), filter, "log", "hspdbg.log" ) ) {
 			save(path->c_str());
 		}
 	}
@@ -218,15 +220,15 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 	{
 		void fInvoke(VTNodeInvoke const&) override
 		{
-			hPop = hInvokeNodeMenu;
+			hPop = g_res->invokeMenu.get();
 		}
 		void fLog(VTNodeLog const&) override
 		{
-			hPop = hLogNodeMenu;
+			hPop = g_res->logMenu.get();
 		}
 		HMENU apply(VTNodeData const& node)
 		{
-			hPop = hNodeMenu; // default
+			hPop = g_res->nodeMenu.get(); // default
 			node.acceptVisitor(*this);
 			return hPop;
 		}
@@ -242,7 +244,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 	int const idSelected =
 		TrackPopupMenuEx
 			( hPop, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD)
-			, pt.x, pt.y, hDlgWnd, nullptr);
+			, pt.x, pt.y, g_res->mainWindow.get(), nullptr);
 
 	switch ( idSelected ) {
 		case 0: break;
@@ -289,7 +291,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				case IDC_BTN5: Knowbug::runStepOut();  break;
 
 				case IDC_TOPMOST: {
-					Menu_ToggleCheck(hDlgMenu, IDC_TOPMOST, g_config->bTopMost);
+					Menu_ToggleCheck(g_res->dialogMenu.get(), IDC_TOPMOST, g_config->bTopMost);
 					for ( auto&& hwnd : windowHandles() ) {
 						Window_SetTopMost(hwnd, g_config->bTopMost);
 					}
@@ -361,10 +363,6 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		case WM_CREATE: return TRUE;
 		case WM_CLOSE: return FALSE;
 		case WM_DESTROY:
-			DestroyMenu(hNodeMenu);
-			DestroyMenu(hLogNodeMenu);
-			DestroyMenu(hInvokeNodeMenu);
-			DestroyWindow(hViewWnd);
 			PostQuitMessage(0);
 			break;
 	}
@@ -397,54 +395,53 @@ void Dialog::createMain()
 	int const viewSizeX = g_config->viewSizeX, viewSizeY = g_config->viewSizeY;
 
 	//ビューウィンドウ
-	hViewWnd =
+	window_handle_t hViewWnd {
 		Window_Create
 			( "KnowbugViewWindow", ViewDialogProc
 			, KnowbugViewWindowTitle, (WS_THICKFRAME)
 			, viewSizeX, viewSizeY
 			, dispx - mainSizeX - viewSizeX, 0
-			, Knowbug::getInstance());
-	SetWindowLongPtr(hViewWnd, GWL_EXSTYLE
-		, GetWindowLongPtr(hViewWnd, GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
+			, Knowbug::getInstance()
+			) };
+	SetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE
+		, GetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
 	{
 		HWND const hPane =
 			CreateDialog(Knowbug::getInstance()
 				, (LPCSTR)IDD_VIEW_PANE
-				, hViewWnd, (DLGPROC)ViewDialogProc);
+				, hViewWnd.get(), (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
 		setEditStyle(hViewEdit, g_config->maxLength);
 
 		//エディタをクライアント領域全体に広げる
-		RECT rc; GetClientRect(hViewWnd, &rc);
+		RECT rc; GetClientRect(hViewWnd.get(), &rc);
 		MoveWindow(hViewEdit, 0, 0, rc.right, rc.bottom, false);
 
 		ShowWindow(hPane, SW_SHOW);
 	}
 
 	//メインウィンドウ
-	hDlgWnd =
+	window_handle_t hDlgWnd {
 		Window_Create
 			( "KnowbugMainWindow", DlgProc
 			, KnowbugMainWindowTitle, 0x0000
 			, mainSizeX, mainSizeY
 			, dispx - mainSizeX, 0
-			, Knowbug::getInstance());
+			, Knowbug::getInstance()
+			) };
 	{
 		HWND const hPane =
 			CreateDialog(Knowbug::getInstance()
 				, (LPCSTR)IDD_MAIN_PANE
-				, hDlgWnd, (DLGPROC)DlgProc);
+				, hDlgWnd.get(), (DLGPROC)DlgProc);
 		ShowWindow(hPane, SW_SHOW);
 
 		//メニューバー
-		hDlgMenu = LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_MAIN_MENU);
-		SetMenu(hDlgWnd, hDlgMenu);
+		menu_handle_t hDlgMenu { LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_MAIN_MENU) };
+		SetMenu(hDlgWnd.get(), hDlgMenu.get());
 
 		//ポップメニュー
 		HMENU const hNodeMenuBar = LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_NODE_MENU);
-		hNodeMenu       = GetSubMenu(hNodeMenuBar, 0);
-		hInvokeNodeMenu = GetSubMenu(hNodeMenuBar, 1);
-		hLogNodeMenu	= GetSubMenu(hNodeMenuBar, 2);
 
 		//いろいろ
 		hVarTree = GetDlgItem(hPane, IDC_VARTREE);
@@ -457,23 +454,31 @@ void Dialog::createMain()
 				GetDlgItem(hPane, IDC_BTN5),
 			} };
 
-		// ツリービュー
-		VarTree::init();
+		// メンバの順番に注意
+		g_res.reset(new Resource
+			{ std::move(hDlgWnd)
+			, std::move(hViewWnd)
+			, std::move(hDlgMenu)
+			, menu_handle_t { GetSubMenu(hNodeMenuBar, 0) } // node
+			, menu_handle_t { GetSubMenu(hNodeMenuBar, 1) } // invoke
+			, menu_handle_t { GetSubMenu(hNodeMenuBar, 2) } // log
+			});
 
+		VarTree::init();
 		LogBox::init();
 	}
 
 	if ( g_config->bTopMost ) {
-		CheckMenuItem(hDlgMenu, IDC_TOPMOST, MF_CHECKED);
+		CheckMenuItem(g_res->dialogMenu.get(), IDC_TOPMOST, MF_CHECKED);
 		for ( auto&& hwnd : windowHandles() ) {
 			Window_SetTopMost(hwnd, true);
 		}
 	}
 	if ( g_config->scrollsLogAutomatically ) {
-		CheckMenuItem(hLogNodeMenu, IDC_LOG_AUTO_SCROLL, MF_CHECKED);
+		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_AUTO_SCROLL, MF_CHECKED);
 	}
 	if ( g_config->logsInvocation ) {
-		CheckMenuItem(hLogNodeMenu, IDC_LOG_INVOCATION, MF_CHECKED);
+		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_INVOCATION, MF_CHECKED);
 	}
 
 	for ( auto&& hwnd : windowHandles() ) {
@@ -485,11 +490,7 @@ void Dialog::createMain()
 void Dialog::destroyMain()
 {
 	VarTree::term();
-
-	if ( hDlgWnd != nullptr ) {
-		DestroyWindow(hDlgWnd);
-		hDlgWnd = nullptr;
-	}
+	g_res.reset();
 }
 
 //------------------------------------------------
@@ -527,5 +528,5 @@ EXPORT HWND WINAPI knowbug_hwnd()
 
 EXPORT HWND WINAPI knowbug_hwndView()
 {
-	return Dialog::hViewWnd;
+	return Dialog::g_res->viewWindow.get();
 }
