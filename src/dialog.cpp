@@ -57,6 +57,10 @@ HWND getKnowbugHandle() { return hDlgWnd; }
 HWND getSttCtrlHandle() { return hSttCtrl; }
 HWND getVarTreeHandle() { return hVarTree; }
 
+static auto windowHandles() -> std::vector<HWND>
+{
+	return std::vector<HWND> { hDlgWnd, hViewWnd };
+}
 static void setEditStyle(HWND hEdit, int maxlen);
 
 //------------------------------------------------
@@ -305,8 +309,9 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					bool& b = g_config->bTopMost;
 					b = !b;
 					CheckMenuItem(hDlgMenu, IDC_TOPMOST, (b ? MF_CHECKED : MF_UNCHECKED));
-					Window_SetTopMost(hDlgWnd, g_config->bTopMost);
-					Window_SetTopMost(hViewWnd, g_config->bTopMost);
+					for ( auto&& hwnd : windowHandles() ) {
+						Window_SetTopMost(hwnd, g_config->bTopMost);
+					}
 					break;
 				}
 				case IDC_OPEN_CURRENT_SCRIPT: {
@@ -501,8 +506,9 @@ void Dialog::createMain()
 
 	if ( g_config->bTopMost ) {
 		CheckMenuItem(hDlgMenu, IDC_TOPMOST, MF_CHECKED);
-		Window_SetTopMost(hDlgWnd, true);
-		Window_SetTopMost(hViewWnd, true);
+		for ( auto&& hwnd : windowHandles() ) {
+			Window_SetTopMost(hwnd, true);
+		}
 	}
 	if ( g_config->scrollsLogAutomatically ) {
 		CheckMenuItem(hLogNodeMenu, IDC_LOG_AUTO_SCROLL, MF_CHECKED);
@@ -511,8 +517,10 @@ void Dialog::createMain()
 		CheckMenuItem(hLogNodeMenu, IDC_LOG_INVOCATION, MF_CHECKED);
 	}
 
-	UpdateWindow(hDlgWnd); ShowWindow(hDlgWnd, SW_SHOW);
-	UpdateWindow(hViewWnd); ShowWindow(hViewWnd, SW_SHOW);
+	for ( auto&& hwnd : windowHandles() ) {
+		UpdateWindow(hwnd);
+		ShowWindow(hwnd, SW_SHOW);
+	}
 }
 
 void Dialog::destroyMain()
