@@ -86,7 +86,7 @@ class VTNodeScript
 
 	VTNodeScript();
 public:
-	auto searchFile(char const* fileRefName) const -> unique_ptr<string const>;
+	auto searchFile(char const* fileRefName) const -> shared_ptr<string const>;
 	auto fetchScriptAll(char const* fileRefName) const -> optional_ref<string const>;
 	auto fetchScriptLine(char const* fileRefName, size_t lineIndex) const -> unique_ptr<string const>;
 

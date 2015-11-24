@@ -11,7 +11,7 @@ struct VTNodeScript::Impl
 	std::map<string const, LineDelimitedString> cache_;
 
 public:
-	auto searchFile(char const* fileName, char const* dir) -> unique_ptr<string const>;
+	auto searchFile(char const* fileName, char const* dir) -> shared_ptr<string const>;
 	auto fetchScript(char const* fileName) -> optional_ref<LineDelimitedString>;
 };
 
@@ -25,7 +25,7 @@ auto VTNodeScript::parent() const -> shared_ptr<VTNodeData>
 }
 
 auto VTNodeScript::Impl::searchFile(char const* fileRefName, char const* dir)
-	-> unique_ptr<string const>
+	-> shared_ptr<string const>
 {
 	char* fileName = nullptr;
 	std::array<char, MAX_PATH> fullPath {};
@@ -38,13 +38,13 @@ auto VTNodeScript::Impl::searchFile(char const* fileRefName, char const* dir)
 		// 発見されたディレクトリを検索対象に追加する
 		userDirs_.emplace(string(fullPath.data(), fileName));
 
-		return std::make_unique<string>(fullPath.data());
+		return std::make_shared<string>(fullPath.data());
 	} else {
 		return nullptr;
 	}
 }
 
-auto VTNodeScript::searchFile(char const* fileRefName) const -> unique_ptr<string const>
+auto VTNodeScript::searchFile(char const* fileRefName) const -> shared_ptr<string const>
 {
 	for ( string const& dir : p_->userDirs_ ) {
 		if ( auto&& p = p_->searchFile(fileRefName, dir.c_str()) ) {
