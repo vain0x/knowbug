@@ -224,7 +224,7 @@ static void CurrentUpdate()
 //------------------------------------------------
 // ツリーノードのコンテキストメニュー
 //------------------------------------------------
-void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
+void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 {
 	struct GetPopMenu
 		: public VTNodeData::Visitor
@@ -252,10 +252,10 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 	HMENU const hPop = GetPopMenu {}.apply(*node);
 
 	// ポップアップメニューを表示する
-	int const idSelected = TrackPopupMenuEx(
-		hPop, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD),
-		x, y, hDlgWnd, nullptr
-	);
+	int const idSelected =
+		TrackPopupMenuEx
+			( hPop, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD)
+			, pt.x, pt.y, hDlgWnd, nullptr);
 
 	switch ( idSelected ) {
 		case 0: break;
@@ -340,12 +340,9 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 
 		case WM_CONTEXTMENU: {
 			if ( (HWND)wp == hVarTree ) {
-				TV_HITTESTINFO tvHitTestInfo;
-				tvHitTestInfo.pt = { LOWORD(lp), HIWORD(lp) };
-				ScreenToClient(hVarTree, &tvHitTestInfo.pt);
-				auto const hItem = TreeView_HitTest(hVarTree, &tvHitTestInfo);
-				if ( hItem && tvHitTestInfo.flags & TVHT_ONITEMLABEL ) { //文字列アイテムにヒット
-					VarTree_PopupMenu(hItem, LOWORD(lp), HIWORD(lp));
+				POINT pt = { LOWORD(lp), HIWORD(lp) };
+				if ( auto&& hItem = TreeView_GetItemAtPoint(hVarTree, pt) ) {
+					VarTree_PopupMenu(hItem, pt);
 					return TRUE;
 				}
 			}

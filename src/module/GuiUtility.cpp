@@ -152,3 +152,16 @@ HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
 	}
 	return hLast;
 }
+
+//------------------------------------------------
+// スクリーン座標 pt にある要素
+//------------------------------------------------
+HTREEITEM TreeView_GetItemAtPoint(HWND hwndTree, POINT pt)
+{
+	TV_HITTESTINFO tvHitTestInfo;
+	tvHitTestInfo.pt = pt;
+	ScreenToClient(hwndTree, &tvHitTestInfo.pt);
+	auto const hItem = TreeView_HitTest(hwndTree, &tvHitTestInfo);
+	return ((tvHitTestInfo.flags & TVHT_ONITEM) != 0)
+		? hItem : nullptr;
+}

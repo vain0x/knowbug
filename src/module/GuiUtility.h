@@ -25,3 +25,4 @@ string TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem);
 LPARAM TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem);
 void   TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem);
 HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem);
+HTREEITEM TreeView_GetItemAtPoint(HWND hwndTree, POINT pt);
