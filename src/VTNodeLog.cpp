@@ -14,6 +14,13 @@ VTNodeLog::VTNodeLog()
 	: p_(new Impl {})
 {}
 
+VTNodeLog::~VTNodeLog()
+{
+	if ( !g_config->logPath.empty() ) {
+		save(g_config->logPath.c_str());
+	}
+}
+
 auto VTNodeLog::str() const -> string const&
 {
 	return p_->log_;

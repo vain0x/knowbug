@@ -104,6 +104,7 @@ class VTNodeLog
 
 	VTNodeLog();
 public:
+	virtual ~VTNodeLog();
 	auto str() const -> string const&;
 	bool save(char const* fileName) const;
 	void clear();

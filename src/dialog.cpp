@@ -521,10 +521,6 @@ void Dialog::createMain()
 
 void Dialog::destroyMain()
 {
-	if ( !g_config->logPath.empty() ) { //auto save
-		LogBox::save(g_config->logPath.c_str());
-	}
-
 	if ( hDlgWnd != nullptr ) {
 		DestroyWindow(hDlgWnd);
 		hDlgWnd = nullptr;
