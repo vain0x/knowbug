@@ -1,5 +1,6 @@
 
 #include <unordered_set>
+#include <unordered_map>
 #include "main.h"
 #include "VarTreeNodeData.h"
 #include "config_mng.h"
@@ -8,6 +9,7 @@
 struct VTNodeScript::Impl
 {
 	std::unordered_set<string> userDirs_;
+	std::unordered_map<string, shared_ptr<string const>> fullPathFromRefName_;
 	std::map<string const, LineDelimitedString> cache_;
 
 public:
@@ -38,14 +40,26 @@ auto VTNodeScript::Impl::searchFile(char const* fileRefName, char const* dir)
 		// 発見されたディレクトリを検索対象に追加する
 		userDirs_.emplace(string(fullPath.data(), fileName));
 
-		return std::make_shared<string>(fullPath.data());
+		auto&& p = std::make_shared<string const>(fullPath.data());
+
+		// メモ化
+		fullPathFromRefName_.emplace(fileRefName, p);
+		return p;
 	} else {
 		return nullptr;
 	}
 }
 
-auto VTNodeScript::searchFile(char const* fileRefName) const -> shared_ptr<string const>
+auto VTNodeScript::searchFile(char const* fileRefName) const
+	-> shared_ptr<string const>
 {
+	// メモから読む
+	auto&& iter = p_->fullPathFromRefName_.find(fileRefName);
+	if ( iter != p_->fullPathFromRefName_.end() ) {
+		return iter->second;
+	}
+
+	// ユーザディレクトリ、カレントディレクトリ、common、の順で探す
 	for ( string const& dir : p_->userDirs_ ) {
 		if ( auto&& p = p_->searchFile(fileRefName, dir.c_str()) ) {
 			return std::move(p);
