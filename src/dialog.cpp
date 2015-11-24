@@ -91,6 +91,30 @@ static void SaveViewCaret()
 //------------------------------------------------
 // ビュー更新
 //------------------------------------------------
+namespace View {
+
+void setText(char const* text)
+{
+	SetWindowText(hViewEdit, text);
+};
+
+void scroll(int y, int x)
+{
+	Edit_Scroll(hViewEdit, y, x);
+}
+
+void scrollBottom()
+{
+	scroll(Edit_GetLineCount(hViewEdit), 0);
+}
+
+void selectLine(size_t index)
+{
+	Edit_SetSel(hViewEdit, Edit_LineIndex(hViewEdit, index), Edit_LineIndex(hViewEdit, index + 1));
+}
+
+} // namespace View
+
 static void UpdateView()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
@@ -103,22 +127,22 @@ static void UpdateView()
 		}
 
 		std::shared_ptr<string const> varinfoText = getVarNodeString(hItem);
-		SetWindowText(hViewEdit, varinfoText->c_str());
+		Dialog::View::setText(varinfoText->c_str());
 
 		//+script ノードなら現在の実行位置を選択
 		if ( hItem == VarTree::getScriptNodeHandle() ) {
 			int const iLine = g_dbginfo->curLine();
-			Edit_Scroll(hViewEdit, std::max(0, iLine - 3), 0);
-			Edit_SetSel(hViewEdit, Edit_LineIndex(hViewEdit, iLine), Edit_LineIndex(hViewEdit, iLine + 1));
+			Dialog::View::scroll(std::max(0, iLine - 3), 0);
+			Dialog::View::selectLine(iLine);
 
 		//+log ノードの自動スクロール
 		} else if ( hItem == VarTree::getLogNodeHandle() && g_config->scrollsLogAutomatically ) {
-			Edit_Scroll(hViewEdit, Edit_GetLineCount(hViewEdit), 0);
+			Dialog::View::scrollBottom();
 
 		} else {
 			auto&& it = vartree_vcaret.find(hItem);
 			int const vcaret = (it != vartree_vcaret.end() ? it->second : 0);
-			Edit_Scroll(hViewEdit, vcaret, 0);
+			Dialog::View::scroll(vcaret, 0);
 		}
 	}
 }
