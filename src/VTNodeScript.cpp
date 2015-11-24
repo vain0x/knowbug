@@ -8,11 +8,14 @@
 
 struct VTNodeScript::Impl
 {
+	bool resolutionDone_;
+
 	std::unordered_set<string> userDirs_;
 	std::unordered_map<string, shared_ptr<string const>> fullPathFromRefName_;
 	std::map<string const, LineDelimitedString> cache_;
 
 public:
+	auto resolve(string const& fileRefName) -> shared_ptr<string const>;
 	auto searchFile(char const* fileName) -> shared_ptr<string const>;
 	auto searchFile(char const* fileName, char const* dir) -> shared_ptr<string const>;
 	auto fetchScript(char const* fileName) -> optional_ref<LineDelimitedString>;
@@ -20,7 +23,9 @@ public:
 
 VTNodeScript::VTNodeScript()
 	: p_(new Impl {})
-{}
+{
+	p_->resolutionDone_ = false;
+}
 
 auto VTNodeScript::parent() const -> shared_ptr<VTNodeData>
 {
@@ -72,10 +77,33 @@ auto VTNodeScript::Impl::searchFile(char const* fileRefName)
 	return searchFile(fileRefName, g_config->commonPath().c_str());
 }
 
+auto VTNodeScript::Impl::resolve(string const& fileRefName)
+	-> shared_ptr<string const>
+{
+	while ( !resolutionDone_ ) {
+		bool stuck = true;
+
+		for ( auto&& refName : hpiutil::fileRefNames() ) {
+			if ( fullPathFromRefName_.count(refName) != 0 ) continue;
+			if ( auto&& p = searchFile(refName.c_str()) ) {
+				stuck = false;
+				if ( refName == fileRefName ) { return p; }
+			}
+		}
+
+		if ( stuck ) { resolutionDone_ = true; }
+	}
+	return fullPathFromRefName_[fileRefName];
+}
+
 auto VTNodeScript::searchFile(char const* fileRefName) const
 	-> shared_ptr<string const>
 {
-	return p_->searchFile(fileRefName);
+	if ( auto&& p = p_->searchFile(fileRefName) ) {
+		return p;
+	} else {
+		return p_->resolve(fileRefName);
+	}
 }
 
 auto VTNodeScript::Impl::fetchScript(char const* fileRefName)
