@@ -112,6 +112,13 @@ public:
 	auto name() const -> string override { return "+log"; }
 	auto parent() const -> shared_ptr<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fLog(*this); }
+
+	struct LogObserver
+	{
+		virtual ~LogObserver() {}
+		virtual void afterAppend(char const* additional) = 0;
+	};
+	void setLogObserver(shared_ptr<LogObserver>);
 };
 
 class VTNodeGeneral
