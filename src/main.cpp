@@ -175,7 +175,7 @@ bool continueConditionalRun()
 //------------------------------------------------
 void logmes( char const* msg )
 {
-	Dialog::LogBox::add(msg);
+	VTRoot::log()->append(msg);
 }
 
 void logmesWarning(char const* msg)

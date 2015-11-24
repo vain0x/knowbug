@@ -135,46 +135,33 @@ bool logsCalling()
 // ログボックス
 //------------------------------------------------
 namespace LogBox {
-	static HWND hwnd_;
-	static string buf_;
-
-	void init(HWND hwnd)
-	{
-		hwnd_ = hwnd;
-	}
-	string const& get()
-	{
-		return buf_;
-	}
-	void clearImpl()
-	{
-		buf_.clear();
-	}
 	void clear()
 	{
 		if ( !g_config->warnsBeforeClearingLog
 			|| MessageBox(hDlgWnd, "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL) == IDOK ) {
-			clearImpl();
+			VTRoot::log()->clear();
 		}
 	}
-	void commit(char const* textAdd)
-	{
-		buf_ += textAdd;
 
-		//キャッシュを消して更新
-		vartree_textCache.erase(VarTree::getLogNodeHandle());
-		if ( TreeView_GetSelection(hVarTree) == VarTree::getLogNodeHandle() ) {
-			UpdateView();
+	struct LogBoxObserver : VTNodeLog::LogObserver
+	{
+		void afterAppend(char const* addition) override
+		{
+			//キャッシュを消して更新
+			vartree_textCache.erase(VarTree::getLogNodeHandle());
+			if ( TreeView_GetSelection(hVarTree) == VarTree::getLogNodeHandle() ) {
+				UpdateView();
+			}
 		}
+	};
+
+	void init()
+	{
+		VTRoot::log()->setLogObserver(std::make_shared<LogBoxObserver>());
 	}
-	void add(char const* str) {
-		if ( !str || str[0] == '\0' ) return;
-		commit(str);
-	}
+
 	void save(char const* filepath) {
-		std::ofstream ofs(filepath);
-		ofs.write(buf_.c_str(), buf_.size());
-		if ( ofs.bad() ) {
+		if ( !VTRoot::log()->save(filepath) ) {
 			MessageBox(hDlgWnd, "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
 		}
 	}
@@ -501,6 +488,8 @@ void Dialog::createMain()
 
 		// ツリービュー
 		VarTree::init();
+
+		LogBox::init();
 	}
 
 	if ( g_config->bTopMost ) {

@@ -298,9 +298,9 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		{
 			varinf.addSysvarsOverview();
 		}
-		void fLog(VTNodeLog const&) override
+		void fLog(VTNodeLog const& node) override
 		{
-			result = shared_ptr_from_rawptr(&Dialog::LogBox::get());
+			result = shared_ptr_from_rawptr(&node.str());
 		}
 		void fScript(VTNodeScript const& node) override
 		{

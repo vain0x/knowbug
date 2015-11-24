@@ -18,10 +18,4 @@ void update();
 bool logsCalling();
 optional_ref<string const> tryGetCurrentScript();
 
-namespace LogBox
-{
-	void add(char const* msg);
-	string const& get();
-}
-
 } // namespace Dialog
