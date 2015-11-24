@@ -13,6 +13,7 @@ struct VTNodeScript::Impl
 	std::map<string const, LineDelimitedString> cache_;
 
 public:
+	auto searchFile(char const* fileName) -> shared_ptr<string const>;
 	auto searchFile(char const* fileName, char const* dir) -> shared_ptr<string const>;
 	auto fetchScript(char const* fileName) -> optional_ref<LineDelimitedString>;
 };
@@ -50,25 +51,31 @@ auto VTNodeScript::Impl::searchFile(char const* fileRefName, char const* dir)
 	}
 }
 
-auto VTNodeScript::searchFile(char const* fileRefName) const
+auto VTNodeScript::Impl::searchFile(char const* fileRefName)
 	-> shared_ptr<string const>
 {
 	// メモから読む
-	auto&& iter = p_->fullPathFromRefName_.find(fileRefName);
-	if ( iter != p_->fullPathFromRefName_.end() ) {
+	auto&& iter = fullPathFromRefName_.find(fileRefName);
+	if ( iter != fullPathFromRefName_.end() ) {
 		return iter->second;
 	}
 
 	// ユーザディレクトリ、カレントディレクトリ、common、の順で探す
-	for ( string const& dir : p_->userDirs_ ) {
-		if ( auto&& p = p_->searchFile(fileRefName, dir.c_str()) ) {
+	for ( string const& dir : userDirs_ ) {
+		if ( auto&& p = searchFile(fileRefName, dir.c_str()) ) {
 			return std::move(p);
 		}
 	}
-	if ( auto&& p = p_->searchFile(fileRefName, nullptr) ) {
+	if ( auto&& p = searchFile(fileRefName, nullptr) ) {
 		return std::move(p);
 	}
-	return p_->searchFile(fileRefName, g_config->commonPath().c_str());
+	return searchFile(fileRefName, g_config->commonPath().c_str());
+}
+
+auto VTNodeScript::searchFile(char const* fileRefName) const
+	-> shared_ptr<string const>
+{
+	return p_->searchFile(fileRefName);
 }
 
 auto VTNodeScript::Impl::fetchScript(char const* fileRefName)
