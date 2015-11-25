@@ -33,6 +33,7 @@
 #define KnowbugVersion "v1.22" " " KnowbugPlatformString
 static char const* const KnowbugMainWindowTitle = KnowbugAppName " " KnowbugVersion;
 static char const* const KnowbugViewWindowTitle = "Knowbug View";
+static char const* const KnowbugRepoUrl = "https://github.com/vain0/knowbug";
 
 namespace Dialog
 {
@@ -99,7 +100,9 @@ void scrollBottom()
 
 void selectLine(size_t index)
 {
-	Edit_SetSel(hViewEdit, Edit_LineIndex(hViewEdit, index), Edit_LineIndex(hViewEdit, index + 1));
+	Edit_SetSel(hViewEdit
+		, Edit_LineIndex(hViewEdit, index)
+		, Edit_LineIndex(hViewEdit, index + 1));
 }
 
 } // namespace View
@@ -125,7 +128,9 @@ static void UpdateView()
 			Dialog::View::selectLine(iLine);
 
 		//+log ノードの自動スクロール
-		} else if ( hItem == VarTree::getLogNodeHandle() && g_config->scrollsLogAutomatically ) {
+		} else if ( hItem == VarTree::getLogNodeHandle()
+			&& g_config->scrollsLogAutomatically
+			) {
 			Dialog::View::scrollBottom();
 
 		} else {
@@ -151,7 +156,10 @@ namespace LogBox {
 	void clear()
 	{
 		if ( !g_config->warnsBeforeClearingLog
-			|| MessageBox(g_res->mainWindow.get(), "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL) == IDOK ) {
+			|| MessageBox(g_res->mainWindow.get()
+					, "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL
+					) == IDOK
+		) {
 			VTRoot::log()->clear();
 		}
 	}
@@ -175,12 +183,16 @@ namespace LogBox {
 
 	void save(char const* filepath) {
 		if ( !VTRoot::log()->save(filepath) ) {
-			MessageBox(g_res->mainWindow.get(), "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
+			MessageBox(g_res->mainWindow.get()
+				, "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
 		}
 	}
 	void save() {
-		char const* const filter = "log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";
-		if ( auto&& path = Dialog_SaveFileName(g_res->mainWindow.get(), filter, "log", "hspdbg.log" ) ) {
+		char const* const filter =
+			"log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";
+		if ( auto&& path = Dialog_SaveFileName(g_res->mainWindow.get()
+				, filter, "log", "hspdbg.log" )
+			) {
 			save(path->c_str());
 		}
 	}
@@ -298,14 +310,18 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_CURRENT_SCRIPT: {
-					if ( auto const&& p = VTRoot::script()->resolveRefName(g_dbginfo->curFileName()) ) {
-						ShellExecute(nullptr, "open", p->c_str(), nullptr, "", SW_SHOWDEFAULT);
+					if ( auto const&& p =
+							VTRoot::script()->resolveRefName(g_dbginfo->curFileName())
+						) {
+						ShellExecute(nullptr, "open"
+							, p->c_str(), nullptr, "", SW_SHOWDEFAULT);
 					}
 					break;
 				}
 				case IDC_OPEN_INI: {
 					std::ofstream of { g_config->selfPath(), std::ios::app }; //create empty file if not exist
-					ShellExecute(nullptr, "open", g_config->selfPath().c_str(), nullptr, "", SW_SHOWDEFAULT);
+					ShellExecute(nullptr, "open"
+						, g_config->selfPath().c_str(), nullptr, "", SW_SHOWDEFAULT);
 					break;
 				}
 				case IDC_UPDATE: {
@@ -313,7 +329,8 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_KNOWBUG_REPOS: {
-					ShellExecute(nullptr, "open", "https://github.com/vain0/knowbug", nullptr, "", SW_SHOWDEFAULT);
+					ShellExecute(nullptr, "open"
+						, KnowbugRepoUrl, nullptr, "", SW_SHOWDEFAULT);
 					break;
 				}
 				case IDC_GOTO_LOG: {
@@ -352,7 +369,8 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					}
 					case NM_CUSTOMDRAW: {
 						if ( !g_config->bCustomDraw ) break;
-						LRESULT const res = VarTree::customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
+						LRESULT const res =
+							VarTree::customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
 						SetWindowLongPtr(hDlg, DWLP_MSGRESULT, res);
 						return TRUE;
 					}
