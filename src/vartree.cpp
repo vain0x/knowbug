@@ -356,16 +356,11 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 	};
 
 	auto&& stringPtr =
-		(g_config->cachesVardataString)
+		(g_config->cachesVardataString && hItem != g_hNodeLog)
 		? map_find_or_insert(g_textCache, hItem, std::move(get))
 		: get();
 	assert(stringPtr);
 	return stringPtr;
-}
-
-void eraseTextCache(HTREEITEM hItem)
-{
-	g_textCache.erase(hItem);
 }
 
 } // namespace VarTree

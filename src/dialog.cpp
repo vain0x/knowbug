@@ -168,8 +168,6 @@ namespace LogBox {
 	{
 		void afterAppend(char const* addition) override
 		{
-			//キャッシュを消して更新
-			VarTree::eraseTextCache(VarTree::getLogNodeHandle());
 			if ( TreeView_GetSelection(hVarTree) == VarTree::getLogNodeHandle() ) {
 				UpdateView();
 			}
