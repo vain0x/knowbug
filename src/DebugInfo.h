@@ -25,7 +25,7 @@ public:
 
 	// current position data
 	char const* curFileName() const {
-		return debug_->fname;
+		return (debug_->fname ? debug_->fname : "???");
 	}
 	int curLine() const {
 		return debug_->line - 1;
