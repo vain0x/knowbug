@@ -374,4 +374,11 @@ int viewCaretFromNode(HTREEITEM hItem)
 	return (iter != g_viewCaret.end() ? iter->second : 0);
 }
 
+void selectNode(VTNodeData const& node)
+{
+	if ( auto&& hItem = g_tv->itemFromNode(&node) ) {
+		TreeView_SelectItem(hwndVarTree, hItem);
+	}
+}
+
 } // namespace VarTree

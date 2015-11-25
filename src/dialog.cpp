@@ -278,11 +278,11 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_GOTO_LOG: {
-					TreeView_SelectItem(hVarTree, VarTree::getLogNodeHandle());
+					VarTree::selectNode(*VTRoot::log());
 					break;
 				}
 				case IDC_GOTO_SCRIPT: {
-					TreeView_SelectItem(hVarTree, VarTree::getScriptNodeHandle());
+					VarTree::selectNode(*VTRoot::script());
 					break;
 				}
 			}
