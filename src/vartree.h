@@ -25,7 +25,4 @@ auto tryGetNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>;
 
 void selectNode(VTNodeData const&);
 
-HTREEITEM getScriptNodeHandle();
-HTREEITEM getLogNodeHandle();
-
 } //namespace VarTree

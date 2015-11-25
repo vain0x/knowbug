@@ -22,8 +22,6 @@ namespace VarTree
 {
 
 static HTREEITEM g_hNodeScript, g_hNodeLog;
-HTREEITEM getScriptNodeHandle() { return g_hNodeScript; }
-HTREEITEM getLogNodeHandle() { return g_hNodeLog; }
 
  //ノードの文字列のキャッシュ (停止中の間のみ有効)
 static std::map<HTREEITEM, shared_ptr<string const>> g_textCache;
