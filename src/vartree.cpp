@@ -32,10 +32,6 @@ static std::map<HTREEITEM, shared_ptr<string const>> g_textCache;
 using WrapCall::ModcmdCallInfo;
 
 static HTREEITEM g_hNodeDynamic;
-
-using resultDataPtr_t = shared_ptr<ResultNodeData>;
-static HTREEITEM g_lastIndependedResultNode; // 非依存な返値ノード
-
 #endif
 
 static auto TreeView_MyInsertItem
@@ -45,7 +41,6 @@ static void TreeView_MyDeleteItem(HTREEITEM hItem);
 
 static auto makeNodeName(VTNodeData const& node) -> string;
 
-// TvRepr
 class TvRepr
 {
 public:
@@ -125,9 +120,6 @@ private:
 
 static std::unique_ptr<TvRepr> g_tv;
 
-//------------------------------------------------
-// 変数ツリーの初期化
-//------------------------------------------------
 void init()
 {
 	g_tv.reset(new TvRepr());
@@ -152,9 +144,6 @@ void init()
 	TreeView_SelectItem(hwndVarTree, hRoot);
 }
 
-//------------------------------------------------
-// 変数ツリー終了時
-//------------------------------------------------
 void term()
 {
 	g_tv.reset();
@@ -171,9 +160,6 @@ void update()
 	Dialog::View::update();
 }
 
-//------------------------------------------------
-// ツリービューに要素を挿入する
-//------------------------------------------------
 static HTREEITEM TreeView_MyInsertItem
 	( HTREEITEM hParent
 	, char const* name
@@ -227,11 +213,8 @@ auto makeNodeName(VTNodeData const& node) -> string
 	return matcher {}.apply(node);
 }
 
-//------------------------------------------------
-// ノードに対応する文字色
-//
+// ノードに応じて文字色を設定する
 // Return true iff text color is modified.
-//------------------------------------------------
 static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 {
 	// 選択状態なら色分けしない
@@ -276,9 +259,7 @@ static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 	return false;
 }
 
-//------------------------------------------------
 // 変数ツリーの NM_CUSTOMDRAW を処理する
-//------------------------------------------------
 LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 {
 	if ( pnmcd->nmcd.dwDrawStage == CDDS_PREPAINT ) {
@@ -294,9 +275,7 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 	return 0;
 }
 
-//------------------------------------------------
-// 変数情報のテキストを取得する
-//------------------------------------------------
+// ノードに対応する文字列を得る
 std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 {
 	struct GetText

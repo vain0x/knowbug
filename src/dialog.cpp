@@ -4,10 +4,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
-#include <map>
-#include <vector>
 #include <algorithm>
-#include <array>
 #include <fstream>
 
 #include "main.h"
@@ -15,7 +12,6 @@
 #include "hspwnd.h"
 #include "module/supio/supio.h"
 #include "module/GuiUtility.h"
-#include "module/LineDelimitedString.h"
 #include "module/strf.h"
 #include "WrapCall/WrapCall.h"
 
@@ -38,11 +34,6 @@ static char const* const KnowbugRepoUrl = "https://github.com/vain0/knowbug";
 namespace Dialog
 {
 
-static int const TABDLGMAX = 4;
-static int const CountStepButtons = 5;
-
-static std::array<HWND, CountStepButtons> hStepButtons;
-static HWND hSttCtrl;
 static HWND hVarTree;
 static HWND hSrcLine;
 static HWND hViewEdit;
@@ -56,8 +47,6 @@ static unique_ptr<Resource> g_res;
 
 static std::map<HTREEITEM, int> vartree_vcaret;
 
-HWND getKnowbugHandle() { return g_res->mainWindow.get(); }
-HWND getSttCtrlHandle() { return hSttCtrl; }
 HWND getVarTreeHandle() { return hVarTree; }
 
 static auto windowHandles() -> std::vector<HWND>
@@ -66,9 +55,6 @@ static auto windowHandles() -> std::vector<HWND>
 }
 static void setEditStyle(HWND hEdit, int maxlen);
 
-//------------------------------------------------
-// ビューキャレット位置を変更
-//------------------------------------------------
 static void SaveViewCaret()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
@@ -78,9 +64,6 @@ static void SaveViewCaret()
 	}
 }
 
-//------------------------------------------------
-// ビュー更新
-//------------------------------------------------
 namespace View {
 
 void setText(char const* text)
@@ -141,18 +124,13 @@ void update()
 
 } // namespace View
 
-//------------------------------------------------
-// ログのチェックボックス
-//------------------------------------------------
 bool logsCalling()
 {
 	return g_config->logsInvocation;
 }
 
-//------------------------------------------------
-// ログボックス
-//------------------------------------------------
 namespace LogBox {
+
 	void clear()
 	{
 		if ( !g_config->warnsBeforeClearingLog
@@ -181,9 +159,7 @@ namespace LogBox {
 	}
 } //namespace LogBox
 
-//------------------------------------------------
-// ソースタブを同期する
-//------------------------------------------------
+// ソース小窓の更新
 static void UpdateCurInfEdit(char const* filepath, int iLine)
 {
 	if ( !filepath || iLine < 0 ) return;
@@ -197,17 +173,12 @@ static void UpdateCurInfEdit(char const* filepath, int iLine)
 	}
 }
 
-//------------------------------------------------
-// 実行中の位置表示を更新する (line, file)
-//------------------------------------------------
 static void CurrentUpdate()
 {
 	UpdateCurInfEdit(g_dbginfo->curFileName(), g_dbginfo->curLine());
 }
 
-//------------------------------------------------
 // ツリーノードのコンテキストメニュー
-//------------------------------------------------
 void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 {
 	struct GetPopMenu
@@ -271,9 +242,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 	}
 }
 
-//------------------------------------------------
-// 親ダイアログのコールバック関数
-//------------------------------------------------
+// メインウィンドウのコールバック関数
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
 	switch ( msg ) {
@@ -384,9 +353,6 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-//------------------------------------------------
-// メインダイアログを生成する
-//------------------------------------------------
 void Dialog::createMain()
 {
 	int const dispx = GetSystemMetrics(SM_CXSCREEN);
@@ -447,13 +413,6 @@ void Dialog::createMain()
 		//いろいろ
 		hVarTree = GetDlgItem(hPane, IDC_VARTREE);
 		hSrcLine = GetDlgItem(hPane, IDC_SRC_LINE);
-		hStepButtons = { {
-				GetDlgItem(hPane, IDC_BTN1),
-				GetDlgItem(hPane, IDC_BTN2),
-				GetDlgItem(hPane, IDC_BTN3),
-				GetDlgItem(hPane, IDC_BTN4),
-				GetDlgItem(hPane, IDC_BTN5),
-			} };
 
 		// メンバの順番に注意
 		g_res.reset(new Resource
@@ -493,22 +452,13 @@ void Dialog::destroyMain()
 	g_res.reset();
 }
 
-//------------------------------------------------
-// 更新
-// 
-// @ dbgnotice (stop) から呼ばれる。
-//------------------------------------------------
+// 一時停止時に dbgnotice から呼ばれる
 void update()
 {
 	VarTree::update();
 	CurrentUpdate();
 }
 
-//------------------------------------------------
-// エディットコントロールの標準スタイル
-// 
-// @ 設定に依存
-//------------------------------------------------
 void setEditStyle( HWND hEdit, int maxlen )
 {
 	Edit_SetTabLength(hEdit, g_config->tabwidth);
@@ -517,12 +467,11 @@ void setEditStyle( HWND hEdit, int maxlen )
 
 } // namespace Dialog
 
-//##############################################################################
-//                公開API
-//##############################################################################
+// 公開API
+
 EXPORT HWND WINAPI knowbug_hwnd()
 {
-	return Dialog::getKnowbugHandle();
+	return Dialog::g_res->mainWindow.get();
 }
 
 EXPORT HWND WINAPI knowbug_hwndView()

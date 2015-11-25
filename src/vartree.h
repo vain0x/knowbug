@@ -10,8 +10,6 @@
 #endif
 #include "VarTreeNodeData.h"
 
-class StaticVarTree;
-
 namespace VarTree {
 
 void init();

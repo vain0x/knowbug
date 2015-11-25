@@ -22,4 +22,4 @@ FlexValue* getValue(int mp)
 	return &ptr_cast<FlexValue*>( getAllInstanceVar()->pt )[ getIdx(mp) ];
 }
 
-};
+} // namespace ModPtr

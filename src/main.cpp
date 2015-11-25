@@ -1,20 +1,13 @@
 ﻿
-//
-//		HSP debug window support functions for HSP3
-//				onion software/onitama 2005
-//
-
 #include <winapifamily.h>
 #include "main.h"
 #include "module/strf.h"
-#include "module/CStrBuf.h"
 #include "DebugInfo.h"
+#include "VarTreeNodeData.h"
 #include "CVarinfoText.h"
-#include "CVardataString.h"
 
 #include "config_mng.h"
 #include "dialog.h"
-#include "vartree.h"
 
 static HINSTANCE g_hInstance;
 std::unique_ptr<DebugInfo> g_dbginfo;
@@ -31,9 +24,6 @@ static void debugbye();
 using WrapCall::ModcmdCallInfo;
 #endif
 
-//------------------------------------------------
-// Dllエントリーポイント
-//------------------------------------------------
 int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 {
 	switch ( fdwReason ) {
@@ -49,9 +39,6 @@ int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
 	return TRUE;
 }
 
-//------------------------------------------------
-// debugini ptr  (type1)
-//------------------------------------------------
 EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
 	ctx    = p1->hspctx;
@@ -64,12 +51,6 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 	return 0;
 }
 
-//------------------------------------------------
-// debug_notice ptr  (type1)
-// 
-// @prm p2 : 0 = stop event,
-// @       : 1 = send message (logmes)
-//------------------------------------------------
 EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 {
 	switch ( p2 ) {
@@ -89,9 +70,6 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 	return 0;
 }
 
-//------------------------------------------------
-// debugbye
-//------------------------------------------------
 void debugbye()
 {
 	Dialog::destroyMain();
@@ -108,17 +86,11 @@ bool isStepRunning() { return bStepRunning; }
 // 条件付き実行の終了条件となる sublev
 static int sublevOfGoal = -1;
 
-//------------------------------------------------
-// インスタンスハンドル
-//------------------------------------------------
 HINSTANCE getInstance()
 {
 	return g_hInstance;
 }
 
-//------------------------------------------------
-// 実行制御
-//------------------------------------------------
 void runStop()
 {
 	g_dbginfo->setStepMode( HSPDEBUG_STOP );
@@ -150,11 +122,7 @@ void runStepReturn(int sublev)
 	g_dbginfo->setStepMode(HSPDEBUG_STEPIN);
 }
 
-//------------------------------------------------
-// 条件付き実行を続けるかどうか
-//
-// (そもそもしていない場合も「やめる」(false)を返す)
-//------------------------------------------------
+// 条件付き実行が継続されるか？
 bool continueConditionalRun()
 {
 	if (sublevOfGoal >= 0) {
@@ -168,9 +136,6 @@ bool continueConditionalRun()
 	return false;
 }
 
-//------------------------------------------------
-// ログ操作
-//------------------------------------------------
 void logmes( char const* msg )
 {
 	VTRoot::log()->append(msg);
@@ -184,14 +149,10 @@ void logmesWarning(char const* msg)
 }
 
 #ifdef with_WrapCall
-//------------------------------------------------
-// WrapCall メソッド
-//------------------------------------------------
 void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
 	VTRoot::dynamic()->onBgnCalling(callinfo);
 
-	// ログ出力
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
 			"[CallBgn] %s\t%s]\r\n",
@@ -206,11 +167,10 @@ void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, va
 {
 	auto&& pResult = VTRoot::dynamic()->onEndCalling(callinfo, ptr, vtype);
 
-	// ログ出力
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
 			"[CallEnd] %s%s\r\n",
-			callinfo->name(),\
+			callinfo->name(),
 			(pResult ? ("-> " + pResult->lineformedString) : "")
 		);
 		Knowbug::logmes(logText.c_str());
@@ -220,9 +180,8 @@ void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, va
 
 } //namespace Knowbug
 
-//##############################################################################
-//                スクリプト向けのAPI
-//##############################################################################
+// 公開API
+
 EXPORT void WINAPI knowbug_writeVarinfoString(char const* name, PVal* pvalSrc, PVal* pvalDest)
 {
 	auto const varinf = std::make_unique<CVarinfoText>();
@@ -235,11 +194,11 @@ EXPORT void WINAPI knowbug_writeVarinfoString(char const* name, PVal* pvalSrc, P
 	code_setva(pvalDest, pvalDest->offset, HSPVAR_FLAG_STR, varinf->getString().c_str());
 }
 
-//------------------------------------------------
-// 最後に呼び出された関数の名前 (refstr に出力)
-//
-// @prm n : 最後の n 個は無視する
-//------------------------------------------------
+/**
+呼び出された関数の名前を refstr に出力する
+
+@param n: n 個前の呼び出しの名前を得る
+//*/
 EXPORT void WINAPI knowbug_getCurrentModcmdName(char const* strNone, int n, char* prefstr)
 {
 #ifdef with_WrapCall
