@@ -28,6 +28,9 @@ HTREEITEM getLogNodeHandle() { return g_hNodeLog; }
  //ノードの文字列のキャッシュ (停止中の間のみ有効)
 static std::map<HTREEITEM, shared_ptr<string const>> g_textCache;
 
+//ノードごとのビューウィンドウのキャレット位置
+static std::map<HTREEITEM, int> g_viewCaret;
+
 #ifdef with_WrapCall
 using WrapCall::ModcmdCallInfo;
 
@@ -91,6 +94,8 @@ private:
 
 			assert(self.itemFromNode_[&node] == nullptr);
 			self.itemFromNode_[&node] = hItem;
+
+			g_viewCaret.erase(hItem);
 
 			// TODO: @, +dynamic, 呼び出しノードは自動的に開く
 		}
@@ -354,6 +359,19 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		: get();
 	assert(stringPtr);
 	return stringPtr;
+}
+
+void saveCurrentViewCaret(int vcaret)
+{
+	if ( HTREEITEM const hItem = TreeView_GetSelection(hwndVarTree) ) {
+		g_viewCaret[hItem] = vcaret;
+	}
+}
+
+int viewCaretFromNode(HTREEITEM hItem)
+{
+	auto&& iter = g_viewCaret.find(hItem);
+	return (iter != g_viewCaret.end() ? iter->second : 0);
 }
 
 } // namespace VarTree

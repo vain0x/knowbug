@@ -45,8 +45,6 @@ struct Resource
 };
 static unique_ptr<Resource> g_res;
 
-static std::map<HTREEITEM, int> vartree_vcaret;
-
 HWND getVarTreeHandle() { return hVarTree; }
 
 static auto windowHandles() -> std::vector<HWND>
@@ -54,15 +52,6 @@ static auto windowHandles() -> std::vector<HWND>
 	return std::vector<HWND> { g_res->mainWindow.get(), g_res->viewWindow.get() };
 }
 static void setEditStyle(HWND hEdit, int maxlen);
-
-static void SaveViewCaret()
-{
-	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
-	if ( hItem != nullptr ) {
-		int const vcaret = Edit_GetFirstVisibleLine(hViewEdit);
-		vartree_vcaret[hItem] = vcaret;
-	}
-}
 
 namespace View {
 
@@ -88,13 +77,18 @@ void selectLine(size_t index)
 		, Edit_LineIndex(hViewEdit, index + 1));
 }
 
+void saveCurrentCaret()
+{
+	VarTree::saveCurrentViewCaret(Edit_GetFirstVisibleLine(hViewEdit));
+}
+
 void update()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
 	if ( hItem ) {
 		static HTREEITEM stt_prevSelection = nullptr;
 		if ( hItem == stt_prevSelection ) {
-			SaveViewCaret();
+			View::saveCurrentCaret();
 		} else {
 			stt_prevSelection = hItem;
 		}
@@ -115,9 +109,7 @@ void update()
 			Dialog::View::scrollBottom();
 
 		} else {
-			auto&& it = vartree_vcaret.find(hItem);
-			int const vcaret = (it != vartree_vcaret.end() ? it->second : 0);
-			Dialog::View::scroll(vcaret, 0);
+			Dialog::View::scroll(VarTree::viewCaretFromNode(hItem), 0);
 		}
 	}
 }
@@ -312,13 +304,12 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				switch ( nmhdr->code ) {
 					case NM_DBLCLK:
 					case NM_RETURN:
-					case TVN_SELCHANGED: View::update(); break;
-					case TVN_SELCHANGING: SaveViewCaret(); break;
-					case TVN_DELETEITEM: {
-						NMTREEVIEW* const nmtv = reinterpret_cast<NMTREEVIEW*>(lp);
-						vartree_vcaret.erase(nmtv->itemOld.hItem);
+					case TVN_SELCHANGED:
+						View::update();
 						break;
-					}
+					case TVN_SELCHANGING:
+						View::saveCurrentCaret();
+						break;
 					case NM_CUSTOMDRAW: {
 						if ( !g_config->bCustomDraw ) break;
 						LRESULT const res =
