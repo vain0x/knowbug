@@ -382,3 +382,35 @@ void selectNode(VTNodeData const& node)
 }
 
 } // namespace VarTree
+
+void Dialog::View::update()
+{
+	HTREEITEM const hItem = TreeView_GetSelection(hwndVarTree);
+	if ( hItem ) {
+		static HTREEITEM stt_prevSelection = nullptr;
+		if ( hItem == stt_prevSelection ) {
+			Dialog::View::saveCurrentCaret();
+		} else {
+			stt_prevSelection = hItem;
+		}
+
+		std::shared_ptr<string const> varinfoText = VarTree::getItemVarText(hItem);
+		Dialog::View::setText(varinfoText->c_str());
+
+		//+script ノードなら現在の実行位置を選択
+		if ( hItem == VarTree::g_hNodeScript ) {
+			int const iLine = g_dbginfo->curLine();
+			Dialog::View::scroll(std::max(0, iLine - 3), 0);
+			Dialog::View::selectLine(iLine);
+
+			//+log ノードの自動スクロール
+		} else if ( hItem == VarTree::g_hNodeLog
+			&& g_config->scrollsLogAutomatically
+			) {
+			Dialog::View::scrollBottom();
+
+		} else {
+			Dialog::View::scroll(VarTree::viewCaretFromNode(hItem), 0);
+		}
+	}
+}

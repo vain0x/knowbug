@@ -22,6 +22,7 @@ void scroll(int y, int x);
 void scrollBottom();
 void selectLine(size_t index);
 void update();
+void saveCurrentCaret();
 
 } // namespace View
 
