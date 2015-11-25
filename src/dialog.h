@@ -24,6 +24,7 @@ void setText(char const* text);
 void scroll(int y, int x);
 void scrollBottom();
 void selectLine(size_t index);
+void update();
 
 } // namespace View
 

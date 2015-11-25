@@ -53,6 +53,8 @@ public:
 	{
 		observer_ = std::make_shared<TvObserver>(*this);
 		VTNodeData::registerObserver(observer_);
+
+		VTRoot::log()->setLogObserver(std::make_shared<LogObserver>());
 	}
 	~TvRepr()
 	{
@@ -106,6 +108,16 @@ private:
 		}
 	};
 
+	struct LogObserver : VTNodeLog::LogObserver
+	{
+		void afterAppend(char const* addition) override
+		{
+			if ( TreeView_GetSelection(hwndVarTree) == g_hNodeLog ) {
+				Dialog::View::update();
+			}
+		}
+	};
+
 private:
 	std::map<VTNodeData const*, HTREEITEM> itemFromNode_;
 	shared_ptr<TvObserver> observer_;
@@ -155,6 +167,8 @@ void update()
 #ifdef with_WrapCall
 	VTRoot::dynamic()->updateDeep();
 #endif
+
+	Dialog::View::update();
 }
 
 //------------------------------------------------

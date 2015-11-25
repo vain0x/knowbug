@@ -105,9 +105,7 @@ void selectLine(size_t index)
 		, Edit_LineIndex(hViewEdit, index + 1));
 }
 
-} // namespace View
-
-static void UpdateView()
+void update()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
 	if ( hItem ) {
@@ -141,6 +139,8 @@ static void UpdateView()
 	}
 }
 
+} // namespace View
+
 //------------------------------------------------
 // ログのチェックボックス
 //------------------------------------------------
@@ -162,21 +162,6 @@ namespace LogBox {
 		) {
 			VTRoot::log()->clear();
 		}
-	}
-
-	struct LogBoxObserver : VTNodeLog::LogObserver
-	{
-		void afterAppend(char const* addition) override
-		{
-			if ( TreeView_GetSelection(hVarTree) == VarTree::getLogNodeHandle() ) {
-				UpdateView();
-			}
-		}
-	};
-
-	void init()
-	{
-		VTRoot::log()->setLogObserver(std::make_shared<LogBoxObserver>());
 	}
 
 	void save(char const* filepath) {
@@ -258,7 +243,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 
 	switch ( idSelected ) {
 		case 0: break;
-		case IDC_NODE_UPDATE: UpdateView(); break;
+		case IDC_NODE_UPDATE: View::update(); break;
 		case IDC_NODE_LOG: {
 			Knowbug::logmes(VarTree::getItemVarText(hItem)->c_str());
 			break;
@@ -323,7 +308,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_UPDATE: {
-					UpdateView();
+					View::update();
 					break;
 				}
 				case IDC_OPEN_KNOWBUG_REPOS: {
@@ -358,7 +343,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				switch ( nmhdr->code ) {
 					case NM_DBLCLK:
 					case NM_RETURN:
-					case TVN_SELCHANGED: UpdateView(); break;
+					case TVN_SELCHANGED: View::update(); break;
 					case TVN_SELCHANGING: SaveViewCaret(); break;
 					case TVN_DELETEITEM: {
 						NMTREEVIEW* const nmtv = reinterpret_cast<NMTREEVIEW*>(lp);
@@ -481,7 +466,6 @@ void Dialog::createMain()
 			});
 
 		VarTree::init();
-		LogBox::init();
 	}
 
 	if ( g_config->bTopMost ) {
@@ -518,7 +502,6 @@ void update()
 {
 	VarTree::update();
 	CurrentUpdate();
-	UpdateView();
 }
 
 //------------------------------------------------
