@@ -39,7 +39,6 @@ static auto TreeView_MyInsertItem
 	( HTREEITEM hParent, char const* name, bool sorts
 	, shared_ptr<VTNodeData> node) -> HTREEITEM;
 static void TreeView_MyDeleteItem(HTREEITEM hItem);
-
 static auto makeNodeName(VTNodeData const& node) -> string;
 
 class TvRepr
@@ -152,22 +151,6 @@ void update()
 	Dialog::View::update();
 }
 
-static HTREEITEM TreeView_MyInsertItem
-	( HTREEITEM hParent
-	, char const* name
-	, bool sorts
-	, shared_ptr<VTNodeData> node)
-{
-	TVINSERTSTRUCT tvis {};
-	tvis.hParent = hParent;
-	tvis.hInsertAfter = (sorts ? TVI_SORT : TVI_LAST);
-	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
-	tvis.item.lParam  = (LPARAM)node.get();
-	tvis.item.pszText = const_cast<char*>(name);
-
-	return TreeView_InsertItem(hwndVarTree, &tvis);
-}
-
 auto tryGetNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>
 {
 	auto const lp = reinterpret_cast<VTNodeData*>(TreeView_GetItemLParam(hwndVarTree, hItem));
@@ -177,32 +160,6 @@ auto tryGetNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>
 	} catch ( std::bad_weak_ptr const& ) {
 		return nullptr;
 	}
-}
-
-static void TreeView_MyDeleteItem(HTREEITEM hItem)
-{
-	TreeView_EscapeFocus(hwndVarTree, hItem);
-	TreeView_DeleteItem(hwndVarTree, hItem);
-}
-
-// ノードにつけるべき名前
-auto makeNodeName(VTNodeData const& node) -> string
-{
-	struct matcher : VTNodeData::Visitor
-	{
-		string result;
-		string apply(VTNodeData const& node)
-		{
-			result = node.name(); // default
-			node.acceptVisitor(*this);
-			return std::move(result);
-		}
-
-		void fInvoke(VTNodeInvoke const& node) override { result = "\'" + node.name(); }
-		void fResult(VTNodeResult const& node) override { result = "\"" + node.name(); }
-	};
-
-	return matcher {}.apply(node);
 }
 
 // ノードに応じて文字色を設定する
@@ -398,6 +355,48 @@ void updateViewWindow()
 			Dialog::View::scroll(VarTree::viewCaretFromNode(hItem), 0);
 		}
 	}
+}
+
+static HTREEITEM TreeView_MyInsertItem
+	( HTREEITEM hParent
+	, char const* name
+	, bool sorts
+	, shared_ptr<VTNodeData> node)
+{
+	TVINSERTSTRUCT tvis {};
+	tvis.hParent = hParent;
+	tvis.hInsertAfter = (sorts ? TVI_SORT : TVI_LAST);
+	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
+	tvis.item.lParam  = (LPARAM)node.get();
+	tvis.item.pszText = const_cast<char*>(name);
+
+	return TreeView_InsertItem(hwndVarTree, &tvis);
+}
+
+static void TreeView_MyDeleteItem(HTREEITEM hItem)
+{
+	TreeView_EscapeFocus(hwndVarTree, hItem);
+	TreeView_DeleteItem(hwndVarTree, hItem);
+}
+
+// ノードにつけるべき名前
+auto makeNodeName(VTNodeData const& node) -> string
+{
+	struct matcher : VTNodeData::Visitor
+	{
+		string result;
+		string apply(VTNodeData const& node)
+		{
+			result = node.name(); // default
+			node.acceptVisitor(*this);
+			return std::move(result);
+		}
+
+		void fInvoke(VTNodeInvoke const& node) override { result = "\'" + node.name(); }
+		void fResult(VTNodeResult const& node) override { result = "\"" + node.name(); }
+	};
+
+	return matcher {}.apply(node);
 }
 
 } // namespace VarTree
