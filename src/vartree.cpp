@@ -18,22 +18,11 @@
 
 #define hwndVarTree (Dialog::getVarTreeHandle())
 
-namespace VarTree
-{
-
-static HTREEITEM g_hNodeScript, g_hNodeLog;
-
- //ノードの文字列のキャッシュ (停止中の間のみ有効)
-static std::map<HTREEITEM, shared_ptr<string const>> g_textCache;
-
-//ノードごとのビューウィンドウのキャレット位置
-static std::map<HTREEITEM, int> g_viewCaret;
-
 #ifdef with_WrapCall
 using WrapCall::ModcmdCallInfo;
-
-static HTREEITEM g_hNodeDynamic;
 #endif
+using detail::TvObserver;
+using detail::LogObserver;
 
 static auto TreeView_MyInsertItem
 	( HTREEITEM hParent, char const* name, bool sorts
@@ -41,31 +30,35 @@ static auto TreeView_MyInsertItem
 static void TreeView_MyDeleteItem(HTREEITEM hItem);
 static auto makeNodeName(VTNodeData const& node) -> string;
 
-struct TvObserver;
-struct LogObserver;
-
-class TvRepr
+struct VTView::Impl
 {
-public:
-	TvRepr();
-	~TvRepr();
+	VTView& self_;
 
-	auto itemFromNode(VTNodeData const* p) -> HTREEITEM;
-
-private:
 	std::map<VTNodeData const*, HTREEITEM> itemFromNode_;
+
+	//ノードの文字列のキャッシュ (停止中の間のみ有効)
+	std::map<HTREEITEM, shared_ptr<string const>> textCache_;
+
+	//ノードごとのビューウィンドウのキャレット位置
+	std::map<HTREEITEM, int> viewCaret_;
+
 	shared_ptr<TvObserver> observer_;
 
-	friend struct TvObserver;
-	friend struct LogObserver;
+	HTREEITEM hNodeDynamic_, hNodeScript_, hNodeLog_;
+
+public:
+	auto itemFromNode(VTNodeData const* p) const -> HTREEITEM;
+	bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd);
+
+	int viewCaretFromNode(HTREEITEM hItem) const;
 };
 
 struct TvObserver
 	: VTNodeData::Observer
 {
-	TvRepr& self;
+	VTView::Impl& self;
 public:
-	TvObserver(TvRepr& self);
+	TvObserver(VTView::Impl& self);
 	void onInit(VTNodeData& node) override;
 	void onTerm(VTNodeData& node) override;
 };
@@ -73,29 +66,41 @@ public:
 struct LogObserver
 	: VTNodeLog::LogObserver
 {
+	VTView::Impl& self;
+public:
+	LogObserver(VTView::Impl& self) : self(self) {}
 	void afterAppend(char const* addition) override;
 };
 
-TvRepr::TvRepr()
+VTView::VTView()
+	: p_(new Impl { *this })
 {
-	observer_ = std::make_shared<TvObserver>(*this);
-	VTNodeData::registerObserver(observer_);
+	p_->observer_ = std::make_shared<TvObserver>(*p_);
+	VTNodeData::registerObserver(p_->observer_);
 
-	VTRoot::log()->setLogObserver(std::make_shared<LogObserver>());
+	VTRoot::log()->setLogObserver(std::make_shared<LogObserver>(*p_));
+
+	VTRoot::make_shared()->updateDeep();
+
+#ifdef with_WrapCall
+	p_->hNodeDynamic_ = p_->itemFromNode(VTRoot::dynamic().get());
+#endif
+	p_->hNodeScript_  = p_->itemFromNode(VTRoot::script().get());
+	p_->hNodeLog_     = p_->itemFromNode(VTRoot::log().get());
 }
 
-TvRepr::~TvRepr()
+VTView::~VTView()
 {
-	VTNodeData::unregisterObserver(observer_);
+	VTNodeData::unregisterObserver(p_->observer_);
 }
 
-auto TvRepr::itemFromNode(VTNodeData const* p) -> HTREEITEM
+auto VTView::Impl::itemFromNode(VTNodeData const* p) const -> HTREEITEM
 {
 	auto&& iter = itemFromNode_.find(p);
 	return (iter != itemFromNode_.end()) ? iter->second : nullptr;
 }
 
-TvObserver::TvObserver(TvRepr& self)
+TvObserver::TvObserver(VTView::Impl& self)
 	: self(self)
 {
 	self.itemFromNode_[&VTRoot::instance()] = TVI_ROOT;
@@ -115,7 +120,7 @@ void TvObserver::onInit(VTNodeData& node)
 	assert(self.itemFromNode_[&node] == nullptr);
 	self.itemFromNode_[&node] = hItem;
 
-	g_viewCaret.erase(hItem);
+	self.viewCaret_.erase(hItem);
 
 	// TODO: @, +dynamic, 呼び出しノードは自動的に開く
 }
@@ -130,34 +135,14 @@ void TvObserver::onTerm(VTNodeData& node)
 
 void LogObserver::afterAppend(char const* addition)
 {
-	if ( TreeView_GetSelection(hwndVarTree) == g_hNodeLog ) {
+	if ( TreeView_GetSelection(hwndVarTree) == self.hNodeLog_ ) {
 		Dialog::View::update();
 	}
 }
 
-static std::unique_ptr<TvRepr> g_tv;
-
-void init()
+void VTView::update()
 {
-	g_tv.reset(new TvRepr());
-
-	VTRoot::make_shared()->updateDeep();
-
-#ifdef with_WrapCall
-	g_hNodeDynamic = g_tv->itemFromNode(VTRoot::dynamic().get());
-#endif
-	g_hNodeScript  = g_tv->itemFromNode(VTRoot::script().get());
-	g_hNodeLog     = g_tv->itemFromNode(VTRoot::log().get());
-}
-
-void term()
-{
-	g_tv.reset();
-}
-
-void update()
-{
-	g_textCache.clear();
+	p_->textCache_.clear();
 
 #ifdef with_WrapCall
 	VTRoot::dynamic()->updateDeep();
@@ -166,7 +151,7 @@ void update()
 	Dialog::View::update();
 }
 
-auto tryGetNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>
+auto VTView::tryGetNodeData(HTREEITEM hItem) const -> shared_ptr<VTNodeData>
 {
 	auto const lp = reinterpret_cast<VTNodeData*>(TreeView_GetItemLParam(hwndVarTree, hItem));
 	assert(lp);
@@ -179,7 +164,7 @@ auto tryGetNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>
 
 // ノードに応じて文字色を設定する
 // Return true iff text color is modified.
-static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
+bool VTView::Impl::customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 {
 	// 選択状態なら色分けしない
 	if ( TreeView_GetItemState(hwndVarTree, hItem, 0) & TVIS_SELECTED ) {
@@ -194,7 +179,7 @@ static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 		return true;
 	};
 
-	auto const node = tryGetNodeData(hItem);
+	auto const node = self_.tryGetNodeData(hItem);
 	if ( !node ) return false;
 
 #ifdef with_WrapCall
@@ -224,14 +209,14 @@ static bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
 }
 
 // 変数ツリーの NM_CUSTOMDRAW を処理する
-LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
+LRESULT VTView::customDraw( LPNMTVCUSTOMDRAW pnmcd )
 {
 	if ( pnmcd->nmcd.dwDrawStage == CDDS_PREPAINT ) {
 		return CDRF_NOTIFYITEMDRAW;
 
 	} else if ( pnmcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT ) {
 		auto const hItem = reinterpret_cast<HTREEITEM>(pnmcd->nmcd.dwItemSpec);
-		bool const modified = customizeTextColorIfAble(hItem, pnmcd);
+		bool const modified = p_->customizeTextColorIfAble(hItem, pnmcd);
 		if ( modified ) {
 			return CDRF_NEWFONT;
 		}
@@ -240,7 +225,7 @@ LRESULT customDraw( LPNMTVCUSTOMDRAW pnmcd )
 }
 
 // ノードに対応する文字列を得る
-std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
+auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string const>
 {
 	struct GetText
 		: public VTNodeData::Visitor
@@ -304,7 +289,7 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 		}
 	};
 
-	auto&& get = [&hItem] () {
+	auto&& get = [this, &hItem] () {
 		if ( auto&& node = tryGetNodeData(hItem) ) {
 			return GetText {}.apply(*node);
 		} else {
@@ -313,34 +298,34 @@ std::shared_ptr<string const> getItemVarText( HTREEITEM hItem )
 	};
 
 	auto&& stringPtr =
-		(g_config->cachesVardataString && hItem != g_hNodeLog)
-		? map_find_or_insert(g_textCache, hItem, std::move(get))
+		(g_config->cachesVardataString && hItem != p_->hNodeLog_)
+		? map_find_or_insert(p_->textCache_, hItem, std::move(get))
 		: get();
 	assert(stringPtr);
 	return stringPtr;
 }
 
-void saveCurrentViewCaret(int vcaret)
+void VTView::saveCurrentViewCaret(int vcaret)
 {
 	if ( HTREEITEM const hItem = TreeView_GetSelection(hwndVarTree) ) {
-		g_viewCaret[hItem] = vcaret;
+		p_->viewCaret_[hItem] = vcaret;
 	}
 }
 
-int viewCaretFromNode(HTREEITEM hItem)
+int VTView::Impl::viewCaretFromNode(HTREEITEM hItem) const
 {
-	auto&& iter = g_viewCaret.find(hItem);
-	return (iter != g_viewCaret.end() ? iter->second : 0);
+	auto&& iter = viewCaret_.find(hItem);
+	return (iter != viewCaret_.end() ? iter->second : 0);
 }
 
-void selectNode(VTNodeData const& node)
+void VTView::selectNode(VTNodeData const& node)
 {
-	if ( auto&& hItem = g_tv->itemFromNode(&node) ) {
+	if ( auto&& hItem = p_->itemFromNode(&node) ) {
 		TreeView_SelectItem(hwndVarTree, hItem);
 	}
 }
 
-void updateViewWindow()
+void VTView::updateViewWindow()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hwndVarTree);
 	if ( hItem ) {
@@ -351,23 +336,23 @@ void updateViewWindow()
 			stt_prevSelection = hItem;
 		}
 
-		std::shared_ptr<string const> varinfoText = VarTree::getItemVarText(hItem);
+		auto&& varinfoText = getItemVarText(hItem);
 		Dialog::View::setText(varinfoText->c_str());
 
 		//+script ノードなら現在の実行位置を選択
-		if ( hItem == VarTree::g_hNodeScript ) {
+		if ( hItem == p_->hNodeScript_ ) {
 			int const iLine = g_dbginfo->curLine();
 			Dialog::View::scroll(std::max(0, iLine - 3), 0);
 			Dialog::View::selectLine(iLine);
 
-			//+log ノードの自動スクロール
-		} else if ( hItem == VarTree::g_hNodeLog
+		//+log ノードの自動スクロール
+		} else if ( hItem == p_->hNodeLog_
 			&& g_config->scrollsLogAutomatically
 			) {
 			Dialog::View::scrollBottom();
 
 		} else {
-			Dialog::View::scroll(VarTree::viewCaretFromNode(hItem), 0);
+			Dialog::View::scroll(p_->viewCaretFromNode(hItem), 0);
 		}
 	}
 }
@@ -413,5 +398,3 @@ auto makeNodeName(VTNodeData const& node) -> string
 
 	return matcher {}.apply(node);
 }
-
-} // namespace VarTree

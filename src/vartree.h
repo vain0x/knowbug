@@ -10,20 +10,32 @@
 #endif
 #include "VarTreeNodeData.h"
 
-namespace VarTree {
+namespace detail {
+struct TvObserver;
+struct LogObserver;
+} // namespace detail
 
-void init();
-void term();
-void update();
-void updateViewWindow();
+class VTView
+{
+public:
+	VTView();
+	~VTView();
 
-void saveCurrentViewCaret(int vcaret);
-int viewCaretFromNode(HTREEITEM hItem);
+	void update();
+	void updateViewWindow();
 
-LRESULT customDraw(LPNMTVCUSTOMDRAW pnmcd);
-auto getItemVarText(HTREEITEM hItem) -> shared_ptr<string const>;
-auto tryGetNodeData(HTREEITEM hItem) -> shared_ptr<VTNodeData>;
+	void saveCurrentViewCaret(int vcaret);
 
-void selectNode(VTNodeData const&);
+	LRESULT customDraw(LPNMTVCUSTOMDRAW pnmcd);
+	auto getItemVarText(HTREEITEM hItem) const -> shared_ptr<string const>;
+	auto tryGetNodeData(HTREEITEM hItem) const -> shared_ptr<VTNodeData>;
 
-} //namespace VarTree
+	void selectNode(VTNodeData const&);
+
+private:
+	struct Impl;
+	unique_ptr<Impl> p_;
+
+	friend struct detail::TvObserver;
+	friend struct detail::LogObserver;
+};

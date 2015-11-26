@@ -42,6 +42,7 @@ struct Resource
 {
 	window_handle_t mainWindow, viewWindow;
 	menu_handle_t dialogMenu, nodeMenu, invokeMenu, logMenu;
+	unique_ptr<VTView> tv;
 };
 static unique_ptr<Resource> g_res;
 
@@ -79,12 +80,13 @@ void selectLine(size_t index)
 
 void saveCurrentCaret()
 {
-	VarTree::saveCurrentViewCaret(Edit_GetFirstVisibleLine(hViewEdit));
+	g_res->tv->saveCurrentViewCaret(Edit_GetFirstVisibleLine(hViewEdit));
 }
+
 
 void update()
 {
-	VarTree::updateViewWindow();
+	g_res->tv->updateViewWindow();
 }
 
 } // namespace View
@@ -167,7 +169,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		HMENU hPop;
 	};
 
-	auto&& node = VarTree::tryGetNodeData(hItem);
+	auto&& node = g_res->tv->tryGetNodeData(hItem);
 	if ( !node ) return;
 	HMENU const hPop = GetPopMenu {}.apply(*node);
 
@@ -181,7 +183,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		case 0: break;
 		case IDC_NODE_UPDATE: View::update(); break;
 		case IDC_NODE_LOG: {
-			Knowbug::logmes(VarTree::getItemVarText(hItem)->c_str());
+			Knowbug::logmes(g_res->tv->getItemVarText(hItem)->c_str());
 			break;
 		}
 #ifdef with_WrapCall
@@ -251,11 +253,11 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_GOTO_LOG: {
-					VarTree::selectNode(*VTRoot::log());
+					g_res->tv->selectNode(*VTRoot::log());
 					break;
 				}
 				case IDC_GOTO_SCRIPT: {
-					VarTree::selectNode(*VTRoot::script());
+					g_res->tv->selectNode(*VTRoot::script());
 					break;
 				}
 			}
@@ -286,7 +288,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					case NM_CUSTOMDRAW: {
 						if ( !g_config->bCustomDraw ) break;
 						LRESULT const res =
-							VarTree::customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
+							g_res->tv->customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
 						SetWindowLongPtr(hDlg, DWLP_MSGRESULT, res);
 						return TRUE;
 					}
@@ -386,9 +388,8 @@ void Dialog::createMain()
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 0) } // node
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 1) } // invoke
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 2) } // log
+			, std::make_unique<VTView>()
 			});
-
-		VarTree::init();
 	}
 
 	if ( g_config->bTopMost ) {
@@ -412,15 +413,14 @@ void Dialog::createMain()
 
 void Dialog::destroyMain()
 {
-	VarTree::term();
 	g_res.reset();
 }
 
 // 一時停止時に dbgnotice から呼ばれる
 void update()
 {
-	VarTree::update();
 	CurrentUpdate();
+	g_res->tv->update();
 }
 
 void setEditStyle( HWND hEdit, int maxlen )
