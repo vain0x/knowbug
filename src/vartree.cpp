@@ -134,17 +134,6 @@ void init()
 #endif
 	g_hNodeScript  = g_tv->itemFromNode(VTRoot::script().get());
 	g_hNodeLog     = g_tv->itemFromNode(VTRoot::log().get());
-	
-	//@, +dynamic は開いておく
-#ifdef with_WrapCall
-	TreeView_Expand(hwndVarTree, g_hNodeDynamic, TVE_EXPAND);
-#endif
-	HTREEITEM const hRoot = TreeView_GetRoot(hwndVarTree);
-	assert(TreeView_GetItemString(hwndVarTree, hRoot) == VTNodeModule::Global::Name);
-	TreeView_Expand(hwndVarTree, hRoot, TVE_EXPAND);
-
-	TreeView_EnsureVisible(hwndVarTree, hRoot); //トップまでスクロール
-	TreeView_SelectItem(hwndVarTree, hRoot);
 }
 
 void term()
