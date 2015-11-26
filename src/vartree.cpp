@@ -41,84 +41,99 @@ static auto TreeView_MyInsertItem
 static void TreeView_MyDeleteItem(HTREEITEM hItem);
 static auto makeNodeName(VTNodeData const& node) -> string;
 
+struct TvObserver;
+struct LogObserver;
+
 class TvRepr
 {
 public:
-	TvRepr()
-	{
-		observer_ = std::make_shared<TvObserver>(*this);
-		VTNodeData::registerObserver(observer_);
+	TvRepr();
+	~TvRepr();
 
-		VTRoot::log()->setLogObserver(std::make_shared<LogObserver>());
-	}
-	~TvRepr()
-	{
-		VTNodeData::unregisterObserver(observer_);
-	}
-
-	auto itemFromNode(VTNodeData const* p) -> HTREEITEM
-	{
-		auto&& iter = itemFromNode_.find(p);
-		return (iter != itemFromNode_.end()) ? iter->second : nullptr;
-	}
-
-private:
-	struct TvObserver;
-	friend struct TvObserver;
-
-	struct TvObserver
-		: VTNodeData::Observer
-	{
-		TvRepr& self;
-
-	public:
-		TvObserver(TvRepr& self)
-			: self(self)
-		{
-			self.itemFromNode_[&VTRoot::instance()] = TVI_ROOT;
-		}
-
-		void onInit(VTNodeData& node) override
-		{
-			if ( !node.parent() ) return; // VTRoot
-
-			auto&& hParent = self.itemFromNode(node.parent().get());
-			auto&& hItem = TreeView_MyInsertItem
-				( hParent
-				, makeNodeName(node).c_str()
-				, false
-				, node.shared_from_this());
-
-			assert(self.itemFromNode_[&node] == nullptr);
-			self.itemFromNode_[&node] = hItem;
-
-			g_viewCaret.erase(hItem);
-
-			// TODO: @, +dynamic, 呼び出しノードは自動的に開く
-		}
-		void onTerm(VTNodeData& node) override
-		{
-			if ( auto&& hItem = self.itemFromNode(&node) ) {
-				self.itemFromNode_[&node] = nullptr;
-				TreeView_MyDeleteItem(hItem);
-			}
-		}
-	};
-
-	struct LogObserver : VTNodeLog::LogObserver
-	{
-		void afterAppend(char const* addition) override
-		{
-			if ( TreeView_GetSelection(hwndVarTree) == g_hNodeLog ) {
-				Dialog::View::update();
-			}
-		}
-	};
+	auto itemFromNode(VTNodeData const* p) -> HTREEITEM;
 
 private:
 	std::map<VTNodeData const*, HTREEITEM> itemFromNode_;
 	shared_ptr<TvObserver> observer_;
+
+	friend struct TvObserver;
+	friend struct LogObserver;
 };
+
+struct TvObserver
+	: VTNodeData::Observer
+{
+	TvRepr& self;
+public:
+	TvObserver(TvRepr& self);
+	void onInit(VTNodeData& node) override;
+	void onTerm(VTNodeData& node) override;
+};
+
+struct LogObserver
+	: VTNodeLog::LogObserver
+{
+	void afterAppend(char const* addition) override;
+};
+
+TvRepr::TvRepr()
+{
+	observer_ = std::make_shared<TvObserver>(*this);
+	VTNodeData::registerObserver(observer_);
+
+	VTRoot::log()->setLogObserver(std::make_shared<LogObserver>());
+}
+
+TvRepr::~TvRepr()
+{
+	VTNodeData::unregisterObserver(observer_);
+}
+
+auto TvRepr::itemFromNode(VTNodeData const* p) -> HTREEITEM
+{
+	auto&& iter = itemFromNode_.find(p);
+	return (iter != itemFromNode_.end()) ? iter->second : nullptr;
+}
+
+TvObserver::TvObserver(TvRepr& self)
+	: self(self)
+{
+	self.itemFromNode_[&VTRoot::instance()] = TVI_ROOT;
+}
+
+void TvObserver::onInit(VTNodeData& node)
+{
+	if ( !node.parent() ) return; // VTRoot
+
+	auto&& hParent = self.itemFromNode(node.parent().get());
+	auto&& hItem = TreeView_MyInsertItem
+		( hParent
+		, makeNodeName(node).c_str()
+		, false
+		, node.shared_from_this());
+
+	assert(self.itemFromNode_[&node] == nullptr);
+	self.itemFromNode_[&node] = hItem;
+
+	g_viewCaret.erase(hItem);
+
+	// TODO: @, +dynamic, 呼び出しノードは自動的に開く
+}
+
+void TvObserver::onTerm(VTNodeData& node)
+{
+	if ( auto&& hItem = self.itemFromNode(&node) ) {
+		self.itemFromNode_[&node] = nullptr;
+		TreeView_MyDeleteItem(hItem);
+	}
+}
+
+void LogObserver::afterAppend(char const* addition)
+{
+	if ( TreeView_GetSelection(hwndVarTree) == g_hNodeLog ) {
+		Dialog::View::update();
+	}
+}
 
 static std::unique_ptr<TvRepr> g_tv;
 
