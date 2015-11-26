@@ -15,6 +15,7 @@ namespace VarTree {
 void init();
 void term();
 void update();
+void updateViewWindow();
 
 void saveCurrentViewCaret(int vcaret);
 int viewCaretFromNode(HTREEITEM hItem);

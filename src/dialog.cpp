@@ -82,6 +82,11 @@ void saveCurrentCaret()
 	VarTree::saveCurrentViewCaret(Edit_GetFirstVisibleLine(hViewEdit));
 }
 
+void update()
+{
+	VarTree::updateViewWindow();
+}
+
 } // namespace View
 
 bool logsCalling()

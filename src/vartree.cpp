@@ -368,9 +368,7 @@ void selectNode(VTNodeData const& node)
 	}
 }
 
-} // namespace VarTree
-
-void Dialog::View::update()
+void updateViewWindow()
 {
 	HTREEITEM const hItem = TreeView_GetSelection(hwndVarTree);
 	if ( hItem ) {
@@ -401,3 +399,5 @@ void Dialog::View::update()
 		}
 	}
 }
+
+} // namespace VarTree
