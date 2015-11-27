@@ -29,6 +29,7 @@ static auto TreeView_MyInsertItem
 	, shared_ptr<VTNodeData> node) -> HTREEITEM;
 static void TreeView_MyDeleteItem(HTREEITEM hItem);
 static auto makeNodeName(VTNodeData const& node) -> string;
+static bool isAutoOpenNode(VTNodeData const& node);
 
 struct VTView::Impl
 {
@@ -108,9 +109,12 @@ TvObserver::TvObserver(VTView::Impl& self)
 
 void TvObserver::onInit(VTNodeData& node)
 {
-	if ( !node.parent() ) return; // VTRoot
+	auto&& parent = node.parent();
+	if ( ! parent ) return; // VTRoot
 
-	auto&& hParent = self.itemFromNode(node.parent().get());
+	auto&& hParent = self.itemFromNode(parent.get());
+	assert(hParent != nullptr);
+
 	auto&& hItem = TreeView_MyInsertItem
 		( hParent
 		, makeNodeName(node).c_str()
@@ -122,7 +126,9 @@ void TvObserver::onInit(VTNodeData& node)
 
 	self.viewCaret_.erase(hItem);
 
-	// TODO: @, +dynamic, 呼び出しノードは自動的に開く
+	if ( isAutoOpenNode(*parent) ) {
+		TreeView_Expand(hwndVarTree, hParent, TVE_EXPAND);
+	}
 }
 
 void TvObserver::onTerm(VTNodeData& node)
@@ -394,6 +400,32 @@ auto makeNodeName(VTNodeData const& node) -> string
 
 		void fInvoke(VTNodeInvoke const& node) override { result = "\'" + node.name(); }
 		void fResult(VTNodeResult const& node) override { result = "\"" + node.name(); }
+	};
+
+	return matcher {}.apply(node);
+}
+
+// 自動的に開くべきノードか？
+static bool isAutoOpenNode(VTNodeData const& node)
+{
+	struct matcher : VTNodeData::Visitor
+	{
+		bool result;
+		bool apply(VTNodeData const& node)
+		{
+			result = true; // default
+			node.acceptVisitor(*this);
+			return std::move(result);
+		}
+
+		void fModule(VTNodeModule const& node) override
+		{
+			result = (node.name() == "@");
+		}
+		void fSysvarList(VTNodeSysvarList const&) override
+		{
+			result = false;
+		}
 	};
 
 	return matcher {}.apply(node);
