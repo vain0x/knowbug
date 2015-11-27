@@ -34,6 +34,38 @@ public:
 	void acceptVisitor(Visitor& visitor) const override { visitor.fVar(*this); }
 };
 
+class VTNodeValue
+	: public VTNodeData
+{
+	VTNodeData* const parent_;
+	string const name_;
+	PDAT const* pdat_;
+	vartype_t const vtype_;
+
+public:
+	VTNodeValue(VTNodeData* parent, string const& name, PDAT const* pdat, vartype_t vtype)
+		: parent_(parent), name_(name), vtype_(vtype)
+	{
+		resetPtr(pdat);
+	}
+
+	auto name() const -> string override { return name_; }
+	auto data() const -> PDAT const* { return pdat_; }
+	auto vartype() const -> vartype_t { return vtype_; }
+	auto parent() const -> optional_ref<VTNodeData> override
+	{
+		return parent_;
+	}
+
+	void resetPtr(PDAT const* pdat)
+	{
+		assert(pdat != nullptr);
+		pdat_ = pdat;
+	}
+
+	void acceptVisitor(Visitor& visitor) const override { visitor.fValue(*this); }
+};
+
 class VTNodeSysvar
 	: public VTNodeData
 {
