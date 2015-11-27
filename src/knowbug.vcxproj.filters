@@ -111,6 +111,9 @@
     <ClCompile Include="VTNodeLog.cpp">
       <Filter>class</Filter>
     </ClCompile>
+    <ClCompile Include="VTNodeVar.cpp">
+      <Filter>class</Filter>
+    </ClCompile>
     <ClCompile Include="cppformat\format.cc">
       <Filter>module\cppformat</Filter>
     </ClCompile>

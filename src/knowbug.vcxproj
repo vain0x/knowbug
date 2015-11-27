@@ -350,6 +350,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="vartree.cpp" />
     <ClCompile Include="VarTreeNodeData.cpp" />
     <ClCompile Include="VTNodeScript.cpp" />
+    <ClCompile Include="VTNodeVar.cpp" />
     <ClCompile Include="with_ModPtr.cpp" />
     <ClCompile Include="WrapCall\ModcmdCallInfo.cpp" />
     <ClCompile Include="WrapCall\type_modcmd.cpp" />

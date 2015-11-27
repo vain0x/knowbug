@@ -34,6 +34,43 @@ public:
 	void acceptVisitor(Visitor& visitor) const override { visitor.fVar(*this); }
 };
 
+class VTNodeVector
+	: public VTNodeData
+{
+	VTNodeData* const parent_;
+	string const name_;
+
+	PVal* const pval_;
+	int dimIndex_;
+	APTR aptr_;
+	int len_;
+	vector<shared_ptr<VTNodeData>> children_;
+
+public:
+	VTNodeVector(VTNodeData* parent, string const& name, PVal* pval, int dimIndex, APTR aptr)
+		: parent_(parent), name_(name), pval_(pval), dimIndex_(dimIndex)
+		, aptr_(aptr)
+		, len_(pval->len[1 + dimIndex])
+	{
+		assert(0 <= dimIndex && dimIndex < hpiutil::ArrayDimMax);
+	}
+
+	auto name() const -> string override { return name_; }
+	auto parent() const -> optional_ref<VTNodeData> override
+	{
+		return parent_;
+	}
+	int dimIndex() const { return dimIndex_; }
+	int len() const { return len_; }
+
+	void acceptVisitor(Visitor& visitor) const override { visitor.fVector(*this); }
+
+protected:
+	bool updateSub(bool deep) override;
+private:
+	void addChild(int i);
+};
+
 class VTNodeValue
 	: public VTNodeData
 {

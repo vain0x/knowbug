@@ -7,6 +7,7 @@
 class VTRoot;
 class VTNodeModule;
 class VTNodeVar;
+class VTNodeVector;
 class VTNodeValue;
 class VTNodeSysvarList;
 class VTNodeSysvar;
@@ -33,6 +34,7 @@ public:
 		virtual void fRoot      (VTRoot           const&) {}
 		virtual void fModule    (VTNodeModule     const&) {}
 		virtual void fVar       (VTNodeVar        const&) {}
+		virtual void fVector    (VTNodeVector     const&) {}
 		virtual void fValue     (VTNodeValue      const&) {}
 		virtual void fSysvarList(VTNodeSysvarList const&) {}
 		virtual void fSysvar    (VTNodeSysvar     const&) {}
