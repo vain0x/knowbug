@@ -127,14 +127,14 @@ void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const
 //------------------------------------------------
 // 更新
 //------------------------------------------------
-bool VTNodeModule::updateSub(bool deep)
+bool VTNodeModule::updateSub(int nest)
 {
-	if ( deep ) {
+	if ( nest > 0 ) {
 		for ( auto const& kv : p_->modules_ ) {
-			kv.second->updateDownDeep();
+			kv.second->updateDown(nest - 1);
 		}
 		for ( auto const& kv : p_->vars_ ) {
-			kv.second->updateDownDeep();
+			kv.second->updateDown(nest - 1);
 		}
 	}
 	return true;

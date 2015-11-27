@@ -57,11 +57,11 @@ auto VTNodeSysvarList::parent() const -> optional_ref<VTNodeData>
 	return &VTRoot::instance();
 }
 
-bool VTNodeSysvarList::updateSub(bool deep)
+bool VTNodeSysvarList::updateSub(int nest)
 {
-	if ( deep ) {
+	if ( nest > 0 ) {
 		for ( auto&& sysvar : sysvarList() ) {
-			sysvar->updateDownDeep();
+			sysvar->updateDown(nest - 1);
 		}
 	}
 	return true;
@@ -103,14 +103,14 @@ void VTNodeDynamic::eraseLastInvokeNode()
 	children_.pop_back();
 }
 
-bool VTNodeDynamic::updateSub(bool deep)
+bool VTNodeDynamic::updateSub(int nest)
 {
-	if ( deep ) {
+	if ( nest > 0 ) {
 		for ( auto& e : children_ ) {
-			e->updateDownDeep();
+			e->updateDown(nest - 1);
 		}
 		if ( independedResult_ ) {
-			independedResult_->updateDownDeep();
+			independedResult_->updateDown(nest - 1);
 		}
 	}
 	return true;
@@ -161,11 +161,11 @@ void VTNodeInvoke::addResultDepended(unique_ptr<ResultNodeData> result)
 	results_.emplace_back(std::move(result));
 }
 
-bool VTNodeInvoke::updateSub(bool deep)
+bool VTNodeInvoke::updateSub(int nest)
 {
-	if ( deep ) {
+	if ( nest > 0 ) {
 		for ( auto& e : results_ ) {
-			e->updateDownDeep();
+			e->updateDown(nest - 1);
 		}
 	}
 	return true;
@@ -243,11 +243,11 @@ auto VTRoot::children() -> std::vector<std::reference_wrapper<VTNodeData>> const
 	return stt_children;
 }
 
-bool VTRoot::updateSub(bool deep)
+bool VTRoot::updateSub(int nest)
 {
-	if ( deep && p_ ) {
+	if ( nest > 0 && p_ ) {
 		for ( auto const& node : children() ) {
-			node.get().updateDownDeep();
+			node.get().updateDown(nest - 1);
 		}
 	}
 	return true;

@@ -51,27 +51,25 @@ public:
 	virtual auto name() const -> string { return "(anonymous)"; }
 	virtual auto vartype() const -> vartype_t { return HSPVAR_FLAG_NONE; }
 
-	bool updateShallow()     { return update(true, false); }
-	bool updateDeep()        { return update(true, true); }
-	bool updateDownShallow() { return update(false, false); }
-	bool updateDownDeep()    { return update(false, true); }
+	void updateAll() { update(std::numeric_limits<int>::max()); }
+	bool update(int nest)     { return updateImpl(true, nest); }
+	bool updateDown(int nest) { return updateImpl(false, nest); }
 protected:
 	/**
-	Updates this node.
+	Updates this node and descendants over `nest`-generations.
 	Returns `false` if this node or one of the ancestors has vanished.
 	If `up` is `true`, also updates its parent;
 	otherwise, the parent node is uptodate and still exists.
-	If `deep` is `true`, also updates children.
 	//*/
-	bool update(bool up, bool deep)
+	bool updateImpl(bool up, int nest)
 	{
-		if ( up && parent() && ! parent()->updateShallow() ) return false;
+		if ( up && parent() && ! parent()->update(0) ) return false;
 		if ( uninitialized_ ) { uninitialized_ = false; onInit(); init(); }
-		return updateSub(deep);
+		return updateSub(nest);
 	}
 
 	virtual void init() {}
-	virtual bool updateSub(bool deep) { return true; }
+	virtual bool updateSub(int nest) { return true; }
 	bool uninitialized_;
 
 private:

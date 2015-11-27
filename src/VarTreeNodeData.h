@@ -38,7 +38,7 @@ public:
 	void acceptVisitor(Visitor& visitor) const override { visitor.fVar(*this); }
 
 protected:
-	bool updateSub(bool deep) override;
+	bool updateSub(int nest) override;
 };
 
 class VTNodeVector
@@ -73,7 +73,7 @@ public:
 	void acceptVisitor(Visitor& visitor) const override { visitor.fVector(*this); }
 
 protected:
-	bool updateSub(bool deep) override;
+	bool updateSub(int nest) override;
 private:
 	void addChild(int i);
 };
@@ -150,7 +150,7 @@ public:
 
 protected:
 	void init() override;
-	bool updateSub(bool deep) override;
+	bool updateSub(int nest) override;
 };
 
 class VTNodeScript
@@ -227,7 +227,7 @@ public:
 
 	auto name() const -> string override;
 	auto parent() const -> optional_ref<VTNodeData> override;
-	bool updateSub(bool deep) override;
+	bool updateSub(int nest) override;
 
 	//foreach
 	struct Visitor
@@ -293,7 +293,7 @@ public:
 	void acceptVisitor(Visitor& visitor) const override { visitor.fDynamic(*this); }
 
 protected:
-	bool updateSub(bool deep) override;
+	bool updateSub(int nest) override;
 };
 
 class VTNodeInvoke
@@ -315,7 +315,7 @@ public:
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fInvoke(*this); }
 protected:
-	bool updateSub(bool deep) override;
+	bool updateSub(int nest) override;
 };
 
 struct ResultNodeData
@@ -382,7 +382,7 @@ public:
 	auto parent() const -> optional_ref<VTNodeData> override { return nullptr; }
 	void acceptVisitor(Visitor& visitor) const override { visitor.fRoot(*this); }
 protected:
-	bool updateSub(bool deep) override;
+	bool updateSub(int nest) override;
 };
 
 #endif

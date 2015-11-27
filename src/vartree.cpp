@@ -86,7 +86,7 @@ VTView::VTView()
 	VTRoot::log().setLogObserver(p_->logObserver_);
 
 	// Initialize tree
-	VTRoot::instance().updateDeep();
+	VTRoot::instance().updateAll();
 
 #ifdef with_WrapCall
 	p_->hNodeDynamic_ = p_->itemFromNode(&VTRoot::dynamic());
@@ -154,7 +154,7 @@ void VTView::update()
 	p_->textCache_.clear();
 
 #ifdef with_WrapCall
-	VTRoot::dynamic().updateDeep();
+	VTRoot::dynamic().updateAll();
 #endif
 
 	Dialog::View::update();
@@ -334,7 +334,7 @@ void VTView::updateViewWindow()
 	auto const hItem = TreeView_GetSelection(hwndVarTree);
 	if ( hItem ) {
 		if ( auto&& node = tryGetNodeData(hItem) ) {
-			node->updateDeep();
+			node->update(2);
 		}
 
 		static auto stt_prevSelection = HTREEITEM { nullptr };

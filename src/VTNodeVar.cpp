@@ -3,9 +3,9 @@
 #include "VarTreeNodeData.h"
 #include "module/strf.h"
 
-bool VTNodeVar::updateSub(bool deep)
+bool VTNodeVar::updateSub(int nest)
 {
-	if ( deep ) {
+	if ( nest > 0 ) {
 		// Œ^‚ª•Ï‚í‚é‚©A—v‘f”‚ªŒ¸‚é‚©A’áŸŒ³‚Ì—v‘f”‚ª‘‚¦‚½‚È‚çAÄ\’z‚ğs‚¤
 		if ( pval_->flag != pvalBak_.flag
 			|| memcmp(&pvalBak_.len[1], &pval_->len[1], hpiutil::ArrayDimMax * sizeof(int))
@@ -35,7 +35,7 @@ bool VTNodeVar::updateSub(bool deep)
 						));
 				}
 
-				children_[i]->updateDownDeep();
+				children_[i]->updateDown(nest - 1);
 			}
 		}
 	}
@@ -58,9 +58,9 @@ void VTNodeVector::addChild(int i)
 	}
 }
 
-bool VTNodeVector::updateSub(bool deep)
+bool VTNodeVector::updateSub(int nest)
 {
-	if ( deep ) {
+	if ( nest > 0 ) {
 		int const newLen = pval_->len[1 + dimIndex_];
 
 		// var ‚Ìqƒm[ƒhŠÇ—‚Ìd‘g‚İ‚É‚æ‚èA‚±‚ê‚Ì—v‘f”‚ªŒ¸‚Á‚½‚èAŒ^‚ª•Ï‚í‚é‚±‚Æ‚Í‚ ‚è‚¦‚È‚¢
@@ -72,7 +72,7 @@ bool VTNodeVector::updateSub(bool deep)
 		}
 
 		for ( auto& e : children_ ) {
-			e->updateDownDeep();
+			e->updateDown(nest - 1);
 		}
 	}
 	return true;
