@@ -74,6 +74,22 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 }
 
 //------------------------------------------------
+// 値データから生成
+//------------------------------------------------
+void CVarinfoText::addValue(char const* name, PDAT const* pdat, vartype_t vtype)
+{
+	getWriter().catln(strf("[%s]", name));
+	getWriter().catln(strf("変数型: %s", hpiutil::varproc(vtype)->vartype_name));
+	if ( g_config->showsVariableAddress ) {
+		getWriter().catln(strf("アドレス: %p", static_cast<void const*>(pdat)));
+	}
+	getWriter().catCrlf();
+
+	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
+		.addValue(name, vtype, pdat);
+}
+
+//------------------------------------------------
 // システム変数データから生成
 //------------------------------------------------
 void CVarinfoText::addSysvar(hpiutil::Sysvar::Id id)

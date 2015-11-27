@@ -12,6 +12,7 @@
 #include "vartree.h"
 #include "CVarinfoText.h"
 #include "CVardataString.h"
+#include "module/CStrBuf.h"
 
 #include "WrapCall/WrapCall.h"
 #include "WrapCall/ModcmdCallInfo.h"
@@ -244,6 +245,10 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 		void fVar(VTNodeVar const& node) override
 		{
 			varinf.addVar(node.pval(), node.name().c_str());
+		}
+		void fValue(VTNodeValue const& node) override
+		{
+			varinf.addValue(node.name().c_str(), node.data(), node.vartype());
 		}
 		void fSysvarList(VTNodeSysvarList const&) override
 		{

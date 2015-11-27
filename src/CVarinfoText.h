@@ -19,6 +19,7 @@ public:
 	CVarinfoText();
 
 	void addVar(PVal* pval, char const* name);
+	void addValue(char const* name, PDAT const* pdat, vartype_t vtype);
 	void addSysvar(hpiutil::Sysvar::Id id);
 #ifdef with_WrapCall
 	void addCall(WrapCall::ModcmdCallInfo const& callinfo);
