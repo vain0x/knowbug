@@ -30,6 +30,7 @@ public:
 	// visitor
 	struct Visitor
 	{
+		virtual void fRoot      (VTRoot           const&) {}
 		virtual void fModule    (VTNodeModule     const&) {}
 		virtual void fVar       (VTNodeVar        const&) {}
 		virtual void fSysvarList(VTNodeSysvarList const&) {}

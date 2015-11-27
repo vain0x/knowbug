@@ -294,7 +294,7 @@ public:
 	static auto log()        -> shared_ptr<VTNodeLog>            const& { return instance().log_; }
 
 	auto parent() const -> shared_ptr<VTNodeData> override { return nullptr; }
-	void acceptVisitor(Visitor& visitor) const override { assert(false); }
+	void acceptVisitor(Visitor& visitor) const override { visitor.fRoot(*this); }
 protected:
 	bool updateSub(bool deep) override;
 };
