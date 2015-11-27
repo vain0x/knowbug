@@ -14,11 +14,15 @@ class VTNodeVar
 	string const name_;
 	PVal* const pval_;
 
+	PVal pvalBak_;
+	vector<shared_ptr<VTNodeValue>> children_;
+
 public:
 	VTNodeVar(VTNodeData& parent, string const& name, PVal* pval)
 		: parent_(parent), name_(name), pval_(pval)
 	{
 		assert(pval_);
+		pvalBak_ = *pval_;
 	}
 
 	auto name() const -> string override { return name_; }
@@ -32,6 +36,9 @@ public:
 	}
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fVar(*this); }
+
+protected:
+	bool updateSub(bool deep) override;
 };
 
 class VTNodeVector
