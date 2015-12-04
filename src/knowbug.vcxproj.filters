@@ -84,9 +84,6 @@
     <ClCompile Include="DebugInfo.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\cppformat\format.cc">
-      <Filter>module\cppformat</Filter>
-    </ClCompile>
     <ClCompile Include="module\GuiUtility.cpp">
       <Filter>module</Filter>
     </ClCompile>
@@ -113,6 +110,9 @@
     </ClCompile>
     <ClCompile Include="VTNodeLog.cpp">
       <Filter>class</Filter>
+    </ClCompile>
+    <ClCompile Include="cppformat\format.cc">
+      <Filter>module\cppformat</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -172,9 +172,6 @@
     </ClInclude>
     <ClInclude Include="module\LineDelimitedString.h">
       <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="..\cppformat\format.h">
-      <Filter>module\cppformat</Filter>
     </ClInclude>
     <ClInclude Include="module\GuiUtility.h">
       <Filter>module</Filter>
@@ -241,6 +238,9 @@
     </ClInclude>
     <ClInclude Include="module\utility.h">
       <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="cppformat\format.h">
+      <Filter>module\cppformat</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
