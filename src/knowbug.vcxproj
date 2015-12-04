@@ -330,7 +330,8 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="hpiutil\hspsdk\hsp3plugin.cpp" />
     <ClCompile Include="hpiutil\stringify.cpp" />
     <ClCompile Include="hpiutil\sysvar.cpp" />
-    <ClCompile Include="StaticVarTree.cpp" />
+    <ClCompile Include="VTNodeLog.cpp" />
+    <ClCompile Include="VTNodeModule.cpp" />
     <ClCompile Include="DebugInfo.cpp" />
     <ClCompile Include="dialog.cpp" />
     <ClCompile Include="ExVardataString.cpp" />
@@ -342,6 +343,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="module\supio\supio.cpp" />
     <ClCompile Include="vartree.cpp" />
     <ClCompile Include="VarTreeNodeData.cpp" />
+    <ClCompile Include="VTNodeScript.cpp" />
     <ClCompile Include="with_ModPtr.cpp" />
     <ClCompile Include="WrapCall\ModcmdCallInfo.cpp" />
     <ClCompile Include="WrapCall\type_modcmd.cpp" />
@@ -369,7 +371,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="module\pair_range.hpp" />
     <ClInclude Include="module\range_all.hpp" />
     <ClInclude Include="module\utility.h" />
-    <ClInclude Include="StaticVarTree.h" />
     <ClInclude Include="DebugInfo.h" />
     <ClInclude Include="dialog.h" />
     <ClInclude Include="ExVardataString.h" />
@@ -386,6 +387,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="resource.h" />
     <ClInclude Include="vartree.h" />
     <ClInclude Include="VarTreeNodeData.h" />
+    <ClInclude Include="VarTreeNodeData_fwd.h" />
     <ClInclude Include="with_ModPtr.h" />
     <ClInclude Include="WrapCall\ModcmdCallInfo.h" />
     <ClInclude Include="WrapCall\type_modcmd.h" />

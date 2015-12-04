@@ -6,8 +6,10 @@
 #include <cassert>
 #include <memory>
 #include <string>
+#include <array>
 #include <vector>
 #include <map>
+#include <functional>
 #include "pair_range.hpp"
 #include "range_all.hpp"
 

@@ -4,7 +4,7 @@
 #include "main.h"
 #include "module/CStrWriter.h"
 
-class StaticVarTree;
+class VTNodeModule;
 struct ResultNodeData;
 
 namespace WrapCall
@@ -21,17 +21,17 @@ public:
 	void addVar(PVal* pval, char const* name);
 	void addSysvar(hpiutil::Sysvar::Id id);
 #ifdef with_WrapCall
-	void addCall(shared_ptr<WrapCall::ModcmdCallInfo const> const& callinfo);
-	void addResult(shared_ptr<ResultNodeData> const& result);
+	void addCall(WrapCall::ModcmdCallInfo const& callinfo);
+	void addResult(ResultNodeData const& result);
 private:
-	void addCallSignature(shared_ptr<WrapCall::ModcmdCallInfo const> const& callinfo, stdat_t stdat);
+	void addCallSignature(WrapCall::ModcmdCallInfo const& callinfo, stdat_t stdat);
 public:
 #endif
 
-	void addModuleOverview(char const* name, StaticVarTree const& tree);
+	void addModuleOverview(char const* name, VTNodeModule const& tree);
 	void addSysvarsOverview();
 #ifdef with_WrapCall
-	void addCallsOverview(shared_ptr<ResultNodeData> const& lastResult);
+	void addCallsOverview(optional_ref<ResultNodeData const> lastResult);
 #endif
 	void addGeneralOverview();
 

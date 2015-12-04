@@ -2,36 +2,53 @@
 #include "module/utility.h"
 #include "DebugInfo.h"
 #include "config_mng.h"
-#include "StaticVarTree.h"
+#include "VarTreeNodeData.h"
 
-string const StaticVarTree::Global::Name = "@";
+string const VTNodeModule::Global::Name = "@";
 
-struct StaticVarTree::Private {
-	StaticVarTree& self;
+struct VTNodeModule::Private
+{
+	VTNodeModule& self;
+	VTNodeData* const parent_;
 	string const name_;
-	std::set<string> vars_;
-	std::map<string, shared_ptr<StaticVarTree>> modules_;
+	std::map<string, shared_ptr<VTNodeVar>> vars_;
+	std::map<string, shared_ptr<VTNodeModule>> modules_;
 
 public:
 	void insertVar(char const* name);
-	shared_ptr<StaticVarTree> insertModule(char const* pModname);
+	shared_ptr<VTNodeModule> insertModule(char const* pModname);
 };
 
-StaticVarTree::StaticVarTree(string const& name)
-	: p_(new Private { *this, name })
+VTNodeModule::VTNodeModule(VTNodeData* parent_, string const& name)
+	: p_(new Private { *this, parent_, name })
 { }
 
-StaticVarTree::~StaticVarTree() {}
+VTNodeModule::~VTNodeModule() {}
 
-string const& StaticVarTree::getName() const {
+auto VTNodeModule::name() const -> string
+{
 	return p_->name_;
+}
+
+auto VTNodeModule::parent() const -> shared_ptr<VTNodeData>
+{
+	return (p_->parent_ ? p_->parent_->shared_from_this() : nullptr);
+}
+
+auto VTNodeModule::tryFindVarNode(std::string const& name) const -> shared_ptr<VTNodeVar>
+{
+	auto&& it = p_->vars_.find(name);
+	return ( it != p_->vars_.end() ) ? it->second : nullptr;
 }
 
 //------------------------------------------------
 // グローバルノードを構築する
 //------------------------------------------------
-StaticVarTree::Global::Global()
-	: StaticVarTree(Name)
+VTNodeModule::Global::Global(VTRoot* parent)
+	: VTNodeModule(parent, Name)
+{}
+
+void VTNodeModule::Global::init()
 {
 	auto const&& names = g_dbginfo->fetchStaticVarNames();
 	for ( auto const& name : names ) {
@@ -42,10 +59,8 @@ StaticVarTree::Global::Global()
 //------------------------------------------------
 // 子ノードとして、変数ノードを追加する
 //------------------------------------------------
-void StaticVarTree::Global::addVar(char const* name)
+void VTNodeModule::Global::addVar(char const* name)
 {
-	if ( name[0] == '@' ) return;
-
 	char const* const scopeResolution = std::strchr(name, '@');
 	if ( scopeResolution ) {
 		if ( auto child = p_->insertModule(scopeResolution) ) {
@@ -57,16 +72,20 @@ void StaticVarTree::Global::addVar(char const* name)
 	}
 }
 
-void StaticVarTree::Private::insertVar(char const* name)
+void VTNodeModule::Private::insertVar(char const* name)
 {
-	vars_.insert(name);
+	PVal* const pval = hpiutil::seekSttVar(name);
+	assert(pval);
+
+	vars_.emplace(std::string(name)
+		, std::make_shared<VTNodeVar>(&self, std::string(name), pval));
 }
 
 //------------------------------------------------
 // 子ノードの、指定した名前のモジュール・ノードを取得する
 // なければ挿入する
 //------------------------------------------------
-shared_ptr<StaticVarTree> StaticVarTree::Private::insertModule(char const* pModname)
+shared_ptr<VTNodeModule> VTNodeModule::Private::insertModule(char const* pModname)
 {
 	assert(pModname[0] == '@');
 
@@ -89,8 +108,8 @@ shared_ptr<StaticVarTree> StaticVarTree::Private::insertModule(char const* pModn
 		
 	} else {
 		string const modname = pModname;
-		auto&& node = map_find_or_insert(modules_, modname, [&modname]() {
-			return std::make_shared<StaticVarTree>(modname);
+		auto&& node = map_find_or_insert(modules_, modname, [&]() {
+			return std::make_shared<VTNodeModule>(&self, modname);
 		});
 		return node;
 	}
@@ -99,11 +118,27 @@ shared_ptr<StaticVarTree> StaticVarTree::Private::insertModule(char const* pModn
 //------------------------------------------------
 // 浅い横断
 //------------------------------------------------
-void StaticVarTree::foreach(StaticVarTree::Visitor const& visitor) const {
+void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const {
 	for ( auto&& kv : p_->modules_ ) {
-		visitor.fModule(*kv.second);
+		visitor.fModule(kv.second);
 	}
 	for ( auto const& it : p_->vars_ ) {
-		visitor.fVar(it);
+		visitor.fVar(it.first);
 	}
+}
+
+//------------------------------------------------
+// 更新
+//------------------------------------------------
+bool VTNodeModule::updateSub(bool deep)
+{
+	if ( deep ) {
+		for ( auto&& kv : p_->modules_ ) {
+			kv.second->updateDownDeep();
+		}
+		for ( auto&& kv : p_->vars_ ) {
+			kv.second->updateDownDeep();
+		}
+	}
+	return true;
 }

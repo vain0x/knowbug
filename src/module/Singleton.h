@@ -23,3 +23,19 @@ private:
 	Singleton(Singleton&&) = delete;
 	Singleton& operator=(Singleton&&) = delete;
 };
+
+template<typename T>
+struct SharedSingleton
+	: public Singleton<T>
+{
+	static auto make_shared() -> std::shared_ptr<T> const&
+	{
+		static std::shared_ptr<T> instance_ { new T {} };
+		assert(instance_);
+		return instance_;
+	}
+	static T& instance()
+	{
+		return *make_shared();
+	}
+};
