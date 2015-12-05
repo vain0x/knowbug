@@ -34,6 +34,8 @@ static char const* const KnowbugRepoUrl = "https://github.com/vain0/knowbug";
 namespace Dialog
 {
 
+static size_t const countStepButtons = 5;
+
 static HWND hVarTree;
 static HWND hSrcLine;
 static HWND hViewEdit;
@@ -43,6 +45,8 @@ struct Resource
 	window_handle_t mainWindow, viewWindow;
 	menu_handle_t dialogMenu, nodeMenu, invokeMenu, logMenu;
 	unique_ptr<VTView> tv;
+
+	std::array<HWND, countStepButtons> stepButtons;
 };
 static unique_ptr<Resource> g_res;
 
@@ -389,6 +393,12 @@ void Dialog::createMain()
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 1) } // invoke
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 2) } // log
 			, std::make_unique<VTView>()
+			, {{
+				  GetDlgItem(hPane, IDC_BTN1)
+				, GetDlgItem(hPane, IDC_BTN2)
+				, GetDlgItem(hPane, IDC_BTN3)
+				, GetDlgItem(hPane, IDC_BTN4)
+				, GetDlgItem(hPane, IDC_BTN5) }}
 			});
 	}
 
