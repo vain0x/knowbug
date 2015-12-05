@@ -58,18 +58,6 @@ static auto windowHandles() -> std::vector<HWND>
 	return std::vector<HWND> { g_res->mainWindow.get(), g_res->viewWindow.get() };
 }
 
-static auto allControls() -> vector<HWND>
-{
-	vector<HWND> all { RANGE_ALL(g_res->stepButtons) };
-	all.insert(all.end()
-		, { hVarTree
-		, hSrcLine
-		, hViewEdit
-		}
-	);
-	return all;
-}
-
 static void setEditStyle(HWND hEdit, int maxlen);
 
 namespace View {
@@ -460,7 +448,7 @@ void Dialog::createMain()
 		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_INVOCATION, MF_CHECKED);
 	}
 
-	for ( auto&& hwnd : allControls() ) {
+	for ( auto&& hwnd : { hSrcLine, hViewEdit } ) {
 		SendMessage(hwnd, WM_SETFONT
 			, (WPARAM)(g_res->font.get())
 			, /* repaints = */ FALSE);
