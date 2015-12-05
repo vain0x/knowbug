@@ -53,6 +53,7 @@ public:
 	int  tabwidth;
 	string fontFamily;
 	int fontSize;
+	bool fontAntialias;
 	int  maxLength, infiniteNest;
 	bool showsVariableAddress, showsVariableSize, showsVariableDump;
 	string prefixHiddenModule;

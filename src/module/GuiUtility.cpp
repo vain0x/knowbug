@@ -190,7 +190,7 @@ auto Dialog_SaveFileName(HWND owner
 		? std::make_unique<string>(fullName.data()) : nullptr;
 }
 
-HFONT Font_Create(char const* family, int size)
+HFONT Font_Create(char const* family, int size, bool antialias)
 {
 	LOGFONT lf;
 	lf.lfHeight         = -size; // size pt
@@ -204,7 +204,7 @@ HFONT Font_Create(char const* family, int size)
 	lf.lfCharSet        = DEFAULT_CHARSET;
 	lf.lfOutPrecision   = OUT_DEFAULT_PRECIS;
 	lf.lfClipPrecision  = CLIP_DEFAULT_PRECIS;
-	lf.lfQuality        = DEFAULT_QUALITY;
+	lf.lfQuality        = (antialias ? ANTIALIASED_QUALITY : DEFAULT_QUALITY);
 	lf.lfPitchAndFamily = DEFAULT_PITCH;
 
 	::strcpy(lf.lfFaceName, family);

@@ -442,7 +442,8 @@ void Dialog::createMain()
 			, gdi_obj_t {
 					Font_Create
 						( g_config->fontFamily.c_str()
-						, g_config->fontSize ) }
+						, g_config->fontSize
+						, g_config->fontAntialias ) }
 			});
 	}
 

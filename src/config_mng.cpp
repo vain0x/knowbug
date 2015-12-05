@@ -43,6 +43,7 @@ KnowbugConfig::KnowbugConfig()
 	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
 	fontFamily = ini.getString("Interface", "fontFamily", "MS Gothic");
 	fontSize   = ini.getInt("Interface", "fontSize", 13);
+	fontAntialias = ini.getBool("Interface", "fontAntialias", false);
 
 	maxLength    = ini.getInt("Varinfo", "maxlen", 0x10000 - 1);
 	infiniteNest = ini.getInt("Varinfo", "infiniteNest", 8);
