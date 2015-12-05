@@ -346,11 +346,9 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	switch ( msg ) {
 		case WM_CREATE: return TRUE;
 		case WM_CLOSE: return FALSE;
-		case WM_SIZING: {
-			RECT rc; GetClientRect(hDlg, &rc);
-			MoveWindow(hViewEdit, 0, 0, rc.right, rc.bottom, false);
+		case WM_SIZE:
+			MoveWindow(hViewEdit, 0, 0, LOWORD(lp), HIWORD(lp), TRUE);
 			break;
-		}
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
@@ -381,10 +379,6 @@ void Dialog::createMain()
 				, hViewWnd.get(), (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
 		setEditStyle(hViewEdit, g_config->maxLength);
-
-		//エディタをクライアント領域全体に広げる
-		RECT rc; GetClientRect(hViewWnd.get(), &rc);
-		MoveWindow(hViewEdit, 0, 0, rc.right, rc.bottom, false);
 
 		ShowWindow(hPane, SW_SHOW);
 	}
@@ -450,6 +444,10 @@ void Dialog::createMain()
 	{
 		RECT rc; GetClientRect(g_res->mainWindow.get(), &rc);
 		resizeMainWindow(rc.right, rc.bottom, false);
+	}
+	{
+		RECT rc; GetClientRect(g_res->viewWindow.get(), &rc);
+		MoveWindow(hViewEdit, 0, 0, rc.right, rc.bottom, FALSE);
 	}
 
 	for ( auto&& hwnd : windowHandles() ) {
