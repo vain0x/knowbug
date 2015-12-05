@@ -8,14 +8,14 @@
 #include <string>
 #include <array>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <functional>
 #include "pair_range.hpp"
 #include "range_all.hpp"
 
 using std::string;
 using std::vector;
-using std::map;
+using std::unordered_map;
 using std::shared_ptr;
 using std::unique_ptr;
 

@@ -2,6 +2,7 @@
 #pragma once
 
 #include <map>
+#include <unordered_map>
 #include <unordered_set>
 #include "hpiutil.hpp"
 
@@ -25,7 +26,7 @@ public:
 	static DInfo& instance();
 
 private:
-	using ident_table_t = std::map<int, char const*>;
+	using ident_table_t = std::unordered_map<int, char const*>;
 	using cs_map_t = std::map<std::pair<char const*, int>, csptr_t>;
 
 	std::unordered_set<std::string> fileRefNames_;

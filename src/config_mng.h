@@ -7,7 +7,6 @@
 
 #include <string>
 #include <array>
-#include <map>
 #include <memory>
 #include "module/Singleton.h"
 #include "module/handle_deleter.hpp"
@@ -61,7 +60,7 @@ public:
 	bool bResultNode;
 	bool bCustomDraw;
 	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;
-	std::map<string, COLORREF> clrTextExtra;
+	unordered_map<string, COLORREF> clrTextExtra;
 	std::vector<VswInfo> vswInfo;
 	string logPath;
 	bool warnsBeforeClearingLog;

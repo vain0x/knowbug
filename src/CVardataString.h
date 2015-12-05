@@ -20,7 +20,7 @@ class CVardataStrWriter
 {
 private:
 	std::unique_ptr<CStructedStrWriter> writer_;
-	mutable std::map<void const*, string> visited_;
+	mutable unordered_map<void const*, string> visited_;
 
 public:
 	CVardataStrWriter(CVardataStrWriter&& src);

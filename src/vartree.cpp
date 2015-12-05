@@ -35,13 +35,13 @@ struct VTView::Impl
 {
 	VTView& self_;
 
-	std::map<VTNodeData const*, HTREEITEM> itemFromNode_;
+	unordered_map<VTNodeData const*, HTREEITEM> itemFromNode_;
 
 	//ノードの文字列のキャッシュ (停止中の間のみ有効)
-	std::map<HTREEITEM, shared_ptr<string const>> textCache_;
+	unordered_map<HTREEITEM, shared_ptr<string const>> textCache_;
 
 	//ノードごとのビューウィンドウのキャレット位置
-	std::map<HTREEITEM, int> viewCaret_;
+	unordered_map<HTREEITEM, int> viewCaret_;
 
 	shared_ptr<TvObserver> observer_;
 

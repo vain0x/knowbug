@@ -11,8 +11,8 @@ struct VTNodeModule::Private
 	VTNodeModule& self;
 	VTNodeData* const parent_;
 	string const name_;
-	std::map<string, shared_ptr<VTNodeVar>> vars_;
-	std::map<string, shared_ptr<VTNodeModule>> modules_;
+	unordered_map<string, shared_ptr<VTNodeVar>> vars_;
+	unordered_map<string, shared_ptr<VTNodeModule>> modules_;
 
 public:
 	void insertVar(char const* name);

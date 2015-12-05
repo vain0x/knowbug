@@ -1,6 +1,5 @@
 
 #include <unordered_set>
-#include <unordered_map>
 #include "main.h"
 #include "VarTreeNodeData.h"
 #include "config_mng.h"
@@ -11,8 +10,8 @@ struct VTNodeScript::Impl
 	bool resolutionDone_;
 
 	std::unordered_set<string> userDirs_;
-	std::unordered_map<string, shared_ptr<string const>> fullPathFromRefName_;
-	std::map<string const, LineDelimitedString> cache_;
+	unordered_map<string, shared_ptr<string const>> fullPathFromRefName_;
+	unordered_map<string, LineDelimitedString> cache_;
 
 public:
 	auto searchFile(string const& fileName)->shared_ptr<string const>;
