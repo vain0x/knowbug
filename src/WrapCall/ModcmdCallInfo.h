@@ -5,6 +5,7 @@
 #ifdef with_WrapCall
 
 #include "../main.h"
+#include "../VarTreeNodeData_fwd.h"
 
 namespace WrapCall
 {
@@ -46,6 +47,8 @@ public:
 
 	// この呼び出しを実引数式に含む呼び出し
 	shared_ptr_type tryGetDependedCallInfo() const;
+
+	auto name() const -> string { return hpiutil::STRUCTDAT_name(stdat); }
 };
 
 } //namespace WrapCall

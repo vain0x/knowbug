@@ -2,9 +2,7 @@
 
 #pragma once
 
-#include "main.h"
 #include <Windows.h>
-#include <CommCtrl.h>
 
 namespace Dialog
 {
@@ -16,12 +14,16 @@ void destroyMain();
 
 void update();
 bool logsCalling();
-optional_ref<string const> tryGetCurrentScript();
 
-namespace LogBox
-{
-	void add(char const* msg);
-	string const& get();
-}
+namespace View {
+
+void setText(char const* text);
+void scroll(int y, int x);
+void scrollBottom();
+void selectLine(size_t index);
+void update();
+void saveCurrentCaret();
+
+} // namespace View
 
 } // namespace Dialog

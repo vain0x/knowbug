@@ -4,10 +4,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
-#include <map>
-#include <vector>
 #include <algorithm>
-#include <array>
 #include <fstream>
 
 #include "main.h"
@@ -15,7 +12,6 @@
 #include "hspwnd.h"
 #include "module/supio/supio.h"
 #include "module/GuiUtility.h"
-#include "module/LineDelimitedString.h"
 #include "module/strf.h"
 #include "WrapCall/WrapCall.h"
 
@@ -30,293 +26,187 @@
 # define KnowbugPlatformString "(x86)"
 #endif //defined(_M_X64)
 #define KnowbugAppName "Knowbug"
-#define KnowbugVersion "v1.21" " " KnowbugPlatformString
+#define KnowbugVersion "v1.22" " " KnowbugPlatformString
 static char const* const KnowbugMainWindowTitle = KnowbugAppName " " KnowbugVersion;
 static char const* const KnowbugViewWindowTitle = "Knowbug View";
+static char const* const KnowbugRepoUrl = "https://github.com/vain0/knowbug";
 
 namespace Dialog
 {
 
-static int const TABDLGMAX = 4;
-static int const CountStepButtons = 5;
+static size_t const countStepButtons = 5;
 
-static HWND hDlgWnd;
-static std::array<HWND, CountStepButtons> hStepButtons;
-static HWND hSttCtrl;
 static HWND hVarTree;
 static HWND hSrcLine;
-
-static HWND hViewWnd;
 static HWND hViewEdit;
 
-static HMENU hDlgMenu, hNodeMenu, hLogNodeMenu, hInvokeNodeMenu;
+struct Resource
+{
+	window_handle_t mainWindow, viewWindow;
+	menu_handle_t dialogMenu, nodeMenu, invokeMenu, logMenu;
+	unique_ptr<VTView> tv;
 
-static std::map<HTREEITEM, int> vartree_vcaret;
-static std::map<HTREEITEM, shared_ptr<string const>> vartree_textCache; //一回の停止中にのみ有効
+	std::array<HWND, countStepButtons> stepButtons;
+	gdi_obj_t font;
+};
+static unique_ptr<Resource> g_res;
 
-HWND getKnowbugHandle() { return hDlgWnd; }
-HWND getSttCtrlHandle() { return hSttCtrl; }
 HWND getVarTreeHandle() { return hVarTree; }
 
-static LineDelimitedString const* ReadFromSourceFile(char const* _filepath);
+static auto windowHandles() -> std::vector<HWND>
+{
+	return std::vector<HWND> { g_res->mainWindow.get(), g_res->viewWindow.get() };
+}
+
 static void setEditStyle(HWND hEdit, int maxlen);
 
-//------------------------------------------------
-// ノード文字列の取得 (memoized)
-//------------------------------------------------
-static std::shared_ptr<string const> getVarNodeString(HTREEITEM hItem)
+namespace View {
+
+void setText(char const* text)
 {
-	auto&& get = [&hItem]() {
-		return VarTree::getItemVarText(hItem);
-	};
-	auto&& stringPtr =
-		(g_config->cachesVardataString)
-		? map_find_or_insert(vartree_textCache, hItem, std::move(get))
-		: get();
-	assert(stringPtr);
-	return stringPtr;
+	SetWindowText(hViewEdit, text);
+};
+
+void scroll(int y, int x)
+{
+	Edit_Scroll(hViewEdit, y, x);
 }
 
-//------------------------------------------------
-// ビューキャレット位置を変更
-//------------------------------------------------
-static void SaveViewCaret()
+void scrollBottom()
 {
-	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
-	if ( hItem != nullptr ) {
-		int const vcaret = Edit_GetFirstVisibleLine(hViewEdit);
-		vartree_vcaret[hItem] = vcaret;
-	}
+	scroll(Edit_GetLineCount(hViewEdit), 0);
 }
 
-//------------------------------------------------
-// ビュー更新
-//------------------------------------------------
-static void UpdateView()
+void selectLine(size_t index)
 {
-	HTREEITEM const hItem = TreeView_GetSelection(hVarTree);
-	if ( hItem ) {
-		static HTREEITEM stt_prevSelection = nullptr;
-		if ( hItem == stt_prevSelection ) {
-			SaveViewCaret();
-		} else {
-			stt_prevSelection = hItem;
-		}
-
-		std::shared_ptr<string const> varinfoText = getVarNodeString(hItem);
-		SetWindowText(hViewEdit, varinfoText->c_str());
-
-		//+script ノードなら現在の実行位置を選択
-		if ( hItem == VarTree::getScriptNodeHandle() ) {
-			auto const p = ReadFromSourceFile(g_dbginfo->curFileName());
-			int const iLine = g_dbginfo->curLine();
-			Edit_Scroll(hViewEdit, std::max(0, iLine - 3), 0);
-			Edit_SetSel(hViewEdit, Edit_LineIndex(hViewEdit, iLine), Edit_LineIndex(hViewEdit, iLine + 1));
-
-		//+log ノードの自動スクロール
-		} else if ( hItem == VarTree::getLogNodeHandle() && g_config->scrollsLogAutomatically ) {
-			Edit_Scroll(hViewEdit, Edit_GetLineCount(hViewEdit), 0);
-
-		} else {
-			auto&& it = vartree_vcaret.find(hItem);
-			int const vcaret = (it != vartree_vcaret.end() ? it->second : 0);
-			Edit_Scroll(hViewEdit, vcaret, 0);
-		}
-	}
+	Edit_SetSel(hViewEdit
+		, Edit_LineIndex(hViewEdit, index)
+		, Edit_LineIndex(hViewEdit, index + 1));
 }
 
-//------------------------------------------------
-// ログのチェックボックス
-//------------------------------------------------
+void saveCurrentCaret()
+{
+	g_res->tv->saveCurrentViewCaret(Edit_GetFirstVisibleLine(hViewEdit));
+}
+
+
+void update()
+{
+	g_res->tv->updateViewWindow();
+}
+
+} // namespace View
+
 bool logsCalling()
 {
 	return g_config->logsInvocation;
 }
 
-//------------------------------------------------
-// ログボックス
-//------------------------------------------------
 namespace LogBox {
-	static HWND hwnd_;
-	static string buf_;
 
-	void init(HWND hwnd)
-	{
-		hwnd_ = hwnd;
-	}
-	string const& get()
-	{
-		return buf_;
-	}
-	void clearImpl()
-	{
-		buf_.clear();
-	}
 	void clear()
 	{
 		if ( !g_config->warnsBeforeClearingLog
-			|| MessageBox(hDlgWnd, "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL) == IDOK ) {
-			clearImpl();
+			|| MessageBox(g_res->mainWindow.get()
+					, "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL
+					) == IDOK
+		) {
+			VTRoot::log()->clear();
 		}
 	}
-	void commit(char const* textAdd)
-	{
-		buf_ += textAdd;
 
-		//キャッシュを消して更新
-		vartree_textCache.erase(VarTree::getLogNodeHandle());
-		if ( TreeView_GetSelection(hVarTree) == VarTree::getLogNodeHandle() ) {
-			UpdateView();
-		}
-	}
-	void add(char const* str) {
-		if ( !str || str[0] == '\0' ) return;
-		commit(str);
-	}
 	void save(char const* filepath) {
-		std::ofstream ofs(filepath);
-		ofs.write(buf_.c_str(), buf_.size());
-		if ( ofs.bad() ) {
-			MessageBox(hDlgWnd, "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
+		if ( !VTRoot::log()->save(filepath) ) {
+			MessageBox(g_res->mainWindow.get()
+				, "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
 		}
 	}
 	void save() {
-		char filename[MAX_PATH + 1] = "";
-		char fullname[MAX_PATH + 1] = "hspdbg.log";
-		OPENFILENAME ofn = { 0 };
-			ofn.lStructSize    = sizeof(ofn);         // 構造体のサイズ
-			ofn.hwndOwner      = hDlgWnd;             // コモンダイアログの親ウィンドウハンドル
-			ofn.lpstrFilter    = "log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";	// ファイルの種類
-			ofn.lpstrFile      = fullname;            // 選択されたファイル名(フルパス)を受け取る変数のアドレス
-			ofn.lpstrFileTitle = filename;            // 選択されたファイル名を受け取る変数のアドレス
-			ofn.nMaxFile       = sizeof(fullname);    // lpstrFileに指定した変数のサイズ
-			ofn.nMaxFileTitle  = sizeof(filename);    // lpstrFileTitleに指定した変数のサイズ
-			ofn.Flags          = OFN_OVERWRITEPROMPT; // フラグ指定
-			ofn.lpstrTitle     = "名前を付けて保存";   // コモンダイアログのキャプション
-			ofn.lpstrDefExt    = "log";               // デフォルトのファイルの種類
-
-		if ( GetSaveFileName(&ofn) ) {
-			save(fullname);
+		char const* const filter =
+			"log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";
+		if ( auto&& path = Dialog_SaveFileName(g_res->mainWindow.get()
+				, filter, "log", "hspdbg.log" )
+			) {
+			save(path->c_str());
 		}
 	}
 } //namespace LogBox
 
-//------------------------------------------------
-// ソースファイルを開く
-//
-// @ エディタ上で編集中の場合、ファイルの内容が実際と異なることがある。行番号のアウトレンジに注意。
-//------------------------------------------------
-
-static std::unique_ptr<string> TrySearchFile(char const* filepath) {
-	char* filename = nullptr;
-	char fullpath[MAX_PATH + 2] {};
-	if ( SearchPath(nullptr, filepath, nullptr, sizeof(fullpath), fullpath, &filename) ) {
-		return std::make_unique<string>(fullpath);
-	} else if ( SearchPath(g_config->commonPath().c_str(), filepath, nullptr, sizeof(fullpath), fullpath, &filename) ) {
-		return std::make_unique<string>(fullpath);
-	}
-	return nullptr;
-}
-
-// 読み込み処理
-optional_ref<LineDelimitedString const> ReadFromSourceFile(char const* _filepath)
-{
-	if ( auto const&& p = TrySearchFile(_filepath) ) {
-		string const filepath = *p;
-
-		// キャッシュから検索
-		static std::map<string const, LineDelimitedString> stt_cache;
-		auto& lds = map_find_or_insert(stt_cache, filepath, [&filepath]() {
-			std::ifstream ifs { filepath };
-			assert(ifs.is_open());
-			return LineDelimitedString(ifs);
-		});
-		return &lds;
-	}
-	return nullptr;
-}
-
-// ソースタブを同期する
+// ソース小窓の更新
 static void UpdateCurInfEdit(char const* filepath, int iLine)
 {
 	if ( !filepath || iLine < 0 ) return;
 	auto const&& curinf = DebugInfo::formatCurInfString(filepath, iLine);
 
-	if ( auto const p = ReadFromSourceFile(filepath) ) {
-		SetWindowText(hSrcLine, (curinf + "\r\n" + p->line(iLine)).c_str());
+	if ( auto&& p = VTRoot::script()->fetchScriptLine(filepath, iLine) ) {
+		SetWindowText(hSrcLine, (curinf + "\r\n" + *p).c_str());
 
 	} else {
 		SetWindowText(hSrcLine, curinf.c_str());
 	}
 }
 
-optional_ref<string const> tryGetCurrentScript() {
-	if ( auto const p = ReadFromSourceFile(g_dbginfo->curFileName()) ) {
-		return &p->get();
-	}
-	return nullptr;
-}
-
-//------------------------------------------------
-// 実行中の位置表示を更新する (line, file)
-//------------------------------------------------
 static void CurrentUpdate()
 {
 	UpdateCurInfEdit(g_dbginfo->curFileName(), g_dbginfo->curLine());
 }
 
-//------------------------------------------------
 // ツリーノードのコンテキストメニュー
-//------------------------------------------------
-void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
+void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 {
-	auto const nodeString = TreeView_GetItemString(hVarTree, hItem);
-	HMENU hPop;
-#ifdef with_WrapCall
-	if ( VarTree::InvokeNode::isTypeOf(nodeString.c_str()) ) {
-		hPop = hInvokeNodeMenu;
-	} else
-#endif //defined(with_WrapCall)
-	if ( VarTree::SystemNode::isTypeOf(nodeString.c_str())
-		&& VarTree::TreeView_MyLParam<VarTree::SystemNode>(hVarTree, hItem) == VarTree::SystemNodeId::Log ) {
-		hPop = hLogNodeMenu;
-	} else {
-		hPop = hNodeMenu;
-	}
+	struct GetPopMenu
+		: public VTNodeData::Visitor
+	{
+		void fInvoke(VTNodeInvoke const&) override
+		{
+			hPop = g_res->invokeMenu.get();
+		}
+		void fLog(VTNodeLog const&) override
+		{
+			hPop = g_res->logMenu.get();
+		}
+		HMENU apply(VTNodeData const& node)
+		{
+			hPop = g_res->nodeMenu.get(); // default
+			node.acceptVisitor(*this);
+			return hPop;
+		}
+	private:
+		HMENU hPop;
+	};
+
+	auto&& node = g_res->tv->tryGetNodeData(hItem);
+	if ( !node ) return;
+	HMENU const hPop = GetPopMenu {}.apply(*node);
 
 	// ポップアップメニューを表示する
-	int const idSelected = TrackPopupMenuEx(
-		hPop, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD),
-		x, y, hDlgWnd, nullptr
-	);
+	int const idSelected =
+		TrackPopupMenuEx
+			( hPop, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD)
+			, pt.x, pt.y, g_res->mainWindow.get(), nullptr);
 
 	switch ( idSelected ) {
 		case 0: break;
-		case IDC_NODE_UPDATE: UpdateView(); break;
+		case IDC_NODE_UPDATE: View::update(); break;
 		case IDC_NODE_LOG: {
-			Knowbug::logmes(getVarNodeString(hItem)->c_str());
+			Knowbug::logmes(g_res->tv->getItemVarText(hItem)->c_str());
 			break;
 		}
 #ifdef with_WrapCall
 		case IDC_NODE_STEP_OUT: {
-			auto const idx = VarTree::TreeView_MyLParam<VarTree::InvokeNode>(hVarTree, hItem);
-			if ( auto const pCallInfo = WrapCall::tryGetCallInfoAt(idx) ) {
+			if ( auto&& nodeInvoke = std::dynamic_pointer_cast<VTNodeInvoke const>(node) ) {
 				// 対象が呼び出された階層まで進む
-				Knowbug::runStepReturn(pCallInfo->sublev);
+				Knowbug::runStepReturn(nodeInvoke->callinfo().sublev);
 			}
 			break;
 		}
 #endif //defined(with_WrapCall)
 		case IDC_LOG_AUTO_SCROLL: {
-			bool& b = g_config->scrollsLogAutomatically;
-			b = !b;
-			CheckMenuItem(hLogNodeMenu, IDC_LOG_AUTO_SCROLL, (b ? MF_CHECKED : MF_UNCHECKED));
+			Menu_ToggleCheck(hPop, IDC_LOG_AUTO_SCROLL, g_config->scrollsLogAutomatically);
 			break;
 		}
 		case IDC_LOG_INVOCATION: {
-			bool& b = g_config->logsInvocation;
-			b = !b;
-			CheckMenuItem(hLogNodeMenu, IDC_LOG_INVOCATION, (b ? MF_CHECKED : MF_UNCHECKED));
+			Menu_ToggleCheck(hPop, IDC_LOG_INVOCATION, g_config->logsInvocation);
 			break;
 		}
 		case IDC_LOG_SAVE: LogBox::save(); break;
@@ -325,9 +215,36 @@ void VarTree_PopupMenu(HTREEITEM hItem, int x, int y)
 	}
 }
 
-//------------------------------------------------
-// 親ダイアログのコールバック関数
-//------------------------------------------------
+static void resizeMainWindow(size_t cx, size_t cy, bool repaints)
+{
+	if ( ! g_res ) return;
+
+	int const
+		  sourceLineBoxSizeY = 50
+		, buttonSizeX = cx / countStepButtons
+		, buttonSizeY = 20
+		, tvSizeY = cy - (sourceLineBoxSizeY + buttonSizeY)
+		;
+
+	MoveWindow(hVarTree
+		, 0, 0
+		, cx, tvSizeY
+		, repaints);
+	MoveWindow(hSrcLine
+		, 0, tvSizeY
+		, cx, sourceLineBoxSizeY
+		, repaints);
+
+	for ( size_t i = 0; i < countStepButtons; ++ i ) {
+		MoveWindow(g_res->stepButtons[i]
+			, i * buttonSizeX
+			, tvSizeY + sourceLineBoxSizeY
+			, buttonSizeX, buttonSizeY
+			, repaints);
+	}
+}
+
+// メインウィンドウのコールバック関数
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
 	switch ( msg ) {
@@ -340,38 +257,42 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				case IDC_BTN5: Knowbug::runStepOut();  break;
 
 				case IDC_TOPMOST: {
-					bool& b = g_config->bTopMost;
-					b = !b;
-					CheckMenuItem(hDlgMenu, IDC_TOPMOST, (b ? MF_CHECKED : MF_UNCHECKED));
-					Window_SetTopMost(hDlgWnd, g_config->bTopMost);
-					Window_SetTopMost(hViewWnd, g_config->bTopMost);
+					Menu_ToggleCheck(g_res->dialogMenu.get(), IDC_TOPMOST, g_config->bTopMost);
+					for ( auto&& hwnd : windowHandles() ) {
+						Window_SetTopMost(hwnd, g_config->bTopMost);
+					}
 					break;
 				}
 				case IDC_OPEN_CURRENT_SCRIPT: {
-					if ( auto const&& p = TrySearchFile(g_dbginfo->curFileName()) ) {
-						ShellExecute(nullptr, "open", p->c_str(), nullptr, "", SW_SHOWDEFAULT);
+					if ( auto const&& p =
+							VTRoot::script()->resolveRefName(g_dbginfo->curFileName())
+						) {
+						ShellExecute(nullptr, "open"
+							, p->c_str(), nullptr, "", SW_SHOWDEFAULT);
 					}
 					break;
 				}
 				case IDC_OPEN_INI: {
 					std::ofstream of { g_config->selfPath(), std::ios::app }; //create empty file if not exist
-					ShellExecute(nullptr, "open", g_config->selfPath().c_str(), nullptr, "", SW_SHOWDEFAULT);
+					ShellExecute(nullptr, "open"
+						, g_config->selfPath().c_str(), nullptr, "", SW_SHOWDEFAULT);
 					break;
 				}
 				case IDC_UPDATE: {
-					UpdateView();
+					View::update();
 					break;
 				}
 				case IDC_OPEN_KNOWBUG_REPOS: {
-					ShellExecute(nullptr, "open", "https://github.com/vain0/knowbug", nullptr, "", SW_SHOWDEFAULT);
+					ShellExecute(nullptr, "open"
+						, KnowbugRepoUrl, nullptr, "", SW_SHOWDEFAULT);
 					break;
 				}
 				case IDC_GOTO_LOG: {
-					TreeView_SelectItem(hVarTree, VarTree::getLogNodeHandle());
+					g_res->tv->selectNode(*VTRoot::log());
 					break;
 				}
 				case IDC_GOTO_SCRIPT: {
-					TreeView_SelectItem(hVarTree, VarTree::getScriptNodeHandle());
+					g_res->tv->selectNode(*VTRoot::script());
 					break;
 				}
 			}
@@ -379,12 +300,9 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 
 		case WM_CONTEXTMENU: {
 			if ( (HWND)wp == hVarTree ) {
-				TV_HITTESTINFO tvHitTestInfo;
-				tvHitTestInfo.pt = { LOWORD(lp), HIWORD(lp) };
-				ScreenToClient(hVarTree, &tvHitTestInfo.pt);
-				auto const hItem = TreeView_HitTest(hVarTree, &tvHitTestInfo);
-				if ( hItem && tvHitTestInfo.flags & TVHT_ONITEMLABEL ) { //文字列アイテムにヒット
-					VarTree_PopupMenu(hItem, LOWORD(lp), HIWORD(lp));
+				POINT pt = { LOWORD(lp), HIWORD(lp) };
+				if ( auto&& hItem = TreeView_GetItemAtPoint(hVarTree, pt) ) {
+					VarTree_PopupMenu(hItem, pt);
 					return TRUE;
 				}
 			}
@@ -396,16 +314,16 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				switch ( nmhdr->code ) {
 					case NM_DBLCLK:
 					case NM_RETURN:
-					case TVN_SELCHANGED: UpdateView(); break;
-					case TVN_SELCHANGING: SaveViewCaret(); break;
-					case TVN_DELETEITEM: {
-						NMTREEVIEW* const nmtv = reinterpret_cast<NMTREEVIEW*>(lp);
-						vartree_vcaret.erase(nmtv->itemOld.hItem);
+					case TVN_SELCHANGED:
+						View::update();
 						break;
-					}
+					case TVN_SELCHANGING:
+						View::saveCurrentCaret();
+						break;
 					case NM_CUSTOMDRAW: {
 						if ( !g_config->bCustomDraw ) break;
-						LRESULT const res = VarTree::customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
+						LRESULT const res =
+							g_res->tv->customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
 						SetWindowLongPtr(hDlg, DWLP_MSGRESULT, res);
 						return TRUE;
 					}
@@ -413,13 +331,12 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			}
 			break;
 		}
+		case WM_SIZE:
+			resizeMainWindow(LOWORD(lp), HIWORD(lp), true);
+			break;
 		case WM_CREATE: return TRUE;
 		case WM_CLOSE: return FALSE;
 		case WM_DESTROY:
-			DestroyMenu(hNodeMenu);
-			DestroyMenu(hLogNodeMenu);
-			DestroyMenu(hInvokeNodeMenu);
-			DestroyWindow(hViewWnd);
 			PostQuitMessage(0);
 			break;
 	}
@@ -431,50 +348,13 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	switch ( msg ) {
 		case WM_CREATE: return TRUE;
 		case WM_CLOSE: return FALSE;
-		case WM_SIZING: {
-			RECT rc; GetClientRect(hDlg, &rc);
-			MoveWindow(hViewEdit, 0, 0, rc.right, rc.bottom, false);
+		case WM_SIZE:
+			MoveWindow(hViewEdit, 0, 0, LOWORD(lp), HIWORD(lp), TRUE);
 			break;
-		}
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-//------------------------------------------------
-// 簡易ウィンドウ生成
-//------------------------------------------------
-static HWND MyCreateWindow(char const* className, WNDPROC proc, char const* caption, int windowStyles, int sizeX, int sizeY, int posX, int posY)
-{
-	WNDCLASS wndclass;
-	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
-	wndclass.lpfnWndProc   = proc;
-	wndclass.cbClsExtra    = 0;
-	wndclass.cbWndExtra    = 0;
-	wndclass.hInstance     = Knowbug::getInstance();
-	wndclass.hIcon         = nullptr;
-	wndclass.hCursor       = LoadCursor(nullptr, IDC_ARROW);
-	wndclass.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
-	wndclass.lpszMenuName  = nullptr;
-	wndclass.lpszClassName = className;
-	RegisterClass(&wndclass);
-	
-	HWND hWnd = CreateWindow(className, caption,
-		(WS_CAPTION | WS_VISIBLE | windowStyles),
-		posX, posY, sizeX, sizeY,
-		nullptr, nullptr,
-		Knowbug::getInstance(),
-		nullptr
-	);
-	if ( !hWnd ) {
-		MessageBox(nullptr, "Debug window initalizing failed.", "Error", 0);
-		abort();
-	}
-	return hWnd;
-}
-
-//------------------------------------------------
-// メインダイアログを生成する
-//------------------------------------------------
 void Dialog::createMain()
 {
 	int const dispx = GetSystemMetrics(SM_CXSCREEN);
@@ -484,103 +364,123 @@ void Dialog::createMain()
 	int const viewSizeX = g_config->viewSizeX, viewSizeY = g_config->viewSizeY;
 
 	//ビューウィンドウ
-	hViewWnd = MyCreateWindow("KnowbugViewWindow", ViewDialogProc, KnowbugViewWindowTitle, (WS_THICKFRAME),
-		viewSizeX, viewSizeY,
-		dispx - mainSizeX - viewSizeX, 0
-	);
-	SetWindowLongPtr(hViewWnd, GWL_EXSTYLE, GetWindowLongPtr(hViewWnd, GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
+	window_handle_t hViewWnd {
+		Window_Create
+			( "KnowbugViewWindow", ViewDialogProc
+			, KnowbugViewWindowTitle, (WS_THICKFRAME)
+			, viewSizeX, viewSizeY
+			, dispx - mainSizeX - viewSizeX, 0
+			, Knowbug::getInstance()
+			) };
+	SetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE
+		, GetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
 	{
-		HWND const hPane = CreateDialog(Knowbug::getInstance(), (LPCSTR)IDD_VIEW_PANE, hViewWnd, (DLGPROC)ViewDialogProc);
+		HWND const hPane =
+			CreateDialog(Knowbug::getInstance()
+				, (LPCSTR)IDD_VIEW_PANE
+				, hViewWnd.get(), (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
 		setEditStyle(hViewEdit, g_config->maxLength);
-
-		//エディタをクライアント領域全体に広げる
-		RECT rc; GetClientRect(hViewWnd, &rc);
-		MoveWindow(hViewEdit, 0, 0, rc.right, rc.bottom, false);
 
 		ShowWindow(hPane, SW_SHOW);
 	}
 
 	//メインウィンドウ
-	hDlgWnd = MyCreateWindow("KnowbugMainWindow", DlgProc, KnowbugMainWindowTitle, 0x0000,
-		mainSizeX, mainSizeY,
-		dispx - mainSizeX, 0
-	);
+	window_handle_t hDlgWnd {
+		Window_Create
+			( "KnowbugMainWindow", DlgProc
+			, KnowbugMainWindowTitle, WS_THICKFRAME
+			, mainSizeX, mainSizeY
+			, dispx - mainSizeX, 0
+			, Knowbug::getInstance()
+			) };
 	{
-		HWND const hPane = CreateDialog(Knowbug::getInstance(), (LPCSTR)IDD_MAIN_PANE, hDlgWnd, (DLGPROC)DlgProc);
+		HWND const hPane =
+			CreateDialog(Knowbug::getInstance()
+				, (LPCSTR)IDD_MAIN_PANE
+				, hDlgWnd.get(), (DLGPROC)DlgProc);
 		ShowWindow(hPane, SW_SHOW);
 
 		//メニューバー
-		hDlgMenu = LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_MAIN_MENU);
-		SetMenu(hDlgWnd, hDlgMenu);
+		menu_handle_t hDlgMenu { LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_MAIN_MENU) };
+		SetMenu(hDlgWnd.get(), hDlgMenu.get());
 
 		//ポップメニュー
 		HMENU const hNodeMenuBar = LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_NODE_MENU);
-		hNodeMenu       = GetSubMenu(hNodeMenuBar, 0);
-		hInvokeNodeMenu = GetSubMenu(hNodeMenuBar, 1);
-		hLogNodeMenu	= GetSubMenu(hNodeMenuBar, 2);
 
 		//いろいろ
 		hVarTree = GetDlgItem(hPane, IDC_VARTREE);
 		hSrcLine = GetDlgItem(hPane, IDC_SRC_LINE);
-		hStepButtons = { {
-				GetDlgItem(hPane, IDC_BTN1),
-				GetDlgItem(hPane, IDC_BTN2),
-				GetDlgItem(hPane, IDC_BTN3),
-				GetDlgItem(hPane, IDC_BTN4),
-				GetDlgItem(hPane, IDC_BTN5),
-			} };
 
-		// ツリービュー
-		VarTree::init();
+		// メンバの順番に注意
+		g_res.reset(new Resource
+			{ std::move(hDlgWnd)
+			, std::move(hViewWnd)
+			, std::move(hDlgMenu)
+			, menu_handle_t { GetSubMenu(hNodeMenuBar, 0) } // node
+			, menu_handle_t { GetSubMenu(hNodeMenuBar, 1) } // invoke
+			, menu_handle_t { GetSubMenu(hNodeMenuBar, 2) } // log
+			, std::make_unique<VTView>()
+			, {{
+				  GetDlgItem(hPane, IDC_BTN1)
+				, GetDlgItem(hPane, IDC_BTN2)
+				, GetDlgItem(hPane, IDC_BTN3)
+				, GetDlgItem(hPane, IDC_BTN4)
+				, GetDlgItem(hPane, IDC_BTN5) }}
+			, gdi_obj_t {
+					Font_Create
+						( g_config->fontFamily.c_str()
+						, g_config->fontSize
+						, g_config->fontAntialias ) }
+			});
 	}
 
 	if ( g_config->bTopMost ) {
-		CheckMenuItem(hDlgMenu, IDC_TOPMOST, MF_CHECKED);
-		Window_SetTopMost(hDlgWnd, true);
-		Window_SetTopMost(hViewWnd, true);
+		CheckMenuItem(g_res->dialogMenu.get(), IDC_TOPMOST, MF_CHECKED);
+		for ( auto&& hwnd : windowHandles() ) {
+			Window_SetTopMost(hwnd, true);
+		}
 	}
 	if ( g_config->scrollsLogAutomatically ) {
-		CheckMenuItem(hLogNodeMenu, IDC_LOG_AUTO_SCROLL, MF_CHECKED);
+		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_AUTO_SCROLL, MF_CHECKED);
 	}
 	if ( g_config->logsInvocation ) {
-		CheckMenuItem(hLogNodeMenu, IDC_LOG_INVOCATION, MF_CHECKED);
+		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_INVOCATION, MF_CHECKED);
 	}
 
-	UpdateWindow(hDlgWnd); ShowWindow(hDlgWnd, SW_SHOW);
-	UpdateWindow(hViewWnd); ShowWindow(hViewWnd, SW_SHOW);
+	for ( auto&& hwnd : { hSrcLine, hViewEdit } ) {
+		SendMessage(hwnd, WM_SETFONT
+			, (WPARAM)(g_res->font.get())
+			, /* repaints = */ FALSE);
+	}
+
+	{
+		RECT rc; GetClientRect(g_res->mainWindow.get(), &rc);
+		resizeMainWindow(rc.right, rc.bottom, false);
+	}
+	{
+		RECT rc; GetClientRect(g_res->viewWindow.get(), &rc);
+		MoveWindow(hViewEdit, 0, 0, rc.right, rc.bottom, FALSE);
+	}
+
+	for ( auto&& hwnd : windowHandles() ) {
+		UpdateWindow(hwnd);
+		ShowWindow(hwnd, SW_SHOW);
+	}
 }
 
 void Dialog::destroyMain()
 {
-	if ( !g_config->logPath.empty() ) { //auto save
-		LogBox::save(g_config->logPath.c_str());
-	}
-
-	if ( hDlgWnd != nullptr ) {
-		DestroyWindow(hDlgWnd);
-		hDlgWnd = nullptr;
-	}
+	g_res.reset();
 }
 
-//------------------------------------------------
-// 更新
-// 
-// @ dbgnotice (stop) から呼ばれる。
-//------------------------------------------------
+// 一時停止時に dbgnotice から呼ばれる
 void update()
 {
-	vartree_textCache.clear();
-
 	CurrentUpdate();
-	UpdateView();
+	g_res->tv->update();
 }
 
-//------------------------------------------------
-// エディットコントロールの標準スタイル
-// 
-// @ 設定に依存
-//------------------------------------------------
 void setEditStyle( HWND hEdit, int maxlen )
 {
 	Edit_SetTabLength(hEdit, g_config->tabwidth);
@@ -589,15 +489,14 @@ void setEditStyle( HWND hEdit, int maxlen )
 
 } // namespace Dialog
 
-//##############################################################################
-//                公開API
-//##############################################################################
+// 公開API
+
 EXPORT HWND WINAPI knowbug_hwnd()
 {
-	return Dialog::getKnowbugHandle();
+	return Dialog::g_res->mainWindow.get();
 }
 
 EXPORT HWND WINAPI knowbug_hwndView()
 {
-	return Dialog::hViewWnd;
+	return Dialog::g_res->viewWindow.get();
 }

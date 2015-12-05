@@ -10,21 +10,18 @@
 #undef min
 #undef max
 
-#include "hsp3plugin.h"
-#undef stat
-#include "hpimod/basis.h"
-
+#include "hpiutil/hpiutil.hpp"
 #include "DebugInfo.h"
 #include "module/utility.h"
 
-using hpimod::vartype_t;
-using hpimod::varmode_t;
-using hpimod::label_t;
-using hpimod::csptr_t;
-using hpimod::stdat_t;
-using hpimod::stprm_t;
-using hpimod::HSPVAR_FLAG_COMOBJ;
-using hpimod::HSPVAR_FLAG_VARIANT;
+using hpiutil::vartype_t;
+using hpiutil::varmode_t;
+using hpiutil::label_t;
+using hpiutil::csptr_t;
+using hpiutil::stdat_t;
+using hpiutil::stprm_t;
+using hpiutil::HSPVAR_FLAG_COMOBJ;
+using hpiutil::HSPVAR_FLAG_VARIANT;
 
 //extern HSPCTX* ctx; // declared and defined in hsp3plugin.(h/cpp)
 //extern HSPEXINFO* exinfo;

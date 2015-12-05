@@ -7,22 +7,16 @@
 #include "hsp3struct.h"
 #include "hspvar_core.h"
 
-namespace hpimod { class CAx; }
-
 // HSP3DEBUG wrapper
-// with CAx
 class DebugInfo
 {
 	using string = std::string;
 
 	HSP3DEBUG* const debug_;
-	std::unique_ptr<hpimod::CAx> const ax_;
 
 public:
 	DebugInfo(HSP3DEBUG* debug);
 	~DebugInfo();
-
-	hpimod::CAx const& getAx() const { return *ax_; }
 
 	bool setStepMode(int mode) { return (debug_->dbg_set(mode) >= 0); }
 
@@ -31,7 +25,7 @@ public:
 
 	// current position data
 	char const* curFileName() const {
-		return debug_->fname;
+		return (debug_->fname ? debug_->fname : "???");
 	}
 	int curLine() const {
 		return debug_->line - 1;

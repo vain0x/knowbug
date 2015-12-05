@@ -14,15 +14,13 @@ class CAssoc;
 class CVector;
 class CArray;
 #endif
-namespace Sysvar {
-	enum Id;
-}
 
 // 変数データの文字列を作るクラス
 class CVardataStrWriter
 {
 private:
 	std::unique_ptr<CStructedStrWriter> writer_;
+	mutable unordered_map<void const*, string> visited_;
 
 public:
 	CVardataStrWriter(CVardataStrWriter&& src);
@@ -48,7 +46,7 @@ public:
 	void addVarScalar(char const* name, PVal const* pval, APTR aptr);
 	void addVarArray(char const* name, PVal const* pval);
 private:
-	void addVarArrayRec(PVal const* pval, size_t const (&cntElem)[hpimod::ArrayDimMax + 1], size_t idxDim, APTR aptr_offset);
+	void addVarArrayRec(PVal const* pval, size_t const (&cntElem)[hpiutil::ArrayDimMax + 1], size_t idxDim, APTR aptr_offset);
 public:
 	void addValue(char const* name, vartype_t type, PDAT const* ptr);
 	void addValueString(char const* name, char const* str);
@@ -69,7 +67,7 @@ public:
 	void addPrmstack(stdat_t stdat, std::pair<void const*, bool> prmstk);
 	void addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member, bool isSafe);
 
-	void addSysvar(Sysvar::Id id);
+	void addSysvar(hpiutil::Sysvar::Id id);
 
 #ifdef with_WrapCall
 	void addCall(stdat_t stdat, std::pair<void const*, bool> prmstk);
@@ -78,6 +76,9 @@ public:
 
 public:
 	CStructedStrWriter& getWriter() const { return *writer_; }
+
+private:
+	bool tryPrune(char const* name, void const* ptr) const;
 };
 
 #endif

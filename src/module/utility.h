@@ -6,19 +6,27 @@
 #include <cassert>
 #include <memory>
 #include <string>
+#include <array>
 #include <vector>
-#include <map>
+#include <unordered_map>
+#include <functional>
 #include "pair_range.hpp"
 #include "range_all.hpp"
 
 using std::string;
 using std::vector;
-using std::map;
+using std::unordered_map;
 using std::shared_ptr;
 using std::unique_ptr;
 
 // unreachable code
 #define assert_sentinel do { assert(false); throw; } while(false)
+
+#ifdef _DEBUG
+# define DbgArea /* empty */
+#else
+# define DbgArea if ( false )
+#endif
 
 // optional<T&>
 template<typename T> using optional_ref = T*;

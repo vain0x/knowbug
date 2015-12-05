@@ -1,6 +1,46 @@
 ﻿
 #include <vector>
+#include <array>
 #include "GuiUtility.h"
+
+//------------------------------------------------
+// 簡易ウィンドウ生成
+//------------------------------------------------
+HWND Window_Create
+	( char const* className, WNDPROC proc
+	, char const* caption, int windowStyles
+	, int sizeX, int sizeY, int posX, int posY
+	, HINSTANCE hInst)
+{
+	WNDCLASS wndclass;
+	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
+	wndclass.lpfnWndProc   = proc;
+	wndclass.cbClsExtra    = 0;
+	wndclass.cbWndExtra    = 0;
+	wndclass.hInstance     = hInst;
+	wndclass.hIcon         = nullptr;
+	wndclass.hCursor       = LoadCursor(nullptr, IDC_ARROW);
+	wndclass.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
+	wndclass.lpszMenuName  = nullptr;
+	wndclass.lpszClassName = className;
+	RegisterClass(&wndclass);
+
+	HWND const hWnd =
+		CreateWindow
+			( className, caption
+			, (WS_CAPTION | WS_VISIBLE | windowStyles)
+			, posX, posY, sizeX, sizeY
+			, /* parent = */ nullptr
+			, /* hMenu = */ nullptr
+			, hInst
+			, /* lparam = */ nullptr
+			);
+	if ( !hWnd ) {
+		MessageBox(nullptr, "Debug window initalizing failed.", "Error", 0);
+		abort();
+	}
+	return hWnd;
+}
 
 //------------------------------------------------
 // ウィンドウを最前面にする
@@ -11,6 +51,15 @@ void Window_SetTopMost(HWND hwnd, bool isTopMost)
 		hwnd, (isTopMost ? HWND_TOPMOST : HWND_NOTOPMOST),
 		0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)
 		);
+}
+
+//------------------------------------------------
+// メニュー項目のチェックを反転
+//------------------------------------------------
+void Menu_ToggleCheck(HMENU menu, UINT itemId, bool& checked)
+{
+	checked = !checked;
+	CheckMenuItem(menu, itemId, (checked ? MF_CHECKED : MF_UNCHECKED));
 }
 
 //------------------------------------------------
@@ -103,4 +152,61 @@ HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
 		hLast = hNext;
 	}
 	return hLast;
+}
+
+//------------------------------------------------
+// スクリーン座標 pt にある要素
+//------------------------------------------------
+HTREEITEM TreeView_GetItemAtPoint(HWND hwndTree, POINT pt)
+{
+	TV_HITTESTINFO tvHitTestInfo;
+	tvHitTestInfo.pt = pt;
+	ScreenToClient(hwndTree, &tvHitTestInfo.pt);
+	auto const hItem = TreeView_HitTest(hwndTree, &tvHitTestInfo);
+	return ((tvHitTestInfo.flags & TVHT_ONITEM) != 0)
+		? hItem : nullptr;
+}
+
+auto Dialog_SaveFileName(HWND owner
+	, char const* filter, char const* defaultFilter, char const* defaultFileName)
+	-> std::unique_ptr<string>
+{
+	std::array<char, MAX_PATH> fileName;
+	std::array<char, MAX_PATH> fullName;
+	std::strcpy(fullName.data(), defaultFileName);
+
+	OPENFILENAME ofn {};
+	ofn.lStructSize    = sizeof(ofn);
+	ofn.hwndOwner      = owner;
+	ofn.lpstrFilter    = filter;
+	ofn.lpstrFile      = fullName.data();
+	ofn.lpstrFileTitle = fileName.data();
+	ofn.nMaxFile       = fullName.size();
+	ofn.nMaxFileTitle  = fileName.size();
+	ofn.Flags          = OFN_OVERWRITEPROMPT;
+	ofn.lpstrTitle     = "名前を付けて保存";
+	ofn.lpstrDefExt    = defaultFilter;
+	return (GetSaveFileName(&ofn))
+		? std::make_unique<string>(fullName.data()) : nullptr;
+}
+
+HFONT Font_Create(char const* family, int size, bool antialias)
+{
+	LOGFONT lf;
+	lf.lfHeight         = -size; // size pt
+	lf.lfWidth          = 0;
+	lf.lfEscapement     = 0;
+	lf.lfOrientation    = 0;
+	lf.lfWeight         = FW_NORMAL;
+	lf.lfItalic         = FALSE;
+	lf.lfUnderline      = FALSE;
+	lf.lfStrikeOut      = FALSE;
+	lf.lfCharSet        = DEFAULT_CHARSET;
+	lf.lfOutPrecision   = OUT_DEFAULT_PRECIS;
+	lf.lfClipPrecision  = CLIP_DEFAULT_PRECIS;
+	lf.lfQuality        = (antialias ? ANTIALIASED_QUALITY : DEFAULT_QUALITY);
+	lf.lfPitchAndFamily = DEFAULT_PITCH;
+
+	::strcpy(lf.lfFaceName, family);
+	return CreateFontIndirect(&lf);
 }

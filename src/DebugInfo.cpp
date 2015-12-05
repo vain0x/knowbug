@@ -2,15 +2,11 @@
 #include "main.h"
 #include "hspwnd.h"
 #include "DebugInfo.h"
-#include "CAx.h"
 #include "module/supio/supio.h"
 #include "module/strf.h"
 
-using namespace hpimod;
-
 DebugInfo::DebugInfo(HSP3DEBUG* debug)
 	: debug_(debug)
-	, ax_(new CAx())
 { }
 
 DebugInfo::~DebugInfo() {}
@@ -65,7 +61,7 @@ std::vector<std::pair<string, string>> DebugInfo::fetchGeneralInfo() const
 std::vector<string> DebugInfo::fetchStaticVarNames() const
 {
 	std::vector<string> names;
-	names.reserve(hpimod::cntSttVars());
+	names.reserve(hpiutil::staticVars().size());
 
 	std::unique_ptr<char, void(*)(char*)> p(
 		debug_->get_varinf(nullptr, 0xFF),

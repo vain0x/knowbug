@@ -32,7 +32,7 @@ static uintptr_t address_cast(void const* p)
 #else
 static unsigned long address_cast(void const* p)
 {
-	return ctype_cast<unsigned long>(p);
+	return (unsigned long)(p);
 }
 #endif
 

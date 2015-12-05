@@ -6,7 +6,7 @@
 #include <string>
 #include <algorithm>
 
-#include "../../cppformat/format.h"
+#include "../cppformat/format.h"
 
 //forwarder to adapt interface with hsp
 template<typename... Args>
