@@ -51,6 +51,8 @@ public:
 	bool bTopMost;
 	int viewSizeX, viewSizeY;
 	int  tabwidth;
+	string fontFamily;
+	int fontSize;
 	int  maxLength, infiniteNest;
 	bool showsVariableAddress, showsVariableSize, showsVariableDump;
 	string prefixHiddenModule;

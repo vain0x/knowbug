@@ -32,3 +32,5 @@ HTREEITEM TreeView_GetItemAtPoint(HWND hwndTree, POINT pt);
 auto Dialog_SaveFileName(HWND owner
 	, char const* filter, char const* defaultFilter, char const* defaultFileName)
 	-> std::unique_ptr<string>;
+
+HFONT Font_Create(char const* family, int size);

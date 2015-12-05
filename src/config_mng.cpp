@@ -41,6 +41,8 @@ KnowbugConfig::KnowbugConfig()
 	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
 	viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
 	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
+	fontFamily = ini.getString("Interface", "fontFamily", "MS Gothic");
+	fontSize   = ini.getInt("Interface", "fontSize", 13);
 
 	maxLength    = ini.getInt("Varinfo", "maxlen", 0x10000 - 1);
 	infiniteNest = ini.getInt("Varinfo", "infiniteNest", 8);

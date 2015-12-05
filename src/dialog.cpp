@@ -47,6 +47,7 @@ struct Resource
 	unique_ptr<VTView> tv;
 
 	std::array<HWND, countStepButtons> stepButtons;
+	gdi_obj_t font;
 };
 static unique_ptr<Resource> g_res;
 
@@ -56,6 +57,19 @@ static auto windowHandles() -> std::vector<HWND>
 {
 	return std::vector<HWND> { g_res->mainWindow.get(), g_res->viewWindow.get() };
 }
+
+static auto allControls() -> vector<HWND>
+{
+	vector<HWND> all { RANGE_ALL(g_res->stepButtons) };
+	all.insert(all.end()
+		, { hVarTree
+		, hSrcLine
+		, hViewEdit
+		}
+	);
+	return all;
+}
+
 static void setEditStyle(HWND hEdit, int maxlen);
 
 namespace View {
@@ -425,6 +439,10 @@ void Dialog::createMain()
 				, GetDlgItem(hPane, IDC_BTN3)
 				, GetDlgItem(hPane, IDC_BTN4)
 				, GetDlgItem(hPane, IDC_BTN5) }}
+			, gdi_obj_t {
+					Font_Create
+						( g_config->fontFamily.c_str()
+						, g_config->fontSize ) }
 			});
 	}
 
@@ -439,6 +457,12 @@ void Dialog::createMain()
 	}
 	if ( g_config->logsInvocation ) {
 		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_INVOCATION, MF_CHECKED);
+	}
+
+	for ( auto&& hwnd : allControls() ) {
+		SendMessage(hwnd, WM_SETFONT
+			, (WPARAM)(g_res->font.get())
+			, /* repaints = */ FALSE);
 	}
 
 	{
