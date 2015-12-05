@@ -213,6 +213,35 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 	}
 }
 
+static void resizeMainWindow(size_t cx, size_t cy, bool repaints)
+{
+	if ( ! g_res ) return;
+
+	int const
+		  sourceLineBoxSizeY = 50
+		, buttonSizeX = cx / countStepButtons
+		, buttonSizeY = 20
+		, tvSizeY = cy - (sourceLineBoxSizeY + buttonSizeY)
+		;
+
+	MoveWindow(hVarTree
+		, 0, 0
+		, cx, tvSizeY
+		, repaints);
+	MoveWindow(hSrcLine
+		, 0, tvSizeY
+		, cx, sourceLineBoxSizeY
+		, repaints);
+
+	for ( size_t i = 0; i < countStepButtons; ++ i ) {
+		MoveWindow(g_res->stepButtons[i]
+			, i * buttonSizeX
+			, tvSizeY + sourceLineBoxSizeY
+			, buttonSizeX, buttonSizeY
+			, repaints);
+	}
+}
+
 // メインウィンドウのコールバック関数
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -300,6 +329,9 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			}
 			break;
 		}
+		case WM_SIZE:
+			resizeMainWindow(LOWORD(lp), HIWORD(lp), true);
+			break;
 		case WM_CREATE: return TRUE;
 		case WM_CLOSE: return FALSE;
 		case WM_DESTROY:
@@ -361,7 +393,7 @@ void Dialog::createMain()
 	window_handle_t hDlgWnd {
 		Window_Create
 			( "KnowbugMainWindow", DlgProc
-			, KnowbugMainWindowTitle, 0x0000
+			, KnowbugMainWindowTitle, WS_THICKFRAME
 			, mainSizeX, mainSizeY
 			, dispx - mainSizeX, 0
 			, Knowbug::getInstance()
@@ -413,6 +445,11 @@ void Dialog::createMain()
 	}
 	if ( g_config->logsInvocation ) {
 		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_INVOCATION, MF_CHECKED);
+	}
+
+	{
+		RECT rc; GetClientRect(g_res->mainWindow.get(), &rc);
+		resizeMainWindow(rc.right, rc.bottom, false);
 	}
 
 	for ( auto&& hwnd : windowHandles() ) {
