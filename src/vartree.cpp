@@ -86,7 +86,7 @@ VTView::VTView()
 	VTRoot::log().setLogObserver(p_->logObserver_);
 
 	// Initialize tree
-	VTRoot::make_shared()->updateDeep();
+	VTRoot::instance().updateDeep();
 
 #ifdef with_WrapCall
 	p_->hNodeDynamic_ = p_->itemFromNode(&VTRoot::dynamic());

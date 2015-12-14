@@ -273,9 +273,9 @@ public:
 
 class VTRoot
 	: public VTNodeData
-	, public SharedSingleton<VTRoot>
+	, public Singleton<VTRoot>
 {
-	friend struct SharedSingleton<VTRoot>;
+	friend class Singleton<VTRoot>;
 	VTRoot();
 
 	struct ChildNodes
