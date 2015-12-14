@@ -7,7 +7,7 @@
 struct VTNodeLog::Impl
 {
 	string log_;
-	shared_ptr<LogObserver> observer_;
+	weak_ptr<LogObserver> observer_;
 };
 
 VTNodeLog::VTNodeLog()
@@ -42,12 +42,12 @@ void VTNodeLog::append(char const* addition)
 {
 	p_->log_ += addition;
 
-	if ( p_->observer_ ) {
-		p_->observer_->afterAppend(addition);
+	if ( auto&& obs = p_->observer_.lock() ) {
+		obs->afterAppend(addition);
 	}
 }
 
-void VTNodeLog::setLogObserver(shared_ptr<LogObserver> obs)
+void VTNodeLog::setLogObserver(weak_ptr<LogObserver> obs)
 {
 	p_->observer_ = obs;
 }
