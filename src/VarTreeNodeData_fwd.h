@@ -44,7 +44,7 @@ public:
 	};
 	virtual void acceptVisitor(Visitor& visitor) const = 0;
 
-	virtual auto parent() const -> shared_ptr<VTNodeData> = 0;
+	virtual auto parent() const -> optional_ref<VTNodeData> = 0;
 	virtual auto name() const -> string { return "(anonymous)"; }
 	virtual auto vartype() const -> vartype_t { return HSPVAR_FLAG_NONE; }
 

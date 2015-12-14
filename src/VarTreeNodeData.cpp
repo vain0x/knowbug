@@ -36,9 +36,9 @@ VTNodeData::~VTNodeData()
 	}
 }
 
-auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeSysvar::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::sysvarList();
+	return VTRoot::sysvarList().get();
 }
 
 void VTNodeSysvarList::init()
@@ -52,9 +52,9 @@ void VTNodeSysvarList::init()
 	sysvar_ = std::move(sysvars);
 }
 
-auto VTNodeSysvarList::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeSysvarList::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::make_shared();
+	return &VTRoot::instance();
 }
 
 bool VTNodeSysvarList::updateSub(bool deep)
@@ -67,23 +67,23 @@ bool VTNodeSysvarList::updateSub(bool deep)
 	return true;
 }
 
-auto VTNodeLog::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeLog::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::make_shared();
+	return &VTRoot::instance();
 }
 
-auto VTNodeGeneral::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeGeneral::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::make_shared();
+	return &VTRoot::instance();
 }
 
 #ifdef with_WrapCall
 
 using WrapCall::ModcmdCallInfo;
 
-auto VTNodeDynamic::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeDynamic::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::make_shared();
+	return &VTRoot::instance();
 }
 
 void VTNodeDynamic::addInvokeNode(shared_ptr<VTNodeInvoke> node)
@@ -146,9 +146,9 @@ auto VTNodeDynamic::onEndCalling
 	return pResult;
 }
 
-auto VTNodeInvoke::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeInvoke::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::dynamic();
+	return VTRoot::dynamic().get();
 }
 
 void VTNodeInvoke::addResultDepended(shared_ptr<ResultNodeData> const& result)
@@ -205,12 +205,12 @@ auto ResultNodeData::dependedNode() const -> shared_ptr<VTNodeInvoke>
 	return invokeDepended.lock();
 }
 
-auto ResultNodeData::parent() const -> shared_ptr<VTNodeData>
+auto ResultNodeData::parent() const -> optional_ref<VTNodeData>
 {
 	if ( auto&& node = dependedNode() ) {
-		return node;
+		return node.get();
 	} else {
-		return VTRoot::dynamic();
+		return VTRoot::dynamic().get();
 	}
 }
 

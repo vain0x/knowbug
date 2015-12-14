@@ -25,9 +25,9 @@ VTNodeScript::VTNodeScript()
 	p_->resolutionDone_ = false;
 }
 
-auto VTNodeScript::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeScript::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::make_shared();
+	return &VTRoot::instance();
 }
 
 auto VTNodeScript::Impl::searchFile(string const& fileRefName, char const* dir)

@@ -26,9 +26,9 @@ public:
 
 	auto vartype() const -> vartype_t override { return pval_->flag; }
 
-	auto parent() const -> shared_ptr<VTNodeData> override
+	auto parent() const -> optional_ref<VTNodeData> override
 	{
-		return parent_.shared_from_this();
+		return &parent_;
 	}
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fVar(*this); }
@@ -53,7 +53,7 @@ public:
 	{
 		return hpiutil::Sysvar::List[id_].type;
 	}
-	auto parent() const -> shared_ptr<VTNodeData> override;
+	auto parent() const -> optional_ref<VTNodeData> override;
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fSysvar(*this); }
 };
@@ -69,7 +69,7 @@ public:
 	auto sysvarList() const -> sysvar_list_t const& { return *sysvar_; }
 
 	auto name() const -> string override { return "+sysvar"; }
-	auto parent() const -> shared_ptr<VTNodeData> override;
+	auto parent() const -> optional_ref<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fSysvarList(*this); }
 
 protected:
@@ -91,7 +91,7 @@ public:
 	auto fetchScriptLine(char const* fileRefName, size_t lineIndex) const -> unique_ptr<string const>;
 
 	auto name() const -> string override { return "+script"; }
-	auto parent() const -> shared_ptr<VTNodeData> override;
+	auto parent() const -> optional_ref<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fScript(*this); }
 };
 
@@ -111,7 +111,7 @@ public:
 	void append(char const* addition);
 
 	auto name() const -> string override { return "+log"; }
-	auto parent() const -> shared_ptr<VTNodeData> override;
+	auto parent() const -> optional_ref<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fLog(*this); }
 
 	struct LogObserver
@@ -129,7 +129,7 @@ class VTNodeGeneral
 
 public:
 	auto name() const -> string override { return "+general"; }
-	auto parent() const -> shared_ptr<VTNodeData> override;
+	auto parent() const -> optional_ref<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fGeneral(*this); }
 };
 
@@ -147,7 +147,7 @@ public:
 	virtual ~VTNodeModule();
 
 	auto name() const -> string override;
-	auto parent() const -> shared_ptr<VTNodeData> override;
+	auto parent() const -> optional_ref<VTNodeData> override;
 	bool updateSub(bool deep) override;
 
 	//foreach
@@ -210,7 +210,7 @@ public:
 	auto onEndCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vtype) -> shared_ptr<ResultNodeData const>;
 
 	auto name() const -> string override { return "+dynamic"; }
-	auto parent() const -> shared_ptr<VTNodeData> override;
+	auto parent() const -> optional_ref<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fDynamic(*this); }
 
 protected:
@@ -232,7 +232,7 @@ public:
 	void addResultDepended(shared_ptr<ResultNodeData> const& result);
 
 	auto name() const -> string override { return callinfo_->name(); }
-	auto parent() const -> shared_ptr<VTNodeData> override;
+	auto parent() const -> optional_ref<VTNodeData> override;
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fInvoke(*this); }
 protected:
@@ -262,7 +262,7 @@ public:
 
 	auto vartype() const -> vartype_t override { return vtype; }
 	auto name() const -> string override { return callinfo->name(); }
-	auto parent() const -> shared_ptr<VTNodeData> override;
+	auto parent() const -> optional_ref<VTNodeData> override;
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fResult(*this); }
 };
@@ -293,7 +293,7 @@ public:
 	static auto general()    -> shared_ptr<VTNodeGeneral>        const& { return instance().general_; }
 	static auto log()        -> shared_ptr<VTNodeLog>            const& { return instance().log_; }
 
-	auto parent() const -> shared_ptr<VTNodeData> override { return nullptr; }
+	auto parent() const -> optional_ref<VTNodeData> override { return nullptr; }
 	void acceptVisitor(Visitor& visitor) const override { visitor.fRoot(*this); }
 protected:
 	bool updateSub(bool deep) override;
