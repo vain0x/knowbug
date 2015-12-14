@@ -171,7 +171,6 @@ public:
 
 	// accept
 	void acceptVisitor(VTNodeData::Visitor& visitor) const override { visitor.fModule(*this); }
-	shared_ptr<VTNodeVar> tryFindVarNode(string const& name) const;
 };
 
 // グローバル領域のノード

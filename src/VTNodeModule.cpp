@@ -35,12 +35,6 @@ auto VTNodeModule::parent() const -> optional_ref<VTNodeData>
 	return &p_->parent_;
 }
 
-auto VTNodeModule::tryFindVarNode(std::string const& name) const -> shared_ptr<VTNodeVar>
-{
-	auto&& it = p_->vars_.find(name);
-	return ( it != p_->vars_.end() ) ? it->second : nullptr;
-}
-
 //------------------------------------------------
 // グローバルノードを構築する
 //------------------------------------------------
