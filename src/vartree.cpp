@@ -160,15 +160,11 @@ void VTView::update()
 	Dialog::View::update();
 }
 
-auto VTView::tryGetNodeData(HTREEITEM hItem) const -> shared_ptr<VTNodeData>
+auto VTView::tryGetNodeData(HTREEITEM hItem) const -> optional_ref<VTNodeData>
 {
 	auto const lp = reinterpret_cast<VTNodeData*>(TreeView_GetItemLParam(hwndVarTree, hItem));
 	assert(lp);
-	try {
-		return lp->shared_from_this();
-	} catch ( std::bad_weak_ptr const& ) {
-		return nullptr;
-	}
+	return lp;
 }
 
 // ノードに応じて文字色を設定する
@@ -192,7 +188,7 @@ bool VTView::Impl::customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pn
 	if ( !node ) return false;
 
 #ifdef with_WrapCall
-	if ( auto const nodeInvoke = std::dynamic_pointer_cast<VTNodeInvoke const>(node) ) {
+	if ( auto const nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {
 			auto const key = (nodeInvoke->callinfo().stdat->index == STRUCTDAT_INDEX_FUNC)
 				? "__sttm__"
 				: "__func__";

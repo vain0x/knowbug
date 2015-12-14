@@ -194,7 +194,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		}
 #ifdef with_WrapCall
 		case IDC_NODE_STEP_OUT: {
-			if ( auto&& nodeInvoke = std::dynamic_pointer_cast<VTNodeInvoke const>(node) ) {
+			if ( auto&& nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {
 				// 対象が呼び出された階層まで進む
 				Knowbug::runStepReturn(nodeInvoke->callinfo().sublev);
 			}
