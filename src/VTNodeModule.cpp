@@ -11,8 +11,8 @@ struct VTNodeModule::Private
 	VTNodeModule& self;
 	VTNodeData& parent_;
 	string const name_;
-	unordered_map<string, shared_ptr<VTNodeVar>> vars_;
-	unordered_map<string, shared_ptr<VTNodeModule>> modules_;
+	unordered_map<string, unique_ptr<VTNodeVar>> vars_;
+	unordered_map<string, unique_ptr<VTNodeModule>> modules_;
 
 public:
 	void insertVar(char const* name);
@@ -72,7 +72,7 @@ void VTNodeModule::Private::insertVar(char const* name)
 	assert(pval);
 
 	vars_.emplace(std::string(name)
-		, std::make_shared<VTNodeVar>(self, std::string(name), pval));
+		, std::make_unique<VTNodeVar>(self, std::string(name), pval));
 }
 
 //------------------------------------------------
@@ -104,7 +104,7 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 	} else {
 		string const modname = pModname;
 		auto&& node = map_find_or_insert(modules_, modname, [&]() {
-			return std::make_shared<VTNodeModule>(self, modname);
+			return std::make_unique<VTNodeModule>(self, modname);
 		});
 		return node.get();
 	}
