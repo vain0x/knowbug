@@ -103,7 +103,7 @@ auto VTNodeScript::resolveRefName(string const& fileRefName) const
 auto VTNodeScript::Impl::fetchScript(char const* fileRefName)
 	-> optional_ref<LineDelimitedString>
 {
-	if ( auto&& p = VTRoot::script()->resolveRefName(fileRefName) ) {
+	if ( auto&& p = VTRoot::script().resolveRefName(fileRefName) ) {
 		string const& filePath = *p;
 
 		auto& lds = map_find_or_insert(cache_, filePath, [&filePath] () {

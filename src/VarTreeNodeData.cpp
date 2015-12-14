@@ -38,7 +38,7 @@ VTNodeData::~VTNodeData()
 
 auto VTNodeSysvar::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::sysvarList().get();
+	return &VTRoot::sysvarList();
 }
 
 void VTNodeSysvarList::init()
@@ -148,7 +148,7 @@ auto VTNodeDynamic::onEndCalling
 
 auto VTNodeInvoke::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::dynamic().get();
+	return &VTRoot::dynamic();
 }
 
 void VTNodeInvoke::addResultDepended(shared_ptr<ResultNodeData> const& result)
@@ -179,7 +179,7 @@ static auto tryFindDependedNode(ModcmdCallInfo const* callinfo) -> shared_ptr<VT
 {
 	if ( callinfo ) {
 		if ( auto&& ci_depended = callinfo->tryGetDependedCallInfo() ) {
-			auto&& inv = VTRoot::dynamic()->invokeNodes();
+			auto&& inv = VTRoot::dynamic().invokeNodes();
 			if ( ci_depended->idx < inv.size() ) {
 				return inv[ci_depended->idx];
 			}
@@ -210,41 +210,39 @@ auto ResultNodeData::parent() const -> optional_ref<VTNodeData>
 	if ( auto&& node = dependedNode() ) {
 		return node.get();
 	} else {
-		return VTRoot::dynamic().get();
+		return &VTRoot::dynamic();
 	}
 }
 
 #endif //defined(with_WrapCall)
 
 VTRoot::VTRoot()
-	: global_    (new VTNodeModule::Global { *this })
-	, dynamic_   (new VTNodeDynamic        {})
-	, sysvarList_(new VTNodeSysvarList     {})
-	, script_    (new VTNodeScript         {})
-	, log_       (new VTNodeLog            {})
-	, general_   (new VTNodeGeneral        {})
+	: p_ { new ChildNodes {*this} }
 {}
 
-auto VTRoot::children() -> std::vector<std::weak_ptr<VTNodeData>> const&
+VTRoot::ChildNodes::ChildNodes(VTRoot& root)
+	: global_ { root }
+{}
+
+auto VTRoot::children() -> std::vector<std::reference_wrapper<VTNodeData>> const&
 {
-	static std::vector<std::weak_ptr<VTNodeData>> stt_children =
-		{ global_
-		, dynamic_
-		, sysvarList_
-		, script_
-		, log_
-		, general_
+	assert(p_);
+	static std::vector<std::reference_wrapper<VTNodeData>> stt_children =
+		{ std::ref<VTNodeData>(global    ())
+		, std::ref<VTNodeData>(dynamic   ())
+		, std::ref<VTNodeData>(sysvarList())
+		, std::ref<VTNodeData>(script    ())
+		, std::ref<VTNodeData>(log       ())
+		, std::ref<VTNodeData>(general   ())
 		};
 	return stt_children;
 }
 
 bool VTRoot::updateSub(bool deep)
 {
-	if ( deep ) {
-		for ( auto&& node_w : children() ) {
-			if ( auto&& node = node_w.lock() ) {
-				node->updateDownDeep();
-			}
+	if ( deep && p_ ) {
+		for ( auto&& node : children() ) {
+			node.get().updateDownDeep();
 		}
 	}
 	return true;
