@@ -120,7 +120,7 @@ shared_ptr<VTNodeModule> VTNodeModule::Private::insertModule(char const* pModnam
 //------------------------------------------------
 void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const {
 	for ( auto&& kv : p_->modules_ ) {
-		visitor.fModule(kv.second);
+		visitor.fModule(*kv.second);
 	}
 	for ( auto const& it : p_->vars_ ) {
 		visitor.fVar(it.first);
