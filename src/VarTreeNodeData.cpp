@@ -93,7 +93,7 @@ void VTNodeDynamic::addInvokeNode(shared_ptr<VTNodeInvoke> node)
 	children_.emplace_back(std::move(node));
 }
 
-void VTNodeDynamic::addResultNodeIndepended(shared_ptr<VTNodeResult> node)
+void VTNodeDynamic::addResultNodeIndepended(unique_ptr<VTNodeResult> node)
 {
 	independedResult_ = std::move(node);
 }
@@ -125,25 +125,29 @@ void VTNodeDynamic::onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo
 auto VTNodeDynamic::onEndCalling
 	( ModcmdCallInfo::shared_ptr_type const& callinfo
 	, PDAT const* ptr, vartype_t vtype)
-	-> shared_ptr<ResultNodeData const>
+	-> optional_ref<ResultNodeData const>
 {
 	// 返値ノードデータの生成
 	// ptr の生存期限が今だけなので、他のことをする前に、文字列化などの処理を済ませておく必要がある。
-	auto&& pResult =
-		(usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
-		? std::make_shared<ResultNodeData>(callinfo, ptr, vtype)
-		: nullptr;
+	unique_ptr<ResultNodeData> resultNode
+		{ (usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
+			? std::make_unique<ResultNodeData>(callinfo, ptr, vtype)
+			: nullptr
+		};
+	auto* const resultRawPtr = resultNode.get();
 
-	if ( pResult ) {
-		if ( auto&& node = pResult->dependedNode() ) {
-			node->addResultDepended(pResult);
+	if ( resultNode ) {
+		if ( auto&& node = resultNode->dependedNode() ) {
+			node->addResultDepended(std::move(resultNode));
 		} else {
-			addResultNodeIndepended(pResult);
+			addResultNodeIndepended(std::move(resultNode));
 		}
 	}
 
 	eraseLastInvokeNode();
-	return pResult;
+
+	// 生存期間は次の呼び出しが起こるまで
+	return resultRawPtr;
 }
 
 auto VTNodeInvoke::parent() const -> optional_ref<VTNodeData>
@@ -151,9 +155,9 @@ auto VTNodeInvoke::parent() const -> optional_ref<VTNodeData>
 	return &VTRoot::dynamic();
 }
 
-void VTNodeInvoke::addResultDepended(shared_ptr<ResultNodeData> const& result)
+void VTNodeInvoke::addResultDepended(unique_ptr<ResultNodeData> result)
 {
-	results_.emplace_back(result);
+	results_.emplace_back(std::move(result));
 }
 
 bool VTNodeInvoke::updateSub(bool deep)
