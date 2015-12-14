@@ -10,12 +10,12 @@
 class VTNodeVar
 	: public VTNodeData
 {
-	VTNodeData* const parent_;
+	optional_ref<VTNodeData> const parent_;
 	string const name_;
 	PVal* const pval_;
 
 public:
-	VTNodeVar(VTNodeData* parent, string const& name, PVal* pval)
+	VTNodeVar(optional_ref<VTNodeData> parent, string const& name, PVal* pval)
 		: parent_(parent), name_(name), pval_(pval)
 	{
 		assert(pval_);
@@ -143,7 +143,7 @@ private:
 public:
 	class Global;
 
-	VTNodeModule(VTNodeData* parent, string const& name);
+	VTNodeModule(optional_ref<VTNodeData> parent, string const& name);
 	virtual ~VTNodeModule();
 
 	auto name() const -> string override;
