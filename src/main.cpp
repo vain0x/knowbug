@@ -138,7 +138,7 @@ bool continueConditionalRun()
 
 void logmes( char const* msg )
 {
-	VTRoot::log()->append(msg);
+	VTRoot::log().append(msg);
 }
 
 void logmesWarning(char const* msg)
@@ -151,7 +151,7 @@ void logmesWarning(char const* msg)
 #ifdef with_WrapCall
 void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
-	VTRoot::dynamic()->onBgnCalling(callinfo);
+	VTRoot::dynamic().onBgnCalling(callinfo);
 
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
@@ -165,7 +165,7 @@ void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 
 void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype)
 {
-	auto&& pResult = VTRoot::dynamic()->onEndCalling(callinfo, ptr, vtype);
+	auto&& pResult = VTRoot::dynamic().onEndCalling(callinfo, ptr, vtype);
 
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(

@@ -278,22 +278,29 @@ class VTRoot
 	friend struct SharedSingleton<VTRoot>;
 	VTRoot();
 
-	shared_ptr<VTNodeModule::Global> global_;
-	shared_ptr<VTNodeDynamic>        dynamic_;
-	shared_ptr<VTNodeSysvarList>     sysvarList_;
-	shared_ptr<VTNodeScript>         script_;
-	shared_ptr<VTNodeGeneral>        general_;
-	shared_ptr<VTNodeLog>            log_;
+	struct ChildNodes
+	{
+		VTNodeModule::Global global_;
+		VTNodeDynamic        dynamic_;
+		VTNodeSysvarList     sysvarList_;
+		VTNodeScript         script_;
+		VTNodeGeneral        general_;
+		VTNodeLog            log_;
+
+	public:
+		ChildNodes(VTRoot& root);
+	};
+	unique_ptr<ChildNodes> p_;
 
 private:
-	auto children() -> std::vector<std::weak_ptr<VTNodeData>> const&;
+	auto children() -> std::vector<std::reference_wrapper<VTNodeData>> const&;
 public:
-	static auto global()     -> shared_ptr<VTNodeModule::Global> const& { return instance().global_; }
-	static auto dynamic()    -> shared_ptr<VTNodeDynamic>        const& { return instance().dynamic_; }
-	static auto sysvarList() -> shared_ptr<VTNodeSysvarList>     const& { return instance().sysvarList_; }
-	static auto script()     -> shared_ptr<VTNodeScript>         const& { return instance().script_; }
-	static auto general()    -> shared_ptr<VTNodeGeneral>        const& { return instance().general_; }
-	static auto log()        -> shared_ptr<VTNodeLog>            const& { return instance().log_; }
+	static auto global()     -> VTNodeModule::Global& { return instance().p_->global_; }
+	static auto dynamic()    -> VTNodeDynamic       & { return instance().p_->dynamic_; }
+	static auto sysvarList() -> VTNodeSysvarList    & { return instance().p_->sysvarList_; }
+	static auto script()     -> VTNodeScript        & { return instance().p_->script_; }
+	static auto general()    -> VTNodeGeneral       & { return instance().p_->general_; }
+	static auto log()        -> VTNodeLog           & { return instance().p_->log_; }
 
 	auto parent() const -> optional_ref<VTNodeData> override { return nullptr; }
 	void acceptVisitor(Visitor& visitor) const override { visitor.fRoot(*this); }

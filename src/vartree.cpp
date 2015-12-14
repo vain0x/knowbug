@@ -83,16 +83,16 @@ VTView::VTView()
 	VTNodeData::registerObserver(p_->observer_);
 
 	p_->logObserver_ = std::make_shared<LogObserver>(*p_);
-	VTRoot::log()->setLogObserver(p_->logObserver_);
+	VTRoot::log().setLogObserver(p_->logObserver_);
 
 	// Initialize tree
 	VTRoot::make_shared()->updateDeep();
 
 #ifdef with_WrapCall
-	p_->hNodeDynamic_ = p_->itemFromNode(VTRoot::dynamic().get());
+	p_->hNodeDynamic_ = p_->itemFromNode(&VTRoot::dynamic());
 #endif
-	p_->hNodeScript_  = p_->itemFromNode(VTRoot::script().get());
-	p_->hNodeLog_     = p_->itemFromNode(VTRoot::log().get());
+	p_->hNodeScript_  = p_->itemFromNode(&VTRoot::script());
+	p_->hNodeLog_     = p_->itemFromNode(&VTRoot::log());
 }
 
 VTView::~VTView()
@@ -155,7 +155,7 @@ void VTView::update()
 	p_->textCache_.clear();
 
 #ifdef with_WrapCall
-	VTRoot::dynamic()->updateDeep();
+	VTRoot::dynamic().updateDeep();
 #endif
 
 	Dialog::View::update();
@@ -274,7 +274,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 #ifdef with_WrapCall
 		void fDynamic(VTNodeDynamic const&) override
 		{
-			varinf.addCallsOverview(VTRoot::dynamic()->lastIndependedResult().get());
+			varinf.addCallsOverview(VTRoot::dynamic().lastIndependedResult().get());
 		}
 		void fInvoke(VTNodeInvoke const& node) override
 		{
