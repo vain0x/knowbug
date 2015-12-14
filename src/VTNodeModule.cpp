@@ -9,7 +9,7 @@ string const VTNodeModule::Global::Name = "@";
 struct VTNodeModule::Private
 {
 	VTNodeModule& self;
-	VTNodeData* const parent_;
+	optional_ref<VTNodeData> const parent_;
 	string const name_;
 	unordered_map<string, shared_ptr<VTNodeVar>> vars_;
 	unordered_map<string, shared_ptr<VTNodeModule>> modules_;
@@ -19,7 +19,7 @@ public:
 	shared_ptr<VTNodeModule> insertModule(char const* pModname);
 };
 
-VTNodeModule::VTNodeModule(VTNodeData* parent_, string const& name)
+VTNodeModule::VTNodeModule(optional_ref<VTNodeData> parent_, string const& name)
 	: p_(new Private { *this, parent_, name })
 { }
 
