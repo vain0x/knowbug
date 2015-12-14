@@ -25,6 +25,9 @@ VTNodeScript::VTNodeScript()
 	p_->resolutionDone_ = false;
 }
 
+VTNodeScript::~VTNodeScript()
+{}
+
 auto VTNodeScript::parent() const -> optional_ref<VTNodeData>
 {
 	return &VTRoot::instance();
