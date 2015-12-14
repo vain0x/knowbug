@@ -26,7 +26,8 @@ using detail::LogObserver;
 
 static auto TreeView_MyInsertItem
 	( HTREEITEM hParent, char const* name, bool sorts
-	, shared_ptr<VTNodeData> node) -> HTREEITEM;
+	, VTNodeData* node
+	) -> HTREEITEM;
 static void TreeView_MyDeleteItem(HTREEITEM hItem);
 static auto makeNodeName(VTNodeData const& node) -> string;
 static bool isAutoOpenNode(VTNodeData const& node);
@@ -122,7 +123,7 @@ void TvObserver::onInit(VTNodeData& node)
 		( hParent
 		, makeNodeName(node).c_str()
 		, false
-		, node.shared_from_this());
+		, &node);
 
 	assert(self.itemFromNode_[&node] == nullptr);
 	self.itemFromNode_[&node] = hItem;
@@ -366,13 +367,13 @@ static HTREEITEM TreeView_MyInsertItem
 	( HTREEITEM hParent
 	, char const* name
 	, bool sorts
-	, shared_ptr<VTNodeData> node)
+	, VTNodeData* node)
 {
 	TVINSERTSTRUCT tvis {};
 	tvis.hParent = hParent;
 	tvis.hInsertAfter = (sorts ? TVI_SORT : TVI_LAST);
 	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
-	tvis.item.lParam  = (LPARAM)node.get();
+	tvis.item.lParam  = (LPARAM)node;
 	tvis.item.pszText = const_cast<char*>(name);
 
 	return TreeView_InsertItem(hwndVarTree, &tvis);
