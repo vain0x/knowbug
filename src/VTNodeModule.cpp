@@ -16,7 +16,7 @@ struct VTNodeModule::Private
 
 public:
 	void insertVar(char const* name);
-	shared_ptr<VTNodeModule> insertModule(char const* pModname);
+	auto insertModule(char const* pModname) -> optional_ref<VTNodeModule>;
 };
 
 VTNodeModule::VTNodeModule(VTNodeData& parent_, string const& name)
@@ -79,7 +79,8 @@ void VTNodeModule::Private::insertVar(char const* name)
 // 子ノードの、指定した名前のモジュール・ノードを取得する
 // なければ挿入する
 //------------------------------------------------
-shared_ptr<VTNodeModule> VTNodeModule::Private::insertModule(char const* pModname)
+auto VTNodeModule::Private::insertModule(char const* pModname)
+	-> optional_ref<VTNodeModule>
 {
 	assert(pModname[0] == '@');
 
@@ -105,7 +106,7 @@ shared_ptr<VTNodeModule> VTNodeModule::Private::insertModule(char const* pModnam
 		auto&& node = map_find_or_insert(modules_, modname, [&]() {
 			return std::make_shared<VTNodeModule>(self, modname);
 		});
-		return node;
+		return node.get();
 	}
 }
 
