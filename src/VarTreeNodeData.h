@@ -10,12 +10,12 @@
 class VTNodeVar
 	: public VTNodeData
 {
-	optional_ref<VTNodeData> const parent_;
+	VTNodeData& parent_;
 	string const name_;
 	PVal* const pval_;
 
 public:
-	VTNodeVar(optional_ref<VTNodeData> parent, string const& name, PVal* pval)
+	VTNodeVar(VTNodeData& parent, string const& name, PVal* pval)
 		: parent_(parent), name_(name), pval_(pval)
 	{
 		assert(pval_);
@@ -28,7 +28,7 @@ public:
 
 	auto parent() const -> shared_ptr<VTNodeData> override
 	{
-		return (parent_ ? parent_->shared_from_this() : nullptr);
+		return parent_.shared_from_this();
 	}
 
 	void acceptVisitor(Visitor& visitor) const override { visitor.fVar(*this); }
@@ -143,7 +143,7 @@ private:
 public:
 	class Global;
 
-	VTNodeModule(optional_ref<VTNodeData> parent, string const& name);
+	VTNodeModule(VTNodeData& parent, string const& name);
 	virtual ~VTNodeModule();
 
 	auto name() const -> string override;
@@ -180,7 +180,7 @@ class VTNodeModule::Global
 
 public:
 	static string const Name;
-	Global(VTRoot* parent);
+	Global(VTRoot& parent);
 
 private:
 	void addVar(const char* name);

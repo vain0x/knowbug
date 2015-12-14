@@ -9,7 +9,7 @@ string const VTNodeModule::Global::Name = "@";
 struct VTNodeModule::Private
 {
 	VTNodeModule& self;
-	optional_ref<VTNodeData> const parent_;
+	VTNodeData& parent_;
 	string const name_;
 	unordered_map<string, shared_ptr<VTNodeVar>> vars_;
 	unordered_map<string, shared_ptr<VTNodeModule>> modules_;
@@ -19,7 +19,7 @@ public:
 	shared_ptr<VTNodeModule> insertModule(char const* pModname);
 };
 
-VTNodeModule::VTNodeModule(optional_ref<VTNodeData> parent_, string const& name)
+VTNodeModule::VTNodeModule(VTNodeData& parent_, string const& name)
 	: p_(new Private { *this, parent_, name })
 { }
 
@@ -32,7 +32,7 @@ auto VTNodeModule::name() const -> string
 
 auto VTNodeModule::parent() const -> shared_ptr<VTNodeData>
 {
-	return (p_->parent_ ? p_->parent_->shared_from_this() : nullptr);
+	return (&p_->parent_ ? p_->parent_.shared_from_this() : nullptr);
 }
 
 auto VTNodeModule::tryFindVarNode(std::string const& name) const -> shared_ptr<VTNodeVar>
@@ -44,7 +44,7 @@ auto VTNodeModule::tryFindVarNode(std::string const& name) const -> shared_ptr<V
 //------------------------------------------------
 // グローバルノードを構築する
 //------------------------------------------------
-VTNodeModule::Global::Global(VTRoot* parent)
+VTNodeModule::Global::Global(VTRoot& parent)
 	: VTNodeModule(parent, Name)
 {}
 
@@ -78,7 +78,7 @@ void VTNodeModule::Private::insertVar(char const* name)
 	assert(pval);
 
 	vars_.emplace(std::string(name)
-		, std::make_shared<VTNodeVar>(&self, std::string(name), pval));
+		, std::make_shared<VTNodeVar>(self, std::string(name), pval));
 }
 
 //------------------------------------------------
@@ -109,7 +109,7 @@ shared_ptr<VTNodeModule> VTNodeModule::Private::insertModule(char const* pModnam
 	} else {
 		string const modname = pModname;
 		auto&& node = map_find_or_insert(modules_, modname, [&]() {
-			return std::make_shared<VTNodeModule>(&self, modname);
+			return std::make_shared<VTNodeModule>(self, modname);
 		});
 		return node;
 	}

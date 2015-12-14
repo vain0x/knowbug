@@ -217,7 +217,7 @@ auto ResultNodeData::parent() const -> shared_ptr<VTNodeData>
 #endif //defined(with_WrapCall)
 
 VTRoot::VTRoot()
-	: global_    (new VTNodeModule::Global { this })
+	: global_    (new VTNodeModule::Global { *this })
 	, dynamic_   (new VTNodeDynamic        {})
 	, sysvarList_(new VTNodeSysvarList     {})
 	, script_    (new VTNodeScript         {})
