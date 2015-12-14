@@ -155,7 +155,7 @@ public:
 	//foreach
 	struct Visitor
 	{
-		std::function<void(shared_ptr<VTNodeModule const> const&)> fModule;
+		std::function<void(VTNodeModule const&)> fModule;
 		std::function<void(string const&)> fVar;
 	};
 	void foreach(Visitor const&) const;

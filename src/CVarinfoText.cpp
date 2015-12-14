@@ -147,9 +147,9 @@ void CVarinfoText::addModuleOverview(char const* name, VTNodeModule const& tree)
 	getWriter().catln(strf("[%s]", name));
 
 	tree.foreach(
-		[&](shared_ptr<VTNodeModule const> const& module) {
+		[&](VTNodeModule const& module) {
 			// (入れ子の)モジュールは名前だけ表示しておく
-			getWriter().catln(module->name());
+			getWriter().catln(module.name());
 		},
 		[&](string const& varname) {
 			auto const shortName = hpiutil::nameExcludingScopeResolution(varname);
