@@ -119,7 +119,7 @@ public:
 		virtual ~LogObserver() {}
 		virtual void afterAppend(char const* additional) = 0;
 	};
-	void setLogObserver(shared_ptr<LogObserver>);
+	void setLogObserver(weak_ptr<LogObserver>);
 };
 
 class VTNodeGeneral

@@ -44,6 +44,7 @@ struct VTView::Impl
 	unordered_map<HTREEITEM, int> viewCaret_;
 
 	shared_ptr<TvObserver> observer_;
+	shared_ptr<LogObserver> logObserver_;
 
 	HTREEITEM hNodeDynamic_, hNodeScript_, hNodeLog_;
 
@@ -76,11 +77,14 @@ public:
 VTView::VTView()
 	: p_(new Impl { *this })
 {
+	// Register observers
 	p_->observer_ = std::make_shared<TvObserver>(*p_);
 	VTNodeData::registerObserver(p_->observer_);
 
-	VTRoot::log()->setLogObserver(std::make_shared<LogObserver>(*p_));
+	p_->logObserver_ = std::make_shared<LogObserver>(*p_);
+	VTRoot::log()->setLogObserver(p_->logObserver_);
 
+	// Initialize tree
 	VTRoot::make_shared()->updateDeep();
 
 #ifdef with_WrapCall
