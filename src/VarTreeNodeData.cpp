@@ -5,18 +5,11 @@
 #include "module/CStrWriter.h"
 #include "vartree.h"
 
-static vector<shared_ptr<VTNodeData::Observer>> g_observers;
+static vector<weak_ptr<VTNodeData::Observer>> g_observers;
 
-void VTNodeData::registerObserver(shared_ptr<Observer> obs)
+void VTNodeData::registerObserver(weak_ptr<Observer> obs)
 {
 	g_observers.emplace_back(std::move(obs));
-}
-
-void VTNodeData::unregisterObserver(shared_ptr<Observer> obs)
-{
-	for ( auto& e : g_observers ) {
-		if ( e == obs ) { e = std::make_shared<Observer>(); }
-	}
 }
 
 VTNodeData::VTNodeData()
@@ -26,16 +19,20 @@ VTNodeData::VTNodeData()
 void VTNodeData::onInit()
 {
 	assert(!uninitialized_);
-	for ( auto& obs : g_observers ) {
-		obs->onInit(*this);
+	for ( auto& wp_obs : g_observers ) {
+		if ( auto&& obs = wp_obs.lock() ) {
+			obs->onInit(*this);
+		}
 	}
 }
 
 VTNodeData::~VTNodeData()
 {
 	if ( uninitialized_ ) return;
-	for ( auto& obs : g_observers ) {
-		obs->onTerm(*this);
+	for ( auto& wp_obs : g_observers ) {
+		if ( auto&& obs = wp_obs.lock() ) {
+			obs->onTerm(*this);
+		}
 	}
 }
 

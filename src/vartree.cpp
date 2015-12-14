@@ -92,7 +92,6 @@ VTView::VTView()
 
 VTView::~VTView()
 {
-	VTNodeData::unregisterObserver(p_->observer_);
 }
 
 auto VTView::Impl::itemFromNode(VTNodeData const* p) const -> HTREEITEM

@@ -80,6 +80,5 @@ public:
 		virtual void onInit(VTNodeData&) {}
 		virtual void onTerm(VTNodeData&) {}
 	};
-	static void registerObserver(shared_ptr<Observer> obs);
-	static void unregisterObserver(shared_ptr<Observer> obs);
+	static void registerObserver(weak_ptr<Observer> obs);
 };
