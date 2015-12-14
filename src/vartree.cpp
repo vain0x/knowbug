@@ -116,7 +116,7 @@ void TvObserver::onInit(VTNodeData& node)
 	auto&& parent = node.parent();
 	if ( ! parent ) return; // VTRoot
 
-	auto&& hParent = self.itemFromNode(parent.get());
+	auto&& hParent = self.itemFromNode(parent);
 	assert(hParent != nullptr);
 
 	auto&& hItem = TreeView_MyInsertItem

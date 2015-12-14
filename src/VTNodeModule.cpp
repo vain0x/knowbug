@@ -30,9 +30,9 @@ auto VTNodeModule::name() const -> string
 	return p_->name_;
 }
 
-auto VTNodeModule::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeModule::parent() const -> optional_ref<VTNodeData>
 {
-	return (&p_->parent_ ? p_->parent_.shared_from_this() : nullptr);
+	return &p_->parent_;
 }
 
 auto VTNodeModule::tryFindVarNode(std::string const& name) const -> shared_ptr<VTNodeVar>
