@@ -46,7 +46,7 @@ void VTNodeSysvarList::init()
 	auto&& sysvars = std::make_unique<sysvar_list_t>();
 	for ( size_t i = 0; i < hpiutil::Sysvar::Count; ++i ) {
 		auto const id = static_cast<hpiutil::Sysvar::Id>(i);
-		sysvars->at(i) = std::make_shared<VTNodeSysvar>(id);
+		sysvars->at(i) = std::make_unique<VTNodeSysvar>(id);
 	}
 
 	sysvar_ = std::move(sysvars);

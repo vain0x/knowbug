@@ -62,7 +62,7 @@ class VTNodeSysvarList
 	: public VTNodeData
 {
 	friend class VTRoot;
-	using sysvar_list_t = std::array<shared_ptr<VTNodeSysvar>, hpiutil::Sysvar::Count>;
+	using sysvar_list_t = std::array<unique_ptr<VTNodeSysvar>, hpiutil::Sysvar::Count>;
 
 	unique_ptr<sysvar_list_t const> sysvar_;
 public:
