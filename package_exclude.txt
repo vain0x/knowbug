@@ -1,0 +1,7 @@
+_bak\
+_nobak\
+Debug\
+Release\
+.sdf
+.suo
+.user
