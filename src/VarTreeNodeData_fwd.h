@@ -21,7 +21,6 @@ using VTNodeResult = ResultNodeData;
 
 // ツリービューのノードに対応するクラスのインターフェイス
 class VTNodeData
-	: public std::enable_shared_from_this<VTNodeData>
 {
 public:
 	VTNodeData();
@@ -44,7 +43,7 @@ public:
 	};
 	virtual void acceptVisitor(Visitor& visitor) const = 0;
 
-	virtual auto parent() const -> shared_ptr<VTNodeData> = 0;
+	virtual auto parent() const -> optional_ref<VTNodeData> = 0;
 	virtual auto name() const -> string { return "(anonymous)"; }
 	virtual auto vartype() const -> vartype_t { return HSPVAR_FLAG_NONE; }
 
@@ -80,6 +79,5 @@ public:
 		virtual void onInit(VTNodeData&) {}
 		virtual void onTerm(VTNodeData&) {}
 	};
-	static void registerObserver(shared_ptr<Observer> obs);
-	static void unregisterObserver(shared_ptr<Observer> obs);
+	static void registerObserver(weak_ptr<Observer> obs);
 };

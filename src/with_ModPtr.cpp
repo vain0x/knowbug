@@ -1,4 +1,4 @@
-﻿// with modptr.as
+﻿#ifdef with_ModPtr
 
 #include "main.h"
 #include "module/ptr_cast.h"
@@ -23,3 +23,5 @@ FlexValue* getValue(int mp)
 }
 
 } // namespace ModPtr
+
+#endif //defined(with_ModPtr)

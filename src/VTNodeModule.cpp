@@ -9,17 +9,17 @@ string const VTNodeModule::Global::Name = "@";
 struct VTNodeModule::Private
 {
 	VTNodeModule& self;
-	VTNodeData* const parent_;
+	VTNodeData& parent_;
 	string const name_;
-	unordered_map<string, shared_ptr<VTNodeVar>> vars_;
-	unordered_map<string, shared_ptr<VTNodeModule>> modules_;
+	unordered_map<string, unique_ptr<VTNodeVar>> vars_;
+	unordered_map<string, unique_ptr<VTNodeModule>> modules_;
 
 public:
 	void insertVar(char const* name);
-	shared_ptr<VTNodeModule> insertModule(char const* pModname);
+	auto insertModule(char const* pModname) -> optional_ref<VTNodeModule>;
 };
 
-VTNodeModule::VTNodeModule(VTNodeData* parent_, string const& name)
+VTNodeModule::VTNodeModule(VTNodeData& parent_, string const& name)
 	: p_(new Private { *this, parent_, name })
 { }
 
@@ -30,21 +30,15 @@ auto VTNodeModule::name() const -> string
 	return p_->name_;
 }
 
-auto VTNodeModule::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeModule::parent() const -> optional_ref<VTNodeData>
 {
-	return (p_->parent_ ? p_->parent_->shared_from_this() : nullptr);
-}
-
-auto VTNodeModule::tryFindVarNode(std::string const& name) const -> shared_ptr<VTNodeVar>
-{
-	auto&& it = p_->vars_.find(name);
-	return ( it != p_->vars_.end() ) ? it->second : nullptr;
+	return &p_->parent_;
 }
 
 //------------------------------------------------
 // グローバルノードを構築する
 //------------------------------------------------
-VTNodeModule::Global::Global(VTRoot* parent)
+VTNodeModule::Global::Global(VTRoot& parent)
 	: VTNodeModule(parent, Name)
 {}
 
@@ -78,14 +72,15 @@ void VTNodeModule::Private::insertVar(char const* name)
 	assert(pval);
 
 	vars_.emplace(std::string(name)
-		, std::make_shared<VTNodeVar>(&self, std::string(name), pval));
+		, std::make_unique<VTNodeVar>(self, std::string(name), pval));
 }
 
 //------------------------------------------------
 // 子ノードの、指定した名前のモジュール・ノードを取得する
 // なければ挿入する
 //------------------------------------------------
-shared_ptr<VTNodeModule> VTNodeModule::Private::insertModule(char const* pModname)
+auto VTNodeModule::Private::insertModule(char const* pModname)
+	-> optional_ref<VTNodeModule>
 {
 	assert(pModname[0] == '@');
 
@@ -109,9 +104,9 @@ shared_ptr<VTNodeModule> VTNodeModule::Private::insertModule(char const* pModnam
 	} else {
 		string const modname = pModname;
 		auto&& node = map_find_or_insert(modules_, modname, [&]() {
-			return std::make_shared<VTNodeModule>(&self, modname);
+			return std::make_unique<VTNodeModule>(self, modname);
 		});
-		return node;
+		return node.get();
 	}
 }
 
@@ -120,7 +115,7 @@ shared_ptr<VTNodeModule> VTNodeModule::Private::insertModule(char const* pModnam
 //------------------------------------------------
 void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const {
 	for ( auto&& kv : p_->modules_ ) {
-		visitor.fModule(kv.second);
+		visitor.fModule(*kv.second);
 	}
 	for ( auto const& it : p_->vars_ ) {
 		visitor.fVar(it.first);
