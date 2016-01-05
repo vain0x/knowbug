@@ -177,9 +177,6 @@ bool VTView::Impl::customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pn
 		return false;
 	}
 
-	string const sItem = TreeView_GetItemString(hwndVarTree, hItem);
-	char const* const name = sItem.c_str();
-
 	auto const cont = [&pnmcd](COLORREF cref) {
 		pnmcd->clrText = cref;
 		return true;
