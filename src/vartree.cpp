@@ -415,7 +415,7 @@ static bool isAutoOpenNode(VTNodeData const& node)
 		{
 			result = true; // default
 			node.acceptVisitor(*this);
-			return std::move(result);
+			return result;
 		}
 
 		void fModule(VTNodeModule const& node) override
