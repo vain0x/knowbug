@@ -1,8 +1,11 @@
-﻿#include <set>
+﻿
+#include <map>
 #include "module/utility.h"
 #include "DebugInfo.h"
 #include "config_mng.h"
 #include "VarTreeNodeData.h"
+
+using std::map;
 
 string const VTNodeModule::Global::Name = "@";
 
@@ -11,8 +14,8 @@ struct VTNodeModule::Private
 	VTNodeModule& self;
 	VTNodeData& parent_;
 	string const name_;
-	unordered_map<string, unique_ptr<VTNodeVar>> vars_;
-	unordered_map<string, unique_ptr<VTNodeModule>> modules_;
+	map<string, unique_ptr<VTNodeVar>> vars_;
+	map<string, unique_ptr<VTNodeModule>> modules_;
 
 public:
 	void insertVar(char const* name);
