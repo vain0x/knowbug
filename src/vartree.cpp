@@ -26,7 +26,8 @@ using detail::LogObserver;
 
 static auto TreeView_MyInsertItem
 	( HTREEITEM hParent, char const* name, bool sorts
-	, shared_ptr<VTNodeData> node) -> HTREEITEM;
+	, VTNodeData* node
+	) -> HTREEITEM;
 static void TreeView_MyDeleteItem(HTREEITEM hItem);
 static auto makeNodeName(VTNodeData const& node) -> string;
 static bool isAutoOpenNode(VTNodeData const& node);
@@ -44,6 +45,7 @@ struct VTView::Impl
 	unordered_map<HTREEITEM, int> viewCaret_;
 
 	shared_ptr<TvObserver> observer_;
+	shared_ptr<LogObserver> logObserver_;
 
 	HTREEITEM hNodeDynamic_, hNodeScript_, hNodeLog_;
 
@@ -76,23 +78,25 @@ public:
 VTView::VTView()
 	: p_(new Impl { *this })
 {
+	// Register observers
 	p_->observer_ = std::make_shared<TvObserver>(*p_);
 	VTNodeData::registerObserver(p_->observer_);
 
-	VTRoot::log()->setLogObserver(std::make_shared<LogObserver>(*p_));
+	p_->logObserver_ = std::make_shared<LogObserver>(*p_);
+	VTRoot::log().setLogObserver(p_->logObserver_);
 
-	VTRoot::make_shared()->updateDeep();
+	// Initialize tree
+	VTRoot::instance().updateDeep();
 
 #ifdef with_WrapCall
-	p_->hNodeDynamic_ = p_->itemFromNode(VTRoot::dynamic().get());
+	p_->hNodeDynamic_ = p_->itemFromNode(&VTRoot::dynamic());
 #endif
-	p_->hNodeScript_  = p_->itemFromNode(VTRoot::script().get());
-	p_->hNodeLog_     = p_->itemFromNode(VTRoot::log().get());
+	p_->hNodeScript_  = p_->itemFromNode(&VTRoot::script());
+	p_->hNodeLog_     = p_->itemFromNode(&VTRoot::log());
 }
 
 VTView::~VTView()
 {
-	VTNodeData::unregisterObserver(p_->observer_);
 }
 
 auto VTView::Impl::itemFromNode(VTNodeData const* p) const -> HTREEITEM
@@ -112,14 +116,14 @@ void TvObserver::onInit(VTNodeData& node)
 	auto&& parent = node.parent();
 	if ( ! parent ) return; // VTRoot
 
-	auto&& hParent = self.itemFromNode(parent.get());
+	auto&& hParent = self.itemFromNode(parent);
 	assert(hParent != nullptr);
 
 	auto&& hItem = TreeView_MyInsertItem
 		( hParent
 		, makeNodeName(node).c_str()
 		, false
-		, node.shared_from_this());
+		, &node);
 
 	assert(self.itemFromNode_[&node] == nullptr);
 	self.itemFromNode_[&node] = hItem;
@@ -151,21 +155,17 @@ void VTView::update()
 	p_->textCache_.clear();
 
 #ifdef with_WrapCall
-	VTRoot::dynamic()->updateDeep();
+	VTRoot::dynamic().updateDeep();
 #endif
 
 	Dialog::View::update();
 }
 
-auto VTView::tryGetNodeData(HTREEITEM hItem) const -> shared_ptr<VTNodeData>
+auto VTView::tryGetNodeData(HTREEITEM hItem) const -> optional_ref<VTNodeData>
 {
 	auto const lp = reinterpret_cast<VTNodeData*>(TreeView_GetItemLParam(hwndVarTree, hItem));
 	assert(lp);
-	try {
-		return lp->shared_from_this();
-	} catch ( std::bad_weak_ptr const& ) {
-		return nullptr;
-	}
+	return lp;
 }
 
 // ノードに応じて文字色を設定する
@@ -189,7 +189,7 @@ bool VTView::Impl::customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pn
 	if ( !node ) return false;
 
 #ifdef with_WrapCall
-	if ( auto const nodeInvoke = std::dynamic_pointer_cast<VTNodeInvoke const>(node) ) {
+	if ( auto const nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {
 			auto const key = (nodeInvoke->callinfo().stdat->index == STRUCTDAT_INDEX_FUNC)
 				? "__sttm__"
 				: "__func__";
@@ -274,7 +274,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 #ifdef with_WrapCall
 		void fDynamic(VTNodeDynamic const&) override
 		{
-			varinf.addCallsOverview(VTRoot::dynamic()->lastIndependedResult().get());
+			varinf.addCallsOverview(VTRoot::dynamic().lastIndependedResult().get());
 		}
 		void fInvoke(VTNodeInvoke const& node) override
 		{
@@ -367,13 +367,13 @@ static HTREEITEM TreeView_MyInsertItem
 	( HTREEITEM hParent
 	, char const* name
 	, bool sorts
-	, shared_ptr<VTNodeData> node)
+	, VTNodeData* node)
 {
 	TVINSERTSTRUCT tvis {};
 	tvis.hParent = hParent;
 	tvis.hInsertAfter = (sorts ? TVI_SORT : TVI_LAST);
 	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
-	tvis.item.lParam  = (LPARAM)node.get();
+	tvis.item.lParam  = (LPARAM)node;
 	tvis.item.pszText = const_cast<char*>(name);
 
 	return TreeView_InsertItem(hwndVarTree, &tvis);

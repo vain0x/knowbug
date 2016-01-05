@@ -5,18 +5,11 @@
 #include "module/CStrWriter.h"
 #include "vartree.h"
 
-static vector<shared_ptr<VTNodeData::Observer>> g_observers;
+static vector<weak_ptr<VTNodeData::Observer>> g_observers;
 
-void VTNodeData::registerObserver(shared_ptr<Observer> obs)
+void VTNodeData::registerObserver(weak_ptr<Observer> obs)
 {
 	g_observers.emplace_back(std::move(obs));
-}
-
-void VTNodeData::unregisterObserver(shared_ptr<Observer> obs)
-{
-	for ( auto& e : g_observers ) {
-		if ( e == obs ) { e = std::make_shared<Observer>(); }
-	}
 }
 
 VTNodeData::VTNodeData()
@@ -26,22 +19,26 @@ VTNodeData::VTNodeData()
 void VTNodeData::onInit()
 {
 	assert(!uninitialized_);
-	for ( auto& obs : g_observers ) {
-		obs->onInit(*this);
+	for ( auto& wp_obs : g_observers ) {
+		if ( auto&& obs = wp_obs.lock() ) {
+			obs->onInit(*this);
+		}
 	}
 }
 
 VTNodeData::~VTNodeData()
 {
 	if ( uninitialized_ ) return;
-	for ( auto& obs : g_observers ) {
-		obs->onTerm(*this);
+	for ( auto& wp_obs : g_observers ) {
+		if ( auto&& obs = wp_obs.lock() ) {
+			obs->onTerm(*this);
+		}
 	}
 }
 
-auto VTNodeSysvar::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeSysvar::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::sysvarList();
+	return &VTRoot::sysvarList();
 }
 
 void VTNodeSysvarList::init()
@@ -49,15 +46,15 @@ void VTNodeSysvarList::init()
 	auto&& sysvars = std::make_unique<sysvar_list_t>();
 	for ( size_t i = 0; i < hpiutil::Sysvar::Count; ++i ) {
 		auto const id = static_cast<hpiutil::Sysvar::Id>(i);
-		sysvars->at(i) = std::make_shared<VTNodeSysvar>(id);
+		sysvars->at(i) = std::make_unique<VTNodeSysvar>(id);
 	}
 
 	sysvar_ = std::move(sysvars);
 }
 
-auto VTNodeSysvarList::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeSysvarList::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::make_shared();
+	return &VTRoot::instance();
 }
 
 bool VTNodeSysvarList::updateSub(bool deep)
@@ -70,23 +67,23 @@ bool VTNodeSysvarList::updateSub(bool deep)
 	return true;
 }
 
-auto VTNodeLog::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeLog::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::make_shared();
+	return &VTRoot::instance();
 }
 
-auto VTNodeGeneral::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeGeneral::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::make_shared();
+	return &VTRoot::instance();
 }
 
 #ifdef with_WrapCall
 
 using WrapCall::ModcmdCallInfo;
 
-auto VTNodeDynamic::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeDynamic::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::make_shared();
+	return &VTRoot::instance();
 }
 
 void VTNodeDynamic::addInvokeNode(shared_ptr<VTNodeInvoke> node)
@@ -96,7 +93,7 @@ void VTNodeDynamic::addInvokeNode(shared_ptr<VTNodeInvoke> node)
 	children_.emplace_back(std::move(node));
 }
 
-void VTNodeDynamic::addResultNodeIndepended(shared_ptr<VTNodeResult> node)
+void VTNodeDynamic::addResultNodeIndepended(unique_ptr<VTNodeResult> node)
 {
 	independedResult_ = std::move(node);
 }
@@ -128,35 +125,39 @@ void VTNodeDynamic::onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo
 auto VTNodeDynamic::onEndCalling
 	( ModcmdCallInfo::shared_ptr_type const& callinfo
 	, PDAT const* ptr, vartype_t vtype)
-	-> shared_ptr<ResultNodeData const>
+	-> optional_ref<ResultNodeData const>
 {
 	// 返値ノードデータの生成
 	// ptr の生存期限が今だけなので、他のことをする前に、文字列化などの処理を済ませておく必要がある。
-	auto&& pResult =
-		(usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
-		? std::make_shared<ResultNodeData>(callinfo, ptr, vtype)
-		: nullptr;
+	unique_ptr<ResultNodeData> resultNode
+		{ (usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
+			? std::make_unique<ResultNodeData>(callinfo, ptr, vtype)
+			: nullptr
+		};
+	auto* const resultRawPtr = resultNode.get();
 
-	if ( pResult ) {
-		if ( auto&& node = pResult->dependedNode() ) {
-			node->addResultDepended(pResult);
+	if ( resultNode ) {
+		if ( auto&& node = resultNode->dependedNode() ) {
+			node->addResultDepended(std::move(resultNode));
 		} else {
-			addResultNodeIndepended(pResult);
+			addResultNodeIndepended(std::move(resultNode));
 		}
 	}
 
 	eraseLastInvokeNode();
-	return pResult;
+
+	// 生存期間は次の呼び出しが起こるまで
+	return resultRawPtr;
 }
 
-auto VTNodeInvoke::parent() const -> shared_ptr<VTNodeData>
+auto VTNodeInvoke::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::dynamic();
+	return &VTRoot::dynamic();
 }
 
-void VTNodeInvoke::addResultDepended(shared_ptr<ResultNodeData> const& result)
+void VTNodeInvoke::addResultDepended(unique_ptr<ResultNodeData> result)
 {
-	results_.emplace_back(result);
+	results_.emplace_back(std::move(result));
 }
 
 bool VTNodeInvoke::updateSub(bool deep)
@@ -182,7 +183,7 @@ static auto tryFindDependedNode(ModcmdCallInfo const* callinfo) -> shared_ptr<VT
 {
 	if ( callinfo ) {
 		if ( auto&& ci_depended = callinfo->tryGetDependedCallInfo() ) {
-			auto&& inv = VTRoot::dynamic()->invokeNodes();
+			auto&& inv = VTRoot::dynamic().invokeNodes();
 			if ( ci_depended->idx < inv.size() ) {
 				return inv[ci_depended->idx];
 			}
@@ -208,46 +209,44 @@ auto ResultNodeData::dependedNode() const -> shared_ptr<VTNodeInvoke>
 	return invokeDepended.lock();
 }
 
-auto ResultNodeData::parent() const -> shared_ptr<VTNodeData>
+auto ResultNodeData::parent() const -> optional_ref<VTNodeData>
 {
 	if ( auto&& node = dependedNode() ) {
-		return node;
+		return node.get();
 	} else {
-		return VTRoot::dynamic();
+		return &VTRoot::dynamic();
 	}
 }
 
 #endif //defined(with_WrapCall)
 
 VTRoot::VTRoot()
-	: global_    (new VTNodeModule::Global { this })
-	, dynamic_   (new VTNodeDynamic        {})
-	, sysvarList_(new VTNodeSysvarList     {})
-	, script_    (new VTNodeScript         {})
-	, log_       (new VTNodeLog            {})
-	, general_   (new VTNodeGeneral        {})
+	: p_ { new ChildNodes {*this} }
 {}
 
-auto VTRoot::children() -> std::vector<std::weak_ptr<VTNodeData>> const&
+VTRoot::ChildNodes::ChildNodes(VTRoot& root)
+	: global_ { root }
+{}
+
+auto VTRoot::children() -> std::vector<std::reference_wrapper<VTNodeData>> const&
 {
-	static std::vector<std::weak_ptr<VTNodeData>> stt_children =
-		{ global_
-		, dynamic_
-		, sysvarList_
-		, script_
-		, log_
-		, general_
+	assert(p_);
+	static std::vector<std::reference_wrapper<VTNodeData>> stt_children =
+		{ std::ref<VTNodeData>(global    ())
+		, std::ref<VTNodeData>(dynamic   ())
+		, std::ref<VTNodeData>(sysvarList())
+		, std::ref<VTNodeData>(script    ())
+		, std::ref<VTNodeData>(log       ())
+		, std::ref<VTNodeData>(general   ())
 		};
 	return stt_children;
 }
 
 bool VTRoot::updateSub(bool deep)
 {
-	if ( deep ) {
-		for ( auto&& node_w : children() ) {
-			if ( auto&& node = node_w.lock() ) {
-				node->updateDownDeep();
-			}
+	if ( deep && p_ ) {
+		for ( auto&& node : children() ) {
+			node.get().updateDownDeep();
 		}
 	}
 	return true;

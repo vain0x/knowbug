@@ -111,12 +111,12 @@ namespace LogBox {
 					, "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL
 					) == IDOK
 		) {
-			VTRoot::log()->clear();
+			VTRoot::log().clear();
 		}
 	}
 
 	void save(char const* filepath) {
-		if ( !VTRoot::log()->save(filepath) ) {
+		if ( !VTRoot::log().save(filepath) ) {
 			MessageBox(g_res->mainWindow.get()
 				, "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
 		}
@@ -138,7 +138,7 @@ static void UpdateCurInfEdit(char const* filepath, int iLine)
 	if ( !filepath || iLine < 0 ) return;
 	auto const&& curinf = DebugInfo::formatCurInfString(filepath, iLine);
 
-	if ( auto&& p = VTRoot::script()->fetchScriptLine(filepath, iLine) ) {
+	if ( auto&& p = VTRoot::script().fetchScriptLine(filepath, iLine) ) {
 		SetWindowText(hSrcLine, (curinf + "\r\n" + *p).c_str());
 
 	} else {
@@ -194,7 +194,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		}
 #ifdef with_WrapCall
 		case IDC_NODE_STEP_OUT: {
-			if ( auto&& nodeInvoke = std::dynamic_pointer_cast<VTNodeInvoke const>(node) ) {
+			if ( auto&& nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {
 				// 対象が呼び出された階層まで進む
 				Knowbug::runStepReturn(nodeInvoke->callinfo().sublev);
 			}
@@ -265,7 +265,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				}
 				case IDC_OPEN_CURRENT_SCRIPT: {
 					if ( auto const&& p =
-							VTRoot::script()->resolveRefName(g_dbginfo->curFileName())
+							VTRoot::script().resolveRefName(g_dbginfo->curFileName())
 						) {
 						ShellExecute(nullptr, "open"
 							, p->c_str(), nullptr, "", SW_SHOWDEFAULT);
@@ -288,11 +288,11 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_GOTO_LOG: {
-					g_res->tv->selectNode(*VTRoot::log());
+					g_res->tv->selectNode(VTRoot::log());
 					break;
 				}
 				case IDC_GOTO_SCRIPT: {
-					g_res->tv->selectNode(*VTRoot::script());
+					g_res->tv->selectNode(VTRoot::script());
 					break;
 				}
 			}

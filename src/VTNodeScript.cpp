@@ -25,9 +25,12 @@ VTNodeScript::VTNodeScript()
 	p_->resolutionDone_ = false;
 }
 
-auto VTNodeScript::parent() const -> shared_ptr<VTNodeData>
+VTNodeScript::~VTNodeScript()
+{}
+
+auto VTNodeScript::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::make_shared();
+	return &VTRoot::instance();
 }
 
 auto VTNodeScript::Impl::searchFile(string const& fileRefName, char const* dir)
@@ -100,7 +103,7 @@ auto VTNodeScript::resolveRefName(string const& fileRefName) const
 auto VTNodeScript::Impl::fetchScript(char const* fileRefName)
 	-> optional_ref<LineDelimitedString>
 {
-	if ( auto&& p = VTRoot::script()->resolveRefName(fileRefName) ) {
+	if ( auto&& p = VTRoot::script().resolveRefName(fileRefName) ) {
 		string const& filePath = *p;
 
 		auto& lds = map_find_or_insert(cache_, filePath, [&filePath] () {
