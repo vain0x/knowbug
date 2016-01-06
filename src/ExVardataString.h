@@ -7,7 +7,7 @@
 #include "hsp3plugin.h"
 
 struct KnowbugVswMethods;
-typedef void* vswriter_t;
+using vswriter_t = void*;
 
 // functions to get Knowbug APIs
 EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods();
