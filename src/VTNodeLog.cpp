@@ -42,7 +42,7 @@ void VTNodeLog::append(char const* addition)
 {
 	p_->log_ += addition;
 
-	if ( auto&& obs = p_->observer_.lock() ) {
+	if ( auto obs = p_->observer_.lock() ) {
 		obs->afterAppend(addition);
 	}
 }

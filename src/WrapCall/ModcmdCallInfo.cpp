@@ -22,7 +22,7 @@ ModcmdCallInfo::shared_ptr_type ModcmdCallInfo::tryGetNext() const
 
 std::pair<void*, bool> ModcmdCallInfo::tryGetPrmstk() const
 {
-	auto const&& optNext = tryGetNext();
+	auto optNext = tryGetNext();
 
 	//これが最新の呼び出し
 	if ( !optNext ) {
@@ -52,7 +52,7 @@ std::pair<void*, bool> ModcmdCallInfo::tryGetPrmstk() const
 // この呼び出しが直接依存されている呼び出しを得る。(failure: nullptr)
 ModcmdCallInfo::shared_ptr_type ModcmdCallInfo::tryGetDependedCallInfo() const
 {
-	auto const&& optPrev = tryGetPrev();
+	auto optPrev = tryGetPrev();
 	return (optPrev && optPrev->sublev == sublev)
 		? optPrev
 		: nullptr;

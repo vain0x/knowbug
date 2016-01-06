@@ -124,9 +124,10 @@ namespace LogBox {
 	void save() {
 		char const* const filter =
 			"log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";
-		if ( auto&& path = Dialog_SaveFileName(g_res->mainWindow.get()
-				, filter, "log", "hspdbg.log" )
-			) {
+		auto path =
+			Dialog_SaveFileName(g_res->mainWindow.get()
+				, filter, "log", "hspdbg.log" );
+		if ( path ) {
 			save(path->c_str());
 		}
 	}
@@ -136,9 +137,9 @@ namespace LogBox {
 static void UpdateCurInfEdit(char const* filepath, int iLine)
 {
 	if ( !filepath || iLine < 0 ) return;
-	auto const&& curinf = DebugInfo::formatCurInfString(filepath, iLine);
+	auto curinf = DebugInfo::formatCurInfString(filepath, iLine);
 
-	if ( auto&& p = VTRoot::script().fetchScriptLine(filepath, iLine) ) {
+	if ( auto p = VTRoot::script().fetchScriptLine(filepath, iLine) ) {
 		SetWindowText(hSrcLine, (curinf + "\r\n" + *p).c_str());
 
 	} else {
@@ -175,7 +176,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		HMENU hPop;
 	};
 
-	auto&& node = g_res->tv->tryGetNodeData(hItem);
+	auto node = g_res->tv->tryGetNodeData(hItem);
 	if ( !node ) return;
 	HMENU const hPop = GetPopMenu {}.apply(*node);
 
@@ -194,7 +195,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		}
 #ifdef with_WrapCall
 		case IDC_NODE_STEP_OUT: {
-			if ( auto&& nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {
+			if ( auto nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {
 				// 対象が呼び出された階層まで進む
 				Knowbug::runStepReturn(nodeInvoke->callinfo().sublev);
 			}
@@ -264,9 +265,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_CURRENT_SCRIPT: {
-					if ( auto const&& p =
-							VTRoot::script().resolveRefName(g_dbginfo->curFileName())
-						) {
+					if ( auto p = VTRoot::script().resolveRefName(g_dbginfo->curFileName()) ) {
 						ShellExecute(nullptr, "open"
 							, p->c_str(), nullptr, "", SW_SHOWDEFAULT);
 					}
@@ -301,7 +300,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		case WM_CONTEXTMENU: {
 			if ( (HWND)wp == hVarTree ) {
 				POINT pt = { LOWORD(lp), HIWORD(lp) };
-				if ( auto&& hItem = TreeView_GetItemAtPoint(hVarTree, pt) ) {
+				if ( auto hItem = TreeView_GetItemAtPoint(hVarTree, pt) ) {
 					VarTree_PopupMenu(hItem, pt);
 					return TRUE;
 				}

@@ -364,7 +364,7 @@ void WINAPI knowbugVsw_addValueBool(vswriter_t _w, char const* name, void const*
 void WINAPI knowbugVsw_addValueSChar(vswriter_t _w, char const* name, void const* ptr)
 {
 	auto const& val = *cptr_cast<signed char*>(ptr);
-	auto&& str = (val == 0) ? "0 ('\\0')" : strf("%-3d '%c'", static_cast<int>(val));
+	auto str = (val == 0) ? "0 ('\\0')" : strf("%-3d '%c'", static_cast<int>(val));
 	catLeaf(_w, name, str.c_str(), str.c_str());
 }
 

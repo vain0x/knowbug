@@ -81,7 +81,7 @@ void CVarinfoText::addSysvar(hpiutil::Sysvar::Id id)
 
 	// メモリダンプ
 	if ( g_config->showsVariableDump ) {
-		auto const&& dump = hpiutil::Sysvar::tryDump(id);
+		auto dump = hpiutil::Sysvar::tryDump(id);
 		if ( dump.first ) {
 			getWriter().catDump(dump.first, dump.second);
 		}
@@ -100,7 +100,7 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 	addCallSignature(callinfo, stdat);
 	getWriter().catCrlf();
 
-	auto const&& prmstk_safety = callinfo.tryGetPrmstk();
+	auto prmstk_safety = callinfo.tryGetPrmstk();
 	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
 			.addCall(stdat, prmstk_safety);
 
@@ -113,7 +113,7 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 
 void CVarinfoText::addCallSignature(ModcmdCallInfo const& callinfo, stdat_t stdat)
 {
-	auto&& name = callinfo.name();
+	auto const& name = callinfo.name();
 	getWriter().catln(
 		(callinfo.fname == nullptr)
 			? strf("関数名: %s", name)

@@ -40,7 +40,7 @@ static shared_ptr<T> shared_ptr_from_rawptr(T* p) { return shared_ptr<T>(p, [](v
 template<typename Map, typename Key, typename Value = decltype(std::declval<Map>()[std::declval<Key>()]), typename Fun>
 static Value& map_find_or_insert(Map& m, Key const& key, Fun&& f)
 {
-	auto&& lb = m.lower_bound(key);
+	auto lb = m.lower_bound(key);
 	if ( lb != m.end() && !(m.key_comp()(key, lb->first)) ) {
 		return lb->second;
 	} else {

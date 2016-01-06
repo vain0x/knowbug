@@ -52,7 +52,7 @@ public:
 	}
 	string line(int i) const {
 		auto const it = get().begin();
-		auto&& ran = lineRange(i);
+		auto ran = lineRange(i);
 		return string(it + ran.first, it + ran.second);
 	}
 };

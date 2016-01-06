@@ -58,7 +58,7 @@ public:
 
 	void parse()
 	{
-		auto&& tryFindIdentTableFromCtx = [&](int dictx) -> ident_table_t* {
+		auto tryFindIdentTableFromCtx = [&](int dictx) -> ident_table_t* {
 			switch ( dictx ) {
 				case 0: return nullptr; // •Ï”–¼‚Í‹L˜^‚µ‚È‚¢
 				case 1: return &labelNames_;
@@ -71,7 +71,7 @@ public:
 		char const* cur_fname;
 		int cur_line;
 
-		auto&& pushPoint = [&]() {
+		auto pushPoint = [&]() {
 			csMap_.emplace(std::make_pair(cur_fname, cur_line), cur_cs);
 		};
 

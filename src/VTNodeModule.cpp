@@ -47,7 +47,7 @@ VTNodeModule::Global::Global(VTRoot& parent)
 
 void VTNodeModule::Global::init()
 {
-	auto const&& names = g_dbginfo->fetchStaticVarNames();
+	auto names = g_dbginfo->fetchStaticVarNames();
 	for ( auto const& name : names ) {
 		addVar(name.c_str());
 	}
@@ -106,7 +106,7 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 		
 	} else {
 		string const modname = pModname;
-		auto&& node = map_find_or_insert(modules_, modname, [&]() {
+		auto& node = map_find_or_insert(modules_, modname, [&]() {
 			return std::make_unique<VTNodeModule>(self, modname);
 		});
 		return node.get();
@@ -117,7 +117,7 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 // 浅い横断
 //------------------------------------------------
 void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const {
-	for ( auto&& kv : p_->modules_ ) {
+	for ( auto const& kv : p_->modules_ ) {
 		visitor.fModule(*kv.second);
 	}
 	for ( auto const& it : p_->vars_ ) {
@@ -131,10 +131,10 @@ void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const {
 bool VTNodeModule::updateSub(bool deep)
 {
 	if ( deep ) {
-		for ( auto&& kv : p_->modules_ ) {
+		for ( auto const& kv : p_->modules_ ) {
 			kv.second->updateDownDeep();
 		}
-		for ( auto&& kv : p_->vars_ ) {
+		for ( auto const& kv : p_->vars_ ) {
 			kv.second->updateDownDeep();
 		}
 	}

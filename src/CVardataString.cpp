@@ -86,7 +86,7 @@ void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 		getWriter().catAttribute("type", stringizeVartype(pval).c_str());
 
 		for ( size_t i = 0; i < cntElem; ++i ) {
-			auto&& indexes = hpiutil::PVal_indexesFromAptr(pval, i);
+			auto indexes = hpiutil::PVal_indexesFromAptr(pval, i);
 
 			// 要素の値を追加
 			string const nameChild = hpiutil::stringifyArrayIndex(indexes);
@@ -142,7 +142,7 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 		return;
 	}
 
-	auto&& addValueLeaf = [&](string const& repr) {
+	auto addValueLeaf = [&](string const& repr) {
 		getWriter().catLeaf(name, repr.c_str());
 	};
 
@@ -349,8 +349,8 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 			if ( PVal const* const pval = ctx->note_pval ) {
 				APTR const aptr = ctx->note_aptr;
 
-				auto&& indexes = hpiutil::PVal_indexesFromAptr(pval, aptr);
-				auto&& indexString = hpiutil::stringifyArrayIndex(indexes);
+				auto indexes = hpiutil::PVal_indexesFromAptr(pval, aptr);
+				auto indexString = hpiutil::stringifyArrayIndex(indexes);
 				auto const varName = hpiutil::nameFromStaticVar(pval);
 				string&& name2 = (varName
 					? strf("%s (%s%s)", name, varName, indexString)

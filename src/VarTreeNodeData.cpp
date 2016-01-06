@@ -20,7 +20,7 @@ void VTNodeData::onInit()
 {
 	assert(!uninitialized_);
 	for ( auto& wp_obs : g_observers ) {
-		if ( auto&& obs = wp_obs.lock() ) {
+		if ( auto obs = wp_obs.lock() ) {
 			obs->onInit(*this);
 		}
 	}
@@ -30,7 +30,7 @@ VTNodeData::~VTNodeData()
 {
 	if ( uninitialized_ ) return;
 	for ( auto& wp_obs : g_observers ) {
-		if ( auto&& obs = wp_obs.lock() ) {
+		if ( auto obs = wp_obs.lock() ) {
 			obs->onTerm(*this);
 		}
 	}
@@ -43,7 +43,7 @@ auto VTNodeSysvar::parent() const -> optional_ref<VTNodeData>
 
 void VTNodeSysvarList::init()
 {
-	auto&& sysvars = std::make_unique<sysvar_list_t>();
+	auto sysvars = std::make_unique<sysvar_list_t>();
 	for ( size_t i = 0; i < hpiutil::Sysvar::Count; ++i ) {
 		auto const id = static_cast<hpiutil::Sysvar::Id>(i);
 		sysvars->at(i) = std::make_unique<VTNodeSysvar>(id);
@@ -118,7 +118,7 @@ bool VTNodeDynamic::updateSub(bool deep)
 
 void VTNodeDynamic::onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
-	auto&& node = std::make_shared<VTNodeInvoke>(callinfo);
+	auto node = std::make_shared<VTNodeInvoke>(callinfo);
 	addInvokeNode(std::move(node));
 }
 
@@ -137,7 +137,7 @@ auto VTNodeDynamic::onEndCalling
 	auto* const resultRawPtr = resultNode.get();
 
 	if ( resultNode ) {
-		if ( auto&& node = resultNode->dependedNode() ) {
+		if ( auto node = resultNode->dependedNode() ) {
 			node->addResultDepended(std::move(resultNode));
 		} else {
 			addResultNodeIndepended(std::move(resultNode));
@@ -173,7 +173,7 @@ bool VTNodeInvoke::updateSub(bool deep)
 template<typename TWriter>
 static string stringFromResultData(ModcmdCallInfo const& callinfo, PDAT const* ptr, vartype_t vt)
 {
-	auto&& p = std::make_shared<CStrBuf>();
+	auto p = std::make_shared<CStrBuf>();
 	CVardataStrWriter::create<TWriter>(p)
 		.addResult(callinfo.stdat, ptr, vt);
 	return p->getMove();
@@ -182,8 +182,8 @@ static string stringFromResultData(ModcmdCallInfo const& callinfo, PDAT const* p
 static auto tryFindDependedNode(ModcmdCallInfo const* callinfo) -> shared_ptr<VTNodeInvoke>
 {
 	if ( callinfo ) {
-		if ( auto&& ci_depended = callinfo->tryGetDependedCallInfo() ) {
-			auto&& inv = VTRoot::dynamic().invokeNodes();
+		if ( auto const& ci_depended = callinfo->tryGetDependedCallInfo() ) {
+			auto const& inv = VTRoot::dynamic().invokeNodes();
 			if ( ci_depended->idx < inv.size() ) {
 				return inv[ci_depended->idx];
 			}
@@ -211,7 +211,7 @@ auto ResultNodeData::dependedNode() const -> shared_ptr<VTNodeInvoke>
 
 auto ResultNodeData::parent() const -> optional_ref<VTNodeData>
 {
-	if ( auto&& node = dependedNode() ) {
+	if ( auto node = dependedNode() ) {
 		return node.get();
 	} else {
 		return &VTRoot::dynamic();
@@ -245,7 +245,7 @@ auto VTRoot::children() -> std::vector<std::reference_wrapper<VTNodeData>> const
 bool VTRoot::updateSub(bool deep)
 {
 	if ( deep && p_ ) {
-		for ( auto&& node : children() ) {
+		for ( auto const& node : children() ) {
 			node.get().updateDownDeep();
 		}
 	}

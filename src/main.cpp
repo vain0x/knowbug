@@ -165,7 +165,7 @@ void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 
 void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype)
 {
-	auto&& pResult = VTRoot::dynamic().onEndCalling(callinfo, ptr, vtype);
+	auto pResult = VTRoot::dynamic().onEndCalling(callinfo, ptr, vtype);
 
 	if ( Dialog::logsCalling() ) {
 		string const logText = strf(
@@ -184,7 +184,7 @@ void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, va
 
 EXPORT void WINAPI knowbug_writeVarinfoString(char const* name, PVal* pvalSrc, PVal* pvalDest)
 {
-	auto const varinf = std::make_unique<CVarinfoText>();
+	auto varinf = std::make_unique<CVarinfoText>();
 	varinf->addVar(pvalSrc, name);
 
 	if ( pvalDest->flag != HSPVAR_FLAG_STR ) {
@@ -202,9 +202,9 @@ EXPORT void WINAPI knowbug_writeVarinfoString(char const* name, PVal* pvalSrc, P
 EXPORT void WINAPI knowbug_getCurrentModcmdName(char const* strNone, int n, char* prefstr)
 {
 #ifdef with_WrapCall
-	auto const&& range = WrapCall::getCallInfoRange();
+	auto range = WrapCall::getCallInfoRange();
 	if ( std::distance(range.first, range.second) > n ) {
-		auto&& callinfo = *(range.second - (n + 1));
+		auto const& callinfo = *(range.second - (n + 1));
 		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, callinfo->name().c_str());
 	} else {
 		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, strNone);
