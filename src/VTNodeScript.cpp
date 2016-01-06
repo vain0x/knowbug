@@ -36,9 +36,9 @@ auto VTNodeScript::parent() const -> optional_ref<VTNodeData>
 auto VTNodeScript::Impl::searchFile(string const& fileRefName, char const* dir)
 	-> shared_ptr<string const>
 {
-	char* fileName = nullptr;
-	std::array<char, MAX_PATH> fullPath {};
-	bool const succeeded =
+	auto fileName = static_cast<char*>(nullptr);
+	auto fullPath = std::array<char, MAX_PATH> {};
+	auto succeeded =
 		SearchPath
 			( dir, fileRefName.c_str(), /* lpExtenson = */ nullptr
 			, fullPath.size(), fullPath.data(), &fileName)
@@ -67,7 +67,7 @@ auto VTNodeScript::Impl::searchFile(string const& fileRefName)
 	}
 
 	// ユーザディレクトリ、カレントディレクトリ、common、の順で探す
-	for ( string const& dir : userDirs_ ) {
+	for ( auto const& dir : userDirs_ ) {
 		if ( auto p = searchFile(fileRefName, dir.c_str()) ) {
 			return std::move(p);
 		}
@@ -104,10 +104,10 @@ auto VTNodeScript::Impl::fetchScript(char const* fileRefName)
 	-> optional_ref<LineDelimitedString>
 {
 	if ( auto p = VTRoot::script().resolveRefName(fileRefName) ) {
-		string const& filePath = *p;
+		auto const& filePath = *p;
 
 		auto& lds = map_find_or_insert(cache_, filePath, [&filePath] () {
-			std::ifstream ifs { filePath };
+			auto ifs = std::ifstream { filePath };
 			assert(ifs.is_open());
 			return LineDelimitedString(ifs);
 		});

@@ -10,7 +10,7 @@
 class CIni
 {
 private:
-	static size_t const stc_defaultBufSize = 1024;
+	static auto const stc_defaultBufSize = size_t { 1024 };
 
 private:
 	std::string const fileName_ ;

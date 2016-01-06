@@ -67,17 +67,17 @@ public:
 			}
 		};
 
-		csptr_t cur_cs = ctx->mem_mcs;
-		char const* cur_fname;
-		int cur_line;
+		auto cur_cs = ctx->mem_mcs;
+		auto cur_fname = static_cast<char const*>(nullptr);
+		auto cur_line = 0;
 
 		auto pushPoint = [&]() {
 			csMap_.emplace(std::make_pair(cur_fname, cur_line), cur_cs);
 		};
 
-		int dictx = 0; // Default context
+		auto dictx = 0; // Default context
 
-		for ( int i = 0; i < ctx->hsphed->max_dinfo; ) {
+		for ( auto i = 0; i < ctx->hsphed->max_dinfo; ) {
 			switch ( ctx->mem_di[i] ) {
 				case 0xFF: // 文脈の区切り
 					dictx++;
@@ -86,8 +86,8 @@ public:
 
 				case 0xFE: // ソースファイル指定
 				{
-					int const idxDs = tripeek(&ctx->mem_di[i + 1]);
-					int const line = wpeek(&ctx->mem_di[i + 4]);
+					auto const idxDs = tripeek(&ctx->mem_di[i + 1]);
+					auto const line = wpeek(&ctx->mem_di[i + 4]);
 
 					if ( idxDs != 0 ) {
 						cur_fname = strData(idxDs);
@@ -102,7 +102,7 @@ public:
 				case 0xFB:
 					if ( auto const tbl = tryFindIdentTableFromCtx(dictx) ) {
 						auto const ident = strData(tripeek(&ctx->mem_di[i + 1]));
-						int const iparam = wpeek(&ctx->mem_di[i + 4]);
+						auto const iparam = wpeek(&ctx->mem_di[i + 4]);
 						tbl->emplace(iparam, ident);
 					}
 					i += 6;

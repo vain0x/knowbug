@@ -20,8 +20,8 @@ template<typename TIter>
 auto join(TIter&& begin, TIter&& end, char const* delimiter)
 	-> std::string
 {
-	std::stringstream ss;
-	bool bFirst = true;
+	auto ss = std::stringstream {};
+	auto bFirst = true;
 	std::for_each(std::forward<TIter>(begin), std::forward<TIter>(end), [&](decltype(*begin) const& val) {
 		if ( bFirst ) { bFirst = false; } else { ss << delimiter; }
 		ss << val;

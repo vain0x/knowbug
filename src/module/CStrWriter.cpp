@@ -36,15 +36,15 @@ void CStrWriter::catCrlf()
 //------------------------------------------------
 void CStrWriter::catDumpImpl( void const* data, size_t size )
 {
-	static size_t const stc_bytesPerLine = 0x10;
+	static auto const stc_bytesPerLine =size_t { 0x10 };
 	auto const mem = static_cast<unsigned char const*>(data);
-	size_t idx = 0;
+	auto idx = size_t { 0 };
 	while ( idx < size ) {
 		if ( idx != 0 ) catCrlf(); //delimiter
 
-		fmt::MemoryWriter row;
+		auto row = fmt::MemoryWriter {};
 		row << fmt::pad(fmt::hexu(idx), 4, '0');
-		for ( size_t i = 0; (i < stc_bytesPerLine && idx < size); ++i, ++idx ) {
+		for ( auto i = size_t { 0 }; (i < stc_bytesPerLine && idx < size); ++i, ++idx ) {
 			row << ' ' << fmt::pad(fmt::hexu(mem[idx]), 2, '0');
 		}
 		cat(row.c_str());
@@ -55,8 +55,8 @@ void CStrWriter::catDump(void const* data, size_t bufsize)
 {
 	assert(bufsize == 0 || data);
 
-	static size_t const stc_maxsize = 0x10000;
-	size_t size = bufsize;
+	static auto const stc_maxsize = size_t { 0x10000 };
+	auto size = bufsize;
 
 	if ( size > stc_maxsize ) {
 		catln(strf("全%d[byte]の内、%d[byte]のみダンプします。", bufsize, stc_maxsize));

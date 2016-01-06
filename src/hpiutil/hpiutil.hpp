@@ -37,8 +37,8 @@ static HspVarProc* tryFindHvp(char const* name)
 
 static char const* tryFindSttVarName(PVal const* pval)
 {
-	ptrdiff_t const idx = pval - ctx->mem_var;
-	return (ptrdiff_t(0) <= idx && idx < ctx->hsphed->max_val)
+	auto const idx = ptrdiff_t { pval - ctx->mem_var };
+	return (ptrdiff_t { 0 } <= idx && idx < ctx->hsphed->max_val)
 		? exinfo->HspFunc_varname(static_cast<int>(idx))
 		: nullptr;
 }
@@ -94,7 +94,7 @@ static std::vector_view<LIBDAT> libdat()
 
 static PVal* seekSttVar(char const* name)
 {
-	int const index = exinfo->HspFunc_seekvar(name);
+	auto const index = int { exinfo->HspFunc_seekvar(name) };
 	return (index >= 0) ? &ctx->mem_var[index] : nullptr;
 }
 
@@ -159,15 +159,15 @@ static void* Prmstack_memberPtr(void* self, stprm_t stprm)
 
 static size_t PVal_maxDim(PVal const* pval)
 {
-	size_t i = 0;
+	auto i = size_t { 0 };
 	for ( ; i < ArrayDimMax && pval->len[i + 1] > 0; ++i ) {}
 	return i;
 }
 
 static size_t PVal_cntElems(PVal const* pval)
 {
-	size_t cnt = 1;
-	for ( size_t i = 1;; ++i ) {
+	auto cnt = size_t { 1 };
+	for ( auto i = size_t { 1 };; ++i ) {
 		cnt *= pval->len[i];
 		if ( i == ArrayDimMax || pval->len[i + 1] == 0 ) break;
 	}
@@ -176,9 +176,9 @@ static size_t PVal_cntElems(PVal const* pval)
 
 static std::vector<int> PVal_indexesFromAptr(PVal const* pval, APTR aptr)
 {
-	size_t const dim = PVal_maxDim(pval);
-	std::vector<int> indexes(dim);
-	for ( size_t i = 0; i < dim; ++i ) {
+	auto const dim = PVal_maxDim(pval);
+	auto indexes = std::vector<int>(dim);
+	for ( auto i = size_t { 0 }; i < dim; ++i ) {
 		indexes[i] = aptr % pval->len[i + 1];
 		aptr /= pval->len[i + 1];
 	}
@@ -201,10 +201,10 @@ static PDAT* PVal_getPtr(PVal* pval, APTR aptr)
 {
 	if ( aptr == 0 ) return pval->pt;
 
-	APTR const bak = pval->offset;
+	auto bak = pval->offset;
 	pval->offset = aptr;
-	auto const result = PVal_getPtr(pval);
-	pval->offset = bak;
+	auto result = PVal_getPtr(pval);
+	pval->offset = std::move(bak);
 	return result;
 }
 

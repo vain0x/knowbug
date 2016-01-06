@@ -5,7 +5,7 @@
 #include "module/CStrWriter.h"
 #include "vartree.h"
 
-static vector<weak_ptr<VTNodeData::Observer>> g_observers;
+static auto g_observers = vector<weak_ptr<VTNodeData::Observer>> {};
 
 void VTNodeData::registerObserver(weak_ptr<Observer> obs)
 {
@@ -44,7 +44,7 @@ auto VTNodeSysvar::parent() const -> optional_ref<VTNodeData>
 void VTNodeSysvarList::init()
 {
 	auto sysvars = std::make_unique<sysvar_list_t>();
-	for ( size_t i = 0; i < hpiutil::Sysvar::Count; ++i ) {
+	for ( auto i = size_t { 0 }; i < hpiutil::Sysvar::Count; ++i ) {
 		auto const id = static_cast<hpiutil::Sysvar::Id>(i);
 		sysvars->at(i) = std::make_unique<VTNodeSysvar>(id);
 	}
@@ -129,7 +129,8 @@ auto VTNodeDynamic::onEndCalling
 {
 	// 返値ノードデータの生成
 	// ptr の生存期限が今だけなので、他のことをする前に、文字列化などの処理を済ませておく必要がある。
-	unique_ptr<ResultNodeData> resultNode
+	auto resultNode =
+		unique_ptr<ResultNodeData>
 		{ (usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
 			? std::make_unique<ResultNodeData>(callinfo, ptr, vtype)
 			: nullptr

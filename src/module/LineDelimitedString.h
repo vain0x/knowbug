@@ -8,7 +8,7 @@
 
 static size_t countIndents(char const* s)
 {
-	size_t i = 0;
+	auto i = size_t { 0 };
 	for ( ; s[i] == '\t' || s[i] == ' '; ++i );
 	return i;
 }
@@ -27,12 +27,12 @@ public:
 	LineDelimitedString(std::istream& is)
 	{
 		char linebuf[0x1000];
-		size_t idx = 0;
+		auto idx = size_t { 0 };
 		do {
 			is.getline(linebuf, sizeof(linebuf));
 			index_.push_back(idx + countIndents(linebuf));
 
-			size_t const len = std::strlen(linebuf);
+			auto const len = std::strlen(linebuf);
 			base_.append(linebuf, linebuf + len).append("\r\n");
 			idx += len + 2;
 		} while ( is.good() );
@@ -51,7 +51,7 @@ public:
 		}
 	}
 	string line(int i) const {
-		auto const it = get().begin();
+		auto it = get().begin();
 		auto ran = lineRange(i);
 		return string(it + ran.first, it + ran.second);
 	}

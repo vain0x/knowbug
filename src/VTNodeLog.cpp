@@ -28,7 +28,7 @@ auto VTNodeLog::str() const -> string const&
 
 bool VTNodeLog::save(char const* filePath) const
 {
-	std::ofstream ofs { filePath };
+	auto ofs = std::ofstream { filePath };
 	ofs.write(str().c_str(), str().size());
 	return ofs.good();
 }

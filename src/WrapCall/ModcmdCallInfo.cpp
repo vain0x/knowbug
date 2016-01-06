@@ -28,7 +28,8 @@ std::pair<void*, bool> ModcmdCallInfo::tryGetPrmstk() const
 	if ( !optNext ) {
 		assert(sublev <= ctx->sublev);
 		//本体からさらに他のサブルーチンが実行中なら、それはunhookable invocationの可能性がある
-		bool const safe = (ctx->sublev == sublev + 1);
+		auto const safe =
+			ctx->sublev == sublev + 1;
 
 		return { ctx->prmstack, safe };
 
@@ -38,7 +39,8 @@ std::pair<void*, bool> ModcmdCallInfo::tryGetPrmstk() const
 	} else if ( sublev < optNext->sublev ) {
 		assert(sublev + 1 <= optNext->sublev);
 		//本体からさらに他のサブルーチンが実行中なら、それはunhookable invocationの可能性がある
-		bool const safe = (sublev + 1 == optNext->sublev);
+		auto const safe =
+			sublev + 1 == optNext->sublev;
 
 		return { optNext->prmstk_bak, safe };
 

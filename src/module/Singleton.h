@@ -6,7 +6,8 @@ class Singleton
 {
 public:
 	static T& instance() {
-		static typename T::singleton_pointer_type instance_ (T::createInstance());
+		static auto instance_ =
+			typename T::singleton_pointer_type { T::createInstance() };
 		return T::dereference(instance_);
 	}
 protected:
@@ -30,7 +31,7 @@ struct SharedSingleton
 {
 	static auto make_shared() -> std::shared_ptr<T> const&
 	{
-		static std::shared_ptr<T> instance_ { new T {} };
+		static auto instance_ = std::shared_ptr<T> { new T {} };
 		assert(instance_);
 		return instance_;
 	}

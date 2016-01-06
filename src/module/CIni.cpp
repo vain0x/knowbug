@@ -5,10 +5,12 @@
 #include <cstring>
 #include <cstdlib>
 #include <cassert>
+#include <array>
 
 #include "CIni.h"
 
-static char const* const STR_BOOLEAN[2] = { "false", "true" };
+static auto const STR_BOOLEAN =
+	std::array<char const*, 2> {{ "false", "true" }};
 
 CIni::CIni(char const* fname)
 	: fileName_(fname)
@@ -21,7 +23,10 @@ CIni::CIni(char const* fname)
 //------------------------------------------------
 bool CIni::getBool(char const* sec, char const* key, bool defval) const
 {
-	GetPrivateProfileStringA(sec, key, STR_BOOLEAN[defval ? 1 : 0], buf(), buf_.size(), fileName_.c_str());
+	GetPrivateProfileStringA
+		( sec, key, STR_BOOLEAN[defval ? 1 : 0]
+		, buf(), buf_.size(), fileName_.c_str()
+		);
 	CharLower(buf());
 	return !(strcmp(buf(), "0") == 0 || strcmp(buf(), STR_BOOLEAN[0]) == 0);
 }
@@ -96,8 +101,11 @@ static std::vector<std::string> splitByNullChar(char const* buf, size_t size);
 
 std::vector<std::string> CIni::enumImpl(char const* secOrNull) const
 {
-	size_t const size =
-		GetPrivateProfileString(secOrNull, nullptr, nullptr, buf(), buf_.size(), fileName_.c_str());
+	auto const size =
+		GetPrivateProfileString
+			( secOrNull, nullptr, nullptr
+			, buf(), buf_.size(), fileName_.c_str()
+			);
 
 	// バッファ不足
 	if ( size == buf_.size() - 2 ) {
@@ -110,9 +118,9 @@ std::vector<std::string> CIni::enumImpl(char const* secOrNull) const
 // '\0' 区切り文字列、終端は2連続の '\0'
 std::vector<std::string> splitByNullChar(char const* buf, size_t size)
 {
-	std::vector<std::string> ls;
+	auto ls = std::vector<std::string> {};
 	if ( size != 0 ) {
-		size_t idx = 0;
+		auto idx = size_t { 0 };
 		for (;;) {
 			assert(idx < size);
 			std::string const s = &buf[idx];

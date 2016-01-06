@@ -11,13 +11,13 @@
 
 namespace hpiutil {
 
-static size_t const ArrayDimMax = 4;
+static auto const ArrayDimMax = size_t { 4 };
 
-//static char const* const BracketIdxL = "(";
-//static char const* const BracketIdxR = ")";
+//static auto const BracketIdxL = "(";
+//static auto const BracketIdxR = ")";
 
-static int const HSPVAR_FLAG_COMOBJ = HSPVAR_FLAG_COMSTRUCT;
-static int const HSPVAR_FLAG_VARIANT = 7;
+static auto const HSPVAR_FLAG_COMOBJ = HSPVAR_FLAG_COMSTRUCT;
+static auto const HSPVAR_FLAG_VARIANT = 7;
 
 using vartype_t = unsigned short;
 using varmode_t = signed short;

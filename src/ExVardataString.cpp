@@ -303,7 +303,7 @@ void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const
 
 void WINAPI knowbugVsw_addValueModcmd(vswriter_t _w, char const* name, void const* ptr)
 {
-	int const modcmd = *reinterpret_cast<int const*>(ptr);
+	auto const modcmd = *reinterpret_cast<int const*>(ptr);
 	knowbugVsw_catLeaf(_w, name, strf("modcmd(%s)",
 		(modcmd == 0xFFFFFFFF) ? "" : hpiutil::STRUCTDAT_name(&hpiutil::finfo()[modcmd])
 	).c_str());
@@ -322,7 +322,7 @@ void WINAPI knowbugVsw_addValueIntOrModPtr(vswriter_t _w, char const* name, void
 {
 	int const& val = *cptr_cast<int*>(ptr);
 	if ( ModPtr::isValid(val) ) {
-		string const name2 = strf("%s = mp#%d", name, ModPtr::getIdx(val));
+		auto name2 = strf("%s = mp#%d", name, ModPtr::getIdx(val));
 		vswriter(_w).addValueStruct(name2.c_str(), ModPtr::getValue(val));
 	} else {
 		knowbugVsw_addValueInt(_w, name, ptr);

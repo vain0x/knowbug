@@ -21,7 +21,7 @@ static string SelfDir() {
 template<typename T>
 T loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawName)
 {
-	static char const* const stc_sec = "VardataString/UserdefTypes/Func";
+	static auto const stc_sec = "VardataString/UserdefTypes/Func";
 
 	auto const funcName = ini.getString(stc_sec, strf("%s.%s", vtname, rawName).c_str());
 	auto const f = (T)(GetProcAddress(hDll, funcName));
@@ -35,7 +35,7 @@ T loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawName)
 KnowbugConfig::KnowbugConfig()
 {
 	hspDir = SelfDir();
-	CIni ini { selfPath().c_str() };
+	auto&& ini = CIni { selfPath().c_str() };
 	
 	bTopMost   = ini.getBool( "Window", "bTopMost", false );
 	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
@@ -65,14 +65,14 @@ KnowbugConfig::KnowbugConfig()
 
 	if ( bCustomDraw ) {
 		//color of internal types
-		for ( int i = 0; i < HSPVAR_FLAG_USERDEF; ++i ) {
+		for ( auto i = 0; i < HSPVAR_FLAG_USERDEF; ++i ) {
 			clrText[i] = ini.getInt("ColorType", strf("text#%d", i).c_str(), RGB(0, 0, 0));
 		}
 
 		//color of external types or functions
 		auto const& keys = ini.enumKeys("ColorTypeExtra");
 		for ( auto const& key : keys ) {
-			COLORREF const cref = ini.getInt("ColorTypeExtra", key.c_str());
+			auto const cref = static_cast<COLORREF>(ini.getInt("ColorTypeExtra", key.c_str()));
 			clrTextExtra.emplace(key, cref);
 		}
 	}
@@ -89,7 +89,7 @@ KnowbugConfig::KnowbugConfig()
 	auto const& keys = ini.enumKeys("VardataString/UserdefTypes");
 	for ( auto const& vtname : keys ) {
 		auto const dllPath = ini.getString("VardataString/UserdefTypes", vtname.c_str());
-		if ( module_handle_t hDll { LoadLibrary(dllPath) } ) {
+		if ( auto hDll = module_handle_t { LoadLibrary(dllPath) } ) {
 			auto const fReceive  = loadVswFunc<receiveVswMethods_t>(ini, hDll.get(), vtname.c_str(), "receiveVswMethods");
 			auto const fAddVar   = loadVswFunc<addVarUserdef_t  >(ini, hDll.get(), vtname.c_str(), "addVar");
 			auto const fAddValue = loadVswFunc<addValueUserdef_t>(ini, hDll.get(), vtname.c_str(), "addValue");
@@ -117,7 +117,7 @@ bool KnowbugConfig::tryRegisterVswInfo(string const& vtname, VswInfo vswi)
 	auto const hvp = hpiutil::tryFindHvp(vtname.c_str());
 	if ( !hvp ) return false;
 
-	vartype_t const vtflag = hvp->flag;
+	auto const vtflag = static_cast<vartype_t>(hvp->flag);
 	assert(0 < vtflag && vtflag < vswInfo.size());
 	vswInfo[vtflag] = std::move(vswi);
 	return true;

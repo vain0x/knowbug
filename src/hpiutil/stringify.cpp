@@ -19,13 +19,13 @@ static ptrdiff_t indexFrom(std::vector_view<T> const& v, T const* p)
 
 DInfo& DInfo::instance()
 {
-	static std::unique_ptr<DInfo> inst { new DInfo {} };
+	static auto const inst = std::unique_ptr<DInfo> { new DInfo {} };
 	return *inst;
 }
 
 char const* nameFromStaticVar(PVal const* pval)
 {
-	ptrdiff_t const index = detail::indexFrom(staticVars(), pval);
+	auto const index = detail::indexFrom(staticVars(), pval);
 	return (index >= 0)
 		? exinfo->HspFunc_varname(static_cast<int>(index))
 		: nullptr;
@@ -33,7 +33,7 @@ char const* nameFromStaticVar(PVal const* pval)
 
 std::string nameFromModuleClass(stdat_t stdat, bool isClone)
 {
-	std::string&& modclsName = STRUCTDAT_name(stdat);
+	auto modclsName = std::string { STRUCTDAT_name(stdat) };
 	return (isClone
 		? modclsName + "&"
 		: modclsName);
@@ -41,7 +41,7 @@ std::string nameFromModuleClass(stdat_t stdat, bool isClone)
 
 std::string nameFromStPrm(stprm_t stprm, int idx)
 {
-	ptrdiff_t const subid = detail::indexFrom(minfo(), stprm);
+	auto const subid = detail::indexFrom(minfo(), stprm);
 	if ( subid >= 0 ) {
 		if ( auto const name = DInfo::instance().tryFindParamName(subid) ) {
 			return nameExcludingScopeResolution(name);
@@ -56,14 +56,14 @@ std::string nameFromStPrm(stprm_t stprm, int idx)
 
 std::string nameFromLabel(label_t lb)
 {
-	int const otIndex = detail::indexFrom(labels(), lb);
+	auto const otIndex = detail::indexFrom(labels(), lb);
 	char buf[64];
 	if ( auto const name = DInfo::instance().tryFindLabelName(otIndex) ) {
 		std::sprintf(buf, "*%s", name);
 	} else {
 		std::sprintf(buf, "label(%p)", static_cast<void const*>(lb));
 	}
-	return std::string(buf);
+	return std::string { buf };
 }
 
 char const* nameFromMPType(int mptype)
@@ -105,9 +105,9 @@ char const* nameFromMPType(int mptype)
 
 std::string literalFormString(char const* src)
 {
-	size_t const maxlen = (std::strlen(src) * 2) + 2;
-	std::vector<char> buf; buf.resize(maxlen + 1);
-	size_t idx = 0;
+	auto const maxlen = size_t { (std::strlen(src) * 2) + 2 };
+	auto buf = std::vector<char>(maxlen + 1, '\0');
+	auto idx = size_t { 0 };
 
 	buf[idx++] = '\"';
 
@@ -144,9 +144,9 @@ std::string literalFormString(char const* src)
 
 std::string stringifyArrayIndex(std::vector<int> const& indexes)
 {
-	std::ostringstream os;
+	auto os = std::ostringstream {};
 	os << "(";
-	for ( size_t i = 0; i < indexes.size(); ++i ) {
+	for ( auto i = size_t { 0 }; i < indexes.size(); ++i ) {
 		if ( i != 0 ) os << ", ";
 		os << indexes[i];
 	}
@@ -156,7 +156,7 @@ std::string stringifyArrayIndex(std::vector<int> const& indexes)
 
 std::string nameExcludingScopeResolution(std::string const& name)
 {
-	size_t const indexScopeRes = name.find('@');
+	auto indexScopeRes = name.find('@');
 	return (indexScopeRes != std::string::npos
 		? name.substr(0, indexScopeRes)
 		: name);

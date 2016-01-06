@@ -8,8 +8,8 @@
 
 namespace ModPtr {
 
-char const* const VarName_AllInstance = "__all_instances_@__modptr";
-int const MagicCode = 0x6B850000;
+static auto const VarName_AllInstance = "__all_instances_@__modptr";
+static auto const MagicCode = 0x6B850000;
 
 extern PVal* getAllInstanceVar();
 extern FlexValue* getValue(int mp);

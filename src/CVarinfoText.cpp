@@ -172,7 +172,7 @@ void CVarinfoText::addSysvarsOverview()
 
 	getWriter().catln("[システム変数]");
 
-	for ( int i = 0; i < Sysvar::Count; ++i ) {
+	for ( auto i = 0; i < Sysvar::Count; ++i ) {
 		getWriter().cat(Sysvar::List[i].name);
 		getWriter().cat("\t= ");
 		{
@@ -212,7 +212,8 @@ void CVarinfoText::addCallsOverview(optional_ref<ResultNodeData const> pLastResu
 void CVarinfoText::addGeneralOverview() {
 	getWriter().catln("[全般]");
 	for ( auto&& kv : g_dbginfo->fetchGeneralInfo() ) {
-		bool const isSysvar = (hpiutil::Sysvar::trySeek(kv.first.c_str()) != hpiutil::Sysvar::MAX);
+		auto const isSysvar =
+			hpiutil::Sysvar::trySeek(kv.first.c_str()) != hpiutil::Sysvar::MAX;
 		if ( isSysvar ) continue;
 
 		getWriter().catln(kv.first + "\t= " + kv.second);
@@ -224,7 +225,7 @@ void CVarinfoText::addGeneralOverview() {
 //------------------------------------------------
 string stringizePrmlist(stdat_t stdat)
 {
-	string s = "";
+	auto s = string { "" };
 	for ( auto& stprm : hpiutil::STRUCTDAT_params(stdat) ) {
 		if ( !s.empty() ) s += ", ";
 		s += hpiutil::nameFromMPType(stprm.mptype);
@@ -244,19 +245,20 @@ static char const* typeQualifierStringFromVarmode(varmode_t mode)
 //------------------------------------------------
 string stringizeVartype(PVal const* pval)
 {
-	size_t const maxDim = hpiutil::PVal_maxDim(pval);
+	auto const maxDim = hpiutil::PVal_maxDim(pval);
 
-	string const arrayType =
+	auto const arrayType =
 		(maxDim == 0) ? "(empty)" :
 		(maxDim == 1) ? hpiutil::stringifyArrayIndex({ pval->len[1] }) :
-		strf("%s (%d in total)",
-			hpiutil::stringifyArrayIndex(std::vector<int>(&pval->len[1], &pval->len[1] + maxDim)),
-			hpiutil::PVal_cntElems(pval))
-	;
+		strf("%s (%d in total)"
+			, hpiutil::stringifyArrayIndex
+				(std::vector<int>(&pval->len[1], &pval->len[1] + maxDim))
+			, hpiutil::PVal_cntElems(pval))
+		;
 
-	return strf("%s%s %s",
-		hpiutil::varproc(pval->flag)->vartype_name,
-		typeQualifierStringFromVarmode(pval->mode),
-		arrayType
-	);
+	return strf("%s%s %s"
+		, hpiutil::varproc(pval->flag)->vartype_name
+		, typeQualifierStringFromVarmode(pval->mode)
+		, arrayType
+		);
 }

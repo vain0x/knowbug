@@ -177,8 +177,8 @@ bool VTView::Impl::customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pn
 		return false;
 	}
 
-	string const sItem = TreeView_GetItemString(hwndVarTree, hItem);
-	char const* const name = sItem.c_str();
+	auto const sItem = TreeView_GetItemString(hwndVarTree, hItem);
+	auto const& name = sItem.c_str();
 
 	auto const cont = [&pnmcd](COLORREF cref) {
 		pnmcd->clrText = cref;
@@ -200,7 +200,7 @@ bool VTView::Impl::customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pn
 	} else
 #endif //defined(with_WrapCall)
 	{
-		vartype_t const vtype = node->vartype();
+		auto const vtype = node->vartype();
 		if ( 0 < vtype && vtype < HSPVAR_FLAG_USERDEF ) {
 			return cont(g_config->clrText[vtype]);
 
@@ -222,7 +222,7 @@ LRESULT VTView::customDraw( LPNMTVCUSTOMDRAW pnmcd )
 
 	} else if ( pnmcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT ) {
 		auto const hItem = reinterpret_cast<HTREEITEM>(pnmcd->nmcd.dwItemSpec);
-		bool const modified = p_->customizeTextColorIfAble(hItem, pnmcd);
+		auto const modified = p_->customizeTextColorIfAble(hItem, pnmcd);
 		if ( modified ) {
 			return CDRF_NEWFONT;
 		}
@@ -257,7 +257,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 		}
 		void fScript(VTNodeScript const& node) override
 		{
-			if ( auto const p = node.fetchScriptAll(g_dbginfo->curFileName()) ) {
+			if ( auto p = node.fetchScriptAll(g_dbginfo->curFileName()) ) {
 				result = shared_ptr_from_rawptr(std::move(p));
 			} else {
 				result = std::make_shared<string>(g_dbginfo->getCurInfString());
@@ -313,7 +313,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 
 void VTView::saveCurrentViewCaret(int vcaret)
 {
-	if ( HTREEITEM const hItem = TreeView_GetSelection(hwndVarTree) ) {
+	if ( auto const hItem = TreeView_GetSelection(hwndVarTree) ) {
 		p_->viewCaret_[hItem] = vcaret;
 	}
 }
@@ -333,9 +333,9 @@ void VTView::selectNode(VTNodeData const& node)
 
 void VTView::updateViewWindow()
 {
-	HTREEITEM const hItem = TreeView_GetSelection(hwndVarTree);
+	auto const hItem = TreeView_GetSelection(hwndVarTree);
 	if ( hItem ) {
-		static HTREEITEM stt_prevSelection = nullptr;
+		static auto stt_prevSelection = HTREEITEM { nullptr };
 		if ( hItem == stt_prevSelection ) {
 			Dialog::View::saveCurrentCaret();
 		} else {
@@ -347,7 +347,7 @@ void VTView::updateViewWindow()
 
 		//+script ノードなら現在の実行位置を選択
 		if ( hItem == p_->hNodeScript_ ) {
-			int const iLine = g_dbginfo->curLine();
+			auto const iLine = g_dbginfo->curLine();
 			Dialog::View::scroll(std::max(0, iLine - 3), 0);
 			Dialog::View::selectLine(iLine);
 
@@ -369,7 +369,7 @@ static HTREEITEM TreeView_MyInsertItem
 	, bool sorts
 	, VTNodeData* node)
 {
-	TVINSERTSTRUCT tvis {};
+	auto tvis = TVINSERTSTRUCT {};
 	tvis.hParent = hParent;
 	tvis.hInsertAfter = (sorts ? TVI_SORT : TVI_LAST);
 	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;

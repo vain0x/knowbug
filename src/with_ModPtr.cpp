@@ -9,7 +9,7 @@ namespace ModPtr
 
 PVal* getAllInstanceVar()
 {
-	static PVal* stt_pvalAllInstance = nullptr;
+	static auto stt_pvalAllInstance = static_cast<PVal*>(nullptr);
 	if ( !stt_pvalAllInstance ) {
 		stt_pvalAllInstance = hpiutil::seekSttVar(VarName_AllInstance);
 		assert(stt_pvalAllInstance != nullptr);

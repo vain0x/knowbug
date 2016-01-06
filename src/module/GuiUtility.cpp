@@ -12,7 +12,7 @@ HWND Window_Create
 	, int sizeX, int sizeY, int posX, int posY
 	, HINSTANCE hInst)
 {
-	WNDCLASS wndclass;
+	auto wndclass = WNDCLASS {};
 	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
 	wndclass.lpfnWndProc   = proc;
 	wndclass.cbClsExtra    = 0;
@@ -25,7 +25,7 @@ HWND Window_Create
 	wndclass.lpszClassName = className;
 	RegisterClass(&wndclass);
 
-	HWND const hWnd =
+	auto const hWnd =
 		CreateWindow
 			( className, caption
 			, (WS_CAPTION | WS_VISIBLE | windowStyles)
@@ -67,11 +67,11 @@ void Menu_ToggleCheck(HMENU menu, UINT itemId, bool& checked)
 //------------------------------------------------
 void Edit_SetTabLength(HWND hEdit, const int tabwidth)
 {
-	HDC const hdc = GetDC(hEdit);
+	auto const hdc = GetDC(hEdit);
 	{
-		TEXTMETRIC tm;
+		auto tm = TEXTMETRIC {};
 		if ( GetTextMetrics(hdc, &tm) ) {
-			int const tabstops = tm.tmAveCharWidth / 4 * tabwidth * 2;
+			auto const tabstops = tm.tmAveCharWidth / 4 * tabwidth * 2;
 			SendMessage(hEdit, EM_SETTABSTOPS, 1, (LPARAM)(&tabstops));
 		}
 	}
@@ -83,7 +83,7 @@ void Edit_SetTabLength(HWND hEdit, const int tabwidth)
 //------------------------------------------------
 void Edit_UpdateText(HWND hwnd, char const* s)
 {
-	int const vscrollBak = Edit_GetFirstVisibleLine(hwnd);
+	auto const vscrollBak = Edit_GetFirstVisibleLine(hwnd);
 	SetWindowText(hwnd, s);
 	Edit_Scroll(hwnd, vscrollBak, 0);
 }
@@ -100,7 +100,7 @@ string TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem)
 {
 	char stmp[256];
 
-	TVITEM ti;
+	auto ti = TVITEM {};
 	ti.hItem = hItem;
 	ti.mask = TVIF_TEXT;
 	ti.pszText = stmp;
@@ -114,7 +114,7 @@ string TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem)
 //------------------------------------------------
 LPARAM TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem)
 {
-	TVITEM ti;
+	auto ti = TVITEM {};
 	ti.hItem = hItem;
 	ti.mask = TVIF_PARAM;
 
@@ -130,7 +130,7 @@ LPARAM TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem)
 void TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem)
 {
 	if ( TreeView_GetSelection(hwndTree) == hItem ) {
-		HTREEITEM hUpper = TreeView_GetPrevSibling(hwndTree, hItem);
+		auto hUpper = TreeView_GetPrevSibling(hwndTree, hItem);
 		if ( !hUpper ) hUpper = TreeView_GetParent(hwndTree, hItem);
 
 		TreeView_SelectItem(hwndTree, hUpper);
@@ -142,10 +142,10 @@ void TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem)
 //------------------------------------------------
 HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
 {
-	HTREEITEM hLast = TreeView_GetChild(hwndTree, hItem);
+	auto hLast = TreeView_GetChild(hwndTree, hItem);
 	if ( !hLast ) return nullptr;	// error
 
-	for ( HTREEITEM hNext = hLast
+	for ( auto hNext = hLast
 		; hNext != nullptr
 		; hNext = TreeView_GetNextSibling(hwndTree, hLast)
 		) {
@@ -159,7 +159,7 @@ HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
 //------------------------------------------------
 HTREEITEM TreeView_GetItemAtPoint(HWND hwndTree, POINT pt)
 {
-	TV_HITTESTINFO tvHitTestInfo;
+	auto tvHitTestInfo = TV_HITTESTINFO {};
 	tvHitTestInfo.pt = pt;
 	ScreenToClient(hwndTree, &tvHitTestInfo.pt);
 	auto const hItem = TreeView_HitTest(hwndTree, &tvHitTestInfo);
@@ -171,11 +171,11 @@ auto Dialog_SaveFileName(HWND owner
 	, char const* filter, char const* defaultFilter, char const* defaultFileName)
 	-> std::unique_ptr<string>
 {
-	std::array<char, MAX_PATH> fileName;
-	std::array<char, MAX_PATH> fullName;
+	auto fileName = std::array<char, MAX_PATH> {};
+	auto fullName = std::array<char, MAX_PATH> {};
 	std::strcpy(fullName.data(), defaultFileName);
 
-	OPENFILENAME ofn {};
+	auto ofn = OPENFILENAME {};
 	ofn.lStructSize    = sizeof(ofn);
 	ofn.hwndOwner      = owner;
 	ofn.lpstrFilter    = filter;
@@ -192,7 +192,7 @@ auto Dialog_SaveFileName(HWND owner
 
 HFONT Font_Create(char const* family, int size, bool antialias)
 {
-	LOGFONT lf;
+	auto lf = LOGFONT {};
 	lf.lfHeight         = -size; // size pt
 	lf.lfWidth          = 0;
 	lf.lfEscapement     = 0;

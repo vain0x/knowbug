@@ -9,8 +9,8 @@
 #include "config_mng.h"
 #include "dialog.h"
 
-static HINSTANCE g_hInstance;
-std::unique_ptr<DebugInfo> g_dbginfo;
+static auto g_hInstance = HINSTANCE {};
+std::unique_ptr<DebugInfo> g_dbginfo {};
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 );
@@ -80,11 +80,11 @@ namespace Knowbug
 
 // ステップ実行中かどうかのフラグ
 // 「脱出」等の条件付き実行は除く。
-static bool bStepRunning = false;
+static auto bStepRunning = false;
 bool isStepRunning() { return bStepRunning; }
 
 // 条件付き実行の終了条件となる sublev
-static int sublevOfGoal = -1;
+static auto sublevOfGoal = -1;
 
 HINSTANCE getInstance()
 {
@@ -154,7 +154,7 @@ void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 	VTRoot::dynamic().onBgnCalling(callinfo);
 
 	if ( Dialog::logsCalling() ) {
-		string const logText = strf(
+		auto logText = strf(
 			"[CallBgn] %s\t%s]\r\n",
 			callinfo->name(),
 			DebugInfo::formatCurInfString(callinfo->fname, callinfo->line)
@@ -168,7 +168,7 @@ void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, va
 	auto pResult = VTRoot::dynamic().onEndCalling(callinfo, ptr, vtype);
 
 	if ( Dialog::logsCalling() ) {
-		string const logText = strf(
+		auto logText = strf(
 			"[CallEnd] %s%s\r\n",
 			callinfo->name(),
 			(pResult ? ("-> " + pResult->lineformedString) : "")

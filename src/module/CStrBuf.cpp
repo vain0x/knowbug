@@ -3,8 +3,8 @@
 #include <algorithm>
 #include "CStrBuf.h"
 
-static char const* const stc_warning = "(too long)";
-static size_t const stc_warningLength = 10;
+static auto const stc_warning = "(too long)";
+static auto const stc_warningLength = 10;
 
 CStrBuf::CStrBuf()
 	: lenLimit_(0xFFFFFFFF)
@@ -31,7 +31,7 @@ void CStrBuf::append(char const* s, size_t len)
 		lenLimit_ -= len;
 	} else {
 		assert( lenLimit_ >= stc_warningLength );
-		size_t const lenToWrite = lenLimit_ - stc_warningLength;
+		auto const lenToWrite = lenLimit_ - stc_warningLength;
 		buf_.append(s, lenToWrite);
 		buf_.append(stc_warning);
 		lenLimit_ = 0;
