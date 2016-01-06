@@ -11,7 +11,7 @@ typedef void* vswriter_t;
 
 // functions to get Knowbug APIs
 EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods();
-using knowbug_getVswMethods_t = KnowbugVswMethods const*(CALLBACK*)();
+using knowbug_getVswMethods_t = decltype(knowbug_getVswMethods);
 
 // functions called from knowbug
 using receiveVswMethods_t = void(CALLBACK*)(KnowbugVswMethods const*);
