@@ -35,7 +35,7 @@ HWND Window_Create
 			, hInst
 			, /* lparam = */ nullptr
 			);
-	if ( !hWnd ) {
+	if ( ! hWnd ) {
 		MessageBox(nullptr, "Debug window initalizing failed.", "Error", 0);
 		abort();
 	}
@@ -58,7 +58,7 @@ void Window_SetTopMost(HWND hwnd, bool isTopMost)
 //------------------------------------------------
 void Menu_ToggleCheck(HMENU menu, UINT itemId, bool& checked)
 {
-	checked = !checked;
+	checked = ! checked;
 	CheckMenuItem(menu, itemId, (checked ? MF_CHECKED : MF_UNCHECKED));
 }
 
@@ -131,7 +131,7 @@ void TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem)
 {
 	if ( TreeView_GetSelection(hwndTree) == hItem ) {
 		auto hUpper = TreeView_GetPrevSibling(hwndTree, hItem);
-		if ( !hUpper ) hUpper = TreeView_GetParent(hwndTree, hItem);
+		if ( ! hUpper ) hUpper = TreeView_GetParent(hwndTree, hItem);
 
 		TreeView_SelectItem(hwndTree, hUpper);
 	}
@@ -143,7 +143,7 @@ void TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem)
 HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
 {
 	auto hLast = TreeView_GetChild(hwndTree, hItem);
-	if ( !hLast ) return nullptr;	// error
+	if ( ! hLast ) return nullptr;	// error
 
 	for ( auto hNext = hLast
 		; hNext != nullptr

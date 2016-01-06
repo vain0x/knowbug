@@ -106,7 +106,7 @@ namespace LogBox {
 
 	void clear()
 	{
-		if ( !g_config->warnsBeforeClearingLog
+		if ( ! g_config->warnsBeforeClearingLog
 			|| MessageBox(g_res->mainWindow.get()
 					, "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL
 					) == IDOK
@@ -116,7 +116,7 @@ namespace LogBox {
 	}
 
 	void save(char const* filepath) {
-		if ( !VTRoot::log().save(filepath) ) {
+		if ( ! VTRoot::log().save(filepath) ) {
 			MessageBox(g_res->mainWindow.get()
 				, "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
 		}
@@ -136,7 +136,7 @@ namespace LogBox {
 // ソース小窓の更新
 static void UpdateCurInfEdit(char const* filepath, int iLine)
 {
-	if ( !filepath || iLine < 0 ) return;
+	if ( ! filepath || iLine < 0 ) return;
 	auto curinf = DebugInfo::formatCurInfString(filepath, iLine);
 
 	if ( auto p = VTRoot::script().fetchScriptLine(filepath, iLine) ) {
@@ -177,7 +177,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 	};
 
 	auto node = g_res->tv->tryGetNodeData(hItem);
-	if ( !node ) return;
+	if ( ! node ) return;
 	auto const hPop = GetPopMenu {}.apply(*node);
 
 	// ポップアップメニューを表示する
@@ -319,7 +319,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 						View::saveCurrentCaret();
 						break;
 					case NM_CUSTOMDRAW: {
-						if ( !g_config->bCustomDraw ) break;
+						if ( ! g_config->bCustomDraw ) break;
 						auto const res =
 							g_res->tv->customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
 						SetWindowLongPtr(hDlg, DWLP_MSGRESULT, res);

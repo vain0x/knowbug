@@ -186,7 +186,7 @@ bool VTView::Impl::customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pn
 	};
 
 	auto const node = self_.tryGetNodeData(hItem);
-	if ( !node ) return false;
+	if ( ! node ) return false;
 
 #ifdef with_WrapCall
 	if ( auto const nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {

@@ -223,7 +223,7 @@ public:
 	void catDelimiter()
 	{
 		if ( getNest() ) {
-			if ( !bFirstElem_.top() ) cat(", ");
+			if ( ! bFirstElem_.top() ) cat(", ");
 			bFirstElem_.top() = false;
 		}
 	}

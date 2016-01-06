@@ -25,7 +25,7 @@ std::pair<void*, bool> ModcmdCallInfo::tryGetPrmstk() const
 	auto optNext = tryGetNext();
 
 	//これが最新の呼び出し
-	if ( !optNext ) {
+	if ( ! optNext ) {
 		assert(sublev <= ctx->sublev);
 		//本体からさらに他のサブルーチンが実行中なら、それはunhookable invocationの可能性がある
 		auto const safe =

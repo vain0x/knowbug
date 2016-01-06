@@ -95,7 +95,7 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 	if ( auto pModnameLast = std::strrchr(&pModname[1], '@') ) {
 		// 末尾のスコープのモジュールを挿入する
 		auto child = insertModule(pModnameLast);
-		if ( !child ) return nullptr;
+		if ( ! child ) return nullptr;
 
 		// スコープを1段除いて、子モジュールに挿入する
 		auto modname2 = string(pModname, pModnameLast);

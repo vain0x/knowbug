@@ -25,7 +25,7 @@ T loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawName)
 
 	auto const funcName = ini.getString(stc_sec, strf("%s.%s", vtname, rawName).c_str());
 	auto const f = (T)(GetProcAddress(hDll, funcName));
-	if ( funcName[0] != '\0' && !f ) {
+	if ( funcName[0] != '\0' && ! f ) {
 		Knowbug::logmesWarning(strf("拡張型表示用の %s 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n",
 			rawName, vtname, funcName).c_str());
 	}
@@ -115,7 +115,7 @@ KnowbugConfig::KnowbugConfig()
 bool KnowbugConfig::tryRegisterVswInfo(string const& vtname, VswInfo vswi)
 {
 	auto const hvp = hpiutil::tryFindHvp(vtname.c_str());
-	if ( !hvp ) return false;
+	if ( ! hvp ) return false;
 
 	auto const vtflag = static_cast<vartype_t>(hvp->flag);
 	assert(0 < vtflag && vtflag < vswInfo.size());

@@ -42,7 +42,7 @@ void modcmd_init(HSP3TYPEINFO* info)
 //------------------------------------------------
 void modcmd_term(HSP3TYPEINFO* info)
 {
-	if ( !g_modcmd_cmdfunc_impl ) return;
+	if ( ! g_modcmd_cmdfunc_impl ) return;
 
 	info->cmdfunc = g_modcmd_cmdfunc_impl;
 	info->reffunc = g_modcmd_reffunc_impl;

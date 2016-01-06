@@ -227,7 +227,7 @@ string stringizePrmlist(stdat_t stdat)
 {
 	auto s = string { "" };
 	for ( auto& stprm : hpiutil::STRUCTDAT_params(stdat) ) {
-		if ( !s.empty() ) s += ", ";
+		if ( ! s.empty() ) s += ", ";
 		s += hpiutil::nameFromMPType(stprm.mptype);
 	}
 	return s;

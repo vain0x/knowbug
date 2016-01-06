@@ -43,7 +43,7 @@ bool CVardataStrWriter::tryPrune(char const* name, void const* ptr) const
 //------------------------------------------------
 void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 {
-	assert(!!pval);
+	assert(!! pval);
 
 	if ( auto addVar = addVarUserdef_t { g_config->vswInfo[pval->flag].addVar } ) {
 		return addVar(this, name, pval);
@@ -82,7 +82,7 @@ void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 	getWriter().catNodeBegin(name, strf("<%s>[", hvp->vartype_name).c_str());
 
 	// ツリー状文字列の場合
-	if ( !getWriter().isLineformed() ) {
+	if ( ! getWriter().isLineformed() ) {
 		getWriter().catAttribute("type", stringizeVartype(pval).c_str());
 
 		for ( auto i = size_t { 0 }; i < cntElem; ++i ) {
@@ -192,7 +192,7 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 	if ( tryPrune(name, fv) ) return;
 	assert(fv);
 
-	if ( !fv->ptr || fv->type == FLEXVAL_TYPE_NONE ) {
+	if ( ! fv->ptr || fv->type == FLEXVAL_TYPE_NONE ) {
 		getWriter().catLeafExtra(name, "nullmod");
 
 	} else {
@@ -216,7 +216,7 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 //------------------------------------------------
 void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> prmstk)
 {
-	assert(!!prmstk.first);
+	assert(!! prmstk.first);
 	auto prev_mptype = MPTYPE_NONE;
 	auto i = 0;
 
@@ -224,7 +224,7 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> 
 		auto const member = hpiutil::Prmstack_memberPtr(prmstk.first, &stprm);
 
 		// if treeformed: put an additional ' ' before 'local' parameters
-		if ( !getWriter().isLineformed()
+		if ( ! getWriter().isLineformed()
 			&& i > 0
 			&& (prev_mptype != MPTYPE_LOCALVAR && stprm.mptype == MPTYPE_LOCALVAR)
 			) {
@@ -243,7 +243,7 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> 
 //------------------------------------------------
 void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member, bool isSafe)
 {
-	if ( !isSafe ) {
+	if ( ! isSafe ) {
 		switch ( stprm->mptype ) {
 			case MPTYPE_STRUCTTAG:
 			case MPTYPE_INUM: //safe iff read member as bits array
@@ -387,7 +387,7 @@ void CVardataStrWriter::addCall(stdat_t stdat, std::pair<void const*, bool> prms
 	auto name = hpiutil::STRUCTDAT_name(stdat);
 
 	getWriter().catNodeBegin(name, strf("%s(", name).c_str());
-	if ( !prmstk.first ) {
+	if ( ! prmstk.first ) {
 		getWriter().catLeafExtra("arguments", "not_available");
 	} else {
 		addPrmstack(stdat, prmstk);
@@ -397,7 +397,7 @@ void CVardataStrWriter::addCall(stdat_t stdat, std::pair<void const*, bool> prms
 
 void CVardataStrWriter::addResult(stdat_t stdat, PDAT const* resultPtr, vartype_t resultType)
 {
-	assert(!!resultPtr);
+	assert(!! resultPtr);
 	auto name = hpiutil::STRUCTDAT_name(stdat);
 
 	getWriter().catNodeBegin(name, strf("%s => ", name).c_str());

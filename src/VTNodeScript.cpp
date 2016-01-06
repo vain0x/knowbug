@@ -85,7 +85,7 @@ auto VTNodeScript::resolveRefName(string const& fileRefName) const
 		return p;
 	}
 
-	while ( !p_->resolutionDone_ ) {
+	while ( ! p_->resolutionDone_ ) {
 		bool stuck = true;
 
 		for ( auto&& refName : hpiutil::fileRefNames() ) {

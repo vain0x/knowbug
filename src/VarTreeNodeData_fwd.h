@@ -61,7 +61,7 @@ protected:
 	//*/
 	bool update(bool up, bool deep)
 	{
-		if ( up && parent() && !parent()->updateShallow() ) return false;
+		if ( up && parent() && ! parent()->updateShallow() ) return false;
 		if ( uninitialized_ ) { uninitialized_ = false; onInit(); init(); }
 		return updateSub(deep);
 	}

@@ -80,7 +80,7 @@ EXPORT BOOL WINAPI knowbugVsw_isLineformWriter(vswriter_t _w)
 static KnowbugVswMethods g_knowbugVswMethods;
 EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods()
 {
-	if ( !g_knowbugVswMethods.catLeaf ) {
+	if ( ! g_knowbugVswMethods.catLeaf ) {
 		g_knowbugVswMethods.catLeaf		     = knowbugVsw_catLeaf		;
 		g_knowbugVswMethods.catLeafExtra     = knowbugVsw_catLeafExtra	;
 		g_knowbugVswMethods.catAttribute     = knowbugVsw_catAttribute  ;
@@ -122,7 +122,7 @@ EXPORT void WINAPI knowbugVsw_deleteWriter(vswriter_t _w)
 
 EXPORT char const* WINAPI knowbugVsw_dataPtr(vswriter_t _w, int* length)
 {
-	if ( !_w ) return nullptr;
+	if ( ! _w ) return nullptr;
 	auto& s = vswriter(_w).getString();
 	if ( length ) *length = s.size();
 	return s.c_str();
@@ -175,7 +175,7 @@ void WINAPI knowbugVsw_addValueAssoc(vswriter_t _w, char const* name, void const
 {
 	auto const src = *reinterpret_cast<CAssoc* const*>(ptr);
 
-	if ( !ptr ) {
+	if ( ! ptr ) {
 		knowbugVsw_catLeafExtra(_w, name, "null_assoc");
 		return;
 	}
@@ -184,7 +184,7 @@ void WINAPI knowbugVsw_addValueAssoc(vswriter_t _w, char const* name, void const
 	StAssocMapList* const head = (reinterpret_cast<GetMapList_t>(hvp->user))(src);
 
 	// 要素なし
-	if ( !head ) {
+	if ( ! head ) {
 		knowbugVsw_catLeafExtra(_w, name, "empty_assoc");
 		return;
 	}
@@ -232,7 +232,7 @@ void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void cons
 {
 	auto const src = *reinterpret_cast<CVector* const*>(ptr);
 
-	if ( !src ) {
+	if ( ! src ) {
 		knowbugVsw_catLeafExtra(_w, name, "null_vector");
 		return;
 	}
@@ -242,7 +242,7 @@ void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void cons
 	PVal** const pvals = (reinterpret_cast<GetVectorList_t>(hvp->user))(src, &len);
 
 	// 要素なし
-	if ( !pvals ) {
+	if ( ! pvals ) {
 		knowbugVsw_catLeafExtra(_w, name, "empty_vector");
 		return;
 	}
@@ -277,7 +277,7 @@ void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const
 {
 	auto const src = *reinterpret_cast<CArray**>(ptr);
 
-	if ( !src ) {
+	if ( ! src ) {
 		knowbugVsw_catLeafExtra(_w, name, "null_array");
 		return;
 	}
@@ -286,7 +286,7 @@ void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const
 	PVal* const pvInner = (reinterpret_cast<GetArray_t>(hvp->user))(src);
 
 	// 要素なし
-	if ( !pvInner || pvInner->len[1] == 0 ) {
+	if ( ! pvInner || pvInner->len[1] == 0 ) {
 		knowbugVsw_catLeafExtra(_w, name, "empty_array");
 		return;
 	}

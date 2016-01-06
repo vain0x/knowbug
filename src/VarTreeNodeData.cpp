@@ -18,7 +18,7 @@ VTNodeData::VTNodeData()
 
 void VTNodeData::onInit()
 {
-	assert(!uninitialized_);
+	assert(! uninitialized_);
 	for ( auto& wp_obs : g_observers ) {
 		if ( auto obs = wp_obs.lock() ) {
 			obs->onInit(*this);
