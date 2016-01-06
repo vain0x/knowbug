@@ -172,7 +172,7 @@ bool VTNodeInvoke::updateSub(bool deep)
 }
 
 template<typename TWriter>
-static string stringFromResultData(ModcmdCallInfo const& callinfo, PDAT const* ptr, vartype_t vt)
+static auto stringFromResultData(ModcmdCallInfo const& callinfo, PDAT const* ptr, vartype_t vt) -> string
 {
 	auto p = std::make_shared<CStrBuf>();
 	CVardataStrWriter::create<TWriter>(p)

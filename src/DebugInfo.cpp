@@ -11,17 +11,17 @@ DebugInfo::DebugInfo(HSP3DEBUG* debug)
 
 DebugInfo::~DebugInfo() {}
 
-string DebugInfo::formatCurInfString(char const* fname, int line)
+auto DebugInfo::formatCurInfString(char const* fname, int line) -> string
 {
 	return strf("#%d \"%s\"", (line + 1), (fname ? fname : "(nameless)"));
 }
 
-std::vector<std::pair<string, string>> DebugInfo::fetchGeneralInfo() const
+auto DebugInfo::fetchGeneralInfo() const -> std::vector<std::pair<string, string>>
 {
 	auto info = std::vector<std::pair<string, string>> {};
 	info.reserve(20);
 
-	auto p = 
+	auto p =
 		std::unique_ptr<char, void(*)(char*)>
 		{ debug_->get_value(DEBUGINFO_GENERAL)
 		, debug_->dbg_close
@@ -60,7 +60,7 @@ std::vector<std::pair<string, string>> DebugInfo::fetchGeneralInfo() const
 	return std::move(info);
 }
 
-std::vector<string> DebugInfo::fetchStaticVarNames() const
+auto DebugInfo::fetchStaticVarNames() const -> std::vector<string>
 {
 	auto names = std::vector<string> {};
 	names.reserve(hpiutil::staticVars().size());

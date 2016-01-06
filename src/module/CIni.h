@@ -20,22 +20,24 @@ public:
 	explicit CIni(char const* fname);
 
 	bool getBool(char const* sec, char const* key, bool defval = false) const;
-	int  getInt(char const* sec, char const* key, int defval = 0) const;
-	char const* getString(char const* sec, char const* key, char const* defval = "", size_t size = 0) const;
+	auto getInt(char const* sec, char const* key, int defval = 0) const -> int;
+	auto getString(char const* sec, char const* key
+		, char const* defval = "", size_t size = 0
+		) const -> char const*;
 
 	void setBool(char const* sec, char const* key, bool val = false);
 	void setInt(char const* sec, char const* key, int val, int radix = 10);
 	void setString(char const* sec, char const* key, char const* val);
 
-	std::vector<std::string> enumSections() const;
-	std::vector<std::string> enumKeys(char const* sec) const;
+	auto enumSections()            const -> std::vector<std::string>;
+	auto enumKeys(char const* sec) const -> std::vector<std::string>;
 
 	void removeSection(char const* sec);
 	void removeKey(char const* sec, char const* key);
 	bool existsKey(char const* sec, char const* key) const;
 private:
-	char* buf() const { return buf_.data(); };
-	std::vector<std::string> enumImpl(char const* secOrNull) const;
+	auto buf() const -> char* { return buf_.data(); };
+	auto enumImpl(char const* secOrNull) const -> std::vector<std::string>;
 
 private:
 	CIni(CIni const& obj) = delete;

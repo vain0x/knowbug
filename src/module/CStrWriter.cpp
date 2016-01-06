@@ -14,7 +14,7 @@ char const* const CStructedStrWriter::stc_strUnused =
 #endif
 ;
 
-std::string const& CStrWriter::get() const { return buf_->get(); }
+auto CStrWriter::get() const -> std::string const& { return buf_->get(); }
 
 //------------------------------------------------
 // 連結

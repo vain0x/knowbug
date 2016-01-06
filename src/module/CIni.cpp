@@ -34,7 +34,7 @@ bool CIni::getBool(char const* sec, char const* key, bool defval) const
 //------------------------------------------------
 // [get] 整数値
 //------------------------------------------------
-int CIni::getInt(char const* sec, char const* key, int defval) const
+auto CIni::getInt(char const* sec, char const* key, int defval) const -> int
 {
 	return GetPrivateProfileIntA(sec, key, defval, fileName_.c_str());
 }
@@ -42,7 +42,8 @@ int CIni::getInt(char const* sec, char const* key, int defval) const
 //------------------------------------------------
 // [get] 文字列
 //------------------------------------------------
-char const* CIni::getString(char const* sec, char const* key, char const* defval, size_t size) const
+auto CIni::getString(char const* sec, char const* key, char const* defval, size_t size) const
+-> char const*
 {
 	if ( size > buf_.size() ) buf_.resize(size);
 
@@ -81,7 +82,7 @@ void CIni::setString(char const* sec, char const* key, char const* val)
 //------------------------------------------------
 // セクションの列挙
 //------------------------------------------------
-std::vector<std::string> CIni::enumSections() const
+auto CIni::enumSections() const -> std::vector<std::string>
 {
 	return enumImpl(nullptr);
 }
@@ -89,7 +90,7 @@ std::vector<std::string> CIni::enumSections() const
 //------------------------------------------------
 // キーの列挙
 //------------------------------------------------
-std::vector<std::string> CIni::enumKeys(char const* sec) const
+auto CIni::enumKeys(char const* sec) const -> std::vector<std::string>
 {
 	return enumImpl(sec);
 }
@@ -97,9 +98,9 @@ std::vector<std::string> CIni::enumKeys(char const* sec) const
 //------------------------------------------------
 // 列挙
 //------------------------------------------------
-static std::vector<std::string> splitByNullChar(char const* buf, size_t size);
+static auto splitByNullChar(char const* buf, size_t size) -> std::vector<std::string>;
 
-std::vector<std::string> CIni::enumImpl(char const* secOrNull) const
+auto CIni::enumImpl(char const* secOrNull) const -> std::vector<std::string>
 {
 	auto const size =
 		GetPrivateProfileString
@@ -116,7 +117,7 @@ std::vector<std::string> CIni::enumImpl(char const* secOrNull) const
 }
 
 // '\0' 区切り文字列、終端は2連続の '\0'
-std::vector<std::string> splitByNullChar(char const* buf, size_t size)
+auto splitByNullChar(char const* buf, size_t size) -> std::vector<std::string>
 {
 	auto ls = std::vector<std::string> {};
 	if ( size != 0 ) {

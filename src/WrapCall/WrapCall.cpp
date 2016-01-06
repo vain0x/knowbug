@@ -90,14 +90,14 @@ void onEndCalling()
 //------------------------------------------------
 // callinfo スタックへのアクセス
 //------------------------------------------------
-ModcmdCallInfo::shared_ptr_type tryGetCallInfoAt(size_t idx)
+auto tryGetCallInfoAt(size_t idx) -> ModcmdCallInfo::shared_ptr_type
 {
 	return (0 <= idx && idx < g_stkCallInfo.size())
 		? g_stkCallInfo.at(idx)
 		: nullptr;
 }
 
-stkCallInfoRange_t getCallInfoRange()
+auto getCallInfoRange() -> stkCallInfoRange_t
 {
 	return make_pair_range(g_stkCallInfo);
 }

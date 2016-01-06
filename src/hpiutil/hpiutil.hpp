@@ -25,17 +25,17 @@ static auto make_vector_view(T* p, size_t count) -> std::vector_view<T>
 
 } // namespace detail
 
-static HspVarProc* varproc(vartype_t vtype)
+static auto varproc(vartype_t vtype) -> HspVarProc*
 {
 	return exinfo->HspFunc_getproc(vtype);
 }
 
-static HspVarProc* tryFindHvp(char const* name)
+static auto tryFindHvp(char const* name) -> HspVarProc*
 {
 	return exinfo->HspFunc_seekproc(name);
 }
 
-static char const* tryFindSttVarName(PVal const* pval)
+static auto tryFindSttVarName(PVal const* pval) -> char const*
 {
 	auto const idx = ptrdiff_t { pval - ctx->mem_var };
 	return (ptrdiff_t { 0 } <= idx && idx < ctx->hsphed->max_val)
@@ -43,7 +43,7 @@ static char const* tryFindSttVarName(PVal const* pval)
 		: nullptr;
 }
 
-static char const* strData(ptrdiff_t dsIndex)
+static auto strData(ptrdiff_t dsIndex) -> char const*
 {
 	return &ctx->mem_mds[dsIndex];
 }
@@ -53,57 +53,57 @@ static double doubleData(ptrdiff_t dsIndex)
 	return *reinterpret_cast<double*>(&ctx->mem_mds[dsIndex]);
 }
 
-static std::vector_view<unsigned short> labels()
+static auto labels() -> std::vector_view<unsigned short>
 {
 	return detail::make_vector_view(ctx->mem_mcs, ctx->hsphed->max_ot / sizeof(int));
 }
 
-static std::vector_view<PVal> staticVars()
+static auto staticVars() -> std::vector_view<PVal>
 {
 	return detail::make_vector_view(ctx->mem_var, ctx->hsphed->max_val);
 }
 
-static std::vector_view<unsigned short> csinfo()
+static auto csinfo() -> std::vector_view<unsigned short>
 {
 	return detail::make_vector_view(ctx->mcs, ctx->hsphed->max_cs / sizeof(unsigned short));
 }
 
-static std::vector_view<STRUCTDAT> finfo()
+static auto finfo() -> std::vector_view<STRUCTDAT>
 {
 	return detail::make_vector_view(ctx->mem_finfo, ctx->hsphed->max_finfo / sizeof(STRUCTDAT));
 }
 
-static std::vector_view<STRUCTPRM> minfo()
+static auto minfo() -> std::vector_view<STRUCTPRM>
 {
 	return detail::make_vector_view(ctx->mem_minfo, ctx->hsphed->max_minfo / sizeof(STRUCTPRM));
 }
 
-static std::vector_view<MEM_HPIDAT> hpidat()
+static auto hpidat() -> std::vector_view<MEM_HPIDAT>
 {
 	return detail::make_vector_view
 		( reinterpret_cast<MEM_HPIDAT*>(uintptr_t(ctx->hsphed) + ctx->hsphed->pt_hpidat)
 		, ctx->hsphed->max_hpi / sizeof(HPIDAT));
 }
 
-static std::vector_view<LIBDAT> libdat()
+static auto libdat() -> std::vector_view<LIBDAT>
 {
 	return detail::make_vector_view
 		( reinterpret_cast<LIBDAT*>(uintptr_t(ctx->hsphed) + ctx->hsphed->pt_linfo)
 		, ctx->hsphed->max_linfo / sizeof(LIBDAT));
 }
 
-static PVal* seekSttVar(char const* name)
+static auto seekSttVar(char const* name) -> PVal*
 {
 	auto const index = int { exinfo->HspFunc_seekvar(name) };
 	return (index >= 0) ? &ctx->mem_var[index] : nullptr;
 }
 
-static std::vector_view<STRUCTPRM const> STRUCTDAT_params(stdat_t self)
+static auto STRUCTDAT_params(stdat_t self) -> std::vector_view<STRUCTPRM const>
 {
 	return detail::make_vector_view(&minfo()[self->prmindex], self->prmmax);
 }
 
-static char const* STRUCTDAT_name(stdat_t self)
+static auto STRUCTDAT_name(stdat_t self) -> char const*
 {
 	return strData(self->nameidx);
 }
@@ -113,12 +113,12 @@ static bool STRUCTDAT_isSttmOrFunc(stdat_t self)
 	return (self->index == STRUCTDAT_INDEX_FUNC || self->index == STRUCTDAT_INDEX_CFUNC);
 }
 
-static stdat_t STRUCTPRM_stdat(stprm_t self)
+static auto STRUCTPRM_stdat(stprm_t self) -> stdat_t
 {
 	return &finfo()[self->subid];
 }
 
-static ptrdiff_t STRUCTPRM_miIndex(stprm_t self)
+static auto STRUCTPRM_miIndex(stprm_t self) -> ptrdiff_t
 {
 	return ( minfo().begin() <= self && self < minfo().end() )
 		? std::distance(minfo().begin(), self)
@@ -131,13 +131,13 @@ static ptrdiff_t STRUCTPRM_miIndex(stprm_t self)
 MPTYPE_STRUCTTAG のパラメータ。
 スクリプト上においてモジュール名によって表されるコマンド。
 //*/
-static stprm_t FlexValue_structTag(FlexValue const* self)
+static auto FlexValue_structTag(FlexValue const* self) -> stprm_t
 {
 	return &minfo()[self->customid];
 }
 
 // モジュールに対応する STRUCTDAT
-static stdat_t FlexValue_module(FlexValue const* self)
+static auto FlexValue_module(FlexValue const* self) -> stdat_t
 {
 	return STRUCTPRM_stdat(FlexValue_structTag(self));
 }
@@ -147,24 +147,24 @@ static bool FlexValue_isClone(FlexValue const* self)
 	return (self->type == FLEXVAL_TYPE_CLONE);
 }
 
-static void const* Prmstack_memberPtr(void const* self, stprm_t stprm)
+static auto Prmstack_memberPtr(void const* self, stprm_t stprm) -> void const*
 {
 	return static_cast<char const*>(self) + stprm->offset;
 }
 
-static void* Prmstack_memberPtr(void* self, stprm_t stprm)
+static auto Prmstack_memberPtr(void* self, stprm_t stprm) -> void*
 {
 	return const_cast<void*>(Prmstack_memberPtr(const_cast<void const*>(self), stprm));
 }
 
-static size_t PVal_maxDim(PVal const* pval)
+static auto PVal_maxDim(PVal const* pval) -> size_t
 {
 	auto i = size_t { 0 };
 	for ( ; i < ArrayDimMax && pval->len[i + 1] > 0; ++i ) {}
 	return i;
 }
 
-static size_t PVal_cntElems(PVal const* pval)
+static auto PVal_cntElems(PVal const* pval) -> size_t
 {
 	auto cnt = size_t { 1 };
 	for ( auto i = size_t { 1 };; ++i ) {
@@ -174,7 +174,7 @@ static size_t PVal_cntElems(PVal const* pval)
 	return cnt;
 }
 
-static std::vector<int> PVal_indexesFromAptr(PVal const* pval, APTR aptr)
+static auto PVal_indexesFromAptr(PVal const* pval, APTR aptr) -> std::vector<int>
 {
 	auto const dim = PVal_maxDim(pval);
 	auto indexes = std::vector<int>(dim);
@@ -192,12 +192,12 @@ static bool PVal_isStandardArray(PVal const* pval)
 	return (hvp->support & (HSPVAR_SUPPORT_FIXEDARRAY | HSPVAR_SUPPORT_FLEXARRAY)) != 0;
 }
 
-static PDAT* PVal_getPtr(PVal* pval)
+static auto PVal_getPtr(PVal* pval) -> PDAT*
 {
 	return varproc(pval->flag)->GetPtr(pval);
 }
 
-static PDAT* PVal_getPtr(PVal* pval, APTR aptr)
+static auto PVal_getPtr(PVal* pval, APTR aptr) -> PDAT*
 {
 	if ( aptr == 0 ) return pval->pt;
 
@@ -208,13 +208,13 @@ static PDAT* PVal_getPtr(PVal* pval, APTR aptr)
 	return result;
 }
 
-static PDAT const* PVal_getPtr(PVal const* pval, APTR aptr)
+static auto PVal_getPtr(PVal const* pval, APTR aptr) -> PDAT const*
 {
 	// 実体ポインタを得るだけなので const な操作であるはず
 	return PVal_getPtr(const_cast<PVal*>(pval), aptr);
 }
 
-static PDAT const* PVal_getPtr(PVal const* pval)
+static auto PVal_getPtr(PVal const* pval) -> PDAT const*
 {
 	return PVal_getPtr(pval, pval->offset);
 }

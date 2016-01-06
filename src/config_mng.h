@@ -36,7 +36,7 @@ public:
 		VswInfo(module_handle_t&& inst, addVarUserdef_t addVar, addValueUserdef_t addValue)
 			: inst(std::move(inst)), addVar(addVar), addValue(addValue)
 		{}
-		VswInfo& operator=(VswInfo&& r)
+		auto operator=(VswInfo&& r) -> VswInfo&
 		{
 			inst = std::move(r.inst); addVar = r.addVar; addValue = r.addValue;
 			return *this;
@@ -69,19 +69,19 @@ public:
 	bool logsInvocation;
 #endif
 
-	string commonPath() const { return hspDir + "common"; }
-	string selfPath() const { return hspDir + "knowbug.ini"; }
+	auto commonPath() const -> string { return hspDir + "common"; }
+	auto selfPath() const -> string { return hspDir + "knowbug.ini"; }
 
 private:
 	KnowbugConfig();
-	bool tryRegisterVswInfo(string const& vtname, VswInfo vswi);
+	bool tryRegisterVswInfo(string const& vtname, VswInfo vswi) ;
 
 public:
 	//to jusitify existent codes (such as g_config->property)
 	class SingletonAccessor {
 	public:
 		void initialize() { instance(); }
-		KnowbugConfig* operator->() { return &instance(); }
+		auto operator->() -> KnowbugConfig* { return &instance(); }
 	};
 };
 

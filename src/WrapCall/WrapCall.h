@@ -17,8 +17,8 @@ extern void bgnCall(stdat_t callee);
 extern void endCall();
 extern void endCall(PDAT* p, vartype_t vtype);
 
-extern ModcmdCallInfo::shared_ptr_type tryGetCallInfoAt(size_t idx);
-extern stkCallInfoRange_t getCallInfoRange();
+extern auto tryGetCallInfoAt(size_t idx) -> ModcmdCallInfo::shared_ptr_type;
+extern auto getCallInfoRange() -> stkCallInfoRange_t;
 
 };
 

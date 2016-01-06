@@ -51,7 +51,7 @@ struct Resource
 };
 static auto g_res = unique_ptr<Resource> {};
 
-HWND getVarTreeHandle() { return hVarTree; }
+auto getVarTreeHandle() -> HWND { return hVarTree; }
 
 static auto windowHandles() -> std::vector<HWND>
 {
@@ -166,7 +166,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		{
 			hPop = g_res->logMenu.get();
 		}
-		HMENU apply(VTNodeData const& node)
+		auto apply(VTNodeData const& node) -> HMENU
 		{
 			hPop = g_res->nodeMenu.get(); // default
 			node.acceptVisitor(*this);
@@ -489,12 +489,12 @@ void setEditStyle( HWND hEdit, int maxlen )
 
 // 公開API
 
-EXPORT HWND WINAPI knowbug_hwnd()
+EXPORT auto WINAPI knowbug_hwnd() -> HWND
 {
 	return Dialog::g_res->mainWindow.get();
 }
 
-EXPORT HWND WINAPI knowbug_hwndView()
+EXPORT auto WINAPI knowbug_hwndView() -> HWND
 {
 	return Dialog::g_res->viewWindow.get();
 }

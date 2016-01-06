@@ -6,7 +6,7 @@
 #include <fstream>
 #include <cstring>
 
-static size_t countIndents(char const* s)
+static auto countIndents(char const* s) -> size_t
 {
 	auto i = size_t { 0 };
 	for ( ; s[i] == '\t' || s[i] == ' '; ++i );
@@ -40,17 +40,22 @@ public:
 		assert(idx == base_.size());
 	}
 
-	string const& get() const {
+	auto get() const -> string const&
+	{
 		return base_;
 	}
-	std::pair<size_t, size_t> lineRange(int i) const {
+
+	auto lineRange(int i) const -> std::pair<size_t, size_t>
+	{
 		if ( 0 <= i && static_cast<size_t>(i) + 1 < index_.size() ) {
 			return std::make_pair(index_[i], index_[i + 1]);
 		} else {
 			return std::make_pair(index_.back(), index_.back());
 		}
 	}
-	string line(int i) const {
+
+	auto line(int i) const -> string
+	{
 		auto it = get().begin();
 		auto ran = lineRange(i);
 		return string(it + ran.first, it + ran.second);

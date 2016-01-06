@@ -7,7 +7,7 @@
 
 KnowbugConfig::SingletonAccessor g_config;
 
-static string SelfDir() {
+static auto SelfDir() -> string  {
 	char path[MAX_PATH];
 	GetModuleFileName(GetModuleHandle(nullptr), path, MAX_PATH);
 
@@ -19,7 +19,7 @@ static string SelfDir() {
 }
 
 template<typename T>
-T loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawName)
+auto loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawName) -> T
 {
 	static auto const stc_sec = "VardataString/UserdefTypes/Func";
 

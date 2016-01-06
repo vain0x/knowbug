@@ -5,8 +5,8 @@
 #include "type_modcmd.h"
 #include "WrapCall.h"
 
-static int   modcmd_cmdfunc(int cmd);
-static void* modcmd_reffunc(int* type_res, int cmd);
+static auto modcmd_cmdfunc(int cmd) -> int;
+static auto modcmd_reffunc(int* type_res, int cmd) -> void*;
 
 // 変数
 static auto g_modcmd_cmdfunc_impl = decltype(HSP3TYPEINFO::cmdfunc) {};
@@ -54,7 +54,7 @@ void modcmd_term(HSP3TYPEINFO* info)
 //------------------------------------------------
 // [modcmd] 命令コマンド
 //------------------------------------------------
-int modcmd_cmdfunc(int cmdid)
+auto modcmd_cmdfunc(int cmdid) -> int
 {
 	auto stdat = &hpiutil::finfo()[cmdid];
 
@@ -67,7 +67,7 @@ int modcmd_cmdfunc(int cmdid)
 //------------------------------------------------
 // [modcmd] 関数コマンド
 //------------------------------------------------
-void* modcmd_reffunc(int* type_res, int cmdid)
+auto modcmd_reffunc(int* type_res, int cmdid) -> void*
 {
 	auto stdat = &hpiutil::finfo()[cmdid];
 

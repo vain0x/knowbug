@@ -13,7 +13,7 @@ namespace Sysvar
 //------------------------------------------------
 // システム変数名からインデックス値を求める
 //------------------------------------------------
-Id trySeek( char const* name )
+auto trySeek( char const* name ) -> Id
 {
 	assert(name);
 	for ( auto i = 0; i < Count; ++ i ) {
@@ -25,7 +25,7 @@ Id trySeek( char const* name )
 //------------------------------------------------
 // 整数値のシステム変数へのポインタを得る
 //------------------------------------------------
-int& getIntRef(Id id)
+auto getIntRef(Id id) -> int&
 {
 	assert(List[id].type == HSPVAR_FLAG_INT && id != Id::Cnt);
 	switch ( id ) {
@@ -46,10 +46,10 @@ int& getIntRef(Id id)
 
 //------------------------------------------------
 // thismod の値
-// 
+//
 // (failure: nullptr)
 //------------------------------------------------
-FlexValue* tryGetThismod()
+auto tryGetThismod() -> FlexValue*
 {
 	if ( ctx->prmstack ) {
 		auto const thismod = reinterpret_cast<MPModVarData*>(ctx->prmstack);
@@ -67,7 +67,7 @@ FlexValue* tryGetThismod()
 //------------------------------------------------
 // メモリダンプするための情報を得る
 //------------------------------------------------
-std::pair<void const*, size_t> tryDump(Id id)
+auto tryDump(Id id) -> std::pair<void const*, size_t>
 {
 	switch ( id ) {
 		case Id::Refstr:  return std::make_pair(ctx->refstr, HSPCTX_REFSTR_MAX);

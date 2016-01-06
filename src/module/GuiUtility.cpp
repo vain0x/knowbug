@@ -6,11 +6,12 @@
 //------------------------------------------------
 // 簡易ウィンドウ生成
 //------------------------------------------------
-HWND Window_Create
+auto Window_Create
 	( char const* className, WNDPROC proc
 	, char const* caption, int windowStyles
 	, int sizeX, int sizeY, int posX, int posY
-	, HINSTANCE hInst)
+	, HINSTANCE hInst
+	) -> HWND
 {
 	auto wndclass = WNDCLASS {};
 	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
@@ -96,7 +97,7 @@ void Edit_SetSelLast(HWND hwnd) {
 //------------------------------------------------
 // ツリービューの項目ラベルを取得する
 //------------------------------------------------
-string TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem)
+auto TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem) -> string
 {
 	char stmp[256];
 
@@ -112,7 +113,7 @@ string TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem)
 //------------------------------------------------
 // ツリービューのノードに関連する lparam 値を取得する
 //------------------------------------------------
-LPARAM TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem)
+auto TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem) -> LPARAM
 {
 	auto ti = TVITEM {};
 	ti.hItem = hItem;
@@ -140,7 +141,7 @@ void TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem)
 //------------------------------------------------
 // 末子ノードを取得する (failure: nullptr)
 //------------------------------------------------
-HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
+auto TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem) -> HTREEITEM
 {
 	auto hLast = TreeView_GetChild(hwndTree, hItem);
 	if ( ! hLast ) return nullptr;	// error
@@ -157,7 +158,7 @@ HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
 //------------------------------------------------
 // スクリーン座標 pt にある要素
 //------------------------------------------------
-HTREEITEM TreeView_GetItemAtPoint(HWND hwndTree, POINT pt)
+auto TreeView_GetItemAtPoint(HWND hwndTree, POINT pt) -> HTREEITEM
 {
 	auto tvHitTestInfo = TV_HITTESTINFO {};
 	tvHitTestInfo.pt = pt;
@@ -190,7 +191,7 @@ auto Dialog_SaveFileName(HWND owner
 		? std::make_unique<string>(fullName.data()) : nullptr;
 }
 
-HFONT Font_Create(char const* family, int size, bool antialias)
+auto Font_Create(char const* family, int size, bool antialias) -> HFONT
 {
 	auto lf = LOGFONT {};
 	lf.lfHeight         = -size; // size pt

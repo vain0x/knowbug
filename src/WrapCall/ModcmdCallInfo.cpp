@@ -10,17 +10,17 @@
 namespace WrapCall
 {
 
-ModcmdCallInfo::shared_ptr_type ModcmdCallInfo::tryGetPrev() const
+auto ModcmdCallInfo::tryGetPrev() const -> ModcmdCallInfo::shared_ptr_type
 {
 	return tryGetCallInfoAt(idx - 1);
 }
 
-ModcmdCallInfo::shared_ptr_type ModcmdCallInfo::tryGetNext() const
+auto ModcmdCallInfo::tryGetNext() const -> ModcmdCallInfo::shared_ptr_type
 {
 	return tryGetCallInfoAt(idx + 1);
 }
 
-std::pair<void*, bool> ModcmdCallInfo::tryGetPrmstk() const
+auto ModcmdCallInfo::tryGetPrmstk() const -> std::pair<void*, bool>
 {
 	auto optNext = tryGetNext();
 
@@ -52,7 +52,7 @@ std::pair<void*, bool> ModcmdCallInfo::tryGetPrmstk() const
 }
 
 // この呼び出しが直接依存されている呼び出しを得る。(failure: nullptr)
-ModcmdCallInfo::shared_ptr_type ModcmdCallInfo::tryGetDependedCallInfo() const
+auto ModcmdCallInfo::tryGetDependedCallInfo() const -> ModcmdCallInfo::shared_ptr_type
 {
 	auto optPrev = tryGetPrev();
 	return (optPrev && optPrev->sublev == sublev)

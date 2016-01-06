@@ -38,15 +38,15 @@ public:
 		: stdat(stdat), prmstk_bak(prmstk_bak), sublev(sublev), looplev(looplev), fname(fname), line(line), idx(idx)
 	{ }
 
-	shared_ptr_type tryGetPrev() const;
-	shared_ptr_type tryGetNext() const;
+	auto tryGetPrev() const -> shared_ptr_type;
+	auto tryGetNext() const -> shared_ptr_type;
 
 	//prmstk: この呼び出しの実引数情報。
 	//safety: このprmstkは確実に正しいものであるか。
-	std::pair<void*, bool> tryGetPrmstk() const;
+	auto tryGetPrmstk() const -> std::pair<void*, bool>;
 
 	// この呼び出しを実引数式に含む呼び出し
-	shared_ptr_type tryGetDependedCallInfo() const;
+	auto tryGetDependedCallInfo() const -> shared_ptr_type;
 
 	auto name() const -> string { return hpiutil::STRUCTDAT_name(stdat); }
 };

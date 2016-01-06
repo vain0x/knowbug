@@ -18,7 +18,10 @@ using namespace hpiutil::internal_vartype_tags;
 CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src) : writer_(std::move(src.writer_)) {}
 CVardataStrWriter::~CVardataStrWriter() {}
 
-string const& CVardataStrWriter::getString() const { return getWriter().get(); }
+auto CVardataStrWriter::getString() const -> string const&
+{
+	return getWriter().get();
+}
 
 //------------------------------------------------
 // 枝刈りを試みる

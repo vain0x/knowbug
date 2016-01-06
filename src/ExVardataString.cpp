@@ -10,7 +10,7 @@
 #include "CVardataString.h"
 
 // キャスト
-static CVardataStrWriter& vswriter(vswriter_t self)
+static auto vswriter(vswriter_t self) -> CVardataStrWriter&
 {
 	return *reinterpret_cast<CVardataStrWriter*>(self);
 }
@@ -78,7 +78,7 @@ EXPORT BOOL WINAPI knowbugVsw_isLineformWriter(vswriter_t _w)
 }
 
 static KnowbugVswMethods g_knowbugVswMethods;
-EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods()
+EXPORT auto WINAPI knowbug_getVswMethods() -> KnowbugVswMethods const*
 {
 	if ( ! g_knowbugVswMethods.catLeaf ) {
 		g_knowbugVswMethods.catLeaf		     = knowbugVsw_catLeaf		;
@@ -101,14 +101,14 @@ EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods()
 //------------------------------------------------
 // HSPからの読み書き用
 //------------------------------------------------
-EXPORT vswriter_t WINAPI knowbugVsw_newTreeformedWriter()
+EXPORT auto WINAPI knowbugVsw_newTreeformedWriter() -> vswriter_t
 {
 	return new CVardataStrWriter(
 		CVardataStrWriter::create<CTreeformedWriter>(std::make_shared<CStrBuf>())
 	);
 }
 
-EXPORT vswriter_t WINAPI knowbugVsw_newLineformedWriter()
+EXPORT auto WINAPI knowbugVsw_newLineformedWriter() -> vswriter_t
 {
 	return new CVardataStrWriter(
 		CVardataStrWriter::create<CLineformedWriter>(std::make_shared<CStrBuf>())
@@ -120,7 +120,7 @@ EXPORT void WINAPI knowbugVsw_deleteWriter(vswriter_t _w)
 	if ( _w ) { delete &vswriter(_w); }
 }
 
-EXPORT char const* WINAPI knowbugVsw_dataPtr(vswriter_t _w, int* length)
+EXPORT auto WINAPI knowbugVsw_dataPtr(vswriter_t _w, int* length) -> char const*
 {
 	if ( ! _w ) return nullptr;
 	auto& s = vswriter(_w).getString();
@@ -131,7 +131,7 @@ EXPORT char const* WINAPI knowbugVsw_dataPtr(vswriter_t _w, int* length)
 //------------------------------------------------
 // 拙作プラグイン拡張型表示の情報
 //------------------------------------------------
-std::vector<VswInfoForInternal> const& vswInfoForInternal()
+auto vswInfoForInternal() -> std::vector<VswInfoForInternal> const&
 {
 	static std::vector<VswInfoForInternal> vswi {
 		{ "int", nullptr, knowbugVsw_addValueInt },

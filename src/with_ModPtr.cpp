@@ -7,7 +7,7 @@
 namespace ModPtr
 {
 
-PVal* getAllInstanceVar()
+auto getAllInstanceVar() -> PVal*
 {
 	static auto stt_pvalAllInstance = static_cast<PVal*>(nullptr);
 	if ( ! stt_pvalAllInstance ) {
@@ -17,7 +17,7 @@ PVal* getAllInstanceVar()
 	return stt_pvalAllInstance;
 }
 
-FlexValue* getValue(int mp)
+auto getValue(int mp) -> FlexValue*
 {
 	return &ptr_cast<FlexValue*>( getAllInstanceVar()->pt )[ getIdx(mp) ];
 }

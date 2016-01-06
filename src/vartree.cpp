@@ -53,7 +53,7 @@ public:
 	auto itemFromNode(VTNodeData const* p) const -> HTREEITEM;
 	bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd);
 
-	int viewCaretFromNode(HTREEITEM hItem) const;
+	auto viewCaretFromNode(HTREEITEM hItem) const -> int;
 };
 
 struct TvObserver
@@ -318,7 +318,7 @@ void VTView::saveCurrentViewCaret(int vcaret)
 	}
 }
 
-int VTView::Impl::viewCaretFromNode(HTREEITEM hItem) const
+auto VTView::Impl::viewCaretFromNode(HTREEITEM hItem) const -> int
 {
 	auto iter = viewCaret_.find(hItem);
 	return (iter != viewCaret_.end() ? iter->second : 0);
@@ -363,11 +363,12 @@ void VTView::updateViewWindow()
 	}
 }
 
-static HTREEITEM TreeView_MyInsertItem
+static auto TreeView_MyInsertItem
 	( HTREEITEM hParent
 	, char const* name
 	, bool sorts
-	, VTNodeData* node)
+	, VTNodeData* node
+	) -> HTREEITEM
 {
 	auto tvis = TVINSERTSTRUCT {};
 	tvis.hParent = hParent;
@@ -391,7 +392,7 @@ auto makeNodeName(VTNodeData const& node) -> string
 	struct matcher : VTNodeData::Visitor
 	{
 		string result;
-		string apply(VTNodeData const& node)
+		auto apply(VTNodeData const& node) -> string
 		{
 			result = node.name(); // default
 			node.acceptVisitor(*this);

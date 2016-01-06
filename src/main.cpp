@@ -24,7 +24,7 @@ static void debugbye();
 using WrapCall::ModcmdCallInfo;
 #endif
 
-int WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved)
+auto WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) -> int
 {
 	switch ( fdwReason ) {
 		case DLL_PROCESS_ATTACH: {
@@ -86,7 +86,7 @@ bool isStepRunning() { return bStepRunning; }
 // 条件付き実行の終了条件となる sublev
 static auto sublevOfGoal = -1;
 
-HINSTANCE getInstance()
+auto getInstance() -> HINSTANCE
 {
 	return g_hInstance;
 }
@@ -115,7 +115,7 @@ void runStepOut()  { return runStepReturn( ctx->sublev - 1 ); }
 // ctx->sublev == sublev になるまで step を繰り返す
 void runStepReturn(int sublev)
 {
-	if ( sublev < 0 ) return run();	
+	if ( sublev < 0 ) return run();
 
 	sublevOfGoal = sublev;
 	bStepRunning = false;

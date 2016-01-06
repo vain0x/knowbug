@@ -50,10 +50,10 @@ static auto const List = std::array<Info, Count> {{
 	, { "notebuf", HSPVAR_FLAG_STR }
 }};
 
-extern Id trySeek(char const* name);
-extern int& getIntRef(Id id);
-extern FlexValue* tryGetThismod();
-extern std::pair<void const*, size_t> tryDump(Id id);
+extern auto trySeek(char const* name) -> Id;
+extern auto getIntRef(Id id) -> int&;
+extern auto tryGetThismod() -> FlexValue*;
+extern auto tryDump(Id id) -> std::pair<void const*, size_t>;
 
 } //namespace Sysvar
 } // namespace hpiutil

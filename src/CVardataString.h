@@ -27,7 +27,7 @@ public:
 	~CVardataStrWriter();
 
 	template<typename TWriter>
-	static CVardataStrWriter create(std::shared_ptr<CStrBuf> buf)
+	static auto create(std::shared_ptr<CStrBuf> buf) -> CVardataStrWriter
 	{
 		return CVardataStrWriter(buf, static_cast<TWriter*>(nullptr));
 	}
@@ -39,7 +39,7 @@ private:
 	{ }
 
 public:
-	string const& getString() const;
+	auto getString() const -> string const&;
 
 	void addVar(char const* name, PVal const* pval);
 	void addVarScalar(char const* name, PVal const* pval);
@@ -62,7 +62,7 @@ public:
 	void addItem_array(char const* name, CArray* src);
 #endif
 #ifdef with_ExtraBasics
-	//	template<class TNumeric> string dbgstr_extraBasic(const TNumeric src);
+	//	template<class TNumeric> auto dbgstr_extraBasic(const TNumeric src) -> string;
 #endif
 	void addPrmstack(stdat_t stdat, std::pair<void const*, bool> prmstk);
 	void addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member, bool isSafe);

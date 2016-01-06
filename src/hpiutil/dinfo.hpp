@@ -8,12 +8,12 @@
 
 namespace hpiutil {
 	
-static unsigned short wpeek(unsigned char const* p)
+static auto wpeek(unsigned char const* p) -> unsigned short
 {
 	return *reinterpret_cast<unsigned short const*>(p);
 }
 
-static unsigned int tripeek(unsigned char const* p)
+static auto tripeek(unsigned char const* p) -> unsigned int
 {
 	return (p[0] | p[1] << 8 | p[2] << 16);
 }
@@ -23,7 +23,7 @@ class DInfo
 	DInfo() { parse(); }
 
 public:
-	static DInfo& instance();
+	static auto instance() -> DInfo&;
 
 private:
 	using ident_table_t = std::unordered_map<int, char const*>;
@@ -35,18 +35,18 @@ private:
 	cs_map_t csMap_;
 
 public:
-	char const* tryFindIdent(ident_table_t const& table, int iparam) const
+	auto tryFindIdent(ident_table_t const& table, int iparam) const -> char const*
 	{
 		auto const iter = table.find(iparam);
 		return (iter != table.end()) ? iter->second : nullptr;
 	}
 
-	char const* tryFindLabelName(int otIndex) const
+	auto tryFindLabelName(int otIndex) const -> char const*
 	{
 		return tryFindIdent(labelNames_, otIndex);
 	}
 
-	char const* tryFindParamName(int stprmIndex) const
+	auto tryFindParamName(int stprmIndex) const -> char const*
 	{
 		return tryFindIdent(paramNames_, stprmIndex);
 	}

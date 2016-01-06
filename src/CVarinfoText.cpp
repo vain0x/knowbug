@@ -25,10 +25,13 @@ CVarinfoText::CVarinfoText()
 	writer_.getBuf()->limit(std::max(0x100, g_config->maxLength));
 }
 
-string const& CVarinfoText::getString() const {
+auto CVarinfoText::getString() const -> string const&
+{
 	return getBuf()->get();
 }
-string&& CVarinfoText::getStringMove() {
+
+auto CVarinfoText::getStringMove() -> string&&
+{
 	return getBuf()->getMove();
 }
 
@@ -223,7 +226,7 @@ void CVarinfoText::addGeneralOverview() {
 //------------------------------------------------
 // 仮引数リストの文字列
 //------------------------------------------------
-string stringizePrmlist(stdat_t stdat)
+auto stringizePrmlist(stdat_t stdat) -> string
 {
 	auto s = string { "" };
 	for ( auto& stprm : hpiutil::STRUCTDAT_params(stdat) ) {
@@ -233,7 +236,7 @@ string stringizePrmlist(stdat_t stdat)
 	return s;
 }
 
-static char const* typeQualifierStringFromVarmode(varmode_t mode)
+static auto typeQualifierStringFromVarmode(varmode_t mode) -> char const*
 {
 	return (mode == HSPVAR_MODE_NONE) ? "!" :
 		(mode == HSPVAR_MODE_MALLOC) ? "" :
@@ -243,7 +246,7 @@ static char const* typeQualifierStringFromVarmode(varmode_t mode)
 //------------------------------------------------
 // 変数の型を表す文字列
 //------------------------------------------------
-string stringizeVartype(PVal const* pval)
+auto stringizeVartype(PVal const* pval) -> string
 {
 	auto const maxDim = hpiutil::PVal_maxDim(pval);
 

@@ -10,7 +10,7 @@ struct KnowbugVswMethods;
 using vswriter_t = void*;
 
 // functions to get Knowbug APIs
-EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods();
+EXPORT auto WINAPI knowbug_getVswMethods() -> KnowbugVswMethods const*;
 using knowbug_getVswMethods_t = decltype(knowbug_getVswMethods);
 
 // functions called from knowbug

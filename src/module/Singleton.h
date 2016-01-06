@@ -5,7 +5,8 @@ template <class T>
 class Singleton
 {
 public:
-	static T& instance() {
+	static auto instance() -> T&
+	{
 		static auto instance_ =
 			typename T::singleton_pointer_type { T::createInstance() };
 		return T::dereference(instance_);
@@ -15,8 +16,8 @@ protected:
 
 private:
 	using singleton_pointer_type = std::unique_ptr<T>;
-	inline static T* createInstance() { return new T(); }
-	inline static T& dereference(singleton_pointer_type const& ptr) { return *ptr; }
+	inline static auto createInstance() -> T* { return new T(); }
+	inline static auto dereference(singleton_pointer_type const& ptr) -> T& { return *ptr; }
 
 private:
 	Singleton(Singleton const&) = delete;
@@ -35,7 +36,7 @@ struct SharedSingleton
 		assert(instance_);
 		return instance_;
 	}
-	static T& instance()
+	static auto instance() -> T&
 	{
 		return *make_shared();
 	}

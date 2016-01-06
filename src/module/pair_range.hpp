@@ -15,10 +15,10 @@ public:
 		: base_type(std::forward<Args>(args)...)
 	{ }
 
-	Iter& begin() { return first; }
-	Iter&   end() { return second; }
-	Iter const& begin() const { return first; }
-	Iter const&   end() const { return second; }
+	auto begin() -> Iter&  { return first; }
+	auto   end() -> Iter&  { return second; }
+	auto begin() const -> Iter const& { return first; }
+	auto   end() const -> Iter const& { return second; }
 };
 
 template<typename Iter>
