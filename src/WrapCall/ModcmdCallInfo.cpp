@@ -42,7 +42,7 @@ auto ModcmdCallInfo::tryGetPrmstk() const -> std::pair<void*, bool>
 		auto const safe =
 			sublev + 1 == optNext->sublev;
 
-		return { optNext->prmstk_bak, safe };
+		return { optNext->prevPrmstk, safe };
 
 	// 引数展開中
 	//⇔prmstack は未作成

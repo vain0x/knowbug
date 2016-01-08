@@ -20,7 +20,7 @@ struct ModcmdCallInfo
 	stdat_t const stdat;
 
 	// 呼び出し直前での prmstk
-	void* const prmstk_bak;
+	void* const prevPrmstk;
 
 	// 呼び出し直前でのネストレベル
 	int const sublev;
@@ -34,8 +34,8 @@ struct ModcmdCallInfo
 	size_t const idx;
 
 public:
-	ModcmdCallInfo(stdat_t stdat, void* prmstk_bak, int sublev, int looplev, char const* fname, int line, size_t idx)
-		: stdat(stdat), prmstk_bak(prmstk_bak), sublev(sublev), looplev(looplev), fname(fname), line(line), idx(idx)
+	ModcmdCallInfo(stdat_t stdat, void* prevPrmstk, int sublev, int looplev, char const* fname, int line, size_t idx)
+		: stdat(stdat), prevPrmstk(prevPrmstk), sublev(sublev), looplev(looplev), fname(fname), line(line), idx(idx)
 	{ }
 
 	auto tryGetPrev() const -> shared_ptr_type;
