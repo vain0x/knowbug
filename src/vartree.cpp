@@ -388,7 +388,6 @@ auto makeNodeName(VTNodeData const& node) -> string
 {
 	struct matcher : VTNodeData::Visitor
 	{
-		string result;
 		auto apply(VTNodeData const& node) -> string
 		{
 			result = node.name(); // default
@@ -398,6 +397,8 @@ auto makeNodeName(VTNodeData const& node) -> string
 
 		void fInvoke(VTNodeInvoke const& node) override { result = "\'" + node.name(); }
 		void fResult(VTNodeResult const& node) override { result = "\"" + node.name(); }
+	private:
+		string result;
 	};
 
 	return matcher {}.apply(node);
@@ -408,7 +409,6 @@ static bool isAutoOpenNode(VTNodeData const& node)
 {
 	struct matcher : VTNodeData::Visitor
 	{
-		bool result;
 		bool apply(VTNodeData const& node)
 		{
 			result = true; // default
@@ -424,6 +424,8 @@ static bool isAutoOpenNode(VTNodeData const& node)
 		{
 			result = false;
 		}
+	private:
+		bool result;
 	};
 
 	return matcher {}.apply(node);
