@@ -57,13 +57,13 @@ auto nameFromStPrm(stprm_t stprm, int idx) -> std::string
 auto nameFromLabel(label_t lb) -> std::string
 {
 	auto const otIndex = detail::indexFrom(labels(), lb);
-	char buf[64];
+	auto buf = std::array<char, 64> {};
 	if ( auto const name = DInfo::instance().tryFindLabelName(otIndex) ) {
-		std::sprintf(buf, "*%s", name);
+		std::sprintf(buf.data(), "*%s", name);
 	} else {
-		std::sprintf(buf, "label(%p)", static_cast<void const*>(lb));
+		std::sprintf(buf.data(), "label(%p)", static_cast<void const*>(lb));
 	}
-	return std::string { buf };
+	return std::string { buf.data() };
 }
 
 auto nameFromMPType(int mptype) -> char const*

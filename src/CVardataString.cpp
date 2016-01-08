@@ -106,7 +106,7 @@ void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 
 		// cntElems[1 + i] = 部分i次元配列の要素数
 		// (例えば配列 int(2, 3, 4) だと、cntElems = {1, 2, 2*3, 2*3*4, 0})
-		size_t cntElems[1 + hpiutil::ArrayDimMax] = { 1 };
+		auto cntElems = indexes_t { {1} };
 		for ( auto i = size_t { 0 }; i < dim && pval->len[i + 1] > 0; ++i ) {
 			cntElems[i + 1] = pval->len[i + 1] * cntElems[i];
 		}
@@ -117,7 +117,7 @@ void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 	getWriter().catNodeEnd("]");
 }
 
-void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const (&cntElems)[hpiutil::ArrayDimMax + 1], size_t idxDim, APTR aptr_offset)
+void CVardataStrWriter::addVarArrayRec(PVal const* pval, indexes_t const& cntElems, size_t idxDim, APTR aptr_offset)
 {
 	assert(getWriter().isLineformed());
 	for ( auto i = 0; i < pval->len[idxDim + 1]; ++i ) {

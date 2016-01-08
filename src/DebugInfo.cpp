@@ -30,17 +30,17 @@ auto DebugInfo::fetchGeneralInfo() const -> std::vector<std::pair<string, string
 
 	strsp_ini();
 	for ( ;; ) {
-		char name[0x100];
-		char val[0x200];
+		auto name = std::array<char, 0x100> {};
+		auto val  = std::array<char, 0x200> {};
 		{
-			auto const chk = strsp_get(p.get(), name, 0, sizeof(name) - 1);
+			auto const chk = strsp_get(p.get(), name.data(), 0, name.size() - 1);
 			if ( chk == 0 ) break;
 		}
 		{
-			auto const chk = strsp_get(p.get(), val, 0, sizeof(val) - 1);
+			auto const chk = strsp_get(p.get(), val.data(), 0, val.size() - 1);
 			if ( chk == 0 ) break;
 		}
-		info.emplace_back(name, val);
+		info.emplace_back(name.data(), val.data());
 	}
 
 	// 拡張内容の追加
@@ -73,10 +73,10 @@ auto DebugInfo::fetchStaticVarNames() const -> std::vector<string>
 		};
 	strsp_ini();
 	for ( ;; ) {
-		char name[0x100];
-		auto const chk = strsp_get(p.get(), name, 0, sizeof(name) - 1);
+		auto name = std::array<char, 0x100> {};
+		auto const chk = strsp_get(p.get(), name.data(), '\0', name.size() - 1);
 		if ( chk == 0 ) break;
-		names.emplace_back(name);
+		names.emplace_back(name.data());
 	}
 	return std::move(names);
 }

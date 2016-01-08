@@ -27,14 +27,17 @@ class LineDelimitedString
 public:
 	LineDelimitedString(std::istream& is)
 	{
-		char linebuf[0x1000];
+		auto linebuf = std::array<char, 0x1000> {};
 		auto idx = size_t { 0 };
 		do {
-			is.getline(linebuf, sizeof(linebuf));
-			index_.push_back(idx + countIndents(linebuf));
+			is.getline(linebuf.data(), linebuf.size());
+			index_.push_back(idx + countIndents(linebuf.data()));
 
-			auto const len = std::strlen(linebuf);
-			base_.append(linebuf, linebuf + len).append("\r\n");
+			auto const len = std::strlen(linebuf.data());
+			base_
+				.append(linebuf.data(), len)
+				.append("\r\n")
+				;
 			idx += len + 2;
 		} while ( is.good() );
 		index_.push_back(idx);

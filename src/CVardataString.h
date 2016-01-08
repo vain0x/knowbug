@@ -46,7 +46,8 @@ public:
 	void addVarScalar(char const* name, PVal const* pval, APTR aptr);
 	void addVarArray(char const* name, PVal const* pval);
 private:
-	void addVarArrayRec(PVal const* pval, size_t const (&cntElem)[hpiutil::ArrayDimMax + 1], size_t idxDim, APTR aptr_offset);
+	using indexes_t = std::array<size_t, 1 + hpiutil::ArrayDimMax>;
+	void addVarArrayRec(PVal const* pval, indexes_t const& cntElem, size_t idxDim, APTR aptr_offset);
 public:
 	void addValue(char const* name, vartype_t type, PDAT const* ptr);
 	void addValueString(char const* name, char const* str);

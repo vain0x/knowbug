@@ -100,15 +100,17 @@ void Edit_SetSelLast(HWND hwnd)
 //------------------------------------------------
 auto TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem) -> string
 {
-	char stmp[256];
+	auto textBuf = std::array<char, 0x100>{};
 
 	auto ti = TVITEM {};
 	ti.hItem = hItem;
 	ti.mask = TVIF_TEXT;
-	ti.pszText = stmp;
-	ti.cchTextMax = sizeof(stmp) - 1;
+	ti.pszText = textBuf.data();
+	ti.cchTextMax = textBuf.size() - 1;
 
-	return (TreeView_GetItem(hwndTree, &ti) ? stmp : "");
+	return TreeView_GetItem(hwndTree, &ti)
+		? string { textBuf.data() }
+		: "";
 }
 
 //------------------------------------------------
