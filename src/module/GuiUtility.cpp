@@ -89,7 +89,8 @@ void Edit_UpdateText(HWND hwnd, char const* s)
 	Edit_Scroll(hwnd, vscrollBak, 0);
 }
 
-void Edit_SetSelLast(HWND hwnd) {
+void Edit_SetSelLast(HWND hwnd)
+{
 	Edit_SetSel(hwnd, 0, -1);
 	Edit_SetSel(hwnd, -1, -1);
 }

@@ -2,7 +2,8 @@
 #pragma once
 #include <string>
 
-class CStrBuf {
+class CStrBuf
+{
 	using string = std::string;
 public:
 	CStrBuf();

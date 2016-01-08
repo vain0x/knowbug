@@ -7,7 +7,7 @@
 #include <string>
 #include <memory>
 
-using string = std::string;
+using std::string;
 
 auto Window_Create
 	( char const* className, WNDPROC proc

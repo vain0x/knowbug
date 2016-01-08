@@ -180,10 +180,11 @@ bool VTView::Impl::customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pn
 	auto const sItem = TreeView_GetItemString(hwndVarTree, hItem);
 	auto const& name = sItem.c_str();
 
-	auto const cont = [&pnmcd](COLORREF cref) {
-		pnmcd->clrText = cref;
-		return true;
-	};
+	auto cont = [&pnmcd](COLORREF cref)
+		{
+			pnmcd->clrText = cref;
+			return true;
+		};
 
 	auto const node = self_.tryGetNodeData(hItem);
 	if ( ! node ) return false;
@@ -215,16 +216,17 @@ bool VTView::Impl::customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pn
 }
 
 // 変数ツリーの NM_CUSTOMDRAW を処理する
-LRESULT VTView::customDraw( LPNMTVCUSTOMDRAW pnmcd )
+auto VTView::customDraw( LPNMTVCUSTOMDRAW pnmcd ) -> LRESULT
 {
-	if ( pnmcd->nmcd.dwDrawStage == CDDS_PREPAINT ) {
-		return CDRF_NOTIFYITEMDRAW;
+	switch (pnmcd->nmcd.dwDrawStage)  {
+		case CDDS_PREPAINT:
+			return CDRF_NOTIFYITEMDRAW;
 
-	} else if ( pnmcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT ) {
-		auto const hItem = reinterpret_cast<HTREEITEM>(pnmcd->nmcd.dwItemSpec);
-		auto const modified = p_->customizeTextColorIfAble(hItem, pnmcd);
-		if ( modified ) {
-			return CDRF_NEWFONT;
+		case CDDS_ITEMPREPAINT: {
+			auto const hItem = reinterpret_cast<HTREEITEM>(pnmcd->nmcd.dwItemSpec);
+			if ( p_->customizeTextColorIfAble(hItem, pnmcd) ) {
+				return CDRF_NEWFONT;
+			}
 		}
 	}
 	return 0;

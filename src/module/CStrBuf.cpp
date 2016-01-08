@@ -11,7 +11,8 @@ CStrBuf::CStrBuf()
 {
 }
 
-void CStrBuf::limit(size_t newLimit) {
+void CStrBuf::limit(size_t newLimit)
+{
 	assert(newLimit >= stc_warningLength);
 	lenLimit_ = newLimit;
 }

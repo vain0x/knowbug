@@ -20,7 +20,10 @@ static auto tripeek(unsigned char const* p) -> unsigned int
 
 class DInfo
 {
-	DInfo() { parse(); }
+	DInfo()
+	{
+		parse();
+	}
 
 public:
 	static auto instance() -> DInfo&;
@@ -58,7 +61,8 @@ public:
 
 	void parse()
 	{
-		auto tryFindIdentTableFromCtx = [&](int dictx) -> ident_table_t* {
+		auto tryFindIdentTableFromCtx = [&](int dictx) -> ident_table_t*
+		{
 			switch ( dictx ) {
 				case 0: return nullptr; // •Ï”–¼‚Í‹L˜^‚µ‚È‚¢
 				case 1: return &labelNames_;

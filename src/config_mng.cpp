@@ -7,7 +7,8 @@
 
 KnowbugConfig::SingletonAccessor g_config;
 
-static auto SelfDir() -> string  {
+static auto SelfDir() -> string
+{
 	char path[MAX_PATH];
 	GetModuleFileName(GetModuleHandle(nullptr), path, MAX_PATH);
 
@@ -23,11 +24,14 @@ auto loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawNam
 {
 	static auto const stc_sec = "VardataString/UserdefTypes/Func";
 
-	auto const funcName = ini.getString(stc_sec, strf("%s.%s", vtname, rawName).c_str());
-	auto const f = (T)(GetProcAddress(hDll, funcName));
+	auto const funcName =
+		ini.getString(stc_sec, strf("%s.%s", vtname, rawName).c_str());
+	auto const f =
+		reinterpret_cast<T>(GetProcAddress(hDll, funcName));
 	if ( funcName[0] != '\0' && ! f ) {
-		Knowbug::logmesWarning(strf("拡張型表示用の %s 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n",
-			rawName, vtname, funcName).c_str());
+		Knowbug::logmesWarning
+			(strf("拡張型表示用の %s 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n"
+				, rawName, vtname, funcName).c_str());
 	}
 	return f;
 }
@@ -95,10 +99,11 @@ KnowbugConfig::KnowbugConfig()
 			auto const fAddValue = loadVswFunc<addValueUserdef_t>(ini, hDll.get(), vtname.c_str(), "addValue");
 
 #ifdef _DEBUG
-			Knowbug::logmes(strf("型 %s の拡張表示情報が読み込まれた。\r\nVswInfo { %d, %d, %d }\r\n",
-				vtname,
-				hDll.get() != nullptr, fAddVar != nullptr, fAddValue != nullptr
-			).c_str());
+			Knowbug::logmes(
+				strf("型 %s の拡張表示情報が読み込まれた。\r\nVswInfo { %d, %d, %d }\r\n"
+					, vtname
+					, !! hDll.get(), !! fAddVar, !! fAddValue
+					).c_str());
 #endif
 			tryRegisterVswInfo(vtname
 				, VswInfo { std::move(hDll), fAddVar, fAddValue });
@@ -106,8 +111,10 @@ KnowbugConfig::KnowbugConfig()
 				fReceive(knowbug_getVswMethods());
 			}
 		} else {
-			Knowbug::logmesWarning(strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s\r\n",
-				vtname, dllPath).c_str());
+			Knowbug::logmesWarning(
+				strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s\r\n"
+					, vtname, dllPath
+					).c_str());
 		}
 	}
 }

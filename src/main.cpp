@@ -13,8 +13,8 @@ static auto g_hInstance = HINSTANCE {};
 std::unique_ptr<DebugInfo> g_dbginfo {};
 
 // ランタイムとの通信
-EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 );
-EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 );
+EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
+EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4);
 static void debugbye();
 
 // WrapCall 関連
@@ -39,7 +39,7 @@ auto WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) -> i
 	return TRUE;
 }
 
-EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
+EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 {
 	ctx    = p1->hspctx;
 	exinfo = ctx->exinfo2;
@@ -51,12 +51,12 @@ EXPORT BOOL WINAPI debugini( HSP3DEBUG* p1, int p2, int p3, int p4 )
 	return 0;
 }
 
-EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
+EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 {
 	switch ( p2 ) {
 		// 実行が停止した (assert、ステップ実行の完了時など)
 		case hpiutil::DebugNotice_Stop: {
-			if (Knowbug::continueConditionalRun()) break;
+			if ( Knowbug::continueConditionalRun() ) break;
 
 			g_dbginfo->updateCurInf();
 			Dialog::update();
@@ -65,7 +65,7 @@ EXPORT BOOL WINAPI debug_notice( HSP3DEBUG* p1, int p2, int p3, int p4 )
 		case hpiutil::DebugNotice_Logmes:
 			strcat_s(ctx->stmp, HSPCTX_REFSTR_MAX, "\r\n");
 			Knowbug::logmes(ctx->stmp);
-			break;
+		break;
 	}
 	return 0;
 }
@@ -102,15 +102,16 @@ void run()
 	bStepRunning = false;
 }
 
-void runStepIn() {
+void runStepIn()
+{
 	// 本当のステップ実行でのみフラグが立つ
 	bStepRunning = true;
 
 	g_dbginfo->setStepMode(HSPDEBUG_STEPIN);
 }
 
-void runStepOver() { return runStepReturn( ctx->sublev ); }
-void runStepOut()  { return runStepReturn( ctx->sublev - 1 ); }
+void runStepOver() { return runStepReturn(ctx->sublev); }
+void runStepOut()  { return runStepReturn(ctx->sublev - 1); }
 
 // ctx->sublev == sublev になるまで step を繰り返す
 void runStepReturn(int sublev)
@@ -125,8 +126,8 @@ void runStepReturn(int sublev)
 // 条件付き実行が継続されるか？
 bool continueConditionalRun()
 {
-	if (sublevOfGoal >= 0) {
-		if (ctx->sublev > sublevOfGoal) {
+	if ( sublevOfGoal >= 0 ) {
+		if ( ctx->sublev > sublevOfGoal ) {
 			g_dbginfo->setStepMode(HSPDEBUG_STEPIN); // stepin を繰り返す
 			return true;
 		} else {
@@ -144,8 +145,8 @@ void logmes( char const* msg )
 void logmesWarning(char const* msg)
 {
 	g_dbginfo->updateCurInf();
-	logmes(strf("warning: %s\r\nCurInf:%s\r\n",
-		msg, g_dbginfo->getCurInfString()).c_str());
+	logmes(strf("warning: %s\r\nCurInf:%s\r\n"
+			, msg, g_dbginfo->getCurInfString()).c_str());
 }
 
 #ifdef with_WrapCall
@@ -154,11 +155,12 @@ void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 	VTRoot::dynamic().onBgnCalling(callinfo);
 
 	if ( Dialog::logsCalling() ) {
-		auto logText = strf(
-			"[CallBgn] %s\t%s]\r\n",
-			callinfo->name(),
-			DebugInfo::formatCurInfString(callinfo->fname, callinfo->line)
-		);
+		auto logText =
+			strf
+			( "[CallBgn] %s\t%s]\r\n"
+			, callinfo->name()
+			, DebugInfo::formatCurInfString(callinfo->fname, callinfo->line)
+			);
 		Knowbug::logmes(logText.c_str());
 	}
 }
@@ -168,11 +170,12 @@ void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, va
 	auto pResult = VTRoot::dynamic().onEndCalling(callinfo, ptr, vtype);
 
 	if ( Dialog::logsCalling() ) {
-		auto logText = strf(
-			"[CallEnd] %s%s\r\n",
-			callinfo->name(),
-			(pResult ? ("-> " + pResult->lineformedString) : "")
-		);
+		auto logText =
+			strf
+			( "[CallEnd] %s%s\r\n"
+			, callinfo->name()
+			, (pResult ? ("-> " + pResult->lineformedString) : "")
+			);
 		Knowbug::logmes(logText.c_str());
 	}
 }
@@ -191,7 +194,9 @@ EXPORT void WINAPI knowbug_writeVarinfoString(char const* name, PVal* pvalSrc, P
 		if ( pvalDest->offset != 0 ) puterror(HSPERR_TYPE_MISMATCH);
 		exinfo->HspFunc_dim(pvalDest, HSPVAR_FLAG_STR, 0, 1, 0, 0, 0);
 	}
-	code_setva(pvalDest, pvalDest->offset, HSPVAR_FLAG_STR, varinf->getString().c_str());
+	code_setva
+		( pvalDest, pvalDest->offset
+		, HSPVAR_FLAG_STR, varinf->getString().c_str());
 }
 
 /**

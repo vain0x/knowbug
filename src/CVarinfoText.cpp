@@ -49,18 +49,22 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 	getWriter().catln(strf("変数名: %s", name));
 	getWriter().catln(strf("変数型: %s", stringizeVartype(pval)));
 	if ( g_config->showsVariableAddress ) {
-		getWriter().catln(strf("アドレス: %p, %p", cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)));
+		getWriter().catln(
+			strf("アドレス: %p, %p"
+				, cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)
+				));
 	}
 	if ( g_config->showsVariableSize ) {
-		getWriter().catln(strf("サイズ: %d / %d [byte]", pval->size, bufsize));
+		getWriter().catln(
+			strf("サイズ: %d / %d [byte]"
+				, pval->size, bufsize
+				));
 	}
 	getWriter().catCrlf();
 
 	// 変数の内容に関する情報
-	{
-		CVardataStrWriter::create<CTreeformedWriter>(getBuf())
-			.addVar(name, pval);
-	}
+	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
+		.addVar(name, pval);
 	getWriter().catCrlf();
 
 	// メモリダンプ
@@ -76,10 +80,10 @@ void CVarinfoText::addSysvar(hpiutil::Sysvar::Id id)
 {
 	getWriter().catln(strf("変数名: %s\t(システム変数)", hpiutil::Sysvar::List[id].name));
 	getWriter().catCrlf();
-	{
-		CVardataStrWriter::create<CTreeformedWriter>(getBuf())
-			.addSysvar(id);
-	}
+	
+	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
+		.addSysvar(id);
+
 	getWriter().catCrlf();
 
 	// メモリダンプ
@@ -105,7 +109,7 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 
 	auto prmstk_safety = callinfo.tryGetPrmstk();
 	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
-			.addCall(stdat, prmstk_safety);
+		.addCall(stdat, prmstk_safety);
 
 	auto const prmstk = prmstk_safety.first;
 	if ( prmstk && g_config->showsVariableDump ) {
@@ -157,10 +161,8 @@ void CVarinfoText::addModuleOverview(char const* name, VTNodeModule const& tree)
 		[&](string const& varname) {
 			auto const shortName = hpiutil::nameExcludingScopeResolution(varname);
 			getWriter().cat(shortName + "\t= ");
-			{
-				CVardataStrWriter::create<CLineformedWriter>(getBuf())
-					.addVar(varname.c_str(), hpiutil::seekSttVar(varname.c_str()));
-			}
+			CVardataStrWriter::create<CLineformedWriter>(getBuf())
+				.addVar(varname.c_str(), hpiutil::seekSttVar(varname.c_str()));
 			getWriter().catCrlf();
 		}
 	);
@@ -178,10 +180,8 @@ void CVarinfoText::addSysvarsOverview()
 	for ( auto i = 0; i < Sysvar::Count; ++i ) {
 		getWriter().cat(Sysvar::List[i].name);
 		getWriter().cat("\t= ");
-		{
-			CVardataStrWriter::create<CLineformedWriter>(getBuf())
-				.addSysvar(static_cast<Sysvar::Id>(i));
-		}
+		CVardataStrWriter::create<CLineformedWriter>(getBuf())
+			.addSysvar(static_cast<Sysvar::Id>(i));
 		getWriter().catCrlf();
 	}
 }
@@ -212,7 +212,8 @@ void CVarinfoText::addCallsOverview(optional_ref<ResultNodeData const> pLastResu
 //------------------------------------------------
 // [add] 全般概観
 //------------------------------------------------
-void CVarinfoText::addGeneralOverview() {
+void CVarinfoText::addGeneralOverview()
+{
 	getWriter().catln("[全般]");
 	for ( auto&& kv : g_dbginfo->fetchGeneralInfo() ) {
 		auto const isSysvar =
@@ -229,7 +230,7 @@ void CVarinfoText::addGeneralOverview() {
 auto stringizePrmlist(stdat_t stdat) -> string
 {
 	auto s = string { "" };
-	for ( auto& stprm : hpiutil::STRUCTDAT_params(stdat) ) {
+	for ( auto const& stprm : hpiutil::STRUCTDAT_params(stdat) ) {
 		if ( ! s.empty() ) s += ", ";
 		s += hpiutil::nameFromMPType(stprm.mptype);
 	}
@@ -238,9 +239,11 @@ auto stringizePrmlist(stdat_t stdat) -> string
 
 static auto typeQualifierStringFromVarmode(varmode_t mode) -> char const*
 {
-	return (mode == HSPVAR_MODE_NONE) ? "!" :
-		(mode == HSPVAR_MODE_MALLOC) ? "" :
-		(mode == HSPVAR_MODE_CLONE) ? "&" : "<err>";
+	return
+		(mode == HSPVAR_MODE_NONE  ) ? "!" :
+		(mode == HSPVAR_MODE_MALLOC) ? ""  :
+		(mode == HSPVAR_MODE_CLONE ) ? "&" :
+		"<err>";
 }
 
 //------------------------------------------------

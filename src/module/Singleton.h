@@ -12,13 +12,19 @@ public:
 		return T::dereference(instance_);
 	}
 protected:
-	Singleton() {}
+	Singleton()
+	{}
 
 private:
 	using singleton_pointer_type = std::unique_ptr<T>;
-	inline static auto createInstance() -> T* { return new T(); }
-	inline static auto dereference(singleton_pointer_type const& ptr) -> T& { return *ptr; }
-
+	static auto createInstance() -> T*
+	{
+		return new T();
+	}
+	static auto dereference(singleton_pointer_type const& ptr) -> T&
+	{
+		return *ptr;
+	}
 private:
 	Singleton(Singleton const&) = delete;
 	Singleton& operator=(Singleton const&) = delete;

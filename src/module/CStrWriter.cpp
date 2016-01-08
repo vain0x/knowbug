@@ -36,7 +36,7 @@ void CStrWriter::catCrlf()
 //------------------------------------------------
 void CStrWriter::catDumpImpl( void const* data, size_t size )
 {
-	static auto const stc_bytesPerLine =size_t { 0x10 };
+	static auto const stc_bytesPerLine = size_t { 0x10 };
 	auto const mem = static_cast<unsigned char const*>(data);
 	auto idx = size_t { 0 };
 	while ( idx < size ) {
@@ -44,8 +44,10 @@ void CStrWriter::catDumpImpl( void const* data, size_t size )
 
 		auto row = fmt::MemoryWriter {};
 		row << fmt::pad(fmt::hexu(idx), 4, '0');
-		for ( auto i = size_t { 0 }; (i < stc_bytesPerLine && idx < size); ++i, ++idx ) {
+		auto i = size_t { 0 };
+		while ( i < stc_bytesPerLine && idx < size ) {
 			row << ' ' << fmt::pad(fmt::hexu(mem[idx]), 2, '0');
+			i ++; idx ++;
 		}
 		cat(row.c_str());
 	}

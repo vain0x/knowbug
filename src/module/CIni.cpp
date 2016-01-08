@@ -124,7 +124,7 @@ auto splitByNullChar(char const* buf, size_t size) -> std::vector<std::string>
 		auto idx = size_t { 0 };
 		for (;;) {
 			assert(idx < size);
-			std::string const s = &buf[idx];
+			auto s = std::string { &buf[idx] };
 			idx += s.length() + 1;
 			ls.emplace_back(std::move(s));
 			if ( buf[idx] == '\0' ) break;

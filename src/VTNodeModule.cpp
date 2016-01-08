@@ -24,9 +24,10 @@ public:
 
 VTNodeModule::VTNodeModule(VTNodeData& parent_, string const& name)
 	: p_(new Private { *this, parent_, name })
-{ }
+{}
 
-VTNodeModule::~VTNodeModule() {}
+VTNodeModule::~VTNodeModule()
+{}
 
 auto VTNodeModule::name() const -> string
 {
@@ -113,7 +114,8 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 //------------------------------------------------
 // 浅い横断
 //------------------------------------------------
-void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const {
+void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const
+{
 	for ( auto const& kv : p_->modules_ ) {
 		visitor.fModule(*kv.second);
 	}

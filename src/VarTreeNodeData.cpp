@@ -124,8 +124,8 @@ void VTNodeDynamic::onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo
 
 auto VTNodeDynamic::onEndCalling
 	( ModcmdCallInfo::shared_ptr_type const& callinfo
-	, PDAT const* ptr, vartype_t vtype)
-	-> optional_ref<ResultNodeData const>
+	, PDAT const* ptr, vartype_t vtype
+	) -> optional_ref<ResultNodeData const>
 {
 	// 返値ノードデータの生成
 	// ptr の生存期限が今だけなので、他のことをする前に、文字列化などの処理を済ませておく必要がある。

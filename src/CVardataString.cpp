@@ -15,8 +15,12 @@
 
 using namespace hpiutil::internal_vartype_tags;
 
-CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src) : writer_(std::move(src.writer_)) {}
-CVardataStrWriter::~CVardataStrWriter() {}
+CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src)
+	: writer_(std::move(src.writer_))
+{}
+
+CVardataStrWriter::~CVardataStrWriter()
+{}
 
 auto CVardataStrWriter::getString() const -> string const&
 {
@@ -337,8 +341,10 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 				getWriter().catNodeBegin(name, "<int>[");
 				for ( int i = 0; i < ctx->looplev; ++ i ) {
 					auto const lvLoop = ctx->looplev - i;
-					addValue(strf("#%d", lvLoop).c_str(), HSPVAR_FLAG_INT,
-						hpiutil::asPDAT<vtInt>(&ctx->mem_loop[lvLoop].cnt));
+					addValue(strf("#%d", lvLoop).c_str()
+						, HSPVAR_FLAG_INT
+						, hpiutil::asPDAT<vtInt>(&ctx->mem_loop[lvLoop].cnt)
+						);
 				}
 				getWriter().catNodeEnd("]");
 			} else {
@@ -351,9 +357,9 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 			if ( auto const pval = ctx->note_pval ) {
 				auto const aptr = ctx->note_aptr;
 
-				auto indexes = hpiutil::PVal_indexesFromAptr(pval, aptr);
+				auto indexes     = hpiutil::PVal_indexesFromAptr(pval, aptr);
 				auto indexString = hpiutil::stringifyArrayIndex(indexes);
-				auto varName = hpiutil::nameFromStaticVar(pval);
+				auto varName     = hpiutil::nameFromStaticVar(pval);
 				auto name2 =
 					varName
 					? strf("%s (%s%s)", name, varName, indexString)

@@ -40,7 +40,9 @@ static auto shared_ptr_from_rawptr(T* p) -> shared_ptr<T>
 }
 
 // Find key and return the value; Or insert the key with the value of f().
-template<typename Map, typename Key, typename Value = decltype(std::declval<Map>()[std::declval<Key>()]), typename Fun>
+template<typename Map, typename Key
+	, typename Value = decltype(std::declval<Map>()[std::declval<Key>()])
+	, typename Fun>
 static auto map_find_or_insert(Map& m, Key const& key, Fun&& f) -> Value&
 {
 	auto lb = m.lower_bound(key);

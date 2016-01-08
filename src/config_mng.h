@@ -74,7 +74,7 @@ public:
 
 private:
 	KnowbugConfig();
-	bool tryRegisterVswInfo(string const& vtname, VswInfo vswi) ;
+	bool tryRegisterVswInfo(string const& vtname, VswInfo vswi);
 
 public:
 	//to jusitify existent codes (such as g_config->property)

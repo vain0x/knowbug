@@ -19,7 +19,7 @@ auto getAllInstanceVar() -> PVal*
 
 auto getValue(int mp) -> FlexValue*
 {
-	return &ptr_cast<FlexValue*>( getAllInstanceVar()->pt )[ getIdx(mp) ];
+	return &ptr_cast<FlexValue*>(getAllInstanceVar()->pt)[getIdx(mp)];
 }
 
 } // namespace ModPtr

@@ -120,7 +120,7 @@ static auto STRUCTPRM_stdat(stprm_t self) -> stdat_t
 
 static auto STRUCTPRM_miIndex(stprm_t self) -> ptrdiff_t
 {
-	return ( minfo().begin() <= self && self < minfo().end() )
+	return (minfo().begin() <= self && self < minfo().end())
 		? std::distance(minfo().begin(), self)
 		: (-1);
 }
@@ -231,10 +231,10 @@ auto dispatchValue
 {
 	using namespace internal_vartype_tags;
 	switch ( vtype ) {
-		case HSPVAR_FLAG_LABEL:  return fLabel(derefValptr<vtLabel>(pdat));
-		case HSPVAR_FLAG_STR:    return fStr(derefValptr<vtStr>(pdat));
+		case HSPVAR_FLAG_LABEL:  return fLabel (derefValptr<vtLabel >(pdat));
+		case HSPVAR_FLAG_STR:    return fStr   (derefValptr<vtStr   >(pdat));
 		case HSPVAR_FLAG_DOUBLE: return fDouble(derefValptr<vtDouble>(pdat));
-		case HSPVAR_FLAG_INT:    return fInt(derefValptr<vtInt>(pdat));
+		case HSPVAR_FLAG_INT:    return fInt   (derefValptr<vtInt   >(pdat));
 		case HSPVAR_FLAG_STRUCT: return fStruct(derefValptr<vtStruct>(pdat));
 		default: return fDef(pdat, vtype);
 	}

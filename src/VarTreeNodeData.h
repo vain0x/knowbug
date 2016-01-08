@@ -90,7 +90,8 @@ public:
 
 	auto resolveRefName(string const& fileRefName) const -> shared_ptr<string const>;
 	auto fetchScriptAll(char const* fileRefName) const -> optional_ref<string const>;
-	auto fetchScriptLine(char const* fileRefName, size_t lineIndex) const -> unique_ptr<string const>;
+	auto fetchScriptLine(char const* fileRefName, size_t lineIndex) const
+		-> unique_ptr<string const>;
 
 	auto name() const -> string override { return "+script"; }
 	auto parent() const -> optional_ref<VTNodeData> override;

@@ -7,9 +7,10 @@
 
 DebugInfo::DebugInfo(HSP3DEBUG* debug)
 	: debug_(debug)
-{ }
+{}
 
-DebugInfo::~DebugInfo() {}
+DebugInfo::~DebugInfo()
+{}
 
 auto DebugInfo::formatCurInfString(char const* fname, int line) -> string
 {

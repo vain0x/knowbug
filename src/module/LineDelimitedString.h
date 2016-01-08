@@ -14,7 +14,8 @@ static auto countIndents(char const* s) -> size_t
 }
 
 //行ごとに区切られた変更不可な文字列
-class LineDelimitedString {
+class LineDelimitedString
+{
 	using string = std::string;
 
 	string base_;

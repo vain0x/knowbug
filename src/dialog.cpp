@@ -126,7 +126,7 @@ namespace LogBox {
 			"log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";
 		auto path =
 			Dialog_SaveFileName(g_res->mainWindow.get()
-				, filter, "log", "hspdbg.log" );
+				, filter, "log", "hspdbg.log");
 		if ( path ) {
 			save(path->c_str());
 		}
