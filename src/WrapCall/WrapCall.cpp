@@ -20,7 +20,7 @@ extern void onEndCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callin
 namespace WrapCall
 {
 
-static stkCallInfo_t g_stkCallInfo;
+static auto g_stkCallInfo = stkCallInfo_t {};
 
 //------------------------------------------------
 // プラグイン初期化関数

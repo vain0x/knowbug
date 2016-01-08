@@ -335,8 +335,8 @@ void WINAPI knowbugVsw_addValueIntOrModPtr(vswriter_t _w, char const* name, void
 //------------------------------------------------
  void WINAPI knowbugVsw_addValueInt(vswriter_t _w, char const* name, void const* ptr)
 {
-	int const& val = *cptr_cast<int*>(ptr);
-	auto& s = (knowbugVsw_isLineformWriter(_w))
+	auto const& val = *cptr_cast<int*>(ptr);
+	auto s = (knowbugVsw_isLineformWriter(_w))
 		? strf("%d", val)
 		: strf("%-10d (0x%08X)", val, val);
 	vswriter(_w).getWriter().catLeaf(name, s.c_str());
