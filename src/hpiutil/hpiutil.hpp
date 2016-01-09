@@ -1,4 +1,4 @@
-
+﻿
 #pragma once
 
 #include <algorithm>
@@ -126,17 +126,17 @@ static auto STRUCTPRM_miIndex(stprm_t self) -> ptrdiff_t
 }
 
 /**
-�\���̃^�O
+構造体タグ
 
-MPTYPE_STRUCTTAG �̃p�����[�^�B
-�X�N���v�g��ɂ����ă��W���[�����ɂ���ĕ\�����R�}���h�B
+MPTYPE_STRUCTTAG のパラメータ。
+スクリプト上においてモジュール名によって表されるコマンド。
 //*/
 static auto FlexValue_structTag(FlexValue const* self) -> stprm_t
 {
 	return &minfo()[self->customid];
 }
 
-// ���W���[���ɑΉ����� STRUCTDAT
+// モジュールに対応する STRUCTDAT
 static auto FlexValue_module(FlexValue const* self) -> stdat_t
 {
 	return STRUCTPRM_stdat(FlexValue_structTag(self));
@@ -210,7 +210,7 @@ static auto PVal_getPtr(PVal* pval, APTR aptr) -> PDAT*
 
 static auto PVal_getPtr(PVal const* pval, APTR aptr) -> PDAT const*
 {
-	// ���̃|�C���^�𓾂邾���Ȃ̂� const �ȑ���ł���͂�
+	// 実体ポインタを得るだけなので const な操作であるはず
 	return PVal_getPtr(const_cast<PVal*>(pval), aptr);
 }
 
@@ -219,7 +219,7 @@ static auto PVal_getPtr(PVal const* pval) -> PDAT const*
 	return PVal_getPtr(pval, pval->offset);
 }
 
-// �l�ւ̃A�N�Z�X (�Ȃ�ׂ�C++�̌^�����蓖�Ă�)
+// 値へのアクセス (なるべくC++の型を割り当てる)
 template<typename R
 	, typename FunLabel, typename FunStr, typename FunDouble, typename FunInt, typename FunStruct
 	, typename FunDefault>

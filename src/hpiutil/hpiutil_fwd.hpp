@@ -1,4 +1,4 @@
-
+ï»¿
 #pragma once
 
 #include <string>
@@ -26,51 +26,51 @@ using csptr_t = unsigned short const*;
 using stdat_t = STRUCTDAT const*;
 using stprm_t = STRUCTPRM const*;
 
-// HspVarProc‚Ì‰‰ZŠÖ”
+// HspVarProcã®æ¼”ç®—é–¢æ•°
 using operator_t = void(*)(PDAT*, void const*);
 
-// ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒNŠÖ”
+// ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°
 using debug_callback_t = BOOL(CALLBACK*)(HSP3DEBUG*, int, int, int);
 
-// ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ö‚Ì’Ê’mID
+// ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã¸ã®é€šçŸ¥ID
 enum DebugNotice
 {
 	DebugNotice_Stop = 0,
 	DebugNotice_Logmes = 1,
 };
 
-// ’è” /MPTYPE_(\w+)/ ‚Ì’l‚É‘Î‰‚·‚é“K“–‚È–¼‘O‚ğ“¾‚é
+// å®šæ•° /MPTYPE_(\w+)/ ã®å€¤ã«å¯¾å¿œã™ã‚‹é©å½“ãªåå‰ã‚’å¾—ã‚‹
 extern auto nameFromMPType(int mptype) -> char const*;
 
-// Ã“I•Ï”‚Ì–¼‘O‚ğ“¾‚é (¸”s‚Í nullptr)
+// é™çš„å¤‰æ•°ã®åå‰ã‚’å¾—ã‚‹ (å¤±æ•—æ™‚ã¯ nullptr)
 extern auto nameFromStaticVar(PVal const* pval) -> char const*;
 
-// ƒ‚ƒWƒ…[ƒ‹ƒNƒ‰ƒX–¼‚ğ“¾‚é (ƒNƒ[ƒ“‚È‚ç––”ö‚É `&` ‚ğ‚Â‚¯‚é)
+// ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚¯ãƒ©ã‚¹åã‚’å¾—ã‚‹ (ã‚¯ãƒ­ãƒ¼ãƒ³ãªã‚‰æœ«å°¾ã« `&` ã‚’ã¤ã‘ã‚‹)
 extern auto nameFromModuleClass(stdat_t stdat, bool isClone) -> std::string;
 
 /**
-ƒGƒCƒŠƒAƒX‚Ì–¼‘O‚ğ“¾‚é
-index ‚Í‚»‚ÌƒGƒCƒŠƒAƒX‚ÌŒ³‚Ìˆø”—ñ‚É‚¨‚¯‚é”Ô†B
-DInfo ‚©‚ç‚İ‚Â‚©‚ç‚È‚¯‚ê‚Î "(i)" ‚ª•Ô‚éB
+ã‚¨ã‚¤ãƒªã‚¢ã‚¹ã®åå‰ã‚’å¾—ã‚‹
+index ã¯ãã®ã‚¨ã‚¤ãƒªã‚¢ã‚¹ã®å…ƒã®å¼•æ•°åˆ—ã«ãŠã‘ã‚‹ç•ªå·ã€‚
+DInfo ã‹ã‚‰ã¿ã¤ã‹ã‚‰ãªã‘ã‚Œã° "(i)" ãŒè¿”ã‚‹ã€‚
 //*/
 extern auto nameFromStPrm(stprm_t stprm, int index) -> std::string;
 
 /**
-ƒ‰ƒxƒ‹–¼‚ğ“¾‚é
-DInfo ‚©‚ç‚İ‚Â‚©‚ç‚È‚¯‚ê‚Î "label(%p)" ‚ª•Ô‚é
+ãƒ©ãƒ™ãƒ«åã‚’å¾—ã‚‹
+DInfo ã‹ã‚‰ã¿ã¤ã‹ã‚‰ãªã‘ã‚Œã° "label(%p)" ãŒè¿”ã‚‹
 //*/
 extern auto nameFromLabel(label_t lb) -> std::string;
 
-// ƒtƒ@ƒCƒ‹QÆ–¼‚Ìˆê——
+// ãƒ•ã‚¡ã‚¤ãƒ«å‚ç…§åã®ä¸€è¦§
 extern auto fileRefNames() -> std::unordered_set<std::string> const&;
 
-//•¶š—ñƒŠƒeƒ‰ƒ‹
+//æ–‡å­—åˆ—ãƒªãƒ†ãƒ©ãƒ«
 extern auto literalFormString(char const* s) -> std::string;
 
-//”z—ñ“Yš‚Ì•¶š—ñ‚Ì¶¬
+//é…åˆ—æ·»å­—ã®æ–‡å­—åˆ—ã®ç”Ÿæˆ
 extern auto stringifyArrayIndex(std::vector<int> const& indexes) -> std::string;
 
-//Cüq‚ğæ‚èœ‚¢‚½¯•Êq
+//ä¿®é£¾å­ã‚’å–ã‚Šé™¤ã„ãŸè­˜åˆ¥å­
 extern auto nameExcludingScopeResolution(std::string const& name) -> std::string;
 
 }

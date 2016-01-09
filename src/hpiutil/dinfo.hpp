@@ -1,4 +1,4 @@
-
+ï»¿
 #pragma once
 
 #include <map>
@@ -64,7 +64,7 @@ public:
 		auto tryFindIdentTableFromCtx = [&](int dictx) -> ident_table_t*
 		{
 			switch ( dictx ) {
-				case 0: return nullptr; // •Ï”–¼‚Í‹L˜^‚µ‚È‚¢
+				case 0: return nullptr; // å¤‰æ•°åã¯è¨˜éŒ²ã—ãªã„
 				case 1: return &labelNames_;
 				case 2: return &paramNames_;
 				default: throw; //unreachable
@@ -83,12 +83,12 @@ public:
 
 		for ( auto i = 0; i < ctx->hsphed->max_dinfo; ) {
 			switch ( ctx->mem_di[i] ) {
-				case 0xFF: // •¶–¬‚Ì‹æØ‚è
+				case 0xFF: // æ–‡è„ˆã®åŒºåˆ‡ã‚Š
 					dictx++;
 					i++;
 					break;
 
-				case 0xFE: // ƒ\[ƒXƒtƒ@ƒCƒ‹w’è
+				case 0xFE: // ã‚½ãƒ¼ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«æŒ‡å®š
 				{
 					auto const idxDs = tripeek(&ctx->mem_di[i + 1]);
 					auto const line = wpeek(&ctx->mem_di[i + 4]);
@@ -101,7 +101,7 @@ public:
 					i += 6;
 					break;
 				}
-				// ¯•Êqw’è
+				// è­˜åˆ¥å­æŒ‡å®š
 				case 0xFD:
 				case 0xFB:
 					if ( auto const tbl = tryFindIdentTableFromCtx(dictx) ) {
@@ -112,7 +112,7 @@ public:
 					i += 6;
 					break;
 
-				case 0xFC: // Ÿ‚Ì–½—ß‚Ü‚Å‚ÌCSƒIƒtƒZƒbƒg’l
+				case 0xFC: // æ¬¡ã®å‘½ä»¤ã¾ã§ã®CSã‚ªãƒ•ã‚»ãƒƒãƒˆå€¤
 					cur_cs += *reinterpret_cast<csptr_t>(&ctx->mem_di[i + 1]);
 					pushPoint();
 					i += 3;

@@ -1,4 +1,4 @@
-
+ï»¿
 #pragma once
 
 #include <memory>
@@ -19,7 +19,7 @@ class VTNodeGeneral;
 struct ResultNodeData;
 using VTNodeResult = ResultNodeData;
 
-// ƒcƒŠ[ƒrƒ…[‚Ìƒm[ƒh‚É‘Î‰‚·‚éƒNƒ‰ƒX‚ÌƒCƒ“ƒ^[ƒtƒFƒCƒX
+// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã®ãƒãƒ¼ãƒ‰ã«å¯¾å¿œã™ã‚‹ã‚¯ãƒ©ã‚¹ã®ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ã‚¤ã‚¹
 class VTNodeData
 {
 public:

@@ -1,4 +1,4 @@
-
+ï»¿
 #include <unordered_set>
 #include "main.h"
 #include "VarTreeNodeData.h"
@@ -44,12 +44,12 @@ auto VTNodeScript::Impl::searchFile(string const& fileRefName, char const* dir)
 			, fullPath.size(), fullPath.data(), &fileName)
 		!= 0;
 	if ( succeeded ) {
-		// ”­Œ©‚³‚ê‚½ƒfƒBƒŒƒNƒgƒŠ‚ğŒŸõ‘ÎÛ‚É’Ç‰Á‚·‚é
+		// ç™ºè¦‹ã•ã‚ŒãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æ¤œç´¢å¯¾è±¡ã«è¿½åŠ ã™ã‚‹
 		userDirs_.emplace(string(fullPath.data(), fileName));
 
 		auto p = std::make_shared<string const>(fullPath.data());
 
-		// ƒƒ‚‰»
+		// ãƒ¡ãƒ¢åŒ–
 		fullPathFromRefName_.emplace(fileRefName, p);
 		return p;
 	} else {
@@ -60,13 +60,13 @@ auto VTNodeScript::Impl::searchFile(string const& fileRefName, char const* dir)
 auto VTNodeScript::Impl::searchFile(string const& fileRefName)
 	-> shared_ptr<string const>
 {
-	// ƒƒ‚‚©‚ç“Ç‚Ş
+	// ãƒ¡ãƒ¢ã‹ã‚‰èª­ã‚€
 	auto iter = fullPathFromRefName_.find(fileRefName);
 	if ( iter != fullPathFromRefName_.end() ) {
 		return iter->second;
 	}
 
-	// ƒ†[ƒUƒfƒBƒŒƒNƒgƒŠAƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠAcommonA‚Ì‡‚Å’T‚·
+	// ãƒ¦ãƒ¼ã‚¶ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã€ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã€commonã€ã®é †ã§æ¢ã™
 	for ( auto const& dir : userDirs_ ) {
 		if ( auto p = searchFile(fileRefName, dir.c_str()) ) {
 			return std::move(p);
@@ -132,8 +132,8 @@ auto VTNodeScript::fetchScriptLine(char const* fileRefName, size_t lineIndex) co
 {
 	if ( auto p = p_->fetchScript(fileRefName) ) {
 		/**
-		•ÒW’†‚Ìƒtƒ@ƒCƒ‹‚ªÀs‚³‚ê‚Ä‚¢‚éê‡Aƒtƒ@ƒCƒ‹‚Ì“à—e‚ªÀÛ‚ÆˆÙ‚È‚é‚±‚Æ‚ª‚ ‚éB
-		s”Ô†‚ÌƒAƒEƒgƒŒƒ“ƒW‚É’ˆÓB
+		ç·¨é›†ä¸­ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒå®Ÿè¡Œã•ã‚Œã¦ã„ã‚‹å ´åˆã€ãƒ•ã‚¡ã‚¤ãƒ«ã®å†…å®¹ãŒå®Ÿéš›ã¨ç•°ãªã‚‹ã“ã¨ãŒã‚ã‚‹ã€‚
+		è¡Œç•ªå·ã®ã‚¢ã‚¦ãƒˆãƒ¬ãƒ³ã‚¸ã«æ³¨æ„ã€‚
 		//*/
 		return std::make_unique<string>(p->line(lineIndex));
 	} else {

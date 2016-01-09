@@ -1,4 +1,4 @@
-
+ï»¿
 #include <sstream>
 #include "hpiutil.hpp"
 #include "DInfo.hpp"
@@ -46,7 +46,7 @@ auto nameFromStPrm(stprm_t stprm, int idx) -> std::string
 		if ( auto const name = DInfo::instance().tryFindParamName(subid) ) {
 			return nameExcludingScopeResolution(name);
 
-		// thismod ˆø”
+		// thismod å¼•æ•°
 		} else if ( stprm->mptype == MPTYPE_MODULEVAR || stprm->mptype == MPTYPE_IMODULEVAR || stprm->mptype == MPTYPE_TMODULEVAR ) {
 			return "thismod";
 		}
@@ -162,7 +162,7 @@ auto nameExcludingScopeResolution(std::string const& name) -> std::string
 		: name);
 }
 
-// MEMO: DInfo‚ÉƒAƒNƒZƒX‚·‚é‚½‚ß‚É‚±‚±‚É‚ ‚é‚ª stringify ‚Å‚Í‚È‚¢
+// MEMO: DInfoã«ã‚¢ã‚¯ã‚»ã‚¹ã™ã‚‹ãŸã‚ã«ã“ã“ã«ã‚ã‚‹ãŒ stringify ã§ã¯ãªã„
 auto fileRefNames() -> std::unordered_set<std::string> const&
 {
 	return DInfo::instance().fileRefNames();

@@ -1,4 +1,4 @@
-
+﻿
 #include "VarTreeNodeData.h"
 #include "CVardataString.h"
 #include "module/CStrBuf.h"
@@ -127,8 +127,8 @@ auto VTNodeDynamic::onEndCalling
 	, PDAT const* ptr, vartype_t vtype
 	) -> optional_ref<ResultNodeData const>
 {
-	// �Ԓl�m�[�h�f�[�^�̐���
-	// ptr �̐����������������Ȃ̂ŁA���̂��Ƃ�����O�ɁA�����񉻂Ȃǂ̏������ς܂��Ă����K�v������B
+	// 返値ノードデータの生成
+	// ptr の生存期限が今だけなので、他のことをする前に、文字列化などの処理を済ませておく必要がある。
 	auto resultNode =
 		unique_ptr<ResultNodeData>
 		{ (usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
@@ -147,7 +147,7 @@ auto VTNodeDynamic::onEndCalling
 
 	eraseLastInvokeNode();
 
-	// �������Ԃ͎��̌Ăяo�����N����܂�
+	// 生存期間は次の呼び出しが起こるまで
 	return resultRawPtr;
 }
 
