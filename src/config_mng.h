@@ -3,15 +3,8 @@
 #pragma once
 
 #include "main.h"
-#include <Windows.h>
-
-#include <string>
-#include <array>
-#include <memory>
 #include "module/Singleton.h"
 #include "module/handle_deleter.hpp"
-
-#include <functional>
 #include "ExVardataString.h"
 
 struct KnowbugConfig : public Singleton<KnowbugConfig>

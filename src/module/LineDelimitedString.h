@@ -2,7 +2,7 @@
 #define IG_LINE_DELIMITED_STRING_H
 
 #include <string>
-#include <vector>
+#include <array>
 #include <fstream>
 #include <cstring>
 

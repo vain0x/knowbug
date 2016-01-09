@@ -4,7 +4,6 @@
 #define IG_MODULE_STRF_H
 
 #include <string>
-#include <algorithm>
 
 #include "../cppformat/format.h"
 

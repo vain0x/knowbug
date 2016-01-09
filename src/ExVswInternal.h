@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 #include "ExVardataString.h"
 
 extern void WINAPI knowbugVsw_addValueInt(vswriter_t, char const* name, void const* ptr);
