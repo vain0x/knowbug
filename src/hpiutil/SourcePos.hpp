@@ -44,3 +44,17 @@ private:
 };
 
 } //namespace hpiutil
+
+namespace std {
+
+template<>
+struct hash<hpiutil::SourcePos>
+{
+	auto operator()(hpiutil::SourcePos const& src) const -> size_t
+	{
+		return hash<decltype(src.fileRefName())> {}(src.fileRefName())
+			^ hash<decltype(src.line())> {}(src.line());
+	}
+};
+
+} //namespace std
