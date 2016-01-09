@@ -1,10 +1,10 @@
 ﻿
 #pragma once
 
-#include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include "hpiutil.hpp"
+#include "SourcePos.hpp"
 
 namespace hpiutil {
 	
@@ -20,7 +20,7 @@ public:
 
 private:
 	using ident_table_t = std::unordered_map<int, char const*>;
-	using cs_map_t = std::map<std::pair<char const*, int>, csptr_t>;
+	using cs_map_t = std::unordered_map<SourcePos, csptr_t>;
 
 	std::unordered_set<std::string> fileRefNames_;
 	ident_table_t labelNames_;

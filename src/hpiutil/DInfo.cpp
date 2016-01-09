@@ -36,7 +36,7 @@ void DInfo::parse()
 	auto cur_line = 0;
 
 	auto pushPoint = [&]() {
-		csMap_.emplace(std::make_pair(cur_fname, cur_line), cur_cs);
+		csMap_.emplace(SourcePos { cur_fname, cur_line }, cur_cs);
 	};
 
 	auto dictx = 0; // Default context
