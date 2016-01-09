@@ -133,12 +133,11 @@ namespace LogBox {
 } //namespace LogBox
 
 // ソース小窓の更新
-static void UpdateCurInfEdit(char const* filepath, int iLine)
+static void UpdateCurInfEdit(hpiutil::SourcePos const& spos)
 {
-	if ( ! filepath || iLine < 0 ) return;
-	auto curinf = DebugInfo::formatCurInfString(filepath, iLine);
+	auto curinf = spos.toString();
 
-	if ( auto p = VTRoot::script().fetchScriptLine(filepath, iLine) ) {
+	if ( auto p = VTRoot::script().fetchScriptLine(spos) ) {
 		SetWindowText(hSrcLine, (curinf + "\r\n" + *p).c_str());
 
 	} else {
@@ -148,7 +147,7 @@ static void UpdateCurInfEdit(char const* filepath, int iLine)
 
 static void CurrentUpdate()
 {
-	UpdateCurInfEdit(g_dbginfo->curFileName(), g_dbginfo->curLine());
+	UpdateCurInfEdit(g_dbginfo->curPos());
 }
 
 // ツリーノードのコンテキストメニュー
@@ -262,7 +261,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_CURRENT_SCRIPT: {
-					if ( auto p = VTRoot::script().resolveRefName(g_dbginfo->curFileName()) ) {
+					if ( auto p = VTRoot::script().resolveRefName(g_dbginfo->curPos().fileRefName()) ) {
 						ShellExecute(nullptr, "open"
 							, p->c_str(), nullptr, "", SW_SHOWDEFAULT);
 					}

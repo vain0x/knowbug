@@ -255,7 +255,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 		}
 		void fScript(VTNodeScript const& node) override
 		{
-			if ( auto p = node.fetchScriptAll(g_dbginfo->curFileName()) ) {
+			if ( auto p = node.fetchScriptAll(g_dbginfo->curPos().fileRefName()) ) {
 				result = shared_ptr_from_rawptr(std::move(p));
 			} else {
 				result = std::make_shared<string>(g_dbginfo->getCurInfString());
@@ -345,7 +345,7 @@ void VTView::updateViewWindow()
 
 		//+script ノードなら現在の実行位置を選択
 		if ( hItem == p_->hNodeScript_ ) {
-			auto const iLine = g_dbginfo->curLine();
+			auto const iLine = g_dbginfo->curPos().line();
 			Dialog::View::scroll(std::max(0, iLine - 3), 0);
 			Dialog::View::selectLine(iLine);
 

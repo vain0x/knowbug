@@ -159,7 +159,7 @@ void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 			strf
 			( "[CallBgn] %s\t%s]\r\n"
 			, callinfo->name()
-			, DebugInfo::formatCurInfString(callinfo->fname, callinfo->line)
+			, callinfo->callerPos.toString()
 			);
 		Knowbug::logmes(logText.c_str());
 	}

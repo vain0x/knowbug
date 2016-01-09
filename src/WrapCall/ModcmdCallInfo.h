@@ -26,16 +26,15 @@ struct ModcmdCallInfo
 	int const sublev;
 	int const looplev;
 
-	// 呼び出された位置
-	char const* const fname;
-	int const line; //0-based
+	// 呼び出し側の位置
+	hpiutil::SourcePos const callerPos;
 	
 	// g_stkCallInfo における位置
 	size_t const idx;
 
 public:
-	ModcmdCallInfo(stdat_t stdat, void* prevPrmstk, int sublev, int looplev, char const* fname, int line, size_t idx)
-		: stdat(stdat), prevPrmstk(prevPrmstk), sublev(sublev), looplev(looplev), fname(fname), line(line), idx(idx)
+	ModcmdCallInfo(stdat_t stdat, void* prevPrmstk, int sublev, int looplev, hpiutil::SourcePos const& callerPos, size_t idx)
+		: stdat(stdat), prevPrmstk(prevPrmstk), sublev(sublev), looplev(looplev), callerPos(callerPos), idx(idx)
 	{ }
 
 	auto tryGetPrev() const -> shared_ptr_type;

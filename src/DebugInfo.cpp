@@ -12,11 +12,6 @@ DebugInfo::DebugInfo(HSP3DEBUG* debug)
 DebugInfo::~DebugInfo()
 {}
 
-auto DebugInfo::formatCurInfString(char const* fname, int line) -> string
-{
-	return strf("#%d \"%s\"", (line + 1), (fname ? fname : "(nameless)"));
-}
-
 auto DebugInfo::fetchGeneralInfo() const -> std::vector<std::pair<string, string>>
 {
 	auto info = std::vector<std::pair<string, string>> {};

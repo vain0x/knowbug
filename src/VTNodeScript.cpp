@@ -127,15 +127,15 @@ auto VTNodeScript::fetchScriptAll(char const* fileRefName) const
 	}
 }
 
-auto VTNodeScript::fetchScriptLine(char const* fileRefName, size_t lineIndex) const
+auto VTNodeScript::fetchScriptLine(hpiutil::SourcePos const& spos) const
 	-> unique_ptr<string const>
 {
-	if ( auto p = p_->fetchScript(fileRefName) ) {
+	if ( auto p = p_->fetchScript(spos.fileRefName()) ) {
 		/**
 		編集中のファイルが実行されている場合、ファイルの内容が実際と異なることがある。
 		行番号のアウトレンジに注意。
 		//*/
-		return std::make_unique<string>(p->line(lineIndex));
+		return std::make_unique<string>(p->line(spos.line()));
 	} else {
 		return nullptr;
 	}
