@@ -10,7 +10,6 @@
 #include "main.h"
 #include "resource.h"
 #include "hspwnd.h"
-#include "module/supio/supio.h"
 #include "module/GuiUtility.h"
 #include "module/strf.h"
 #include "WrapCall/WrapCall.h"

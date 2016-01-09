@@ -55,7 +55,7 @@ std::vector<std::pair<string, string>> DebugInfo::fetchGeneralInfo() const
 			info.emplace_back("pos", strf("(%d, %d)", pBmscr->cx, pBmscr->cy));
 		}
 	}
-	return std::move(info);
+	return info;
 }
 
 std::vector<string> DebugInfo::fetchStaticVarNames() const
@@ -74,5 +74,5 @@ std::vector<string> DebugInfo::fetchStaticVarNames() const
 		if ( chk == 0 ) break;
 		names.emplace_back(name);
 	}
-	return std::move(names);
+	return names;
 }

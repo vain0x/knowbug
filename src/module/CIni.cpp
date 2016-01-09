@@ -121,7 +121,7 @@ std::vector<std::string> splitByNullChar(char const* buf, size_t size)
 			if ( buf[idx] == '\0' ) break;
 		}
 	}
-	return std::move(ls);
+	return ls;
 }
 
 //------------------------------------------------

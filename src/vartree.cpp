@@ -25,7 +25,7 @@ using detail::TvObserver;
 using detail::LogObserver;
 
 static auto TreeView_MyInsertItem
-	( HTREEITEM hParent, char const* name, bool sorts
+	( HTREEITEM hParent, char const* name
 	, VTNodeData* node
 	) -> HTREEITEM;
 static void TreeView_MyDeleteItem(HTREEITEM hItem);
@@ -122,7 +122,6 @@ void TvObserver::onInit(VTNodeData& node)
 	auto&& hItem = TreeView_MyInsertItem
 		( hParent
 		, makeNodeName(node).c_str()
-		, false
 		, &node);
 
 	assert(self.itemFromNode_[&node] == nullptr);
@@ -176,9 +175,6 @@ bool VTView::Impl::customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pn
 	if ( TreeView_GetItemState(hwndVarTree, hItem, 0) & TVIS_SELECTED ) {
 		return false;
 	}
-
-	string const sItem = TreeView_GetItemString(hwndVarTree, hItem);
-	char const* const name = sItem.c_str();
 
 	auto const cont = [&pnmcd](COLORREF cref) {
 		pnmcd->clrText = cref;
@@ -366,12 +362,11 @@ void VTView::updateViewWindow()
 static HTREEITEM TreeView_MyInsertItem
 	( HTREEITEM hParent
 	, char const* name
-	, bool sorts
 	, VTNodeData* node)
 {
 	TVINSERTSTRUCT tvis {};
 	tvis.hParent = hParent;
-	tvis.hInsertAfter = (sorts ? TVI_SORT : TVI_LAST);
+	tvis.hInsertAfter = TVI_LAST;
 	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
 	tvis.item.lParam  = (LPARAM)node;
 	tvis.item.pszText = const_cast<char*>(name);
@@ -415,7 +410,7 @@ static bool isAutoOpenNode(VTNodeData const& node)
 		{
 			result = true; // default
 			node.acceptVisitor(*this);
-			return std::move(result);
+			return result;
 		}
 
 		void fModule(VTNodeModule const& node) override
