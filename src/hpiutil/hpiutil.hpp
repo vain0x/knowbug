@@ -11,7 +11,7 @@
 
 #include "hpiutil_fwd.hpp"
 #include "vartype_traits.hpp"
-#include "sysvar.hpp"
+#include "Sysvar.hpp"
 
 namespace hpiutil {
 
