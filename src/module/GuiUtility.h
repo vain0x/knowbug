@@ -7,13 +7,14 @@
 #include <string>
 #include <memory>
 
-using string = std::string;
+using std::string;
 
-HWND Window_Create
+auto Window_Create
 	( char const* className, WNDPROC proc
 	, char const* caption, int windowStyles
 	, int sizeX, int sizeY, int posX, int posY
-	, HINSTANCE hInst );
+	, HINSTANCE hInst
+	) -> HWND;
 
 void Window_SetTopMost(HWND hwnd, bool isTopMost);
 
@@ -23,14 +24,15 @@ void Edit_SetTabLength(HWND hEdit, const int tabwidth);
 void Edit_UpdateText(HWND hEdit, char const* s);
 void Edit_SetSelLast(HWND hEdit);
 
-string TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem);
-LPARAM TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem);
+auto TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem) -> string;
+auto TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem) -> LPARAM;
 void   TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem);
-HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem);
-HTREEITEM TreeView_GetItemAtPoint(HWND hwndTree, POINT pt);
+auto TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem) -> HTREEITEM;
+auto TreeView_GetItemAtPoint(HWND hwndTree, POINT pt) -> HTREEITEM;
 
-auto Dialog_SaveFileName(HWND owner
-	, char const* filter, char const* defaultFilter, char const* defaultFileName)
-	-> std::unique_ptr<string>;
+auto Dialog_SaveFileName
+	( HWND owner
+	, char const* filter, char const* defaultFilter, char const* defaultFileName
+	) -> std::unique_ptr<string>;
 
-HFONT Font_Create(char const* family, int size, bool antialias);
+auto Font_Create(char const* family, int size, bool antialias) -> HFONT;

@@ -7,7 +7,7 @@
 
 using std::map;
 
-string const VTNodeModule::Global::Name = "@";
+string const VTNodeModule::Global::Name { "@" };
 
 struct VTNodeModule::Private
 {
@@ -24,9 +24,10 @@ public:
 
 VTNodeModule::VTNodeModule(VTNodeData& parent_, string const& name)
 	: p_(new Private { *this, parent_, name })
-{ }
+{}
 
-VTNodeModule::~VTNodeModule() {}
+VTNodeModule::~VTNodeModule()
+{}
 
 auto VTNodeModule::name() const -> string
 {
@@ -47,7 +48,7 @@ VTNodeModule::Global::Global(VTRoot& parent)
 
 void VTNodeModule::Global::init()
 {
-	auto const&& names = g_dbginfo->fetchStaticVarNames();
+	auto names = g_dbginfo->fetchStaticVarNames();
 	for ( auto const& name : names ) {
 		addVar(name.c_str());
 	}
@@ -58,8 +59,7 @@ void VTNodeModule::Global::init()
 //------------------------------------------------
 void VTNodeModule::Global::addVar(char const* name)
 {
-	char const* const scopeResolution = std::strchr(name, '@');
-	if ( scopeResolution ) {
+	if ( auto scopeResolution = std::strchr(name, '@') ) {
 		if ( auto child = p_->insertModule(scopeResolution) ) {
 			child->p_->insertVar(name);
 		}
@@ -71,7 +71,7 @@ void VTNodeModule::Global::addVar(char const* name)
 
 void VTNodeModule::Private::insertVar(char const* name)
 {
-	PVal* const pval = hpiutil::seekSttVar(name);
+	auto pval = hpiutil::seekSttVar(name);
 	assert(pval);
 
 	vars_.emplace(std::string(name)
@@ -93,20 +93,18 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 		return nullptr;
 	}
 
-	char const* const pModnameLast = std::strrchr(&pModname[1], '@');
-
-	if ( pModnameLast ) {
+	if ( auto pModnameLast = std::strrchr(&pModname[1], '@') ) {
 		// 末尾のスコープのモジュールを挿入する
 		auto child = insertModule(pModnameLast);
-		if ( !child ) return nullptr;
+		if ( ! child ) return nullptr;
 
 		// スコープを1段除いて、子モジュールに挿入する
-		auto const modname2 = string(pModname, pModnameLast);
+		auto modname2 = string(pModname, pModnameLast);
 		return child->p_->insertModule(modname2.c_str());
 		
 	} else {
-		string const modname = pModname;
-		auto&& node = map_find_or_insert(modules_, modname, [&]() {
+		auto modname = string { pModname };
+		auto& node = map_find_or_insert(modules_, modname, [&]() {
 			return std::make_unique<VTNodeModule>(self, modname);
 		});
 		return node.get();
@@ -116,8 +114,9 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 //------------------------------------------------
 // 浅い横断
 //------------------------------------------------
-void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const {
-	for ( auto&& kv : p_->modules_ ) {
+void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const
+{
+	for ( auto const& kv : p_->modules_ ) {
 		visitor.fModule(*kv.second);
 	}
 	for ( auto const& it : p_->vars_ ) {
@@ -131,10 +130,10 @@ void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const {
 bool VTNodeModule::updateSub(bool deep)
 {
 	if ( deep ) {
-		for ( auto&& kv : p_->modules_ ) {
+		for ( auto const& kv : p_->modules_ ) {
 			kv.second->updateDownDeep();
 		}
-		for ( auto&& kv : p_->vars_ ) {
+		for ( auto const& kv : p_->vars_ ) {
 			kv.second->updateDownDeep();
 		}
 	}

@@ -13,26 +13,32 @@ private:
 public:
 	template<typename... Args> pair_range(Args&&... args)
 		: base_type(std::forward<Args>(args)...)
-	{ }
+	{}
 
-	Iter& begin() { return first; }
-	Iter&   end() { return second; }
-	Iter const& begin() const { return first; }
-	Iter const&   end() const { return second; }
+	auto begin() -> Iter& { return first; }
+	auto   end() -> Iter& { return second; }
+	auto begin() const -> Iter const& { return first; }
+	auto   end() const -> Iter const& { return second; }
 };
 
 template<typename Iter>
-static auto make_pair_range(Iter&& begin, Iter&& end) -> pair_range<Iter> {
+static auto make_pair_range(Iter&& begin, Iter&& end)
+-> pair_range<Iter>
+{
 	return pair_range<Iter>(std::forward<Iter>(begin), std::forward<Iter>(end));
 }
 
 template<typename Container>
-static auto make_pair_range(Container& con) -> pair_range<decltype(con.begin())> {
+static auto make_pair_range(Container& con)
+-> pair_range<decltype(con.begin())>
+{
 	return make_pair_range(con.begin(), con.end());
 }
 
 template<typename Container>
-static auto make_pair_range(Container const& con) -> pair_range<decltype(con.begin())> {
+static auto make_pair_range(Container const& con)
+-> pair_range<decltype(con.begin())>
+{
 	return make_pair_range(con.begin(), con.end());
 }
 

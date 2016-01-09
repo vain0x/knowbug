@@ -1,16 +1,18 @@
 ﻿//formatted string
 
-#ifndef IG_MODULE_STRF_H
-#define IG_MODULE_STRF_H
-
+#pragma once
 #include <string>
 
 #include "../cppformat/format.h"
 
-//forwarder to adapt interface with hsp
+namespace {
+
+// alias
 template<typename... Args>
-static std::string strf(char const* format, Args&&... args) {
+auto strf(char const* format, Args&&... args)
+	-> std::string
+{
 	return fmt::sprintf(format, std::forward<Args>(args)...);
 }
 
-#endif
+} //namespace

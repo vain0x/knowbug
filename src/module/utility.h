@@ -34,13 +34,18 @@ template<typename T> using optional_ref = T*;
 
 // wrap raw ptr in shared_ptr
 template<typename T>
-static shared_ptr<T> shared_ptr_from_rawptr(T* p) { return shared_ptr<T>(p, [](void const*) {}); }
+static auto shared_ptr_from_rawptr(T* p) -> shared_ptr<T>
+{
+	return shared_ptr<T>(p, [](void const*) {});
+}
 
 // Find key and return the value; Or insert the key with the value of f().
-template<typename Map, typename Key, typename Value = decltype(std::declval<Map>()[std::declval<Key>()]), typename Fun>
-static Value& map_find_or_insert(Map& m, Key const& key, Fun&& f)
+template<typename Map, typename Key
+	, typename Value = decltype(std::declval<Map>()[std::declval<Key>()])
+	, typename Fun>
+static auto map_find_or_insert(Map& m, Key const& key, Fun&& f) -> Value&
 {
-	auto&& lb = m.lower_bound(key);
+	auto lb = m.lower_bound(key);
 	if ( lb != m.end() && !(m.key_comp()(key, lb->first)) ) {
 		return lb->second;
 	} else {

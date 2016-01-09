@@ -10,25 +10,26 @@
 namespace WrapCall
 {
 
-ModcmdCallInfo::shared_ptr_type ModcmdCallInfo::tryGetPrev() const
+auto ModcmdCallInfo::tryGetPrev() const -> ModcmdCallInfo::shared_ptr_type
 {
 	return tryGetCallInfoAt(idx - 1);
 }
 
-ModcmdCallInfo::shared_ptr_type ModcmdCallInfo::tryGetNext() const
+auto ModcmdCallInfo::tryGetNext() const -> ModcmdCallInfo::shared_ptr_type
 {
 	return tryGetCallInfoAt(idx + 1);
 }
 
-std::pair<void*, bool> ModcmdCallInfo::tryGetPrmstk() const
+auto ModcmdCallInfo::tryGetPrmstk() const -> std::pair<void*, bool>
 {
-	auto const&& optNext = tryGetNext();
+	auto optNext = tryGetNext();
 
 	//これが最新の呼び出し
-	if ( !optNext ) {
+	if ( ! optNext ) {
 		assert(sublev <= ctx->sublev);
 		//本体からさらに他のサブルーチンが実行中なら、それはunhookable invocationの可能性がある
-		bool const safe = (ctx->sublev == sublev + 1);
+		auto const safe =
+			ctx->sublev == sublev + 1;
 
 		return { ctx->prmstack, safe };
 
@@ -38,9 +39,10 @@ std::pair<void*, bool> ModcmdCallInfo::tryGetPrmstk() const
 	} else if ( sublev < optNext->sublev ) {
 		assert(sublev + 1 <= optNext->sublev);
 		//本体からさらに他のサブルーチンが実行中なら、それはunhookable invocationの可能性がある
-		bool const safe = (sublev + 1 == optNext->sublev);
+		auto const safe =
+			sublev + 1 == optNext->sublev;
 
-		return { optNext->prmstk_bak, safe };
+		return { optNext->prevPrmstk, safe };
 
 	// 引数展開中
 	//⇔prmstack は未作成
@@ -50,9 +52,9 @@ std::pair<void*, bool> ModcmdCallInfo::tryGetPrmstk() const
 }
 
 // この呼び出しが直接依存されている呼び出しを得る。(failure: nullptr)
-ModcmdCallInfo::shared_ptr_type ModcmdCallInfo::tryGetDependedCallInfo() const
+auto ModcmdCallInfo::tryGetDependedCallInfo() const -> ModcmdCallInfo::shared_ptr_type
 {
-	auto const&& optPrev = tryGetPrev();
+	auto optPrev = tryGetPrev();
 	return (optPrev && optPrev->sublev == sublev)
 		? optPrev
 		: nullptr;

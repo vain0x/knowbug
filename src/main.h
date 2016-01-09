@@ -29,7 +29,7 @@ using hpiutil::HSPVAR_FLAG_VARIANT;
 // knowbug コントロール
 namespace Knowbug
 {
-	extern HINSTANCE getInstance();
+	extern auto getInstance() -> HINSTANCE;
 
 	extern void run();
 	extern void runStop();

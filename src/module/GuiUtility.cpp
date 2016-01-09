@@ -6,13 +6,14 @@
 //------------------------------------------------
 // 簡易ウィンドウ生成
 //------------------------------------------------
-HWND Window_Create
+auto Window_Create
 	( char const* className, WNDPROC proc
 	, char const* caption, int windowStyles
 	, int sizeX, int sizeY, int posX, int posY
-	, HINSTANCE hInst)
+	, HINSTANCE hInst
+	) -> HWND
 {
-	WNDCLASS wndclass;
+	auto wndclass = WNDCLASS {};
 	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
 	wndclass.lpfnWndProc   = proc;
 	wndclass.cbClsExtra    = 0;
@@ -25,7 +26,7 @@ HWND Window_Create
 	wndclass.lpszClassName = className;
 	RegisterClass(&wndclass);
 
-	HWND const hWnd =
+	auto const hWnd =
 		CreateWindow
 			( className, caption
 			, (WS_CAPTION | WS_VISIBLE | windowStyles)
@@ -35,7 +36,7 @@ HWND Window_Create
 			, hInst
 			, /* lparam = */ nullptr
 			);
-	if ( !hWnd ) {
+	if ( ! hWnd ) {
 		MessageBox(nullptr, "Debug window initalizing failed.", "Error", 0);
 		abort();
 	}
@@ -58,7 +59,7 @@ void Window_SetTopMost(HWND hwnd, bool isTopMost)
 //------------------------------------------------
 void Menu_ToggleCheck(HMENU menu, UINT itemId, bool& checked)
 {
-	checked = !checked;
+	checked = ! checked;
 	CheckMenuItem(menu, itemId, (checked ? MF_CHECKED : MF_UNCHECKED));
 }
 
@@ -67,11 +68,11 @@ void Menu_ToggleCheck(HMENU menu, UINT itemId, bool& checked)
 //------------------------------------------------
 void Edit_SetTabLength(HWND hEdit, const int tabwidth)
 {
-	HDC const hdc = GetDC(hEdit);
+	auto const hdc = GetDC(hEdit);
 	{
-		TEXTMETRIC tm;
+		auto tm = TEXTMETRIC {};
 		if ( GetTextMetrics(hdc, &tm) ) {
-			int const tabstops = tm.tmAveCharWidth / 4 * tabwidth * 2;
+			auto const tabstops = tm.tmAveCharWidth / 4 * tabwidth * 2;
 			SendMessage(hEdit, EM_SETTABSTOPS, 1, (LPARAM)(&tabstops));
 		}
 	}
@@ -83,12 +84,13 @@ void Edit_SetTabLength(HWND hEdit, const int tabwidth)
 //------------------------------------------------
 void Edit_UpdateText(HWND hwnd, char const* s)
 {
-	int const vscrollBak = Edit_GetFirstVisibleLine(hwnd);
+	auto const vscrollBak = Edit_GetFirstVisibleLine(hwnd);
 	SetWindowText(hwnd, s);
 	Edit_Scroll(hwnd, vscrollBak, 0);
 }
 
-void Edit_SetSelLast(HWND hwnd) {
+void Edit_SetSelLast(HWND hwnd)
+{
 	Edit_SetSel(hwnd, 0, -1);
 	Edit_SetSel(hwnd, -1, -1);
 }
@@ -96,25 +98,27 @@ void Edit_SetSelLast(HWND hwnd) {
 //------------------------------------------------
 // ツリービューの項目ラベルを取得する
 //------------------------------------------------
-string TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem)
+auto TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem) -> string
 {
-	char stmp[256];
+	auto textBuf = std::array<char, 0x100>{};
 
-	TVITEM ti;
+	auto ti = TVITEM {};
 	ti.hItem = hItem;
 	ti.mask = TVIF_TEXT;
-	ti.pszText = stmp;
-	ti.cchTextMax = sizeof(stmp) - 1;
+	ti.pszText = textBuf.data();
+	ti.cchTextMax = textBuf.size() - 1;
 
-	return (TreeView_GetItem(hwndTree, &ti) ? stmp : "");
+	return TreeView_GetItem(hwndTree, &ti)
+		? string { textBuf.data() }
+		: "";
 }
 
 //------------------------------------------------
 // ツリービューのノードに関連する lparam 値を取得する
 //------------------------------------------------
-LPARAM TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem)
+auto TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem) -> LPARAM
 {
-	TVITEM ti;
+	auto ti = TVITEM {};
 	ti.hItem = hItem;
 	ti.mask = TVIF_PARAM;
 
@@ -130,8 +134,8 @@ LPARAM TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem)
 void TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem)
 {
 	if ( TreeView_GetSelection(hwndTree) == hItem ) {
-		HTREEITEM hUpper = TreeView_GetPrevSibling(hwndTree, hItem);
-		if ( !hUpper ) hUpper = TreeView_GetParent(hwndTree, hItem);
+		auto hUpper = TreeView_GetPrevSibling(hwndTree, hItem);
+		if ( ! hUpper ) hUpper = TreeView_GetParent(hwndTree, hItem);
 
 		TreeView_SelectItem(hwndTree, hUpper);
 	}
@@ -140,12 +144,12 @@ void TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem)
 //------------------------------------------------
 // 末子ノードを取得する (failure: nullptr)
 //------------------------------------------------
-HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
+auto TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem) -> HTREEITEM
 {
-	HTREEITEM hLast = TreeView_GetChild(hwndTree, hItem);
-	if ( !hLast ) return nullptr;	// error
+	auto hLast = TreeView_GetChild(hwndTree, hItem);
+	if ( ! hLast ) return nullptr;	// error
 
-	for ( HTREEITEM hNext = hLast
+	for ( auto hNext = hLast
 		; hNext != nullptr
 		; hNext = TreeView_GetNextSibling(hwndTree, hLast)
 		) {
@@ -157,9 +161,9 @@ HTREEITEM TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem)
 //------------------------------------------------
 // スクリーン座標 pt にある要素
 //------------------------------------------------
-HTREEITEM TreeView_GetItemAtPoint(HWND hwndTree, POINT pt)
+auto TreeView_GetItemAtPoint(HWND hwndTree, POINT pt) -> HTREEITEM
 {
-	TV_HITTESTINFO tvHitTestInfo;
+	auto tvHitTestInfo = TV_HITTESTINFO {};
 	tvHitTestInfo.pt = pt;
 	ScreenToClient(hwndTree, &tvHitTestInfo.pt);
 	auto const hItem = TreeView_HitTest(hwndTree, &tvHitTestInfo);
@@ -171,11 +175,11 @@ auto Dialog_SaveFileName(HWND owner
 	, char const* filter, char const* defaultFilter, char const* defaultFileName)
 	-> std::unique_ptr<string>
 {
-	std::array<char, MAX_PATH> fileName;
-	std::array<char, MAX_PATH> fullName;
+	auto fileName = std::array<char, MAX_PATH> {};
+	auto fullName = std::array<char, MAX_PATH> {};
 	std::strcpy(fullName.data(), defaultFileName);
 
-	OPENFILENAME ofn {};
+	auto ofn = OPENFILENAME {};
 	ofn.lStructSize    = sizeof(ofn);
 	ofn.hwndOwner      = owner;
 	ofn.lpstrFilter    = filter;
@@ -190,9 +194,9 @@ auto Dialog_SaveFileName(HWND owner
 		? std::make_unique<string>(fullName.data()) : nullptr;
 }
 
-HFONT Font_Create(char const* family, int size, bool antialias)
+auto Font_Create(char const* family, int size, bool antialias) -> HFONT
 {
-	LOGFONT lf;
+	auto lf = LOGFONT {};
 	lf.lfHeight         = -size; // size pt
 	lf.lfWidth          = 0;
 	lf.lfEscapement     = 0;

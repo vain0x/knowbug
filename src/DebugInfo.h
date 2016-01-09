@@ -21,22 +21,29 @@ public:
 
 	bool setStepMode(int mode) { return (debug_->dbg_set(mode) >= 0); }
 
-	std::vector<std::pair<string, string>> fetchGeneralInfo() const;
-	std::vector<string> fetchStaticVarNames() const;
+	auto fetchGeneralInfo() const -> std::vector<std::pair<string, string>>;
+	auto fetchStaticVarNames() const -> std::vector<string>;
 
 	// current position data
-	char const* curFileName() const {
+	auto curFileName() const -> char const*
+	{
 		return (debug_->fname ? debug_->fname : "???");
 	}
-	int curLine() const {
+
+	auto  curLine() const -> int
+	{
 		return debug_->line - 1;
 	}
-	string getCurInfString() const {
+
+	auto getCurInfString() const -> string
+	{
 		return formatCurInfString(curFileName(), curLine());
 	}
-	static string formatCurInfString(char const* fname, int line);
 
-	void updateCurInf() {
+	static auto formatCurInfString(char const* fname, int line) -> string;
+
+	void updateCurInf()
+	{
 		debug_->dbg_curinf();
 	}
 };

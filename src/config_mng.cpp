@@ -7,7 +7,8 @@
 
 KnowbugConfig::SingletonAccessor g_config;
 
-static string SelfDir() {
+static auto SelfDir() -> string
+{
 	char path[MAX_PATH];
 	GetModuleFileName(GetModuleHandle(nullptr), path, MAX_PATH);
 
@@ -19,15 +20,18 @@ static string SelfDir() {
 }
 
 template<typename T>
-T loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawName)
+auto loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawName) -> T
 {
-	static char const* const stc_sec = "VardataString/UserdefTypes/Func";
+	static auto const stc_sec = "VardataString/UserdefTypes/Func";
 
-	auto const funcName = ini.getString(stc_sec, strf("%s.%s", vtname, rawName).c_str());
-	auto const f = (T)(GetProcAddress(hDll, funcName));
-	if ( funcName[0] != '\0' && !f ) {
-		Knowbug::logmesWarning(strf("拡張型表示用の %s 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n",
-			rawName, vtname, funcName).c_str());
+	auto const funcName =
+		ini.getString(stc_sec, strf("%s.%s", vtname, rawName).c_str());
+	auto const f =
+		reinterpret_cast<T>(GetProcAddress(hDll, funcName));
+	if ( funcName[0] != '\0' && ! f ) {
+		Knowbug::logmesWarning
+			(strf("拡張型表示用の %s 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n"
+				, rawName, vtname, funcName).c_str());
 	}
 	return f;
 }
@@ -35,7 +39,7 @@ T loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawName)
 KnowbugConfig::KnowbugConfig()
 {
 	hspDir = SelfDir();
-	CIni ini { selfPath().c_str() };
+	auto&& ini = CIni { selfPath().c_str() };
 	
 	bTopMost   = ini.getBool( "Window", "bTopMost", false );
 	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
@@ -65,14 +69,14 @@ KnowbugConfig::KnowbugConfig()
 
 	if ( bCustomDraw ) {
 		//color of internal types
-		for ( int i = 0; i < HSPVAR_FLAG_USERDEF; ++i ) {
+		for ( auto i = 0; i < HSPVAR_FLAG_USERDEF; ++i ) {
 			clrText[i] = ini.getInt("ColorType", strf("text#%d", i).c_str(), RGB(0, 0, 0));
 		}
 
 		//color of external types or functions
 		auto const& keys = ini.enumKeys("ColorTypeExtra");
 		for ( auto const& key : keys ) {
-			COLORREF const cref = ini.getInt("ColorTypeExtra", key.c_str());
+			auto const cref = static_cast<COLORREF>(ini.getInt("ColorTypeExtra", key.c_str()));
 			clrTextExtra.emplace(key, cref);
 		}
 	}
@@ -89,16 +93,17 @@ KnowbugConfig::KnowbugConfig()
 	auto const& keys = ini.enumKeys("VardataString/UserdefTypes");
 	for ( auto const& vtname : keys ) {
 		auto const dllPath = ini.getString("VardataString/UserdefTypes", vtname.c_str());
-		if ( module_handle_t hDll { LoadLibrary(dllPath) } ) {
+		if ( auto hDll = module_handle_t { LoadLibrary(dllPath) } ) {
 			auto const fReceive  = loadVswFunc<receiveVswMethods_t>(ini, hDll.get(), vtname.c_str(), "receiveVswMethods");
 			auto const fAddVar   = loadVswFunc<addVarUserdef_t  >(ini, hDll.get(), vtname.c_str(), "addVar");
 			auto const fAddValue = loadVswFunc<addValueUserdef_t>(ini, hDll.get(), vtname.c_str(), "addValue");
 
 #ifdef _DEBUG
-			Knowbug::logmes(strf("型 %s の拡張表示情報が読み込まれた。\r\nVswInfo { %d, %d, %d }\r\n",
-				vtname,
-				hDll.get() != nullptr, fAddVar != nullptr, fAddValue != nullptr
-			).c_str());
+			Knowbug::logmes(
+				strf("型 %s の拡張表示情報が読み込まれた。\r\nVswInfo { %d, %d, %d }\r\n"
+					, vtname
+					, !! hDll.get(), !! fAddVar, !! fAddValue
+					).c_str());
 #endif
 			tryRegisterVswInfo(vtname
 				, VswInfo { std::move(hDll), fAddVar, fAddValue });
@@ -106,8 +111,10 @@ KnowbugConfig::KnowbugConfig()
 				fReceive(knowbug_getVswMethods());
 			}
 		} else {
-			Knowbug::logmesWarning(strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s\r\n",
-				vtname, dllPath).c_str());
+			Knowbug::logmesWarning(
+				strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s\r\n"
+					, vtname, dllPath
+					).c_str());
 		}
 	}
 }
@@ -115,9 +122,9 @@ KnowbugConfig::KnowbugConfig()
 bool KnowbugConfig::tryRegisterVswInfo(string const& vtname, VswInfo vswi)
 {
 	auto const hvp = hpiutil::tryFindHvp(vtname.c_str());
-	if ( !hvp ) return false;
+	if ( ! hvp ) return false;
 
-	vartype_t const vtflag = hvp->flag;
+	auto const vtflag = static_cast<vartype_t>(hvp->flag);
 	assert(0 < vtflag && vtflag < vswInfo.size());
 	vswInfo[vtflag] = std::move(vswi);
 	return true;

@@ -42,5 +42,5 @@ struct VswInfoForInternal
 	addValueUserdef_t addValue;
 };
 
-extern std::vector<VswInfoForInternal> const& vswInfoForInternal();
+extern auto vswInfoForInternal() -> std::vector<VswInfoForInternal> const&;
 extern void sendVswMethods(HMODULE hDll);

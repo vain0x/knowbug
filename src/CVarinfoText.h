@@ -35,16 +35,16 @@ public:
 #endif
 	void addGeneralOverview();
 
-	string const& getString() const;
-	string&& getStringMove();
+	auto getString() const -> string const&;
+	auto getStringMove() -> string&&;
 private:
-	CStrWriter& getWriter() { return writer_; }
-	std::shared_ptr<CStrBuf> getBuf() const { return writer_.getBuf(); }
+	auto getWriter() -> CStrWriter& { return writer_; }
+	auto getBuf() const -> std::shared_ptr<CStrBuf> { return writer_.getBuf(); }
 private:
 	CStrWriter writer_;
 };
 
-extern string stringizePrmlist(stdat_t stdat);
-extern string stringizeVartype(PVal const* pval);
+extern auto stringizePrmlist(stdat_t stdat) -> string;
+extern auto stringizeVartype(PVal const* pval) -> string;
 
 #endif

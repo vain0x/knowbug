@@ -16,7 +16,7 @@ VTNodeLog::VTNodeLog()
 
 VTNodeLog::~VTNodeLog()
 {
-	if ( !g_config->logPath.empty() ) {
+	if ( ! g_config->logPath.empty() ) {
 		save(g_config->logPath.c_str());
 	}
 }
@@ -28,7 +28,7 @@ auto VTNodeLog::str() const -> string const&
 
 bool VTNodeLog::save(char const* filePath) const
 {
-	std::ofstream ofs { filePath };
+	auto ofs = std::ofstream { filePath };
 	ofs.write(str().c_str(), str().size());
 	return ofs.good();
 }
@@ -42,7 +42,7 @@ void VTNodeLog::append(char const* addition)
 {
 	p_->log_ += addition;
 
-	if ( auto&& obs = p_->observer_.lock() ) {
+	if ( auto obs = p_->observer_.lock() ) {
 		obs->afterAppend(addition);
 	}
 }

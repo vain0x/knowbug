@@ -7,19 +7,19 @@
 namespace ModPtr
 {
 
-PVal* getAllInstanceVar()
+auto getAllInstanceVar() -> PVal*
 {
-	static PVal* stt_pvalAllInstance = nullptr;
-	if ( !stt_pvalAllInstance ) {
+	static auto stt_pvalAllInstance = static_cast<PVal*>(nullptr);
+	if ( ! stt_pvalAllInstance ) {
 		stt_pvalAllInstance = hpiutil::seekSttVar(VarName_AllInstance);
 		assert(stt_pvalAllInstance != nullptr);
 	}
 	return stt_pvalAllInstance;
 }
 
-FlexValue* getValue(int mp)
+auto getValue(int mp) -> FlexValue*
 {
-	return &ptr_cast<FlexValue*>( getAllInstanceVar()->pt )[ getIdx(mp) ];
+	return &ptr_cast<FlexValue*>(getAllInstanceVar()->pt)[getIdx(mp)];
 }
 
 } // namespace ModPtr
