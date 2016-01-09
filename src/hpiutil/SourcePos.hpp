@@ -36,6 +36,14 @@ public:
 		return "#" + std::to_string(1 + line())
 			+ " " + fileRefName();
 	}
+
+	auto toTuple() const -> std::tuple<std::string, int>
+	{
+		return std::make_tuple(fileRefName(), line());
+	}
+	bool operator==(SourcePos const& rhs) const { return toTuple() == rhs.toTuple(); }
+	bool operator!=(SourcePos const& rhs) const { return std::rel_ops::operator!=(*this, rhs); }
+
 private:
 	char const* fileRefName_;
 
