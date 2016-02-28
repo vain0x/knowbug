@@ -1,0 +1,139 @@
+# knowbug 設定ファイル (既定値)
+
+# TOML形式
+# # で始まる行はコメント
+
+# 設定を書き換える場合は、このファイルではなく、knowbug.toml ファイルを作ってそこに書き込むこと。
+
+[gui]
+# タブ文字の幅
+tab_width = 3
+
+# ツリービューに色をつけるか？
+uses_custom_draw = false
+
+[gui.main]
+# 最前面に表示するか？
+# ポップアップメニューから変更しても、ここは書き換わらない。
+shows_top_most = false
+
+[gui.view]
+# ビューウィンドウの x, y サイズ
+size_x = 412
+size_y = 380
+
+[gui.font]
+family = "MS Gothic"
+size = 13
+antialias = false
+
+[log]
+# 有効な絶対パスを指定すると、終了時にログを上書き保存する。
+auto_save_path = ""
+
+# 保持するログの最大の量
+max_len = 131072
+
+# 消去前に警告するか？
+warns_before_clearing = true
+
+[gui.color]
+
+# ツリービューのノードの色をタイプごとに指定する。
+# 色は配列 [r, g, b] で表す。
+# gui.uses_custom_draw が true のときにだけ意味がある。
+
+[[gui.color.item]]
+type_name = "unknown"
+text = [ 92,  92,  92]
+
+[[gui.color.item]]
+type_name = "label"
+text = [168, 168,   0]
+
+[[gui.color.item]]
+type_name = "str"
+text = [128,  0,  0]
+
+[[gui.color.item]]
+type_name = "double"
+text = [128, 192,   0]
+
+[[gui.color.item]]
+type_name = "int"
+text = [  0,   0, 192]
+
+[[gui.color.item]]
+type_name = "struct"
+text = [ 96,   0, 192]
+
+[[gui.color.item]]
+type_name = "comobj"
+text = [  0, 128,   0]
+
+[[gui.color.item]]
+type_name = "variant"
+text = [  0, 128,   0]
+
+# ユーザ定義命令の呼び出し
+[[gui.color.item]]
+type_name = "__sttm__"
+text = [128,  32, 255]
+
+# ユーザ定義関数の呼び出し
+[[gui.color.item]]
+type_name = "__func__"
+text = [ 32, 128, 255]
+
+[[gui.color.item]]
+# プラグイン拡張型
+type_name = "assoc_k"
+text = [255,  48,   0]
+
+[[gui.color.item]]
+type_name = "vector_k"
+text = [192, 168,  32]
+
+[tree]
+# 返値ノードを生成するか？
+generates_result_node = false
+
+[tree.string]
+# 変数データで表示する最大の文字数 (下限256)
+max_len = 65535
+
+# 変数データのツリー状文字列の深さの上限
+infinite_nest = 8
+
+# 変数のアドレス情報を表示するか？
+shows_var_address = true
+
+# 変数のバッファサイズ、使用サイズ (using X in X) を表示するか？
+shows_var_size = true
+
+# 変数のダンプ情報を表示するか？
+shows_var_dump = true
+
+# 変数ツリーに表示されないモジュールのプレフィックス
+prefix_of_hidden_module = "@__"
+
+# 外部DLLを用いた変数データ文字列化のカスタマイズ
+[[tree.vswx]]
+# カスタマイズする変数型の名前
+# vartype_name = "assoc_k"
+
+# カスタマイズ処理を行うDLLのパス
+#   変数型を提供しているHPIでなくてもよい。
+#   パスの区切りにスラッシュは使用できない。
+# dll = "var_assoc.hpi"
+
+# DLLが公開している関数の名前
+# いずれも省略可能。
+# 詳しくは ExVardataString.(h|cpp) を参照
+# receiveVswMethods に登録した関数に VswMethods 構造体が渡される。
+# add_var は拡張型の変数を文字列化するもの。
+# add_value は拡張型の値を文字列化するもの。
+
+# receive_vsw_methods = ""
+# add_var = ""
+add_value = "_knowbugVsw_addValueAssoc@12"
