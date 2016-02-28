@@ -98,14 +98,14 @@ void update()
 
 bool logsCalling()
 {
-	return g_config->logsInvocation;
+	return g_config->logsInvocation();
 }
 
 namespace LogBox {
 
 	void clear()
 	{
-		if ( ! g_config->warnsBeforeClearingLog
+		if ( ! g_config->warnsBeforeClearingLog()
 			|| MessageBox(g_res->mainWindow.get()
 					, "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL
 					) == IDOK
@@ -202,11 +202,17 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		}
 #endif //defined(with_WrapCall)
 		case IDC_LOG_AUTO_SCROLL: {
-			Menu_ToggleCheck(hPop, IDC_LOG_AUTO_SCROLL, g_config->scrollsLogAutomatically);
+			auto b = 
+				Menu_ToggleCheck(hPop, IDC_LOG_AUTO_SCROLL
+					, g_config->scrollsLogAutomatically());
+			g_config->scrollsLogAutomatically(b);
 			break;
 		}
 		case IDC_LOG_INVOCATION: {
-			Menu_ToggleCheck(hPop, IDC_LOG_INVOCATION, g_config->logsInvocation);
+			auto b = 
+				Menu_ToggleCheck(hPop, IDC_LOG_INVOCATION
+					, g_config->logsInvocation());
+			g_config->logsInvocation(b);
 			break;
 		}
 		case IDC_LOG_SAVE: LogBox::save(); break;
@@ -255,9 +261,12 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				case IDC_BTN5: Knowbug::runStepOut();  break;
 
 				case IDC_TOPMOST: {
-					Menu_ToggleCheck(g_res->dialogMenu.get(), IDC_TOPMOST, g_config->bTopMost);
+					auto b = 
+						Menu_ToggleCheck(g_res->dialogMenu.get(), IDC_TOPMOST
+							, g_config->windowTopmost());
+					g_config->windowTopmost(b);
 					for ( auto&& hwnd : windowHandles() ) {
-						Window_SetTopMost(hwnd, g_config->bTopMost);
+						Window_SetTopMost(hwnd, b);
 					}
 					break;
 				}
@@ -318,7 +327,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 						View::saveCurrentCaret();
 						break;
 					case NM_CUSTOMDRAW: {
-						if ( ! g_config->bCustomDraw ) break;
+						if ( ! g_config->enableCustomDraw() ) break;
 						auto const res =
 							g_res->tv->customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
 						SetWindowLongPtr(hDlg, DWLP_MSGRESULT, res);
@@ -358,7 +367,8 @@ void Dialog::createMain()
 	auto const dispy = GetSystemMetrics(SM_CYSCREEN);
 
 	auto const mainSizeX = 234, mainSizeY = 380;
-	auto const viewSizeX = g_config->viewSizeX, viewSizeY = g_config->viewSizeY;
+	auto const viewSizeX = g_config->viewWindowSizeX();
+	auto const viewSizeY = g_config->viewWindowSizeY();
 
 	//ビューウィンドウ
 	auto hViewWnd = window_handle_t {
@@ -377,7 +387,8 @@ void Dialog::createMain()
 				, (LPCSTR)IDD_VIEW_PANE
 				, hViewWnd.get(), (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
-		setEditStyle(hViewEdit, g_config->maxLength);
+		setEditStyle(hViewEdit
+			, std::max(g_config->varinfoMaxLen(), g_config->logMaxLen()));
 
 		ShowWindow(hPane, SW_SHOW);
 	}
@@ -426,22 +437,22 @@ void Dialog::createMain()
 				, GetDlgItem(hPane, IDC_BTN5) }}
 			, gdi_obj_t {
 					Font_Create
-						( g_config->fontFamily.c_str()
-						, g_config->fontSize
-						, g_config->fontAntialias ) }
+						( g_config->fontFamily().c_str()
+						, g_config->fontSize()
+						, g_config->fontAntialias() ) }
 			});
 	}
 
-	if ( g_config->bTopMost ) {
+	if ( g_config->windowTopmost() ) {
 		CheckMenuItem(g_res->dialogMenu.get(), IDC_TOPMOST, MF_CHECKED);
 		for ( auto&& hwnd : windowHandles() ) {
 			Window_SetTopMost(hwnd, true);
 		}
 	}
-	if ( g_config->scrollsLogAutomatically ) {
+	if ( g_config->scrollsLogAutomatically() ) {
 		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_AUTO_SCROLL, MF_CHECKED);
 	}
-	if ( g_config->logsInvocation ) {
+	if ( g_config->logsInvocation() ) {
 		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_INVOCATION, MF_CHECKED);
 	}
 
@@ -480,7 +491,7 @@ void update()
 
 void setEditStyle( HWND hEdit, int maxlen )
 {
-	Edit_SetTabLength(hEdit, g_config->tabwidth);
+	Edit_SetTabLength(hEdit, g_config->tabWidth());
 	SendMessage(hEdit, EM_SETLIMITTEXT, (WPARAM)maxlen, 0);
 }
 

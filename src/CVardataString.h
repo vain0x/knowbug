@@ -35,7 +35,7 @@ public:
 private:
 	template<typename TWriter>
 	CVardataStrWriter(std::shared_ptr<CStrBuf> buf,  TWriter* /* for template argument deduction */)
-		: writer_(static_cast<CStructedStrWriter*>(new TWriter(buf, g_config->infiniteNest)))
+		: writer_(static_cast<CStructedStrWriter*>(new TWriter(buf, g_config->varinfoMaxNest())))
 	{ }
 
 public:

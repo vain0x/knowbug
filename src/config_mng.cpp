@@ -1,5 +1,4 @@
 ﻿
-#include "module/CIni.h"
 #include "module/strf.h"
 
 #include "config_mng.h"
@@ -19,16 +18,16 @@ static auto SelfDir() -> string
 	return string(drive) + dir;
 }
 
-template<typename T>
-auto loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawName) -> T
+template<typename T, typename TSec>
+auto loadVswFunc(TSec&& sec, HMODULE hDll, char const* vtname, char const* rawName)
+-> T
 {
-	static auto const stc_sec = "VardataString/UserdefTypes/Func";
-
-	auto const funcName =
-		ini.getString(stc_sec, strf("%s.%s", vtname, rawName).c_str());
+	auto iter = sec.find(strf("%s.%s", vtname, rawName));
+	if ( iter == sec.end() ) return nullptr;
+	auto const& funcName = iter->second;
 	auto const f =
-		reinterpret_cast<T>(GetProcAddress(hDll, funcName));
-	if ( funcName[0] != '\0' && ! f ) {
+		reinterpret_cast<T>(GetProcAddress(hDll, funcName.c_str()));
+	if ( ! f ) {
 		Knowbug::logmesWarning
 			(strf("拡張型表示用の %s 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n"
 				, rawName, vtname, funcName).c_str());
@@ -37,47 +36,23 @@ auto loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawNam
 }
 
 KnowbugConfig::KnowbugConfig()
+	: hspDir(SelfDir())
+	, ini_(selfPath(), true)
 {
-	hspDir = SelfDir();
-	auto&& ini = CIni { selfPath().c_str() };
-	
-	bTopMost   = ini.getBool( "Window", "bTopMost", false );
-	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
-	viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
-	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
-	fontFamily = ini.getString("Interface", "fontFamily", "MS Gothic");
-	fontSize   = ini.getInt("Interface", "fontSize", 13);
-	fontAntialias = ini.getBool("Interface", "fontAntialias", false);
+	auto&& iniDefault = INI<> { hspDir + "knowbug_default.ini", true };
+	ini_.merge(iniDefault);
 
-	maxLength    = ini.getInt("Varinfo", "maxlen", 0x10000 - 1);
-	infiniteNest = ini.getInt("Varinfo", "infiniteNest", 8);
-	showsVariableAddress = ini.getBool("Varinfo", "showsVariableAddress", true);
-	showsVariableSize    = ini.getBool("Varinfo", "showsVariableSize", true);
-	showsVariableDump    = ini.getBool("Varinfo", "showsVariableDump", true);
-	cachesVardataString  = ini.getBool("Varinfo", "cachesVardataString", false);
-	prefixHiddenModule   = ini.getString("Varinfo", "prefixHiddenModule", "@__");
-	
-	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
-	bCustomDraw = ini.getBool( "ColorType", "bCustomDraw", false );
+	if ( enableCustomDraw() ) {
 
-	logPath = ini.getString("Log", "autoSavePath", "");
-	warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
-	scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
-#ifdef with_WrapCall
-	logsInvocation = ini.getBool("Log", "logsInvocation", false);
-#endif
-
-	if ( bCustomDraw ) {
 		//color of internal types
 		for ( auto i = 0; i < HSPVAR_FLAG_USERDEF; ++i ) {
-			clrText[i] = ini.getInt("ColorType", strf("text#%d", i).c_str(), RGB(0, 0, 0));
+			clrText[i] = load<int>("textColor", strf("%d", i).c_str());
 		}
 
 		//color of external types or functions
-		auto const& keys = ini.enumKeys("ColorTypeExtra");
-		for ( auto const& key : keys ) {
-			auto const cref = static_cast<COLORREF>(ini.getInt("ColorTypeExtra", key.c_str()));
-			clrTextExtra.emplace(key, cref);
+		for ( auto const& kv : ini_["textColor"] ) {
+			auto cref = static_cast<COLORREF>(std::atol(kv.second.c_str()));
+			clrTextExtra.emplace(kv.first, cref);
 		}
 	}
 
@@ -90,13 +65,14 @@ KnowbugConfig::KnowbugConfig()
 	}
 
 	// 拡張型の変数データを文字列化する関数
-	auto const& keys = ini.enumKeys("VardataString/UserdefTypes");
-	for ( auto const& vtname : keys ) {
-		auto const dllPath = ini.getString("VardataString/UserdefTypes", vtname.c_str());
-		if ( auto hDll = module_handle_t { LoadLibrary(dllPath) } ) {
-			auto const fReceive  = loadVswFunc<receiveVswMethods_t>(ini, hDll.get(), vtname.c_str(), "receiveVswMethods");
-			auto const fAddVar   = loadVswFunc<addVarUserdef_t  >(ini, hDll.get(), vtname.c_str(), "addVar");
-			auto const fAddValue = loadVswFunc<addValueUserdef_t>(ini, hDll.get(), vtname.c_str(), "addValue");
+	for ( auto const& kv : ini_["vsw"] ) {
+		auto const vtname = kv.first.c_str();
+		auto const& dllPath = kv.second;
+		if ( auto hDll = module_handle_t { LoadLibrary(dllPath.c_str()) } ) {
+			auto& sec = ini_["vswFunc"];
+			auto const fReceive  = loadVswFunc<receiveVswMethods_t>(sec, hDll.get(), vtname, "receiveVswMethods");
+			auto const fAddVar   = loadVswFunc<addVarUserdef_t    >(sec, hDll.get(), vtname, "addVar"           );
+			auto const fAddValue = loadVswFunc<addValueUserdef_t  >(sec, hDll.get(), vtname, "addValue"         );
 
 #ifdef _DEBUG
 			Knowbug::logmes(

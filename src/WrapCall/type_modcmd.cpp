@@ -9,8 +9,8 @@ static auto modcmd_cmdfunc(int cmd) -> int;
 static auto modcmd_reffunc(int* type_res, int cmd) -> void*;
 
 // 変数
-static auto g_modcmd_cmdfunc_impl = decltype(HSP3TYPEINFO::cmdfunc) {};
-static auto g_modcmd_reffunc_impl = decltype(HSP3TYPEINFO::reffunc) {};
+static auto g_modcmd_cmdfunc_impl = static_cast<int(*)(int)>(nullptr);//decltype(HSP3TYPEINFO::cmdfunc) {};
+static auto g_modcmd_reffunc_impl = static_cast<void*(*)(int*, int)>(nullptr); //decltype(HSP3TYPEINFO::reffunc) {};
 
 //------------------------------------------------
 // WrapCall のコールバック

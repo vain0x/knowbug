@@ -18,7 +18,7 @@ auto Window_Create
 
 void Window_SetTopMost(HWND hwnd, bool isTopMost);
 
-void Menu_ToggleCheck(HMENU menu, UINT itemId, bool& checked);
+bool Menu_ToggleCheck(HMENU menu, UINT itemId, bool checked);
 
 void Edit_SetTabLength(HWND hEdit, const int tabwidth);
 void Edit_UpdateText(HWND hEdit, char const* s);

@@ -16,8 +16,8 @@ VTNodeLog::VTNodeLog()
 
 VTNodeLog::~VTNodeLog()
 {
-	if ( ! g_config->logPath.empty() ) {
-		save(g_config->logPath.c_str());
+	if ( ! g_config->logAutoSavePath().empty() ) {
+		save(g_config->logAutoSavePath().c_str());
 	}
 }
 

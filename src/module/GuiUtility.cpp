@@ -57,10 +57,11 @@ void Window_SetTopMost(HWND hwnd, bool isTopMost)
 //------------------------------------------------
 // メニュー項目のチェックを反転
 //------------------------------------------------
-void Menu_ToggleCheck(HMENU menu, UINT itemId, bool& checked)
+bool Menu_ToggleCheck(HMENU menu, UINT itemId, bool checked)
 {
 	checked = ! checked;
 	CheckMenuItem(menu, itemId, (checked ? MF_CHECKED : MF_UNCHECKED));
+	return checked;
 }
 
 //------------------------------------------------

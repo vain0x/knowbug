@@ -88,8 +88,10 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 	assert(pModname[0] == '@');
 
 	//Don't add module whose name begins with a certain prefix.
-	if ( g_config->prefixHiddenModule != ""
-		&& begins_with(pModname + 0, pModname + strlen(pModname), RANGE_ALL(g_config->prefixHiddenModule)) ) {
+	if ( g_config->prefixHiddenModule() != ""
+		&& begins_with(pModname + 0, pModname + strlen(pModname)
+			, RANGE_ALL(g_config->prefixHiddenModule()))
+	) {
 		return nullptr;
 	}
 

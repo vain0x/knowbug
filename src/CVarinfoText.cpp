@@ -22,7 +22,7 @@ using WrapCall::ModcmdCallInfo;
 CVarinfoText::CVarinfoText()
 	: writer_(std::make_shared<CStrBuf>())
 {
-	writer_.getBuf()->limit(std::max(0x100, g_config->maxLength));
+	writer_.getBuf()->limit(std::max(0x100, g_config->varinfoMaxLen()));
 }
 
 auto CVarinfoText::getString() const -> string const&
@@ -48,13 +48,13 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 	// 変数に関する情報
 	getWriter().catln(strf("変数名: %s", name));
 	getWriter().catln(strf("変数型: %s", stringizeVartype(pval)));
-	if ( g_config->showsVariableAddress ) {
+	if ( g_config->showsVarAddr() ) {
 		getWriter().catln(
 			strf("アドレス: %p, %p"
 				, cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)
 				));
 	}
-	if ( g_config->showsVariableSize ) {
+	if ( g_config->showsVarSize() ) {
 		getWriter().catln(
 			strf("サイズ: %d / %d [byte]"
 				, pval->size, bufsize
@@ -68,7 +68,7 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 	getWriter().catCrlf();
 
 	// メモリダンプ
-	if ( g_config->showsVariableDump ) {
+	if ( g_config->showsVarDump() ) {
 		 getWriter().catDump(pMemBlock, static_cast<size_t>(bufsize));
 	}
 }
@@ -87,7 +87,7 @@ void CVarinfoText::addSysvar(hpiutil::Sysvar::Id id)
 	getWriter().catCrlf();
 
 	// メモリダンプ
-	if ( g_config->showsVariableDump ) {
+	if ( g_config->showsVarDump() ) {
 		auto dump = hpiutil::Sysvar::tryDump(id);
 		if ( dump.first ) {
 			getWriter().catDump(dump.first, dump.second);
@@ -112,7 +112,7 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 		.addCall(stdat, prmstk_safety);
 
 	auto const prmstk = prmstk_safety.first;
-	if ( prmstk && g_config->showsVariableDump ) {
+	if ( prmstk && g_config->showsVarDump() ) {
 		getWriter().catCrlf();
 		getWriter().catDump(prmstk, static_cast<size_t>(stdat->size));
 	}

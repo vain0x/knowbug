@@ -302,7 +302,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 	};
 
 	auto stringPtr =
-		(g_config->cachesVardataString && hItem != p_->hNodeLog_)
+		(hItem != p_->hNodeLog_)
 		? map_find_or_insert(p_->textCache_, hItem, std::move(get))
 		: get();
 	assert(stringPtr);
@@ -351,7 +351,7 @@ void VTView::updateViewWindow()
 
 		//+log ノードの自動スクロール
 		} else if ( hItem == p_->hNodeLog_
-			&& g_config->scrollsLogAutomatically
+			&& g_config->scrollsLogAutomatically()
 			) {
 			Dialog::View::scrollBottom();
 

@@ -5,6 +5,7 @@
 #include "main.h"
 #include "module/Singleton.h"
 #include "module/handle_deleter.hpp"
+#include "cpp-feather-ini-parser/INI.h"
 #include "ExVardataString.h"
 
 struct KnowbugConfig : public Singleton<KnowbugConfig>
@@ -37,30 +38,39 @@ public:
 	};
 
 public:
-	//properties from ini (see it for detail)
+	// See knowbug_default.ini for details
 
-	string hspDir;
-	bool bTopMost;
-	int viewSizeX, viewSizeY;
-	int  tabwidth;
-	string fontFamily;
-	int fontSize;
-	bool fontAntialias;
-	int  maxLength, infiniteNest;
-	bool showsVariableAddress, showsVariableSize, showsVariableDump;
-	string prefixHiddenModule;
-	bool cachesVardataString;
-	bool bResultNode;
-	bool bCustomDraw;
-	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;
-	unordered_map<string, COLORREF> clrTextExtra;
-	std::vector<VswInfo> vswInfo;
-	string logPath;
-	bool warnsBeforeClearingLog;
-	bool scrollsLogAutomatically;
+#define KNOWBUG_CONFIG_FIELD(_Iden, _Type)   \
+		auto _Iden() const -> _Type          \
+		{ return load<_Type>("", #_Iden); }  \
+		auto _Iden(_Type const& val) -> void \
+		{ return save<_Type>("", #_Iden, val); } //
+	
+	KNOWBUG_CONFIG_FIELD(tabWidth                , bool  );
+	KNOWBUG_CONFIG_FIELD(fontFamily              , string);
+	KNOWBUG_CONFIG_FIELD(fontSize                , int   );
+	KNOWBUG_CONFIG_FIELD(fontAntialias           , bool  );
+	KNOWBUG_CONFIG_FIELD(windowTopmost           , bool  );
+	KNOWBUG_CONFIG_FIELD(viewWindowSizeX         , int   );
+	KNOWBUG_CONFIG_FIELD(viewWindowSizeY         , int   );
+	KNOWBUG_CONFIG_FIELD(varinfoMaxLen           , int   );
+	KNOWBUG_CONFIG_FIELD(varinfoMaxNest          , int   );
+	KNOWBUG_CONFIG_FIELD(usesResultNodes         , bool  );
+	KNOWBUG_CONFIG_FIELD(showsVarAddr            , bool  );
+	KNOWBUG_CONFIG_FIELD(showsVarSize            , bool  );
+	KNOWBUG_CONFIG_FIELD(showsVarDump            , bool  );
+	KNOWBUG_CONFIG_FIELD(prefixHiddenModule      , string);
+	KNOWBUG_CONFIG_FIELD(logAutoSavePath         , string);
+	KNOWBUG_CONFIG_FIELD(logMaxLen               , int   );
+	KNOWBUG_CONFIG_FIELD(warnsBeforeClearingLog  , bool  );
+	KNOWBUG_CONFIG_FIELD(scrollsLogAutomatically , bool  );
+	KNOWBUG_CONFIG_FIELD(enableCustomDraw        , bool  );
+
 #ifdef with_WrapCall
-	bool logsInvocation;
+	KNOWBUG_CONFIG_FIELD(logsInvocation          , bool  );
 #endif
+
+#undef KNOWBUG_CONFIG_FIELD
 
 	auto commonPath() const -> string { return hspDir + "common"; }
 	auto selfPath() const -> string { return hspDir + "knowbug.ini"; }
@@ -68,6 +78,32 @@ public:
 private:
 	KnowbugConfig();
 	bool tryRegisterVswInfo(string const& vtname, VswInfo vswi);
+
+	template<typename T>
+	struct typeTag {};
+
+	template<typename T>
+	auto load(char const* sec, char const* key) const -> T
+	{
+		return ini_.get(sec, key, T {});
+	}
+
+	template<typename T>
+	void save(char const* sec, char const* key, T const& val)
+	{
+		ini_.select(sec);
+		ini_.set(key, val);
+	}
+
+private:
+	mutable INI<> ini_;
+
+	string hspDir;
+
+public:
+	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;
+	unordered_map<string, COLORREF> clrTextExtra;
+	std::vector<VswInfo> vswInfo;
 
 public:
 	//to jusitify existent codes (such as g_config->property)
@@ -80,4 +116,4 @@ public:
 
 extern KnowbugConfig::SingletonAccessor g_config;
 
-static bool usesResultNodes() { return g_config->bResultNode; }
+static bool usesResultNodes() { return g_config->usesResultNodes(); }
