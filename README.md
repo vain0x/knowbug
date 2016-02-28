@@ -53,7 +53,9 @@ hsp3debug.dll を、元に戻します。
 ## 権利
 knowbug は、公式のデバッガ hsp3debug.dll に、ue_dai が手を加えたものです。
 
-本ソフトの半分程度は、[OpenHSP にあるコード、およびリソース](http://dev.onionsoft.net/trac/openhsp/browser/trunk/tools/win32/hsp3debug)を使用しています。[ライセンス](./package/License/License_j.txt)も参照してください。
+本ソフトの一部として、[OpenHSP にあるコード、およびリソース](http://dev.onionsoft.net/trac/openhsp/browser/trunk/tools/win32/hsp3debug)を使用しています。[ライセンス](./package/License/License_j.txt)も参照してください。
+
+ue_dai が権利を有する部分はパブリックドメイン扱いとします。
 
 ## 関連URL
 バグ報告、意見、要望などは、[GitHub の Issue 表](https://github.com/vain0/knowbug/issues) または [プログラ広場の掲示板](http://uedai-kami.bbs.fc2.com/) までお願いします。
