@@ -52,7 +52,7 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 {
 	assert(!! pval);
 
-	if ( auto addVar = addVarUserdef_t { g_config->vswInfo[pval->flag].addVar } ) {
+	if ( auto addVar = static_cast<addVarUserdef_t>(g_config->vswInfo[pval->flag].addVar) ) {
 		return addVar(this, name, pval);
 	}
 	
@@ -144,7 +144,7 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 		return;
 	}
 
-	if ( auto addValue = addValueUserdef_t { g_config->vswInfo[type].addValue } ) {
+	if ( auto addValue = static_cast<addValueUserdef_t>(g_config->vswInfo[type].addValue) ) {
 		return addValue(this, name, ptr);
 	}
 
