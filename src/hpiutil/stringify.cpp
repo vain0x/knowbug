@@ -17,12 +17,6 @@ static auto indexFrom(std::vector_view<T> const& v, T const* p) -> ptrdiff_t
 
 } // namespace detail
 
-auto DInfo::instance() -> DInfo&
-{
-	static auto const inst = std::unique_ptr<DInfo> { new DInfo {} };
-	return *inst;
-}
-
 auto nameFromStaticVar(PVal const* pval) -> char const*
 {
 	auto const index = detail::indexFrom(staticVars(), pval);
@@ -160,12 +154,6 @@ auto nameExcludingScopeResolution(std::string const& name) -> std::string
 	return (indexScopeRes != std::string::npos
 		? name.substr(0, indexScopeRes)
 		: name);
-}
-
-// MEMO: DInfoにアクセスするためにここにあるが stringify ではない
-auto fileRefNames() -> std::unordered_set<std::string> const&
-{
-	return DInfo::instance().fileRefNames();
 }
 
 } // namespace hpiutil

@@ -1,12 +1,6 @@
-﻿#ifndef IG_STRUCT_DEBUG_INFO_H
-#define IG_STRUCT_DEBUG_INFO_H
-
-#include <memory>
-#include <vector>
-#include <string>
-#include "hsp3debug.h"
-#include "hsp3struct.h"
-#include "hspvar_core.h"
+﻿
+#pragma once
+#include "hpiutil/SourcePos.hpp"
 
 // HSP3DEBUG wrapper
 class DebugInfo
@@ -24,23 +18,15 @@ public:
 	auto fetchGeneralInfo() const -> std::vector<std::pair<string, string>>;
 	auto fetchStaticVarNames() const -> std::vector<string>;
 
-	// current position data
-	auto curFileName() const -> char const*
+	auto curPos() const -> hpiutil::SourcePos const
 	{
-		return (debug_->fname ? debug_->fname : "???");
-	}
-
-	auto  curLine() const -> int
-	{
-		return debug_->line - 1;
+		return { debug_->fname, debug_->line - 1 };
 	}
 
 	auto getCurInfString() const -> string
 	{
-		return formatCurInfString(curFileName(), curLine());
+		return curPos().toString();
 	}
-
-	static auto formatCurInfString(char const* fname, int line) -> string;
 
 	void updateCurInf()
 	{
@@ -49,5 +35,3 @@ public:
 };
 
 extern std::unique_ptr<DebugInfo> g_dbginfo;
-
-#endif

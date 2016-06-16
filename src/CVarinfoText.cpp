@@ -121,11 +121,8 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 void CVarinfoText::addCallSignature(ModcmdCallInfo const& callinfo, stdat_t stdat)
 {
 	auto const& name = callinfo.name();
-	getWriter().catln(
-		(callinfo.fname == nullptr)
-			? strf("関数名: %s", name)
-			: strf("関数名: %s (#%d of %s)", name, callinfo.line + 1, callinfo.fname)
-	);
+	getWriter().catln(strf("関数名: %s (%s)"
+		, name, callinfo.callerPos.toString()));
 
 	// シグネチャ
 	getWriter().catln(strf("仮引数: (%s)", stringizePrmlist(stdat)));

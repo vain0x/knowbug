@@ -48,7 +48,7 @@ void onBgnCalling(stdat_t stdat)
 	auto idx = g_stkCallInfo.size();
 	g_stkCallInfo.emplace_back(new ModcmdCallInfo(
 		stdat, ctx->prmstack, ctx->sublev, ctx->looplev,
-		g_dbginfo->curFileName(), g_dbginfo->curLine(),
+		g_dbginfo->curPos(),
 		idx
 	));
 
