@@ -10,7 +10,7 @@
 #include "CVardataString.h"
 
 // キャスト
-static CVardataStrWriter& vswriter(vswriter_t self)
+static auto vswriter(vswriter_t self) -> CVardataStrWriter&
 {
 	return *reinterpret_cast<CVardataStrWriter*>(self);
 }
@@ -78,9 +78,9 @@ EXPORT BOOL WINAPI knowbugVsw_isLineformWriter(vswriter_t _w)
 }
 
 static KnowbugVswMethods g_knowbugVswMethods;
-EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods()
+EXPORT auto WINAPI knowbug_getVswMethods() -> KnowbugVswMethods const*
 {
-	if ( !g_knowbugVswMethods.catLeaf ) {
+	if ( ! g_knowbugVswMethods.catLeaf ) {
 		g_knowbugVswMethods.catLeaf		     = knowbugVsw_catLeaf		;
 		g_knowbugVswMethods.catLeafExtra     = knowbugVsw_catLeafExtra	;
 		g_knowbugVswMethods.catAttribute     = knowbugVsw_catAttribute  ;
@@ -101,14 +101,14 @@ EXPORT KnowbugVswMethods const* WINAPI knowbug_getVswMethods()
 //------------------------------------------------
 // HSPからの読み書き用
 //------------------------------------------------
-EXPORT vswriter_t WINAPI knowbugVsw_newTreeformedWriter()
+EXPORT auto WINAPI knowbugVsw_newTreeformedWriter() -> vswriter_t
 {
 	return new CVardataStrWriter(
 		CVardataStrWriter::create<CTreeformedWriter>(std::make_shared<CStrBuf>())
 	);
 }
 
-EXPORT vswriter_t WINAPI knowbugVsw_newLineformedWriter()
+EXPORT auto WINAPI knowbugVsw_newLineformedWriter() -> vswriter_t
 {
 	return new CVardataStrWriter(
 		CVardataStrWriter::create<CLineformedWriter>(std::make_shared<CStrBuf>())
@@ -120,9 +120,9 @@ EXPORT void WINAPI knowbugVsw_deleteWriter(vswriter_t _w)
 	if ( _w ) { delete &vswriter(_w); }
 }
 
-EXPORT char const* WINAPI knowbugVsw_dataPtr(vswriter_t _w, int* length)
+EXPORT auto WINAPI knowbugVsw_dataPtr(vswriter_t _w, int* length) -> char const*
 {
-	if ( !_w ) return nullptr;
+	if ( ! _w ) return nullptr;
 	auto& s = vswriter(_w).getString();
 	if ( length ) *length = s.size();
 	return s.c_str();
@@ -131,7 +131,7 @@ EXPORT char const* WINAPI knowbugVsw_dataPtr(vswriter_t _w, int* length)
 //------------------------------------------------
 // 拙作プラグイン拡張型表示の情報
 //------------------------------------------------
-std::vector<VswInfoForInternal> const& vswInfoForInternal()
+auto vswInfoForInternal() -> std::vector<VswInfoForInternal> const&
 {
 	static std::vector<VswInfoForInternal> vswi {
 		{ "int", nullptr, knowbugVsw_addValueInt },
@@ -175,7 +175,7 @@ void WINAPI knowbugVsw_addValueAssoc(vswriter_t _w, char const* name, void const
 {
 	auto const src = *reinterpret_cast<CAssoc* const*>(ptr);
 
-	if ( !ptr ) {
+	if ( ! ptr ) {
 		knowbugVsw_catLeafExtra(_w, name, "null_assoc");
 		return;
 	}
@@ -184,7 +184,7 @@ void WINAPI knowbugVsw_addValueAssoc(vswriter_t _w, char const* name, void const
 	StAssocMapList* const head = (reinterpret_cast<GetMapList_t>(hvp->user))(src);
 
 	// 要素なし
-	if ( !head ) {
+	if ( ! head ) {
 		knowbugVsw_catLeafExtra(_w, name, "empty_assoc");
 		return;
 	}
@@ -232,7 +232,7 @@ void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void cons
 {
 	auto const src = *reinterpret_cast<CVector* const*>(ptr);
 
-	if ( !src ) {
+	if ( ! src ) {
 		knowbugVsw_catLeafExtra(_w, name, "null_vector");
 		return;
 	}
@@ -242,7 +242,7 @@ void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void cons
 	PVal** const pvals = (reinterpret_cast<GetVectorList_t>(hvp->user))(src, &len);
 
 	// 要素なし
-	if ( !pvals ) {
+	if ( ! pvals ) {
 		knowbugVsw_catLeafExtra(_w, name, "empty_vector");
 		return;
 	}
@@ -277,7 +277,7 @@ void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const
 {
 	auto const src = *reinterpret_cast<CArray**>(ptr);
 
-	if ( !src ) {
+	if ( ! src ) {
 		knowbugVsw_catLeafExtra(_w, name, "null_array");
 		return;
 	}
@@ -286,7 +286,7 @@ void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const
 	PVal* const pvInner = (reinterpret_cast<GetArray_t>(hvp->user))(src);
 
 	// 要素なし
-	if ( !pvInner || pvInner->len[1] == 0 ) {
+	if ( ! pvInner || pvInner->len[1] == 0 ) {
 		knowbugVsw_catLeafExtra(_w, name, "empty_array");
 		return;
 	}
@@ -303,7 +303,7 @@ void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const
 
 void WINAPI knowbugVsw_addValueModcmd(vswriter_t _w, char const* name, void const* ptr)
 {
-	int const modcmd = *reinterpret_cast<int const*>(ptr);
+	auto const modcmd = *reinterpret_cast<int const*>(ptr);
 	knowbugVsw_catLeaf(_w, name, strf("modcmd(%s)",
 		(modcmd == 0xFFFFFFFF) ? "" : hpiutil::STRUCTDAT_name(&hpiutil::finfo()[modcmd])
 	).c_str());
@@ -322,7 +322,7 @@ void WINAPI knowbugVsw_addValueIntOrModPtr(vswriter_t _w, char const* name, void
 {
 	int const& val = *cptr_cast<int*>(ptr);
 	if ( ModPtr::isValid(val) ) {
-		string const name2 = strf("%s = mp#%d", name, ModPtr::getIdx(val));
+		auto name2 = strf("%s = mp#%d", name, ModPtr::getIdx(val));
 		vswriter(_w).addValueStruct(name2.c_str(), ModPtr::getValue(val));
 	} else {
 		knowbugVsw_addValueInt(_w, name, ptr);
@@ -335,8 +335,8 @@ void WINAPI knowbugVsw_addValueIntOrModPtr(vswriter_t _w, char const* name, void
 //------------------------------------------------
  void WINAPI knowbugVsw_addValueInt(vswriter_t _w, char const* name, void const* ptr)
 {
-	int const& val = *cptr_cast<int*>(ptr);
-	auto& s = (knowbugVsw_isLineformWriter(_w))
+	auto const& val = *cptr_cast<int*>(ptr);
+	auto s = (knowbugVsw_isLineformWriter(_w))
 		? strf("%d", val)
 		: strf("%-10d (0x%08X)", val, val);
 	vswriter(_w).getWriter().catLeaf(name, s.c_str());
@@ -364,7 +364,7 @@ void WINAPI knowbugVsw_addValueBool(vswriter_t _w, char const* name, void const*
 void WINAPI knowbugVsw_addValueSChar(vswriter_t _w, char const* name, void const* ptr)
 {
 	auto const& val = *cptr_cast<signed char*>(ptr);
-	auto&& str = (val == 0) ? "0 ('\\0')" : strf("%-3d '%c'", static_cast<int>(val));
+	auto str = (val == 0) ? "0 ('\\0')" : strf("%-3d '%c'", static_cast<int>(val));
 	catLeaf(_w, name, str.c_str(), str.c_str());
 }
 

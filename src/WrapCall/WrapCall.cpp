@@ -20,7 +20,7 @@ extern void onEndCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callin
 namespace WrapCall
 {
 
-static stkCallInfo_t g_stkCallInfo;
+static auto g_stkCallInfo = stkCallInfo_t {};
 
 //------------------------------------------------
 // プラグイン初期化関数
@@ -45,10 +45,10 @@ void onBgnCalling(stdat_t stdat)
 	g_dbginfo->updateCurInf();
 
 	// 呼び出しリストに追加
-	size_t const idx = g_stkCallInfo.size();
+	auto idx = g_stkCallInfo.size();
 	g_stkCallInfo.emplace_back(new ModcmdCallInfo(
 		stdat, ctx->prmstack, ctx->sublev, ctx->looplev,
-		g_dbginfo->curFileName(), g_dbginfo->curLine(),
+		g_dbginfo->curPos(),
 		idx
 	));
 
@@ -90,14 +90,14 @@ void onEndCalling()
 //------------------------------------------------
 // callinfo スタックへのアクセス
 //------------------------------------------------
-ModcmdCallInfo::shared_ptr_type tryGetCallInfoAt(size_t idx)
+auto tryGetCallInfoAt(size_t idx) -> ModcmdCallInfo::shared_ptr_type
 {
 	return (0 <= idx && idx < g_stkCallInfo.size())
 		? g_stkCallInfo.at(idx)
 		: nullptr;
 }
 
-stkCallInfoRange_t getCallInfoRange()
+auto getCallInfoRange() -> stkCallInfoRange_t
 {
 	return make_pair_range(g_stkCallInfo);
 }

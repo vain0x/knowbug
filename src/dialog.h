@@ -7,7 +7,7 @@
 namespace Dialog
 {
 
-HWND getVarTreeHandle();
+auto getVarTreeHandle() -> HWND;
 
 void createMain();
 void destroyMain();

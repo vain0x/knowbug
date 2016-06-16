@@ -1,11 +1,6 @@
-﻿#ifndef IG_STRUCT_DEBUG_INFO_H
-#define IG_STRUCT_DEBUG_INFO_H
-
-#include <memory>
-#include <vector>
-#include "hsp3debug.h"
-#include "hsp3struct.h"
-#include "hspvar_core.h"
+﻿
+#pragma once
+#include "hpiutil/SourcePos.hpp"
 
 // HSP3DEBUG wrapper
 class DebugInfo
@@ -20,26 +15,23 @@ public:
 
 	bool setStepMode(int mode) { return (debug_->dbg_set(mode) >= 0); }
 
-	std::vector<std::pair<string, string>> fetchGeneralInfo() const;
-	std::vector<string> fetchStaticVarNames() const;
+	auto fetchGeneralInfo() const -> std::vector<std::pair<string, string>>;
+	auto fetchStaticVarNames() const -> std::vector<string>;
 
-	// current position data
-	char const* curFileName() const {
-		return (debug_->fname ? debug_->fname : "???");
+	auto curPos() const -> hpiutil::SourcePos const
+	{
+		return { debug_->fname, debug_->line - 1 };
 	}
-	int curLine() const {
-		return debug_->line - 1;
-	}
-	string getCurInfString() const {
-		return formatCurInfString(curFileName(), curLine());
-	}
-	static string formatCurInfString(char const* fname, int line);
 
-	void updateCurInf() {
+	auto getCurInfString() const -> string
+	{
+		return curPos().toString();
+	}
+
+	void updateCurInf()
+	{
 		debug_->dbg_curinf();
 	}
 };
 
 extern std::unique_ptr<DebugInfo> g_dbginfo;
-
-#endif

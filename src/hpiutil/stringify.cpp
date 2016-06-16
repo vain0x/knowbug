@@ -1,4 +1,4 @@
-
+ï»¿
 #include <sstream>
 #include "hpiutil.hpp"
 #include "DInfo.hpp"
@@ -8,7 +8,7 @@ namespace hpiutil {
 namespace detail {
 
 template<typename T>
-static ptrdiff_t indexFrom(std::vector_view<T> const& v, T const* p)
+static auto indexFrom(std::vector_view<T> const& v, T const* p) -> ptrdiff_t
 {
 	return (v.begin() <= p && p < v.end())
 		? std::distance(v.begin(), p)
@@ -17,36 +17,30 @@ static ptrdiff_t indexFrom(std::vector_view<T> const& v, T const* p)
 
 } // namespace detail
 
-DInfo& DInfo::instance()
+auto nameFromStaticVar(PVal const* pval) -> char const*
 {
-	static std::unique_ptr<DInfo> inst { new DInfo {} };
-	return *inst;
-}
-
-char const* nameFromStaticVar(PVal const* pval)
-{
-	ptrdiff_t const index = detail::indexFrom(staticVars(), pval);
+	auto const index = detail::indexFrom(staticVars(), pval);
 	return (index >= 0)
 		? exinfo->HspFunc_varname(static_cast<int>(index))
 		: nullptr;
 }
 
-std::string nameFromModuleClass(stdat_t stdat, bool isClone)
+auto nameFromModuleClass(stdat_t stdat, bool isClone) -> std::string
 {
-	std::string&& modclsName = STRUCTDAT_name(stdat);
+	auto modclsName = std::string { STRUCTDAT_name(stdat) };
 	return (isClone
 		? modclsName + "&"
 		: modclsName);
 }
 
-std::string nameFromStPrm(stprm_t stprm, int idx)
+auto nameFromStPrm(stprm_t stprm, int idx) -> std::string
 {
-	ptrdiff_t const subid = detail::indexFrom(minfo(), stprm);
+	auto const subid = detail::indexFrom(minfo(), stprm);
 	if ( subid >= 0 ) {
 		if ( auto const name = DInfo::instance().tryFindParamName(subid) ) {
 			return nameExcludingScopeResolution(name);
 
-		// thismod ˆø”
+		// thismod å¼•æ•°
 		} else if ( stprm->mptype == MPTYPE_MODULEVAR || stprm->mptype == MPTYPE_IMODULEVAR || stprm->mptype == MPTYPE_TMODULEVAR ) {
 			return "thismod";
 		}
@@ -54,19 +48,19 @@ std::string nameFromStPrm(stprm_t stprm, int idx)
 	return stringifyArrayIndex({ idx });
 }
 
-std::string nameFromLabel(label_t lb)
+auto nameFromLabel(label_t lb) -> std::string
 {
-	int const otIndex = detail::indexFrom(labels(), lb);
-	char buf[64];
+	auto const otIndex = detail::indexFrom(labels(), lb);
+	auto buf = std::array<char, 64> {};
 	if ( auto const name = DInfo::instance().tryFindLabelName(otIndex) ) {
-		std::sprintf(buf, "*%s", name);
+		std::sprintf(buf.data(), "*%s", name);
 	} else {
-		std::sprintf(buf, "label(%p)", static_cast<void const*>(lb));
+		std::sprintf(buf.data(), "label(%p)", static_cast<void const*>(lb));
 	}
-	return std::string(buf);
+	return std::string { buf.data() };
 }
 
-char const* nameFromMPType(int mptype)
+auto nameFromMPType(int mptype) -> char const*
 {
 	switch ( mptype ) {
 		case MPTYPE_NONE:        return "none";
@@ -103,11 +97,11 @@ char const* nameFromMPType(int mptype)
 	}
 }
 
-std::string literalFormString(char const* src)
+auto literalFormString(char const* src) -> std::string
 {
-	size_t const maxlen = (std::strlen(src) * 2) + 2;
-	std::vector<char> buf; buf.resize(maxlen + 1);
-	size_t idx = 0;
+	auto const maxlen = size_t { (std::strlen(src) * 2) + 2 };
+	auto buf = std::vector<char>(maxlen + 1, '\0');
+	auto idx = size_t { 0 };
 
 	buf[idx++] = '\"';
 
@@ -142,11 +136,11 @@ std::string literalFormString(char const* src)
 	return std::string { buf.data() };
 }
 
-std::string stringifyArrayIndex(std::vector<int> const& indexes)
+auto stringifyArrayIndex(std::vector<int> const& indexes) -> std::string
 {
-	std::ostringstream os;
+	auto os = std::ostringstream {};
 	os << "(";
-	for ( size_t i = 0; i < indexes.size(); ++i ) {
+	for ( auto i = size_t { 0 }; i < indexes.size(); ++i ) {
 		if ( i != 0 ) os << ", ";
 		os << indexes[i];
 	}
@@ -154,18 +148,12 @@ std::string stringifyArrayIndex(std::vector<int> const& indexes)
 	return os.str();
 }
 
-std::string nameExcludingScopeResolution(std::string const& name)
+auto nameExcludingScopeResolution(std::string const& name) -> std::string
 {
-	size_t const indexScopeRes = name.find('@');
+	auto indexScopeRes = name.find('@');
 	return (indexScopeRes != std::string::npos
 		? name.substr(0, indexScopeRes)
 		: name);
-}
-
-// MEMO: DInfo‚ÉƒAƒNƒZƒX‚·‚é‚½‚ß‚É‚±‚±‚É‚ ‚é‚ª stringify ‚Å‚Í‚È‚¢
-auto fileRefNames() -> std::unordered_set<std::string> const&
-{
-	return DInfo::instance().fileRefNames();
 }
 
 } // namespace hpiutil

@@ -26,9 +26,9 @@ public:
 
 	void saveCurrentViewCaret(int vcaret);
 
-	LRESULT customDraw(LPNMTVCUSTOMDRAW pnmcd);
+	auto customDraw(LPNMTVCUSTOMDRAW pnmcd) -> LRESULT;
 	auto getItemVarText(HTREEITEM hItem) const -> shared_ptr<string const>;
-	auto tryGetNodeData(HTREEITEM hItem) const -> shared_ptr<VTNodeData>;
+	auto tryGetNodeData(HTREEITEM hItem) const -> optional_ref<VTNodeData>;
 
 	void selectNode(VTNodeData const&);
 

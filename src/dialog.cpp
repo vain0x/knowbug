@@ -10,7 +10,6 @@
 #include "main.h"
 #include "resource.h"
 #include "hspwnd.h"
-#include "module/supio/supio.h"
 #include "module/GuiUtility.h"
 #include "module/strf.h"
 #include "WrapCall/WrapCall.h"
@@ -34,7 +33,7 @@ static char const* const KnowbugRepoUrl = "https://github.com/vain0/knowbug";
 namespace Dialog
 {
 
-static size_t const countStepButtons = 5;
+static auto const countStepButtons = size_t { 5 };
 
 static HWND hVarTree;
 static HWND hSrcLine;
@@ -49,9 +48,9 @@ struct Resource
 	std::array<HWND, countStepButtons> stepButtons;
 	gdi_obj_t font;
 };
-static unique_ptr<Resource> g_res;
+static auto g_res = unique_ptr<Resource> {};
 
-HWND getVarTreeHandle() { return hVarTree; }
+auto getVarTreeHandle() -> HWND { return hVarTree; }
 
 static auto windowHandles() -> std::vector<HWND>
 {
@@ -106,39 +105,39 @@ namespace LogBox {
 
 	void clear()
 	{
-		if ( !g_config->warnsBeforeClearingLog
+		if ( ! g_config->warnsBeforeClearingLog
 			|| MessageBox(g_res->mainWindow.get()
 					, "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL
 					) == IDOK
 		) {
-			VTRoot::log()->clear();
+			VTRoot::log().clear();
 		}
 	}
 
 	void save(char const* filepath) {
-		if ( !VTRoot::log()->save(filepath) ) {
+		if ( ! VTRoot::log().save(filepath) ) {
 			MessageBox(g_res->mainWindow.get()
 				, "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
 		}
 	}
 	void save() {
-		char const* const filter =
+		static auto const filter =
 			"log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";
-		if ( auto&& path = Dialog_SaveFileName(g_res->mainWindow.get()
-				, filter, "log", "hspdbg.log" )
-			) {
+		auto path =
+			Dialog_SaveFileName(g_res->mainWindow.get()
+				, filter, "log", "hspdbg.log");
+		if ( path ) {
 			save(path->c_str());
 		}
 	}
 } //namespace LogBox
 
 // ソース小窓の更新
-static void UpdateCurInfEdit(char const* filepath, int iLine)
+static void UpdateCurInfEdit(hpiutil::SourcePos const& spos)
 {
-	if ( !filepath || iLine < 0 ) return;
-	auto const&& curinf = DebugInfo::formatCurInfString(filepath, iLine);
+	auto curinf = spos.toString();
 
-	if ( auto&& p = VTRoot::script()->fetchScriptLine(filepath, iLine) ) {
+	if ( auto p = VTRoot::script().fetchScriptLine(spos) ) {
 		SetWindowText(hSrcLine, (curinf + "\r\n" + *p).c_str());
 
 	} else {
@@ -148,7 +147,7 @@ static void UpdateCurInfEdit(char const* filepath, int iLine)
 
 static void CurrentUpdate()
 {
-	UpdateCurInfEdit(g_dbginfo->curFileName(), g_dbginfo->curLine());
+	UpdateCurInfEdit(g_dbginfo->curPos());
 }
 
 // ツリーノードのコンテキストメニュー
@@ -165,7 +164,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		{
 			hPop = g_res->logMenu.get();
 		}
-		HMENU apply(VTNodeData const& node)
+		auto apply(VTNodeData const& node) -> HMENU
 		{
 			hPop = g_res->nodeMenu.get(); // default
 			node.acceptVisitor(*this);
@@ -175,12 +174,12 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		HMENU hPop;
 	};
 
-	auto&& node = g_res->tv->tryGetNodeData(hItem);
-	if ( !node ) return;
-	HMENU const hPop = GetPopMenu {}.apply(*node);
+	auto node = g_res->tv->tryGetNodeData(hItem);
+	if ( ! node ) return;
+	auto const hPop = GetPopMenu {}.apply(*node);
 
 	// ポップアップメニューを表示する
-	int const idSelected =
+	auto const idSelected =
 		TrackPopupMenuEx
 			( hPop, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD)
 			, pt.x, pt.y, g_res->mainWindow.get(), nullptr);
@@ -194,7 +193,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		}
 #ifdef with_WrapCall
 		case IDC_NODE_STEP_OUT: {
-			if ( auto&& nodeInvoke = std::dynamic_pointer_cast<VTNodeInvoke const>(node) ) {
+			if ( auto nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {
 				// 対象が呼び出された階層まで進む
 				Knowbug::runStepReturn(nodeInvoke->callinfo().sublev);
 			}
@@ -219,12 +218,10 @@ static void resizeMainWindow(size_t cx, size_t cy, bool repaints)
 {
 	if ( ! g_res ) return;
 
-	int const
-		  sourceLineBoxSizeY = 50
-		, buttonSizeX = cx / countStepButtons
-		, buttonSizeY = 20
-		, tvSizeY = cy - (sourceLineBoxSizeY + buttonSizeY)
-		;
+	auto const sourceLineBoxSizeY = 50;
+	auto const buttonSizeX = cx / countStepButtons;
+	auto const buttonSizeY = 20;
+	auto const tvSizeY     = cy - (sourceLineBoxSizeY + buttonSizeY);
 
 	MoveWindow(hVarTree
 		, 0, 0
@@ -235,7 +232,7 @@ static void resizeMainWindow(size_t cx, size_t cy, bool repaints)
 		, cx, sourceLineBoxSizeY
 		, repaints);
 
-	for ( size_t i = 0; i < countStepButtons; ++ i ) {
+	for ( auto i = size_t { 0 }; i < countStepButtons; ++ i ) {
 		MoveWindow(g_res->stepButtons[i]
 			, i * buttonSizeX
 			, tvSizeY + sourceLineBoxSizeY
@@ -264,16 +261,15 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_CURRENT_SCRIPT: {
-					if ( auto const&& p =
-							VTRoot::script()->resolveRefName(g_dbginfo->curFileName())
-						) {
+					if ( auto p = VTRoot::script().resolveRefName(g_dbginfo->curPos().fileRefName()) ) {
 						ShellExecute(nullptr, "open"
 							, p->c_str(), nullptr, "", SW_SHOWDEFAULT);
 					}
 					break;
 				}
 				case IDC_OPEN_INI: {
-					std::ofstream of { g_config->selfPath(), std::ios::app }; //create empty file if not exist
+					//create empty file if not exist
+					auto of = std::ofstream { g_config->selfPath(), std::ios::app };
 					ShellExecute(nullptr, "open"
 						, g_config->selfPath().c_str(), nullptr, "", SW_SHOWDEFAULT);
 					break;
@@ -288,11 +284,11 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_GOTO_LOG: {
-					g_res->tv->selectNode(*VTRoot::log());
+					g_res->tv->selectNode(VTRoot::log());
 					break;
 				}
 				case IDC_GOTO_SCRIPT: {
-					g_res->tv->selectNode(*VTRoot::script());
+					g_res->tv->selectNode(VTRoot::script());
 					break;
 				}
 			}
@@ -300,8 +296,8 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 
 		case WM_CONTEXTMENU: {
 			if ( (HWND)wp == hVarTree ) {
-				POINT pt = { LOWORD(lp), HIWORD(lp) };
-				if ( auto&& hItem = TreeView_GetItemAtPoint(hVarTree, pt) ) {
+				auto pt = POINT { LOWORD(lp), HIWORD(lp) };
+				if ( auto hItem = TreeView_GetItemAtPoint(hVarTree, pt) ) {
 					VarTree_PopupMenu(hItem, pt);
 					return TRUE;
 				}
@@ -321,8 +317,8 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 						View::saveCurrentCaret();
 						break;
 					case NM_CUSTOMDRAW: {
-						if ( !g_config->bCustomDraw ) break;
-						LRESULT const res =
+						if ( ! g_config->bCustomDraw ) break;
+						auto const res =
 							g_res->tv->customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
 						SetWindowLongPtr(hDlg, DWLP_MSGRESULT, res);
 						return TRUE;
@@ -357,14 +353,14 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 
 void Dialog::createMain()
 {
-	int const dispx = GetSystemMetrics(SM_CXSCREEN);
-	int const dispy = GetSystemMetrics(SM_CYSCREEN);
+	auto const dispx = GetSystemMetrics(SM_CXSCREEN);
+	auto const dispy = GetSystemMetrics(SM_CYSCREEN);
 
-	int const mainSizeX = 234, mainSizeY = 380;
-	int const viewSizeX = g_config->viewSizeX, viewSizeY = g_config->viewSizeY;
+	auto const mainSizeX = 234, mainSizeY = 380;
+	auto const viewSizeX = g_config->viewSizeX, viewSizeY = g_config->viewSizeY;
 
 	//ビューウィンドウ
-	window_handle_t hViewWnd {
+	auto hViewWnd = window_handle_t {
 		Window_Create
 			( "KnowbugViewWindow", ViewDialogProc
 			, KnowbugViewWindowTitle, (WS_THICKFRAME)
@@ -375,7 +371,7 @@ void Dialog::createMain()
 	SetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE
 		, GetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
 	{
-		HWND const hPane =
+		auto const hPane =
 			CreateDialog(Knowbug::getInstance()
 				, (LPCSTR)IDD_VIEW_PANE
 				, hViewWnd.get(), (DLGPROC)ViewDialogProc);
@@ -386,7 +382,7 @@ void Dialog::createMain()
 	}
 
 	//メインウィンドウ
-	window_handle_t hDlgWnd {
+	auto hDlgWnd = window_handle_t {
 		Window_Create
 			( "KnowbugMainWindow", DlgProc
 			, KnowbugMainWindowTitle, WS_THICKFRAME
@@ -395,18 +391,18 @@ void Dialog::createMain()
 			, Knowbug::getInstance()
 			) };
 	{
-		HWND const hPane =
+		auto const hPane =
 			CreateDialog(Knowbug::getInstance()
 				, (LPCSTR)IDD_MAIN_PANE
 				, hDlgWnd.get(), (DLGPROC)DlgProc);
 		ShowWindow(hPane, SW_SHOW);
 
 		//メニューバー
-		menu_handle_t hDlgMenu { LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_MAIN_MENU) };
+		auto hDlgMenu = menu_handle_t { LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_MAIN_MENU) };
 		SetMenu(hDlgWnd.get(), hDlgMenu.get());
 
 		//ポップメニュー
-		HMENU const hNodeMenuBar = LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_NODE_MENU);
+		auto const hNodeMenuBar = LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_NODE_MENU);
 
 		//いろいろ
 		hVarTree = GetDlgItem(hPane, IDC_VARTREE);
@@ -491,12 +487,12 @@ void setEditStyle( HWND hEdit, int maxlen )
 
 // 公開API
 
-EXPORT HWND WINAPI knowbug_hwnd()
+EXPORT auto WINAPI knowbug_hwnd() -> HWND
 {
 	return Dialog::g_res->mainWindow.get();
 }
 
-EXPORT HWND WINAPI knowbug_hwndView()
+EXPORT auto WINAPI knowbug_hwndView() -> HWND
 {
 	return Dialog::g_res->viewWindow.get();
 }

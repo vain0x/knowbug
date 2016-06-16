@@ -5,12 +5,12 @@
 #include "type_modcmd.h"
 #include "WrapCall.h"
 
-static int   modcmd_cmdfunc(int cmd);
-static void* modcmd_reffunc(int* type_res, int cmd);
+static auto modcmd_cmdfunc(int cmd) -> int;
+static auto modcmd_reffunc(int* type_res, int cmd) -> void*;
 
 // 変数
-static int   (*g_modcmd_cmdfunc_impl)(int)       = nullptr;
-static void* (*g_modcmd_reffunc_impl)(int*, int) = nullptr;
+static auto g_modcmd_cmdfunc_impl = static_cast<decltype(HSP3TYPEINFO::cmdfunc)>(nullptr);
+static auto g_modcmd_reffunc_impl = static_cast<decltype(HSP3TYPEINFO::reffunc)>(nullptr);
 
 //------------------------------------------------
 // WrapCall のコールバック
@@ -42,7 +42,7 @@ void modcmd_init(HSP3TYPEINFO* info)
 //------------------------------------------------
 void modcmd_term(HSP3TYPEINFO* info)
 {
-	if ( !g_modcmd_cmdfunc_impl ) return;
+	if ( ! g_modcmd_cmdfunc_impl ) return;
 
 	info->cmdfunc = g_modcmd_cmdfunc_impl;
 	info->reffunc = g_modcmd_reffunc_impl;
@@ -54,12 +54,12 @@ void modcmd_term(HSP3TYPEINFO* info)
 //------------------------------------------------
 // [modcmd] 命令コマンド
 //------------------------------------------------
-int modcmd_cmdfunc(int cmdid)
+auto modcmd_cmdfunc(int cmdid) -> int
 {
-	stdat_t const stdat = &hpiutil::finfo()[cmdid];
+	auto stdat = &hpiutil::finfo()[cmdid];
 
 	WrapCall::onBgnCalling(stdat);
-	int const runmode = g_modcmd_cmdfunc_impl(cmdid);
+	auto runmode = g_modcmd_cmdfunc_impl(cmdid);
 	WrapCall::onEndCalling();
 	return runmode;
 }
@@ -67,12 +67,13 @@ int modcmd_cmdfunc(int cmdid)
 //------------------------------------------------
 // [modcmd] 関数コマンド
 //------------------------------------------------
-void* modcmd_reffunc(int* type_res, int cmdid)
+auto modcmd_reffunc(int* type_res, int cmdid) -> void*
 {
-	stdat_t const stdat = &hpiutil::finfo()[cmdid];
+	auto stdat = &hpiutil::finfo()[cmdid];
 
 	WrapCall::onBgnCalling(stdat);
-	PDAT* const resultPtr = static_cast<PDAT*>(g_modcmd_reffunc_impl(type_res, cmdid));
+	auto resultPtr =
+		static_cast<PDAT*>(g_modcmd_reffunc_impl(type_res, cmdid));
 	WrapCall::onEndCalling(resultPtr, *type_res);
 	return resultPtr;
 }

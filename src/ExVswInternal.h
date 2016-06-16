@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 #include "ExVardataString.h"
 
 extern void WINAPI knowbugVsw_addValueInt(vswriter_t, char const* name, void const* ptr);
@@ -41,5 +42,5 @@ struct VswInfoForInternal
 	addValueUserdef_t addValue;
 };
 
-extern std::vector<VswInfoForInternal> const& vswInfoForInternal();
+extern auto vswInfoForInternal() -> std::vector<VswInfoForInternal> const&;
 extern void sendVswMethods(HMODULE hDll);

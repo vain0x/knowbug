@@ -35,8 +35,8 @@ public:
 	{ }
 
 public:
-	string const& get() const;
-	buf_t getBuf() const { return buf_; }
+	auto get() const -> string const&;
+	auto getBuf() const -> buf_t { return buf_; }
 
 	// 出力メソッド
 	void cat(char const* src);
@@ -89,7 +89,7 @@ public:
 	void incNest() { ++lvNest_; }
 	void decNest() { --lvNest_; }
 
-	int getNest() const { return lvNest_; }
+	auto getNest() const -> int { return lvNest_; }
 	bool inifiniteNesting() const { return lvNest_ >= 0 && static_cast<size_t>(lvNest_) >= infiniteNest_; }
 
 private:
@@ -165,7 +165,7 @@ public:
 	}
 private:
 	void catIndent() { cat(getIndent()); }
-	string getIndent() const { return string(getNest(), '\t'); }
+	auto getIndent() const -> string { return string(getNest(), '\t'); }
 };
 
 //------------------------------------------------
@@ -223,7 +223,7 @@ public:
 	void catDelimiter()
 	{
 		if ( getNest() ) {
-			if ( !bFirstElem_.top() ) cat(", ");
+			if ( ! bFirstElem_.top() ) cat(", ");
 			bFirstElem_.top() = false;
 		}
 	}

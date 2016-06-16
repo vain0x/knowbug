@@ -1,4 +1,4 @@
-
+ï»¿
 #include <unordered_set>
 #include "main.h"
 #include "VarTreeNodeData.h"
@@ -25,28 +25,31 @@ VTNodeScript::VTNodeScript()
 	p_->resolutionDone_ = false;
 }
 
-auto VTNodeScript::parent() const -> shared_ptr<VTNodeData>
+VTNodeScript::~VTNodeScript()
+{}
+
+auto VTNodeScript::parent() const -> optional_ref<VTNodeData>
 {
-	return VTRoot::make_shared();
+	return &VTRoot::instance();
 }
 
 auto VTNodeScript::Impl::searchFile(string const& fileRefName, char const* dir)
 	-> shared_ptr<string const>
 {
-	char* fileName = nullptr;
-	std::array<char, MAX_PATH> fullPath {};
-	bool const succeeded =
+	auto fileName = static_cast<char*>(nullptr);
+	auto fullPath = std::array<char, MAX_PATH> {};
+	auto succeeded =
 		SearchPath
 			( dir, fileRefName.c_str(), /* lpExtenson = */ nullptr
 			, fullPath.size(), fullPath.data(), &fileName)
 		!= 0;
 	if ( succeeded ) {
-		// ”­Œ©‚³‚ê‚½ƒfƒBƒŒƒNƒgƒŠ‚ğŒŸõ‘ÎÛ‚É’Ç‰Á‚·‚é
+		// ç™ºè¦‹ã•ã‚ŒãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æ¤œç´¢å¯¾è±¡ã«è¿½åŠ ã™ã‚‹
 		userDirs_.emplace(string(fullPath.data(), fileName));
 
-		auto&& p = std::make_shared<string const>(fullPath.data());
+		auto p = std::make_shared<string const>(fullPath.data());
 
-		// ƒƒ‚‰»
+		// ãƒ¡ãƒ¢åŒ–
 		fullPathFromRefName_.emplace(fileRefName, p);
 		return p;
 	} else {
@@ -57,19 +60,19 @@ auto VTNodeScript::Impl::searchFile(string const& fileRefName, char const* dir)
 auto VTNodeScript::Impl::searchFile(string const& fileRefName)
 	-> shared_ptr<string const>
 {
-	// ƒƒ‚‚©‚ç“Ç‚Ş
-	auto&& iter = fullPathFromRefName_.find(fileRefName);
+	// ãƒ¡ãƒ¢ã‹ã‚‰èª­ã‚€
+	auto iter = fullPathFromRefName_.find(fileRefName);
 	if ( iter != fullPathFromRefName_.end() ) {
 		return iter->second;
 	}
 
-	// ƒ†[ƒUƒfƒBƒŒƒNƒgƒŠAƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠAcommonA‚Ì‡‚Å’T‚·
-	for ( string const& dir : userDirs_ ) {
-		if ( auto&& p = searchFile(fileRefName, dir.c_str()) ) {
+	// ãƒ¦ãƒ¼ã‚¶ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã€ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã€commonã€ã®é †ã§æ¢ã™
+	for ( auto const& dir : userDirs_ ) {
+		if ( auto p = searchFile(fileRefName, dir.c_str()) ) {
 			return std::move(p);
 		}
 	}
-	if ( auto&& p = searchFile(fileRefName, nullptr) ) {
+	if ( auto p = searchFile(fileRefName, nullptr) ) {
 		return std::move(p);
 	}
 	return searchFile(fileRefName, g_config->commonPath().c_str());
@@ -78,16 +81,16 @@ auto VTNodeScript::Impl::searchFile(string const& fileRefName)
 auto VTNodeScript::resolveRefName(string const& fileRefName) const
 	-> shared_ptr<string const>
 {
-	if ( auto&& p = p_->searchFile(fileRefName) ) {
+	if ( auto p = p_->searchFile(fileRefName) ) {
 		return p;
 	}
 
-	while ( !p_->resolutionDone_ ) {
+	while ( ! p_->resolutionDone_ ) {
 		bool stuck = true;
 
 		for ( auto&& refName : hpiutil::fileRefNames() ) {
 			if ( p_->fullPathFromRefName_.count(refName) != 0 ) continue;
-			if ( auto&& p = p_->searchFile(refName) ) {
+			if ( auto p = p_->searchFile(refName) ) {
 				stuck = false;
 				if ( refName == fileRefName ) { return p; }
 			}
@@ -100,11 +103,11 @@ auto VTNodeScript::resolveRefName(string const& fileRefName) const
 auto VTNodeScript::Impl::fetchScript(char const* fileRefName)
 	-> optional_ref<LineDelimitedString>
 {
-	if ( auto&& p = VTRoot::script()->resolveRefName(fileRefName) ) {
-		string const& filePath = *p;
+	if ( auto p = VTRoot::script().resolveRefName(fileRefName) ) {
+		auto const& filePath = *p;
 
 		auto& lds = map_find_or_insert(cache_, filePath, [&filePath] () {
-			std::ifstream ifs { filePath };
+			auto ifs = std::ifstream { filePath };
 			assert(ifs.is_open());
 			return LineDelimitedString(ifs);
 		});
@@ -117,22 +120,22 @@ auto VTNodeScript::Impl::fetchScript(char const* fileRefName)
 auto VTNodeScript::fetchScriptAll(char const* fileRefName) const
 	-> optional_ref<string const>
 {
-	if ( auto&& p = p_->fetchScript(fileRefName) ) {
+	if ( auto p = p_->fetchScript(fileRefName) ) {
 		return &p->get();
 	} else {
 		return nullptr;
 	}
 }
 
-auto VTNodeScript::fetchScriptLine(char const* fileRefName, size_t lineIndex) const
+auto VTNodeScript::fetchScriptLine(hpiutil::SourcePos const& spos) const
 	-> unique_ptr<string const>
 {
-	if ( auto&& p = p_->fetchScript(fileRefName) ) {
+	if ( auto p = p_->fetchScript(spos.fileRefName()) ) {
 		/**
-		•ÒW’†‚Ìƒtƒ@ƒCƒ‹‚ªÀs‚³‚ê‚Ä‚¢‚éê‡Aƒtƒ@ƒCƒ‹‚Ì“à—e‚ªÀÛ‚ÆˆÙ‚È‚é‚±‚Æ‚ª‚ ‚éB
-		s”Ô†‚ÌƒAƒEƒgƒŒƒ“ƒW‚É’ˆÓB
+		ç·¨é›†ä¸­ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒå®Ÿè¡Œã•ã‚Œã¦ã„ã‚‹å ´åˆã€ãƒ•ã‚¡ã‚¤ãƒ«ã®å†…å®¹ãŒå®Ÿéš›ã¨ç•°ãªã‚‹ã“ã¨ãŒã‚ã‚‹ã€‚
+		è¡Œç•ªå·ã®ã‚¢ã‚¦ãƒˆãƒ¬ãƒ³ã‚¸ã«æ³¨æ„ã€‚
 		//*/
-		return std::make_unique<string>(p->line(lineIndex));
+		return std::make_unique<string>(p->line(spos.line()));
 	} else {
 		return nullptr;
 	}

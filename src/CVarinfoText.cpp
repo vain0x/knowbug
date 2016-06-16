@@ -25,10 +25,13 @@ CVarinfoText::CVarinfoText()
 	writer_.getBuf()->limit(std::max(0x100, g_config->maxLength));
 }
 
-string const& CVarinfoText::getString() const {
+auto CVarinfoText::getString() const -> string const&
+{
 	return getBuf()->get();
 }
-string&& CVarinfoText::getStringMove() {
+
+auto CVarinfoText::getStringMove() -> string&&
+{
 	return getBuf()->getMove();
 }
 
@@ -46,18 +49,22 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 	getWriter().catln(strf("変数名: %s", name));
 	getWriter().catln(strf("変数型: %s", stringizeVartype(pval)));
 	if ( g_config->showsVariableAddress ) {
-		getWriter().catln(strf("アドレス: %p, %p", cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)));
+		getWriter().catln(
+			strf("アドレス: %p, %p"
+				, cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)
+				));
 	}
 	if ( g_config->showsVariableSize ) {
-		getWriter().catln(strf("サイズ: %d / %d [byte]", pval->size, bufsize));
+		getWriter().catln(
+			strf("サイズ: %d / %d [byte]"
+				, pval->size, bufsize
+				));
 	}
 	getWriter().catCrlf();
 
 	// 変数の内容に関する情報
-	{
-		CVardataStrWriter::create<CTreeformedWriter>(getBuf())
-			.addVar(name, pval);
-	}
+	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
+		.addVar(name, pval);
 	getWriter().catCrlf();
 
 	// メモリダンプ
@@ -73,15 +80,15 @@ void CVarinfoText::addSysvar(hpiutil::Sysvar::Id id)
 {
 	getWriter().catln(strf("変数名: %s\t(システム変数)", hpiutil::Sysvar::List[id].name));
 	getWriter().catCrlf();
-	{
-		CVardataStrWriter::create<CTreeformedWriter>(getBuf())
-			.addSysvar(id);
-	}
+	
+	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
+		.addSysvar(id);
+
 	getWriter().catCrlf();
 
 	// メモリダンプ
 	if ( g_config->showsVariableDump ) {
-		auto const&& dump = hpiutil::Sysvar::tryDump(id);
+		auto dump = hpiutil::Sysvar::tryDump(id);
 		if ( dump.first ) {
 			getWriter().catDump(dump.first, dump.second);
 		}
@@ -100,9 +107,9 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 	addCallSignature(callinfo, stdat);
 	getWriter().catCrlf();
 
-	auto const&& prmstk_safety = callinfo.tryGetPrmstk();
+	auto prmstk_safety = callinfo.tryGetPrmstk();
 	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
-			.addCall(stdat, prmstk_safety);
+		.addCall(stdat, prmstk_safety);
 
 	auto const prmstk = prmstk_safety.first;
 	if ( prmstk && g_config->showsVariableDump ) {
@@ -113,12 +120,9 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 
 void CVarinfoText::addCallSignature(ModcmdCallInfo const& callinfo, stdat_t stdat)
 {
-	auto&& name = callinfo.name();
-	getWriter().catln(
-		(callinfo.fname == nullptr)
-			? strf("関数名: %s", name)
-			: strf("関数名: %s (#%d of %s)", name, callinfo.line + 1, callinfo.fname)
-	);
+	auto const& name = callinfo.name();
+	getWriter().catln(strf("関数名: %s (%s)"
+		, name, callinfo.callerPos.toString()));
 
 	// シグネチャ
 	getWriter().catln(strf("仮引数: (%s)", stringizePrmlist(stdat)));
@@ -147,17 +151,15 @@ void CVarinfoText::addModuleOverview(char const* name, VTNodeModule const& tree)
 	getWriter().catln(strf("[%s]", name));
 
 	tree.foreach(
-		[&](shared_ptr<VTNodeModule const> const& module) {
+		[&](VTNodeModule const& module) {
 			// (入れ子の)モジュールは名前だけ表示しておく
-			getWriter().catln(module->name());
+			getWriter().catln(module.name());
 		},
 		[&](string const& varname) {
 			auto const shortName = hpiutil::nameExcludingScopeResolution(varname);
 			getWriter().cat(shortName + "\t= ");
-			{
-				CVardataStrWriter::create<CLineformedWriter>(getBuf())
-					.addVar(varname.c_str(), hpiutil::seekSttVar(varname.c_str()));
-			}
+			CVardataStrWriter::create<CLineformedWriter>(getBuf())
+				.addVar(varname.c_str(), hpiutil::seekSttVar(varname.c_str()));
 			getWriter().catCrlf();
 		}
 	);
@@ -172,13 +174,11 @@ void CVarinfoText::addSysvarsOverview()
 
 	getWriter().catln("[システム変数]");
 
-	for ( int i = 0; i < Sysvar::Count; ++i ) {
+	for ( auto i = 0; i < Sysvar::Count; ++i ) {
 		getWriter().cat(Sysvar::List[i].name);
 		getWriter().cat("\t= ");
-		{
-			CVardataStrWriter::create<CLineformedWriter>(getBuf())
-				.addSysvar(static_cast<Sysvar::Id>(i));
-		}
+		CVardataStrWriter::create<CLineformedWriter>(getBuf())
+			.addSysvar(static_cast<Sysvar::Id>(i));
 		getWriter().catCrlf();
 	}
 }
@@ -209,10 +209,12 @@ void CVarinfoText::addCallsOverview(optional_ref<ResultNodeData const> pLastResu
 //------------------------------------------------
 // [add] 全般概観
 //------------------------------------------------
-void CVarinfoText::addGeneralOverview() {
+void CVarinfoText::addGeneralOverview()
+{
 	getWriter().catln("[全般]");
 	for ( auto&& kv : g_dbginfo->fetchGeneralInfo() ) {
-		bool const isSysvar = (hpiutil::Sysvar::trySeek(kv.first.c_str()) != hpiutil::Sysvar::MAX);
+		auto const isSysvar =
+			hpiutil::Sysvar::trySeek(kv.first.c_str()) != hpiutil::Sysvar::MAX;
 		if ( isSysvar ) continue;
 
 		getWriter().catln(kv.first + "\t= " + kv.second);
@@ -222,41 +224,44 @@ void CVarinfoText::addGeneralOverview() {
 //------------------------------------------------
 // 仮引数リストの文字列
 //------------------------------------------------
-string stringizePrmlist(stdat_t stdat)
+auto stringizePrmlist(stdat_t stdat) -> string
 {
-	string s = "";
-	for ( auto& stprm : hpiutil::STRUCTDAT_params(stdat) ) {
-		if ( !s.empty() ) s += ", ";
+	auto s = string { "" };
+	for ( auto const& stprm : hpiutil::STRUCTDAT_params(stdat) ) {
+		if ( ! s.empty() ) s += ", ";
 		s += hpiutil::nameFromMPType(stprm.mptype);
 	}
 	return s;
 }
 
-static char const* typeQualifierStringFromVarmode(varmode_t mode)
+static auto typeQualifierStringFromVarmode(varmode_t mode) -> char const*
 {
-	return (mode == HSPVAR_MODE_NONE) ? "!" :
-		(mode == HSPVAR_MODE_MALLOC) ? "" :
-		(mode == HSPVAR_MODE_CLONE) ? "&" : "<err>";
+	return
+		(mode == HSPVAR_MODE_NONE  ) ? "!" :
+		(mode == HSPVAR_MODE_MALLOC) ? ""  :
+		(mode == HSPVAR_MODE_CLONE ) ? "&" :
+		"<err>";
 }
 
 //------------------------------------------------
 // 変数の型を表す文字列
 //------------------------------------------------
-string stringizeVartype(PVal const* pval)
+auto stringizeVartype(PVal const* pval) -> string
 {
-	size_t const maxDim = hpiutil::PVal_maxDim(pval);
+	auto const maxDim = hpiutil::PVal_maxDim(pval);
 
-	string const arrayType =
+	auto const arrayType =
 		(maxDim == 0) ? "(empty)" :
 		(maxDim == 1) ? hpiutil::stringifyArrayIndex({ pval->len[1] }) :
-		strf("%s (%d in total)",
-			hpiutil::stringifyArrayIndex(std::vector<int>(&pval->len[1], &pval->len[1] + maxDim)),
-			hpiutil::PVal_cntElems(pval))
-	;
+		strf("%s (%d in total)"
+			, hpiutil::stringifyArrayIndex
+				(std::vector<int>(&pval->len[1], &pval->len[1] + maxDim))
+			, hpiutil::PVal_cntElems(pval))
+		;
 
-	return strf("%s%s %s",
-		hpiutil::varproc(pval->flag)->vartype_name,
-		typeQualifierStringFromVarmode(pval->mode),
-		arrayType
-	);
+	return strf("%s%s %s"
+		, hpiutil::varproc(pval->flag)->vartype_name
+		, typeQualifierStringFromVarmode(pval->mode)
+		, arrayType
+		);
 }

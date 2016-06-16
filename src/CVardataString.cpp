@@ -15,10 +15,17 @@
 
 using namespace hpiutil::internal_vartype_tags;
 
-CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src) : writer_(std::move(src.writer_)) {}
-CVardataStrWriter::~CVardataStrWriter() {}
+CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src)
+	: writer_(std::move(src.writer_))
+{}
 
-string const& CVardataStrWriter::getString() const { return getWriter().get(); }
+CVardataStrWriter::~CVardataStrWriter()
+{}
+
+auto CVardataStrWriter::getString() const -> string const&
+{
+	return getWriter().get();
+}
 
 //------------------------------------------------
 // 枝刈りを試みる
@@ -43,9 +50,9 @@ bool CVardataStrWriter::tryPrune(char const* name, void const* ptr) const
 //------------------------------------------------
 void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 {
-	assert(!!pval);
+	assert(!! pval);
 
-	if ( addVarUserdef_t const addVar = g_config->vswInfo[pval->flag].addVar ) {
+	if ( auto addVar = static_cast<addVarUserdef_t>(g_config->vswInfo[pval->flag].addVar) ) {
 		return addVar(this, name, pval);
 	}
 	
@@ -77,30 +84,30 @@ void CVardataStrWriter::addVarScalar(char const* name, PVal const* pval, APTR ap
 void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 {
 	auto const hvp = hpiutil::varproc(pval->flag);
-	size_t const cntElem = hpiutil::PVal_cntElems(pval);
+	auto const cntElem = hpiutil::PVal_cntElems(pval);
 
 	getWriter().catNodeBegin(name, strf("<%s>[", hvp->vartype_name).c_str());
 
 	// ツリー状文字列の場合
-	if ( !getWriter().isLineformed() ) {
+	if ( ! getWriter().isLineformed() ) {
 		getWriter().catAttribute("type", stringizeVartype(pval).c_str());
 
-		for ( size_t i = 0; i < cntElem; ++i ) {
-			auto&& indexes = hpiutil::PVal_indexesFromAptr(pval, i);
+		for ( auto i = size_t { 0 }; i < cntElem; ++i ) {
+			auto indexes = hpiutil::PVal_indexesFromAptr(pval, i);
 
 			// 要素の値を追加
-			string const nameChild = hpiutil::stringifyArrayIndex(indexes);
+			auto nameChild = hpiutil::stringifyArrayIndex(indexes);
 			addVarScalar(nameChild.c_str(), pval, i);
 		}
 
 	// 一行文字列の場合
 	} else if ( cntElem > 0 ) {
-		size_t const dim = hpiutil::PVal_maxDim(pval);
+		auto const dim = hpiutil::PVal_maxDim(pval);
 
 		// cntElems[1 + i] = 部分i次元配列の要素数
 		// (例えば配列 int(2, 3, 4) だと、cntElems = {1, 2, 2*3, 2*3*4, 0})
-		size_t cntElems[1 + hpiutil::ArrayDimMax] = { 1 };
-		for ( size_t i = 0; i < dim && pval->len[i + 1] > 0; ++i ) {
+		auto cntElems = indexes_t { {1} };
+		for ( auto i = size_t { 0 }; i < dim && pval->len[i + 1] > 0; ++i ) {
 			cntElems[i + 1] = pval->len[i + 1] * cntElems[i];
 		}
 
@@ -110,10 +117,10 @@ void CVardataStrWriter::addVarArray(char const* name, PVal const* pval)
 	getWriter().catNodeEnd("]");
 }
 
-void CVardataStrWriter::addVarArrayRec(PVal const* pval, size_t const (&cntElems)[hpiutil::ArrayDimMax + 1], size_t idxDim, APTR aptr_offset)
+void CVardataStrWriter::addVarArrayRec(PVal const* pval, indexes_t const& cntElems, size_t idxDim, APTR aptr_offset)
 {
 	assert(getWriter().isLineformed());
-	for ( int i = 0; i < pval->len[idxDim + 1]; ++i ) {
+	for ( auto i = 0; i < pval->len[idxDim + 1]; ++i ) {
 		// 2次以上 => 配列を出力
 		if ( idxDim >= 1 ) {
 			getWriter().catNodeBegin(CStructedStrWriter::stc_strUnused, "[");
@@ -137,12 +144,11 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 		return;
 	}
 
-	if ( addValueUserdef_t const addValue = g_config->vswInfo[type].addValue ) {
-		addValue(this, name, ptr);
-		return;
+	if ( auto addValue = static_cast<addValueUserdef_t>(g_config->vswInfo[type].addValue) ) {
+		return addValue(this, name, ptr);
 	}
 
-	auto&& addValueLeaf = [&](string const& repr) {
+	auto addValueLeaf = [&](string const& repr) {
 		getWriter().catLeaf(name, repr.c_str());
 	};
 
@@ -193,7 +199,7 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 	if ( tryPrune(name, fv) ) return;
 	assert(fv);
 
-	if ( !fv->ptr || fv->type == FLEXVAL_TYPE_NONE ) {
+	if ( ! fv->ptr || fv->type == FLEXVAL_TYPE_NONE ) {
 		getWriter().catLeafExtra(name, "nullmod");
 
 	} else {
@@ -217,15 +223,15 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 //------------------------------------------------
 void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> prmstk)
 {
-	assert(!!prmstk.first);
-	int prev_mptype = MPTYPE_NONE;
-	int i = 0;
+	assert(!! prmstk.first);
+	auto prev_mptype = MPTYPE_NONE;
+	auto i = 0;
 
 	for ( auto& stprm : hpiutil::STRUCTDAT_params(stdat) ) {
 		auto const member = hpiutil::Prmstack_memberPtr(prmstk.first, &stprm);
 
 		// if treeformed: put an additional ' ' before 'local' parameters
-		if ( !getWriter().isLineformed()
+		if ( ! getWriter().isLineformed()
 			&& i > 0
 			&& (prev_mptype != MPTYPE_LOCALVAR && stprm.mptype == MPTYPE_LOCALVAR)
 			) {
@@ -244,7 +250,7 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> 
 //------------------------------------------------
 void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member, bool isSafe)
 {
-	if ( !isSafe ) {
+	if ( ! isSafe ) {
 		switch ( stprm->mptype ) {
 			case MPTYPE_STRUCTTAG:
 			case MPTYPE_INUM: //safe iff read member as bits array
@@ -318,7 +324,7 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 {
 	using namespace hpiutil;
 
-	char const* const name = Sysvar::List[id].name;
+	auto name = Sysvar::List[id].name;
 
 	switch ( id ) {
 		case Sysvar::Id::Refstr:
@@ -335,8 +341,10 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 				getWriter().catNodeBegin(name, "<int>[");
 				for ( int i = 0; i < ctx->looplev; ++ i ) {
 					auto const lvLoop = ctx->looplev - i;
-					addValue(strf("#%d", lvLoop).c_str(), HSPVAR_FLAG_INT,
-						hpiutil::asPDAT<vtInt>(&ctx->mem_loop[lvLoop].cnt));
+					addValue(strf("#%d", lvLoop).c_str()
+						, HSPVAR_FLAG_INT
+						, hpiutil::asPDAT<vtInt>(&ctx->mem_loop[lvLoop].cnt)
+						);
 				}
 				getWriter().catNodeEnd("]");
 			} else {
@@ -346,15 +354,16 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 
 		case Sysvar::Id::NoteBuf:
 		{
-			if ( PVal const* const pval = ctx->note_pval ) {
-				APTR const aptr = ctx->note_aptr;
+			if ( auto const pval = ctx->note_pval ) {
+				auto const aptr = ctx->note_aptr;
 
-				auto&& indexes = hpiutil::PVal_indexesFromAptr(pval, aptr);
-				auto&& indexString = hpiutil::stringifyArrayIndex(indexes);
-				auto const varName = hpiutil::nameFromStaticVar(pval);
-				string&& name2 = (varName
+				auto indexes     = hpiutil::PVal_indexesFromAptr(pval, aptr);
+				auto indexString = hpiutil::stringifyArrayIndex(indexes);
+				auto varName     = hpiutil::nameFromStaticVar(pval);
+				auto name2 =
+					varName
 					? strf("%s (%s%s)", name, varName, indexString)
-					: strf("%s (%p (%d))", name, cptr_cast<void*>(pval), aptr));
+					: strf("%s (%p (%d))", name, cptr_cast<void*>(pval), aptr);
 				addVarScalar(name2.c_str(), pval, aptr);
 			} else {
 				getWriter().catLeafExtra(name, "not_exist");
@@ -384,10 +393,10 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 //------------------------------------------------
 void CVardataStrWriter::addCall(stdat_t stdat, std::pair<void const*, bool> prmstk)
 {
-	char const* const name = hpiutil::STRUCTDAT_name(stdat);
+	auto name = hpiutil::STRUCTDAT_name(stdat);
 
 	getWriter().catNodeBegin(name, strf("%s(", name).c_str());
-	if ( !prmstk.first ) {
+	if ( ! prmstk.first ) {
 		getWriter().catLeafExtra("arguments", "not_available");
 	} else {
 		addPrmstack(stdat, prmstk);
@@ -397,8 +406,8 @@ void CVardataStrWriter::addCall(stdat_t stdat, std::pair<void const*, bool> prms
 
 void CVardataStrWriter::addResult(stdat_t stdat, PDAT const* resultPtr, vartype_t resultType)
 {
-	assert(!!resultPtr);
-	char const* const name = hpiutil::STRUCTDAT_name(stdat);
+	assert(!! resultPtr);
+	auto name = hpiutil::STRUCTDAT_name(stdat);
 
 	getWriter().catNodeBegin(name, strf("%s => ", name).c_str());
 	addValue(".result", resultType, resultPtr);
