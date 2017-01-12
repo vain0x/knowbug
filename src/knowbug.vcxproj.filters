@@ -114,6 +114,9 @@
     <ClCompile Include="cppformat\format.cc">
       <Filter>module\cppformat</Filter>
     </ClCompile>
+    <ClCompile Include="hpiutil\DInfo.cpp">
+      <Filter>module\hpiutil</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CVarinfoText.h">
