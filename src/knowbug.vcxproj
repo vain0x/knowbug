@@ -327,7 +327,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="config_mng.cpp" />
-    <ClCompile Include="cppformat\format.cc" />
+    <ClCompile Include="cppformat\cppformat\format.cc" />
     <ClCompile Include="CVardataString.cpp" />
     <ClCompile Include="CVarinfoText.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -358,7 +358,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config_mng.h" />
-    <ClInclude Include="cppformat\format.h" />
+    <ClInclude Include="cppformat\cppformat\format.h" />
     <ClInclude Include="CVardataString.h" />
     <ClInclude Include="CVarinfoText.h" />
     <ClInclude Include="ExVswInternal.h" />
