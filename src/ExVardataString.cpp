@@ -144,157 +144,12 @@ auto vswInfoForInternal() -> std::vector<VswInfoForInternal> const&
 		{ "long", nullptr, knowbugVsw_addValueSLong },
 		{ "ulong", nullptr, knowbugVsw_addValueULong },
 #endif
-#ifdef with_Assoc
-		{ "assoc_k", nullptr, knowbugVsw_addValueAssoc },
-#endif
-#ifdef with_Vector
-		{ "vector_k", knowbugVsw_addVarVector, knowbugVsw_addValueVector },
-#endif
-#ifdef with_Array
-		{ "array_k", knowbugVsw_addVarArray, knowbugVsw_addValueArray },
-#endif
 #ifdef with_Modcmd
 		{ "modcmd_k", nullptr, knowbugVsw_addValueModcmd },
-#endif
-#ifdef with_ModPtr
-		{ "int", nullptr, knowbugVsw_addValueIntOrModPtr },
 #endif
 	};
 	return vswi;
 }
-
-//------------------------------------------------
-// 拙作 assoc 型の拡張表示のための関数群
-//------------------------------------------------
-#ifdef with_Assoc
-# include "../../crouton/src/var_assoc/for_knowbug.var_assoc.h"
-
-//void WINAPI knowbugVsw_addVarAssoc(vswriter_t _w, char const* name, PVal const* pval);
-
-void WINAPI knowbugVsw_addValueAssoc(vswriter_t _w, char const* name, void const* ptr)
-{
-	auto const src = *reinterpret_cast<CAssoc* const*>(ptr);
-
-	if ( ! ptr ) {
-		knowbugVsw_catLeafExtra(_w, name, "null_assoc");
-		return;
-	}
-
-	auto const hvp = hpiutil::tryFindHvp(assoc_vartype_name);
-	StAssocMapList* const head = (reinterpret_cast<GetMapList_t>(hvp->user))(src);
-
-	// 要素なし
-	if ( ! head ) {
-		knowbugVsw_catLeafExtra(_w, name, "empty_assoc");
-		return;
-	}
-
-	// 全キーのリスト
-	knowbugVsw_catNodeBegin(_w, name, "[");
-	{
-		// 列挙
-		for ( StAssocMapList* list = head; list != nullptr; list = list->next ) {
-			if ( knowbugVsw_isLineformWriter(_w) ) {
-				// pair: 「key: value...」
-				knowbugVsw_catNodeBegin(_w, CStructedStrWriter::stc_strUnused,
-					strf("%s: ", list->key).c_str());
-				knowbugVsw_addVar(_w, CStructedStrWriter::stc_strUnused, list->pval);
-				knowbugVsw_catNodeEnd(_w, "");
-			} else {
-				knowbugVsw_addVar(_w, list->key, list->pval);
-			}
-			//	dbgout("%p: key = %s, pval = %p, next = %p", list, list->key, list->pval, list->next );
-		}
-
-		// リストの解放
-		for ( StAssocMapList* list = head; list != nullptr; ) {
-			StAssocMapList* const next = list->next;
-			exinfo->HspFunc_free(list);
-			list = next;
-		}
-	}
-	knowbugVsw_catNodeEnd(_w, "]");
-}
-#endif
-
-//------------------------------------------------
-// 拙作 vector 型の拡張表示
-//------------------------------------------------
-#ifdef with_Vector
-# include "../../crouton/src/var_vector/for_knowbug.var_vector.h"
-
-void WINAPI knowbugVsw_addVarVector(vswriter_t _w, char const* name, PVal const* pval)
-{
-	knowbugVsw_addVarScalar(_w, name, pval, 0);
-}
-
-void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void const* ptr)
-{
-	auto const src = *reinterpret_cast<CVector* const*>(ptr);
-
-	if ( ! src ) {
-		knowbugVsw_catLeafExtra(_w, name, "null_vector");
-		return;
-	}
-
-	auto const hvp = hpiutil::tryFindHvp(vector_vartype_name);
-	int len;
-	PVal** const pvals = (reinterpret_cast<GetVectorList_t>(hvp->user))(src, &len);
-
-	// 要素なし
-	if ( ! pvals ) {
-		knowbugVsw_catLeafExtra(_w, name, "empty_vector");
-		return;
-	}
-
-	// 全キーのリスト
-	knowbugVsw_catNodeBegin(_w, name, "[");
-	{
-		knowbugVsw_catAttribute(_w, "length", strf("%d", len).c_str());
-
-		for ( int i = 0; i < len; ++i ) {
-			knowbugVsw_addVar(_w, hpiutil::stringifyArrayIndex({ i }).c_str(), pvals[i]);
-			//dbgout("%p: idx = %d, pval = %p, next = %p", list, idx, list->pval, list->next );
-		}
-
-	}
-	knowbugVsw_catNodeEnd(_w, "]");
-}
-#endif
-
-//------------------------------------------------
-// 拙作 array 型の拡張表示
-//------------------------------------------------
-#ifdef with_Array
-# include "crouton/src/var_array/for_knowbug.var_array.h"
-
-void WINAPI knowbugVsw_addVarArray(vswriter_t _w, char const* name, PVal const* pval)
-{
-	knowbugVsw_addVarScalar(_w, name, pval, 0);
-}
-
-void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const* ptr)
-{
-	auto const src = *reinterpret_cast<CArray**>(ptr);
-
-	if ( ! src ) {
-		knowbugVsw_catLeafExtra(_w, name, "null_array");
-		return;
-	}
-
-	auto const hvp = hpiutil::seekHvp(array_vartype_name);
-	PVal* const pvInner = (reinterpret_cast<GetArray_t>(hvp->user))(src);
-
-	// 要素なし
-	if ( ! pvInner || pvInner->len[1] == 0 ) {
-		knowbugVsw_catLeafExtra(_w, name, "empty_array");
-		return;
-	}
-
-	// 表示
-	knowbugVsw_addVarArray(_w, name, pvInner);
-}
-#endif
 
 //------------------------------------------------
 // 拙作 modcmd 型の拡張表示
@@ -309,25 +164,6 @@ void WINAPI knowbugVsw_addValueModcmd(vswriter_t _w, char const* name, void cons
 	).c_str());
 }
 
-#endif
-
-//------------------------------------------------
-// modptr の拡張表示
-//------------------------------------------------
-#ifdef with_ModPtr
-
-#include "with_ModPtr.h"
-
-void WINAPI knowbugVsw_addValueIntOrModPtr(vswriter_t _w, char const* name, void const* ptr)
-{
-	int const& val = *cptr_cast<int*>(ptr);
-	if ( ModPtr::isValid(val) ) {
-		auto name2 = strf("%s = mp#%d", name, ModPtr::getIdx(val));
-		vswriter(_w).addValueStruct(name2.c_str(), ModPtr::getValue(val));
-	} else {
-		knowbugVsw_addValueInt(_w, name, ptr);
-	}
-}
 #endif
 
 //------------------------------------------------

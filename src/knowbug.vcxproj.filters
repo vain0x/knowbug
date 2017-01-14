@@ -31,11 +31,14 @@
     <Filter Include="テキスト">
       <UniqueIdentifier>{832353c6-8f2f-44a8-b714-e0445d320023}</UniqueIdentifier>
     </Filter>
-    <Filter Include="module\cppformat">
-      <UniqueIdentifier>{28c463bf-4ac1-41cd-b962-e422ed5235ed}</UniqueIdentifier>
-    </Filter>
     <Filter Include="module\hpiutil">
       <UniqueIdentifier>{4f3119dd-ce77-4b7e-a8d4-476f69a7386d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libraries">
+      <UniqueIdentifier>{2624c4eb-0c9a-4911-b7a9-5d70f2a36c19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libraries\cppformat">
+      <UniqueIdentifier>{28c463bf-4ac1-41cd-b962-e422ed5235ed}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -52,9 +55,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="vartree.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="with_ModPtr.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="WrapCall\type_modcmd.cpp">
@@ -111,8 +111,11 @@
     <ClCompile Include="VTNodeLog.cpp">
       <Filter>class</Filter>
     </ClCompile>
-    <ClCompile Include="cppformat\format.cc">
-      <Filter>module\cppformat</Filter>
+    <ClCompile Include="hpiutil\DInfo.cpp">
+      <Filter>module\hpiutil</Filter>
+    </ClCompile>
+    <ClCompile Include="cppformat\cppformat\format.cc">
+      <Filter>libraries\cppformat</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -129,9 +132,6 @@
       <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="vartree.h">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="with_ModPtr.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="WrapCall\ModcmdCallInfo.h">
@@ -239,8 +239,8 @@
     <ClInclude Include="module\utility.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="cppformat\format.h">
-      <Filter>module\cppformat</Filter>
+    <ClInclude Include="cppformat\cppformat\format.h">
+      <Filter>libraries\cppformat</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
