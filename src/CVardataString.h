@@ -9,11 +9,6 @@ class CStructedStrWriter;
 class CLineformedWriter;
 class CTreeformedWriter;
 class CStrBuf;
-#if defined(with_Assoc) || defined(with_Vector)
-class CAssoc;
-class CVector;
-class CArray;
-#endif
 
 // 変数データの文字列を作るクラス
 class CVardataStrWriter
@@ -53,12 +48,6 @@ public:
 	void addValueString(char const* name, char const* str);
 	void addValueStruct(char const* name, FlexValue const* fv);
 
-#ifdef with_Assoc
-	void addItem_assoc(char const* name, CAssoc* src);
-#endif
-#ifdef with_Vector
-	void addItem_vector(char const* name, CVector* src);
-#endif
 #ifdef with_ExtraBasics
 	//	template<class TNumeric> auto dbgstr_extraBasic(const TNumeric src) -> string;
 #endif
