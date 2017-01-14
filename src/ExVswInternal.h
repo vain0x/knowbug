@@ -17,9 +17,6 @@ extern void WINAPI knowbugVsw_addValueUInt(vswriter_t, char const* name, void co
 extern void WINAPI knowbugVsw_addValueSLong(vswriter_t, char const* name, void const* ptr);
 extern void WINAPI knowbugVsw_addValueULong(vswriter_t, char const* name, void const* ptr);
 #endif
-#ifdef with_ModPtr
-extern void WINAPI knowbugVsw_addValueIntOrModPtr(vswriter_t, char const* name, void const* ptr);
-#endif
 #ifdef with_Assoc
 extern void WINAPI knowbugVsw_addValueAssoc(vswriter_t, char const* name, void const* ptr);
 #endif

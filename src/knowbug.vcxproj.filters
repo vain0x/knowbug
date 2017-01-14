@@ -57,9 +57,6 @@
     <ClCompile Include="vartree.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="with_ModPtr.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="WrapCall\type_modcmd.cpp">
       <Filter>WrapCall</Filter>
     </ClCompile>
@@ -135,9 +132,6 @@
       <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="vartree.h">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="with_ModPtr.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="WrapCall\ModcmdCallInfo.h">

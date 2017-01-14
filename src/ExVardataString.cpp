@@ -156,9 +156,6 @@ auto vswInfoForInternal() -> std::vector<VswInfoForInternal> const&
 #ifdef with_Modcmd
 		{ "modcmd_k", nullptr, knowbugVsw_addValueModcmd },
 #endif
-#ifdef with_ModPtr
-		{ "int", nullptr, knowbugVsw_addValueIntOrModPtr },
-#endif
 	};
 	return vswi;
 }
@@ -309,25 +306,6 @@ void WINAPI knowbugVsw_addValueModcmd(vswriter_t _w, char const* name, void cons
 	).c_str());
 }
 
-#endif
-
-//------------------------------------------------
-// modptr の拡張表示
-//------------------------------------------------
-#ifdef with_ModPtr
-
-#include "with_ModPtr.h"
-
-void WINAPI knowbugVsw_addValueIntOrModPtr(vswriter_t _w, char const* name, void const* ptr)
-{
-	int const& val = *cptr_cast<int*>(ptr);
-	if ( ModPtr::isValid(val) ) {
-		auto name2 = strf("%s = mp#%d", name, ModPtr::getIdx(val));
-		vswriter(_w).addValueStruct(name2.c_str(), ModPtr::getValue(val));
-	} else {
-		knowbugVsw_addValueInt(_w, name, ptr);
-	}
-}
 #endif
 
 //------------------------------------------------
