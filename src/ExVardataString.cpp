@@ -150,9 +150,6 @@ auto vswInfoForInternal() -> std::vector<VswInfoForInternal> const&
 #ifdef with_Vector
 		{ "vector_k", knowbugVsw_addVarVector, knowbugVsw_addValueVector },
 #endif
-#ifdef with_Array
-		{ "array_k", knowbugVsw_addVarArray, knowbugVsw_addValueArray },
-#endif
 #ifdef with_Modcmd
 		{ "modcmd_k", nullptr, knowbugVsw_addValueModcmd },
 #endif
@@ -256,40 +253,6 @@ void WINAPI knowbugVsw_addValueVector(vswriter_t _w, char const* name, void cons
 
 	}
 	knowbugVsw_catNodeEnd(_w, "]");
-}
-#endif
-
-//------------------------------------------------
-// 拙作 array 型の拡張表示
-//------------------------------------------------
-#ifdef with_Array
-# include "crouton/src/var_array/for_knowbug.var_array.h"
-
-void WINAPI knowbugVsw_addVarArray(vswriter_t _w, char const* name, PVal const* pval)
-{
-	knowbugVsw_addVarScalar(_w, name, pval, 0);
-}
-
-void WINAPI knowbugVsw_addValueArray(vswriter_t _w, char const* name, void const* ptr)
-{
-	auto const src = *reinterpret_cast<CArray**>(ptr);
-
-	if ( ! src ) {
-		knowbugVsw_catLeafExtra(_w, name, "null_array");
-		return;
-	}
-
-	auto const hvp = hpiutil::seekHvp(array_vartype_name);
-	PVal* const pvInner = (reinterpret_cast<GetArray_t>(hvp->user))(src);
-
-	// 要素なし
-	if ( ! pvInner || pvInner->len[1] == 0 ) {
-		knowbugVsw_catLeafExtra(_w, name, "empty_array");
-		return;
-	}
-
-	// 表示
-	knowbugVsw_addVarArray(_w, name, pvInner);
 }
 #endif
 

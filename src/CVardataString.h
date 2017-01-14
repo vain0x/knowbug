@@ -9,7 +9,7 @@ class CStructedStrWriter;
 class CLineformedWriter;
 class CTreeformedWriter;
 class CStrBuf;
-#if defined(with_Assoc) || defined(with_Vector) || defined(with_Array)
+#if defined(with_Assoc) || defined(with_Vector)
 class CAssoc;
 class CVector;
 class CArray;
@@ -58,9 +58,6 @@ public:
 #endif
 #ifdef with_Vector
 	void addItem_vector(char const* name, CVector* src);
-#endif
-#ifdef with_Array
-	void addItem_array(char const* name, CArray* src);
 #endif
 #ifdef with_ExtraBasics
 	//	template<class TNumeric> auto dbgstr_extraBasic(const TNumeric src) -> string;
