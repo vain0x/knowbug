@@ -11,8 +11,6 @@
 #include "CVarinfoText.h"
 #include "config_mng.h"
 
-#include "with_ModPtr.h"
-
 using namespace hpiutil::internal_vartype_tags;
 
 CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src)
