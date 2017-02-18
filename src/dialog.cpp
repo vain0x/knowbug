@@ -19,6 +19,8 @@
 #include "config_mng.h"
 #include "DebugInfo.h"
 
+#include "module/supio/supio.h"
+
 #ifdef _M_X64
 # define KnowbugPlatformString "(x64)"
 #else //defined(_M_X64)
@@ -63,7 +65,9 @@ namespace View {
 
 void setText(char const* text)
 {
-	SetWindowText(hViewEdit, text);
+	HSPAPICHAR *hactmp1;
+	SetWindowText(hViewEdit, chartoapichar(text,&hactmp1));
+	freehac(&hactmp1);
 };
 
 void scroll(int y, int x)
@@ -105,20 +109,24 @@ namespace LogBox {
 
 	void clear()
 	{
+		HSPAPICHAR *hactmp1 = 0;
 		if ( ! g_config->warnsBeforeClearingLog
 			|| MessageBox(g_res->mainWindow.get()
-					, "ログをすべて消去しますか？", KnowbugAppName, MB_OKCANCEL
+					, TEXT("ログをすべて消去しますか？"), chartoapichar(KnowbugAppName,&hactmp1), MB_OKCANCEL
 					) == IDOK
 		) {
 			VTRoot::log().clear();
 		}
+		freehac(&hactmp1);
 	}
 
 	void save(char const* filepath) {
+		HSPAPICHAR *hactmp1 = 0;
 		if ( ! VTRoot::log().save(filepath) ) {
 			MessageBox(g_res->mainWindow.get()
-				, "ログの保存に失敗しました。", KnowbugAppName, MB_OK);
+				, TEXT("ログの保存に失敗しました。"), chartoapichar(KnowbugAppName,&hactmp1), MB_OK);
 		}
+		freehac(&hactmp1);
 	}
 	void save() {
 		static auto const filter =
@@ -136,12 +144,13 @@ namespace LogBox {
 static void UpdateCurInfEdit(hpiutil::SourcePos const& spos)
 {
 	auto curinf = spos.toString();
+	HSPAPICHAR *hactmp1;
 
 	if ( auto p = VTRoot::script().fetchScriptLine(spos) ) {
-		SetWindowText(hSrcLine, (curinf + "\r\n" + *p).c_str());
+		SetWindowText(hSrcLine, chartoapichar((curinf + "\r\n" + *p).c_str(),&hactmp1));
 
 	} else {
-		SetWindowText(hSrcLine, curinf.c_str());
+		SetWindowText(hSrcLine, chartoapichar(curinf.c_str(),&hactmp1));
 	}
 }
 
@@ -244,6 +253,7 @@ static void resizeMainWindow(size_t cx, size_t cy, bool repaints)
 // メインウィンドウのコールバック関数
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
+	HSPAPICHAR *hactmp1;
 	switch ( msg ) {
 		case WM_COMMAND:
 			switch ( LOWORD(wp) ) {
@@ -262,16 +272,18 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				}
 				case IDC_OPEN_CURRENT_SCRIPT: {
 					if ( auto p = VTRoot::script().resolveRefName(g_dbginfo->curPos().fileRefName()) ) {
-						ShellExecute(nullptr, "open"
-							, p->c_str(), nullptr, "", SW_SHOWDEFAULT);
+						ShellExecute(nullptr, TEXT("open")
+							, chartoapichar(p->c_str(), &hactmp1) , nullptr, TEXT(""), SW_SHOWDEFAULT);
+						freehac(&hactmp1);
 					}
 					break;
 				}
 				case IDC_OPEN_INI: {
 					//create empty file if not exist
 					auto of = std::ofstream { g_config->selfPath(), std::ios::app };
-					ShellExecute(nullptr, "open"
-						, g_config->selfPath().c_str(), nullptr, "", SW_SHOWDEFAULT);
+					ShellExecute(nullptr, TEXT("open")
+						, chartoapichar(g_config->selfPath().c_str(),&hactmp1), nullptr, TEXT(""), SW_SHOWDEFAULT);
+					freehac(&hactmp1);
 					break;
 				}
 				case IDC_UPDATE: {
@@ -279,8 +291,9 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_KNOWBUG_REPOS: {
-					ShellExecute(nullptr, "open"
-						, KnowbugRepoUrl, nullptr, "", SW_SHOWDEFAULT);
+					ShellExecute(nullptr, TEXT("open")
+						, chartoapichar(KnowbugRepoUrl,&hactmp1), nullptr, TEXT(""), SW_SHOWDEFAULT);
+					freehac(&hactmp1);
 					break;
 				}
 				case IDC_GOTO_LOG: {
@@ -373,7 +386,7 @@ void Dialog::createMain()
 	{
 		auto const hPane =
 			CreateDialog(Knowbug::getInstance()
-				, (LPCSTR)IDD_VIEW_PANE
+				, (LPCTSTR)IDD_VIEW_PANE
 				, hViewWnd.get(), (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
 		setEditStyle(hViewEdit, g_config->maxLength);
@@ -393,16 +406,16 @@ void Dialog::createMain()
 	{
 		auto const hPane =
 			CreateDialog(Knowbug::getInstance()
-				, (LPCSTR)IDD_MAIN_PANE
+				, (LPCTSTR)IDD_MAIN_PANE
 				, hDlgWnd.get(), (DLGPROC)DlgProc);
 		ShowWindow(hPane, SW_SHOW);
 
 		//メニューバー
-		auto hDlgMenu = menu_handle_t { LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_MAIN_MENU) };
+		auto hDlgMenu = menu_handle_t { LoadMenu(Knowbug::getInstance(), (LPCTSTR)IDR_MAIN_MENU) };
 		SetMenu(hDlgWnd.get(), hDlgMenu.get());
 
 		//ポップメニュー
-		auto const hNodeMenuBar = LoadMenu(Knowbug::getInstance(), (LPCSTR)IDR_NODE_MENU);
+		auto const hNodeMenuBar = LoadMenu(Knowbug::getInstance(), (LPCTSTR)IDR_NODE_MENU);
 
 		//いろいろ
 		hVarTree = GetDlgItem(hPane, IDC_VARTREE);

@@ -1,15 +1,15 @@
-// ���x�����̕\�� (HSP3.4b4 �ȍ~)
-
+// ラベル名の表示 (HSP3.4b4 以降)
+#include "hsp3utf.as"
 	lb1 = *test1
 	lb2 = *test2
-	// lb1 �̒l�� knowbug ��ł́u*test1�v�ƕ\�������B
-	// lb2 �̒l���A�u*test1�v�ƕ\�������B
+	// lb1 の値は knowbug 上では「*test1」と表示される。
+	// lb2 の値も、「*test1」と表示される。
 	/*
-	���̂悤�ɓ����ʒu���w���Ă��镡���̃��x��������ꍇ�A
-	knowbug ����͋�ʂł��Ȃ����߁A�ǂꂩ��̖��O���e�L�g�[�ɑI�΂�邽�ߒ��ӂ��Ăق����B
+	このように同じ位置を指している複数のラベルがある場合、
+	knowbug からは区別できないため、どれか一つの名前がテキトーに選ばれるため注意してほしい。
 	//*/
 	
 *test1
 *test2
 	mes "hello, world!"
-//	mes (*test1 == *test2)	// ���������΃��x���̓��l���͒�`����ĂȂ�
+//	mes (*test1 == *test2)	// そういえばラベルの同値性は定義されてない

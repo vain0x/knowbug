@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 
+#include "supio/supio.h"
+
 class CIni
 {
 private:
@@ -13,7 +15,8 @@ private:
 
 private:
 	std::string const fileName_ ;
-	mutable std::vector<char> buf_;
+	mutable std::vector<HSPAPICHAR> buf_;
+	mutable std::vector<HSPCHAR> buf8_;
 
 public:
 	explicit CIni(char const* fname);
@@ -35,7 +38,8 @@ public:
 	void removeKey(char const* sec, char const* key);
 	bool existsKey(char const* sec, char const* key) const;
 private:
-	auto buf() const -> char* { return buf_.data(); };
+	auto buf() const -> HSPAPICHAR* { return buf_.data(); };
+	auto buf8() const -> HSPCHAR* { return buf8_.data(); };
 	auto enumImpl(char const* secOrNull) const -> std::vector<std::string>;
 
 private:

@@ -5,17 +5,21 @@
 #include "config_mng.h"
 #include "ExVswInternal.h"
 
+#include "module\/supio\/supio.h"
+
 KnowbugConfig::SingletonAccessor g_config;
 
 static auto SelfDir() -> string
 {
-	char path[MAX_PATH];
+	HSPAPICHAR path[MAX_PATH];
+	char *hctmp1 = 0;
 	GetModuleFileName(GetModuleHandle(nullptr), path, MAX_PATH);
 
 	char drive[5];
 	char dir[MAX_PATH];
 	char _dummy[MAX_PATH];
-	_splitpath_s(path, drive, dir, _dummy, _dummy);
+	_splitpath_s(apichartohspchar(path,&hctmp1), drive, dir, _dummy, _dummy);
+	freehc(&hctmp1);
 	return string(drive) + dir;
 }
 
@@ -91,9 +95,10 @@ KnowbugConfig::KnowbugConfig()
 
 	// 拡張型の変数データを文字列化する関数
 	auto const& keys = ini.enumKeys("VardataString/UserdefTypes");
+	HSPAPICHAR *hactmp1 = 0;
 	for ( auto const& vtname : keys ) {
 		auto const dllPath = ini.getString("VardataString/UserdefTypes", vtname.c_str());
-		if ( auto hDll = module_handle_t { LoadLibrary(dllPath) } ) {
+		if ( auto hDll = module_handle_t { LoadLibrary(chartoapichar(dllPath,&hactmp1)) } ) {
 			auto const fReceive  = loadVswFunc<receiveVswMethods_t>(ini, hDll.get(), vtname.c_str(), "receiveVswMethods");
 			auto const fAddVar   = loadVswFunc<addVarUserdef_t  >(ini, hDll.get(), vtname.c_str(), "addVar");
 			auto const fAddValue = loadVswFunc<addValueUserdef_t>(ini, hDll.get(), vtname.c_str(), "addValue");
@@ -116,6 +121,7 @@ KnowbugConfig::KnowbugConfig()
 					, vtname, dllPath
 					).c_str());
 		}
+		freehac(&hactmp1);
 	}
 }
 

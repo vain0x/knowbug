@@ -16,6 +16,8 @@
 #include "WrapCall/WrapCall.h"
 #include "WrapCall/ModcmdCallInfo.h"
 
+#include "module/supio/supio.h"
+
 #define hwndVarTree (Dialog::getVarTreeHandle())
 
 #ifdef with_WrapCall
@@ -368,13 +370,16 @@ static auto TreeView_MyInsertItem
 	) -> HTREEITEM
 {
 	auto tvis = TVINSERTSTRUCT {};
+	HTREEITEM res;
+	HSPAPICHAR *hactmp1;
 	tvis.hParent = hParent;
 	tvis.hInsertAfter = TVI_LAST;
 	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
 	tvis.item.lParam  = (LPARAM)node;
-	tvis.item.pszText = const_cast<char*>(name);
-
-	return TreeView_InsertItem(hwndVarTree, &tvis);
+	tvis.item.pszText = chartoapichar(const_cast<char*>(name),&hactmp1);
+	res = TreeView_InsertItem(hwndVarTree, &tvis);
+	freehac(&hactmp1);
+	return res;
 }
 
 static void TreeView_MyDeleteItem(HTREEITEM hItem)
