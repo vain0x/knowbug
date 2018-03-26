@@ -38,7 +38,8 @@ bool CVardataStrWriter::tryPrune(char const* name, void const* ptr) const
 		return true;
 
 	} else {
-		visited_.emplace(ptr, name);
+		auto ref_name = string(name != nullptr ? name : "?");
+		visited_.emplace(ptr, move(ref_name));
 		return false;
 	}
 }
