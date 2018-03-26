@@ -1,0 +1,57 @@
+#ifndef ig_file_transer_hsp
+#define ig_file_transer_hsp
+
+#include "mkdir_rec.hsp"
+
+#module
+
+#include "hspext.as"
+
+#define success 1
+#define failure 0
+
+#deffunc fileTranser_init
+	
+	sdim stt_src_files
+	sdim stt_dst_files
+	stt_len = 0
+	return
+	
+#deffunc fileTranser_add str src, str dst
+
+	stt_src_files(stt_len) = src
+	stt_dst_files(stt_len) = dst
+	stt_len ++
+	return
+	
+#deffunc fileTranser_exec  \
+	local i
+
+	for i, 0, stt_len
+		mkdir_rec getpath(stt_dst_files(i), 32)
+		
+		fxren stt_src_files(i), stt_dst_files(i)
+		if ( stat == 1 ) {
+			#ifdef _debug2
+				mes "ƒtƒ@ƒCƒ‹ˆÚ“®‚ÉŽ¸”s #" + i
+				mes "src: " + stt_src_files(i)
+				mes "dst: " + stt_dst_files(i)
+				assert
+			#endif
+			fileTranser_undo i
+			return failure
+		}
+	next
+	return success
+	
+#deffunc fileTranser_undo int count
+	repeat count
+		fxren stt_dst_files(cnt), stt_src_files(cnt)
+	loop
+	return
+	
+#global
+
+	fileTranser_init
+	
+#endif

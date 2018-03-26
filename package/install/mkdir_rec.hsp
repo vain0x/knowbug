@@ -1,0 +1,37 @@
+#ifndef ig_mkdir_rec_hsp
+#define ig_mkdir_rec_hsp
+
+#ifndef dir_exists
+	#module
+	#defcfunc dir_exists str path,  local dummy, local index
+		dirlist dummy, path, 5
+		return (stat != 0)
+	#global
+#endif
+
+#module
+
+#deffunc mkdir_rec str _path,  \
+	local path, local dirs, local dir
+	
+	path = _path
+	strrep path, "\\", "/"
+	split  path, "/", dirs
+	
+	sdim dir, strlen(path) + 1
+	poke dir, 0, dirs(0)
+	index = strsize
+	repeat stat - 1, 1
+		if ( dirs(cnt) == "" ) { continue }
+		
+		poke dir, index, '/'       : index ++
+		poke dir, index, dirs(cnt) : index += strsize
+		if ( dir_exists(dir) == 0 ) {
+			mkdir dir
+		}
+	loop
+	return
+	
+#global
+
+#endif
