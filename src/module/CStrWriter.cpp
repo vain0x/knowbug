@@ -6,13 +6,7 @@
 #include "CStrWriter.h"
 #include "CStrBuf.h"
 
-char const* const CStructedStrWriter::stc_strUnused =
-#ifdef _DEBUG
-	"[THIS STRING MUSTN'T APPEAR]"
-#else
-	nullptr
-#endif
-;
+char const* const CStructedStrWriter::stc_strUnused = "???";
 
 auto CStrWriter::get() const -> std::string const& { return buf_->get(); }
 
