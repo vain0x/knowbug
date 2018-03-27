@@ -1,5 +1,5 @@
 ﻿# knowbug
-* version: 1.22
+* version: 1.22.2
 
 ## 概要
 
