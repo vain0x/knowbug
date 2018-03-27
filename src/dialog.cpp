@@ -25,7 +25,7 @@
 # define KnowbugPlatformString "(x86)"
 #endif //defined(_M_X64)
 #define KnowbugAppName "Knowbug"
-#define KnowbugVersion "v1.22" " " KnowbugPlatformString
+#define KnowbugVersion "1.22.2" " " KnowbugPlatformString
 static char const* const KnowbugMainWindowTitle = KnowbugAppName " " KnowbugVersion;
 static char const* const KnowbugViewWindowTitle = "Knowbug View";
 static char const* const KnowbugRepoUrl = "https://github.com/vain0/knowbug";
