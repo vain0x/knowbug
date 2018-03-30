@@ -41,6 +41,8 @@ public:
 
 	string hspDir;
 	bool bTopMost;
+	bool viewPosXIsDefault, viewPosYIsDefault;
+	int viewPosX, viewPosY;
 	int viewSizeX, viewSizeY;
 	int  tabwidth;
 	string fontFamily;

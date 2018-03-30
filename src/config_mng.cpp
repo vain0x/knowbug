@@ -42,6 +42,10 @@ KnowbugConfig::KnowbugConfig()
 	auto&& ini = CIni { selfPath().c_str() };
 	
 	bTopMost   = ini.getBool( "Window", "bTopMost", false );
+	viewPosXIsDefault = !ini.existsKey("Window", "viewPosX");
+	viewPosYIsDefault = !ini.existsKey("Window", "viewPosY");
+	viewPosX   = ini.getInt("Window", "viewPosX", 0);
+	viewPosY   = ini.getInt("Window", "viewPosY", 0);
 	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
 	viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
 	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
