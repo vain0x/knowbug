@@ -358,6 +358,8 @@ void Dialog::createMain()
 
 	auto const mainSizeX = 234, mainSizeY = 380;
 	auto const viewSizeX = g_config->viewSizeX, viewSizeY = g_config->viewSizeY;
+	auto const viewPosX = !g_config->viewPosXIsDefault ? g_config->viewPosX : dispx - mainSizeX - viewSizeX;
+	auto const viewPosY = !g_config->viewPosYIsDefault ? g_config->viewPosY : 0;
 
 	//ビューウィンドウ
 	auto hViewWnd = window_handle_t {
@@ -365,7 +367,7 @@ void Dialog::createMain()
 			( "KnowbugViewWindow", ViewDialogProc
 			, KnowbugViewWindowTitle, (WS_THICKFRAME)
 			, viewSizeX, viewSizeY
-			, dispx - mainSizeX - viewSizeX, 0
+			, viewPosX, viewPosY
 			, Knowbug::getInstance()
 			) };
 	SetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE
