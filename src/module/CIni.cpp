@@ -14,6 +14,22 @@
 static auto const STR_BOOLEAN =
 	std::array<HSPAPICHAR const*, 2> {{ TEXT("false"), TEXT("true") }};
 
+/// Win32 API で使う文字列を HSP が使用する文字コードに変換する。
+HSPCHAR *api_to_hsp_str(const HSPAPICHAR *api_str, size_t* hsp_str_len)
+{
+	if (api_str == nullptr || hsp_str_len == nullptr) throw std::invalid_argument{ "never null" };
+
+	// api_str をゼロ終端とみなして、変換後のバッファサイズを計算する。
+	auto len = WideCharToMultiByte(CP_UTF8, 0, api_str, -1, nullptr, 0, nullptr, nullptr);
+	assert(len >= 1);
+
+	auto hsp_str = (HSPCHAR *)calloc(len, sizeof(HSPCHAR));
+	WideCharToMultiByte(CP_UTF8, 0, api_str, -1, hsp_str, len, nullptr, nullptr);
+
+	*hsp_str_len = len;
+	return hsp_str;
+}
+
 CIni::CIni(char const* fname)
 	: fileName_(fname)
 {
@@ -63,8 +79,6 @@ auto CIni::getString(char const* sec, char const* key, char const* defval, size_
 	HSPAPICHAR *hactmp2;
 	HSPAPICHAR *hactmp3;
 	HSPAPICHAR *hactmp4;
-	HSPCHAR *hctmp1;
-	size_t len;
 	if ( size > buf_.size() ) buf_.resize(size);
 
 	GetPrivateProfileString(chartoapichar(sec,&hactmp1), chartoapichar(key,&hactmp2), chartoapichar(defval,&hactmp3), buf(), buf_.size(), chartoapichar(fileName_.c_str(),&hactmp4));
@@ -72,12 +86,16 @@ auto CIni::getString(char const* sec, char const* key, char const* defval, size_
 	freehac(&hactmp2);
 	freehac(&hactmp3);
 	freehac(&hactmp4);
-	apichartohspchar(buf(), &hctmp1);
-	len = strlen(hctmp1);
-	if (len >= buf8_.size()) buf8_.resize(size+1);
-	memcpy(buf8_.data(), hctmp1, len);
-	buf8_.data()[len] = 0;
-	freehc(&hctmp1);
+
+	// 文字コードの変換を行う。
+	{
+		size_t len;
+		auto value = api_to_hsp_str(buf(), &len);
+		if (len > buf8_.size()) buf8_.resize(len);
+		std::memcpy(buf8_.data(), value, len);
+		freehc(&value);
+	}
+
 	return buf8();
 }
 
@@ -152,8 +170,6 @@ auto CIni::enumImpl(char const* secOrNull) const -> std::vector<std::string>
 {
 	HSPAPICHAR *hactmp1;
 	HSPAPICHAR *hactmp2;
-	HSPCHAR *hctmp1;
-	size_t len;
 	auto const size =
 		GetPrivateProfileString
 			( chartoapichar(secOrNull,&hactmp1), nullptr, nullptr
@@ -167,13 +183,17 @@ auto CIni::enumImpl(char const* secOrNull) const -> std::vector<std::string>
 		buf_.resize(buf_.size() * 2 + 1);
 		return enumImpl(secOrNull);
 	}
-	apichartohspchar(buf(), &hctmp1);
-	len = strlen(hctmp1);
-	if (len >= buf8_.size()) buf8_.resize(size + 1);
-	memcpy(buf8_.data(), hctmp1, len);
-	buf8_.data()[len] = 0;
-	freehc(&hctmp1);
-	return splitByNullChar(buf8(), size);
+	
+	// 文字コードの変換を行う。
+	size_t len;
+	{
+		auto value = api_to_hsp_str(buf(), &len);
+		if (len > buf8_.size()) buf8_.resize(len);
+		memcpy(buf8_.data(), value, len);
+		freehc(&value);
+	}
+
+	return splitByNullChar(buf8(), len);
 }
 
 // '\0' 区切り文字列、終端は2連続の '\0'
