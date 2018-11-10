@@ -1,5 +1,5 @@
-// �ċA�Ăяo���̃T���v��
-
+// 再帰呼び出しのサンプル
+#include "hsp3utf.as"
 #module
 
 #deffunc sample str msg
@@ -7,56 +7,56 @@
 	return
 
 //------------------------------------------------
-// ��������}�[�W�\�[�g�ŏ���������
+// 文字列をマージソートで昇順化する
 //
-// ���͂��ꂽ������́A���������������ɕ��ёւ������̂�Ԃ��B
-// �A���t�@�x�b�g��ABC���ɁA������0�`9�̏��ɂȂ�B
-// ����: �S�p�����͈����Ȃ��B
-// ���s��: "3120" �� "0123"
+// 入力された文字列の、文字を小さい順に並び替えたものを返す。
+// アルファベットはABC順に、数字は0～9の順になる。
+// 注意: 全角文字は扱えない。
+// 実行例: "3120" → "0123"
 //------------------------------------------------
 #defcfunc strMergeSort str _msg,  local msg, local len, local pair
 	msg = _msg
 	len = strlen(msg)
 	
-	// ���� 0 �� 1 �Ȃ�A���Ƃ��Ə����Ȃ̂ł��̂܂ܕԂ��B
+	// 長さ 0 か 1 なら、もともと昇順なのでそのまま返す。
 	if ( len <= 1 ) {
 		return msg
 		
 	} else {
-		// �������O���ƌ㔼�ɕ�����
+		// 文字列を前半と後半に分ける
 		pair(0) = strmid(msg, 0, len / 2)
 		pair(1) = strmid(msg, len / 2, len - (len / 2))
 		
-		// �O���A�㔼�����ꂼ�ꏸ���ɂ���
+		// 前半、後半をそれぞれ昇順にする
 		pair(0) = strMergeSort(pair(0))
 		pair(1) = strMergeSort(pair(1))
 		
-		// �O���ƌ㔼�� strMerge �Ń}�[�W����
+		// 前半と後半を strMerge でマージする
 		return strMerge(pair(0), pair(1))
 	}
 	
 //------------------------------------------------
-// 2�̕�������}�[�W����
+// 2つの文字列をマージする
 //
-// 2�̕����� a, b ���󂯎��A(a + b) �������ɂ������̂�Ԃ��B
-// �������Aa, b �͂��ꂼ�ꏸ���łȂ���΂����Ȃ��B
+// 2つの文字列 a, b を受け取り、(a + b) を昇順にしたものを返す。
+// ただし、a, b はそれぞれ昇順でなければいけない。
 //------------------------------------------------
 #defcfunc strMerge var a, var b,  local c, local ia, local ib, local len, local result
 	sdim result, strlen(a) + strlen(b) + 1
-	len = 0 // result �̒���
+	len = 0 // result の長さ
 	
-	// a, b ��擪���猩�Ă���
+	// a, b を先頭から見ていく
 	ia = 0 : ib = 0
 	repeat
-		// a, b �̌��Ă���ʒu�̕��������o��
+		// a, b の見ている位置の文字を取り出す
 		c(0) = peek(a, ia)
 		c(1) = peek(b, ib)
 		
-		// a, b �̂ǂ��炩���Ō�܂ł݂���I���
+		// a, b のどちらかを最後までみたら終わり
 		if ( c(0) == 0 || c(1) == 0 ) { break }
 		
-		// �������ق��� result �̖����ɏ��������āA
-		// ���̕���������
+		// 小さいほうを result の末尾に書き加えて、
+		// 次の文字を見る
 		if ( c(0) <= c(1) ) {
 			poke result, len, c(0) : ia ++
 		} else {
@@ -65,7 +65,7 @@
 		len ++
 	loop
 	
-	// �]�����ق��� result �ɘA��
+	// 余ったほうを result に連結
 	if ( c(0) == 0 ) {
 		result += strmid(b, ib, 0xFFFF)
 	} else {
@@ -82,11 +82,11 @@
 /*
 
 "531204"
-�� "531",             "204"
-�� ("5",  "31"),      ("2",  "04")
-�� ("5", ("3", "1")), ("2", ("0", "4"))
-�� ("5",  "13"),      ("2",  "04")
-�� "135",             "024"
-�� "012345"
+→ "531",             "204"
+→ ("5",  "31"),      ("2",  "04")
+→ ("5", ("3", "1")), ("2", ("0", "4"))
+→ ("5",  "13"),      ("2",  "04")
+→ "135",             "024"
+→ "012345"
 
 */

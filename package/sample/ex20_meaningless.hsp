@@ -1,4 +1,5 @@
-// knowbug デバッグ用適当サンプル
+// knowbug 繝�繝舌ャ繧ｰ逕ｨ驕ｩ蠖薙し繝ｳ繝励Ν
+#include "hsp3utf.as"
 	randomize
 	
 #undef  mes

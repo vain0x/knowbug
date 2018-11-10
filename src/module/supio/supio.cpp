@@ -9,7 +9,55 @@
 #include <string.h>
 #include <stdarg.h>
 #include <direct.h>
+#include <tchar.h>
 #include "supio.h"
+
+#ifdef _UNICODE
+//
+//		API用の文字エンコードへ変換
+//
+HSPAPICHAR *chartoapichar(const char *orig, HSPAPICHAR **pphac)
+{
+
+	int reslen;
+	wchar_t *resw;
+	if (orig == 0) {
+		*pphac = 0;
+		return 0;
+	}
+	reslen = MultiByteToWideChar(CP_UTF8, 0, orig, -1, (LPWSTR)NULL, 0);
+	resw = (wchar_t*)calloc(reslen + 1, sizeof(wchar_t));
+	MultiByteToWideChar(CP_UTF8, 0, orig, -1, resw, reslen);
+	*pphac = resw;
+	return resw;
+}
+
+void freehac(HSPAPICHAR **pphac)
+{
+	free(*pphac);
+	*pphac = 0;
+}
+
+HSPCHAR *apichartohspchar(const HSPAPICHAR *orig, HSPCHAR **pphc)
+{
+	int plen;
+	HSPCHAR *p = 0;
+	if (orig == 0) {
+		*pphc = 0;
+		return 0;
+	}
+	plen = WideCharToMultiByte(CP_UTF8, NULL, orig, -1, NULL, 0, NULL, NULL);
+	p = (HSPCHAR *)calloc(plen + 1, sizeof(HSPCHAR*));
+	WideCharToMultiByte(CP_UTF8, NULL, orig, -1, p, plen, NULL, NULL);
+	*pphc = p;
+	return p;
+}
+
+void freehc(HSPCHAR **pphc)
+{
+	free(*pphc);
+	*pphc = 0;
+}
 
 //
 //		basic C I/O support
@@ -25,21 +73,24 @@ void mem_bye( void *ptr ) {
 }
 
 
-int mem_save( char *fname, void *mem, int msize, int seekofs )
+int mem_save(char *fname8, void *mem, int msize, int seekofs)
 {
 	FILE *fp;
 	int flen;
+	HSPAPICHAR *fnamew = 0;
 
 	if (seekofs<0) {
-		fp=fopen(fname,"wb");
+		fp = _tfopen(chartoapichar(fname8, &fnamew), TEXT("wb"));
 	}
 	else {
-		fp=fopen(fname,"r+b");
+		fp = _tfopen(chartoapichar(fname8, &fnamew), TEXT("r+b"));
 	}
-	if (fp==NULL) return -1;
-	if ( seekofs>=0 ) fseek( fp, seekofs, SEEK_SET );
-	flen = (int)fwrite( mem, 1, msize, fp );
+	freehac(&fnamew);
+	if (fp == NULL) return -1;
+	if (seekofs >= 0) fseek(fp, seekofs, SEEK_SET);
+	flen = (int)fwrite(mem, 1, msize, fp);
 	fclose(fp);
+	free(fnamew);
 	return flen;
 }
 
@@ -147,19 +198,23 @@ char *dpm_readalloc( char *fname )
 }
 */
 
-void strcase( char *target )
+void strcase(char *target)
 {
-	//		strをすべて小文字に(全角対応版)
+	//		strをすべて小文字に(utf8対応版)
 	//
 	unsigned char *p;
 	unsigned char a1;
-	p=(unsigned char *)target;
-	while(1) {
-		a1=*p;if ( a1==0 ) break;
-		*p=tolower(a1);
+	p = (unsigned char *)target;
+	while (1) {
+		a1 = *p; if (a1 == 0) break;
+		*p = tolower(a1);
 		p++;							// 検索位置を移動
-		if (a1>=129) {					// 全角文字チェック
-			if ((a1<=159)||(a1>=224)) p++;
+		if (a1 >= 128) {					// 多バイト文字チェック
+			if (a1 >= 192) p++;
+			if (a1 >= 224) p++;
+			if (a1 >= 240) p++;
+			if (a1 >= 248) p++;
+			if (a1 >= 252) p++;
 		}
 	}
 }
@@ -200,9 +255,9 @@ int strcat2( char *str1, char *str2 )
 }
 
 
-char *strstr2( char *target, char *src )
+char *strstr2(char *target, char *src)
 {
-	//		strstr関数の全角対応版
+	//		strstr関数のutf8対応版
 	//
 	unsigned char *p;
 	unsigned char *s;
@@ -210,41 +265,49 @@ char *strstr2( char *target, char *src )
 	unsigned char a1;
 	unsigned char a2;
 	unsigned char a3;
-	p=(unsigned char *)target;
-	if (( *src==0 )||( *target==0 )) return NULL;
-	while(1) {
-		a1=*p;if ( a1==0 ) break;
+	p = (unsigned char *)target;
+	if ((*src == 0) || (*target == 0)) return NULL;
+	while (1) {
+		a1 = *p; if (a1 == 0) break;
 		p2 = p;
-		s=(unsigned char *)src;
-		while(1) {
-			a2=*s++;if (a2==0) return (char *)p;
-			a3=*p2++;if (a3==0) break;
-			if (a2!=a3) break;
+		s = (unsigned char *)src;
+		while (1) {
+			a2 = *s++; if (a2 == 0) return (char *)p;
+			a3 = *p2++; if (a3 == 0) break;
+			if (a2 != a3) break;
 		}
 		p++;							// 検索位置を移動
-		if (a1>=129) {					// 全角文字チェック
-			if ((a1<=159)||(a1>=224)) p++;
+		if (a1 >= 128) {					// 多バイト文字チェック
+			if (a1 >= 192) p++;
+			if (a1 >= 224) p++;
+			if (a1 >= 240) p++;
+			if (a1 >= 248) p++;
+			if (a1 >= 252) p++;
 		}
 	}
 	return NULL;
 }
 
 
-char *strchr2( char *target, char code )
+char *strchr2(char *target, char code)
 {
-	//		str中最後のcode位置を探す(全角対応版)
+	//		str中最後のcode位置を探す(utf8対応版)
 	//
 	unsigned char *p;
 	unsigned char a1;
 	char *res;
-	p=(unsigned char *)target;
+	p = (unsigned char *)target;
 	res = NULL;
-	while(1) {
-		a1=*p;if ( a1==0 ) break;
-		if ( a1==code ) res=(char *)p;
+	while (1) {
+		a1 = *p; if (a1 == 0) break;
+		if (a1 == code) res = (char *)p;
 		p++;							// 検索位置を移動
-		if (a1>=129) {					// 全角文字チェック
-			if ((a1<=159)||(a1>=224)) p++;
+		if (a1 >= 128) {					// 多バイト文字チェック
+			if (a1 >= 192) p++;
+			if (a1 >= 224) p++;
+			if (a1 >= 240) p++;
+			if (a1 >= 248) p++;
+			if (a1 >= 252) p++;
 		}
 	}
 	return res;
@@ -283,21 +346,41 @@ void getpath( char *stmp, char *outbuf, int p2 )
 }
 
 
-int makedir( char *name )
+int makedir(char *name8)
 {
-	return _mkdir( name );
+#ifdef HSPWIN
+	HSPAPICHAR *namew = 0;
+	int res;
+
+	res = _tmkdir(chartoapichar(name8, &namew));
+	freehac(&namew);
+	return res;
+#else
+	return 0;
+#endif
 }
 
 
-int changedir( char *name )
+int changedir(char *name8)
 {
-	return _chdir( name );
+#ifdef HSPWIN
+	HSPAPICHAR *namew = 0;
+	int res;
+	res = _tchdir(chartoapichar(name8, &namew));
+	freehac(&namew);
+	return res;
+#else
+	return 0;
+#endif
 }
-
 
 int delfile( char *name )
 {
-	return DeleteFile( name );
+	int res;
+	HSPAPICHAR *hactmp1 = 0;
+	res = DeleteFile( chartoapichar(name,&hactmp1) );
+	freehac(&hactmp1);
+	return res;
 }
 
 
@@ -325,47 +408,86 @@ int gettime( int index )
 
 static	int splc;	// split pointer
 
-void strsp_ini( void )
+void strsp_ini(void)
 {
-	splc=0;
+	splc = 0;
 }
 
-int strsp_getptr( void )
+int strsp_getptr(void)
 {
 	return splc;
 }
 
-int strsp_get( char *srcstr, char *dststr, char splitchr, int len )
+int strsp_get(char *srcstr, char *dststr, char splitchr, int len)
 {
 	//		split string with parameters
 	//
-	char a1;
-	char a2;
-	int a;
-	int sjflg;
-	a=0;sjflg=0;
-	while(1) {
-		sjflg=0;
-		a1=srcstr[splc];
-		if (a1==0) break;
-		splc++;
-		if (a1>=0x81) if (a1<0xa0) sjflg++;
-		if (a1>=0xe0) sjflg++;
 
-		if (a1==splitchr) break;
-		if (a1==13) {
-			a2=srcstr[splc];
-			if (a2==10) splc++;
+	/*
+	rev 44
+	mingw : warning : 比較は常に偽
+	に対処
+	*/
+	unsigned char a1;
+	unsigned char a2;
+	int a;
+	int utf8cnt;
+	a = 0; utf8cnt = 0;
+	while (1) {
+		utf8cnt = 0;
+		a1 = srcstr[splc];
+		if (a1 == 0) break;
+		splc++;
+		if (a1 >= 128) {					// 多バイト文字チェック
+			if (a1 >= 192) utf8cnt++;
+			if (a1 >= 224) utf8cnt++;
+			if (a1 >= 240) utf8cnt++;
+			if (a1 >= 248) utf8cnt++;
+			if (a1 >= 252) utf8cnt++;
+		}
+
+		if (a1 == splitchr) break;
+		if (a1 == 13) {
+			a2 = srcstr[splc];
+			if (a2 == 10) splc++;
 			break;
 		}
-		dststr[a++]=a1;
-		if (sjflg) {
-			dststr[a++]=srcstr[splc++];
+#ifdef HSPLINUX
+		if (a1 == 10) {
+			a2 = srcstr[splc];
+			break;
 		}
-		if ( a>=len ) break;
+#endif
+		dststr[a++] = a1;
+		if (utf8cnt>0) {
+			while (utf8cnt>0) {
+				dststr[a++] = srcstr[splc++];
+				utf8cnt--;
+			}
+		}
+		if (a >= len) break;
 	}
-	dststr[a]=0;
+	dststr[a] = 0;
 	return (int)a1;
+}
+
+char *strsp_cmds(char *srcstr)
+{
+	//		Skip 1parameter from command line
+	//
+	int spmode;
+	char a1;
+	char *cmdchk;
+	cmdchk = srcstr;
+	spmode = 0;
+	while (1) {
+		a1 = *cmdchk;
+		if (a1 == 0) break;
+		cmdchk++;
+		if (a1 == 32) if (spmode == 0) break;
+		if (a1 == 0x22) spmode ^= 1;
+	}
+	return cmdchk;
 }
 
 
@@ -384,25 +506,33 @@ int GetLimit( int num, int min, int max )
 
 void Alert( char *mes )
 {
-	MessageBox( NULL, mes, "error",MB_ICONINFORMATION | MB_OK );
+	HSPAPICHAR *hactmp1 = 0;
+	MessageBox( NULL, chartoapichar(mes,&hactmp1), TEXT("error"),MB_ICONINFORMATION | MB_OK );
+	freehac(&hactmp1);
 }
 
 void AlertV( char *mes, int val )
 {
 	char ss[128];
+	HSPAPICHAR *hactmp1 = 0;
 	sprintf( ss, "%s%d",mes,val );
-	MessageBox( NULL, ss, "error",MB_ICONINFORMATION | MB_OK );
+	MessageBox( NULL, chartoapichar(ss,&hactmp1), TEXT("error"),MB_ICONINFORMATION | MB_OK );
+	freehac(&hactmp1);
 }
 
 void Alertf( char *format, ... )
 {
 	char textbf[1024];
 	va_list args;
+	HSPAPICHAR *hactmp1;
 	va_start(args, format);
 	vsprintf(textbf, format, args);
 	va_end(args);
-	MessageBox( NULL, textbf, "error",MB_ICONINFORMATION | MB_OK );
+	MessageBox( NULL, chartoapichar(textbf,&hactmp1), TEXT("error"),MB_ICONINFORMATION | MB_OK );
+	freehac(&hactmp1);
 }
+#else
+#endif
 
 
 

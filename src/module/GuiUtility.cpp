@@ -1,7 +1,10 @@
 ﻿
 #include <vector>
 #include <array>
+#include <tchar.h>
 #include "GuiUtility.h"
+
+#include "supio/supio.h"
 
 //------------------------------------------------
 // 簡易ウィンドウ生成
@@ -13,6 +16,8 @@ auto Window_Create
 	, HINSTANCE hInst
 	) -> HWND
 {
+	HSPAPICHAR *hactmp1;
+	HSPAPICHAR *hactmp2;
 	auto wndclass = WNDCLASS {};
 	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
 	wndclass.lpfnWndProc   = proc;
@@ -23,12 +28,12 @@ auto Window_Create
 	wndclass.hCursor       = LoadCursor(nullptr, IDC_ARROW);
 	wndclass.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
 	wndclass.lpszMenuName  = nullptr;
-	wndclass.lpszClassName = className;
+	wndclass.lpszClassName = chartoapichar(className,&hactmp1);
 	RegisterClass(&wndclass);
 
 	auto const hWnd =
 		CreateWindow
-			( className, caption
+			( hactmp1, chartoapichar(caption,&hactmp2)
 			, (WS_CAPTION | WS_VISIBLE | windowStyles)
 			, posX, posY, sizeX, sizeY
 			, /* parent = */ nullptr
@@ -36,8 +41,10 @@ auto Window_Create
 			, hInst
 			, /* lparam = */ nullptr
 			);
+	freehac(&hactmp1);
+	freehac(&hactmp2);
 	if ( ! hWnd ) {
-		MessageBox(nullptr, "Debug window initalizing failed.", "Error", 0);
+		MessageBox(nullptr, TEXT("Debug window initalizing failed."), TEXT("Error"), 0);
 		abort();
 	}
 	return hWnd;
@@ -85,7 +92,9 @@ void Edit_SetTabLength(HWND hEdit, const int tabwidth)
 void Edit_UpdateText(HWND hwnd, char const* s)
 {
 	auto const vscrollBak = Edit_GetFirstVisibleLine(hwnd);
-	SetWindowText(hwnd, s);
+	HSPAPICHAR *hactmp1;
+	SetWindowText(hwnd, chartoapichar(s,&hactmp1));
+	freehac(&hactmp1);
 	Edit_Scroll(hwnd, vscrollBak, 0);
 }
 
@@ -100,16 +109,23 @@ void Edit_SetSelLast(HWND hwnd)
 //------------------------------------------------
 auto TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem) -> string
 {
-	auto textBuf = std::array<char, 0x100>{};
-
+	auto textBuf = std::array<HSPAPICHAR, 0x100>{};
+	auto text8Buf = std::array<char,0x600>{};
+	BOOL ret;
+	HSPCHAR *hctmp1;
+	size_t len;
 	auto ti = TVITEM {};
 	ti.hItem = hItem;
 	ti.mask = TVIF_TEXT;
 	ti.pszText = textBuf.data();
 	ti.cchTextMax = textBuf.size() - 1;
-
-	return TreeView_GetItem(hwndTree, &ti)
-		? string { textBuf.data() }
+	ret = TreeView_GetItem(hwndTree, &ti);
+	apichartohspchar(textBuf.data(),&hctmp1);
+	len = strlen(hctmp1);
+	memcpy(text8Buf.data(), hctmp1, len);
+	text8Buf[len] = 0;
+	return ret
+		? string { text8Buf.data() }
 		: "";
 }
 
@@ -178,18 +194,22 @@ auto Dialog_SaveFileName(HWND owner
 	auto fileName = std::array<char, MAX_PATH> {};
 	auto fullName = std::array<char, MAX_PATH> {};
 	std::strcpy(fullName.data(), defaultFileName);
+	HSPAPICHAR *hactmp1;
+	HSPAPICHAR *hactmp2;
+	HSPAPICHAR *hactmp3;
+	HSPAPICHAR *hactmp4;
 
 	auto ofn = OPENFILENAME {};
 	ofn.lStructSize    = sizeof(ofn);
 	ofn.hwndOwner      = owner;
-	ofn.lpstrFilter    = filter;
-	ofn.lpstrFile      = fullName.data();
-	ofn.lpstrFileTitle = fileName.data();
+	ofn.lpstrFilter    = chartoapichar(filter,&hactmp1);
+	ofn.lpstrFile      = chartoapichar(fullName.data(),&hactmp2);
+	ofn.lpstrFileTitle = chartoapichar(fileName.data(),&hactmp3);
 	ofn.nMaxFile       = fullName.size();
 	ofn.nMaxFileTitle  = fileName.size();
 	ofn.Flags          = OFN_OVERWRITEPROMPT;
-	ofn.lpstrTitle     = "名前を付けて保存";
-	ofn.lpstrDefExt    = defaultFilter;
+	ofn.lpstrTitle     = TEXT("名前を付けて保存");
+	ofn.lpstrDefExt    = chartoapichar(defaultFilter,&hactmp4);
 	return (GetSaveFileName(&ofn))
 		? std::make_unique<string>(fullName.data()) : nullptr;
 }
@@ -210,7 +230,8 @@ auto Font_Create(char const* family, int size, bool antialias) -> HFONT
 	lf.lfClipPrecision  = CLIP_DEFAULT_PRECIS;
 	lf.lfQuality        = (antialias ? ANTIALIASED_QUALITY : DEFAULT_QUALITY);
 	lf.lfPitchAndFamily = DEFAULT_PITCH;
-
-	::strcpy(lf.lfFaceName, family);
+	HSPAPICHAR *hactmp1;
+	::_tcscpy(lf.lfFaceName, chartoapichar(family,&hactmp1));
+	freehac(&hactmp1);
 	return CreateFontIndirect(&lf);
 }
