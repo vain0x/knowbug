@@ -45,26 +45,26 @@ typedef struct HSP3VARSET
 typedef struct HSP3BTNSET
 {
 	//	HSP3BTNSET structure
-	//	(HSP3VARSET‚Æ“¯ƒTƒCƒY‚É‚·‚é‚±‚Æ)
+	//	(HSP3VARSETã¨åŒã‚µã‚¤ã‚ºã«ã™ã‚‹ã“ã¨)
 	//
-	short normal_x, normal_y;	// ’Êí
-	short push_x, push_y;		// ‰Ÿ‰º
-	short focus_x, focus_y;		// ƒtƒH[ƒJƒX
-	void *ptr;	// ŒÄ‚Ño‚µæ
+	short normal_x, normal_y;	// é€šå¸¸æ™‚
+	short push_x, push_y;		// æŠ¼ä¸‹æ™‚
+	short focus_x, focus_y;		// ãƒ•ã‚©ãƒ¼ã‚«ã‚¹æ™‚
+	void *ptr;	// å‘¼ã³å‡ºã—å…ˆ
 } HSP3BTNSET;
 
 typedef struct HSPOBJINFO
 {
 	//		Object Info (3.0)
 	//
-	short	owmode;		// object‚Ìmode
-	short	option;		// object‚Ìoption(–¢g—pE“à•”ƒIƒuƒWƒFƒNƒg‚Í0)
-	void	*bm;		// object‚ª”z’u‚³‚ê‚Ä‚¢‚éBMSCR\‘¢‘Ì‚Ìƒ|ƒCƒ“ƒ^
-	HWND	hCld;		// object‚Ìhandle
-	int		owid;		// object‚ÌValue(”Ä—p)
-	int		owsize;		// object‚Ìg—pƒTƒCƒY(”Ä—p)
+	short	owmode;		// objectã®mode
+	short	option;		// objectã®option(æœªä½¿ç”¨ãƒ»å†…éƒ¨ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯0)
+	void	*bm;		// objectãŒé…ç½®ã•ã‚Œã¦ã„ã‚‹BMSCRæ§‹é€ ä½“ã®ãƒã‚¤ãƒ³ã‚¿
+	HWND	hCld;		// objectã®handle
+	int		owid;		// objectã®Value(æ±ç”¨)
+	int		owsize;		// objectã®ä½¿ç”¨ã‚µã‚¤ã‚º(æ±ç”¨)
 
-	HSP3VARSET varset;	// object‚©‚çİ’è‚³‚ê‚é•Ï”‚Ìî•ñ
+	HSP3VARSET varset;	// objectã‹ã‚‰è¨­å®šã•ã‚Œã‚‹å¤‰æ•°ã®æƒ…å ±
 
 	//		callback function
 	void	(*func_notice)( struct HSPOBJINFO *, int );

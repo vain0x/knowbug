@@ -2,6 +2,12 @@
 //
 //	supio.cpp functions
 //
+#define HSPAPICHAR wchar_t
+#define HSPCHAR char
+HSPAPICHAR *chartoapichar(const char*, HSPAPICHAR**);
+void freehac(HSPAPICHAR**);
+HSPCHAR *apichartohspchar(const HSPAPICHAR*, HSPCHAR**);
+void freehc(HSPCHAR**);
 
 char *mem_ini( int size );
 void mem_bye( void *ptr );

@@ -7,10 +7,28 @@
 #include <cassert>
 #include <array>
 
+#include <tchar.h>
+
 #include "CIni.h"
 
 static auto const STR_BOOLEAN =
-	std::array<char const*, 2> {{ "false", "true" }};
+	std::array<HSPAPICHAR const*, 2> {{ TEXT("false"), TEXT("true") }};
+
+/// Win32 API で使う文字列を HSP が使用する文字コードに変換する。
+HSPCHAR *api_to_hsp_str(const HSPAPICHAR *api_str, size_t* hsp_str_len)
+{
+	if (api_str == nullptr || hsp_str_len == nullptr) throw std::invalid_argument{ "never null" };
+
+	// api_str をゼロ終端とみなして、変換後のバッファサイズを計算する。
+	auto len = WideCharToMultiByte(CP_UTF8, 0, api_str, -1, nullptr, 0, nullptr, nullptr);
+	assert(len >= 1);
+
+	auto hsp_str = (HSPCHAR *)calloc(len, sizeof(HSPCHAR));
+	WideCharToMultiByte(CP_UTF8, 0, api_str, -1, hsp_str, len, nullptr, nullptr);
+
+	*hsp_str_len = len;
+	return hsp_str;
+}
 
 CIni::CIni(char const* fname)
 	: fileName_(fname)
@@ -23,12 +41,18 @@ CIni::CIni(char const* fname)
 //------------------------------------------------
 bool CIni::getBool(char const* sec, char const* key, bool defval) const
 {
-	GetPrivateProfileStringA
-		( sec, key, STR_BOOLEAN[defval ? 1 : 0]
-		, buf(), buf_.size(), fileName_.c_str()
+	HSPAPICHAR *hactmp1;
+	HSPAPICHAR *hactmp2;
+	HSPAPICHAR *hactmp3;
+	GetPrivateProfileString
+		( chartoapichar(sec,&hactmp1), chartoapichar(key,&hactmp2), STR_BOOLEAN[defval ? 1 : 0]
+		, buf(), buf_.size(), chartoapichar(fileName_.c_str(),&hactmp3)
 		);
+	freehac(&hactmp1);
+	freehac(&hactmp2);
+	freehac(&hactmp3);
 	CharLower(buf());
-	return !(strcmp(buf(), "0") == 0 || strcmp(buf(), STR_BOOLEAN[0]) == 0);
+	return !(_tcscmp(buf(), TEXT("0")) == 0 || _tcscmp(buf(), STR_BOOLEAN[0]) == 0);
 }
 
 //------------------------------------------------
@@ -36,7 +60,13 @@ bool CIni::getBool(char const* sec, char const* key, bool defval) const
 //------------------------------------------------
 auto CIni::getInt(char const* sec, char const* key, int defval) const -> int
 {
-	return GetPrivateProfileIntA(sec, key, defval, fileName_.c_str());
+	HSPAPICHAR *hactmp1;
+	HSPAPICHAR *hactmp2;
+	HSPAPICHAR *hactmp3;
+	return GetPrivateProfileInt(chartoapichar(sec,&hactmp1), chartoapichar(key,&hactmp2), defval, chartoapichar(fileName_.c_str(),&hactmp3));
+	freehac(&hactmp1);
+	freehac(&hactmp2);
+	freehac(&hactmp3);
 }
 
 //------------------------------------------------
@@ -45,10 +75,28 @@ auto CIni::getInt(char const* sec, char const* key, int defval) const -> int
 auto CIni::getString(char const* sec, char const* key, char const* defval, size_t size) const
 -> char const*
 {
+	HSPAPICHAR *hactmp1;
+	HSPAPICHAR *hactmp2;
+	HSPAPICHAR *hactmp3;
+	HSPAPICHAR *hactmp4;
 	if ( size > buf_.size() ) buf_.resize(size);
 
-	GetPrivateProfileStringA(sec, key, defval, buf(), buf_.size(), fileName_.c_str());
-	return buf();
+	GetPrivateProfileString(chartoapichar(sec,&hactmp1), chartoapichar(key,&hactmp2), chartoapichar(defval,&hactmp3), buf(), buf_.size(), chartoapichar(fileName_.c_str(),&hactmp4));
+	freehac(&hactmp1);
+	freehac(&hactmp2);
+	freehac(&hactmp3);
+	freehac(&hactmp4);
+
+	// 文字コードの変換を行う。
+	{
+		size_t len;
+		auto value = api_to_hsp_str(buf(), &len);
+		if (len > buf8_.size()) buf8_.resize(len);
+		std::memcpy(buf8_.data(), value, len);
+		freehc(&value);
+	}
+
+	return buf8();
 }
 
 //------------------------------------------------
@@ -56,8 +104,14 @@ auto CIni::getString(char const* sec, char const* key, char const* defval, size_
 //------------------------------------------------
 void CIni::setBool(char const* sec, char const* key, bool val)
 {
-	strcpy_s(buf(), buf_.size(), STR_BOOLEAN[val ? 1 : 0]);
-	WritePrivateProfileStringA(sec, key, buf(), fileName_.c_str());
+	HSPAPICHAR *hactmp1;
+	HSPAPICHAR *hactmp2;
+	HSPAPICHAR *hactmp3;
+	_tcscpy_s(buf(), buf_.size(), STR_BOOLEAN[val ? 1 : 0]);
+	WritePrivateProfileString(chartoapichar(sec,&hactmp1), chartoapichar(key,&hactmp2), buf(), chartoapichar(fileName_.c_str(),&hactmp3));
+	freehac(&hactmp1);
+	freehac(&hactmp2);
+	freehac(&hactmp3);
 }
 
 //------------------------------------------------
@@ -65,9 +119,15 @@ void CIni::setBool(char const* sec, char const* key, bool val)
 //------------------------------------------------
 void CIni::setInt(char const* sec, char const* key, int val, int radix)
 {
-	_itoa_s(val, buf(), buf_.size(), radix);
+	HSPAPICHAR *hactmp1;
+	HSPAPICHAR *hactmp2;
+	HSPAPICHAR *hactmp3;
+	_itot_s(val, buf(), buf_.size(), radix);
 
-	WritePrivateProfileStringA(sec, key, buf(), fileName_.c_str());
+	WritePrivateProfileString(chartoapichar(sec,&hactmp1), chartoapichar(key,&hactmp2), buf(), chartoapichar(fileName_.c_str(),&hactmp3));
+	freehac(&hactmp1);
+	freehac(&hactmp2);
+	freehac(&hactmp3);
 }
 
 //------------------------------------------------
@@ -75,8 +135,14 @@ void CIni::setInt(char const* sec, char const* key, int val, int radix)
 //------------------------------------------------
 void CIni::setString(char const* sec, char const* key, char const* val)
 {
-	sprintf_s(buf(), buf_.size(), "\"%s\"", val);
-	WritePrivateProfileStringA(sec, key, buf(), fileName_.c_str());
+	HSPAPICHAR *hactmp1;
+	HSPAPICHAR *hactmp2;
+	HSPAPICHAR *hactmp3;
+	_tprintf_s(buf(), buf_.size(), "\"%s\"", val);
+	WritePrivateProfileString(chartoapichar(sec,&hactmp1), chartoapichar(key,&hactmp2), buf(), chartoapichar(fileName_.c_str(),&hactmp3));
+	freehac(&hactmp1);
+	freehac(&hactmp2);
+	freehac(&hactmp3);
 }
 
 //------------------------------------------------
@@ -102,18 +168,32 @@ static auto splitByNullChar(char const* buf, size_t size) -> std::vector<std::st
 
 auto CIni::enumImpl(char const* secOrNull) const -> std::vector<std::string>
 {
+	HSPAPICHAR *hactmp1;
+	HSPAPICHAR *hactmp2;
 	auto const size =
 		GetPrivateProfileString
-			( secOrNull, nullptr, nullptr
-			, buf(), buf_.size(), fileName_.c_str()
+			( chartoapichar(secOrNull,&hactmp1), nullptr, nullptr
+			, buf(), buf_.size(), chartoapichar(fileName_.c_str(),&hactmp2)
 			);
+	freehac(&hactmp1);
+	freehac(&hactmp2);
 
 	// バッファ不足
 	if ( size == buf_.size() - 2 ) {
 		buf_.resize(buf_.size() * 2 + 1);
 		return enumImpl(secOrNull);
 	}
-	return splitByNullChar(buf(), size);
+	
+	// 文字コードの変換を行う。
+	size_t len;
+	{
+		auto value = api_to_hsp_str(buf(), &len);
+		if (len > buf8_.size()) buf8_.resize(len);
+		memcpy(buf8_.data(), value, len);
+		freehc(&value);
+	}
+
+	return splitByNullChar(buf8(), len);
 }
 
 // '\0' 区切り文字列、終端は2連続の '\0'
@@ -138,7 +218,11 @@ auto splitByNullChar(char const* buf, size_t size) -> std::vector<std::string>
 //------------------------------------------------
 void CIni::removeSection(char const* sec)
 {
-	WritePrivateProfileStringA(sec, nullptr, nullptr, fileName_.c_str());
+	HSPAPICHAR *hactmp1;
+	HSPAPICHAR *hactmp2;
+	WritePrivateProfileString(chartoapichar(sec,&hactmp1), nullptr, nullptr, chartoapichar(fileName_.c_str(),&hactmp2));
+	freehac(&hactmp1);
+	freehac(&hactmp2);
 }
 
 //------------------------------------------------
@@ -146,7 +230,13 @@ void CIni::removeSection(char const* sec)
 //------------------------------------------------
 void CIni::removeKey(char const* sec, char const* key)
 {
-	WritePrivateProfileStringA(sec, key, nullptr, fileName_.c_str());
+	HSPAPICHAR *hactmp1;
+	HSPAPICHAR *hactmp2;
+	HSPAPICHAR *hactmp3;
+	WritePrivateProfileString(chartoapichar(sec,&hactmp1), chartoapichar(key,&hactmp2), nullptr, chartoapichar(fileName_.c_str(),&hactmp3));
+	freehac(&hactmp1);
+	freehac(&hactmp2);
+	freehac(&hactmp3);
 }
 
 //------------------------------------------------

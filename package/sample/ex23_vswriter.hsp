@@ -1,5 +1,5 @@
 // knowbugVsw
-
+#include "hsp3utf.as"
 #include "../knowbugVsw.as"
 
 #module
@@ -17,7 +17,7 @@
 
 	randomize
 	
-	// ”z—ñ•Ï” arr ‚ğ—”‚Å‰Šú‰»
+	// é…åˆ—å¤‰æ•° arr ã‚’ä¹±æ•°ã§åˆæœŸåŒ–
 	dim arr, 2, 3
 	repeat 2 : i = cnt
 		repeat 3 : j = cnt
@@ -25,11 +25,11 @@
 		loop
 	loop
 	
-	// ”z—ñ•Ï”‚Ì“à—e‚ğ•¶š—ñ‚É‚µ‚ÄƒƒOo—Í
+	// é…åˆ—å¤‰æ•°ã®å†…å®¹ã‚’æ–‡å­—åˆ—ã«ã—ã¦ãƒ­ã‚°å‡ºåŠ›
 	assert
 	logmes inspect(arr, "arr")
 	
-	// ƒVƒXƒeƒ€•Ï”‚Ì“à—e‚ğ•¶š—ñ‚É‚µ‚Äo—Í
+	// ã‚·ã‚¹ãƒ†ãƒ å¤‰æ•°ã®å†…å®¹ã‚’æ–‡å­—åˆ—ã«ã—ã¦å‡ºåŠ›
 	logmes inspectSysvar("stat")
 	
 	stop
