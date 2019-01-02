@@ -1,4 +1,4 @@
-﻿//
+//
 //	hspvar.cpp header
 //
 #ifndef __hspvar_core_h

@@ -1,5 +1,5 @@
-// knowbug ‚ÌŒöŠJAPI‚ğg‚¤
-
+// knowbug ã®å…¬é–‹APIã‚’ä½¿ã†
+#include "hsp3utf.as"
 #include "../knowbug.as"
 
 #uselib "user32.dll"
@@ -7,11 +7,11 @@
 
 #define SW_SHOWMINIMIZED 2
 
-	// knowbug ‚ğÅ¬‰»‚·‚é
+	// knowbug ã‚’æœ€å°åŒ–ã™ã‚‹
 	ShowWindow knowbug_hwnd_main(), SW_SHOWMINIMIZED
 	ShowWindow knowbug_hwnd_view(), SW_SHOWMINIMIZED
 	
-	// ƒOƒ[ƒoƒ‹—Ìˆæ‚Å‚Í main ‚É‚È‚é
+	// ã‚°ãƒ­ãƒ¼ãƒãƒ«é ˜åŸŸã§ã¯ main ã«ãªã‚‹
 	mes "now: " + __func__
 	
 #module
@@ -21,13 +21,13 @@
 	return
 #global
 	
-	// test –½—ß‚Ì’†‚Å‚Í __func__ ‚Í test ‚É‚È‚é
+	// test å‘½ä»¤ã®ä¸­ã§ã¯ __func__ ã¯ test ã«ãªã‚‹
 	test
 	
-	// •Ï”‚ÌÚ×î•ñ‚Ì•¶š—ñ‚ğ“¾‚é
+	// å¤‰æ•°ã®è©³ç´°æƒ…å ±ã®æ–‡å­—åˆ—ã‚’å¾—ã‚‹
 	dim a, 2, 1, 3
 	a(0, 0, 2) = 7
-	mes "a ‚ÌÚ×î•ñF"
+	mes "a ã®è©³ç´°æƒ…å ±ï¼š"
 	assert
 	mes knowbug_varinfstr(a)
 	

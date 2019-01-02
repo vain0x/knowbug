@@ -5,7 +5,7 @@
 #ifndef __hsp3plugin_h
 #define __hsp3plugin_h
 
-//	VC++�̏ꍇ
+//	VC++の場合
 #ifdef __cplusplus
 #define EXPORT extern "C" __declspec (dllexport)
 #else

@@ -25,7 +25,11 @@
  #func  knowbugVsw_deleteWriter "knowbugVsw_deleteWriter" int
  #cfunc knowbugVsw_dataPtr      "knowbugVsw_dataPtr" int, int
 #else //defined(__hsp64__@)
+#ifdef __hsp3utf__
+ #uselib "hsp3debug_u8.dll"
+#else
  #uselib "hsp3debug.dll"
+#endif
  #func global knowbugVsw_catLeaf       "_knowbugVsw_catLeaf@12"      int, sptr, sptr
  #func global knowbugVsw_catLeafExtra  "_knowbugVsw_catLeafExtra@12" int, sptr, sptr
  #func global knowbugVsw_catAttribute  "_knowbugVsw_catAttribute@12" int, sptr, sptr
