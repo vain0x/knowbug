@@ -499,15 +499,3 @@ void setEditStyle( HWND hEdit, int maxlen )
 }
 
 } // namespace Dialog
-
-// 公開API
-
-EXPORT auto WINAPI knowbug_hwnd() -> HWND
-{
-	return Dialog::g_res->mainWindow.get();
-}
-
-EXPORT auto WINAPI knowbug_hwndView() -> HWND
-{
-	return Dialog::g_res->viewWindow.get();
-}
