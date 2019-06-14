@@ -242,7 +242,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugUtf8|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>hsp;with_Modcmd;with_ExtraBasics;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HSP3_UTF8;hsp;with_Modcmd;with_ExtraBasics;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -369,7 +369,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUtf8|Win32'">
     <ClCompile>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>hsp;with_Modcmd;with_ExtraBasics;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HSP3_UTF8;hsp;with_Modcmd;with_ExtraBasics;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -543,6 +543,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="encoding.cpp" />
     <ClCompile Include="hpiutil\DInfo.cpp" />
     <ClCompile Include="hpiutil\hspsdk\hsp3plugin.cpp" />
     <ClCompile Include="hpiutil\stringify.cpp" />
@@ -570,6 +571,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="cppformat\cppformat\format.h" />
     <ClInclude Include="CVardataString.h" />
     <ClInclude Include="CVarinfoText.h" />
+    <ClInclude Include="encoding.h" />
     <ClInclude Include="ExVswInternal.h" />
     <ClInclude Include="hpiutil\dinfo.hpp" />
     <ClInclude Include="hpiutil\hpiutil.hpp" />
