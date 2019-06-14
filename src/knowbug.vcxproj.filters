@@ -72,9 +72,6 @@
     <ClCompile Include="module\CStrWriter.cpp">
       <Filter>module</Filter>
     </ClCompile>
-    <ClCompile Include="ExVardataString.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="module\supio\supio.cpp">
       <Filter>module\supio</Filter>
     </ClCompile>
@@ -164,9 +161,6 @@
     <ClInclude Include="module\CStrWriter.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="ExVardataString.h">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="module\supio\supio.h">
       <Filter>module\supio</Filter>
     </ClInclude>
@@ -193,9 +187,6 @@
     </ClInclude>
     <ClInclude Include="module\handle_deleter.hpp">
       <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="ExVswInternal.h">
-      <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="hpiutil\hpiutil.hpp">
       <Filter>module\hpiutil</Filter>

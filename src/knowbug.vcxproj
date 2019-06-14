@@ -552,7 +552,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="VTNodeModule.cpp" />
     <ClCompile Include="DebugInfo.cpp" />
     <ClCompile Include="dialog.cpp" />
-    <ClCompile Include="ExVardataString.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="module\CIni.cpp" />
     <ClCompile Include="module\CStrBuf.cpp" />
@@ -572,7 +571,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="CVardataString.h" />
     <ClInclude Include="CVarinfoText.h" />
     <ClInclude Include="encoding.h" />
-    <ClInclude Include="ExVswInternal.h" />
     <ClInclude Include="hpiutil\dinfo.hpp" />
     <ClInclude Include="hpiutil\hpiutil.hpp" />
     <ClInclude Include="hpiutil\hpiutil_fwd.hpp" />
@@ -591,7 +589,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="module\utility.h" />
     <ClInclude Include="DebugInfo.h" />
     <ClInclude Include="dialog.h" />
-    <ClInclude Include="ExVardataString.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="module\CIni.h" />
     <ClInclude Include="module\CStrBuf.h" />

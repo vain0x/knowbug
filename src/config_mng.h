@@ -10,31 +10,6 @@
 struct KnowbugConfig : public Singleton<KnowbugConfig>
 {
 	friend class Singleton<KnowbugConfig>;
-public:
-	struct VswInfo
-	{
-		module_handle_t inst;
-		addVarUserdef_t addVar;
-		addValueUserdef_t addValue;
-
-	public:
-		//workaround for VC++2013
-		VswInfo()
-			: inst {}, addVar {}, addValue {}
-		{}
-		VswInfo(VswInfo&& r)
-		{
-			*this = std::move(r);
-		}
-		VswInfo(module_handle_t&& inst, addVarUserdef_t addVar, addValueUserdef_t addValue)
-			: inst(std::move(inst)), addVar(addVar), addValue(addValue)
-		{}
-		auto operator=(VswInfo&& r) -> VswInfo&
-		{
-			inst = std::move(r.inst); addVar = r.addVar; addValue = r.addValue;
-			return *this;
-		}
-	};
 
 public:
 	//properties from ini (see it for detail)
@@ -56,7 +31,6 @@ public:
 	bool bCustomDraw;
 	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;
 	unordered_map<string, COLORREF> clrTextExtra;
-	std::vector<VswInfo> vswInfo;
 	string logPath;
 	bool warnsBeforeClearingLog;
 	bool scrollsLogAutomatically;
@@ -69,7 +43,6 @@ public:
 
 private:
 	KnowbugConfig();
-	bool tryRegisterVswInfo(string const& vtname, VswInfo vswi);
 
 public:
 	//to jusitify existent codes (such as g_config->property)
