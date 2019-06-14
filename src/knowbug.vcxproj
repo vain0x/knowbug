@@ -219,6 +219,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)hsp3debug.dll</OutputFile>
@@ -251,6 +252,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 </AdditionalOptions>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -343,7 +345,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <AdditionalOptions>-execution-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)hsp3debug.dll</OutputFile>
@@ -378,7 +380,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <AdditionalOptions>-execution-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 </AdditionalOptions>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -476,6 +478,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)hsp3debug.dll</OutputFile>
