@@ -71,6 +71,14 @@ public:
 	auto to_sjis_string() const->SjisString;
 
 	auto to_utf8_string() const->Utf8String;
+
+	auto operator ==(OsStringView const& other) -> bool {
+		return size() == other.size() && _tccmp(data(), other.data());
+	}
+
+	auto copy_to(LPTSTR dest, std::size_t dest_size) const {
+		_tcsnccpy_s(dest, dest_size, data(), size());
+	}
 };
 
 // Windows API のための文字列。
@@ -81,9 +89,25 @@ class OsString
 public:
 	OsString() {}
 
+	// FIXME: 暗黙のコピーはよくない。unordered_map に要求される。
+	OsString(OsString const& other) : basic_string(other) {}
+
+	auto operator =(OsString const& other) const->OsString& = delete;
+
 	OsString(OsString&& other) : basic_string(other) {}
 
 	explicit OsString(std::basic_string<TCHAR>&& inner) : basic_string(inner) {}
+
+	static auto from_range(LPCTSTR begin, LPCTSTR end) -> OsString {
+		assert(begin <= end);
+		auto count = (std::size_t)(end - begin);
+		return OsString{ std::basic_string<TCHAR>{ begin, count } };
+	}
+
+	auto operator =(OsString&& other) -> OsString& {
+		swap(other);
+		return *this;
+	}
 
 	auto as_ref() const -> OsStringView {
 		return OsStringView{ data(), size() };
@@ -248,4 +272,13 @@ public:
 // utf-8 エンコーディングされた文字列リテラルをキャストする。
 inline auto of_u8str(char const* str) -> Utf8StringView {
 	return Utf8StringView{ str, 0 };
+}
+
+namespace std {
+	template<>
+	struct hash<OsString> {
+		auto operator ()(OsString const& str) const -> std::size_t {
+			return std::hash<std::basic_string<TCHAR>>{}(str);
+		}
+	};
 }
