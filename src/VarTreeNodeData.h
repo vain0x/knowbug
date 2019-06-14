@@ -88,7 +88,7 @@ class VTNodeScript
 public:
 	~VTNodeScript();
 
-	auto resolveRefName(string const& fileRefName) const -> shared_ptr<string const>;
+	auto resolveRefName(char const* fileRefName) const -> shared_ptr<string const>;
 	auto fetchScriptAll(char const* fileRefName) const -> optional_ref<string const>;
 	auto fetchScriptLine(hpiutil::SourcePos const& spos) const
 		-> unique_ptr<string const>;

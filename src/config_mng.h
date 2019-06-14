@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "encoding.h"
 #include "main.h"
 #include "module/Singleton.h"
 #include "module/handle_deleter.hpp"
@@ -14,13 +15,13 @@ struct KnowbugConfig : public Singleton<KnowbugConfig>
 public:
 	//properties from ini (see it for detail)
 
-	string hspDir;
+	OsString hspDir;
 	bool bTopMost;
 	bool viewPosXIsDefault, viewPosYIsDefault;
 	int viewPosX, viewPosY;
 	int viewSizeX, viewSizeY;
 	int  tabwidth;
-	string fontFamily;
+	OsString fontFamily;
 	int fontSize;
 	bool fontAntialias;
 	int  maxLength, infiniteNest;
@@ -38,8 +39,13 @@ public:
 	bool logsInvocation;
 #endif
 
-	auto commonPath() const -> string { return hspDir + "common"; }
-	auto selfPath() const -> string { return hspDir + "knowbug.ini"; }
+	auto commonPath() const -> OsString {
+		return OsString{ hspDir + TEXT("common") };
+	}
+
+	auto selfPath() const -> OsString {
+		return OsString{ hspDir + TEXT("knowbug.ini") };
+	}
 
 private:
 	KnowbugConfig();

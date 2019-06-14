@@ -3,29 +3,36 @@
 #include "module/strf.h"
 
 #include "config_mng.h"
-
+#include "encoding.h"
 #include "module\/supio\/supio.h"
 
 KnowbugConfig::SingletonAccessor g_config;
 
-static auto SelfDir() -> string
-{
+static auto SelfDir() -> OsString {
+	// knowbug の DLL の絶対パスを取得する。
 	HSPAPICHAR path[MAX_PATH];
-	char *hctmp1 = 0;
 	GetModuleFileName(GetModuleHandle(nullptr), path, MAX_PATH);
+	auto full_path = OsString{ path };
 
-	char drive[5];
-	char dir[MAX_PATH];
-	char _dummy[MAX_PATH];
-	_splitpath_s(apichartohspchar(path,&hctmp1), drive, dir, _dummy, _dummy);
-	freehc(&hctmp1);
-	return string(drive) + dir;
+	// ファイル名の部分を削除
+	while (!full_path.empty()) {
+		auto last = full_path[full_path.length() - 1];
+		if (last == TEXT('/') || last == TEXT('\\')) {
+			break;
+		}
+
+		full_path.pop_back();
+	}
+
+	return full_path;
 }
 
 KnowbugConfig::KnowbugConfig()
 {
 	hspDir = SelfDir();
-	auto&& ini = CIni { selfPath().c_str() };
+
+	auto ini_file_path = selfPath().to_hsp_string();
+	auto&& ini = CIni{ ini_file_path.data() };
 	
 	bTopMost   = ini.getBool( "Window", "bTopMost", false );
 	viewPosXIsDefault = !ini.existsKey("Window", "viewPosX");
@@ -35,7 +42,7 @@ KnowbugConfig::KnowbugConfig()
 	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
 	viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
 	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
-	fontFamily = ini.getString("Interface", "fontFamily", "MS Gothic");
+	fontFamily = SjisStringView{ ini.getString("Interface", "fontFamily", "MS Gothic") }.to_os_string();
 	fontSize   = ini.getInt("Interface", "fontSize", 13);
 	fontAntialias = ini.getBool("Interface", "fontAntialias", false);
 
@@ -57,6 +64,8 @@ KnowbugConfig::KnowbugConfig()
 	logsInvocation = ini.getBool("Log", "logsInvocation", false);
 #endif
 
+#if 0
+	// FIXME: 一時的に廃止
 	if ( bCustomDraw ) {
 		//color of internal types
 		for ( auto i = 0; i < HSPVAR_FLAG_USERDEF; ++i ) {
@@ -70,4 +79,5 @@ KnowbugConfig::KnowbugConfig()
 			clrTextExtra.emplace(key, cref);
 		}
 	}
+#endif
 }

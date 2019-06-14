@@ -2,23 +2,23 @@
 #include <vector>
 #include <array>
 #include <tchar.h>
+#include "../encoding.h"
 #include "GuiUtility.h"
-
 #include "supio/supio.h"
+
+#define ARRAY_LENGTH(A) ((sizeof (A)) / (sizeof ((A)[0])))
 
 //------------------------------------------------
 // 簡易ウィンドウ生成
 //------------------------------------------------
 auto Window_Create
-	( char const* className, WNDPROC proc
-	, char const* caption, int windowStyles
+	( OsStringView className, WNDPROC proc
+	, OsStringView caption, int windowStyles
 	, int sizeX, int sizeY, int posX, int posY
 	, HINSTANCE hInst
 	) -> HWND
 {
-	HSPAPICHAR *hactmp1;
-	HSPAPICHAR *hactmp2;
-	auto wndclass = WNDCLASS {};
+	auto wndclass = WNDCLASS{};
 	wndclass.style         = CS_HREDRAW | CS_VREDRAW;
 	wndclass.lpfnWndProc   = proc;
 	wndclass.cbClsExtra    = 0;
@@ -28,12 +28,12 @@ auto Window_Create
 	wndclass.hCursor       = LoadCursor(nullptr, IDC_ARROW);
 	wndclass.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
 	wndclass.lpszMenuName  = nullptr;
-	wndclass.lpszClassName = chartoapichar(className,&hactmp1);
+	wndclass.lpszClassName = className.data();
 	RegisterClass(&wndclass);
 
 	auto const hWnd =
 		CreateWindow
-			( hactmp1, chartoapichar(caption,&hactmp2)
+			( className.data(), caption.data()
 			, (WS_CAPTION | WS_VISIBLE | windowStyles)
 			, posX, posY, sizeX, sizeY
 			, /* parent = */ nullptr
@@ -41,10 +41,8 @@ auto Window_Create
 			, hInst
 			, /* lparam = */ nullptr
 			);
-	freehac(&hactmp1);
-	freehac(&hactmp2);
 	if ( ! hWnd ) {
-		MessageBox(nullptr, TEXT("Debug window initalizing failed."), TEXT("Error"), 0);
+		MessageBox(nullptr, TEXT("デバッグウィンドウの初期化に失敗しました。"), TEXT("Knowbug"), 0);
 		abort();
 	}
 	return hWnd;
@@ -214,9 +212,9 @@ auto Dialog_SaveFileName(HWND owner
 		? std::make_unique<string>(fullName.data()) : nullptr;
 }
 
-auto Font_Create(char const* family, int size, bool antialias) -> HFONT
+auto Font_Create(OsStringView family, int size, bool antialias) -> HFONT
 {
-	auto lf = LOGFONT {};
+	auto lf = LOGFONT{};
 	lf.lfHeight         = -size; // size pt
 	lf.lfWidth          = 0;
 	lf.lfEscapement     = 0;
@@ -230,8 +228,6 @@ auto Font_Create(char const* family, int size, bool antialias) -> HFONT
 	lf.lfClipPrecision  = CLIP_DEFAULT_PRECIS;
 	lf.lfQuality        = (antialias ? ANTIALIASED_QUALITY : DEFAULT_QUALITY);
 	lf.lfPitchAndFamily = DEFAULT_PITCH;
-	HSPAPICHAR *hactmp1;
-	::_tcscpy(lf.lfFaceName, chartoapichar(family,&hactmp1));
-	freehac(&hactmp1);
+	family.copy_to(lf.lfFaceName, ARRAY_LENGTH(lf.lfFaceName));
 	return CreateFontIndirect(&lf);
 }

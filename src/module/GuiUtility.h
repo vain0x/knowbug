@@ -6,12 +6,13 @@
 #include <CommCtrl.h>
 #include <string>
 #include <memory>
+#include "../encoding.h"
 
 using std::string;
 
 auto Window_Create
-	( char const* className, WNDPROC proc
-	, char const* caption, int windowStyles
+	( OsStringView className, WNDPROC proc
+	, OsStringView caption, int windowStyles
 	, int sizeX, int sizeY, int posX, int posY
 	, HINSTANCE hInst
 	) -> HWND;
@@ -35,4 +36,4 @@ auto Dialog_SaveFileName
 	, char const* filter, char const* defaultFilter, char const* defaultFileName
 	) -> std::unique_ptr<string>;
 
-auto Font_Create(char const* family, int size, bool antialias) -> HFONT;
+auto Font_Create(OsStringView family, int size, bool antialias) -> HFONT;
