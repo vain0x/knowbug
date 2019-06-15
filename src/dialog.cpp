@@ -331,13 +331,6 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					case TVN_SELCHANGING:
 						View::saveCurrentCaret();
 						break;
-					case NM_CUSTOMDRAW: {
-						if ( ! g_config->bCustomDraw ) break;
-						auto const res =
-							g_res->tv->customDraw(reinterpret_cast<LPNMTVCUSTOMDRAW>(nmhdr));
-						SetWindowLongPtr(hDlg, DWLP_MSGRESULT, res);
-						return TRUE;
-					}
 				}
 			}
 			break;

@@ -53,7 +53,6 @@ struct VTView::Impl
 
 public:
 	auto itemFromNode(VTNodeData const* p) const -> HTREEITEM;
-	bool customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd);
 
 	auto viewCaretFromNode(HTREEITEM hItem) const -> int;
 };
@@ -167,67 +166,6 @@ auto VTView::tryGetNodeData(HTREEITEM hItem) const -> optional_ref<VTNodeData>
 	auto const lp = reinterpret_cast<VTNodeData*>(TreeView_GetItemLParam(hwndVarTree, hItem));
 	assert(lp);
 	return lp;
-}
-
-// ノードに応じて文字色を設定する
-// Return true iff text color is modified.
-bool VTView::Impl::customizeTextColorIfAble(HTREEITEM hItem, LPNMTVCUSTOMDRAW pnmcd)
-{
-	// 選択状態なら色分けしない
-	if ( TreeView_GetItemState(hwndVarTree, hItem, 0) & TVIS_SELECTED ) {
-		return false;
-	}
-
-	auto cont = [&pnmcd](COLORREF cref)
-		{
-			pnmcd->clrText = cref;
-			return true;
-		};
-
-	auto const node = self_.tryGetNodeData(hItem);
-	if ( ! node ) return false;
-
-#ifdef with_WrapCall
-	if ( auto const nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {
-			auto const key = (nodeInvoke->callinfo().stdat->index == STRUCTDAT_INDEX_FUNC)
-				? "__sttm__"
-				: "__func__";
-			auto iter = g_config->clrTextExtra.find(key);
-			if ( iter != g_config->clrTextExtra.end() ) {
-				return cont(iter->second);
-			}
-	} else
-#endif //defined(with_WrapCall)
-	{
-		auto const vtype = node->vartype();
-		if ( 0 < vtype && vtype < HSPVAR_FLAG_USERDEF ) {
-			return cont(g_config->clrText[vtype]);
-
-		} else if ( vtype >= HSPVAR_FLAG_USERDEF ) {
-			auto iter = g_config->clrTextExtra.find(hpiutil::varproc(vtype)->vartype_name);
-			if ( iter != g_config->clrTextExtra.end() ) {
-				return cont(iter->second);
-			}
-		}
-	}
-	return false;
-}
-
-// 変数ツリーの NM_CUSTOMDRAW を処理する
-auto VTView::customDraw( LPNMTVCUSTOMDRAW pnmcd ) -> LRESULT
-{
-	switch (pnmcd->nmcd.dwDrawStage)  {
-		case CDDS_PREPAINT:
-			return CDRF_NOTIFYITEMDRAW;
-
-		case CDDS_ITEMPREPAINT: {
-			auto const hItem = reinterpret_cast<HTREEITEM>(pnmcd->nmcd.dwItemSpec);
-			if ( p_->customizeTextColorIfAble(hItem, pnmcd) ) {
-				return CDRF_NEWFONT;
-			}
-		}
-	}
-	return 0;
 }
 
 // ノードに対応する文字列を得る

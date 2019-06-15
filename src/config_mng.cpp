@@ -55,29 +55,11 @@ KnowbugConfig::KnowbugConfig()
 	prefixHiddenModule   = ini.getString("Varinfo", "prefixHiddenModule", "@__");
 	
 	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
-	bCustomDraw = ini.getBool( "ColorType", "bCustomDraw", false );
 
 	logPath = ini.getString("Log", "autoSavePath", "");
 	warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
 	scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
 #ifdef with_WrapCall
 	logsInvocation = ini.getBool("Log", "logsInvocation", false);
-#endif
-
-#if 0
-	// FIXME: 一時的に廃止
-	if ( bCustomDraw ) {
-		//color of internal types
-		for ( auto i = 0; i < HSPVAR_FLAG_USERDEF; ++i ) {
-			clrText[i] = ini.getInt("ColorType", strf("text#%d", i).c_str(), RGB(0, 0, 0));
-		}
-
-		//color of external types or functions
-		auto const& keys = ini.enumKeys("ColorTypeExtra");
-		for ( auto const& key : keys ) {
-			auto const cref = static_cast<COLORREF>(ini.getInt("ColorTypeExtra", key.c_str()));
-			clrTextExtra.emplace(key, cref);
-		}
-	}
 #endif
 }

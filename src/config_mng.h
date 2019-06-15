@@ -29,7 +29,6 @@ public:
 	string prefixHiddenModule;
 	bool cachesVardataString;
 	bool bResultNode;
-	bool bCustomDraw;
 	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;
 	unordered_map<string, COLORREF> clrTextExtra;
 	string logPath;
