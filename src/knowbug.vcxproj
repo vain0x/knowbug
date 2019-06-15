@@ -548,6 +548,8 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="hpiutil\hspsdk\hsp3plugin.cpp" />
     <ClCompile Include="hpiutil\stringify.cpp" />
     <ClCompile Include="hpiutil\sysvar.cpp" />
+    <ClCompile Include="SourceFile.cpp" />
+    <ClCompile Include="SourceFileResolver.cpp" />
     <ClCompile Include="VTNodeLog.cpp" />
     <ClCompile Include="VTNodeModule.cpp" />
     <ClCompile Include="DebugInfo.cpp" />
@@ -594,12 +596,13 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClInclude Include="module\CStrBuf.h" />
     <ClInclude Include="module\CStrWriter.h" />
     <ClInclude Include="module\GuiUtility.h" />
-    <ClInclude Include="module\LineDelimitedString.h" />
     <ClInclude Include="module\ptr_cast.h" />
     <ClInclude Include="module\Singleton.h" />
     <ClInclude Include="module\strf.h" />
     <ClInclude Include="module\supio\supio.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SourceFile.h" />
+    <ClInclude Include="SourceFileResolver.h" />
     <ClInclude Include="vartree.h" />
     <ClInclude Include="VarTreeNodeData.h" />
     <ClInclude Include="VarTreeNodeData_fwd.h" />

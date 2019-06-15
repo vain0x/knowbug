@@ -196,7 +196,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 		void fScript(VTNodeScript const& node) override
 		{
 			if ( auto p = node.fetchScriptAll(g_dbginfo->curPos().fileRefName()) ) {
-				result = shared_ptr_from_rawptr(std::move(p));
+				result = std::make_shared<string>(p->data());
 			} else {
 				result = std::make_shared<string>(g_dbginfo->getCurInfString());
 			}

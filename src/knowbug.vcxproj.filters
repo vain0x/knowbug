@@ -117,6 +117,12 @@
     <ClCompile Include="encoding.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="SourceFileResolver.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="SourceFile.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CVarinfoText.h">
@@ -165,9 +171,6 @@
       <Filter>module\supio</Filter>
     </ClInclude>
     <ClInclude Include="module\CStrBuf.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="module\LineDelimitedString.h">
       <Filter>module</Filter>
     </ClInclude>
     <ClInclude Include="module\GuiUtility.h">
@@ -237,6 +240,12 @@
       <Filter>libraries\cppformat</Filter>
     </ClInclude>
     <ClInclude Include="encoding.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceFileResolver.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceFile.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

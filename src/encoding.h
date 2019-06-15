@@ -37,10 +37,14 @@ using HspStringView = SjisStringView;
 
 // Windows API のための文字列への参照。
 class OsStringView {
-	LPCTSTR const inner_;
+	LPCTSTR inner_;
 	mutable std::size_t size_;
 
 public:
+	OsStringView() : inner_(nullptr), size_(0) {}
+
+	OsStringView(OsStringView&& other) : inner_(other.inner_), size_(other.size_) {}
+
 	explicit OsStringView(LPCTSTR inner, std::size_t size)
 		: inner_(inner)
 		, size_(size)
@@ -53,7 +57,16 @@ public:
 	{
 	}
 
+	auto operator =(OsStringView&& other) -> OsStringView & {
+		inner_ = other.inner_;
+		size_ = other.size_;
+		return *this;
+	}
+
 	auto data() const -> LPCTSTR {
+		if (inner_ == nullptr) {
+			throw new std::exception{ "OsStringView is null" };
+		}
 		return inner_;
 	}
 
@@ -76,8 +89,12 @@ public:
 		return size() == other.size() && _tccmp(data(), other.data());
 	}
 
-	auto copy_to(LPTSTR dest, std::size_t dest_size) const {
+	auto copy_to(LPTSTR dest, std::size_t dest_size) const -> void {
 		_tcsnccpy_s(dest, dest_size, data(), size());
+	}
+
+	auto operator [](std::size_t i) const -> TCHAR {
+		return i < size() ? data()[i] : TCHAR{};
 	}
 };
 
@@ -111,6 +128,10 @@ public:
 
 	auto as_ref() const -> OsStringView {
 		return OsStringView{ data(), size() };
+	}
+
+	auto to_owned() const -> OsString {
+		return as_ref().to_owned();
 	}
 
 	auto to_hsp_string() const->HspString;
