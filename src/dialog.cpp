@@ -22,15 +22,15 @@
 #include "module/supio/supio.h"
 
 #ifdef _M_X64
-# define KnowbugPlatformString "(x64)"
+# define KnowbugPlatformString TEXT("(x64)")
 #else //defined(_M_X64)
-# define KnowbugPlatformString "(x86)"
+# define KnowbugPlatformString TEXT("(x86)")
 #endif //defined(_M_X64)
-#define KnowbugAppName "Knowbug"
-#define KnowbugVersion "1.22.2" " " KnowbugPlatformString
-static char const* const KnowbugMainWindowTitle = KnowbugAppName " " KnowbugVersion;
-static char const* const KnowbugViewWindowTitle = "Knowbug View";
-static char const* const KnowbugRepoUrl = "https://github.com/vain0/knowbug";
+#define KnowbugAppName TEXT("Knowbug")
+#define KnowbugVersion TEXT("1.22.2 ") KnowbugPlatformString
+static auto KnowbugMainWindowTitle = KnowbugAppName TEXT(" ") KnowbugVersion;
+static auto KnowbugViewWindowTitle = TEXT("Knowbug View");
+static auto KnowbugRepoUrl = TEXT("https://github.com/vain0/knowbug");
 
 namespace Dialog
 {
@@ -109,25 +109,27 @@ namespace LogBox {
 
 	void clear()
 	{
-		HSPAPICHAR *hactmp1 = 0;
-		if ( ! g_config->warnsBeforeClearingLog
-			|| MessageBox(g_res->mainWindow.get()
-					, TEXT("ログをすべて消去しますか？"), chartoapichar(KnowbugAppName,&hactmp1), MB_OKCANCEL
-					) == IDOK
-		) {
-			VTRoot::log().clear();
+		if (g_config->warnsBeforeClearingLog) {
+			auto msg = TEXT("ログをすべて消去しますか？");
+			auto ok = MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OKCANCEL) == IDOK;
+
+			if (!ok) {
+				return;
+			}
 		}
-		freehac(&hactmp1);
+
+		VTRoot::log().clear();
 	}
 
 	void save(char const* filepath) {
-		HSPAPICHAR *hactmp1 = 0;
-		if ( ! VTRoot::log().save(filepath) ) {
-			MessageBox(g_res->mainWindow.get()
-				, TEXT("ログの保存に失敗しました。"), chartoapichar(KnowbugAppName,&hactmp1), MB_OK);
+		auto success = VTRoot::log().save(filepath);
+
+		if (!success) {
+			auto msg = TEXT("ログの保存に失敗しました。");
+			MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OK);
 		}
-		freehac(&hactmp1);
 	}
+
 	void save() {
 		static auto const filter =
 			"log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";
@@ -279,10 +281,10 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_INI: {
-					//create empty file if not exist
+					// ファイルが存在しなければ作成される。
 					auto of = std::ofstream { g_config->selfPath(), std::ios::app };
-					ShellExecute(nullptr, TEXT("open")
-						, chartoapichar(g_config->selfPath().c_str(),&hactmp1), nullptr, TEXT(""), SW_SHOWDEFAULT);
+
+					ShellExecute(nullptr, TEXT("open"), g_config->selfPath().data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
 					freehac(&hactmp1);
 					break;
 				}
@@ -291,9 +293,9 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_KNOWBUG_REPOS: {
-					ShellExecute(nullptr, TEXT("open")
-						, chartoapichar(KnowbugRepoUrl,&hactmp1), nullptr, TEXT(""), SW_SHOWDEFAULT);
-					freehac(&hactmp1);
+					auto args = LPCTSTR{ nullptr };
+					auto directory = LPCTSTR{ TEXT("") };
+					ShellExecute(nullptr, TEXT("open"), KnowbugRepoUrl, args, directory, SW_SHOWDEFAULT);
 					break;
 				}
 				case IDC_GOTO_LOG: {
@@ -377,8 +379,8 @@ void Dialog::createMain()
 	//ビューウィンドウ
 	auto hViewWnd = window_handle_t {
 		Window_Create
-			( "KnowbugViewWindow", ViewDialogProc
-			, KnowbugViewWindowTitle, (WS_THICKFRAME)
+			( OsStringView{ TEXT("KnowbugViewWindow") }, ViewDialogProc
+			, OsStringView{ KnowbugViewWindowTitle }, (WS_THICKFRAME)
 			, viewSizeX, viewSizeY
 			, viewPosX, viewPosY
 			, Knowbug::getInstance()
@@ -399,8 +401,8 @@ void Dialog::createMain()
 	//メインウィンドウ
 	auto hDlgWnd = window_handle_t {
 		Window_Create
-			( "KnowbugMainWindow", DlgProc
-			, KnowbugMainWindowTitle, WS_THICKFRAME
+			( OsStringView{ TEXT("KnowbugMainWindow") }, DlgProc
+			, OsStringView{ KnowbugMainWindowTitle }, WS_THICKFRAME
 			, mainSizeX, mainSizeY
 			, dispx - mainSizeX, 0
 			, Knowbug::getInstance()
@@ -440,7 +442,7 @@ void Dialog::createMain()
 				, GetDlgItem(hPane, IDC_BTN5) }}
 			, gdi_obj_t {
 					Font_Create
-						( g_config->fontFamily.c_str()
+						( g_config->fontFamily.as_ref()
 						, g_config->fontSize
 						, g_config->fontAntialias ) }
 			});
@@ -499,15 +501,3 @@ void setEditStyle( HWND hEdit, int maxlen )
 }
 
 } // namespace Dialog
-
-// 公開API
-
-EXPORT auto WINAPI knowbug_hwnd() -> HWND
-{
-	return Dialog::g_res->mainWindow.get();
-}
-
-EXPORT auto WINAPI knowbug_hwndView() -> HWND
-{
-	return Dialog::g_res->viewWindow.get();
-}

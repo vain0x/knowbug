@@ -51,10 +51,6 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 {
 	assert(!! pval);
 
-	if ( auto addVar = static_cast<addVarUserdef_t>(g_config->vswInfo[pval->flag].addVar) ) {
-		return addVar(this, name, pval);
-	}
-	
 	if ( hpiutil::PVal_isStandardArray(pval) ) {
 		addVarArray(name, pval);
 	} else {
@@ -141,10 +137,6 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 	if ( getWriter().inifiniteNesting() ) {
 		getWriter().catLeafExtra(name, "too_many_nesting");
 		return;
-	}
-
-	if ( auto addValue = static_cast<addValueUserdef_t>(g_config->vswInfo[type].addValue) ) {
-		return addValue(this, name, ptr);
 	}
 
 	auto addValueLeaf = [&](string const& repr) {

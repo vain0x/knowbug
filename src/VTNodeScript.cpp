@@ -11,13 +11,18 @@ struct VTNodeScript::Impl
 {
 	bool resolutionDone_;
 
-	std::unordered_set<string> userDirs_;
-	unordered_map<string, shared_ptr<string const>> fullPathFromRefName_;
-	unordered_map<string, LineDelimitedString> cache_;
+	std::unordered_set<OsString> userDirs_;
+	unordered_map<OsString, shared_ptr<OsString>> fullPathFromRefName_;
+	unordered_map<OsString, LineDelimitedString> cache_;
 
 public:
-	auto searchFile(string const& fileName)->shared_ptr<string const>;
-	auto searchFile(string const& fileName, char const* dir)->shared_ptr<string const>;
+	// 指定されたファイル名の絶対パスを検索する。
+	auto searchFile(OsStringView fileName)->shared_ptr<OsString>;
+
+	// 指定されたファイル名の絶対パスを、指定したディレクトリを基準にして検索する。
+	// ただし no_dir = true のときは dir 引数は無視して、カレントディレクトリから検索する。
+	auto searchFile(OsStringView fileName, OsStringView dir, bool no_dir)->shared_ptr<OsString>;
+
 	auto fetchScript(char const* fileName)->optional_ref<LineDelimitedString>;
 };
 
@@ -35,109 +40,94 @@ auto VTNodeScript::parent() const -> optional_ref<VTNodeData>
 	return &VTRoot::instance();
 }
 
-auto VTNodeScript::Impl::searchFile(string const& fileRefName, char const* dir)
--> shared_ptr<string const>
+auto VTNodeScript::Impl::searchFile(OsStringView fileRefName, OsStringView dir, bool no_dir)
+-> shared_ptr<OsString>
 {
-	auto fileName = static_cast<HSPAPICHAR*>(nullptr);
-	auto fullPath = std::array<HSPAPICHAR, MAX_PATH> {};
-	auto fileName8 = static_cast<char*>(nullptr);
-	auto fullPath8 = std::array<char, MAX_PATH*6> {};
-	auto dirName = std::array<HSPAPICHAR, MAX_PATH> {};
-	HSPAPICHAR *hactmp1;
-	HSPAPICHAR *hactmp2;
-	HSPCHAR *hctmp1;
-	size_t len;
+	auto file_name_ptr = LPTSTR{};
+	auto full_path_buf = std::array<TCHAR, MAX_PATH>{};
+
+	auto dir_ptr = no_dir ? nullptr : dir.data();
 	auto succeeded =
-		SearchPath
-		(chartoapichar(dir,&hactmp1), chartoapichar(fileRefName.c_str(),&hactmp2), /* lpExtenson = */ nullptr
-			, fullPath.size(), fullPath.data(), &fileName)
-		!= 0;
-	if (succeeded) {
-		// 発見されたディレクトリを検索対象に追加する
-		len = _tcslen(fullPath.data());
-		memcpy(dirName.data(), fullPath.data(), len*sizeof(HSPAPICHAR));
-		dirName.data()[fileName - fullPath.data()] = 0;
-		apichartohspchar(dirName.data(), &hctmp1);
-		len = strlen(hctmp1);
-		memcpy(fullPath8.data(), hctmp1, len);
-		fullPath8.data()[len] = 0;
-		freehc(&hctmp1);
-		userDirs_.emplace(string(dirName.data(),dirName.data()+len));
-		apichartohspchar(fullPath.data(), &hctmp1);
-		len = strlen(hctmp1);
-		memcpy(fullPath8.data(), hctmp1, len);
-		fullPath8.data()[len] = 0;
-		freehc(&hctmp1);
-
-
-		auto p = std::make_shared<string const>(fullPath8.data());
-
-		// メモ化
-		fullPathFromRefName_.emplace(fileRefName, p);
-		freehac(&hactmp1);
-		freehac(&hactmp2);
-		return p;
-	}
-	else {
-		freehac(&hactmp1);
-		freehac(&hactmp2);
+		SearchPath(
+			dir_ptr, fileRefName.data(), /* lpExtenson = */ nullptr,
+			full_path_buf.size(), full_path_buf.data(), &file_name_ptr
+		) != 0;
+	if (!succeeded) {
 		return nullptr;
 	}
+
+	// 発見されたディレクトリを検索対象に追加する。
+	assert(full_path_buf.data() <= file_name_ptr && file_name_ptr <= full_path_buf.data() + full_path_buf.size());
+	auto dir_name = OsString::from_range(full_path_buf.data(), file_name_ptr);
+
+	userDirs_.emplace(std::move(dir_name));
+
+	auto p = std::make_shared<OsString>(full_path_buf.data());
+
+	// メモ化
+	fullPathFromRefName_[fileRefName.to_owned()] = p; // FIXME: 無駄なコピー
+
+	return p;
 }
 
-auto VTNodeScript::Impl::searchFile(string const& fileRefName)
--> shared_ptr<string const>
-{
+auto VTNodeScript::Impl::searchFile(OsStringView fileRefName) -> shared_ptr<OsString> {
 	// メモから読む
-	auto iter = fullPathFromRefName_.find(fileRefName);
+	auto iter = fullPathFromRefName_.find(fileRefName.to_owned()); // FIXME: 無駄なコピー
 	if (iter != fullPathFromRefName_.end()) {
 		return iter->second;
 	}
 
 	// ユーザディレクトリ、カレントディレクトリ、common、の順で探す
 	for (auto const& dir : userDirs_) {
-		if (auto p = searchFile(fileRefName, dir.c_str())) {
+		if (auto p = searchFile(fileRefName, dir.as_ref(), true)) {
 			return std::move(p);
 		}
 	}
-	if (auto p = searchFile(fileRefName, nullptr)) {
+	if (auto p = searchFile(fileRefName, OsStringView{ TEXT("") }, false)) {
 		return std::move(p);
 	}
-	return searchFile(fileRefName, g_config->commonPath().c_str());
+	return searchFile(fileRefName, g_config->commonPath().as_ref(), true);
 }
 
-auto VTNodeScript::resolveRefName(string const& fileRefName) const
+auto VTNodeScript::resolveRefName(char const* fileRefNameInput) const
 -> shared_ptr<string const>
 {
+	auto fileRefNameBuf = HspStringView{ fileRefNameInput }.to_os_string();
+	auto fileRefName = fileRefNameBuf.as_ref();
+
 	if (auto p = p_->searchFile(fileRefName)) {
-		return p;
+		return std::make_shared<string const>(string{ p->to_hsp_string().data() }); // FIXME: 無駄なコピー
 	}
 
 	while (!p_->resolutionDone_) {
 		bool stuck = true;
 
 		for (auto&& refName : hpiutil::fileRefNames()) {
-			if (p_->fullPathFromRefName_.count(refName) != 0) continue;
-			if (auto p = p_->searchFile(refName)) {
+			auto ref_name_str = HspStringView{ refName.data() }.to_os_string(); // FIXME: 無駄なコピー
+
+			if (p_->fullPathFromRefName_.count(ref_name_str) != 0) continue;
+			if (auto p = p_->searchFile(ref_name_str.as_ref())) {
 				stuck = false;
-				if (refName == fileRefName) { return p; }
+				if (ref_name_str.as_ref() == fileRefName) {
+					return std::make_shared<string const>(string{ p->to_hsp_string().data() }); // FIXME: 無駄なコピー
+				}
 			}
 		}
 		if (stuck) { p_->resolutionDone_ = true; }
 	}
-	return p_->fullPathFromRefName_[fileRefName];
+
+	auto p = p_->fullPathFromRefName_[fileRefName.to_owned()]; // FIXME: 無駄なコピー
+	return std::make_shared<string const>(string{ p->to_hsp_string().data() }); // FIXME: 無駄なコピー
 }
 
 auto VTNodeScript::Impl::fetchScript(char const* fileRefName)
 -> optional_ref<LineDelimitedString>
 {
 	if (auto p = VTRoot::script().resolveRefName(fileRefName)) {
-		auto const& filePath = *p;
+		auto filePath = HspStringView{ p->data() }.to_os_string(); // FIXME: 無駄なコピー
 
 		auto& lds = map_find_or_insert(cache_, filePath, [&filePath]() {
-			HSPAPICHAR *hactmp1;
-			auto ifs = std::ifstream{ chartoapichar(filePath.data(),&hactmp1) };
-			freehac(&hactmp1);
+			auto ifs = std::ifstream{ filePath.data() };
 			assert(ifs.is_open());
 			return LineDelimitedString(ifs);
 		});

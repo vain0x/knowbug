@@ -182,39 +182,3 @@ void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, va
 #endif
 
 } //namespace Knowbug
-
-// 公開API
-
-EXPORT void WINAPI knowbug_writeVarinfoString(char const* name, PVal* pvalSrc, PVal* pvalDest)
-{
-	auto varinf = std::make_unique<CVarinfoText>();
-	varinf->addVar(pvalSrc, name);
-
-	if ( pvalDest->flag != HSPVAR_FLAG_STR ) {
-		if ( pvalDest->offset != 0 ) puterror(HSPERR_TYPE_MISMATCH);
-		exinfo->HspFunc_dim(pvalDest, HSPVAR_FLAG_STR, 0, 1, 0, 0, 0);
-	}
-	code_setva
-		( pvalDest, pvalDest->offset
-		, HSPVAR_FLAG_STR, varinf->getString().c_str());
-}
-
-/**
-呼び出された関数の名前を refstr に出力する
-
-@param n: n 個前の呼び出しの名前を得る
-//*/
-EXPORT void WINAPI knowbug_getCurrentModcmdName(char const* strNone, int n, char* prefstr)
-{
-#ifdef with_WrapCall
-	auto range = WrapCall::getCallInfoRange();
-	if ( std::distance(range.first, range.second) > n ) {
-		auto const& callinfo = *(range.second - (n + 1));
-		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, callinfo->name().c_str());
-	} else {
-		strcpy_s(prefstr, HSPCTX_REFSTR_MAX, strNone);
-	}
-#else
-	strcpy_s(prefstr, HSPCTX_REFSTR_MAX, strNone);
-#endif
-}

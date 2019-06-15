@@ -3,47 +3,36 @@
 #include "module/strf.h"
 
 #include "config_mng.h"
-#include "ExVswInternal.h"
-
+#include "encoding.h"
 #include "module\/supio\/supio.h"
 
 KnowbugConfig::SingletonAccessor g_config;
 
-static auto SelfDir() -> string
-{
+static auto SelfDir() -> OsString {
+	// knowbug の DLL の絶対パスを取得する。
 	HSPAPICHAR path[MAX_PATH];
-	char *hctmp1 = 0;
 	GetModuleFileName(GetModuleHandle(nullptr), path, MAX_PATH);
+	auto full_path = OsString{ path };
 
-	char drive[5];
-	char dir[MAX_PATH];
-	char _dummy[MAX_PATH];
-	_splitpath_s(apichartohspchar(path,&hctmp1), drive, dir, _dummy, _dummy);
-	freehc(&hctmp1);
-	return string(drive) + dir;
-}
+	// ファイル名の部分を削除
+	while (!full_path.empty()) {
+		auto last = full_path[full_path.length() - 1];
+		if (last == TEXT('/') || last == TEXT('\\')) {
+			break;
+		}
 
-template<typename T>
-auto loadVswFunc(CIni& ini, HMODULE hDll, char const* vtname, char const* rawName) -> T
-{
-	static auto const stc_sec = "VardataString/UserdefTypes/Func";
-
-	auto const funcName =
-		ini.getString(stc_sec, strf("%s.%s", vtname, rawName).c_str());
-	auto const f =
-		reinterpret_cast<T>(GetProcAddress(hDll, funcName));
-	if ( funcName[0] != '\0' && ! f ) {
-		Knowbug::logmesWarning
-			(strf("拡張型表示用の %s 関数が読み込まれなかった。\r\n型名：%s, 関数名：%s\r\n"
-				, rawName, vtname, funcName).c_str());
+		full_path.pop_back();
 	}
-	return f;
+
+	return full_path;
 }
 
 KnowbugConfig::KnowbugConfig()
 {
 	hspDir = SelfDir();
-	auto&& ini = CIni { selfPath().c_str() };
+
+	auto ini_file_path = selfPath().to_hsp_string();
+	auto&& ini = CIni{ ini_file_path.data() };
 	
 	bTopMost   = ini.getBool( "Window", "bTopMost", false );
 	viewPosXIsDefault = !ini.existsKey("Window", "viewPosX");
@@ -53,7 +42,7 @@ KnowbugConfig::KnowbugConfig()
 	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
 	viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
 	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
-	fontFamily = ini.getString("Interface", "fontFamily", "MS Gothic");
+	fontFamily = SjisStringView{ ini.getString("Interface", "fontFamily", "MS Gothic") }.to_os_string();
 	fontSize   = ini.getInt("Interface", "fontSize", 13);
 	fontAntialias = ini.getBool("Interface", "fontAntialias", false);
 
@@ -75,6 +64,8 @@ KnowbugConfig::KnowbugConfig()
 	logsInvocation = ini.getBool("Log", "logsInvocation", false);
 #endif
 
+#if 0
+	// FIXME: 一時的に廃止
 	if ( bCustomDraw ) {
 		//color of internal types
 		for ( auto i = 0; i < HSPVAR_FLAG_USERDEF; ++i ) {
@@ -88,54 +79,5 @@ KnowbugConfig::KnowbugConfig()
 			clrTextExtra.emplace(key, cref);
 		}
 	}
-
-	vswInfo.resize(HSPVAR_FLAG_MAX + ctx->hsphed->max_varhpi);
-
-	// 拙作プラグイン拡張型表示
-	for ( auto&& vsw2 : vswInfoForInternal() ) {
-		tryRegisterVswInfo(vsw2.vtname
-			, VswInfo { nullptr, vsw2.addVar, vsw2.addValue });
-	}
-
-	// 拡張型の変数データを文字列化する関数
-	auto const& keys = ini.enumKeys("VardataString/UserdefTypes");
-	HSPAPICHAR *hactmp1 = 0;
-	for ( auto const& vtname : keys ) {
-		auto const dllPath = ini.getString("VardataString/UserdefTypes", vtname.c_str());
-		if ( auto hDll = module_handle_t { LoadLibrary(chartoapichar(dllPath,&hactmp1)) } ) {
-			auto const fReceive  = loadVswFunc<receiveVswMethods_t>(ini, hDll.get(), vtname.c_str(), "receiveVswMethods");
-			auto const fAddVar   = loadVswFunc<addVarUserdef_t  >(ini, hDll.get(), vtname.c_str(), "addVar");
-			auto const fAddValue = loadVswFunc<addValueUserdef_t>(ini, hDll.get(), vtname.c_str(), "addValue");
-
-#ifdef _DEBUG
-			Knowbug::logmes(
-				strf("型 %s の拡張表示情報が読み込まれた。\r\nVswInfo { %d, %d, %d }\r\n"
-					, vtname
-					, !! hDll.get(), !! fAddVar, !! fAddValue
-					).c_str());
 #endif
-			tryRegisterVswInfo(vtname
-				, VswInfo { std::move(hDll), fAddVar, fAddValue });
-			if ( fReceive ) {
-				fReceive(knowbug_getVswMethods());
-			}
-		} else {
-			Knowbug::logmesWarning(
-				strf("拡張型表示用の Dll の読み込みに失敗した。\r\n型名：%s, パス：%s\r\n"
-					, vtname, dllPath
-					).c_str());
-		}
-		freehac(&hactmp1);
-	}
-}
-
-bool KnowbugConfig::tryRegisterVswInfo(string const& vtname, VswInfo vswi)
-{
-	auto const hvp = hpiutil::tryFindHvp(vtname.c_str());
-	if ( ! hvp ) return false;
-
-	auto const vtflag = static_cast<vartype_t>(hvp->flag);
-	assert(0 < vtflag && vtflag < vswInfo.size());
-	vswInfo[vtflag] = std::move(vswi);
-	return true;
 }

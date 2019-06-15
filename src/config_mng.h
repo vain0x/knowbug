@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "encoding.h"
 #include "main.h"
 #include "module/Singleton.h"
 #include "module/handle_deleter.hpp"
@@ -10,42 +11,17 @@
 struct KnowbugConfig : public Singleton<KnowbugConfig>
 {
 	friend class Singleton<KnowbugConfig>;
-public:
-	struct VswInfo
-	{
-		module_handle_t inst;
-		addVarUserdef_t addVar;
-		addValueUserdef_t addValue;
-
-	public:
-		//workaround for VC++2013
-		VswInfo()
-			: inst {}, addVar {}, addValue {}
-		{}
-		VswInfo(VswInfo&& r)
-		{
-			*this = std::move(r);
-		}
-		VswInfo(module_handle_t&& inst, addVarUserdef_t addVar, addValueUserdef_t addValue)
-			: inst(std::move(inst)), addVar(addVar), addValue(addValue)
-		{}
-		auto operator=(VswInfo&& r) -> VswInfo&
-		{
-			inst = std::move(r.inst); addVar = r.addVar; addValue = r.addValue;
-			return *this;
-		}
-	};
 
 public:
 	//properties from ini (see it for detail)
 
-	string hspDir;
+	OsString hspDir;
 	bool bTopMost;
 	bool viewPosXIsDefault, viewPosYIsDefault;
 	int viewPosX, viewPosY;
 	int viewSizeX, viewSizeY;
 	int  tabwidth;
-	string fontFamily;
+	OsString fontFamily;
 	int fontSize;
 	bool fontAntialias;
 	int  maxLength, infiniteNest;
@@ -56,7 +32,6 @@ public:
 	bool bCustomDraw;
 	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;
 	unordered_map<string, COLORREF> clrTextExtra;
-	std::vector<VswInfo> vswInfo;
 	string logPath;
 	bool warnsBeforeClearingLog;
 	bool scrollsLogAutomatically;
@@ -64,12 +39,16 @@ public:
 	bool logsInvocation;
 #endif
 
-	auto commonPath() const -> string { return hspDir + "common"; }
-	auto selfPath() const -> string { return hspDir + "knowbug.ini"; }
+	auto commonPath() const -> OsString {
+		return OsString{ hspDir + TEXT("common") };
+	}
+
+	auto selfPath() const -> OsString {
+		return OsString{ hspDir + TEXT("knowbug.ini") };
+	}
 
 private:
 	KnowbugConfig();
-	bool tryRegisterVswInfo(string const& vtname, VswInfo vswi);
 
 public:
 	//to jusitify existent codes (such as g_config->property)
