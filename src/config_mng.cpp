@@ -45,11 +45,6 @@ KnowbugConfig::KnowbugConfig()
 	fontSize   = ini.getInt("Interface", "fontSize", 13);
 	fontAntialias = ini.getBool("Interface", "fontAntialias", false);
 
-	maxLength    = ini.getInt("Varinfo", "maxlen", 0x10000 - 1);
-	infiniteNest = ini.getInt("Varinfo", "infiniteNest", 8);
-	showsVariableAddress = ini.getBool("Varinfo", "showsVariableAddress", true);
-	showsVariableSize    = ini.getBool("Varinfo", "showsVariableSize", true);
-	showsVariableDump    = ini.getBool("Varinfo", "showsVariableDump", true);
 	cachesVardataString  = ini.getBool("Varinfo", "cachesVardataString", false);
 	prefixHiddenModule   = ini.getString("Varinfo", "prefixHiddenModule", "@__").to_hsp_string();
 

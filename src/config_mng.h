@@ -23,8 +23,6 @@ public:
 	OsString fontFamily;
 	int fontSize;
 	bool fontAntialias;
-	int  maxLength, infiniteNest;
-	bool showsVariableAddress, showsVariableSize, showsVariableDump;
 	HspString prefixHiddenModule;
 	bool cachesVardataString;
 	bool bResultNode;

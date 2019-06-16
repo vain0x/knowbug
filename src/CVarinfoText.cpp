@@ -19,10 +19,12 @@
 using WrapCall::ModcmdCallInfo;
 #endif
 
+static auto const MAX_TEXT_LENGTH = std::size_t{ 0x8000 };
+
 CVarinfoText::CVarinfoText()
 	: writer_(std::make_shared<CStrBuf>())
 {
-	writer_.getBuf()->limit(std::max(0x100, g_config->maxLength));
+	writer_.getBuf()->limit(MAX_TEXT_LENGTH);
 }
 
 auto CVarinfoText::getString() const -> string const&
@@ -48,18 +50,14 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 	// 変数に関する情報
 	getWriter().catln(strf("変数名: %s", name));
 	getWriter().catln(strf("変数型: %s", stringizeVartype(pval)));
-	if ( g_config->showsVariableAddress ) {
-		getWriter().catln(
-			strf("アドレス: %p, %p"
-				, cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)
-				));
-	}
-	if ( g_config->showsVariableSize ) {
-		getWriter().catln(
-			strf("サイズ: %d / %d [byte]"
-				, pval->size, bufsize
-				));
-	}
+	getWriter().catln(
+		strf("アドレス: %p, %p"
+			, cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)
+			));
+	getWriter().catln(
+		strf("サイズ: %d / %d [byte]"
+			, pval->size, bufsize
+			));
 	getWriter().catCrlf();
 
 	// 変数の内容に関する情報
@@ -68,9 +66,7 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 	getWriter().catCrlf();
 
 	// メモリダンプ
-	if ( g_config->showsVariableDump ) {
-		 getWriter().catDump(pMemBlock, static_cast<size_t>(bufsize));
-	}
+	getWriter().catDump(pMemBlock, static_cast<size_t>(bufsize));
 }
 
 //------------------------------------------------
@@ -80,25 +76,23 @@ void CVarinfoText::addSysvar(hpiutil::Sysvar::Id id)
 {
 	getWriter().catln(strf("変数名: %s\t(システム変数)", hpiutil::Sysvar::List[id].name));
 	getWriter().catCrlf();
-	
+
 	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
 		.addSysvar(id);
 
 	getWriter().catCrlf();
 
 	// メモリダンプ
-	if ( g_config->showsVariableDump ) {
-		auto dump = hpiutil::Sysvar::tryDump(id);
-		if ( dump.first ) {
-			getWriter().catDump(dump.first, dump.second);
-		}
+	auto dump = hpiutil::Sysvar::tryDump(id);
+	if ( dump.first ) {
+		getWriter().catDump(dump.first, dump.second);
 	}
 }
 
 #if with_WrapCall
 //------------------------------------------------
 // 呼び出しデータから生成
-// 
+//
 // @prm prmstk: nullptr => 引数未確定
 //------------------------------------------------
 void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
@@ -112,7 +106,7 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 		.addCall(stdat, prmstk_safety);
 
 	auto const prmstk = prmstk_safety.first;
-	if ( prmstk && g_config->showsVariableDump ) {
+	if ( prmstk ) {
 		getWriter().catCrlf();
 		getWriter().catDump(prmstk, static_cast<size_t>(stdat->size));
 	}
@@ -186,7 +180,7 @@ void CVarinfoText::addSysvarsOverview()
 #ifdef with_WrapCall
 //------------------------------------------------
 // [add] 呼び出し概観
-// 
+//
 // depends on WrapCall
 //------------------------------------------------
 void CVarinfoText::addCallsOverview(optional_ref<ResultNodeData const> pLastResult)

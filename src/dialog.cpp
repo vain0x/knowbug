@@ -390,7 +390,6 @@ void Dialog::createMain()
 				, (LPCTSTR)IDD_VIEW_PANE
 				, hViewWnd.get(), (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
-		setEditStyle(hViewEdit, g_config->maxLength);
 
 		ShowWindow(hPane, SW_SHOW);
 	}
