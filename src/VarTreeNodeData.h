@@ -49,7 +49,7 @@ public:
 
 	auto id() const -> hpiutil::Sysvar::Id { return id_; }
 	auto name() const -> string override { return hpiutil::Sysvar::List[id_].name; }
-	
+
 	auto vartype() const -> vartype_t override
 	{
 		return hpiutil::Sysvar::List[id_].type;
@@ -200,18 +200,14 @@ class VTNodeDynamic
 	friend class VTRoot;
 
 	vector<shared_ptr<VTNodeInvoke>> children_;
-	unique_ptr<VTNodeResult> independedResult_;
 public:
 	void addInvokeNode(shared_ptr<VTNodeInvoke> node);
 	void eraseLastInvokeNode();
-	void addResultNodeIndepended(unique_ptr<VTNodeResult> node);
 
 	auto invokeNodes() const -> decltype(children_) const& { return children_; }
-	auto lastIndependedResult() const -> decltype(independedResult_) const& { return independedResult_; }
 
 	void onBgnCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo);
-	auto onEndCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vtype)
-		-> optional_ref<ResultNodeData const>;
+	void onEndCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vtype);
 
 	auto name() const -> string override { return "+dynamic"; }
 	auto parent() const -> optional_ref<VTNodeData> override;
@@ -225,7 +221,6 @@ class VTNodeInvoke
 	: public VTNodeData
 {
 	WrapCall::ModcmdCallInfo::shared_ptr_type callinfo_;
-	vector<unique_ptr<ResultNodeData>> results_;
 
 public:
 	VTNodeInvoke(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo)
@@ -233,7 +228,6 @@ public:
 	{}
 
 	auto callinfo() const -> WrapCall::ModcmdCallInfo const& { return *callinfo_; }
-	void addResultDepended(unique_ptr<ResultNodeData> result);
 
 	auto name() const -> string override { return callinfo_->name(); }
 	auto parent() const -> optional_ref<VTNodeData> override;
@@ -241,34 +235,6 @@ public:
 	void acceptVisitor(Visitor& visitor) const override { visitor.fInvoke(*this); }
 protected:
 	bool updateSub(bool deep) override;
-};
-
-struct ResultNodeData
-	: public VTNodeData
-{
-	WrapCall::ModcmdCallInfo::shared_ptr_type const callinfo;
-
-	// 返値の型
-	vartype_t const vtype;
-
-	// 値の文字列化
-	string const treeformedString;
-	string const lineformedString;
-
-	// これに依存する呼び出し
-	std::weak_ptr<VTNodeInvoke> const invokeDepended;
-
-public:
-	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vt);
-	ResultNodeData(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PVal const* pvResult);
-
-	auto dependedNode() const -> shared_ptr<VTNodeInvoke>;
-
-	auto vartype() const -> vartype_t override { return vtype; }
-	auto name() const -> string override { return callinfo->name(); }
-	auto parent() const -> optional_ref<VTNodeData> override;
-
-	void acceptVisitor(Visitor& visitor) const override { visitor.fResult(*this); }
 };
 
 #endif //defined(with_WrapCall)

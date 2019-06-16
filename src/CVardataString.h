@@ -57,7 +57,6 @@ public:
 
 #ifdef with_WrapCall
 	void addCall(stdat_t stdat, std::pair<void const*, bool> prmstk);
-	void addResult(stdat_t stdat, PDAT const* resultPtr, vartype_t type);
 #endif
 
 public:

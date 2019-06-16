@@ -167,14 +167,13 @@ void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 
 void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype)
 {
-	auto pResult = VTRoot::dynamic().onEndCalling(callinfo, ptr, vtype);
+	VTRoot::dynamic().onEndCalling(callinfo, ptr, vtype);
 
 	if ( Dialog::logsCalling() ) {
 		auto logText =
 			strf
-			( "[CallEnd] %s%s\r\n"
+			( "[CallEnd] %s\r\n"
 			, callinfo->name()
-			, (pResult ? ("-> " + pResult->lineformedString) : "")
 			);
 		Knowbug::logmes(logText.c_str());
 	}

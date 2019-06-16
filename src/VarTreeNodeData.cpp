@@ -88,14 +88,7 @@ auto VTNodeDynamic::parent() const -> optional_ref<VTNodeData>
 
 void VTNodeDynamic::addInvokeNode(shared_ptr<VTNodeInvoke> node)
 {
-	independedResult_ = nullptr;
-
 	children_.emplace_back(std::move(node));
-}
-
-void VTNodeDynamic::addResultNodeIndepended(unique_ptr<VTNodeResult> node)
-{
-	independedResult_ = std::move(node);
 }
 
 void VTNodeDynamic::eraseLastInvokeNode()
@@ -109,9 +102,6 @@ bool VTNodeDynamic::updateSub(bool deep)
 		for ( auto& e : children_ ) {
 			e->updateDownDeep();
 		}
-		if ( independedResult_ ) {
-			independedResult_->updateDownDeep();
-		}
 	}
 	return true;
 }
@@ -122,33 +112,12 @@ void VTNodeDynamic::onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo
 	addInvokeNode(std::move(node));
 }
 
-auto VTNodeDynamic::onEndCalling
+void VTNodeDynamic::onEndCalling
 	( ModcmdCallInfo::shared_ptr_type const& callinfo
 	, PDAT const* ptr, vartype_t vtype
-	) -> optional_ref<ResultNodeData const>
+	)
 {
-	// 返値ノードデータの生成
-	// ptr の生存期限が今だけなので、他のことをする前に、文字列化などの処理を済ませておく必要がある。
-	auto resultNode =
-		unique_ptr<ResultNodeData>
-		{ (usesResultNodes() && ptr != nullptr && vtype != HSPVAR_FLAG_NONE)
-			? std::make_unique<ResultNodeData>(callinfo, ptr, vtype)
-			: nullptr
-		};
-	auto* const resultRawPtr = resultNode.get();
-
-	if ( resultNode ) {
-		if ( auto node = resultNode->dependedNode() ) {
-			node->addResultDepended(std::move(resultNode));
-		} else {
-			addResultNodeIndepended(std::move(resultNode));
-		}
-	}
-
 	eraseLastInvokeNode();
-
-	// 生存期間は次の呼び出しが起こるまで
-	return resultRawPtr;
 }
 
 auto VTNodeInvoke::parent() const -> optional_ref<VTNodeData>
@@ -156,28 +125,11 @@ auto VTNodeInvoke::parent() const -> optional_ref<VTNodeData>
 	return &VTRoot::dynamic();
 }
 
-void VTNodeInvoke::addResultDepended(unique_ptr<ResultNodeData> result)
-{
-	results_.emplace_back(std::move(result));
-}
-
 bool VTNodeInvoke::updateSub(bool deep)
 {
 	if ( deep ) {
-		for ( auto& e : results_ ) {
-			e->updateDownDeep();
-		}
 	}
 	return true;
-}
-
-template<typename TWriter>
-static auto stringFromResultData(ModcmdCallInfo const& callinfo, PDAT const* ptr, vartype_t vt) -> string
-{
-	auto p = std::make_shared<CStrBuf>();
-	CVardataStrWriter::create<TWriter>(p)
-		.addResult(callinfo.stdat, ptr, vt);
-	return p->getMove();
 }
 
 static auto tryFindDependedNode(ModcmdCallInfo const* callinfo) -> shared_ptr<VTNodeInvoke>
@@ -191,32 +143,6 @@ static auto tryFindDependedNode(ModcmdCallInfo const* callinfo) -> shared_ptr<VT
 		}
 	}
 	return nullptr;
-}
-
-ResultNodeData::ResultNodeData(ModcmdCallInfo::shared_ptr_type const& callinfo, PVal const* pvResult)
-	: ResultNodeData(callinfo, pvResult->pt, pvResult->flag)
-{ }
-
-ResultNodeData::ResultNodeData(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT const* ptr, vartype_t vt)
-	: callinfo(callinfo)
-	, vtype(vt)
-	, invokeDepended(tryFindDependedNode(callinfo.get()))
-	, treeformedString(stringFromResultData<CTreeformedWriter>(*callinfo, ptr, vt))
-	, lineformedString(stringFromResultData<CLineformedWriter>(*callinfo, ptr, vt))
-{ }
-
-auto ResultNodeData::dependedNode() const -> shared_ptr<VTNodeInvoke>
-{
-	return invokeDepended.lock();
-}
-
-auto ResultNodeData::parent() const -> optional_ref<VTNodeData>
-{
-	if ( auto node = dependedNode() ) {
-		return node.get();
-	} else {
-		return &VTRoot::dynamic();
-	}
 }
 
 #endif //defined(with_WrapCall)

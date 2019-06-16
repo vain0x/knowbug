@@ -207,16 +207,11 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 #ifdef with_WrapCall
 		void fDynamic(VTNodeDynamic const&) override
 		{
-			varinf.addCallsOverview(VTRoot::dynamic().lastIndependedResult().get());
+			varinf.addCallsOverview();
 		}
 		void fInvoke(VTNodeInvoke const& node) override
 		{
 			varinf.addCall(node.callinfo());
-		}
-		void fResult(VTNodeResult const& node) override
-		{
-			assert(usesResultNodes());
-			varinf.addResult(node);
 		}
 #endif
 		auto apply(VTNodeData const& node) -> shared_ptr<string const>
@@ -331,7 +326,6 @@ auto makeNodeName(VTNodeData const& node) -> string
 		}
 
 		void fInvoke(VTNodeInvoke const& node) override { result = "\'" + node.name(); }
-		void fResult(VTNodeResult const& node) override { result = "\"" + node.name(); }
 	private:
 		string result;
 	};

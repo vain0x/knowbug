@@ -24,7 +24,6 @@ public:
 	int fontSize;
 	bool fontAntialias;
 	HspString prefixHiddenModule;
-	bool bResultNode;
 	OsString logPath;
 	bool warnsBeforeClearingLog;
 	bool scrollsLogAutomatically;
@@ -53,5 +52,3 @@ public:
 };
 
 extern KnowbugConfig::SingletonAccessor g_config;
-
-static bool usesResultNodes() { return g_config->bResultNode; }

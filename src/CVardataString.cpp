@@ -60,7 +60,7 @@ void CVardataStrWriter::addVar(char const* name, PVal const* pval)
 
 //------------------------------------------------
 // [add][item] 単体変数
-// 
+//
 // @ 要素の値を出力する。
 //------------------------------------------------
 void CVardataStrWriter::addVarScalar(char const* name, PVal const* pval)
@@ -209,7 +209,7 @@ void CVardataStrWriter::addValueStruct(char const* name, FlexValue const* fv)
 
 //------------------------------------------------
 // [add][item] prmstack
-// 
+//
 // @ 中身だけ出力する。
 //------------------------------------------------
 void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> prmstk)
@@ -308,7 +308,7 @@ void CVardataStrWriter::addParameter(char const* name, stdat_t stdat, stprm_t st
 
 //------------------------------------------------
 // [add] システム変数
-// 
+//
 // @result: メモリダンプするバッファとサイズ
 //------------------------------------------------
 void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
@@ -393,14 +393,4 @@ void CVardataStrWriter::addCall(stdat_t stdat, std::pair<void const*, bool> prms
 		addPrmstack(stdat, prmstk);
 	}
 	getWriter().catNodeEnd(")");
-}
-
-void CVardataStrWriter::addResult(stdat_t stdat, PDAT const* resultPtr, vartype_t resultType)
-{
-	assert(!! resultPtr);
-	auto name = hpiutil::STRUCTDAT_name(stdat);
-
-	getWriter().catNodeBegin(name, strf("%s => ", name).c_str());
-	addValue(".result", resultType, resultPtr);
-	getWriter().catNodeEnd("");
 }

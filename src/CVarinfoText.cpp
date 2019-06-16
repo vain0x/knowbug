@@ -122,16 +122,6 @@ void CVarinfoText::addCallSignature(ModcmdCallInfo const& callinfo, stdat_t stda
 	getWriter().catln(strf("仮引数: (%s)", stringizePrmlist(stdat)));
 }
 
-//------------------------------------------------
-// 返値データから生成
-//------------------------------------------------
-void CVarinfoText::addResult(ResultNodeData const& result)
-{
-	addCallSignature(*result.callinfo, result.callinfo->stdat);
-	getWriter().catCrlf();
-	getWriter().cat(result.treeformedString);
-}
-
 #endif
 
 //**********************************************************
@@ -183,7 +173,7 @@ void CVarinfoText::addSysvarsOverview()
 //
 // depends on WrapCall
 //------------------------------------------------
-void CVarinfoText::addCallsOverview(optional_ref<ResultNodeData const> pLastResult)
+void CVarinfoText::addCallsOverview()
 {
 	getWriter().catln("[呼び出し履歴]");
 
@@ -191,11 +181,6 @@ void CVarinfoText::addCallsOverview(optional_ref<ResultNodeData const> pLastResu
 		CVardataStrWriter::create<CLineformedWriter>(getBuf())
 			.addCall(callinfo->stdat, callinfo->tryGetPrmstk());
 		getWriter().catCrlf();
-	}
-
-	if ( pLastResult ) {
-		getWriter().cat("-> ");
-		getWriter().catln(pLastResult->lineformedString);
 	}
 }
 #endif

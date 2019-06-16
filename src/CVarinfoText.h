@@ -5,7 +5,6 @@
 #include "module/CStrWriter.h"
 
 class VTNodeModule;
-struct ResultNodeData;
 
 namespace WrapCall
 {
@@ -22,7 +21,6 @@ public:
 	void addSysvar(hpiutil::Sysvar::Id id);
 #ifdef with_WrapCall
 	void addCall(WrapCall::ModcmdCallInfo const& callinfo);
-	void addResult(ResultNodeData const& result);
 private:
 	void addCallSignature(WrapCall::ModcmdCallInfo const& callinfo, stdat_t stdat);
 public:
@@ -31,7 +29,7 @@ public:
 	void addModuleOverview(char const* name, VTNodeModule const& tree);
 	void addSysvarsOverview();
 #ifdef with_WrapCall
-	void addCallsOverview(optional_ref<ResultNodeData const> lastResult);
+	void addCallsOverview();
 #endif
 	void addGeneralOverview();
 

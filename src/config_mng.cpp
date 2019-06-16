@@ -47,8 +47,6 @@ KnowbugConfig::KnowbugConfig()
 
 	prefixHiddenModule   = ini.getString("Varinfo", "prefixHiddenModule", "@__").to_hsp_string();
 
-	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
-
 	logPath = ini.getString("Log", "autoSavePath", "").to_owned();
 	warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
 	scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
