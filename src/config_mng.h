@@ -28,8 +28,6 @@ public:
 	HspString prefixHiddenModule;
 	bool cachesVardataString;
 	bool bResultNode;
-	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;
-	unordered_map<string, COLORREF> clrTextExtra;
 	OsString logPath;
 	bool warnsBeforeClearingLog;
 	bool scrollsLogAutomatically;
