@@ -45,7 +45,6 @@ KnowbugConfig::KnowbugConfig()
 	fontSize   = ini.getInt("Interface", "fontSize", 13);
 	fontAntialias = ini.getBool("Interface", "fontAntialias", false);
 
-	cachesVardataString  = ini.getBool("Varinfo", "cachesVardataString", false);
 	prefixHiddenModule   = ini.getString("Varinfo", "prefixHiddenModule", "@__").to_hsp_string();
 
 	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );

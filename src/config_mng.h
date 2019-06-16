@@ -24,7 +24,6 @@ public:
 	int fontSize;
 	bool fontAntialias;
 	HspString prefixHiddenModule;
-	bool cachesVardataString;
 	bool bResultNode;
 	OsString logPath;
 	bool warnsBeforeClearingLog;

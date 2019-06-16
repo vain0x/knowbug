@@ -40,9 +40,6 @@ struct VTView::Impl
 
 	unordered_map<VTNodeData const*, HTREEITEM> itemFromNode_;
 
-	//ノードの文字列のキャッシュ (停止中の間のみ有効)
-	unordered_map<HTREEITEM, shared_ptr<string const>> textCache_;
-
 	//ノードごとのビューウィンドウのキャレット位置
 	unordered_map<HTREEITEM, int> viewCaret_;
 
@@ -152,8 +149,6 @@ void LogObserver::afterAppend(char const* addition)
 
 void VTView::update()
 {
-	p_->textCache_.clear();
-
 #ifdef with_WrapCall
 	VTRoot::dynamic().updateDeep();
 #endif
@@ -241,10 +236,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 		}
 	};
 
-	auto stringPtr =
-		(g_config->cachesVardataString && hItem != p_->hNodeLog_)
-		? map_find_or_insert(p_->textCache_, hItem, std::move(get))
-		: get();
+	auto stringPtr = get();
 	assert(stringPtr);
 	return stringPtr;
 }
