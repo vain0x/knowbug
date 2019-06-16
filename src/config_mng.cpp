@@ -10,7 +10,7 @@ KnowbugConfig::SingletonAccessor g_config;
 
 static auto SelfDir() -> OsString {
 	// knowbug の DLL の絶対パスを取得する。
-	HSPAPICHAR path[MAX_PATH];
+	TCHAR path[MAX_PATH];
 	GetModuleFileName(GetModuleHandle(nullptr), path, MAX_PATH);
 	auto full_path = OsString{ path };
 
