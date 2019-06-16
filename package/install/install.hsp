@@ -16,8 +16,8 @@
 #deffunc app_main
 
 	dir_package = getpath(dir_cur, 32)
-	dst_names = "hsp3debug.dll",         "hsp3debug_64.dll",         "common\\WrapCall.as", "common\\knowbug\\knowbug.as", "common\\knowbug\\knowbugVsw.as"
-	src_names = "hsp3debug_knowbug.dll", "hsp3debug_64_knowbug.dll", "WrapCall.as",         "knowbug.as",                  "knowbugVsw.as"
+	dst_names = "hsp3debug.dll",         "hsp3debug_64.dll",         "common\\WrapCall.as"
+	src_names = "hsp3debug_knowbug.dll", "hsp3debug_64_knowbug.dll", "WrapCall.as"
 	cnt_files = length(dst_names)
 	assert cnt_files == length(src_names)
 	
