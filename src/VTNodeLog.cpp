@@ -17,7 +17,7 @@ VTNodeLog::VTNodeLog()
 VTNodeLog::~VTNodeLog()
 {
 	if ( ! g_config->logPath.empty() ) {
-		save(g_config->logPath.c_str());
+		save(g_config->logPath.as_ref());
 	}
 }
 
@@ -26,9 +26,9 @@ auto VTNodeLog::str() const -> string const&
 	return p_->log_;
 }
 
-bool VTNodeLog::save(char const* filePath) const
+bool VTNodeLog::save(OsStringView const& file_path) const
 {
-	auto ofs = std::ofstream { filePath };
+	auto ofs = std::ofstream { file_path.data() };
 	ofs.write(str().c_str(), str().size());
 	return ofs.good();
 }

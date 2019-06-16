@@ -25,12 +25,12 @@ public:
 	bool fontAntialias;
 	int  maxLength, infiniteNest;
 	bool showsVariableAddress, showsVariableSize, showsVariableDump;
-	string prefixHiddenModule;
+	HspString prefixHiddenModule;
 	bool cachesVardataString;
 	bool bResultNode;
 	std::array<COLORREF, HSPVAR_FLAG_USERDEF> clrText;
 	unordered_map<string, COLORREF> clrTextExtra;
-	string logPath;
+	OsString logPath;
 	bool warnsBeforeClearingLog;
 	bool scrollsLogAutomatically;
 #ifdef with_WrapCall

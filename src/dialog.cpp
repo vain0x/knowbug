@@ -121,7 +121,7 @@ namespace LogBox {
 		VTRoot::log().clear();
 	}
 
-	void save(char const* filepath) {
+	void save(OsStringView const& filepath) {
 		auto success = VTRoot::log().save(filepath);
 
 		if (!success) {
@@ -132,12 +132,16 @@ namespace LogBox {
 
 	void save() {
 		static auto const filter =
-			"log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0";
-		auto path =
-			Dialog_SaveFileName(g_res->mainWindow.get()
-				, filter, "log", "hspdbg.log");
-		if ( path ) {
-			save(path->c_str());
+			TEXT("log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0");
+		auto path = Dialog_SaveFileName(
+			g_res->mainWindow.get(),
+			filter,
+			TEXT("log"),
+			TEXT("hspdbg.log")
+		);
+
+		if (path) {
+			save(path->as_ref());
 		}
 	}
 } //namespace LogBox

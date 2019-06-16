@@ -31,9 +31,8 @@ KnowbugConfig::KnowbugConfig()
 {
 	hspDir = SelfDir();
 
-	auto ini_file_path = selfPath().to_hsp_string();
-	auto&& ini = CIni{ ini_file_path.data() };
-	
+	auto&& ini = CIni{ selfPath() };
+
 	bTopMost   = ini.getBool( "Window", "bTopMost", false );
 	viewPosXIsDefault = !ini.existsKey("Window", "viewPosX");
 	viewPosYIsDefault = !ini.existsKey("Window", "viewPosY");
@@ -42,7 +41,7 @@ KnowbugConfig::KnowbugConfig()
 	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
 	viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
 	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
-	fontFamily = SjisStringView{ ini.getString("Interface", "fontFamily", "MS Gothic") }.to_os_string();
+	fontFamily = ini.getString("Interface", "fontFamily", "MS Gothic").to_owned();
 	fontSize   = ini.getInt("Interface", "fontSize", 13);
 	fontAntialias = ini.getBool("Interface", "fontAntialias", false);
 
@@ -52,11 +51,11 @@ KnowbugConfig::KnowbugConfig()
 	showsVariableSize    = ini.getBool("Varinfo", "showsVariableSize", true);
 	showsVariableDump    = ini.getBool("Varinfo", "showsVariableDump", true);
 	cachesVardataString  = ini.getBool("Varinfo", "cachesVardataString", false);
-	prefixHiddenModule   = ini.getString("Varinfo", "prefixHiddenModule", "@__");
-	
+	prefixHiddenModule   = ini.getString("Varinfo", "prefixHiddenModule", "@__").to_hsp_string();
+
 	bResultNode = ini.getBool( "Varinfo", "useResultNode", false );
 
-	logPath = ini.getString("Log", "autoSavePath", "");
+	logPath = ini.getString("Log", "autoSavePath", "").to_owned();
 	warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
 	scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
 #ifdef with_WrapCall

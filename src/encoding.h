@@ -269,6 +269,11 @@ public:
 		return Utf8String{ std::string{ str } };
 	}
 
+	auto operator =(Utf8String&& other) -> Utf8String & {
+		swap(other);
+		return *this;
+	}
+
 	auto as_ref() const -> Utf8StringView {
 		return Utf8StringView{ data(), size() };
 	}

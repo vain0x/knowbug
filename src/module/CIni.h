@@ -5,36 +5,28 @@
 
 #include <vector>
 #include <string>
-
+#include "../encoding.h"
 #include "supio/supio.h"
 
-class CIni
-{
-private:
-	static auto const stc_defaultBufSize = size_t { 1024 };
-
-private:
-	std::string const fileName_ ;
-	mutable std::vector<HSPAPICHAR> buf_;
-	mutable std::vector<HSPCHAR> buf8_;
+class CIni {
+	OsString const file_name_;
+	std::vector<TCHAR> buf_;
 
 public:
-	explicit CIni(char const* fname);
+	explicit CIni(OsString&& file_name);
 
-	bool getBool(char const* sec, char const* key, bool defval = false) const;
-	auto getInt(char const* sec, char const* key, int defval = 0) const -> int;
-	auto getString(char const* sec, char const* key
-		, char const* defval = "", size_t size = 0
-		) const -> char const*;
+	bool getBool(char const* section, char const* key, bool defval_value = false);
 
-	void setBool(char const* sec, char const* key, bool val = false);
-	void setInt(char const* sec, char const* key, int val, int radix = 10);
-	void setString(char const* sec, char const* key, char const* val);
+	auto getInt(char const* section, char const* key, int default_value = 0) const -> int;
 
-	bool existsKey(char const* sec, char const* key) const;
-private:
-	auto buf() const -> HSPAPICHAR* { return buf_.data(); };
-	auto buf8() const -> HSPCHAR* { return buf8_.data(); };
+	auto getString(
+		char const* section,
+		char const* key,
+		char const* default_value = "",
+		size_t size = 0
+	) -> OsStringView;
+
+	bool existsKey(char const* sec, char const* key);
 
 private:
 	CIni(CIni const& obj) = delete;

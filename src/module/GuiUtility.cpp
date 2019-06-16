@@ -185,31 +185,31 @@ auto TreeView_GetItemAtPoint(HWND hwndTree, POINT pt) -> HTREEITEM
 		? hItem : nullptr;
 }
 
-auto Dialog_SaveFileName(HWND owner
-	, char const* filter, char const* defaultFilter, char const* defaultFileName)
-	-> std::unique_ptr<string>
+auto Dialog_SaveFileName(
+	HWND owner, LPCTSTR filter, LPCTSTR defaultFilter, LPCTSTR defaultFileName
+)->std::unique_ptr<OsString>
 {
-	auto fileName = std::array<char, MAX_PATH> {};
-	auto fullName = std::array<char, MAX_PATH> {};
-	std::strcpy(fullName.data(), defaultFileName);
-	HSPAPICHAR *hactmp1;
-	HSPAPICHAR *hactmp2;
-	HSPAPICHAR *hactmp3;
-	HSPAPICHAR *hactmp4;
+	auto fileName = std::array<TCHAR, MAX_PATH>{};
+	auto fullName = std::array<TCHAR, MAX_PATH>{};
 
 	auto ofn = OPENFILENAME {};
 	ofn.lStructSize    = sizeof(ofn);
 	ofn.hwndOwner      = owner;
-	ofn.lpstrFilter    = chartoapichar(filter,&hactmp1);
-	ofn.lpstrFile      = chartoapichar(fullName.data(),&hactmp2);
-	ofn.lpstrFileTitle = chartoapichar(fileName.data(),&hactmp3);
+	ofn.lpstrFilter    = filter;
+	ofn.lpstrFile      = fullName.data();
+	ofn.lpstrFileTitle = fileName.data();
 	ofn.nMaxFile       = fullName.size();
 	ofn.nMaxFileTitle  = fileName.size();
 	ofn.Flags          = OFN_OVERWRITEPROMPT;
 	ofn.lpstrTitle     = TEXT("名前を付けて保存");
-	ofn.lpstrDefExt    = chartoapichar(defaultFilter,&hactmp4);
-	return (GetSaveFileName(&ofn))
-		? std::make_unique<string>(fullName.data()) : nullptr;
+	ofn.lpstrDefExt    = defaultFilter;
+
+	auto ok = GetSaveFileName(&ofn);
+	if (!ok) {
+		return nullptr;
+	}
+
+	return std::make_unique<OsString>(fullName.data());
 }
 
 auto Font_Create(OsStringView family, int size, bool antialias) -> HFONT

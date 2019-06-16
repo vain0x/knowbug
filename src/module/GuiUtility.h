@@ -31,9 +31,8 @@ void   TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem);
 auto TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem) -> HTREEITEM;
 auto TreeView_GetItemAtPoint(HWND hwndTree, POINT pt) -> HTREEITEM;
 
-auto Dialog_SaveFileName
-	( HWND owner
-	, char const* filter, char const* defaultFilter, char const* defaultFileName
-	) -> std::unique_ptr<string>;
+auto Dialog_SaveFileName(
+	HWND owner, LPCTSTR filter, LPCTSTR defaultFilter, LPCTSTR defaultFileName
+) -> std::unique_ptr<OsString>;
 
 auto Font_Create(OsStringView family, int size, bool antialias) -> HFONT;

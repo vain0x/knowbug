@@ -1,6 +1,7 @@
 ﻿#ifndef IG_VARTREE_NODE_DATA_H
 #define IG_VARTREE_NODE_DATA_H
 
+#include "encoding.h"
 #include "main.h"
 #include "VarTreeNodeData_fwd.h"
 #include "WrapCall/ModcmdCallInfo.h"
@@ -109,7 +110,7 @@ class VTNodeLog
 public:
 	virtual ~VTNodeLog();
 	auto str() const -> string const&;
-	bool save(char const* fileName) const;
+	bool save(OsStringView const& file_path) const;
 	void clear();
 	void append(char const* addition);
 
