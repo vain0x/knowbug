@@ -1,11 +1,14 @@
 ﻿
 #include <map>
+#include "encoding.h"
 #include "module/utility.h"
 #include "DebugInfo.h"
 #include "config_mng.h"
 #include "VarTreeNodeData.h"
 
 using std::map;
+
+static auto const HIDDEN_MODULE_PREFIX = HspStringView{ "@__" };
 
 string const VTNodeModule::Global::Name { "@" };
 
@@ -87,9 +90,8 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 {
 	assert(pModname[0] == '@');
 
-	//Don't add module whose name begins with a certain prefix.
-	if ( g_config->prefixHiddenModule != ""
-		&& begins_with(pModname + 0, pModname + strlen(pModname), RANGE_ALL(g_config->prefixHiddenModule)) ) {
+	// 特定のプレフィックスを持つモジュールは表示しない。
+	if ( begins_with(pModname + 0, pModname + strlen(pModname), RANGE_ALL(HIDDEN_MODULE_PREFIX)) ) {
 		return nullptr;
 	}
 
@@ -101,7 +103,7 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 		// スコープを1段除いて、子モジュールに挿入する
 		auto modname2 = string(pModname, pModnameLast);
 		return child->p_->insertModule(modname2.c_str());
-		
+
 	} else {
 		auto modname = string { pModname };
 		auto& node = map_find_or_insert(modules_, modname, [&]() {

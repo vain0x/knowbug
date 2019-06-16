@@ -23,7 +23,6 @@ public:
 	OsString fontFamily;
 	int fontSize;
 	bool fontAntialias;
-	HspString prefixHiddenModule;
 	OsString logPath;
 	bool warnsBeforeClearingLog;
 	bool scrollsLogAutomatically;

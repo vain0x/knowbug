@@ -45,8 +45,6 @@ KnowbugConfig::KnowbugConfig()
 	fontSize   = ini.getInt("Interface", "fontSize", 13);
 	fontAntialias = ini.getBool("Interface", "fontAntialias", false);
 
-	prefixHiddenModule   = ini.getString("Varinfo", "prefixHiddenModule", "@__").to_hsp_string();
-
 	logPath = ini.getString("Log", "autoSavePath", "").to_owned();
 	warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
 	scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
