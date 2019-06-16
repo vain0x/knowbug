@@ -31,16 +31,10 @@ public:
 	void setInt(char const* sec, char const* key, int val, int radix = 10);
 	void setString(char const* sec, char const* key, char const* val);
 
-	auto enumSections()            const -> std::vector<std::string>;
-	auto enumKeys(char const* sec) const -> std::vector<std::string>;
-
-	void removeSection(char const* sec);
-	void removeKey(char const* sec, char const* key);
 	bool existsKey(char const* sec, char const* key) const;
 private:
 	auto buf() const -> HSPAPICHAR* { return buf_.data(); };
 	auto buf8() const -> HSPCHAR* { return buf8_.data(); };
-	auto enumImpl(char const* secOrNull) const -> std::vector<std::string>;
 
 private:
 	CIni(CIni const& obj) = delete;
