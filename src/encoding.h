@@ -41,6 +41,7 @@ class OsStringView {
 	mutable std::size_t size_;
 
 public:
+	// FIXME: NULL 初期化はよくない。出力引数として使うときに要求されるので用意している。
 	OsStringView() : inner_(nullptr), size_(0) {}
 
 	OsStringView(OsStringView&& other) : inner_(other.inner_), size_(other.size_) {}
@@ -106,12 +107,12 @@ class OsString
 public:
 	OsString() {}
 
-	// FIXME: 暗黙のコピーはよくない。unordered_map に要求される。
+	OsString(OsString&& other) : basic_string(other) {}
+
+	// FIXME: 暗黙のコピーはよくない。map のキーとして使うときに要求されるので用意している。
 	OsString(OsString const& other) : basic_string(other) {}
 
 	auto operator =(OsString const& other) const->OsString& = delete;
-
-	OsString(OsString&& other) : basic_string(other) {}
 
 	explicit OsString(std::basic_string<TCHAR>&& inner) : basic_string(inner) {}
 
@@ -142,10 +143,12 @@ public:
 };
 
 class SjisStringView {
-	char const* const inner_;
+	char const* inner_;
 	mutable std::size_t size_;
 
 public:
+	SjisStringView(SjisStringView&& other) : inner_(other.inner_), size_(other.size_) {}
+
 	explicit SjisStringView(char const* inner, std::size_t size)
 		: inner_(inner)
 		, size_(size)
@@ -161,6 +164,12 @@ public:
 	static auto from_ascii(char const* str) -> SjisStringView {
 		assert(string_is_ascii(str));
 		return SjisStringView{ str };
+	}
+
+	auto operator =(SjisStringView&& other) -> SjisStringView & {
+		inner_ = other.inner_;
+		size_ = other.size_;
+		return *this;
 	}
 
 	auto data() const -> char const* {
@@ -197,6 +206,11 @@ public:
 	static auto from_ascii(char const* str) -> SjisString {
 		assert(string_is_ascii(str));
 		return SjisString{ std::string{str } };
+	}
+
+	auto operator =(SjisString&& other) -> SjisString & {
+		swap(other);
+		return *this;
 	}
 
 	auto as_ref() const -> SjisStringView {
