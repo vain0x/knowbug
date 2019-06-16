@@ -97,6 +97,14 @@ public:
 	auto operator [](std::size_t i) const -> TCHAR {
 		return i < size() ? data()[i] : TCHAR{};
 	}
+
+	auto begin() const -> LPCTSTR {
+		return data();
+	}
+
+	auto end() const -> LPCTSTR {
+		return data() + size();
+	}
 };
 
 // Windows API のための文字列。
@@ -140,6 +148,14 @@ public:
 	auto to_sjis_string() const->SjisString;
 
 	auto to_utf8_string() const->Utf8String;
+
+	auto begin() const -> LPCTSTR {
+		return as_ref().begin();
+	}
+
+	auto end() const -> LPCTSTR {
+		return as_ref().end();
+	}
 };
 
 class SjisStringView {
@@ -190,6 +206,14 @@ public:
 	auto to_os_string() const->OsString;
 
 	auto to_utf8_string() const->Utf8String;
+
+	auto begin() const -> char const* {
+		return data();
+	}
+
+	auto end() const -> char const* {
+		return data() + size();
+	}
 };
 
 // shift_jis (cp-932)
@@ -222,6 +246,14 @@ public:
 	auto to_os_string() const->OsString;
 
 	auto to_utf8_string() const->Utf8String;
+
+	auto begin() const -> char const* {
+		return as_ref().begin();
+	}
+
+	auto end() const -> char const* {
+		return as_ref().end();
+	}
 };
 
 // utf-8 エンコーディングの文字列への参照。
@@ -265,6 +297,14 @@ public:
 	auto to_os_string() const->OsString;
 
 	auto to_sjis_string() const->SjisString;
+
+	auto begin() const -> char const* {
+		return data();
+	}
+
+	auto end() const -> char const* {
+		return data() + size();
+	}
 };
 
 // utf-8 エンコーディングの文字列。
@@ -306,6 +346,14 @@ public:
 
 	auto to_sjis_string() const -> SjisString {
 		return as_ref().to_sjis_string();
+	}
+
+	auto begin() const -> char const* {
+		return as_ref().begin();
+	}
+
+	auto end() const -> char const* {
+		return as_ref().end();
 	}
 };
 
