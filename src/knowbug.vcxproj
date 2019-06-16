@@ -209,7 +209,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>hsp;with_Modcmd;with_ExtraBasics;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>with_WrapCall;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -217,7 +217,6 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -242,7 +241,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugUtf8|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>HSP3_UTF8;hsp;with_Modcmd;with_ExtraBasics;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HSP3_UTF8;hsp;with_WrapCall;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -250,7 +249,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <AdditionalOptions>/utf-8 </AdditionalOptions>
     </ClCompile>
@@ -274,15 +272,16 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>hsp;with_Modcmd;with_ModPtr;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>with_WrapCall;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
@@ -304,15 +303,16 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugUtf8|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>hsp;with_Modcmd;with_ModPtr;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>with_WrapCall;HSPWIN;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
@@ -334,7 +334,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'">
     <ClCompile>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>hsp;with_Modcmd;with_ExtraBasics;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>with_WrapCall;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -342,7 +342,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>None</DebugInformationFormat>
-      <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
@@ -369,7 +369,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUtf8|Win32'">
     <ClCompile>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>HSP3_UTF8;hsp;with_Modcmd;with_ExtraBasics;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HSP3_UTF8;hsp;with_WrapCall;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -377,7 +377,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>None</DebugInformationFormat>
-      <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <AdditionalOptions>/utf-8 </AdditionalOptions>
@@ -404,7 +404,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release2|x64'">
     <ClCompile>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>hsp;with_Modcmd;with_ModPtr;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>with_WrapCall;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -412,9 +412,10 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
@@ -437,7 +438,7 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUtf8|x64'">
     <ClCompile>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>hsp;with_Modcmd;with_ModPtr;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;USE_DEFAULT_ARG;HSP_DEBUGGER;HSPDEBUG;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>hsp;with_WrapCall;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -445,9 +446,10 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
@@ -469,14 +471,14 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>hsp;with_Modcmd;with_ModPtr;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>hsp;with_WrapCall;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -504,15 +506,16 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>hsp;with_Modcmd;with_ModPtr;with_ExtraBasics;with_Vector;with_Assoc;with_WrapCall;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>hsp;with_WrapCall;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>hpiutil/hspsdk;../hpimod;../hpimod/hspsdk;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
@@ -540,8 +543,8 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
     <ClCompile Include="cppformat\cppformat\format.cc" />
     <ClCompile Include="CVardataString.cpp" />
     <ClCompile Include="CVarinfoText.cpp">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">hsp;HSP_DEBUGGER;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;HSP3DEBUG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">hsp;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">hsp;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="encoding.cpp" />
     <ClCompile Include="hpiutil\DInfo.cpp" />

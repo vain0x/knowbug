@@ -9,7 +9,7 @@
 
 #include "main.h"
 #include "resource.h"
-#include "hspwnd.h"
+#include "hpiutil/hspsdk/hspwnd.h"
 #include "module/GuiUtility.h"
 #include "module/strf.h"
 #include "WrapCall/WrapCall.h"

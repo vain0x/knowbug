@@ -1,6 +1,6 @@
 ﻿
 #include "main.h"
-#include "hspwnd.h"
+#include "hpiutil/hspsdk/hspwnd.h"
 #include "DebugInfo.h"
 #include "module/supio/supio.h"
 #include "module/strf.h"

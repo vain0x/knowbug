@@ -1,7 +1,7 @@
 ﻿#ifndef IG_TYPE_MODCMD_H
 #define IG_TYPE_MODCMD_H
 
-#include "hsp3plugin.h"
+#include "../hpiutil/hspsdk/hsp3plugin.h"
 #undef stat
 
 extern void modcmd_init(HSP3TYPEINFO* info);

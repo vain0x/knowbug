@@ -6,7 +6,6 @@
 #include "main.h"
 #include "module/Singleton.h"
 #include "module/handle_deleter.hpp"
-#include "ExVardataString.h"
 
 struct KnowbugConfig : public Singleton<KnowbugConfig>
 {

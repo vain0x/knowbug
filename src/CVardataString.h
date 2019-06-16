@@ -48,9 +48,6 @@ public:
 	void addValueString(char const* name, char const* str);
 	void addValueStruct(char const* name, FlexValue const* fv);
 
-#ifdef with_ExtraBasics
-	//	template<class TNumeric> auto dbgstr_extraBasic(const TNumeric src) -> string;
-#endif
 	void addPrmstack(stdat_t stdat, std::pair<void const*, bool> prmstk);
 	void addParameter(char const* name, stdat_t stdat, stprm_t stprm, void const* member, bool isSafe);
 
