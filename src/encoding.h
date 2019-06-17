@@ -42,9 +42,23 @@ class OsStringView {
 
 public:
 	// FIXME: NULL 初期化はよくない。出力引数として使うときに要求されるので用意している。
-	OsStringView() : inner_(nullptr), size_(0) {}
+	OsStringView()
+		: inner_(nullptr)
+		, size_(0)
+	{
+	}
 
-	OsStringView(OsStringView&& other) : inner_(other.inner_), size_(other.size_) {}
+	OsStringView(OsStringView&& other)
+		: inner_(other.inner_)
+		, size_(other.size_)
+	{
+	}
+
+	OsStringView(OsStringView const& other)
+		: inner_(other.inner_)
+		, size_(other.size_)
+	{
+	}
 
 	explicit OsStringView(LPCTSTR inner, std::size_t size)
 		: inner_(inner)
@@ -59,6 +73,12 @@ public:
 	}
 
 	auto operator =(OsStringView&& other) -> OsStringView & {
+		inner_ = other.inner_;
+		size_ = other.size_;
+		return *this;
+	}
+
+	auto operator =(OsStringView const& other) -> OsStringView & {
 		inner_ = other.inner_;
 		size_ = other.size_;
 		return *this;
@@ -120,7 +140,12 @@ public:
 	// FIXME: 暗黙のコピーはよくない。map のキーとして使うときに要求されるので用意している。
 	OsString(OsString const& other) : basic_string(other) {}
 
-	auto operator =(OsString const& other) const->OsString& = delete;
+	auto operator =(OsString&& other)->OsString & {
+		swap(other);
+		return *this;
+	}
+
+	auto operator =(OsString const& other)->OsString & = delete;
 
 	explicit OsString(std::basic_string<TCHAR>&& inner) : basic_string(inner) {}
 
@@ -128,11 +153,6 @@ public:
 		assert(begin <= end);
 		auto count = (std::size_t)(end - begin);
 		return OsString{ std::basic_string<TCHAR>{ begin, count } };
-	}
-
-	auto operator =(OsString&& other) -> OsString& {
-		swap(other);
-		return *this;
 	}
 
 	auto as_ref() const -> OsStringView {
@@ -163,7 +183,23 @@ class SjisStringView {
 	mutable std::size_t size_;
 
 public:
-	SjisStringView(SjisStringView&& other) : inner_(other.inner_), size_(other.size_) {}
+	SjisStringView()
+		: inner_{ nullptr }
+		, size_{ 0 }
+	{
+	}
+
+	SjisStringView(SjisStringView const& other)
+		: inner_(other.inner_)
+		, size_(other.size_)
+	{
+	}
+
+	SjisStringView(SjisStringView&& other)
+		: inner_(other.inner_)
+		, size_(other.size_)
+	{
+	}
 
 	explicit SjisStringView(char const* inner, std::size_t size)
 		: inner_(inner)
@@ -177,18 +213,27 @@ public:
 	{
 	}
 
-	static auto from_ascii(char const* str) -> SjisStringView {
-		assert(string_is_ascii(str));
-		return SjisStringView{ str };
-	}
-
 	auto operator =(SjisStringView&& other) -> SjisStringView & {
 		inner_ = other.inner_;
 		size_ = other.size_;
 		return *this;
 	}
 
+	auto operator =(SjisStringView const& other) -> SjisStringView & {
+		inner_ = other.inner_;
+		size_ = other.size_;
+		return *this;
+	}
+
+	static auto from_ascii(char const* str) -> SjisStringView {
+		assert(string_is_ascii(str));
+		return SjisStringView{ str };
+	}
+
 	auto data() const -> char const* {
+		if (inner_ == nullptr) {
+			throw new std::exception{ "SjisStringView is null" };
+		}
 		return inner_;
 	}
 
@@ -258,10 +303,22 @@ public:
 
 // utf-8 エンコーディングの文字列への参照。
 class Utf8StringView {
-	char const* const inner_;
+	char const* inner_;
 	mutable std::size_t size_;
 
 public:
+	Utf8StringView()
+		: inner_{ nullptr }
+		, size_{ 0 }
+	{
+	}
+
+	Utf8StringView(Utf8StringView const& other)
+		: inner_(other.inner_)
+		, size_(other.size_)
+	{
+	}
+	
 	explicit Utf8StringView(char const* inner, std::size_t size)
 		: inner_(inner)
 		, size_(size)
@@ -279,7 +336,16 @@ public:
 		return Utf8StringView{ str, 0 };
 	}
 
+	auto operator =(Utf8StringView&& other) -> Utf8StringView& {
+		inner_ = other.inner_;
+		size_ = other.size_;
+		return *this;
+	}
+
 	auto data() const -> char const* {
+		if (inner_ == nullptr) {
+			throw new std::exception{ "Utf8StringView is null" };
+		}
 		return inner_;
 	}
 
