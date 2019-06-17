@@ -4,6 +4,8 @@
 
 #include <Windows.h>
 
+class OsStringView;
+
 namespace Dialog
 {
 
@@ -17,7 +19,7 @@ bool logsCalling();
 
 namespace View {
 
-void setText(char const* text);
+void setText(OsStringView const& text);
 void scroll(int y, int x);
 void scrollBottom();
 void selectLine(size_t index);

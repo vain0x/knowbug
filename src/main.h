@@ -27,16 +27,23 @@ using hpiutil::HSPVAR_FLAG_VARIANT;
 //extern HSPCTX* ctx; // declared and defined in hsp3plugin.(h/cpp)
 //extern HSPEXINFO* exinfo;
 
+class Logger;
+class OsStringView;
+
 // knowbug コントロール
 namespace Knowbug
 {
 	extern auto getInstance() -> HINSTANCE;
+	extern auto get_logger()->std::shared_ptr<Logger>;
 
 	extern void step_run(StepControl step_control);
 	extern bool continueConditionalRun();
 
 	extern void logmes(char const* msg); //自動改行なし
+	extern void logmes(OsStringView const& msg);
 	extern void logmesWarning(char const* msg);
+	extern void logmesWarning(OsStringView const& msg);
+
 } // namespace Knowbug
 
 #endif

@@ -8,6 +8,7 @@
 #include "DebugInfo.h"
 #include "dialog.h"
 #include "config_mng.h"
+#include "Logger.h"
 
 #include "vartree.h"
 #include "CVarinfoText.h"
@@ -24,7 +25,7 @@
 using WrapCall::ModcmdCallInfo;
 #endif
 using detail::TvObserver;
-using detail::LogObserver;
+using detail::VarTreeLogObserver;
 
 static auto TreeView_MyInsertItem
 	( HTREEITEM hParent, char const* name
@@ -64,13 +65,13 @@ public:
 	void onTerm(VTNodeData& node) override;
 };
 
-struct LogObserver
-	: VTNodeLog::LogObserver
+struct VarTreeLogObserver
+	: LogObserver
 {
 	VTView::Impl& self;
 public:
-	LogObserver(VTView::Impl& self) : self(self) {}
-	void afterAppend(char const* addition) override;
+	VarTreeLogObserver(VTView::Impl& self) : self(self) {}
+	void did_change() override;
 };
 
 VTView::VTView()
@@ -80,7 +81,7 @@ VTView::VTView()
 	p_->observer_ = std::make_shared<TvObserver>(*p_);
 	VTNodeData::registerObserver(p_->observer_);
 
-	p_->logObserver_ = std::make_shared<LogObserver>(*p_);
+	p_->logObserver_ = std::make_shared<VarTreeLogObserver>(*p_);
 	VTRoot::log().setLogObserver(p_->logObserver_);
 
 	// Initialize tree
@@ -140,7 +141,7 @@ void TvObserver::onTerm(VTNodeData& node)
 	}
 }
 
-void LogObserver::afterAppend(char const* addition)
+void VarTreeLogObserver::did_change()
 {
 	if ( TreeView_GetSelection(hwndVarTree) == self.hNodeLog_ ) {
 		Dialog::View::update();
@@ -164,13 +165,13 @@ auto VTView::tryGetNodeData(HTREEITEM hItem) const -> optional_ref<VTNodeData>
 }
 
 // ノードに対応する文字列を得る
-auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string const>
+auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 {
 	struct GetText
 		: public VTNodeData::Visitor
 	{
 		CVarinfoText varinf;
-		shared_ptr<string const> result;
+		unique_ptr<OsString> result;
 
 		void fModule(VTNodeModule const& node) override
 		{
@@ -186,14 +187,14 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 		}
 		void fLog(VTNodeLog const& node) override
 		{
-			result = shared_ptr_from_rawptr(&node.str());
+			result = std::make_unique<OsString>(node.content().to_owned()); // FIXME: 無駄なコピー
 		}
 		void fScript(VTNodeScript const& node) override
 		{
 			if ( auto p = node.fetchScriptAll(g_dbginfo->curPos().fileRefName()) ) {
-				result = std::make_shared<string>(p->data());
+				result = std::move(p);
 			} else {
-				result = std::make_shared<string>(g_dbginfo->getCurInfString());
+				result = std::make_unique<OsString>(HspStringView{ g_dbginfo->getCurInfString().data() }.to_os_string());
 			}
 		}
 		void fGeneral(VTNodeGeneral const&) override
@@ -214,26 +215,20 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::shared_ptr<string con
 			varinf.addCall(node.callinfo());
 		}
 #endif
-		auto apply(VTNodeData const& node) -> shared_ptr<string const>
+		auto apply(VTNodeData const& node) -> unique_ptr<OsString>
 		{
 			node.acceptVisitor(*this);
-			return (result)
-				? result
-				: std::make_shared<string>(varinf.getStringMove());
+			return result
+				? std::move(result)
+				: std::make_unique<OsString>(HspStringView{ varinf.getString().data() }.to_os_string());
 		}
 	};
 
-	auto get = [this, &hItem] () {
-		if ( auto node = tryGetNodeData(hItem) ) {
-			return GetText {}.apply(*node);
-		} else {
-			return std::make_shared<string const>("(not_available)");
-		}
-	};
-
-	auto stringPtr = get();
-	assert(stringPtr);
-	return stringPtr;
+	if ( auto node = tryGetNodeData(hItem) ) {
+		return GetText {}.apply(*node);
+	} else {
+		return std::make_unique<OsString>(TEXT("(not_available)"));
+	}
 }
 
 void VTView::saveCurrentViewCaret(int vcaret)
@@ -268,7 +263,7 @@ void VTView::updateViewWindow()
 		}
 
 		auto varinfoText = getItemVarText(hItem);
-		Dialog::View::setText(varinfoText->c_str());
+		Dialog::View::setText(varinfoText->as_ref());
 
 		//+script ノードなら現在の実行位置を選択
 		if ( hItem == p_->hNodeScript_ ) {

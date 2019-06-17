@@ -45,7 +45,7 @@ auto VTNodeScript::resolveRefName(char const* fileRefNameInput) const
 }
 
 auto VTNodeScript::fetchScriptAll(char const* fileRefName) const
--> std::unique_ptr<string const>
+-> std::unique_ptr<OsString>
 {
 	// FIXME: 無駄なコピーの塊
 	auto file_ref_name = HspStringView{ fileRefName }.to_os_string();
@@ -56,7 +56,7 @@ auto VTNodeScript::fetchScriptAll(char const* fileRefName) const
 		return nullptr;
 	}
 
-	return std::make_unique<string>(content.to_hsp_string());
+	return std::make_unique<OsString>(content.to_owned());
 }
 
 auto VTNodeScript::fetchScriptLine(hpiutil::SourcePos const& spos) const

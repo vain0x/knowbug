@@ -1,5 +1,6 @@
 ﻿
 #include <winapifamily.h>
+#include "encoding.h"
 #include "main.h"
 #include "module/strf.h"
 #include "DebugInfo.h"
@@ -8,10 +9,12 @@
 #include "config_mng.h"
 #include "dialog.h"
 #include "StepController.h"
+#include "Logger.h"
 
 static auto g_hInstance = HINSTANCE {};
 std::unique_ptr<DebugInfo> g_dbginfo {};
 static std::unique_ptr<KnowbugStepController> g_step_controller_;
+static std::shared_ptr<Logger> g_logger;
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
@@ -42,13 +45,22 @@ auto WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) -> i
 
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 {
+	// グローバル変数の初期化:
+
 	ctx    = p1->hspctx;
 	exinfo = ctx->exinfo2;
 
-	KnowbugConfig::initialize();
+	g_logger = std::make_shared<Logger>();
+
 	g_dbginfo.reset(new DebugInfo(p1));
 
 	g_step_controller_ = std::make_unique<KnowbugStepController>(ctx, *g_dbginfo);
+
+	KnowbugConfig::initialize();
+
+	// 起動時の処理:
+
+	g_logger->enable_auto_save(g_config->logPath.as_ref());
 
 	Dialog::createMain();
 	return 0;
@@ -66,8 +78,7 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 			break;
 		}
 		case hpiutil::DebugNotice_Logmes:
-			strcat_s(ctx->stmp, HSPCTX_REFSTR_MAX, "\r\n");
-			Knowbug::logmes(ctx->stmp);
+			g_logger->append_line(HspStringView{ ctx->stmp }.to_os_string().as_ref());
 		break;
 	}
 	return 0;
@@ -84,6 +95,10 @@ namespace Knowbug
 		return g_hInstance;
 	}
 
+	auto get_logger() -> std::shared_ptr<Logger> {
+		return g_logger;
+	}
+
 	void step_run(StepControl step_control) {
 		g_step_controller_->update(step_control);
 	}
@@ -92,17 +107,24 @@ namespace Knowbug
 		return g_step_controller_->continue_step_running();
 	}
 
-void logmes( char const* msg )
-{
-	VTRoot::log().append(msg);
-}
+	void logmes(OsStringView const& msg) {
+		g_logger->append(msg);
+	}
 
-void logmesWarning(char const* msg)
-{
-	g_dbginfo->updateCurInf();
-	logmes(strf("warning: %s\r\nCurInf:%s\r\n"
-			, msg, g_dbginfo->getCurInfString()).c_str());
-}
+	void logmes( char const* msg ) {
+		logmes(HspStringView{ msg }.to_os_string().as_ref());
+	}
+
+	void logmesWarning(OsStringView const& msg) {
+		g_dbginfo->updateCurInf();
+		auto execution_location = HspStringView{ g_dbginfo->getCurInfString().data() }.to_os_string();
+
+		g_logger->append_warning(msg, execution_location.as_ref());
+	}
+
+	void logmesWarning(char const* msg) {
+		logmesWarning(HspStringView{ msg }.to_os_string().as_ref());
+	}
 
 #ifdef with_WrapCall
 void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)

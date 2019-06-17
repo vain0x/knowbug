@@ -3,51 +3,18 @@
 #include "main.h"
 #include "VarTreeNodeData.h"
 #include "config_mng.h"
+#include "Logger.h"
 
-struct VTNodeLog::Impl
-{
-	string log_;
-	weak_ptr<LogObserver> observer_;
-};
-
-VTNodeLog::VTNodeLog()
-	: p_(new Impl {})
+VTNodeLog::VTNodeLog(std::shared_ptr<Logger> logger)
+	: logger_(logger)
 {}
 
-VTNodeLog::~VTNodeLog()
+auto VTNodeLog::content() const -> OsStringView
 {
-	if ( ! g_config->logPath.empty() ) {
-		save(g_config->logPath.as_ref());
-	}
+	return logger_->content();
 }
 
-auto VTNodeLog::str() const -> string const&
+void VTNodeLog::setLogObserver(weak_ptr<LogObserver> observer)
 {
-	return p_->log_;
-}
-
-bool VTNodeLog::save(OsStringView const& file_path) const
-{
-	auto ofs = std::ofstream { file_path.data() };
-	ofs.write(str().c_str(), str().size());
-	return ofs.good();
-}
-
-void VTNodeLog::clear()
-{
-	p_->log_.clear();
-}
-
-void VTNodeLog::append(char const* addition)
-{
-	p_->log_ += addition;
-
-	if ( auto obs = p_->observer_.lock() ) {
-		obs->afterAppend(addition);
-	}
-}
-
-void VTNodeLog::setLogObserver(weak_ptr<LogObserver> obs)
-{
-	p_->observer_ = obs;
+	logger_->set_observer(observer);
 }

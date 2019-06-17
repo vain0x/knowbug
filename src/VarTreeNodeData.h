@@ -8,6 +8,9 @@
 #include "module/Singleton.h"
 #include "module/utility.h"
 
+class LogObserver;
+class Logger;
+
 class VTNodeVar
 	: public VTNodeData
 {
@@ -90,7 +93,7 @@ public:
 	~VTNodeScript();
 
 	auto resolveRefName(char const* fileRefName) const -> shared_ptr<string const>;
-	auto fetchScriptAll(char const* fileRefName) const -> unique_ptr<string const>;
+	auto fetchScriptAll(char const* fileRefName) const -> unique_ptr<OsString>;
 	auto fetchScriptLine(hpiutil::SourcePos const& spos) const
 		-> unique_ptr<string const>;
 
@@ -103,26 +106,18 @@ class VTNodeLog
 	: public VTNodeData
 {
 	friend class VTRoot;
-	struct Impl;
-	unique_ptr<Impl> p_;
 
-	VTNodeLog();
+	std::shared_ptr<Logger> logger_;
+
 public:
-	virtual ~VTNodeLog();
-	auto str() const -> string const&;
-	bool save(OsStringView const& file_path) const;
-	void clear();
-	void append(char const* addition);
+	VTNodeLog(std::shared_ptr<Logger> logger);
+
+	auto content() const->OsStringView;
 
 	auto name() const -> string override { return "+log"; }
 	auto parent() const -> optional_ref<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fLog(*this); }
 
-	struct LogObserver
-	{
-		virtual ~LogObserver() {}
-		virtual void afterAppend(char const* additional) = 0;
-	};
 	void setLogObserver(weak_ptr<LogObserver>);
 };
 
@@ -256,7 +251,7 @@ class VTRoot
 		VTNodeLog            log_;
 
 	public:
-		ChildNodes(VTRoot& root);
+		ChildNodes(VTRoot& root, std::shared_ptr<Logger> logger);
 	};
 	unique_ptr<ChildNodes> p_;
 

@@ -148,11 +148,12 @@ static auto tryFindDependedNode(ModcmdCallInfo const* callinfo) -> shared_ptr<VT
 #endif //defined(with_WrapCall)
 
 VTRoot::VTRoot()
-	: p_ { new ChildNodes {*this} }
+	: p_(new ChildNodes{ *this, Knowbug::get_logger() })
 {}
 
-VTRoot::ChildNodes::ChildNodes(VTRoot& root)
+VTRoot::ChildNodes::ChildNodes(VTRoot& root, std::shared_ptr<Logger> logger)
 	: global_ { root }
+	, log_(logger)
 {}
 
 auto VTRoot::children() -> std::vector<std::reference_wrapper<VTNodeData>> const&

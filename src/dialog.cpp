@@ -18,6 +18,7 @@
 #include "vartree.h"
 #include "config_mng.h"
 #include "DebugInfo.h"
+#include "Logger.h"
 
 #include "module/supio/supio.h"
 
@@ -63,11 +64,8 @@ static void setEditStyle(HWND hEdit, int maxlen);
 
 namespace View {
 
-void setText(char const* text)
-{
-	HSPAPICHAR *hactmp1;
-	SetWindowText(hViewEdit, chartoapichar(text,&hactmp1));
-	freehac(&hactmp1);
+void setText(OsStringView const& text) {
+	SetWindowText(hViewEdit, text.data());
 };
 
 void scroll(int y, int x)
@@ -107,7 +105,7 @@ bool logsCalling()
 
 namespace LogBox {
 
-	void clear()
+	void clear(Logger& logger)
 	{
 		if (g_config->warnsBeforeClearingLog) {
 			auto msg = TEXT("ログをすべて消去しますか？");
@@ -118,11 +116,11 @@ namespace LogBox {
 			}
 		}
 
-		VTRoot::log().clear();
+		logger.clear();
 	}
 
-	void save(OsStringView const& filepath) {
-		auto success = VTRoot::log().save(filepath);
+	static void do_save(OsStringView const& filepath, Logger& logger) {
+		auto success = logger.save(filepath);
 
 		if (!success) {
 			auto msg = TEXT("ログの保存に失敗しました。");
@@ -130,7 +128,7 @@ namespace LogBox {
 		}
 	}
 
-	void save() {
+	void save(Logger& logger) {
 		static auto const filter =
 			TEXT("log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0");
 		auto path = Dialog_SaveFileName(
@@ -141,7 +139,7 @@ namespace LogBox {
 		);
 
 		if (path) {
-			save(path->as_ref());
+			do_save(path->as_ref(), logger);
 		}
 	}
 } //namespace LogBox
@@ -203,7 +201,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		case 0: break;
 		case IDC_NODE_UPDATE: View::update(); break;
 		case IDC_NODE_LOG: {
-			Knowbug::logmes(g_res->tv->getItemVarText(hItem)->c_str());
+			Knowbug::logmes(g_res->tv->getItemVarText(hItem)->as_ref());
 			break;
 		}
 #ifdef with_WrapCall
@@ -223,8 +221,8 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 			Menu_ToggleCheck(hPop, IDC_LOG_INVOCATION, g_config->logsInvocation);
 			break;
 		}
-		case IDC_LOG_SAVE: LogBox::save(); break;
-		case IDC_LOG_CLEAR: LogBox::clear(); break;
+		case IDC_LOG_SAVE: LogBox::save(*Knowbug::get_logger()); break;
+		case IDC_LOG_CLEAR: LogBox::clear(*Knowbug::get_logger()); break;
 		default: assert_sentinel;
 	}
 }

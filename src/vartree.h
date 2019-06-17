@@ -12,7 +12,7 @@
 
 namespace detail {
 struct TvObserver;
-struct LogObserver;
+struct VarTreeLogObserver;
 } // namespace detail
 
 class VTView
@@ -26,7 +26,7 @@ public:
 
 	void saveCurrentViewCaret(int vcaret);
 
-	auto getItemVarText(HTREEITEM hItem) const -> shared_ptr<string const>;
+	auto getItemVarText(HTREEITEM hItem) const -> unique_ptr<OsString>;
 	auto tryGetNodeData(HTREEITEM hItem) const -> optional_ref<VTNodeData>;
 
 	void selectNode(VTNodeData const&);
@@ -36,5 +36,5 @@ private:
 	unique_ptr<Impl> p_;
 
 	friend struct detail::TvObserver;
-	friend struct detail::LogObserver;
+	friend struct detail::VarTreeLogObserver;
 };
