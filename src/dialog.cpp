@@ -19,6 +19,7 @@
 #include "config_mng.h"
 #include "DebugInfo.h"
 #include "Logger.h"
+#include "SourceFileResolver.h"
 
 #include "module/supio/supio.h"
 
@@ -275,10 +276,11 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_CURRENT_SCRIPT: {
-					if ( auto p = VTRoot::script().resolveRefName(g_dbginfo->curPos().fileRefName()) ) {
-						ShellExecute(nullptr, TEXT("open")
-							, chartoapichar(p->c_str(), &hactmp1) , nullptr, TEXT(""), SW_SHOWDEFAULT);
-						freehac(&hactmp1);
+					auto file_ref_name = HspStringView{ g_dbginfo->curPos().fileRefName() }.to_os_string();
+					OsStringView full_path;
+					auto ok = Knowbug::get_source_file_resolver()->find_full_path(file_ref_name.as_ref(), full_path);
+					if (ok) {
+						ShellExecute(nullptr, TEXT("open"), full_path.data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
 					}
 					break;
 				}

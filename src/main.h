@@ -29,12 +29,16 @@ using hpiutil::HSPVAR_FLAG_VARIANT;
 
 class Logger;
 class OsStringView;
+class SourceFileResolver;
 
 // knowbug コントロール
 namespace Knowbug
 {
 	extern auto getInstance() -> HINSTANCE;
+
 	extern auto get_logger()->std::shared_ptr<Logger>;
+
+	extern auto get_source_file_resolver()->std::shared_ptr<SourceFileResolver>;
 
 	extern void step_run(StepControl step_control);
 	extern bool continueConditionalRun();

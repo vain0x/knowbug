@@ -10,11 +10,13 @@
 #include "dialog.h"
 #include "StepController.h"
 #include "Logger.h"
+#include "SourceFileResolver.h"
 
 static auto g_hInstance = HINSTANCE {};
 std::unique_ptr<DebugInfo> g_dbginfo {};
 static std::unique_ptr<KnowbugStepController> g_step_controller_;
 static std::shared_ptr<Logger> g_logger;
+static std::shared_ptr<SourceFileResolver> g_source_file_resolver;
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
@@ -58,6 +60,8 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 	KnowbugConfig::initialize();
 
+	g_source_file_resolver = std::make_shared<SourceFileResolver>(g_config->commonPath());
+
 	// 起動時の処理:
 
 	g_logger->enable_auto_save(g_config->logPath.as_ref());
@@ -97,6 +101,10 @@ namespace Knowbug
 
 	auto get_logger() -> std::shared_ptr<Logger> {
 		return g_logger;
+	}
+
+	auto get_source_file_resolver() -> std::shared_ptr<SourceFileResolver> {
+		return g_source_file_resolver;
 	}
 
 	void step_run(StepControl step_control) {

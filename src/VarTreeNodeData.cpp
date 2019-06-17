@@ -4,6 +4,7 @@
 #include "module/CStrBuf.h"
 #include "module/CStrWriter.h"
 #include "vartree.h"
+#include "SourceFileResolver.h"
 
 static auto g_observers = vector<weak_ptr<VTNodeData::Observer>> {};
 
@@ -148,12 +149,13 @@ static auto tryFindDependedNode(ModcmdCallInfo const* callinfo) -> shared_ptr<VT
 #endif //defined(with_WrapCall)
 
 VTRoot::VTRoot()
-	: p_(new ChildNodes{ *this, Knowbug::get_logger() })
+	: p_(new ChildNodes{ *this, Knowbug::get_logger(), Knowbug::get_source_file_resolver() })
 {}
 
-VTRoot::ChildNodes::ChildNodes(VTRoot& root, std::shared_ptr<Logger> logger)
+VTRoot::ChildNodes::ChildNodes(VTRoot& root, std::shared_ptr<Logger> logger, std::shared_ptr<SourceFileResolver> source_file_resolver)
 	: global_ { root }
 	, log_(logger)
+	, script_(source_file_resolver)
 {}
 
 auto VTRoot::children() -> std::vector<std::reference_wrapper<VTNodeData>> const&

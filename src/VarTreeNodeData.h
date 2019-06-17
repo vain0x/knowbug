@@ -10,6 +10,7 @@
 
 class LogObserver;
 class Logger;
+class SourceFileResolver;
 
 class VTNodeVar
 	: public VTNodeData
@@ -85,12 +86,10 @@ class VTNodeScript
 	: public VTNodeData
 {
 	friend class VTRoot;
-	struct Impl;
-	unique_ptr<Impl> p_;
 
-	VTNodeScript();
+	std::shared_ptr<SourceFileResolver> resolver_;
 public:
-	~VTNodeScript();
+	VTNodeScript(std::shared_ptr<SourceFileResolver> resolver);
 
 	auto resolveRefName(char const* fileRefName) const -> shared_ptr<string const>;
 	auto fetchScriptAll(char const* fileRefName) const -> unique_ptr<OsString>;
@@ -251,7 +250,7 @@ class VTRoot
 		VTNodeLog            log_;
 
 	public:
-		ChildNodes(VTRoot& root, std::shared_ptr<Logger> logger);
+		ChildNodes(VTRoot& root, std::shared_ptr<Logger> logger, std::shared_ptr<SourceFileResolver> source_file_resolver);
 	};
 	unique_ptr<ChildNodes> p_;
 
