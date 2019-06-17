@@ -33,11 +33,13 @@ auto nameFromModuleClass(stdat_t stdat, bool isClone) -> std::string
 		: modclsName);
 }
 
-auto nameFromStPrm(stprm_t stprm, int idx) -> std::string
-{
+// エイリアスの名前を得る。
+// index はそのエイリアスの元の引数列における番号。
+// DInfo からみつからなければ "(i)" が返る。
+auto nameFromStPrm(stprm_t stprm, int idx, DInfo const& debug_segment) -> std::string {
 	auto const subid = detail::indexFrom(minfo(), stprm);
 	if ( subid >= 0 ) {
-		if ( auto const name = DInfo::instance().tryFindParamName(subid) ) {
+		if ( auto const name = debug_segment.tryFindParamName(subid) ) {
 			return nameExcludingScopeResolution(name);
 
 		// thismod 引数

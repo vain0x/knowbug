@@ -39,6 +39,7 @@ enum DebugNotice
 	DebugNotice_Logmes = 1,
 };
 
+class DInfo;
 class SourcePos;
 
 // 定数 /MPTYPE_(\w+)/ の値に対応する適当な名前を得る
@@ -55,7 +56,7 @@ extern auto nameFromModuleClass(stdat_t stdat, bool isClone) -> std::string;
 index はそのエイリアスの元の引数列における番号。
 DInfo からみつからなければ "(i)" が返る。
 //*/
-extern auto nameFromStPrm(stprm_t stprm, int index) -> std::string;
+extern auto nameFromStPrm(stprm_t stprm, int index, DInfo const& debug_segment) -> std::string;
 
 /**
 ラベル名を得る

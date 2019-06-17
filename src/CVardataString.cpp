@@ -15,7 +15,9 @@ using namespace hpiutil::internal_vartype_tags;
 
 CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src)
 	: writer_(std::move(src.writer_))
-{}
+	, debug_segment_(src.debug_segment_)
+{
+}
 
 CVardataStrWriter::~CVardataStrWriter()
 {}
@@ -229,7 +231,7 @@ void CVardataStrWriter::addPrmstack(stdat_t stdat, std::pair<void const*, bool> 
 			getWriter().cat(" ");
 		}
 
-		addParameter(hpiutil::nameFromStPrm(&stprm, i).c_str(), stdat, &stprm, member, prmstk.second);
+		addParameter(hpiutil::nameFromStPrm(&stprm, i, debug_segment_).c_str(), stdat, &stprm, member, prmstk.second);
 
 		// structtag isn't a member
 		if ( stprm.mptype != MPTYPE_STRUCTTAG ) { ++i; }

@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "module/CStrWriter.h"
+#include "CVardataString.h"
 
 class VTNodeModule;
 
@@ -15,7 +16,7 @@ namespace WrapCall
 class CVarinfoText
 {
 public:
-	CVarinfoText();
+	CVarinfoText(hpiutil::DInfo const& debug_segment);
 
 	void addVar(PVal* pval, char const* name);
 	void addSysvar(hpiutil::Sysvar::Id id);
@@ -38,8 +39,13 @@ public:
 private:
 	auto getWriter() -> CStrWriter& { return writer_; }
 	auto getBuf() const -> std::shared_ptr<CStrBuf> { return writer_.getBuf(); }
+
+	auto create_lineform_writer() const->CVardataStrWriter;
+	auto create_treeform_writer() const->CVardataStrWriter;
+
 private:
 	CStrWriter writer_;
+	hpiutil::DInfo const& debug_segment_;
 };
 
 extern auto stringizePrmlist(stdat_t stdat) -> string;

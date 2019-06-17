@@ -117,8 +117,9 @@ public:
 	void did_change() override;
 };
 
-VTView::VTView()
-	: p_(new Impl { *this })
+VTView::VTView(hpiutil::DInfo const& debug_segment)
+	: debug_segment_(debug_segment)
+	, p_(new Impl { *this })
 {
 	// Register observers
 	p_->observer_ = std::make_shared<TvObserver>(*p_);
@@ -210,11 +211,17 @@ auto VTView::tryGetNodeData(HTREEITEM hItem) const -> optional_ref<VTNodeData> {
 // ノードに対応する文字列を得る
 auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 {
-	struct GetText
+	class GetText
 		: public VTNodeData::Visitor
 	{
 		CVarinfoText varinf;
 		unique_ptr<OsString> result;
+
+	public:
+		GetText(CVarinfoText&& varinf)
+			: varinf(std::move(varinf))
+		{
+		}
 
 		void fModule(VTNodeModule const& node) override
 		{
@@ -268,7 +275,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 	};
 
 	if ( auto node = tryGetNodeData(hItem) ) {
-		return GetText {}.apply(*node);
+		return GetText{ CVarinfoText{ debug_segment_ } }.apply(*node);
 	} else {
 		return std::make_unique<OsString>(TEXT("(not_available)"));
 	}

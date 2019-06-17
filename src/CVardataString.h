@@ -1,6 +1,7 @@
 ﻿#ifndef IG_CLASS_VARDATA_STRING_H
 #define IG_CLASS_VARDATA_STRING_H
 
+#include "hpiutil/DInfo.hpp"
 #include "main.h"
 #include "DebugInfo.h"
 #include "config_mng.h"
@@ -10,8 +11,6 @@ class CLineformedWriter;
 class CTreeformedWriter;
 class CStrBuf;
 
-static auto const MAX_DEPTH = std::size_t{ 8 };
-
 // 変数データの文字列を作るクラス
 class CVardataStrWriter
 {
@@ -19,21 +18,17 @@ private:
 	std::unique_ptr<CStructedStrWriter> writer_;
 	mutable unordered_map<void const*, string> visited_;
 
+	hpiutil::DInfo const& debug_segment_;
+
 public:
 	CVardataStrWriter(CVardataStrWriter&& src);
 	~CVardataStrWriter();
 
-	template<typename TWriter>
-	static auto create(std::shared_ptr<CStrBuf> buf) -> CVardataStrWriter
+	CVardataStrWriter(std::unique_ptr<CStructedStrWriter>&& writer, hpiutil::DInfo const& debug_segment)
+		: writer_(std::move(writer))
+		, debug_segment_(debug_segment)
 	{
-		return CVardataStrWriter(buf, static_cast<TWriter*>(nullptr));
 	}
-
-private:
-	template<typename TWriter>
-	CVardataStrWriter(std::shared_ptr<CStrBuf> buf,  TWriter* /* for template argument deduction */)
-		: writer_(static_cast<CStructedStrWriter*>(new TWriter(buf, MAX_DEPTH)))
-	{ }
 
 public:
 	auto getString() const -> string const&;

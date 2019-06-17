@@ -351,6 +351,8 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 
 void Dialog::createMain()
 {
+	auto const& debug_segment = hpiutil::DInfo::instance();
+
 	auto const dispx = GetSystemMetrics(SM_CXSCREEN);
 	auto const dispy = GetSystemMetrics(SM_CYSCREEN);
 
@@ -415,7 +417,7 @@ void Dialog::createMain()
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 0) } // node
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 1) } // invoke
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 2) } // log
-			, std::make_unique<VTView>()
+			, std::make_unique<VTView>(debug_segment)
 			, {{
 				  GetDlgItem(hPane, IDC_BTN1)
 				, GetDlgItem(hPane, IDC_BTN2)

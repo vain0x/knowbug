@@ -25,6 +25,8 @@ static auto make_vector_view(T* p, size_t count) -> std::vector_view<T>
 
 } // namespace detail
 
+class DInfo;
+
 static auto varproc(vartype_t vtype) -> HspVarProc*
 {
 	return exinfo->HspFunc_getproc(vtype);

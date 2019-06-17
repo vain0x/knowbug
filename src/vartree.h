@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <CommCtrl.h>
 
+#include "hpiutil/dinfo.hpp"
 #include "main.h"
 #ifdef with_WrapCall
 # include "WrapCall/ModcmdCallInfo.h"
@@ -18,7 +19,7 @@ struct VarTreeLogObserver;
 class VTView
 {
 public:
-	VTView();
+	VTView(hpiutil::DInfo const& debug_segment);
 	~VTView();
 
 	void update();
@@ -34,6 +35,8 @@ public:
 private:
 	struct Impl;
 	unique_ptr<Impl> p_;
+
+	hpiutil::DInfo const& debug_segment_;
 
 	friend struct detail::TvObserver;
 	friend struct detail::VarTreeLogObserver;

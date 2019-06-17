@@ -6,6 +6,7 @@
 #include "module/strf.h"
 #include "module/ptr_cast.h"
 #include "module/CStrBuf.h"
+#include "hpiutil/dinfo.hpp"
 
 #include "main.h"
 #include "DebugInfo.h"
@@ -19,10 +20,12 @@
 using WrapCall::ModcmdCallInfo;
 #endif
 
+static auto const MAX_TEXT_DEPTH = std::size_t{ 8 };
 static auto const MAX_TEXT_LENGTH = std::size_t{ 0x8000 };
 
-CVarinfoText::CVarinfoText()
+CVarinfoText::CVarinfoText(hpiutil::DInfo const& debug_segment)
 	: writer_(std::make_shared<CStrBuf>())
+	, debug_segment_(debug_segment)
 {
 	writer_.getBuf()->limit(MAX_TEXT_LENGTH);
 }
@@ -35,6 +38,16 @@ auto CVarinfoText::getString() const -> string const&
 auto CVarinfoText::getStringMove() -> string&&
 {
 	return getBuf()->getMove();
+}
+
+auto CVarinfoText::create_lineform_writer() const -> CVardataStrWriter {
+	auto writer = std::make_unique<CLineformedWriter>(getBuf(), MAX_TEXT_DEPTH);
+	return CVardataStrWriter{ std::move(writer), debug_segment_ };
+}
+
+auto CVarinfoText::create_treeform_writer() const -> CVardataStrWriter {
+	auto writer = std::make_unique<CTreeformedWriter>(getBuf(), MAX_TEXT_DEPTH);
+	return CVardataStrWriter{ std::move(writer), debug_segment_ };
 }
 
 //------------------------------------------------
@@ -61,7 +74,7 @@ void CVarinfoText::addVar( PVal* pval, char const* name )
 	getWriter().catCrlf();
 
 	// 変数の内容に関する情報
-	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
+	create_treeform_writer()
 		.addVar(name, pval);
 	getWriter().catCrlf();
 
@@ -77,7 +90,7 @@ void CVarinfoText::addSysvar(hpiutil::Sysvar::Id id)
 	getWriter().catln(strf("変数名: %s\t(システム変数)", hpiutil::Sysvar::List[id].name));
 	getWriter().catCrlf();
 
-	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
+	create_treeform_writer()
 		.addSysvar(id);
 
 	getWriter().catCrlf();
@@ -102,7 +115,7 @@ void CVarinfoText::addCall(ModcmdCallInfo const& callinfo)
 	getWriter().catCrlf();
 
 	auto prmstk_safety = callinfo.tryGetPrmstk();
-	CVardataStrWriter::create<CTreeformedWriter>(getBuf())
+	create_treeform_writer()
 		.addCall(stdat, prmstk_safety);
 
 	auto const prmstk = prmstk_safety.first;
@@ -142,7 +155,7 @@ void CVarinfoText::addModuleOverview(char const* name, VTNodeModule const& tree)
 		[&](string const& varname) {
 			auto const shortName = hpiutil::nameExcludingScopeResolution(varname);
 			getWriter().cat(shortName + "\t= ");
-			CVardataStrWriter::create<CLineformedWriter>(getBuf())
+			create_lineform_writer()
 				.addVar(varname.c_str(), hpiutil::seekSttVar(varname.c_str()));
 			getWriter().catCrlf();
 		}
@@ -161,7 +174,7 @@ void CVarinfoText::addSysvarsOverview()
 	for ( auto i = 0; i < Sysvar::Count; ++i ) {
 		getWriter().cat(Sysvar::List[i].name);
 		getWriter().cat("\t= ");
-		CVardataStrWriter::create<CLineformedWriter>(getBuf())
+		create_lineform_writer()
 			.addSysvar(static_cast<Sysvar::Id>(i));
 		getWriter().catCrlf();
 	}
@@ -178,7 +191,7 @@ void CVarinfoText::addCallsOverview()
 	getWriter().catln("[呼び出し履歴]");
 
 	for ( auto& callinfo : WrapCall::getCallInfoRange() ) {
-		CVardataStrWriter::create<CLineformedWriter>(getBuf())
+		create_lineform_writer()
 			.addCall(callinfo->stdat, callinfo->tryGetPrmstk());
 		getWriter().catCrlf();
 	}
