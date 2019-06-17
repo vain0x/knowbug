@@ -19,6 +19,54 @@
 
 #include "module/supio/supio.h"
 
+// 変数ツリービューに対する操作のラッパー
+class VarTreeView {
+	HWND hwndVarTree;
+
+public:
+	VarTreeView(HWND tree_view_handle)
+		: hwndVarTree(tree_view_handle)
+	{
+	}
+
+	auto selected_item() const -> HTREEITEM {
+		return TreeView_GetSelection(hwndVarTree);
+	}
+
+	auto insert_item(HTREEITEM hParent, char const* name, VTNodeData* node) -> HTREEITEM {
+		auto tvis = TVINSERTSTRUCT{};
+		HTREEITEM res;
+		HSPAPICHAR* hactmp1;
+		tvis.hParent = hParent;
+		tvis.hInsertAfter = TVI_LAST;
+		tvis.item.mask = TVIF_TEXT | TVIF_PARAM;
+		tvis.item.lParam = (LPARAM)node;
+		tvis.item.pszText = chartoapichar(const_cast<char*>(name), &hactmp1);
+		res = TreeView_InsertItem(hwndVarTree, &tvis);
+		freehac(&hactmp1);
+		return res;
+	}
+
+	void delete_item(HTREEITEM hItem) {
+		TreeView_EscapeFocus(hwndVarTree, hItem);
+		TreeView_DeleteItem(hwndVarTree, hItem);
+	}
+
+	void expand_item(HTREEITEM hParent) {
+		TreeView_Expand(hwndVarTree, hParent, TVE_EXPAND);
+	}
+
+	void select_item(HTREEITEM hItem) {
+		TreeView_SelectItem(hwndVarTree, hItem);
+	}
+
+	auto tryGetNodeData(HTREEITEM hItem) const -> optional_ref<VTNodeData> {
+		auto const lp = reinterpret_cast<VTNodeData*>(TreeView_GetItemLParam(hwndVarTree, hItem));
+		assert(lp);
+		return lp;
+	}
+};
+
 #define hwndVarTree (Dialog::getVarTreeHandle())
 
 #ifdef with_WrapCall
@@ -27,11 +75,6 @@ using WrapCall::ModcmdCallInfo;
 using detail::TvObserver;
 using detail::VarTreeLogObserver;
 
-static auto TreeView_MyInsertItem
-	( HTREEITEM hParent, char const* name
-	, VTNodeData* node
-	) -> HTREEITEM;
-static void TreeView_MyDeleteItem(HTREEITEM hItem);
 static auto makeNodeName(VTNodeData const& node) -> string;
 static bool isAutoOpenNode(VTNodeData const& node);
 
@@ -112,16 +155,15 @@ TvObserver::TvObserver(VTView::Impl& self)
 
 void TvObserver::onInit(VTNodeData& node)
 {
+	auto tv = VarTreeView{ hwndVarTree };
+
 	auto const parent = node.parent();
 	if ( ! parent ) return; // VTRoot
 
 	auto const hParent = self.itemFromNode(parent);
 	assert(hParent != nullptr);
 
-	auto const hItem = TreeView_MyInsertItem
-		( hParent
-		, makeNodeName(node).c_str()
-		, &node);
+	auto const hItem = tv.insert_item(hParent, makeNodeName(node).c_str(), &node);
 
 	assert(self.itemFromNode_[&node] == nullptr);
 	self.itemFromNode_[&node] = hItem;
@@ -129,21 +171,25 @@ void TvObserver::onInit(VTNodeData& node)
 	self.viewCaret_.erase(hItem);
 
 	if ( isAutoOpenNode(*parent) ) {
-		TreeView_Expand(hwndVarTree, hParent, TVE_EXPAND);
+		tv.expand_item(hParent);
 	}
 }
 
 void TvObserver::onTerm(VTNodeData& node)
 {
+	auto tv = VarTreeView{ hwndVarTree };
+
 	if ( auto const hItem = self.itemFromNode(&node) ) {
 		self.itemFromNode_[&node] = nullptr;
-		TreeView_MyDeleteItem(hItem);
+		tv.delete_item(hItem);
 	}
 }
 
 void VarTreeLogObserver::did_change()
 {
-	if ( TreeView_GetSelection(hwndVarTree) == self.hNodeLog_ ) {
+	auto tv = VarTreeView{ hwndVarTree };
+
+	if ( tv.selected_item() == self.hNodeLog_ ) {
 		Dialog::View::update();
 	}
 }
@@ -157,11 +203,8 @@ void VTView::update()
 	Dialog::View::update();
 }
 
-auto VTView::tryGetNodeData(HTREEITEM hItem) const -> optional_ref<VTNodeData>
-{
-	auto const lp = reinterpret_cast<VTNodeData*>(TreeView_GetItemLParam(hwndVarTree, hItem));
-	assert(lp);
-	return lp;
+auto VTView::tryGetNodeData(HTREEITEM hItem) const -> optional_ref<VTNodeData> {
+	return VarTreeView{ hwndVarTree }.tryGetNodeData(hItem);
 }
 
 // ノードに対応する文字列を得る
@@ -233,7 +276,9 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 
 void VTView::saveCurrentViewCaret(int vcaret)
 {
-	if ( auto const hItem = TreeView_GetSelection(hwndVarTree) ) {
+	auto tv = VarTreeView{ hwndVarTree };
+
+	if ( auto const hItem = tv.selected_item() ) {
 		p_->viewCaret_[hItem] = vcaret;
 	}
 }
@@ -246,14 +291,18 @@ auto VTView::Impl::viewCaretFromNode(HTREEITEM hItem) const -> int
 
 void VTView::selectNode(VTNodeData const& node)
 {
+	auto tv = VarTreeView{ hwndVarTree };
+
 	if ( auto const hItem = p_->itemFromNode(&node) ) {
-		TreeView_SelectItem(hwndVarTree, hItem);
+		tv.select_item(hItem);
 	}
 }
 
 void VTView::updateViewWindow()
 {
-	auto const hItem = TreeView_GetSelection(hwndVarTree);
+	auto tv = VarTreeView{ hwndVarTree };
+
+	auto const hItem = tv.selected_item();
 	if ( hItem ) {
 		static auto stt_prevSelection = HTREEITEM { nullptr };
 		if ( hItem == stt_prevSelection ) {
@@ -281,31 +330,6 @@ void VTView::updateViewWindow()
 			Dialog::View::scroll(p_->viewCaretFromNode(hItem), 0);
 		}
 	}
-}
-
-static auto TreeView_MyInsertItem
-	( HTREEITEM hParent
-	, char const* name
-	, VTNodeData* node
-	) -> HTREEITEM
-{
-	auto tvis = TVINSERTSTRUCT {};
-	HTREEITEM res;
-	HSPAPICHAR *hactmp1;
-	tvis.hParent = hParent;
-	tvis.hInsertAfter = TVI_LAST;
-	tvis.item.mask    = TVIF_TEXT | TVIF_PARAM;
-	tvis.item.lParam  = (LPARAM)node;
-	tvis.item.pszText = chartoapichar(const_cast<char*>(name),&hactmp1);
-	res = TreeView_InsertItem(hwndVarTree, &tvis);
-	freehac(&hactmp1);
-	return res;
-}
-
-static void TreeView_MyDeleteItem(HTREEITEM hItem)
-{
-	TreeView_EscapeFocus(hwndVarTree, hItem);
-	TreeView_DeleteItem(hwndVarTree, hItem);
 }
 
 // ノードにつけるべき名前
