@@ -1,4 +1,5 @@
 ﻿
+#include <fstream>
 #include <winapifamily.h>
 #include "encoding.h"
 #include "main.h"
@@ -132,6 +133,29 @@ namespace Knowbug
 
 	void logmesWarning(char const* msg) {
 		logmesWarning(HspStringView{ msg }.to_os_string().as_ref());
+	}
+
+	void open_current_script_file() {
+		auto file_ref_name = HspStringView{ g_dbginfo->curPos().fileRefName() }.to_os_string();
+		OsStringView full_path;
+		auto ok = Knowbug::get_source_file_resolver()->find_full_path(file_ref_name.as_ref(), full_path);
+		if (ok) {
+			ShellExecute(nullptr, TEXT("open"), full_path.data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
+		}
+	}
+
+	void open_config_file() {
+		// ファイルが存在しなければ作成される。
+		auto of = std::ofstream{ g_config->selfPath(), std::ios::app };
+
+		ShellExecute(nullptr, TEXT("open"), g_config->selfPath().data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
+	}
+
+	void open_knowbug_repository() {
+		auto url = TEXT("https://github.com/vain0x/knowbug");
+		auto no_args = LPCTSTR{ nullptr };
+		auto current_directory = LPCTSTR{ nullptr };
+		ShellExecute(nullptr, TEXT("open"), url, no_args, current_directory, SW_SHOWDEFAULT);
 	}
 
 #ifdef with_WrapCall

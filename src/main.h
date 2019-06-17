@@ -48,6 +48,10 @@ namespace Knowbug
 	extern void logmesWarning(char const* msg);
 	extern void logmesWarning(OsStringView const& msg);
 
+	extern void open_current_script_file();
+	extern void open_config_file();
+	extern void open_knowbug_repository();
+
 } // namespace Knowbug
 
 #endif

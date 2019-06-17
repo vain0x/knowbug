@@ -32,7 +32,6 @@
 #define KnowbugVersion TEXT("1.22.2 ") KnowbugPlatformString
 static auto KnowbugMainWindowTitle = KnowbugAppName TEXT(" ") KnowbugVersion;
 static auto KnowbugViewWindowTitle = TEXT("Knowbug View");
-static auto KnowbugRepoUrl = TEXT("https://github.com/vain0/knowbug");
 
 namespace Dialog
 {
@@ -258,7 +257,6 @@ static void resizeMainWindow(size_t cx, size_t cy, bool repaints)
 // メインウィンドウのコールバック関数
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
-	HSPAPICHAR *hactmp1;
 	switch ( msg ) {
 		case WM_COMMAND:
 			switch ( LOWORD(wp) ) {
@@ -275,21 +273,11 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					}
 					break;
 				}
-				case IDC_OPEN_CURRENT_SCRIPT: {
-					auto file_ref_name = HspStringView{ g_dbginfo->curPos().fileRefName() }.to_os_string();
-					OsStringView full_path;
-					auto ok = Knowbug::get_source_file_resolver()->find_full_path(file_ref_name.as_ref(), full_path);
-					if (ok) {
-						ShellExecute(nullptr, TEXT("open"), full_path.data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
-					}
+				case IDC_OPEN_CURRENT_SCRIPT:
+					Knowbug::open_current_script_file();
 					break;
-				}
 				case IDC_OPEN_INI: {
-					// ファイルが存在しなければ作成される。
-					auto of = std::ofstream { g_config->selfPath(), std::ios::app };
-
-					ShellExecute(nullptr, TEXT("open"), g_config->selfPath().data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
-					freehac(&hactmp1);
+					Knowbug::open_config_file();
 					break;
 				}
 				case IDC_UPDATE: {
@@ -297,9 +285,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_OPEN_KNOWBUG_REPOS: {
-					auto args = LPCTSTR{ nullptr };
-					auto directory = LPCTSTR{ TEXT("") };
-					ShellExecute(nullptr, TEXT("open"), KnowbugRepoUrl, args, directory, SW_SHOWDEFAULT);
+					Knowbug::open_knowbug_repository();
 					break;
 				}
 				case IDC_GOTO_LOG: {
