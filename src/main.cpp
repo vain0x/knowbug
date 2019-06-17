@@ -5,12 +5,13 @@
 #include "DebugInfo.h"
 #include "VarTreeNodeData.h"
 #include "CVarinfoText.h"
-
 #include "config_mng.h"
 #include "dialog.h"
+#include "StepController.h"
 
 static auto g_hInstance = HINSTANCE {};
 std::unique_ptr<DebugInfo> g_dbginfo {};
+static std::unique_ptr<KnowbugStepController> g_step_controller_;
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
@@ -47,6 +48,8 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	KnowbugConfig::initialize();
 	g_dbginfo.reset(new DebugInfo(p1));
 
+	g_step_controller_ = std::make_unique<KnowbugStepController>(ctx, *g_dbginfo);
+
 	Dialog::createMain();
 	return 0;
 }
@@ -77,65 +80,17 @@ void debugbye()
 
 namespace Knowbug
 {
-
-// ステップ実行中かどうかのフラグ
-// 「脱出」等の条件付き実行は除く。
-static auto bStepRunning = false;
-bool isStepRunning() { return bStepRunning; }
-
-// 条件付き実行の終了条件となる sublev
-static auto sublevOfGoal = -1;
-
-auto getInstance() -> HINSTANCE
-{
-	return g_hInstance;
-}
-
-void runStop()
-{
-	g_dbginfo->setStepMode( HSPDEBUG_STOP );
-}
-
-void run()
-{
-	g_dbginfo->setStepMode(HSPDEBUG_RUN);
-	bStepRunning = false;
-}
-
-void runStepIn()
-{
-	// 本当のステップ実行でのみフラグが立つ
-	bStepRunning = true;
-
-	g_dbginfo->setStepMode(HSPDEBUG_STEPIN);
-}
-
-void runStepOver() { return runStepReturn(ctx->sublev); }
-void runStepOut()  { return runStepReturn(ctx->sublev - 1); }
-
-// ctx->sublev == sublev になるまで step を繰り返す
-void runStepReturn(int sublev)
-{
-	if ( sublev < 0 ) return run();
-
-	sublevOfGoal = sublev;
-	bStepRunning = false;
-	g_dbginfo->setStepMode(HSPDEBUG_STEPIN);
-}
-
-// 条件付き実行が継続されるか？
-bool continueConditionalRun()
-{
-	if ( sublevOfGoal >= 0 ) {
-		if ( ctx->sublev > sublevOfGoal ) {
-			g_dbginfo->setStepMode(HSPDEBUG_STEPIN); // stepin を繰り返す
-			return true;
-		} else {
-			sublevOfGoal = -1;
-		}
+	auto getInstance() -> HINSTANCE {
+		return g_hInstance;
 	}
-	return false;
-}
+
+	void step_run(StepControl step_control) {
+		g_step_controller_->update(step_control);
+	}
+
+	bool continueConditionalRun() {
+		return g_step_controller_->continue_step_running();
+	}
 
 void logmes( char const* msg )
 {

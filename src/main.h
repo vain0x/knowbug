@@ -13,6 +13,7 @@
 #include "hpiutil/hpiutil.hpp"
 #include "DebugInfo.h"
 #include "module/utility.h"
+#include "StepController.h"
 
 using hpiutil::vartype_t;
 using hpiutil::varmode_t;
@@ -31,14 +32,7 @@ namespace Knowbug
 {
 	extern auto getInstance() -> HINSTANCE;
 
-	extern void run();
-	extern void runStop();
-	extern void runStepIn();
-	extern void runStepOver();
-	extern void runStepOut();
-	extern void runStepReturn(int sublev);
-
-	extern bool isStepRunning();
+	extern void step_run(StepControl step_control);
 	extern bool continueConditionalRun();
 
 	extern void logmes(char const* msg); //自動改行なし

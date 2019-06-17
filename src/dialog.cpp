@@ -210,7 +210,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		case IDC_NODE_STEP_OUT: {
 			if ( auto nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {
 				// 対象が呼び出された階層まで進む
-				Knowbug::runStepReturn(nodeInvoke->callinfo().sublev);
+				Knowbug::step_run(StepControl::step_return(nodeInvoke->callinfo().sublev));
 			}
 			break;
 		}
@@ -263,11 +263,11 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	switch ( msg ) {
 		case WM_COMMAND:
 			switch ( LOWORD(wp) ) {
-				case IDC_BTN1: Knowbug::run();         break;
-				case IDC_BTN2: Knowbug::runStepIn();   break;
-				case IDC_BTN3: Knowbug::runStop();     break;
-				case IDC_BTN4: Knowbug::runStepOver(); break;
-				case IDC_BTN5: Knowbug::runStepOut();  break;
+				case IDC_BTN1: Knowbug::step_run(StepControl::run());       break;
+				case IDC_BTN2: Knowbug::step_run(StepControl::step_in());   break;
+				case IDC_BTN3: Knowbug::step_run(StepControl::stop());      break;
+				case IDC_BTN4: Knowbug::step_run(StepControl::step_over()); break;
+				case IDC_BTN5: Knowbug::step_run(StepControl::step_out());  break;
 
 				case IDC_TOPMOST: {
 					Menu_ToggleCheck(g_res->dialogMenu.get(), IDC_TOPMOST, g_config->bTopMost);
