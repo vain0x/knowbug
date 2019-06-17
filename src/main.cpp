@@ -44,8 +44,8 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	ctx    = p1->hspctx;
 	exinfo = ctx->exinfo2;
 
+	KnowbugConfig::initialize();
 	g_dbginfo.reset(new DebugInfo(p1));
-	g_config.initialize();
 
 	Dialog::createMain();
 	return 0;

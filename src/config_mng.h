@@ -7,13 +7,12 @@
 #include "module/Singleton.h"
 #include "module/handle_deleter.hpp"
 
-struct KnowbugConfig : public Singleton<KnowbugConfig>
-{
-	friend class Singleton<KnowbugConfig>;
+struct KnowbugConfig;
 
-public:
-	//properties from ini (see it for detail)
+extern std::unique_ptr<KnowbugConfig> g_knowbug_config;
 
+// knowbug のすべての設定。package/knowbug.ini を参照。
+struct KnowbugConfig {
 	OsString hspDir;
 	bool bTopMost;
 	bool viewPosXIsDefault, viewPosYIsDefault;
@@ -34,19 +33,17 @@ public:
 		return OsString{ hspDir + TEXT("common") };
 	}
 
-	auto selfPath() const -> OsString {
-		return OsString{ hspDir + TEXT("knowbug.ini") };
-	}
+	auto selfPath() const->OsString;
 
-private:
-	KnowbugConfig();
+	static void initialize();
+	static auto load(OsString&& hsp_dir)->KnowbugConfig;
 
-public:
-	//to jusitify existent codes (such as g_config->property)
-	class SingletonAccessor {
-	public:
-		void initialize() { instance(); }
-		auto operator->() -> KnowbugConfig* { return &instance(); }
+	// `g_config->member` のような記述のコンパイルを通すためのもの。
+	struct SingletonAccessor {
+		auto operator->() -> KnowbugConfig* {
+			assert(g_knowbug_config != nullptr);
+			return g_knowbug_config.get();
+		}
 	};
 };
 

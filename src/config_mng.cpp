@@ -6,9 +6,11 @@
 #include "encoding.h"
 #include "module\/supio\/supio.h"
 
+std::unique_ptr<KnowbugConfig> g_knowbug_config;
+
 KnowbugConfig::SingletonAccessor g_config;
 
-static auto SelfDir() -> OsString {
+static auto get_hsp_dir() -> OsString {
 	// knowbug の DLL の絶対パスを取得する。
 	TCHAR path[MAX_PATH];
 	GetModuleFileName(GetModuleHandle(nullptr), path, MAX_PATH);
@@ -27,28 +29,43 @@ static auto SelfDir() -> OsString {
 	return full_path;
 }
 
-KnowbugConfig::KnowbugConfig()
-{
-	hspDir = SelfDir();
+static auto ini_file_path(OsStringView const& hsp_dir) -> OsString {
+	return OsString{ hsp_dir.to_owned() + TEXT("knowbug.ini") };
+}
 
-	auto&& ini = CIni{ selfPath() };
+void KnowbugConfig::initialize() {
+	assert(g_knowbug_config == nullptr);
+	g_knowbug_config = std::make_unique<KnowbugConfig>(load(get_hsp_dir()));
+}
 
-	bTopMost   = ini.getBool( "Window", "bTopMost", false );
-	viewPosXIsDefault = !ini.existsKey("Window", "viewPosX");
-	viewPosYIsDefault = !ini.existsKey("Window", "viewPosY");
-	viewPosX   = ini.getInt("Window", "viewPosX", 0);
-	viewPosY   = ini.getInt("Window", "viewPosY", 0);
-	viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
-	viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
-	tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
-	fontFamily = ini.getString("Interface", "fontFamily", "MS Gothic").to_owned();
-	fontSize   = ini.getInt("Interface", "fontSize", 13);
-	fontAntialias = ini.getBool("Interface", "fontAntialias", false);
+auto KnowbugConfig::load(OsString&& hsp_dir) -> KnowbugConfig {
+	auto&& ini = CIni{ ini_file_path(hsp_dir.as_ref()) };
+	auto config = KnowbugConfig{};
 
-	logPath = ini.getString("Log", "autoSavePath", "").to_owned();
-	warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
-	scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
+	config.hspDir = std::move(hsp_dir);
+	config.bTopMost   = ini.getBool( "Window", "bTopMost", false );
+	config.viewPosXIsDefault = !ini.existsKey("Window", "viewPosX");
+	config.viewPosYIsDefault = !ini.existsKey("Window", "viewPosY");
+	config.viewPosX   = ini.getInt("Window", "viewPosX", 0);
+	config.viewPosY   = ini.getInt("Window", "viewPosY", 0);
+	config.viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
+	config.viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
+	config.tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
+	config.fontFamily = ini.getString("Interface", "fontFamily", "MS Gothic").to_owned();
+	config.fontSize   = ini.getInt("Interface", "fontSize", 13);
+	config.fontAntialias = ini.getBool("Interface", "fontAntialias", false);
+
+	config.logPath = ini.getString("Log", "autoSavePath", "").to_owned();
+	config.warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
+	config.scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
+
 #ifdef with_WrapCall
-	logsInvocation = ini.getBool("Log", "logsInvocation", false);
+	config.logsInvocation = ini.getBool("Log", "logsInvocation", false);
 #endif
+
+	return config;
+}
+
+auto KnowbugConfig::selfPath() const -> OsString {
+	return ini_file_path(hspDir.as_ref());
 }
