@@ -8,7 +8,13 @@
 
 using std::map;
 
-static auto const HIDDEN_MODULE_PREFIX = HspStringView{ "@__" };
+static auto var_name_to_scope_resolution(char const* var_name) -> char const* {
+	return std::strchr(var_name, '@');
+}
+
+static bool is_hidden_module(char const* scope_resolution) {
+	return std::strcmp(scope_resolution, "@__") == 0;
+}
 
 string const VTNodeModule::Global::Name { "@" };
 
@@ -62,7 +68,7 @@ void VTNodeModule::Global::init()
 //------------------------------------------------
 void VTNodeModule::Global::addVar(char const* name)
 {
-	if ( auto scopeResolution = std::strchr(name, '@') ) {
+	if ( auto scopeResolution = var_name_to_scope_resolution(name) ) {
 		if ( auto child = p_->insertModule(scopeResolution) ) {
 			child->p_->insertVar(name);
 		}
@@ -90,27 +96,16 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 {
 	assert(pModname[0] == '@');
 
-	// 特定のプレフィックスを持つモジュールは表示しない。
-	if ( begins_with(pModname + 0, pModname + strlen(pModname), RANGE_ALL(HIDDEN_MODULE_PREFIX)) ) {
+	if (is_hidden_module(pModname)) {
 		return nullptr;
 	}
 
-	if ( auto pModnameLast = std::strrchr(&pModname[1], '@') ) {
-		// 末尾のスコープのモジュールを挿入する
-		auto child = insertModule(pModnameLast);
-		if ( ! child ) return nullptr;
-
-		// スコープを1段除いて、子モジュールに挿入する
-		auto modname2 = string(pModname, pModnameLast);
-		return child->p_->insertModule(modname2.c_str());
-
-	} else {
-		auto modname = string { pModname };
-		auto& node = map_find_or_insert(modules_, modname, [&]() {
-			return std::make_unique<VTNodeModule>(self, modname);
-		});
-		return node.get();
+	auto module_name = std::string{ pModname };
+	auto iter = modules_.find(module_name);
+	if (iter == modules_.end()) {
+		iter = modules_.emplace_hint(iter, module_name, std::make_unique<VTNodeModule>(self, module_name));
 	}
+	return iter->second.get();
 }
 
 //------------------------------------------------
