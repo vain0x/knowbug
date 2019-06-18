@@ -61,13 +61,15 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 	KnowbugConfig::initialize();
 
-	g_source_file_resolver = std::make_shared<SourceFileResolver>(g_config->commonPath());
+	auto const& debug_segment = hpiutil::DInfo::instance();
+
+	g_source_file_resolver = std::make_shared<SourceFileResolver>(g_config->commonPath(), debug_segment);
 
 	// 起動時の処理:
 
 	g_logger->enable_auto_save(g_config->logPath.as_ref());
 
-	Dialog::createMain();
+	Dialog::createMain(debug_segment);
 	return 0;
 }
 

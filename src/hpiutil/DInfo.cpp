@@ -86,9 +86,4 @@ void DInfo::parse()
 	}
 }
 
-auto fileRefNames() -> std::unordered_set<std::string> const&
-{
-	return DInfo::instance().fileRefNames();
-}
-
 } //namespace hpiutil

@@ -4,7 +4,7 @@
 #include "DInfo.hpp"
 
 namespace hpiutil {
-	
+
 namespace detail {
 
 template<typename T>
@@ -50,11 +50,11 @@ auto nameFromStPrm(stprm_t stprm, int idx, DInfo const& debug_segment) -> std::s
 	return stringifyArrayIndex({ idx });
 }
 
-auto nameFromLabel(label_t lb) -> std::string
+auto nameFromLabel(label_t lb, DInfo const& debug_segment) -> std::string
 {
 	auto const otIndex = detail::indexFrom(labels(), lb);
 	auto buf = std::array<char, 64> {};
-	if ( auto const name = DInfo::instance().tryFindLabelName(otIndex) ) {
+	if ( auto const name = debug_segment.tryFindLabelName(otIndex) ) {
 		std::sprintf(buf.data(), "*%s", name);
 	} else {
 		std::sprintf(buf.data(), "label(%p)", static_cast<void const*>(lb));

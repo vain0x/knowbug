@@ -5,6 +5,10 @@
 #include "encoding.h"
 #include "SourceFile.h"
 
+namespace hpiutil {
+	class DInfo;
+}
+
 class SourceFileResolver;
 
 // ファイル参照名と絶対パスの対応、および各ソースコードのキャッシュを持つ。
@@ -20,8 +24,10 @@ class SourceFileResolver {
 	// 絶対パスからソースファイルへのマップ
 	std::map<OsString, std::shared_ptr<SourceFile>> source_files_;
 
+	hpiutil::DInfo const& debug_segment_;
+
 public:
-	SourceFileResolver(OsString&& common_path);
+	SourceFileResolver(OsString&& common_path, hpiutil::DInfo const& debug_segment);
 
 	// ファイル参照名の絶対パスを検索する。
 	auto find_full_path(OsStringView const& file_ref_name, OsStringView& out_full_path)->bool;

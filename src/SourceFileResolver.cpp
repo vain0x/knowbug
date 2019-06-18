@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iterator>
 #include "hpiutil/hpiutil.hpp"
+#include "hpiutil/DInfo.hpp"
 #include "SourceFileResolver.h"
 
 // 指定したディレクトリを基準として、指定した名前または相対パスのファイルを検索する。
@@ -75,8 +76,9 @@ static auto open_source_file(OsStringView const& full_path) -> std::shared_ptr<S
 	return std::make_shared<SourceFile>(full_path.to_owned(), std::move(content_str));
 }
 
-SourceFileResolver::SourceFileResolver(OsString&& common_path)
+SourceFileResolver::SourceFileResolver(OsString&& common_path, hpiutil::DInfo const& debug_segment)
 	: resolution_done_(false)
+	, debug_segment_(debug_segment)
 {
 	dirs_.emplace(std::move(common_path));
 }
@@ -87,7 +89,7 @@ auto SourceFileResolver::resolve_file_ref_names()->void {
 	}
 
 	auto file_ref_names = std::vector<OsString>{};
-	for (auto&& file_ref_name : hpiutil::fileRefNames()) {
+	for (auto&& file_ref_name : debug_segment_.fileRefNames()) {
 		file_ref_names.push_back(HspStringView{ file_ref_name.data() }.to_os_string());
 	}
 

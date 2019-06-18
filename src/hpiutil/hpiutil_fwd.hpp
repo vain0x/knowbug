@@ -62,10 +62,7 @@ extern auto nameFromStPrm(stprm_t stprm, int index, DInfo const& debug_segment) 
 ラベル名を得る
 DInfo からみつからなければ "label(%p)" が返る
 //*/
-extern auto nameFromLabel(label_t lb) -> std::string;
-
-// ファイル参照名の一覧
-extern auto fileRefNames() -> std::unordered_set<std::string> const&;
+extern auto nameFromLabel(label_t lb, DInfo const& debug_segment) -> std::string;
 
 //文字列リテラル
 extern auto literalFormString(char const* s) -> std::string;

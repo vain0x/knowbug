@@ -146,7 +146,7 @@ void CVardataStrWriter::addValue(char const* name, vartype_t type, PDAT const* p
 	};
 
 	hpiutil::dispatchValue<void>(ptr, type
-		, [&](label_t lb)          { addValueLeaf(hpiutil::nameFromLabel(lb)); }
+		, [&](label_t lb)          { addValueLeaf(hpiutil::nameFromLabel(lb, debug_segment_)); }
 		, [&](char const* str)     { addValueString(name, str); }
 		, [&](double val) {
 				addValueLeaf(strf((getWriter().isLineformed() ? "%f" : "%.16f"), val));

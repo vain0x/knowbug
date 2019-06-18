@@ -6,12 +6,16 @@
 
 class OsStringView;
 
+namespace hpiutil {
+	class DInfo;
+}
+
 namespace Dialog
 {
 
 auto getVarTreeHandle() -> HWND;
 
-void createMain();
+void createMain(hpiutil::DInfo const& debug_segment);
 void destroyMain();
 
 void update();
