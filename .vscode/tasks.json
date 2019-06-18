@@ -4,7 +4,7 @@
         {
             "type": "shell",
             "label": "build",
-            "command": "./scripts/build.ps1 '/t:build' '/p:Configuration=DebugUtf8;Platform=x86'",
+            "command": "pwsh -c \"./scripts/build.ps1 '/t:build' '/p:Configuration=DebugUtf8;Platform=x86'\"",
             "problemMatcher": [
                 "$msCompile"
             ],
