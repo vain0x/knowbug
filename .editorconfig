@@ -1,6 +1,6 @@
 root = true
 
-[*.{c,cc,cpp,cxx,h,hh,hpp,hxx}]
+[*.{c,cc,cpp,cxx,h,hh,hpp,hxx,hsp,as}]
 indent_size = 4
 indent_style = tab
 insert_final_newline = true
