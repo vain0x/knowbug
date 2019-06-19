@@ -5,14 +5,15 @@
 #include "hpiutil/hpiutil_fwd.hpp"
 #include "encoding.h"
 
+class HspDebugApi;
+
 class HspStaticVars {
-	HSP3DEBUG* debug_;
-	HSPEXINFO* exinfo_;
+	HspDebugApi& api_;
 
 	std::vector<HspString> all_names_;
 
 public:
-	HspStaticVars(HSP3DEBUG* debug, HSPEXINFO* exinfo);
+	HspStaticVars(HspDebugApi& api);
 
 	auto get_all_names() const -> std::vector<HspString> const& {
 		return all_names_;

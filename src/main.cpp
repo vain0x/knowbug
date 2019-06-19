@@ -51,20 +51,20 @@ auto WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) -> i
 
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 {
-	auto api = std::make_shared<HspDebugApi>(p1);
+	auto api = HspDebugApi{ p1 };
 
 	// グローバル変数の初期化:
 
-	ctx    = api->context();
-	exinfo = api->exinfo();
+	ctx    = api.context();
+	exinfo = api.exinfo();
 
-	g_hsp_runtime = std::make_unique<HspRuntime>(api->context(), api->debug());
+	g_hsp_runtime = std::make_unique<HspRuntime>(std::move(api));
 
 	g_logger = std::make_shared<Logger>();
 
-	g_dbginfo.reset(new DebugInfo(api->debug()));
+	g_dbginfo.reset(new DebugInfo(p1));
 
-	g_step_controller_ = std::make_unique<KnowbugStepController>(api->context(), *g_dbginfo);
+	g_step_controller_ = std::make_unique<KnowbugStepController>(ctx, *g_dbginfo);
 
 	KnowbugConfig::initialize();
 

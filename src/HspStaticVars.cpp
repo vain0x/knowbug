@@ -5,6 +5,7 @@
 #include <vector>
 #include "hpiutil/hpiutil.hpp"
 #include "module/supio/supio.h"
+#include "HspDebugApi.h"
 #include "HspStaticVars.h"
 
 static void fetch_static_var_names(HSP3DEBUG* debug_, std::vector<HspString>& names) {
@@ -24,20 +25,19 @@ static void fetch_static_var_names(HSP3DEBUG* debug_, std::vector<HspString>& na
 	}
 }
 
-static auto seekSttVar(char const* name, HSPEXINFO* exinfo) -> PVal*
+static auto seekSttVar(char const* name, HSPCTX* ctx, HSPEXINFO* exinfo) -> PVal*
 {
 	auto const index = int { exinfo->HspFunc_seekvar(name) };
 	return (index >= 0) ? &ctx->mem_var[index] : nullptr;
 }
 
-HspStaticVars::HspStaticVars(HSP3DEBUG* debug, HSPEXINFO* exinfo)
-	: debug_(debug)
-	, exinfo_(exinfo)
+HspStaticVars::HspStaticVars(HspDebugApi& api)
+	: api_(api)
 	, all_names_()
 {
-	fetch_static_var_names(debug, all_names_);
+	fetch_static_var_names(api_.debug(), all_names_);
 }
 
 auto HspStaticVars::access_by_name(char const* var_name) -> PVal* {
-	return seekSttVar(var_name, exinfo_);
+	return seekSttVar(var_name, api_.context(), api_.exinfo());
 }

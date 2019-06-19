@@ -1,8 +1,8 @@
+#include "HspDebugApi.h"
 #include "HspRuntime.h"
 
-HspRuntime::HspRuntime(HSPCTX* ctx, HSP3DEBUG* debug)
-	: ctx_(ctx)
-	, debug_(debug)
-	, static_vars_(debug, exinfo())
+HspRuntime::HspRuntime(HspDebugApi&& api)
+	: api_(std::move(api))
+	, static_vars_(api_)
 {
 }
