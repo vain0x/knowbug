@@ -542,6 +542,7 @@
     <ClCompile Include="hpiutil\hspsdk\hsp3plugin.cpp" />
     <ClCompile Include="hpiutil\stringify.cpp" />
     <ClCompile Include="hpiutil\sysvar.cpp" />
+    <ClCompile Include="HspDebugApi.cpp" />
     <ClCompile Include="HspRuntime.cpp" />
     <ClCompile Include="HspStaticVars.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -583,6 +584,7 @@
     <ClInclude Include="hpiutil\sysvar.hpp" />
     <ClInclude Include="hpiutil\vartype_traits.hpp" />
     <ClInclude Include="hpiutil\vector_view.hpp" />
+    <ClInclude Include="HspDebugApi.h" />
     <ClInclude Include="HspRuntime.h" />
     <ClInclude Include="HspStaticVars.h" />
     <ClInclude Include="Logger.h" />
