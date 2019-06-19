@@ -5,6 +5,8 @@
 #include "DebugInfo.h"
 #include "config_mng.h"
 #include "VarTreeNodeData.h"
+#include "HspObjectPath.h"
+#include "HspObjects.h"
 #include "HspStaticVars.h"
 
 using std::map;
@@ -85,8 +87,11 @@ void VTNodeModule::Private::insertVar(char const* name)
 	auto pval = static_vars_.access_by_name(name);
 	assert(pval);
 
+	auto static_var_id = static_vars_.find_id(name);
+	auto path = static_var_id ? std::make_optional<HspObjectPath>(HspObjectPath{ *static_var_id }) : std::nullopt;
+
 	vars_.emplace(std::string(name)
-		, std::make_unique<VTNodeVar>(self, std::string(name), pval));
+		, std::make_unique<VTNodeVar>(self, std::string(name), pval, path));
 }
 
 //------------------------------------------------

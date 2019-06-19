@@ -6,6 +6,8 @@
 #include "CVardataString.h"
 
 class VTNodeModule;
+class HspObjectPath;
+class HspObjects;
 class HspStaticVars;
 
 namespace WrapCall
@@ -17,7 +19,9 @@ namespace WrapCall
 class CVarinfoText
 {
 public:
-	CVarinfoText(hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars);
+	CVarinfoText(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars);
+
+	void add(HspObjectPath const& path);
 
 	void addVar(PVal* pval, char const* name);
 	void addSysvar(hpiutil::Sysvar::Id id);
@@ -48,6 +52,7 @@ private:
 	CStrWriter writer_;
 
 	hpiutil::DInfo const& debug_segment_;
+	HspObjects& objects_;
 	HspStaticVars& static_vars_;
 };
 

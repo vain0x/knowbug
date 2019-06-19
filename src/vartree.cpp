@@ -9,6 +9,8 @@
 #include "dialog.h"
 #include "config_mng.h"
 #include "Logger.h"
+#include "HspObjectPath.h"
+#include "HspObjects.h"
 #include "HspStaticVars.h"
 
 #include "vartree.h"
@@ -118,8 +120,9 @@ public:
 	void did_change() override;
 };
 
-VTView::VTView(hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars)
+VTView::VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars)
 	: debug_segment_(debug_segment)
+	, objects_(objects)
 	, static_vars_(static_vars)
 	, p_(new Impl { *this })
 {
@@ -231,6 +234,12 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 		}
 		void fVar(VTNodeVar const& node) override
 		{
+			auto path = node.path();
+			if (path) {
+				varinf.add(*path);
+				return;
+			}
+
 			varinf.addVar(node.pval(), node.name().c_str());
 		}
 		void fSysvarList(VTNodeSysvarList const&) override
@@ -277,7 +286,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 	};
 
 	if ( auto node = tryGetNodeData(hItem) ) {
-		return GetText{ CVarinfoText{ debug_segment_, static_vars_ } }.apply(*node);
+		return GetText{ CVarinfoText{ debug_segment_, objects_, static_vars_ } }.apply(*node);
 	} else {
 		return std::make_unique<OsString>(TEXT("(not_available)"));
 	}

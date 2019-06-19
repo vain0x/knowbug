@@ -77,7 +77,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 	g_logger->enable_auto_save(g_config->logPath.as_ref());
 
-	Dialog::createMain(debug_segment, Knowbug::get_hsp_runtime().static_vars());
+	Dialog::createMain(debug_segment, g_hsp_runtime->objects(), Knowbug::get_hsp_runtime().static_vars());
 	return 0;
 }
 

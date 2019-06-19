@@ -13,6 +13,8 @@
 #include "CVarinfoText.h"
 #include "CVardataString.h"
 #include "VarTreeNodeData.h"
+#include "HspObjectPath.h"
+#include "HspObjects.h"
 #include "HspStaticVars.h"
 
 #ifdef with_WrapCall
@@ -24,9 +26,10 @@ using WrapCall::ModcmdCallInfo;
 static auto const MAX_TEXT_DEPTH = std::size_t{ 8 };
 static auto const MAX_TEXT_LENGTH = std::size_t{ 0x8000 };
 
-CVarinfoText::CVarinfoText(hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars)
+CVarinfoText::CVarinfoText(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars)
 	: writer_(std::make_shared<CStrBuf>())
 	, debug_segment_(debug_segment)
+	, objects_(objects)
 	, static_vars_(static_vars)
 {
 	writer_.getBuf()->limit(MAX_TEXT_LENGTH);
@@ -44,12 +47,21 @@ auto CVarinfoText::getStringMove() -> string&&
 
 auto CVarinfoText::create_lineform_writer() const -> CVardataStrWriter {
 	auto writer = std::make_unique<CLineformedWriter>(getBuf(), MAX_TEXT_DEPTH);
-	return CVardataStrWriter{ std::move(writer), debug_segment_, static_vars_ };
+	return CVardataStrWriter{ std::move(writer), debug_segment_, objects_, static_vars_ };
 }
 
 auto CVarinfoText::create_treeform_writer() const -> CVardataStrWriter {
 	auto writer = std::make_unique<CTreeformedWriter>(getBuf(), MAX_TEXT_DEPTH);
-	return CVardataStrWriter{ std::move(writer), debug_segment_, static_vars_ };
+	return CVardataStrWriter{ std::move(writer), debug_segment_, objects_, static_vars_ };
+}
+
+
+void CVarinfoText::add(HspObjectPath const& path) {
+	// path の指す先が静的変数だと分かったとする。
+	auto pval = objects_.static_var_to_pval(path.static_var_id());
+	auto name = path.name(objects_);
+
+	addVar(pval, name.data());
 }
 
 //------------------------------------------------

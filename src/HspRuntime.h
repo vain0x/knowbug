@@ -2,6 +2,7 @@
 
 #include "hpiutil/hpiutil_fwd.hpp"
 #include "HspDebugApi.h"
+#include "HspObjects.h"
 #include "HspStaticVars.h"
 
 // HSP 関連の操作をまとめるもの。
@@ -9,9 +10,14 @@
 class HspRuntime {
 	HspDebugApi api_;
 	HspStaticVars static_vars_;
+	HspObjects objects_;
 
 public:
 	HspRuntime(HspDebugApi&& api_);
+
+	auto objects() -> HspObjects& {
+		return objects_;
+	}
 
 	auto static_vars() -> HspStaticVars& {
 		return static_vars_;

@@ -11,6 +11,8 @@
 #endif
 #include "VarTreeNodeData.h"
 
+class HspObjects;
+
 namespace detail {
 struct TvObserver;
 struct VarTreeLogObserver;
@@ -19,7 +21,7 @@ struct VarTreeLogObserver;
 class VTView
 {
 public:
-	VTView(hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars);
+	VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects_, HspStaticVars& static_vars);
 	~VTView();
 
 	void update();
@@ -37,6 +39,7 @@ private:
 	unique_ptr<Impl> p_;
 
 	hpiutil::DInfo const& debug_segment_;
+	HspObjects& objects_;
 	HspStaticVars& static_vars_;
 
 	friend struct detail::TvObserver;

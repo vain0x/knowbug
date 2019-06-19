@@ -13,6 +13,8 @@ class CStructedStrWriter;
 class CLineformedWriter;
 class CTreeformedWriter;
 class CStrBuf;
+class HspObjectPath;
+class HspObjects;
 class HspStaticVars;
 
 // 変数データの文字列を作るクラス
@@ -23,21 +25,25 @@ private:
 	mutable unordered_map<void const*, string> visited_;
 
 	hpiutil::DInfo const& debug_segment_;
+	HspObjects& objects_;
 	HspStaticVars& static_vars_;
 
 public:
 	CVardataStrWriter(CVardataStrWriter&& src);
 	~CVardataStrWriter();
 
-	CVardataStrWriter(std::unique_ptr<CStructedStrWriter>&& writer, hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars)
+	CVardataStrWriter(std::unique_ptr<CStructedStrWriter>&& writer, hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars)
 		: writer_(std::move(writer))
 		, debug_segment_(debug_segment)
+		, objects_(objects)
 		, static_vars_(static_vars)
 	{
 	}
 
 public:
 	auto getString() const -> string const&;
+
+	void add(HspObjectPath const& path);
 
 	void addVar(char const* name, PVal const* pval);
 	void addVarScalar(char const* name, PVal const* pval);

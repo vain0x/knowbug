@@ -16,6 +16,8 @@ class HspStaticVars {
 public:
 	HspStaticVars(HspDebugApi& api);
 
+	auto find_id(char const* var_name) -> std::optional<std::size_t>;
+
 	auto get_all_names() const -> std::vector<HspString> const& {
 		return all_names_;
 	}

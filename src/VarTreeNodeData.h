@@ -1,13 +1,17 @@
 ﻿#ifndef IG_VARTREE_NODE_DATA_H
 #define IG_VARTREE_NODE_DATA_H
 
+#include <optional>
 #include "encoding.h"
 #include "main.h"
 #include "VarTreeNodeData_fwd.h"
 #include "WrapCall/ModcmdCallInfo.h"
 #include "module/Singleton.h"
 #include "module/utility.h"
+#include "HspObjectPath.h"
+#include "HspObjects.h"
 
+class HspObjectPath;
 class HspStaticVars;
 class LogObserver;
 class Logger;
@@ -20,15 +24,21 @@ class VTNodeVar
 	string const name_;
 	PVal* const pval_;
 
+	std::optional<HspObjectPath> const path_;
+
 public:
-	VTNodeVar(VTNodeData& parent, string const& name, PVal* pval)
-		: parent_(parent), name_(name), pval_(pval)
+	VTNodeVar(VTNodeData& parent, string const& name, PVal* pval, std::optional<HspObjectPath> path)
+		: parent_(parent), name_(name), pval_(pval), path_(path)
 	{
 		assert(pval_);
 	}
 
 	auto name() const -> string override { return name_; }
 	auto pval() const -> PVal* { return pval_; }
+
+	auto path() const -> std::optional<HspObjectPath> const& {
+		return path_;
+	}
 
 	auto vartype() const -> vartype_t override { return pval_->flag; }
 
