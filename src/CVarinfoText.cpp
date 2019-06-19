@@ -13,6 +13,7 @@
 #include "CVarinfoText.h"
 #include "CVardataString.h"
 #include "VarTreeNodeData.h"
+#include "HspStaticVars.h"
 
 #ifdef with_WrapCall
 # include "WrapCall//WrapCall.h"
@@ -23,9 +24,10 @@ using WrapCall::ModcmdCallInfo;
 static auto const MAX_TEXT_DEPTH = std::size_t{ 8 };
 static auto const MAX_TEXT_LENGTH = std::size_t{ 0x8000 };
 
-CVarinfoText::CVarinfoText(hpiutil::DInfo const& debug_segment)
+CVarinfoText::CVarinfoText(hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars)
 	: writer_(std::make_shared<CStrBuf>())
 	, debug_segment_(debug_segment)
+	, static_vars_(static_vars)
 {
 	writer_.getBuf()->limit(MAX_TEXT_LENGTH);
 }
@@ -156,7 +158,7 @@ void CVarinfoText::addModuleOverview(char const* name, VTNodeModule const& tree)
 			auto const shortName = hpiutil::nameExcludingScopeResolution(varname);
 			getWriter().cat(shortName + "\t= ");
 			create_lineform_writer()
-				.addVar(varname.c_str(), hpiutil::seekSttVar(varname.c_str()));
+				.addVar(varname.c_str(), static_vars_.access_by_name(varname.c_str()));
 			getWriter().catCrlf();
 		}
 	);

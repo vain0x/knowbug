@@ -6,6 +6,7 @@
 #include "CVardataString.h"
 
 class VTNodeModule;
+class HspStaticVars;
 
 namespace WrapCall
 {
@@ -16,7 +17,7 @@ namespace WrapCall
 class CVarinfoText
 {
 public:
-	CVarinfoText(hpiutil::DInfo const& debug_segment);
+	CVarinfoText(hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars);
 
 	void addVar(PVal* pval, char const* name);
 	void addSysvar(hpiutil::Sysvar::Id id);
@@ -45,7 +46,9 @@ private:
 
 private:
 	CStrWriter writer_;
+
 	hpiutil::DInfo const& debug_segment_;
+	HspStaticVars& static_vars_;
 };
 
 extern auto stringizePrmlist(stdat_t stdat) -> string;

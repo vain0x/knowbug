@@ -9,6 +9,7 @@
 #include "dialog.h"
 #include "config_mng.h"
 #include "Logger.h"
+#include "HspStaticVars.h"
 
 #include "vartree.h"
 #include "CVarinfoText.h"
@@ -117,8 +118,9 @@ public:
 	void did_change() override;
 };
 
-VTView::VTView(hpiutil::DInfo const& debug_segment)
+VTView::VTView(hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars)
 	: debug_segment_(debug_segment)
+	, static_vars_(static_vars)
 	, p_(new Impl { *this })
 {
 	// Register observers
@@ -275,7 +277,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 	};
 
 	if ( auto node = tryGetNodeData(hItem) ) {
-		return GetText{ CVarinfoText{ debug_segment_ } }.apply(*node);
+		return GetText{ CVarinfoText{ debug_segment_, static_vars_ } }.apply(*node);
 	} else {
 		return std::make_unique<OsString>(TEXT("(not_available)"));
 	}

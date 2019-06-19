@@ -12,12 +12,14 @@
 #include "StepController.h"
 #include "Logger.h"
 #include "SourceFileResolver.h"
+#include "HspRuntime.h"
 
 static auto g_hInstance = HINSTANCE {};
 std::unique_ptr<DebugInfo> g_dbginfo {};
 static std::unique_ptr<KnowbugStepController> g_step_controller_;
 static std::shared_ptr<Logger> g_logger;
 static std::shared_ptr<SourceFileResolver> g_source_file_resolver;
+static std::unique_ptr<HspRuntime> g_hsp_runtime;
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
@@ -53,6 +55,8 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	ctx    = p1->hspctx;
 	exinfo = ctx->exinfo2;
 
+	g_hsp_runtime = std::make_unique<HspRuntime>(ctx, p1);
+
 	g_logger = std::make_shared<Logger>();
 
 	g_dbginfo.reset(new DebugInfo(p1));
@@ -69,7 +73,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 	g_logger->enable_auto_save(g_config->logPath.as_ref());
 
-	Dialog::createMain(debug_segment);
+	Dialog::createMain(debug_segment, Knowbug::get_hsp_runtime().static_vars());
 	return 0;
 }
 
@@ -100,6 +104,10 @@ namespace Knowbug
 {
 	auto getInstance() -> HINSTANCE {
 		return g_hInstance;
+	}
+
+	auto get_hsp_runtime() -> HspRuntime& {
+		return *g_hsp_runtime;
 	}
 
 	auto get_logger() -> std::shared_ptr<Logger> {

@@ -19,7 +19,7 @@ struct VarTreeLogObserver;
 class VTView
 {
 public:
-	VTView(hpiutil::DInfo const& debug_segment);
+	VTView(hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars);
 	~VTView();
 
 	void update();
@@ -37,6 +37,7 @@ private:
 	unique_ptr<Impl> p_;
 
 	hpiutil::DInfo const& debug_segment_;
+	HspStaticVars& static_vars_;
 
 	friend struct detail::TvObserver;
 	friend struct detail::VarTreeLogObserver;

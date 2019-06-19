@@ -94,12 +94,6 @@ static auto libdat() -> std::vector_view<LIBDAT>
 		, ctx->hsphed->max_linfo / sizeof(LIBDAT));
 }
 
-static auto seekSttVar(char const* name) -> PVal*
-{
-	auto const index = int { exinfo->HspFunc_seekvar(name) };
-	return (index >= 0) ? &ctx->mem_var[index] : nullptr;
-}
-
 static auto STRUCTDAT_params(stdat_t self) -> std::vector_view<STRUCTPRM const>
 {
 	return detail::make_vector_view(&minfo()[self->prmindex], self->prmmax);

@@ -27,6 +27,7 @@ using hpiutil::HSPVAR_FLAG_VARIANT;
 //extern HSPCTX* ctx; // declared and defined in hsp3plugin.(h/cpp)
 //extern HSPEXINFO* exinfo;
 
+class HspRuntime;
 class Logger;
 class OsStringView;
 class SourceFileResolver;
@@ -35,6 +36,8 @@ class SourceFileResolver;
 namespace Knowbug
 {
 	extern auto getInstance() -> HINSTANCE;
+
+	extern auto get_hsp_runtime() -> HspRuntime&;
 
 	extern auto get_logger()->std::shared_ptr<Logger>;
 

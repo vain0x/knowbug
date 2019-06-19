@@ -4,6 +4,7 @@
 
 #include <Windows.h>
 
+class HspStaticVars;
 class OsStringView;
 
 namespace hpiutil {
@@ -15,7 +16,7 @@ namespace Dialog
 
 auto getVarTreeHandle() -> HWND;
 
-void createMain(hpiutil::DInfo const& debug_segment);
+void createMain(hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars);
 void destroyMain();
 
 void update();

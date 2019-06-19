@@ -8,6 +8,7 @@
 #include "module/Singleton.h"
 #include "module/utility.h"
 
+class HspStaticVars;
 class LogObserver;
 class Logger;
 class SourceFileResolver;
@@ -141,7 +142,7 @@ private:
 public:
 	class Global;
 
-	VTNodeModule(VTNodeData& parent, string const& name);
+	VTNodeModule(VTNodeData& parent, string const& name, HspStaticVars& static_vars);
 	virtual ~VTNodeModule();
 
 	auto name() const -> string override;
@@ -177,7 +178,7 @@ class VTNodeModule::Global
 
 public:
 	static string const Name;
-	Global(VTRoot& parent);
+	Global(VTRoot& parent, HspStaticVars& static_vars);
 
 private:
 	void addVar(const char* name);
@@ -250,7 +251,7 @@ class VTRoot
 		VTNodeLog            log_;
 
 	public:
-		ChildNodes(VTRoot& root, std::shared_ptr<Logger> logger, std::shared_ptr<SourceFileResolver> source_file_resolver);
+		ChildNodes(VTRoot& root);
 	};
 	unique_ptr<ChildNodes> p_;
 

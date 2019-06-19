@@ -5,6 +5,7 @@
 #include "DebugInfo.h"
 #include "config_mng.h"
 #include "VarTreeNodeData.h"
+#include "HspStaticVars.h"
 
 using std::map;
 
@@ -23,6 +24,7 @@ struct VTNodeModule::Private
 	VTNodeModule& self;
 	VTNodeData& parent_;
 	string const name_;
+	HspStaticVars& static_vars_;
 	map<string, unique_ptr<VTNodeVar>> vars_;
 	map<string, unique_ptr<VTNodeModule>> modules_;
 
@@ -31,8 +33,8 @@ public:
 	auto insertModule(char const* pModname) -> optional_ref<VTNodeModule>;
 };
 
-VTNodeModule::VTNodeModule(VTNodeData& parent_, string const& name)
-	: p_(new Private { *this, parent_, name })
+VTNodeModule::VTNodeModule(VTNodeData& parent_, string const& name, HspStaticVars& static_vars)
+	: p_(new Private { *this, parent_, name, static_vars })
 {}
 
 VTNodeModule::~VTNodeModule()
@@ -51,8 +53,8 @@ auto VTNodeModule::parent() const -> optional_ref<VTNodeData>
 //------------------------------------------------
 // グローバルノードを構築する
 //------------------------------------------------
-VTNodeModule::Global::Global(VTRoot& parent)
-	: VTNodeModule(parent, Name)
+VTNodeModule::Global::Global(VTRoot& parent, HspStaticVars& static_vars)
+	: VTNodeModule(parent, Name, static_vars)
 {}
 
 void VTNodeModule::Global::init()
@@ -80,7 +82,7 @@ void VTNodeModule::Global::addVar(char const* name)
 
 void VTNodeModule::Private::insertVar(char const* name)
 {
-	auto pval = hpiutil::seekSttVar(name);
+	auto pval = static_vars_.access_by_name(name);
 	assert(pval);
 
 	vars_.emplace(std::string(name)
@@ -103,7 +105,7 @@ auto VTNodeModule::Private::insertModule(char const* pModname)
 	auto module_name = std::string{ pModname };
 	auto iter = modules_.find(module_name);
 	if (iter == modules_.end()) {
-		iter = modules_.emplace_hint(iter, module_name, std::make_unique<VTNodeModule>(self, module_name));
+		iter = modules_.emplace_hint(iter, module_name, std::make_unique<VTNodeModule>(self, module_name, static_vars_));
 	}
 	return iter->second.get();
 }
