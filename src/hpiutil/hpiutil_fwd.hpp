@@ -45,9 +45,6 @@ class SourcePos;
 // 定数 /MPTYPE_(\w+)/ の値に対応する適当な名前を得る
 extern auto nameFromMPType(int mptype) -> char const*;
 
-// 静的変数の名前を得る (失敗時は nullptr)
-extern auto nameFromStaticVar(PVal const* pval) -> char const*;
-
 // モジュールクラス名を得る (クローンなら末尾に `&` をつける)
 extern auto nameFromModuleClass(stdat_t stdat, bool isClone) -> std::string;
 

@@ -5,11 +5,12 @@
 #include <vector>
 #include "hpiutil/hpiutil.hpp"
 #include "module/supio/supio.h"
+#include "encoding.h"
 #include "HspDebugApi.h"
 #include "HspStaticVars.h"
 
-static void fetch_static_var_names(HSP3DEBUG* debug_, std::vector<HspString>& names) {
-	names.reserve(hpiutil::staticVars().size());
+static void fetch_static_var_names(HSP3DEBUG* debug_, std::size_t static_var_count, std::vector<HspString>& names) {
+	names.reserve(static_var_count);
 
 	auto p =
 		std::unique_ptr<char, void(*)(char*)>
@@ -35,9 +36,26 @@ HspStaticVars::HspStaticVars(HspDebugApi& api)
 	: api_(api)
 	, all_names_()
 {
-	fetch_static_var_names(api_.debug(), all_names_);
+	fetch_static_var_names(api_.debug(), api_.static_var_count(), all_names_);
 }
 
 auto HspStaticVars::access_by_name(char const* var_name) -> PVal* {
 	return seekSttVar(var_name, api_.context(), api_.exinfo());
+}
+
+auto HspStaticVars::find_name_by_pval(PVal* pval) -> std::optional<HspString> {
+	auto begin = api_.static_vars();
+	auto end = api_.static_vars() + api_.static_var_count();
+
+	if (!(begin <= pval && pval <= end)) {
+		return std::nullopt;
+	}
+
+	auto id = (std::size_t)(pval - begin);
+	auto var_name = api_.static_var_find_name(id);
+	if (!var_name) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(HspString{ *(std::move(var_name)) });
 }

@@ -10,12 +10,14 @@
 #include "CVardataString.h"
 #include "CVarinfoText.h"
 #include "config_mng.h"
+#include "HspStaticVars.h"
 
 using namespace hpiutil::internal_vartype_tags;
 
 CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src)
 	: writer_(std::move(src.writer_))
 	, debug_segment_(src.debug_segment_)
+	, static_vars_(src.static_vars_)
 {
 }
 
@@ -352,10 +354,10 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 
 				auto indexes     = hpiutil::PVal_indexesFromAptr(pval, aptr);
 				auto indexString = hpiutil::stringifyArrayIndex(indexes);
-				auto varName     = hpiutil::nameFromStaticVar(pval);
+				auto varName     = static_vars_.find_name_by_pval(pval);
 				auto name2 =
 					varName
-					? strf("%s (%s%s)", name, varName, indexString)
+					? strf("%s (%s%s)", name, varName->data(), indexString)
 					: strf("%s (%p (%d))", name, cptr_cast<void*>(pval), aptr);
 				addVarScalar(name2.c_str(), pval, aptr);
 			} else {

@@ -17,14 +17,6 @@ static auto indexFrom(std::vector_view<T> const& v, T const* p) -> ptrdiff_t
 
 } // namespace detail
 
-auto nameFromStaticVar(PVal const* pval) -> char const*
-{
-	auto const index = detail::indexFrom(staticVars(), pval);
-	return (index >= 0)
-		? exinfo->HspFunc_varname(static_cast<int>(index))
-		: nullptr;
-}
-
 auto nameFromModuleClass(stdat_t stdat, bool isClone) -> std::string
 {
 	auto modclsName = std::string { STRUCTDAT_name(stdat) };

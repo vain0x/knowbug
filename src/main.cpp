@@ -14,6 +14,7 @@
 #include "SourceFileResolver.h"
 #include "HspRuntime.h"
 #include "HspDebugApi.h"
+#include "hpiutil/dinfo.hpp"
 
 static auto g_hInstance = HINSTANCE {};
 std::unique_ptr<DebugInfo> g_dbginfo {};

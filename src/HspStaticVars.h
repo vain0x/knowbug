@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <optional>
 #include "hpiutil/hpiutil_fwd.hpp"
 #include "encoding.h"
 
@@ -20,4 +21,6 @@ public:
 	}
 
 	auto access_by_name(char const* var_name) -> PVal*;
+
+	auto find_name_by_pval(PVal* pval) -> std::optional<HspString>;
 };

@@ -44,12 +44,12 @@ auto CVarinfoText::getStringMove() -> string&&
 
 auto CVarinfoText::create_lineform_writer() const -> CVardataStrWriter {
 	auto writer = std::make_unique<CLineformedWriter>(getBuf(), MAX_TEXT_DEPTH);
-	return CVardataStrWriter{ std::move(writer), debug_segment_ };
+	return CVardataStrWriter{ std::move(writer), debug_segment_, static_vars_ };
 }
 
 auto CVarinfoText::create_treeform_writer() const -> CVardataStrWriter {
 	auto writer = std::make_unique<CTreeformedWriter>(getBuf(), MAX_TEXT_DEPTH);
-	return CVardataStrWriter{ std::move(writer), debug_segment_ };
+	return CVardataStrWriter{ std::move(writer), debug_segment_, static_vars_ };
 }
 
 //------------------------------------------------

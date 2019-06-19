@@ -1,15 +1,19 @@
 ﻿#ifndef IG_CLASS_VARDATA_STRING_H
 #define IG_CLASS_VARDATA_STRING_H
 
-#include "hpiutil/DInfo.hpp"
 #include "main.h"
 #include "DebugInfo.h"
 #include "config_mng.h"
+
+namespace hpiutil {
+	class DInfo;
+}
 
 class CStructedStrWriter;
 class CLineformedWriter;
 class CTreeformedWriter;
 class CStrBuf;
+class HspStaticVars;
 
 // 変数データの文字列を作るクラス
 class CVardataStrWriter
@@ -19,14 +23,16 @@ private:
 	mutable unordered_map<void const*, string> visited_;
 
 	hpiutil::DInfo const& debug_segment_;
+	HspStaticVars& static_vars_;
 
 public:
 	CVardataStrWriter(CVardataStrWriter&& src);
 	~CVardataStrWriter();
 
-	CVardataStrWriter(std::unique_ptr<CStructedStrWriter>&& writer, hpiutil::DInfo const& debug_segment)
+	CVardataStrWriter(std::unique_ptr<CStructedStrWriter>&& writer, hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars)
 		: writer_(std::move(writer))
 		, debug_segment_(debug_segment)
+		, static_vars_(static_vars)
 	{
 	}
 

@@ -1,10 +1,11 @@
-//! HSP プラグイン API の薄いラッパー
+//! HSP SDK の薄いラッパー
 
 #pragma once
 
+#include <optional>
+#include <string>
 #include "hpiutil/hpiutil_fwd.hpp"
 
-// HSP がデバッガー用に公開している情報を扱いやすくするための薄いラッパー。
 class HspDebugApi {
 	HSPCTX* context_;
 
@@ -26,4 +27,14 @@ public:
 	auto exinfo() -> HSPEXINFO* {
 		return exinfo_;
 	}
+
+	auto static_vars() -> PVal*;
+
+	auto static_var_count() -> std::size_t;
+
+	auto static_var_find_by_id(std::size_t static_var_id) -> std::optional<PVal*>;
+
+	auto static_var_find_by_name(char const* var_name) -> std::optional<std::size_t>;
+
+	auto static_var_find_name(std::size_t static_var_id) -> std::optional<std::string>;
 };
