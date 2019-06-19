@@ -57,8 +57,8 @@ auto CVarinfoText::create_treeform_writer() const -> CVardataStrWriter {
 
 
 void CVarinfoText::add(HspObjectPath const& path) {
-	// path の指す先が静的変数だと分かったとする。
-	auto pval = objects_.static_var_to_pval(path.static_var_id());
+	assert(path.kind() == HspObjectKind::StaticVar);
+	auto pval = objects_.static_var_to_pval(path.as_static_var().static_var_id());
 	auto name = path.name(objects_);
 
 	addVar(pval, name.data());
