@@ -88,7 +88,7 @@ void VTNodeModule::Private::insertVar(char const* name)
 	assert(pval);
 
 	auto static_var_id = static_vars_.find_id(name);
-	auto path = static_var_id ? std::make_optional<HspObjectPath>(HspObjectPath{ *static_var_id }) : std::nullopt;
+	auto path = static_var_id ? std::make_shared<HspObjectPath>(HspObjectPath{ *static_var_id }) : nullptr;
 
 	vars_.emplace(std::string(name)
 		, std::make_unique<VTNodeVar>(self, std::string(name), pval, path));
