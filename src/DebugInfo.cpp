@@ -55,23 +55,3 @@ auto DebugInfo::fetchGeneralInfo() const -> std::vector<std::pair<string, string
 	}
 	return info;
 }
-
-auto DebugInfo::fetchStaticVarNames() const -> std::vector<string>
-{
-	auto names = std::vector<string> {};
-	names.reserve(hpiutil::staticVars().size());
-
-	auto p =
-		std::unique_ptr<char, void(*)(char*)>
-		{ debug_->get_varinf(nullptr, 0xFF)
-		, debug_->dbg_close
-		};
-	strsp_ini();
-	for ( ;; ) {
-		auto name = std::array<char, 0x100> {};
-		auto const chk = strsp_get(p.get(), name.data(), '\0', name.size() - 1);
-		if ( chk == 0 ) break;
-		names.emplace_back(name.data());
-	}
-	return names;
-}

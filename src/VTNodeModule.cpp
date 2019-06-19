@@ -59,7 +59,7 @@ VTNodeModule::Global::Global(VTRoot& parent, HspStaticVars& static_vars)
 
 void VTNodeModule::Global::init()
 {
-	auto names = g_dbginfo->fetchStaticVarNames();
+	auto const& names = p_->static_vars_.get_all_names();
 	for ( auto const& name : names ) {
 		addVar(name.c_str());
 	}

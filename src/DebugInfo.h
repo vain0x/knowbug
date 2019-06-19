@@ -16,7 +16,6 @@ public:
 	bool setStepMode(int mode) { return (debug_->dbg_set(mode) >= 0); }
 
 	auto fetchGeneralInfo() const -> std::vector<std::pair<string, string>>;
-	auto fetchStaticVarNames() const -> std::vector<string>;
 
 	auto curPos() const -> hpiutil::SourcePos const
 	{
