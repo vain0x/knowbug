@@ -4,16 +4,26 @@
 
 class HspObjects;
 
+// HSP のオブジェクトの種類
 enum class HspObjectKind {
+	// ルート
+	Root,
+
+	// 静的変数
 	StaticVar,
 };
 
 // HSP のオブジェクトを指し示すルートからの経路
 class HspObjectPath {
 public:
-	virtual	~HspObjectPath();
-
+	class Root;
 	class StaticVar;
+
+	static auto get_root() -> HspObjectPath::Root const&;
+
+	// インターフェイス:
+
+	virtual	~HspObjectPath();
 
 	virtual auto parent() const -> std::shared_ptr<HspObjectPath> const& = 0;
 
@@ -21,7 +31,11 @@ public:
 
 	virtual auto name(HspObjects& objects) const -> std::string = 0;
 
-	virtual bool is_array(HspObjects& objects) const = 0;
+	virtual bool is_array(HspObjects& objects) const {
+		return false;
+	}
+
+	// ダウンキャスト:
 
 	auto as_static_var() const -> HspObjectPath::StaticVar const& {
 		if (kind() != HspObjectKind::StaticVar) {
@@ -30,6 +44,27 @@ public:
 		return *(HspObjectPath::StaticVar const*)this;
 	}
 };
+
+// -----------------------------------------------
+// ルートノード
+// -----------------------------------------------
+
+class HspObjectPath::Root final
+	: public HspObjectPath
+{
+public:
+	auto parent() const -> std::shared_ptr<HspObjectPath> const& override;
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::Root;
+	}
+
+	auto name(HspObjects& objects) const -> std::string override;
+};
+
+// -----------------------------------------------
+// 静的変数
+// -----------------------------------------------
 
 class HspObjectPath::StaticVar final
 	: public HspObjectPath
