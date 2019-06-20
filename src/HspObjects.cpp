@@ -3,7 +3,9 @@
 #include "HspObjects.h"
 #include "HspStaticVars.h"
 
-auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
+static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
+
+static auto const GLOBAL_MODULE_NAME = "@";
 
 static auto var_name_to_scope_resolution(char const* var_name) -> char const* {
 	return std::strchr(var_name, '@');
@@ -21,7 +23,7 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 			auto&& var_name = var_names[vi];
 
 			auto p = var_name_to_scope_resolution(var_name.data());
-			auto module_name = HspStringView{ (p ? p : "@") };
+			auto module_name = HspStringView{ (p ? p : GLOBAL_MODULE_NAME) };
 
 			tuples.emplace_back(module_name, var_name.as_ref(), vi);
 		}
@@ -31,7 +33,7 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 
 	// モジュールと変数の関係を構築する。
 	{
-		modules.emplace_back(HspStringView{ "@" }.to_owned());
+		modules.emplace_back(HspStringView{ GLOBAL_MODULE_NAME }.to_owned());
 
 		for (auto&& t : tuples) {
 			auto module_name_ref = std::get<0>(t);
