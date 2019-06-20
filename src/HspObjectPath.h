@@ -14,18 +14,30 @@ enum class HspObjectKind {
 };
 
 // HSP のオブジェクトを指し示すルートからの経路
-class HspObjectPath {
+class HspObjectPath
+	: public std::enable_shared_from_this<HspObjectPath>
+{
 public:
 	class Root;
 	class StaticVar;
 
 	static auto get_root() -> HspObjectPath::Root const&;
 
-	// インターフェイス:
-
 	virtual	~HspObjectPath();
 
-	virtual auto parent() const -> std::shared_ptr<HspObjectPath> const& = 0;
+	HspObjectPath()
+	{
+	}
+
+	HspObjectPath(HspObjectPath&& other) = delete;
+
+	HspObjectPath(HspObjectPath const& other) = delete;
+
+	auto operator =(HspObjectPath&& other) -> HspObjectPath & = delete;
+
+	auto operator =(HspObjectPath const& other) -> HspObjectPath & = delete;
+
+	virtual auto parent() const -> std::shared_ptr<HspObjectPath const> const& = 0;
 
 	virtual auto kind() const -> HspObjectKind = 0;
 
@@ -35,14 +47,11 @@ public:
 		return false;
 	}
 
-	// ダウンキャスト:
+	auto self() const -> std::shared_ptr<HspObjectPath const>;
 
-	auto as_static_var() const -> HspObjectPath::StaticVar const& {
-		if (kind() != HspObjectKind::StaticVar) {
-			throw new std::bad_cast{};
-		}
-		return *(HspObjectPath::StaticVar const*)this;
-	}
+	auto as_static_var() const -> HspObjectPath::StaticVar const&;
+
+	auto new_static_var(std::size_t static_var_id) const -> std::shared_ptr<HspObjectPath const>;
 };
 
 // -----------------------------------------------
@@ -53,7 +62,7 @@ class HspObjectPath::Root final
 	: public HspObjectPath
 {
 public:
-	auto parent() const -> std::shared_ptr<HspObjectPath> const& override;
+	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override;
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::Root;
@@ -69,17 +78,17 @@ public:
 class HspObjectPath::StaticVar final
 	: public HspObjectPath
 {
-	std::shared_ptr<HspObjectPath> parent_;
+	std::shared_ptr<HspObjectPath const> parent_;
 	std::size_t static_var_id_;
 
 public:
-	StaticVar(std::shared_ptr<HspObjectPath> parent, std::size_t static_var_id);
+	StaticVar(std::shared_ptr<HspObjectPath const> parent, std::size_t static_var_id);
 
 	auto static_var_id() const -> std::size_t {
 		return static_var_id_;
 	}
 
-	auto parent() const -> std::shared_ptr<HspObjectPath> const& override {
+	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
 		return parent_;
 	}
 

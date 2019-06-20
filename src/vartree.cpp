@@ -234,7 +234,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 		}
 		void fVar(VTNodeVar const& node) override
 		{
-			auto path = node.path();
+			auto const& path = node.path();
 			if (path) {
 				varinf.add(*path);
 				return;

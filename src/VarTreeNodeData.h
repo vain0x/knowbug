@@ -24,10 +24,10 @@ class VTNodeVar
 	string const name_;
 	PVal* const pval_;
 
-	std::shared_ptr<HspObjectPath> const path_;
+	std::shared_ptr<HspObjectPath const> const path_;
 
 public:
-	VTNodeVar(VTNodeData& parent, string const& name, PVal* pval, std::shared_ptr<HspObjectPath> path)
+	VTNodeVar(VTNodeData& parent, string const& name, PVal* pval, std::shared_ptr<HspObjectPath const> path)
 		: parent_(parent), name_(name), pval_(pval), path_(path)
 	{
 		assert(pval_);
@@ -36,7 +36,7 @@ public:
 	auto name() const -> string override { return name_; }
 	auto pval() const -> PVal* { return pval_; }
 
-	auto path() const -> std::shared_ptr<HspObjectPath> {
+	auto path() const -> std::shared_ptr<HspObjectPath const> const& {
 		return path_;
 	}
 
