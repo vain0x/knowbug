@@ -230,7 +230,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 
 		void fModule(VTNodeModule const& node) override
 		{
-			varinf.addModuleOverview(node.name().c_str(), node);
+			varinf.add(*node.path());
 		}
 		void fVar(VTNodeVar const& node) override
 		{

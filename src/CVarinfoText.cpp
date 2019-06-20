@@ -57,8 +57,61 @@ auto CVarinfoText::create_treeform_writer() const -> CVardataStrWriter {
 
 
 void CVarinfoText::add(HspObjectPath const& path) {
-	assert(path.kind() == HspObjectKind::StaticVar);
-	auto pval = objects_.static_var_to_pval(path.as_static_var().static_var_id());
+	switch (path.kind()) {
+	case HspObjectKind::Root:
+		return;
+
+	case HspObjectKind::Module:
+		add_module(path.as_module());
+		return;
+
+	case HspObjectKind::StaticVar:
+		add_static_var(path.as_static_var());
+		return;
+
+	default:
+		throw new std::exception{ "unknown kind" };
+	}
+}
+
+void CVarinfoText::add_module(HspObjectPath::Module const& path) {
+	auto&& w = getWriter();
+	auto name = path.name(objects_);
+
+	w.cat("[");
+	w.cat(name.data());
+	w.catln("]");
+
+	for (auto i = std::size_t{}; i < path.child_count(objects_); i++) {
+		auto const&& child_path = path.child_at(i, objects_);
+
+		switch (child_path->kind()) {
+		case HspObjectKind::Module:
+			// (入れ子の)モジュールは名前だけ表示しておく
+			w.catln(child_path->name(objects_).data());
+			continue;
+
+		case HspObjectKind::StaticVar:
+			{
+				auto name = child_path->name(objects_);
+				auto short_name = hpiutil::nameExcludingScopeResolution(name.data());
+				auto pval = objects_.static_var_to_pval(child_path->as_static_var().static_var_id());
+
+				w.cat(short_name);
+				w.cat("\t= ");
+				create_lineform_writer().addVar(short_name.data(), pval);
+				w.catCrlf();
+				continue;
+			}
+
+		default:
+			continue;
+		}
+	}
+}
+
+void CVarinfoText::add_static_var(HspObjectPath::StaticVar const& path) {
+	auto pval = objects_.static_var_to_pval(path.static_var_id());
 	auto name = path.name(objects_);
 
 	addVar(pval, name.data());
@@ -154,27 +207,6 @@ void CVarinfoText::addCallSignature(ModcmdCallInfo const& callinfo, stdat_t stda
 //**********************************************************
 //        概観の追加
 //**********************************************************
-//------------------------------------------------
-// [add] モジュール概観
-//------------------------------------------------
-void CVarinfoText::addModuleOverview(char const* name, VTNodeModule const& tree)
-{
-	getWriter().catln(strf("[%s]", name));
-
-	tree.foreach(
-		[&](VTNodeModule const& module) {
-			// (入れ子の)モジュールは名前だけ表示しておく
-			getWriter().catln(module.name());
-		},
-		[&](string const& varname) {
-			auto const shortName = hpiutil::nameExcludingScopeResolution(varname);
-			getWriter().cat(shortName + "\t= ");
-			create_lineform_writer()
-				.addVar(varname.c_str(), static_vars_.access_by_name(varname.c_str()));
-			getWriter().catCrlf();
-		}
-	);
-}
 
 //------------------------------------------------
 // [add] システム変数概観
