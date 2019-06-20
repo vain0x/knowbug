@@ -107,7 +107,7 @@ public:
 	auto to_utf8_string() const->Utf8String;
 
 	auto operator ==(OsStringView const& other) -> bool {
-		return size() == other.size() && _tccmp(data(), other.data());
+		return size() == other.size() && _tccmp(data(), other.data()) == 0;
 	}
 
 	auto copy_to(LPTSTR dest, std::size_t dest_size) const -> void {
@@ -252,6 +252,14 @@ public:
 
 	auto to_utf8_string() const->Utf8String;
 
+	auto operator ==(SjisStringView const& other) const -> bool {
+		return size() == other.size() && std::strcmp(data(), other.data()) == 0;
+	}
+
+	auto operator <(SjisStringView const& other) const -> bool {
+		return std::strcmp(data(), other.data()) < 0;
+	}
+
 	auto begin() const -> char const* {
 		return data();
 	}
@@ -292,6 +300,22 @@ public:
 
 	auto to_utf8_string() const->Utf8String;
 
+	auto operator ==(SjisString const& other) const -> bool {
+		return as_ref() == other.as_ref();
+	}
+
+	auto operator ==(SjisStringView const& other) const -> bool {
+		return as_ref() == other;
+	}
+
+	auto operator <(SjisString const& other) const -> bool {
+		return as_ref() < other.as_ref();
+	}
+
+	auto operator <(SjisStringView const& other) const -> bool {
+		return as_ref() < other;
+	}
+
 	auto begin() const -> char const* {
 		return as_ref().begin();
 	}
@@ -318,7 +342,7 @@ public:
 		, size_(other.size_)
 	{
 	}
-	
+
 	explicit Utf8StringView(char const* inner, std::size_t size)
 		: inner_(inner)
 		, size_(size)
@@ -363,6 +387,14 @@ public:
 	auto to_os_string() const->OsString;
 
 	auto to_sjis_string() const->SjisString;
+
+	auto operator ==(Utf8StringView const& other) const -> bool {
+		return size() == other.size() && std::strcmp(data(), other.data()) == 0;
+	}
+
+	auto operator <(Utf8StringView const& other) const -> bool {
+		return std::strcmp(data(), other.data()) < 0;
+	}
 
 	auto begin() const -> char const* {
 		return data();
@@ -412,6 +444,22 @@ public:
 
 	auto to_sjis_string() const -> SjisString {
 		return as_ref().to_sjis_string();
+	}
+
+	auto operator ==(Utf8String const& other) const -> bool {
+		return as_ref() == other.as_ref();
+	}
+
+	auto operator ==(Utf8StringView const& other) const -> bool {
+		return as_ref() == other;
+	}
+
+	auto operator <(Utf8String const& other) const -> bool {
+		return as_ref() < other.as_ref();
+	}
+
+	auto operator <(Utf8StringView const& other) const -> bool {
+		return as_ref() < other;
 	}
 
 	auto begin() const -> char const* {
