@@ -134,19 +134,6 @@ bool VTNodeInvoke::updateSub(bool deep)
 	return true;
 }
 
-static auto tryFindDependedNode(ModcmdCallInfo const* callinfo) -> shared_ptr<VTNodeInvoke>
-{
-	if ( callinfo ) {
-		if ( auto const& ci_depended = callinfo->tryGetDependedCallInfo() ) {
-			auto const& inv = VTRoot::dynamic().invokeNodes();
-			if ( ci_depended->idx < inv.size() ) {
-				return inv[ci_depended->idx];
-			}
-		}
-	}
-	return nullptr;
-}
-
 #endif //defined(with_WrapCall)
 
 VTRoot::VTRoot()
