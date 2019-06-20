@@ -152,24 +152,29 @@ private:
 	VTNodeData& parent_;
 	HspObjects& objects_;
 
-	std::string name_;
 	std::shared_ptr<HspObjectPath const> path_;
+	std::string name_;
 	std::vector<VTNodeModule> modules_;
 	std::vector<VTNodeVar> vars_;
 
 public:
-	VTNodeModule(VTNodeData& parent, std::string&& name, std::shared_ptr<HspObjectPath const> path, HspObjects& objects);
+	VTNodeModule(VTNodeData& parent, std::shared_ptr<HspObjectPath const> const& path, HspObjects& objects);
 	virtual ~VTNodeModule();
 
-	auto name() const -> string override;
-	auto parent() const -> optional_ref<VTNodeData> override;
+	auto name() const -> string override {
+		return name_;
+	}
+
+	auto parent() const -> optional_ref<VTNodeData> override {
+		return &parent_;
+	}
+
 	bool updateSub(bool deep) override;
 
 	auto path() const -> std::shared_ptr<HspObjectPath const> const& {
 		return path_;
 	}
 
-	//foreach
 	struct Visitor
 	{
 		std::function<void(VTNodeModule const&)> fModule;
@@ -188,19 +193,6 @@ public:
 
 	// accept
 	void acceptVisitor(VTNodeData::Visitor& visitor) const override { visitor.fModule(*this); }
-
-protected:
-	void init() override;
-};
-
-// グローバル領域のノード
-class VTNodeModule::Global
-	: public VTNodeModule
-{
-	friend class VTRoot;
-
-public:
-	Global(VTRoot& parent, HspObjects& objects);
 
 protected:
 	void init() override;
@@ -262,7 +254,7 @@ class VTRoot
 
 	struct ChildNodes
 	{
-		VTNodeModule::Global global_;
+		VTNodeModule         global_;
 		VTNodeDynamic        dynamic_;
 		VTNodeSysvarList     sysvarList_;
 		VTNodeScript         script_;
@@ -277,7 +269,7 @@ class VTRoot
 private:
 	auto children() -> std::vector<std::reference_wrapper<VTNodeData>> const&;
 public:
-	static auto global()     -> VTNodeModule::Global& { return instance().p_->global_; }
+	static auto global()     -> VTNodeModule        & { return instance().p_->global_; }
 	static auto dynamic()    -> VTNodeDynamic       & { return instance().p_->dynamic_; }
 	static auto sysvarList() -> VTNodeSysvarList    & { return instance().p_->sysvarList_; }
 	static auto script()     -> VTNodeScript        & { return instance().p_->script_; }

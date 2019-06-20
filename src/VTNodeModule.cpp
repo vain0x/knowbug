@@ -1,42 +1,24 @@
 ﻿
-#include <map>
 #include "encoding.h"
-#include "module/utility.h"
-#include "DebugInfo.h"
-#include "config_mng.h"
 #include "VarTreeNodeData.h"
 #include "HspObjectPath.h"
 #include "HspObjects.h"
 #include "HspStaticVars.h"
 
-using std::map;
+// FIXME: @__ で始まるモジュールを非表示にする機能は一時的に無効化されている。
 
-// NOTE: @__ で始まるモジュールを非表示にする機能は一時的に無効化されている。
-// static bool is_hidden_module(char const* scope_resolution) {
-// 	return std::strcmp(scope_resolution, "@__") == 0;
-// }
-
-VTNodeModule::VTNodeModule(VTNodeData& parent, std::string&& name, std::shared_ptr<HspObjectPath const> path, HspObjects& objects)
+VTNodeModule::VTNodeModule(VTNodeData& parent, std::shared_ptr<HspObjectPath const> const& path, HspObjects& objects)
 	: parent_(parent)
 	, objects_(objects)
-	, name_(std::move(name))
 	, path_(std::move(path))
+	, name_(path_->name(objects))
 	, modules_()
 	, vars_()
 {
 }
 
 VTNodeModule::~VTNodeModule()
-{}
-
-auto VTNodeModule::name() const -> string
 {
-	return name_;
-}
-
-auto VTNodeModule::parent() const -> optional_ref<VTNodeData>
-{
-	return &parent_;
 }
 
 void VTNodeModule::init() {
@@ -48,8 +30,7 @@ void VTNodeModule::init() {
 
 		if (kind == HspObjectKind::Module) {
 			auto module_id = child_path->as_module().module_id();
-			auto module_name = child_path->name(objects_);
-			modules_.emplace_back(*this, std::move(module_name), std::move(child_path), objects_);
+			modules_.emplace_back(*this, std::move(child_path), objects_);
 			continue;
 		}
 
@@ -86,18 +67,4 @@ bool VTNodeModule::updateSub(bool deep)
 		}
 	}
 	return true;
-}
-
-//------------------------------------------------
-// グローバルモジュールノード
-//------------------------------------------------
-
-VTNodeModule::Global::Global(VTRoot& parent, HspObjects& objects)
-	: VTNodeModule(parent, std::string{ "@" }, HspObjectPath::get_root().new_global_module(objects), objects)
-{}
-
-void VTNodeModule::Global::init()
-{
-	// FIXME: override しない
-	VTNodeModule::init();
 }
