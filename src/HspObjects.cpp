@@ -174,18 +174,18 @@ auto HspObjects::static_var_to_type(std::size_t static_var_id)->HspType {
 	return api_.var_to_type(api_.static_var_to_pval(static_var_id));
 }
 
-auto HspObjects::static_var_element_count(std::size_t static_var_id)->std::size_t {
-	return api_.var_element_count(api_.static_var_to_pval(static_var_id));
+auto HspObjects::static_var_child_count(HspObjectPath::StaticVar const& path) const->std::size_t {
+	auto static_var_id = path.static_var_id();
+	auto pval = api_.static_var_to_pval(static_var_id);
+	return api_.var_element_count(pval);
 }
 
-auto HspObjects::static_var_element_indexes(std::size_t static_var_id, std::size_t aptr)->HspIndexes {
-	return api_.var_element_to_indexes(api_.static_var_to_pval(static_var_id), aptr);
-}
-
-auto HspObjects::static_var_element_to_int(std::size_t static_var_id, HspIndexes const& indexes)->HspInt {
-	auto pval = static_var_to_pval(static_var_id);
-	auto aptr = api_.var_element_to_aptr(pval, indexes);
-	return api_.data_to_int(api_.var_element_to_data(pval, aptr));
+auto HspObjects::static_var_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index) const->std::shared_ptr<HspObjectPath const> {
+	auto aptr = (APTR)child_index;
+	auto static_var_id = path.static_var_id();
+	auto pval = api_.static_var_to_pval(static_var_id);
+	auto&& indexes = api_.var_element_to_indexes(pval, aptr);
+	return path.new_element(indexes);
 }
 
 auto HspObjects::path_to_int(HspObjectPath::Int const& path) const -> HspInt {

@@ -47,11 +47,9 @@ public:
 
 	auto static_var_to_type(std::size_t static_var_id)->HspType;
 
-	auto static_var_element_count(std::size_t static_var_id)->std::size_t;
+	auto static_var_child_count(HspObjectPath::StaticVar const& path) const->std::size_t;
 
-	auto static_var_element_indexes(std::size_t static_var_id, std::size_t aptr)->HspIndexes;
-
-	auto static_var_element_to_int(std::size_t static_var_id, HspIndexes const& indexes)->HspInt;
+	auto static_var_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index) const->std::shared_ptr<HspObjectPath const>;
 
 	auto path_to_int(HspObjectPath::Int const& path) const->HspInt;
 

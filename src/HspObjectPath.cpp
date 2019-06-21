@@ -124,12 +124,11 @@ HspObjectPath::StaticVar::StaticVar(std::shared_ptr<HspObjectPath const> parent,
 }
 
 auto HspObjectPath::StaticVar::child_count(HspObjects& objects) const -> std::size_t {
-	return objects.static_var_element_count(static_var_id());
+	return objects.static_var_child_count(*this);
 }
 
 auto HspObjectPath::StaticVar::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
-	auto&& indexes = objects.static_var_element_indexes(static_var_id(), index);
-	return new_element(indexes);
+	return objects.static_var_child_at(*this, index);
 }
 
 auto HspObjectPath::StaticVar::name(HspObjects& objects) const -> std::string {
