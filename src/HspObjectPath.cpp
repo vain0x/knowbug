@@ -181,8 +181,15 @@ auto HspObjectPath::Element::child_at(std::size_t index, HspObjects& objects) co
 }
 
 auto HspObjectPath::Element::name(HspObjects& objects) const -> std::string {
-	// FIXME: 実装
-	return std::string{ "(..)" };
+	// FIXME: 次元の判断などを objects に任せる
+	auto v = std::vector<int>{};
+	for (auto i : indexes()) {
+		if (!v.empty() && i == 0) {
+			break;
+		}
+		v.push_back((int)i);
+	}
+	return hpiutil::stringifyArrayIndex(v);
 }
 
 auto HspObjectPath::Element::type(HspObjects& objects) const -> HspType {
