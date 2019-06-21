@@ -72,6 +72,52 @@ static auto create_type_datas() -> std::vector<HspObjects::TypeData> {
 	return types;
 }
 
+static auto path_to_pval(HspObjectPath const& path, HspDebugApi& api) -> std::optional<PVal*> {
+	switch (path.kind()) {
+	case HspObjectKind::StaticVar:
+		{
+			auto static_var_id = path.as_static_var().static_var_id();
+			return std::make_optional(api.static_var_to_pval(static_var_id));
+		}
+	default:
+		return std::nullopt;
+	}
+}
+
+static auto path_to_data(HspObjectPath const& path, HspDebugApi& api) -> std::optional<HspData> {
+	// FIXME: 静的変数も値を提供できる
+
+	switch (path.kind()) {
+	case HspObjectKind::Element:
+		{
+			auto&& pval = path_to_pval(*path.parent(), api);
+			if (!pval) {
+				assert(false && u8"配列要素の親は変数であるはず");
+				return std::nullopt;
+			}
+
+			auto aptr = api.var_element_to_aptr(*pval, path.as_element().indexes());
+			return std::make_optional( api.var_element_to_data(*pval, aptr));
+		}
+	default:
+		return std::nullopt;
+	}
+}
+
+static auto path_to_int(HspObjectPath::Int const& path, HspDebugApi& api) -> std::optional<HspInt> {
+	auto&& data = path_to_data(*path.parent(), api);
+	if (!data) {
+		assert(false && u8"int の親は data を生成できるはず");
+		return std::nullopt;
+	}
+
+	if (data->type() != HspType::Int) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(api.data_to_int(*data));
+}
+
 // -----------------------------------------------
 // HspObjects
 // -----------------------------------------------
@@ -140,6 +186,10 @@ auto HspObjects::static_var_element_to_int(std::size_t static_var_id, HspIndexes
 	auto pval = static_var_to_pval(static_var_id);
 	auto aptr = api_.var_element_to_aptr(pval, indexes);
 	return api_.data_to_int(api_.var_element_to_data(pval, aptr));
+}
+
+auto HspObjects::path_to_int(HspObjectPath::Int const& path) const -> HspInt {
+	return (::path_to_int(path, api_)).value_or(HspInt{});
 }
 
 // -----------------------------------------------

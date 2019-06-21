@@ -235,18 +235,7 @@ auto HspObjectPath::as_int() const -> HspObjectPath::Int const& {
 }
 
 auto HspObjectPath::Int::value(HspObjects& objects) const -> HspInt {
-	auto&& p = parent();
-	if (p->kind() == HspObjectKind::Element) {
-		auto&& gp = p->parent();
-		auto&& indexes = p->as_element().indexes();
-
-		if (gp->kind() == HspObjectKind::StaticVar) {
-			auto static_var_id = gp->as_static_var().static_var_id();
-			return objects.static_var_element_to_int(static_var_id, indexes);
-		}
-	}
-
-	throw new std::exception{ "unimpl" };
+	return objects.path_to_int(*this);
 }
 
 // -----------------------------------------------

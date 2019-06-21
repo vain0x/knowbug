@@ -52,13 +52,14 @@ public:
 
 	virtual auto kind() const -> HspObjectKind = 0;
 
+	// FIXME: HspObjectPath const& を返す方がいいかも
 	virtual auto parent() const -> std::shared_ptr<HspObjectPath const> const& = 0;
 
 	virtual auto child_count(HspObjects& objects) const -> std::size_t = 0;
 
 	virtual auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> = 0;
 
-	// FIXME: 名前のないノードもある
+	// FIXME: 名前のないノードのときはどうする？
 	virtual auto name(HspObjects& objects) const -> std::string = 0;
 
 	virtual bool is_array(HspObjects& objects) const {

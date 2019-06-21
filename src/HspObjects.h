@@ -4,6 +4,7 @@
 #include <string>
 #include "encoding.h"
 #include "HspTypes.h"
+#include "HspObjectPath.h"
 
 class HspDebugApi;
 class HspStaticVars;
@@ -51,6 +52,8 @@ public:
 	auto static_var_element_indexes(std::size_t static_var_id, std::size_t aptr)->HspIndexes;
 
 	auto static_var_element_to_int(std::size_t static_var_id, HspIndexes const& indexes)->HspInt;
+
+	auto path_to_int(HspObjectPath::Int const& path) const->HspInt;
 
 public:
 	class Module {
