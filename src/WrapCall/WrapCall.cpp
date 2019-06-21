@@ -42,6 +42,10 @@ EXPORT void WINAPI hsp3hpi_init_wrapcall(HSP3TYPEINFO* info)
 //------------------------------------------------
 void onBgnCalling(stdat_t stdat)
 {
+	if (!g_dbginfo) {
+		return;
+	}
+
 	g_dbginfo->updateCurInf();
 
 	// 呼び出しリストに追加
