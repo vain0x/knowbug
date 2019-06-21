@@ -63,6 +63,8 @@ public:
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
 
+	void on_element(HspObjectPath::Element const& path) override;
+
 private:
 	CVarinfoText& varinf_;
 };

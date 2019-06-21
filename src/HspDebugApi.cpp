@@ -54,14 +54,36 @@ auto HspDebugApi::static_var_to_pval(std::size_t static_var_id) -> PVal* {
 	return static_vars() + static_var_id;
 }
 
-auto HspDebugApi::static_var_to_type(std::size_t static_var_id) -> HspType {
-	return pval_to_type(static_var_to_pval(static_var_id));
+auto HspDebugApi::var_to_type(PVal* pval) -> HspType {
+	return pval_to_type(pval);
 }
 
-auto HspDebugApi::static_var_to_data(std::size_t static_var_id) -> HspData {
-	auto type = static_var_to_type(static_var_id);
-	auto pdat = hpiutil::PVal_getPtr(static_var_to_pval(static_var_id));
+auto HspDebugApi::var_to_data(PVal* pval) -> HspData {
+	auto type = pval_to_type(pval);
+	auto pdat = hpiutil::PVal_getPtr(pval);
 	return HspData{ type, pdat };
+}
+
+auto HspDebugApi::var_element_count(PVal* pval) -> std::size_t {
+	return hpiutil::PVal_cntElems((PVal*)pval);
+}
+
+auto HspDebugApi::var_element_to_indexes(PVal* pval, std::size_t aptr) -> HspIndexes {
+	// FIXME: 2次元以上のケースを実装
+	auto indexes = HspIndexes{};
+	indexes[0] = aptr;
+	return indexes;
+}
+
+auto HspDebugApi::var_element_to_aptr(PVal* pval, HspIndexes const& indexes) -> std::size_t {
+	// FIXME: 2次元以上のケースを実装
+	return indexes[0];
+}
+
+auto HspDebugApi::var_element_to_data(PVal* pval, std::size_t aptr) -> HspData {
+	auto type = pval_to_type(pval);
+	auto ptr = hpiutil::PVal_getPtr(pval, aptr);
+	return HspData{ type, ptr };
 }
 
 auto HspDebugApi::data_to_int(HspData const& data) const -> HspInt {

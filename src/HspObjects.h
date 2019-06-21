@@ -42,8 +42,11 @@ public:
 
 	auto static_var_to_type(std::size_t static_var_id)->HspType;
 
-	// 静的変数の値の整数値を取得する。
-	auto static_var_to_int(std::size_t static_var_id)->HspInt;
+	auto static_var_element_count(std::size_t static_var_id)->std::size_t;
+
+	auto static_var_element_indexes(std::size_t static_var_id, std::size_t aptr)->HspIndexes;
+
+	auto static_var_element_to_int(std::size_t static_var_id, HspIndexes const& indexes)->HspInt;
 
 public:
 	class Module {

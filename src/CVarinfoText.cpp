@@ -317,7 +317,7 @@ void HspObjectWriter::TableForm::on_static_var(HspObjectPath::StaticVar const& p
 	auto name = path.name(objects());
 
 	// 新APIが実装済みのケース
-	if (!path.is_array(objects()) && path.type(objects()) == HspType::Int) {
+	if (path.type(objects()) == HspType::Int) {
 		auto const hvp = hpiutil::varproc(pval->flag);
 		int bufsize;
 		void const* const pMemBlock =
@@ -337,7 +337,7 @@ void HspObjectWriter::TableForm::on_static_var(HspObjectPath::StaticVar const& p
 		writer().catCrlf();
 
 		// 変数の内容に関する情報
-		varinf_.to_block_form().accept(path);
+		varinf_.to_block_form().accept_children(path);
 		// writer().cat(name.data());
 		// writer().cat(" = ");
 		// add(*path.child_at(0, objects_));
@@ -370,8 +370,6 @@ void HspObjectWriter::BlockForm::on_module(HspObjectPath::Module const& path) {
 }
 
 void HspObjectWriter::BlockForm::on_static_var(HspObjectPath::StaticVar const& path) {
-	assert((!path.is_array(objects()) && path.type(objects()) == HspType::Int));
-
 	auto&& name = path.name(objects());
 	auto short_name = hpiutil::nameExcludingScopeResolution(name.data());
 
@@ -381,6 +379,18 @@ void HspObjectWriter::BlockForm::on_static_var(HspObjectPath::StaticVar const& p
 	varinf_.to_flow_form().accept(path);
 
 	writer().catCrlf();
+}
+
+void HspObjectWriter::BlockForm::on_element(HspObjectPath::Element const& path) {
+	auto& w = writer();
+	auto&& name = path.name(objects());
+
+	w.cat(name.data());
+	w.cat(" = ");
+
+	varinf_.to_flow_form().accept(path);
+
+	w.catCrlf();
 }
 
 // -----------------------------------------------

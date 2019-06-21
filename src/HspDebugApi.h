@@ -39,9 +39,17 @@ public:
 
 	auto static_var_to_pval(std::size_t static_var_id) -> PVal*;
 
-	auto static_var_to_type(std::size_t static_var_id) -> HspType;
+	auto var_to_type(PVal* pval) -> HspType;
 
-	auto static_var_to_data(std::size_t static_var_id) -> HspData;
+	auto var_to_data(PVal* pval) -> HspData;
+
+	auto var_element_count(PVal* pval) -> std::size_t;
+
+	auto var_element_to_indexes(PVal* pval, std::size_t aptr) -> HspIndexes;
+
+	auto var_element_to_aptr(PVal* pval, HspIndexes const& indexes) -> std::size_t;
+
+	auto var_element_to_data(PVal* pval, std::size_t aptr) -> HspData;
 
 	auto data_to_int(HspData const& data) const -> HspInt;
 };

@@ -1,9 +1,12 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include "hpiutil/hpiutil_fwd.hpp"
 
 using HspInt = std::int32_t;
+
+using HspIndexes = std::array<std::size_t, hpiutil::ArrayDimMax>;
 
 // HSP の変数が持つデータの型
 enum class HspType

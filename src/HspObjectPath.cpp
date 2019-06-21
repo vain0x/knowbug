@@ -2,7 +2,7 @@
 #include "HspObjectPath.h"
 
 static bool kind_can_have_value(HspObjectKind kind) {
-	return kind == HspObjectKind::StaticVar;
+	return kind == HspObjectKind::StaticVar || kind == HspObjectKind::Element;
 }
 
 
@@ -124,18 +124,12 @@ HspObjectPath::StaticVar::StaticVar(std::shared_ptr<HspObjectPath const> parent,
 }
 
 auto HspObjectPath::StaticVar::child_count(HspObjects& objects) const -> std::size_t {
-	// FIXME: 配列の要素数
-	return 1;
+	return objects.static_var_element_count(static_var_id());
 }
 
 auto HspObjectPath::StaticVar::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
-	// FIXME: 配列変数なら配列の要素へのパス
-
-	if (index == 0 && type(objects) == HspType::Int) {
-		return new_int();
-	}
-
-	throw new std::exception{ "unimpl" };
+	auto&& indexes = objects.static_var_element_indexes(static_var_id(), index);
+	return new_element(indexes);
 }
 
 auto HspObjectPath::StaticVar::name(HspObjects& objects) const -> std::string {
@@ -162,6 +156,57 @@ auto HspObjectPath::as_static_var() const -> HspObjectPath::StaticVar const& {
 }
 
 // -----------------------------------------------
+// 配列要素
+// -----------------------------------------------
+
+HspObjectPath::Element::Element(std::shared_ptr<HspObjectPath const> parent, HspIndexes indexes)
+	: parent_(parent)
+	, indexes_(indexes)
+{
+}
+
+auto HspObjectPath::Element::child_count(HspObjects& objects) const -> std::size_t {
+	// FIXME: 型による
+	return 1;
+}
+
+auto HspObjectPath::Element::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
+	auto&& p = parent();
+
+	if (index == 0 && type(objects) == HspType::Int) {
+		return new_int();
+	}
+
+	throw new std::exception{ "out of range" };
+}
+
+auto HspObjectPath::Element::name(HspObjects& objects) const -> std::string {
+	// FIXME: 実装
+	return std::string{ "(..)" };
+}
+
+auto HspObjectPath::Element::type(HspObjects& objects) const -> HspType {
+	auto&& p = parent();
+
+	if (p->kind() == HspObjectKind::StaticVar) {
+		return p->as_static_var().type(objects);
+	}
+
+	throw new std::exception{ "unimpl" };
+}
+
+auto HspObjectPath::new_element(HspIndexes const& indexes) const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::Element>(self(), indexes);
+}
+
+auto HspObjectPath::as_element() const -> HspObjectPath::Element const& {
+	if (kind() != HspObjectKind::Element) {
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Element const*)this;
+}
+
+// -----------------------------------------------
 // 整数
 // -----------------------------------------------
 
@@ -183,15 +228,18 @@ auto HspObjectPath::as_int() const -> HspObjectPath::Int const& {
 }
 
 auto HspObjectPath::Int::value(HspObjects& objects) const -> HspInt {
-	switch (parent()->kind()) {
-	case HspObjectKind::StaticVar:
-		{
-			auto static_var_id = parent()->as_static_var().static_var_id();
-			return objects.static_var_to_int(static_var_id);
+	auto&& p = parent();
+	if (p->kind() == HspObjectKind::Element) {
+		auto&& gp = p->parent();
+		auto&& indexes = p->as_element().indexes();
+
+		if (gp->kind() == HspObjectKind::StaticVar) {
+			auto static_var_id = gp->as_static_var().static_var_id();
+			return objects.static_var_element_to_int(static_var_id, indexes);
 		}
-	default:
-		throw new std::exception{ "wrong kind" };
 	}
+
+	throw new std::exception{ "unimpl" };
 }
 
 // -----------------------------------------------
@@ -215,6 +263,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::StaticVar:
 		on_static_var(path.as_static_var());
+		return;
+
+	case HspObjectKind::Element:
+		on_element(path.as_element());
 		return;
 
 	case HspObjectKind::Int:

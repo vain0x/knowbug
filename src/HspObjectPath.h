@@ -16,6 +16,9 @@ enum class HspObjectKind {
 	// 静的変数
 	StaticVar,
 
+	// 配列要素
+	Element,
+
 	Int,
 };
 
@@ -28,9 +31,8 @@ public:
 	class Root;
 	class Module;
 	class StaticVar;
+	class Element;
 	class Int;
-
-	using HspInt = std::int32_t;
 
 	static auto get_root() -> HspObjectPath::Root const&;
 
@@ -71,12 +73,16 @@ public:
 
 	auto as_static_var() const -> HspObjectPath::StaticVar const&;
 
+	auto as_element() const -> HspObjectPath::Element const&;
+
 	auto as_int() const -> HspObjectPath::Int const&;
 
 protected:
 	auto new_module(std::size_t module_id) const->std::shared_ptr<HspObjectPath const>;
 
 	auto new_static_var(std::size_t static_var_id) const -> std::shared_ptr<HspObjectPath const>;
+
+	auto new_element(HspIndexes const& indexes) const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_int() const -> std::shared_ptr<HspObjectPath const>;
 };
@@ -152,6 +158,7 @@ class HspObjectPath::StaticVar final
 	std::size_t static_var_id_;
 
 public:
+	using HspObjectPath::new_element;
 	using HspObjectPath::new_int;
 
 	StaticVar(std::shared_ptr<HspObjectPath const> parent, std::size_t static_var_id);
@@ -174,6 +181,43 @@ public:
 
 	auto static_var_id() const -> std::size_t {
 		return static_var_id_;
+	}
+
+	auto type(HspObjects& objects) const -> HspType;
+};
+
+// -----------------------------------------------
+// 配列要素
+// -----------------------------------------------
+
+class HspObjectPath::Element final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+	HspIndexes indexes_;
+
+public:
+	using HspObjectPath::new_int;
+
+	Element(std::shared_ptr<HspObjectPath const> parent, HspIndexes indexes);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::Element;
+	}
+
+	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
+		return parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override;
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
+
+	auto name(HspObjects& objects) const -> std::string override;
+
+	auto indexes() const -> HspIndexes const& {
+		return indexes_;
 	}
 
 	auto type(HspObjects& objects) const -> HspType;
@@ -238,6 +282,10 @@ public:
 	}
 
 	virtual void on_static_var(HspObjectPath::StaticVar const& path) {
+		accept_children(path);
+	}
+
+	virtual void on_element(HspObjectPath::Element const& path) {
 		accept_children(path);
 	}
 

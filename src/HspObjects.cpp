@@ -104,12 +104,21 @@ auto HspObjects::static_var_to_pval(std::size_t static_var_id)->PVal* {
 }
 
 auto HspObjects::static_var_to_type(std::size_t static_var_id)->HspType {
-	return api_.static_var_to_type(static_var_id);
+	return api_.var_to_type(api_.static_var_to_pval(static_var_id));
 }
 
-auto HspObjects::static_var_to_int(std::size_t static_var_id)->HspInt {
-	assert(api_.static_var_to_type(static_var_id) == HspType::Int);
-	return api_.data_to_int(api_.static_var_to_data(static_var_id));
+auto HspObjects::static_var_element_count(std::size_t static_var_id)->std::size_t {
+	return api_.var_element_count(api_.static_var_to_pval(static_var_id));
+}
+
+auto HspObjects::static_var_element_indexes(std::size_t static_var_id, std::size_t aptr)->HspIndexes {
+	return api_.var_element_to_indexes(api_.static_var_to_pval(static_var_id), aptr);
+}
+
+auto HspObjects::static_var_element_to_int(std::size_t static_var_id, HspIndexes const& indexes)->HspInt {
+	auto pval = static_var_to_pval(static_var_id);
+	auto aptr = api_.var_element_to_aptr(pval, indexes);
+	return api_.data_to_int(api_.var_element_to_data(pval, aptr));
 }
 
 // -----------------------------------------------
