@@ -340,3 +340,31 @@ auto stringizeVartype(PVal const* pval) -> string
 		, arrayType
 		);
 }
+
+// -----------------------------------------------
+// テーブルスタイル
+// -----------------------------------------------
+
+HspObjectWriter::HspObjectWriter(HspObjects& objects, CStrWriter& writer)
+	: Visitor(objects)
+	, writer_(writer)
+{
+}
+
+HspObjectWriter::TableForm::TableForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf)
+	: HspObjectWriter(objects, writer)
+	, varinf_(varinf)
+{
+}
+
+HspObjectWriter::BlockForm::BlockForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf)
+	: HspObjectWriter(objects, writer)
+	, varinf_(varinf)
+{
+}
+
+HspObjectWriter::FlowForm::FlowForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf)
+	: HspObjectWriter(objects, writer)
+	, varinf_(varinf)
+{
+}

@@ -56,6 +56,55 @@ private:
 	HspStaticVars& static_vars_;
 };
 
+class HspObjectWriter
+	: public HspObjectPath::Visitor
+{
+public:
+	class TableForm;
+	class BlockForm;
+	class FlowForm;
+
+private:
+	CStrWriter& writer_;
+
+public:
+	explicit HspObjectWriter(HspObjects& objects, CStrWriter& writer);
+
+	auto writer() -> CStrWriter& {
+		return writer_;
+	}
+};
+
+class HspObjectWriter::TableForm
+	: public HspObjectWriter
+{
+public:
+	TableForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf);
+
+private:
+	CVarinfoText& varinf_;
+};
+
+class HspObjectWriter::BlockForm
+	: public HspObjectWriter
+{
+public:
+	BlockForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf);
+
+private:
+	CVarinfoText& varinf_;
+};
+
+class HspObjectWriter::FlowForm
+	: public HspObjectWriter
+{
+public:
+	FlowForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf);
+
+private:
+	CVarinfoText& varinf_;
+};
+
 extern auto stringizePrmlist(stdat_t stdat) -> string;
 extern auto stringizeVartype(PVal const* pval) -> string;
 
