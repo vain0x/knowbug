@@ -3,8 +3,9 @@
 #include <memory>
 #include <string>
 #include "encoding.h"
-#include "HspDebugApi.h"
+#include "HspTypes.h"
 
+class HspDebugApi;
 class HspStaticVars;
 
 // HSP のオブジェクト (モジュール、変数、値など) に関して
@@ -12,8 +13,6 @@ class HspStaticVars;
 class HspObjects {
 public:
 	class Module;
-
-	using HspInt = std::int32_t;
 
 private:
 	HspDebugApi& api_;

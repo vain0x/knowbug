@@ -1,22 +1,9 @@
 #pragma once
 
-#include <cstdint>
 #include <optional>
 #include <string>
 #include "hpiutil/hpiutil_fwd.hpp"
-
-using HspInt = std::int32_t;
-
-enum class HspType
-	: short
-{
-	Label = HSPVAR_FLAG_LABEL,
-	Str = HSPVAR_FLAG_STR,
-	Double = HSPVAR_FLAG_DOUBLE,
-	Int = HSPVAR_FLAG_INT,
-	Struct = HSPVAR_FLAG_STRUCT,
-	Comstruct = HSPVAR_FLAG_COMSTRUCT,
-};
+#include "HspTypes.h"
 
 // HSP SDK のラッパー
 // 配列アクセスの範囲検査、null 検査、整数と enum の変換など、小さい仕事をする。
