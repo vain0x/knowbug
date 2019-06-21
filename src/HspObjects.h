@@ -7,10 +7,13 @@
 
 class HspStaticVars;
 
-// HSP のメモリ空間上に存在するオブジェクトに関する情報を取得・変更するためのインターフェイス
+// HSP のオブジェクト (モジュール、変数、値など) に関して
+// knowbug が知りたい情報を最適なインターフェイスで提供する。
 class HspObjects {
 public:
 	class Module;
+
+	using HspInt = std::int32_t;
 
 private:
 	HspDebugApi& api_;
@@ -35,7 +38,13 @@ public:
 
 	bool static_var_is_array(std::size_t static_var_id);
 
+	// FIXME: 一時的に存在する。knowbug は PVal* を直接触るべきでない
 	auto static_var_to_pval(std::size_t static_var_id)->PVal*;
+
+	auto static_var_to_type(std::size_t static_var_id)->HspType;
+
+	// 静的変数の値の整数値を取得する。
+	auto static_var_to_int(std::size_t static_var_id)->HspInt;
 
 public:
 	class Module {

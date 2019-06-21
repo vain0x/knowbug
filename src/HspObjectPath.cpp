@@ -1,6 +1,11 @@
 #include "HspObjects.h"
 #include "HspObjectPath.h"
 
+static bool kind_can_have_value(HspObjectKind kind) {
+	return kind == HspObjectKind::StaticVar;
+}
+
+
 HspObjectPath::~HspObjectPath() {
 }
 
@@ -138,4 +143,37 @@ auto HspObjectPath::as_static_var() const -> HspObjectPath::StaticVar const& {
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::StaticVar const*)this;
+}
+
+// -----------------------------------------------
+// 整数
+// -----------------------------------------------
+
+HspObjectPath::Int::Int(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(parent)
+{
+}
+
+auto HspObjectPath::new_int() const -> std::shared_ptr<HspObjectPath const> {
+	assert(kind_can_have_value(kind()));
+	return std::make_shared<HspObjectPath::Int>(self());
+}
+
+auto HspObjectPath::as_int() const -> HspObjectPath::Int const& {
+	if (kind() != HspObjectKind::Int) {
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Int const*)this;
+}
+
+auto HspObjectPath::Int::value(HspObjects& objects) const -> HspInt {
+	switch (parent()->kind()) {
+	case HspObjectKind::StaticVar:
+		{
+			auto static_var_id = parent()->as_static_var().static_var_id();
+			return objects.static_var_to_int(static_var_id);
+		}
+	default:
+		throw new std::exception{ "wrong kind" };
+	}
 }
