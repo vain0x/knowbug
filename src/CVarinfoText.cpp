@@ -382,20 +382,21 @@ HspObjectWriter::FlowForm::FlowForm(HspObjects& objects, CStrWriter& writer, CVa
 
 void HspObjectWriter::FlowForm::on_static_var(HspObjectPath::StaticVar const& path) {
 	auto&& w = writer();
-
-	// FIXME: 型名を objects からもらう
-	w.cat("<int>[");
-
+	auto type = path.type(objects());
+	auto&& type_name = objects().type_name(type);
 	auto child_count = path.child_count(objects());
+
+	// FIXME: 多次元配列の表示を改善する
+
+	w.cat("<");
+	w.cat(type_name.data());
+	w.cat(">[");
+
 	for (auto i = std::size_t{}; i < child_count; i++) {
 		auto&& child = path.child_at(i, objects());
 
 		if (i != 0) {
-			if (child->kind() == HspObjectKind::Element && child->as_element().indexes()[0] == 0) {
-				w.cat("; ");
-			} else {
-				w.cat(", ");
-			}
+			w.cat(", ");
 		}
 
 		accept(*child);

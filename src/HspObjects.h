@@ -13,15 +13,19 @@ class HspStaticVars;
 class HspObjects {
 public:
 	class Module;
+	class TypeData;
 
 private:
 	HspDebugApi& api_;
 	HspStaticVars& static_vars_;
 
 	std::vector<Module> modules_;
+	std::vector<TypeData> types_;
 
 public:
 	HspObjects(HspDebugApi& api, HspStaticVars& static_vars);
+
+	auto type_name(HspType type) const->HspStringView;
 
 	auto module_global_id() const->std::size_t;
 
@@ -68,4 +72,15 @@ public:
 
 		void add_var(std::size_t static_var_id);
 	};
+};
+
+class HspObjects::TypeData {
+	HspString name_;
+
+public:
+	explicit TypeData(HspString&& name);
+
+	auto name() const -> HspStringView {
+		return name_.as_ref();
+	}
 };

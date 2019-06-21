@@ -60,6 +60,18 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 	return modules;
 }
 
+static auto create_type_datas() -> std::vector<HspObjects::TypeData> {
+	auto types = std::vector<HspObjects::TypeData>{};
+	types.emplace_back(HspStringView{ "unknown" }.to_owned());
+	types.emplace_back(HspStringView{ "label" }.to_owned());
+	types.emplace_back(HspStringView{ "str" }.to_owned());
+	types.emplace_back(HspStringView{ "double" }.to_owned());
+	types.emplace_back(HspStringView{ "int" }.to_owned());
+	types.emplace_back(HspStringView{ "struct" }.to_owned());
+	types.emplace_back(HspStringView{ "comobj" }.to_owned());
+	return types;
+}
+
 // -----------------------------------------------
 // HspObjects
 // -----------------------------------------------
@@ -68,7 +80,16 @@ HspObjects::HspObjects(HspDebugApi& api, HspStaticVars& static_vars)
 	: api_(api)
 	, static_vars_(static_vars)
 	, modules_(group_vars_by_module(static_vars.get_all_names()))
+	, types_(create_type_datas())
 {
+}
+
+auto HspObjects::type_name(HspType type) const->HspStringView {
+	auto type_id = (std::size_t)type;
+	if (!(1 <= type_id && type_id < types_.size())) {
+		return types_[0].name();
+	}
+	return types_[type_id].name();
 }
 
 auto HspObjects::module_global_id() const->std::size_t {
@@ -133,4 +154,13 @@ HspObjects::Module::Module(HspString&& name)
 
 void HspObjects::Module::add_var(std::size_t static_var_id) {
 	var_ids_.emplace_back(static_var_id);
+}
+
+// -----------------------------------------------
+// HspObjects::TypeData
+// -----------------------------------------------
+
+HspObjects::TypeData::TypeData(HspString&& name)
+	: name_(std::move(name))
+{
 }
