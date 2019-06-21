@@ -1,0 +1,43 @@
+#include "hsp3utf.as"
+
+    a = 8
+    b = 9
+
+#module hoge
+
+#deffunc hoge_init
+    b = 2
+    a = 1
+    return
+
+#global
+
+#module fuga
+
+#deffunc fuga_init
+    b = 4
+    a = 2
+    return
+
+#global
+
+    hoge_init
+    fuga_init
+
+    foo = 1, 2, 3
+
+    dim bar, 3, 2
+    bar(0, 0) = 3, 1, 4
+    bar(0, 1) = 1, 5, 9
+
+#module
+
+#deffunc f int a
+	mes a
+	return
+
+#global
+
+	assert
+	f 1
+	f 2

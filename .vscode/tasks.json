@@ -12,6 +12,13 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "type": "shell",
+            "label": "launch",
+            "command": "pwsh -c ./scripts/run-default.ps1",
+            "dependsOn": "build",
+            "problemMatcher": []
         }
     ]
 }

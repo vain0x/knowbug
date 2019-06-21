@@ -1,3 +1,8 @@
+hsptmp
+obj
+package/sample/*.ax
+
+
 
 # Created by https://www.gitignore.io/api/windows,c++,visualstudio
 
