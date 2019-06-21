@@ -276,39 +276,16 @@ HspObjectWriter::TableForm::TableForm(HspObjects& objects, CStrWriter& writer, C
 
 void HspObjectWriter::TableForm::on_module(HspObjectPath::Module const& path) {
 	auto&& w = writer();
-	auto& objects_ = objects();
-
-	auto name = path.name(objects_);
+	auto&& objects_ = objects();
+	auto&& name = path.name(objects_);
 
 	w.cat("[");
 	w.cat(name.data());
 	w.catln("]");
 
 	for (auto i = std::size_t{}; i < path.child_count(objects_); i++) {
-		auto const&& child_path = path.child_at(i, objects_);
-
-		switch (child_path->kind()) {
-		case HspObjectKind::Module:
-			// (入れ子の)モジュールは名前だけ表示しておく
-			w.catln(child_path->name(objects_).data());
-			continue;
-
-		case HspObjectKind::StaticVar:
-			{
-				auto name = child_path->name(objects_);
-				auto short_name = hpiutil::nameExcludingScopeResolution(name.data());
-				auto pval = objects_.static_var_to_pval(child_path->as_static_var().static_var_id());
-
-				w.cat(short_name);
-				w.cat("\t= ");
-				varinf_.create_lineform_writer().addVar(short_name.data(), pval);
-				w.catCrlf();
-				continue;
-			}
-
-		default:
-			continue;
-		}
+		auto&& child_path = path.child_at(i, objects_);
+		varinf_.to_block_form().accept(*child_path);
 	}
 }
 
@@ -386,7 +363,7 @@ void HspObjectWriter::BlockForm::on_element(HspObjectPath::Element const& path) 
 	auto&& name = path.name(objects());
 
 	w.cat(name.data());
-	w.cat(" = ");
+	w.cat("\t= ");
 
 	varinf_.to_flow_form().accept(path);
 
@@ -401,6 +378,30 @@ HspObjectWriter::FlowForm::FlowForm(HspObjects& objects, CStrWriter& writer, CVa
 	: HspObjectWriter(objects, writer)
 	, varinf_(varinf)
 {
+}
+
+void HspObjectWriter::FlowForm::on_static_var(HspObjectPath::StaticVar const& path) {
+	auto&& w = writer();
+
+	// FIXME: 型名を objects からもらう
+	w.cat("<int>[");
+
+	auto child_count = path.child_count(objects());
+	for (auto i = std::size_t{}; i < child_count; i++) {
+		auto&& child = path.child_at(i, objects());
+
+		if (i != 0) {
+			if (child->kind() == HspObjectKind::Element && child->as_element().indexes()[0] == 0) {
+				w.cat("; ");
+			} else {
+				w.cat(", ");
+			}
+		}
+
+		accept(*child);
+	}
+
+	w.cat("]");
 }
 
 void HspObjectWriter::FlowForm::on_int(HspObjectPath::Int const& path) {

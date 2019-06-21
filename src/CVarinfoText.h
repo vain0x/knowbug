@@ -78,6 +78,8 @@ class HspObjectWriter::FlowForm
 public:
 	FlowForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf);
 
+	void on_static_var(HspObjectPath::StaticVar const& path) override;
+
 	void on_int(HspObjectPath::Int const& path) override;
 
 private:
