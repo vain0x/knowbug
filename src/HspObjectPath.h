@@ -272,26 +272,30 @@ public:
 
 	virtual void accept(HspObjectPath const& path);
 
+	virtual void accept_default(HspObjectPath const& path);
+
+	virtual void accept_parent(HspObjectPath const& path);
+
 	virtual void accept_children(HspObjectPath const& path);
 
 	virtual void on_root(HspObjectPath::Root const& path) {
-		accept_children(path);
+		accept_default(path);
 	}
 
 	virtual void on_module(HspObjectPath::Module const& path) {
-		accept_children(path);
+		accept_default(path);
 	}
 
 	virtual void on_static_var(HspObjectPath::StaticVar const& path) {
-		accept_children(path);
+		accept_default(path);
 	}
 
 	virtual void on_element(HspObjectPath::Element const& path) {
-		accept_children(path);
+		accept_default(path);
 	}
 
 	virtual void on_int(HspObjectPath::Int const& path) {
-		accept_children(path);
+		accept_default(path);
 	}
 
 protected:

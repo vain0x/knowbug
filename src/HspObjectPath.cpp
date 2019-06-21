@@ -274,6 +274,18 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 	}
 }
 
+void HspObjectPath::Visitor::accept_default(HspObjectPath const& path) {
+	accept_children(path);
+}
+
+void HspObjectPath::Visitor::accept_parent(HspObjectPath const& path) {
+	if (path.kind() == HspObjectKind::Root) {
+		return;
+	}
+
+	accept(*path.parent());
+}
+
 void HspObjectPath::Visitor::accept_children(HspObjectPath const& path) {
 	auto child_count = path.child_count(objects());
 	for (auto i = std::size_t{}; i < child_count; i++) {
