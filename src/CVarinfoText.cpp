@@ -55,103 +55,20 @@ auto CVarinfoText::create_treeform_writer() const -> CVardataStrWriter {
 	return CVardataStrWriter{ std::move(writer), debug_segment_, objects_, static_vars_ };
 }
 
+auto CVarinfoText::to_table_form() -> HspObjectWriter::TableForm {
+	return HspObjectWriter::TableForm{ objects_, getWriter(), *this };
+}
+
+auto CVarinfoText::to_block_form() -> HspObjectWriter::BlockForm {
+	return HspObjectWriter::BlockForm{ objects_, getWriter(), *this };
+}
+
+auto CVarinfoText::to_flow_form() -> HspObjectWriter::FlowForm {
+	return HspObjectWriter::FlowForm{ objects_, getWriter(), *this };
+}
 
 void CVarinfoText::add(HspObjectPath const& path) {
-	switch (path.kind()) {
-	case HspObjectKind::Root:
-		return;
-
-	case HspObjectKind::Module:
-		add_module(path.as_module());
-		return;
-
-	case HspObjectKind::StaticVar:
-		add_static_var(path.as_static_var());
-		return;
-
-	case HspObjectKind::Int:
-		getWriter().catln(strf("%d", path.as_int().value(objects_)));
-		return;
-
-	default:
-		throw new std::exception{ "unknown kind" };
-	}
-}
-
-void CVarinfoText::add_module(HspObjectPath::Module const& path) {
-	auto&& w = getWriter();
-	auto name = path.name(objects_);
-
-	w.cat("[");
-	w.cat(name.data());
-	w.catln("]");
-
-	for (auto i = std::size_t{}; i < path.child_count(objects_); i++) {
-		auto const&& child_path = path.child_at(i, objects_);
-
-		switch (child_path->kind()) {
-		case HspObjectKind::Module:
-			// (入れ子の)モジュールは名前だけ表示しておく
-			w.catln(child_path->name(objects_).data());
-			continue;
-
-		case HspObjectKind::StaticVar:
-			{
-				auto name = child_path->name(objects_);
-				auto short_name = hpiutil::nameExcludingScopeResolution(name.data());
-				auto pval = objects_.static_var_to_pval(child_path->as_static_var().static_var_id());
-
-				w.cat(short_name);
-				w.cat("\t= ");
-				create_lineform_writer().addVar(short_name.data(), pval);
-				w.catCrlf();
-				continue;
-			}
-
-		default:
-			continue;
-		}
-	}
-}
-
-void CVarinfoText::add_static_var(HspObjectPath::StaticVar const& path) {
-	auto pval = objects_.static_var_to_pval(path.static_var_id());
-	auto name = path.name(objects_);
-
-	// 新APIが実装済みのケース
-	if (!objects_.static_var_is_array(path.static_var_id())
-		&& objects_.static_var_to_type(path.static_var_id()) == HspType::Int) {
-
-		auto const hvp = hpiutil::varproc(pval->flag);
-		int bufsize;
-		void const* const pMemBlock =
-			hvp->GetBlockSize(pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize));
-
-		// 変数に関する情報
-		getWriter().catln(strf("変数名: %s", name));
-		getWriter().catln(strf("変数型: %s", stringizeVartype(pval)));
-		getWriter().catln(
-			strf("アドレス: %p, %p"
-				, cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)
-				));
-		getWriter().catln(
-			strf("サイズ: %d / %d [byte]"
-				, pval->size, bufsize
-				));
-		getWriter().catCrlf();
-
-		// 変数の内容に関する情報
-		getWriter().cat(name.data());
-		getWriter().cat(" = ");
-		add(*path.child_at(0, objects_));
-		getWriter().catCrlf();
-
-		// メモリダンプ
-		getWriter().catDump(pMemBlock, static_cast<size_t>(bufsize));
-		return;
-	}
-
-	addVar(pval, name.data());
+	to_table_form().accept(path);
 }
 
 //------------------------------------------------
@@ -342,7 +259,7 @@ auto stringizeVartype(PVal const* pval) -> string
 }
 
 // -----------------------------------------------
-// テーブルスタイル
+// テーブルフォーム
 // -----------------------------------------------
 
 HspObjectWriter::HspObjectWriter(HspObjects& objects, CStrWriter& writer)
@@ -357,14 +274,125 @@ HspObjectWriter::TableForm::TableForm(HspObjects& objects, CStrWriter& writer, C
 {
 }
 
+void HspObjectWriter::TableForm::on_module(HspObjectPath::Module const& path) {
+	auto&& w = writer();
+	auto& objects_ = objects();
+
+	auto name = path.name(objects_);
+
+	w.cat("[");
+	w.cat(name.data());
+	w.catln("]");
+
+	for (auto i = std::size_t{}; i < path.child_count(objects_); i++) {
+		auto const&& child_path = path.child_at(i, objects_);
+
+		switch (child_path->kind()) {
+		case HspObjectKind::Module:
+			// (入れ子の)モジュールは名前だけ表示しておく
+			w.catln(child_path->name(objects_).data());
+			continue;
+
+		case HspObjectKind::StaticVar:
+			{
+				auto name = child_path->name(objects_);
+				auto short_name = hpiutil::nameExcludingScopeResolution(name.data());
+				auto pval = objects_.static_var_to_pval(child_path->as_static_var().static_var_id());
+
+				w.cat(short_name);
+				w.cat("\t= ");
+				varinf_.create_lineform_writer().addVar(short_name.data(), pval);
+				w.catCrlf();
+				continue;
+			}
+
+		default:
+			continue;
+		}
+	}
+}
+
+void HspObjectWriter::TableForm::on_static_var(HspObjectPath::StaticVar const& path) {
+	auto pval = objects().static_var_to_pval(path.static_var_id());
+	auto name = path.name(objects());
+
+	// 新APIが実装済みのケース
+	if (!path.is_array(objects()) && path.type(objects()) == HspType::Int) {
+		auto const hvp = hpiutil::varproc(pval->flag);
+		int bufsize;
+		void const* const pMemBlock =
+			hvp->GetBlockSize(pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize));
+
+		// 変数に関する情報
+		writer().catln(strf("変数名: %s", name));
+		writer().catln(strf("変数型: %s", stringizeVartype(pval)));
+		writer().catln(
+			strf("アドレス: %p, %p"
+				, cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)
+				));
+		writer().catln(
+			strf("サイズ: %d / %d [byte]"
+				, pval->size, bufsize
+				));
+		writer().catCrlf();
+
+		// 変数の内容に関する情報
+		varinf_.to_block_form().accept(path);
+		// writer().cat(name.data());
+		// writer().cat(" = ");
+		// add(*path.child_at(0, objects_));
+		writer().catCrlf();
+
+		// メモリダンプ
+		writer().catDump(pMemBlock, static_cast<size_t>(bufsize));
+		return;
+	}
+
+	// 旧APIにフォールバック
+	varinf_.addVar(pval, name.data());
+}
+
+// -----------------------------------------------
+// ブロックフォーム
+// -----------------------------------------------
+
 HspObjectWriter::BlockForm::BlockForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf)
 	: HspObjectWriter(objects, writer)
 	, varinf_(varinf)
 {
 }
 
+void HspObjectWriter::BlockForm::on_module(HspObjectPath::Module const& path) {
+	auto&& name = path.name(objects());
+
+	// (入れ子の)モジュールは名前だけ表示しておく
+	writer().catln(name.data());
+}
+
+void HspObjectWriter::BlockForm::on_static_var(HspObjectPath::StaticVar const& path) {
+	assert((!path.is_array(objects()) && path.type(objects()) == HspType::Int));
+
+	auto&& name = path.name(objects());
+	auto short_name = hpiutil::nameExcludingScopeResolution(name.data());
+
+	writer().cat(short_name.data());
+	writer().cat("\t= ");
+
+	varinf_.to_flow_form().accept(path);
+
+	writer().catCrlf();
+}
+
+// -----------------------------------------------
+// フローフォーム
+// -----------------------------------------------
+
 HspObjectWriter::FlowForm::FlowForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf)
 	: HspObjectWriter(objects, writer)
 	, varinf_(varinf)
 {
+}
+
+void HspObjectWriter::FlowForm::on_int(HspObjectPath::Int const& path) {
+	writer().cat(strf("%d", path.value(objects())));
 }
