@@ -193,3 +193,42 @@ auto HspObjectPath::Int::value(HspObjects& objects) const -> HspInt {
 		throw new std::exception{ "wrong kind" };
 	}
 }
+
+// -----------------------------------------------
+// ビジター
+// -----------------------------------------------
+
+HspObjectPath::Visitor::Visitor(HspObjects& objects)
+	: objects_(objects)
+{
+}
+
+void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
+	switch (path.kind()) {
+	case HspObjectKind::Root:
+		on_root(path.as_root());
+		return;
+
+	case HspObjectKind::Module:
+		on_module(path.as_module());
+		return;
+
+	case HspObjectKind::StaticVar:
+		on_static_var(path.as_static_var());
+		return;
+
+	case HspObjectKind::Int:
+		on_int(path.as_int());
+		return;
+
+	default:
+		throw new std::exception{ "unknown kind" };
+	}
+}
+
+void HspObjectPath::Visitor::accept_children(HspObjectPath const& path) {
+	auto child_count = path.child_count(objects());
+	for (auto i = std::size_t{}; i < child_count; i++) {
+		accept(*path.child_at(i, objects()));
+	}
+}

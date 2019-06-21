@@ -24,6 +24,7 @@ class HspObjectPath
 	: public std::enable_shared_from_this<HspObjectPath>
 {
 public:
+	class Visitor;
 	class Root;
 	class Module;
 	class StaticVar;
@@ -212,4 +213,40 @@ public:
 	}
 
 	auto value(HspObjects& objects) const -> HspInt;
+};
+
+// -----------------------------------------------
+// ビジター
+// -----------------------------------------------
+
+class HspObjectPath::Visitor {
+	HspObjects& objects_;
+
+public:
+	explicit Visitor(HspObjects& objects);
+
+	virtual void accept(HspObjectPath const& path);
+
+	virtual void accept_children(HspObjectPath const& path);
+
+	virtual void on_root(HspObjectPath::Root const& path) {
+		accept_children(path);
+	}
+
+	virtual void on_module(HspObjectPath::Module const& path) {
+		accept_children(path);
+	}
+
+	virtual void on_static_var(HspObjectPath::StaticVar const& path) {
+		accept_children(path);
+	}
+
+	virtual void on_int(HspObjectPath::Int const& path) {
+		accept_children(path);
+	}
+
+protected:
+	auto objects() const -> HspObjects& {
+		return objects_;
+	}
 };
