@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "HspDebugApi.h"
 
 class HspObjects;
 
@@ -171,6 +172,8 @@ public:
 	auto static_var_id() const -> std::size_t {
 		return static_var_id_;
 	}
+
+	auto type(HspObjects& objects) const -> HspType;
 };
 
 // -----------------------------------------------

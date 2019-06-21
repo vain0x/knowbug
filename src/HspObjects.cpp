@@ -103,6 +103,10 @@ auto HspObjects::static_var_to_pval(std::size_t static_var_id)->PVal* {
 	return api_.static_var_to_pval(static_var_id);
 }
 
+auto HspObjects::static_var_to_type(std::size_t static_var_id)->HspType {
+	return api_.static_var_to_type(static_var_id);
+}
+
 auto HspObjects::static_var_to_int(std::size_t static_var_id)->HspInt {
 	assert(api_.static_var_to_type(static_var_id) == HspType::Int);
 

@@ -118,12 +118,17 @@ HspObjectPath::StaticVar::StaticVar(std::shared_ptr<HspObjectPath const> parent,
 
 auto HspObjectPath::StaticVar::child_count(HspObjects& objects) const -> std::size_t {
 	// FIXME: 配列の要素数
-	return 0;
+	return 1;
 }
 
 auto HspObjectPath::StaticVar::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
-	// FIXME: 配列の要素へのパス
-	throw new std::exception{ "out of index" };
+	// FIXME: 配列変数なら配列の要素へのパス
+
+	if (index == 0 && type(objects) == HspType::Int) {
+		return new_int();
+	}
+
+	throw new std::exception{ "unimpl" };
 }
 
 auto HspObjectPath::StaticVar::name(HspObjects& objects) const -> std::string {
@@ -132,6 +137,10 @@ auto HspObjectPath::StaticVar::name(HspObjects& objects) const -> std::string {
 
 bool HspObjectPath::StaticVar::is_array(HspObjects& objects) const {
 	return objects.static_var_is_array(static_var_id());
+}
+
+auto HspObjectPath::StaticVar::type(HspObjects& objects) const -> HspType {
+	return objects.static_var_to_type(static_var_id());
 }
 
 auto HspObjectPath::new_static_var(std::size_t static_var_id) const -> std::shared_ptr<HspObjectPath const> {

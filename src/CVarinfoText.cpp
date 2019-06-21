@@ -69,6 +69,10 @@ void CVarinfoText::add(HspObjectPath const& path) {
 		add_static_var(path.as_static_var());
 		return;
 
+	case HspObjectKind::Int:
+		getWriter().catln(strf("%d", path.as_int().value(objects_)));
+		return;
+
 	default:
 		throw new std::exception{ "unknown kind" };
 	}
@@ -113,6 +117,39 @@ void CVarinfoText::add_module(HspObjectPath::Module const& path) {
 void CVarinfoText::add_static_var(HspObjectPath::StaticVar const& path) {
 	auto pval = objects_.static_var_to_pval(path.static_var_id());
 	auto name = path.name(objects_);
+
+	// 新APIが実装済みのケース
+	if (!objects_.static_var_is_array(path.static_var_id())
+		&& objects_.static_var_to_type(path.static_var_id()) == HspType::Int) {
+
+		auto const hvp = hpiutil::varproc(pval->flag);
+		int bufsize;
+		void const* const pMemBlock =
+			hvp->GetBlockSize(pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize));
+
+		// 変数に関する情報
+		getWriter().catln(strf("変数名: %s", name));
+		getWriter().catln(strf("変数型: %s", stringizeVartype(pval)));
+		getWriter().catln(
+			strf("アドレス: %p, %p"
+				, cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)
+				));
+		getWriter().catln(
+			strf("サイズ: %d / %d [byte]"
+				, pval->size, bufsize
+				));
+		getWriter().catCrlf();
+
+		// 変数の内容に関する情報
+		getWriter().cat(name.data());
+		getWriter().cat(" = ");
+		add(*path.child_at(0, objects_));
+		getWriter().catCrlf();
+
+		// メモリダンプ
+		getWriter().catDump(pMemBlock, static_cast<size_t>(bufsize));
+		return;
+	}
 
 	addVar(pval, name.data());
 }
