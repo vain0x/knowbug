@@ -29,6 +29,13 @@ auto HspObjectPath::get_root() -> HspObjectPath::Root const& {
 	return (HspObjectPath::Root const&)*g_root;
 }
 
+auto HspObjectPath::as_root() const -> HspObjectPath::Root const& {
+	if (kind() != HspObjectKind::Root) {
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Root const*)this;
+}
+
 auto HspObjectPath::Root::name(HspObjects& objects) const -> std::string {
 	return g_root_name;
 }

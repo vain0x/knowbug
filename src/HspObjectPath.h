@@ -64,6 +64,8 @@ public:
 
 	auto self() const -> std::shared_ptr<HspObjectPath const>;
 
+	auto as_root() const->HspObjectPath::Root const&;
+
 	auto as_module() const->HspObjectPath::Module const&;
 
 	auto as_static_var() const -> HspObjectPath::StaticVar const&;
