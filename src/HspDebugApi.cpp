@@ -58,10 +58,15 @@ auto HspDebugApi::static_var_to_type(std::size_t static_var_id) -> HspType {
 	return pval_to_type(static_var_to_pval(static_var_id));
 }
 
-auto HspDebugApi::static_var_to_data_ptr(std::size_t static_var_id) -> PDAT* {
-	return hpiutil::PVal_getPtr(static_var_to_pval(static_var_id));
+auto HspDebugApi::static_var_to_data(std::size_t static_var_id) -> HspData {
+	auto type = static_var_to_type(static_var_id);
+	auto pdat = hpiutil::PVal_getPtr(static_var_to_pval(static_var_id));
+	return HspData{ type, pdat };
 }
 
-auto HspDebugApi::data_ptr_to_int(PDAT* data_ptr) -> HspInt {
-	return *(HspInt const*)data_ptr;
+auto HspDebugApi::data_to_int(HspData const& data) const -> HspInt {
+	if (data.type() != HspType::Int) {
+		throw new std::exception{ "Invalid type" };
+	}
+	return *(HspInt const*)data.ptr();
 }

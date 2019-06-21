@@ -41,7 +41,7 @@ public:
 
 	auto static_var_to_type(std::size_t static_var_id) -> HspType;
 
-	auto static_var_to_data_ptr(std::size_t static_var_id) -> PDAT*;
+	auto static_var_to_data(std::size_t static_var_id) -> HspData;
 
-	auto data_ptr_to_int(PDAT* data_ptr) -> HspInt;
+	auto data_to_int(HspData const& data) const -> HspInt;
 };

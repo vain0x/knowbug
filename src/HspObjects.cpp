@@ -109,9 +109,7 @@ auto HspObjects::static_var_to_type(std::size_t static_var_id)->HspType {
 
 auto HspObjects::static_var_to_int(std::size_t static_var_id)->HspInt {
 	assert(api_.static_var_to_type(static_var_id) == HspType::Int);
-
-	auto data_ptr = api_.static_var_to_data_ptr(static_var_id);
-	return api_.data_ptr_to_int(data_ptr);
+	return api_.data_to_int(api_.static_var_to_data(static_var_id));
 }
 
 // -----------------------------------------------
