@@ -143,6 +143,10 @@ auto HspObjectPath::StaticVar::type(HspObjects& objects) const -> HspType {
 	return objects.static_var_to_type(static_var_id());
 }
 
+auto HspObjectPath::StaticVar::metadata(HspObjects& objects) const -> HspVarMetadata {
+	return objects.static_var_metadata(*this);
+}
+
 auto HspObjectPath::new_static_var(std::size_t static_var_id) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::StaticVar>(self(), static_var_id);
 }

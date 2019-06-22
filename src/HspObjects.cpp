@@ -188,6 +188,21 @@ auto HspObjects::static_var_child_at(HspObjectPath::StaticVar const& path, std::
 	return path.new_element(indexes);
 }
 
+auto HspObjects::static_var_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata {
+	auto pval = static_var_to_pval(path.static_var_id());
+	auto block_memory = api_.var_to_block_memory(pval);
+
+	auto metadata = HspVarMetadata{};
+	metadata.lengths_ = api_.var_to_lengths(pval);
+	metadata.element_size_ = hpiutil::PVal_cntElems(pval);
+	metadata.data_size_ = pval->size;
+	metadata.block_size_ = block_memory.size();
+	metadata.data_ptr_ = pval->pt;
+	metadata.master_ptr_ = pval->master;
+	metadata.block_ptr_ = block_memory.data();
+	return metadata;
+}
+
 auto HspObjects::path_to_int(HspObjectPath::Int const& path) const -> HspInt {
 	return (::path_to_int(path, api_)).value_or(HspInt{});
 }

@@ -25,7 +25,7 @@ void CStrWriter::catCrlf()
 
 //------------------------------------------------
 // メモリダンプ文字列の連結
-// 
+//
 // @ 最後の行に改行を挿入しない。
 //------------------------------------------------
 void CStrWriter::catDumpImpl( void const* data, size_t size )
@@ -45,6 +45,14 @@ void CStrWriter::catDumpImpl( void const* data, size_t size )
 		}
 		cat(row.c_str());
 	}
+}
+
+void CStrWriter::catSize(std::size_t size) {
+	cat(strf("%d", size));
+}
+
+void CStrWriter::catPtr(void const* ptr) {
+	cat(strf("%p", ptr));
 }
 
 void CStrWriter::catDump(void const* data, size_t bufsize)

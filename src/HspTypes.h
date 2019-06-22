@@ -43,3 +43,43 @@ public:
 		return ptr_;
 	}
 };
+
+class HspVarMetadata {
+public:
+	HspIndexes lengths_;
+	std::size_t element_size_;
+	std::size_t data_size_;
+	std::size_t block_size_;
+	void const* data_ptr_;
+	void const* master_ptr_;
+	void const* block_ptr_;
+
+public:
+	auto lengths() const -> HspIndexes const& {
+		return lengths_;
+	}
+
+	auto element_size() const -> std::size_t {
+		return element_size_;
+	}
+
+	auto data_size() const -> std::size_t {
+		return data_size_;
+	}
+
+	auto block_size() const -> std::size_t {
+		return block_size_;
+	}
+
+	auto data_ptr() const -> void const* {
+		return data_ptr_;
+	}
+
+	auto master_ptr() const -> void const* {
+		return master_ptr_;
+	}
+
+	auto block_ptr() const -> void const* {
+		return block_ptr_;
+	}
+};

@@ -295,33 +295,36 @@ void HspObjectWriter::TableForm::on_static_var(HspObjectPath::StaticVar const& p
 
 	// 新APIが実装済みのケース
 	if (path.type(objects()) == HspType::Int) {
-		auto const hvp = hpiutil::varproc(pval->flag);
-		int bufsize;
-		void const* const pMemBlock =
-			hvp->GetBlockSize(pval, ptr_cast<PDAT*>(pval->pt), ptr_cast<int*>(&bufsize));
+		auto&& w = writer();
+		auto&& metadata = path.metadata(objects());
 
 		// 変数に関する情報
-		writer().catln(strf("変数名: %s", name));
-		writer().catln(strf("変数型: %s", stringizeVartype(pval)));
-		writer().catln(
-			strf("アドレス: %p, %p"
-				, cptr_cast<void*>(pval->pt), cptr_cast<void*>(pval->master)
-				));
-		writer().catln(
-			strf("サイズ: %d / %d [byte]"
-				, pval->size, bufsize
-				));
-		writer().catCrlf();
+		w.cat("変数名: ");
+		w.catln(name);
+
+		w.cat("変数型: ");
+		w.catln(stringizeVartype(pval));
+
+		w.cat("アドレス: ");
+		w.catPtr(metadata.data_ptr());
+		w.cat(", ");
+		w.catPtr(metadata.master_ptr());
+		w.catCrlf();
+
+		w.cat("サイズ: ");
+		w.catSize(metadata.data_size());
+		w.cat(" / ");
+		w.catSize(metadata.block_size());
+		w.cat(" [byte]");
+		w.catCrlf();
+		w.catCrlf();
 
 		// 変数の内容に関する情報
 		varinf_.to_block_form().accept_children(path);
-		// writer().cat(name.data());
-		// writer().cat(" = ");
-		// add(*path.child_at(0, objects_));
-		writer().catCrlf();
+		w.catCrlf();
 
 		// メモリダンプ
-		writer().catDump(pMemBlock, static_cast<size_t>(bufsize));
+		w.catDump(metadata.block_ptr(), metadata.block_size());
 		return;
 	}
 

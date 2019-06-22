@@ -64,6 +64,17 @@ auto HspDebugApi::var_to_data(PVal* pval) -> HspData {
 	return HspData{ type, pdat };
 }
 
+auto HspDebugApi::var_to_lengths(PVal* pval) const -> HspIndexes {
+	assert(pval != nullptr);
+
+	auto lengths = HspIndexes{};
+	for (auto i = std::size_t{}; i < hpiutil::ArrayDimMax; i++) {
+		lengths[i] = pval->len[i + 1];
+	}
+
+	return lengths;
+}
+
 auto HspDebugApi::var_element_count(PVal* pval) -> std::size_t {
 	return hpiutil::PVal_cntElems((PVal*)pval);
 }
@@ -84,6 +95,34 @@ auto HspDebugApi::var_element_to_data(PVal* pval, std::size_t aptr) -> HspData {
 	auto type = pval_to_type(pval);
 	auto ptr = hpiutil::PVal_getPtr(pval, aptr);
 	return HspData{ type, ptr };
+}
+
+auto HspDebugApi::var_data_to_block_memory(PVal* pval, PDAT* pdat) -> HspDebugApi::BlockMemory {
+	assert(pval != nullptr && pdat != nullptr);
+
+	auto varproc = hpiutil::varproc(pval->flag);
+
+	int buffer_size;
+	auto data = varproc->GetBlockSize(pval, pdat, &buffer_size);
+
+	if (buffer_size <= 0 || data == nullptr) {
+		return BlockMemory{ 0, nullptr };
+	}
+
+	return BlockMemory{ (std::size_t)buffer_size, data };
+}
+
+auto HspDebugApi::var_to_block_memory(PVal* pval) -> HspDebugApi::BlockMemory {
+	assert(pval != nullptr);
+
+	return var_data_to_block_memory(pval, pval->pt);
+}
+
+auto HspDebugApi::var_element_to_block_memory(PVal* pval, std::size_t aptr) -> HspDebugApi::BlockMemory {
+	assert(pval != nullptr);
+
+	auto pdat = hpiutil::PVal_getPtr(pval, aptr);
+	return var_data_to_block_memory(pval, pdat);
 }
 
 auto HspDebugApi::data_to_int(HspData const& data) const -> HspInt {

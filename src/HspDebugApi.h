@@ -8,6 +8,10 @@
 // HSP SDK のラッパー
 // 配列アクセスの範囲検査、null 検査、整数と enum の変換など、小さい仕事をする。
 class HspDebugApi {
+public:
+	class BlockMemory;
+
+private:
 	HSPCTX* context_;
 
 	HSP3DEBUG* debug_;
@@ -43,6 +47,8 @@ public:
 
 	auto var_to_data(PVal* pval) -> HspData;
 
+	auto var_to_lengths(PVal* pval) const -> HspIndexes;
+
 	auto var_element_count(PVal* pval) -> std::size_t;
 
 	auto var_element_to_indexes(PVal* pval, std::size_t aptr) -> HspIndexes;
@@ -51,5 +57,31 @@ public:
 
 	auto var_element_to_data(PVal* pval, std::size_t aptr) -> HspData;
 
+	auto var_data_to_block_memory(PVal* pval, PDAT* pdat) -> BlockMemory;
+
+	auto var_to_block_memory(PVal* pval) -> BlockMemory;
+
+	auto var_element_to_block_memory(PVal* pval, std::size_t aptr) -> BlockMemory;
+
 	auto data_to_int(HspData const& data) const -> HspInt;
+};
+
+class HspDebugApi::BlockMemory {
+	std::size_t size_;
+	void const* data_;
+
+public:
+	BlockMemory(std::size_t size, void const* data)
+		: size_(size)
+		, data_(data)
+	{
+	}
+
+	auto size() const -> std::size_t {
+		return size_;
+	}
+
+	auto data() const -> void const* {
+		return data_;
+	}
 };

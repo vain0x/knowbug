@@ -44,7 +44,11 @@ public:
 	void catln(char const* s) { cat(s); catCrlf(); }
 	void catln(string const& s) { cat(s); catCrlf(); }
 	void catCrlf();
+
+	void catSize(std::size_t size);
+	void catPtr(void const* ptr);
 	void catDump(void const* data, size_t size);
+
 private:
 	void catDumpImpl(void const* data, size_t size);
 private:
@@ -53,7 +57,7 @@ private:
 
 //------------------------------------------------
 // 構造付き (treeform or lineform)
-// 
+//
 // for CVardataStrWriter
 // name, left-right Bracket の生成はどちらかしか使わないのに両方用意させる、やや富豪的仕様
 // 標準配列変数の処理がいまいち

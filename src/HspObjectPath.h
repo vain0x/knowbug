@@ -185,6 +185,8 @@ public:
 	}
 
 	auto type(HspObjects& objects) const -> HspType;
+
+	auto metadata(HspObjects& objects) const -> HspVarMetadata;
 };
 
 // -----------------------------------------------

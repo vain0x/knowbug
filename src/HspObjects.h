@@ -51,6 +51,8 @@ public:
 
 	auto static_var_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index) const->std::shared_ptr<HspObjectPath const>;
 
+	auto static_var_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata;
+
 	auto path_to_int(HspObjectPath::Int const& path) const->HspInt;
 
 public:
