@@ -19,6 +19,8 @@ enum class HspObjectKind {
 	// 配列要素
 	Element,
 
+	Str,
+
 	Int,
 };
 
@@ -32,6 +34,7 @@ public:
 	class Module;
 	class StaticVar;
 	class Element;
+	class Str;
 	class Int;
 
 	static auto get_root() -> HspObjectPath::Root const&;
@@ -76,6 +79,8 @@ public:
 
 	auto as_element() const -> HspObjectPath::Element const&;
 
+	auto as_str() const -> HspObjectPath::Str const&;
+
 	auto as_int() const -> HspObjectPath::Int const&;
 
 protected:
@@ -84,6 +89,8 @@ protected:
 	auto new_static_var(std::size_t static_var_id) const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_element(HspIndexes const& indexes) const -> std::shared_ptr<HspObjectPath const>;
+
+	auto new_str() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_int() const -> std::shared_ptr<HspObjectPath const>;
 };
@@ -227,6 +234,42 @@ public:
 };
 
 // -----------------------------------------------
+// 文字列
+// -----------------------------------------------
+
+class HspObjectPath::Str final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+public:
+	Str(std::shared_ptr<HspObjectPath const> parent);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::Str;
+	}
+
+	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
+		return parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override {
+		return 0;
+	}
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override {
+		throw new std::exception{ "no children" };
+	}
+
+	auto name(HspObjects& objects) const -> std::string override {
+		// FIXME: 名前自体がない
+		return std::string{};
+	}
+
+	auto value(HspObjects& objects) const -> HspStr;
+};
+
+// -----------------------------------------------
 // 整数
 // -----------------------------------------------
 
@@ -251,7 +294,7 @@ public:
 	}
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override {
-		throw new std::exception{ "no elements" };
+		throw new std::exception{ "no children" };
 	}
 
 	auto name(HspObjects& objects) const -> std::string override {
@@ -293,6 +336,10 @@ public:
 	}
 
 	virtual void on_element(HspObjectPath::Element const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_str(HspObjectPath::Str const& path) {
 		accept_default(path);
 	}
 

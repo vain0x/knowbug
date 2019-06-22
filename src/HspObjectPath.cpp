@@ -174,13 +174,18 @@ auto HspObjectPath::Element::child_count(HspObjects& objects) const -> std::size
 }
 
 auto HspObjectPath::Element::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
+	assert(index == 0);
+
 	auto&& p = parent();
 
-	if (index == 0 && type(objects) == HspType::Int) {
+	if (type(objects) == HspType::Str) {
+		return new_str();
+	}
+	if (type(objects) == HspType::Int) {
 		return new_int();
 	}
 
-	throw new std::exception{ "out of range" };
+	throw new std::exception{ "unimpl" };
 }
 
 auto HspObjectPath::Element::name(HspObjects& objects) const -> std::string {
@@ -214,6 +219,31 @@ auto HspObjectPath::as_element() const -> HspObjectPath::Element const& {
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::Element const*)this;
+}
+
+// -----------------------------------------------
+// 文字列
+// -----------------------------------------------
+
+HspObjectPath::Str::Str(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(parent)
+{
+}
+
+auto HspObjectPath::new_str() const -> std::shared_ptr<HspObjectPath const> {
+	assert(kind_can_have_value(kind()));
+	return std::make_shared<HspObjectPath::Str>(self());
+}
+
+auto HspObjectPath::as_str() const -> HspObjectPath::Str const& {
+	if (kind() != HspObjectKind::Str) {
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Str const*)this;
+}
+
+auto HspObjectPath::Str::value(HspObjects& objects) const -> HspStr {
+	return objects.str_path_to_value(*this);
 }
 
 // -----------------------------------------------
@@ -266,6 +296,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::Element:
 		on_element(path.as_element());
+		return;
+
+	case HspObjectKind::Str:
+		on_str(path.as_str());
 		return;
 
 	case HspObjectKind::Int:

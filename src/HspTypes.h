@@ -4,6 +4,8 @@
 #include <cstdint>
 #include "hpiutil/hpiutil_fwd.hpp"
 
+using HspStr = char*;
+
 using HspInt = std::int32_t;
 
 using HspIndexes = std::array<std::size_t, hpiutil::ArrayDimMax>;

@@ -53,6 +53,8 @@ public:
 
 	auto static_var_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata;
 
+	auto str_path_to_value(HspObjectPath::Str const& path) const->HspStr;
+
 	auto path_to_int(HspObjectPath::Int const& path) const->HspInt;
 
 public:

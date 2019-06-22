@@ -104,6 +104,20 @@ static auto path_to_data(HspObjectPath const& path, HspDebugApi& api) -> std::op
 	}
 }
 
+static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) -> std::optional<HspStr> {
+	auto&& data = path_to_data(*path.parent(), api);
+	if (!data) {
+		assert(false && u8"str の親は data を生成できるはず");
+		return std::nullopt;
+	}
+
+	if (data->type() != HspType::Str) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(api.data_to_str(*data));
+}
+
 static auto path_to_int(HspObjectPath::Int const& path, HspDebugApi& api) -> std::optional<HspInt> {
 	auto&& data = path_to_data(*path.parent(), api);
 	if (!data) {
@@ -201,6 +215,11 @@ auto HspObjects::static_var_metadata(HspObjectPath::StaticVar const& path) -> Hs
 	metadata.master_ptr_ = pval->master;
 	metadata.block_ptr_ = block_memory.data();
 	return metadata;
+}
+
+auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> HspStr {
+	static char empty[64]{};
+	return (::str_path_to_value(path, api_)).value_or(empty);
 }
 
 auto HspObjects::path_to_int(HspObjectPath::Int const& path) const -> HspInt {

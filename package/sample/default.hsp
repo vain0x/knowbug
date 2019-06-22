@@ -28,7 +28,9 @@
 
     dim bar, 3, 2
     bar(0, 0) = 3, 1, 4
-    bar(0, 1) = 1, 5, 9
+	bar(0, 1) = 1, 5, 9
+
+	x_str = "hello", "world!"
 
 #module
 

@@ -6,6 +6,31 @@
 
 extern auto stringizeVartype(PVal const* pval) -> string;
 
+static bool string_is_compact(char const* str) {
+	for (auto i = std::size_t{}; i < 64; i++) {
+		if (str[i] == '\0') {
+			return true;
+		}
+		if (str[i] == '\n') {
+			return false;
+		}
+	}
+	return false;
+}
+
+static bool object_path_is_compact(HspObjectPath const& path, HspObjects& objects) {
+	switch (path.kind()) {
+	case HspObjectKind::Str:
+		return string_is_compact(path.as_str().value(objects));
+
+	case HspObjectKind::Int:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
 // -----------------------------------------------
 // テーブルフォーム
 // -----------------------------------------------
@@ -39,10 +64,11 @@ void HspObjectWriter::TableForm::on_module(HspObjectPath::Module const& path) {
 
 void HspObjectWriter::TableForm::on_static_var(HspObjectPath::StaticVar const& path) {
 	auto pval = objects().static_var_to_pval(path.static_var_id());
-	auto name = path.name(objects());
+	auto&& name = path.name(objects());
+	auto type = path.type(objects());
 
 	// 新APIが実装済みのケース
-	if (path.type(objects()) == HspType::Int) {
+	if (type == HspType::Str || type == HspType::Int) {
 		auto&& w = writer();
 		auto&& metadata = path.metadata(objects());
 
@@ -110,15 +136,38 @@ void HspObjectWriter::BlockForm::on_static_var(HspObjectPath::StaticVar const& p
 }
 
 void HspObjectWriter::BlockForm::on_element(HspObjectPath::Element const& path) {
-	auto& w = writer();
-	auto&& name = path.name(objects());
+	auto&& w = writer();
+	auto&& o = objects();
+	auto&& name = path.name(o);
+
+	auto child_count = path.child_count(o);
+	if (child_count == 0) {
+		w.catln(name.data());
+		return;
+	}
+
+	auto&& first_child = path.child_at(0, o);
+	if (child_count == 1 && object_path_is_compact(*first_child, o)) {
+		w.cat(name.data());
+		w.cat("\t= ");
+		varinf_.to_block_form().accept(*first_child);
+		w.catCrlf();
+		return;
+	}
 
 	w.cat(name.data());
-	w.cat("\t= ");
+	w.catln(":");
+	// w.indent();
+	varinf_.to_block_form().accept_children(path);
+	// w.unindent();
+	// w.catCrlf();
+}
 
-	varinf_.to_flow_form().accept(path);
+void HspObjectWriter::BlockForm::on_str(HspObjectPath::Str const& path) {
+	auto&& w = writer();
+	auto&& value = path.value(objects());
 
-	w.catCrlf();
+	w.catln(value);
 }
 
 // -----------------------------------------------
@@ -154,6 +203,13 @@ void HspObjectWriter::FlowForm::on_static_var(HspObjectPath::StaticVar const& pa
 	}
 
 	w.cat("]");
+}
+
+void HspObjectWriter::FlowForm::on_str(HspObjectPath::Str const& path) {
+	auto&& value = path.value(objects());
+	auto&& literal = hpiutil::literalFormString(value);
+
+	writer().cat(literal);
 }
 
 void HspObjectWriter::FlowForm::on_int(HspObjectPath::Int const& path) {

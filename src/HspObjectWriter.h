@@ -55,6 +55,8 @@ public:
 
 	void on_element(HspObjectPath::Element const& path) override;
 
+	void on_str(HspObjectPath::Str const& path) override;
+
 private:
 	CVarinfoText& varinf_;
 };
@@ -69,6 +71,8 @@ public:
 	FlowForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf);
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
+
+	void on_str(HspObjectPath::Str const& path) override;
 
 	void on_int(HspObjectPath::Int const& path) override;
 

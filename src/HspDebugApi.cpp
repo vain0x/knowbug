@@ -125,6 +125,13 @@ auto HspDebugApi::var_element_to_block_memory(PVal* pval, std::size_t aptr) -> H
 	return var_data_to_block_memory(pval, pdat);
 }
 
+auto HspDebugApi::data_to_str(HspData const& data) const -> HspStr {
+	if (data.type() != HspType::Str) {
+		throw new std::exception{ "Invalid type" };
+	}
+	return (HspStr)data.ptr();
+}
+
 auto HspDebugApi::data_to_int(HspData const& data) const -> HspInt {
 	if (data.type() != HspType::Int) {
 		throw new std::exception{ "Invalid type" };
