@@ -129,6 +129,7 @@ MPTYPE_STRUCTTAG のパラメータ。
 //*/
 static auto FlexValue_structTag(FlexValue const* self) -> stprm_t
 {
+	// FIXME: self が nullmod のときは nullopt を返すべき。self が null のときの customid の値も要調査。
 	return &minfo()[self->customid];
 }
 

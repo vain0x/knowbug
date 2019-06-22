@@ -26,6 +26,9 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 	case HspObjectKind::Int:
 		return true;
 
+	case HspObjectKind::Flex:
+		return path.as_flex().is_nullmod(objects);
+
 	default:
 		return false;
 	}
@@ -185,7 +188,13 @@ void HspObjectWriter::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 		return;
 	}
 
-	w.catln("<struct>");
+	auto&& module_name = path.module_name(o);
+
+	// w.indent();
+	w.cat(".module = ");
+	w.cat(module_name);
+	w.catCrlf();
+	// w.unindent();
 }
 
 // -----------------------------------------------

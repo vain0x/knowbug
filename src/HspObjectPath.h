@@ -343,6 +343,8 @@ public:
 	}
 
 	bool is_nullmod(HspObjects& objects) const;
+
+	auto module_name(HspObjects& objects) const -> char const*;
 };
 
 // -----------------------------------------------

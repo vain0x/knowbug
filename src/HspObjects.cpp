@@ -258,6 +258,16 @@ bool HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) {
 	return api_.flex_is_nullmod(*value);
 }
 
+auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> char const* {
+	auto value = flex_path_to_value(path, api_);
+	if (!value || api_.flex_is_nullmod(*value)) {
+		return "null";
+	}
+
+	auto struct_dat = api_.flex_to_module_struct(*value);
+	return api_.struct_to_name(struct_dat);
+}
+
 // -----------------------------------------------
 // HspObjects::Module
 // -----------------------------------------------

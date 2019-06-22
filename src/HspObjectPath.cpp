@@ -307,6 +307,10 @@ bool HspObjectPath::Flex::is_nullmod(HspObjects& objects) const {
 	return objects.flex_path_is_nullmod(*this);
 }
 
+auto HspObjectPath::Flex::module_name(HspObjects& objects) const -> char const* {
+	return objects.flex_path_to_module_name(*this);
+}
+
 // -----------------------------------------------
 // ビジター
 // -----------------------------------------------

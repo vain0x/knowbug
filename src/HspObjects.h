@@ -63,6 +63,8 @@ public:
 
 	bool flex_path_is_nullmod(HspObjectPath::Flex const& path);
 
+	auto flex_path_to_module_name(HspObjectPath::Flex const& path) -> char const*;
+
 public:
 	class Module {
 		HspString name_;
