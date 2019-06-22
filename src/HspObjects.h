@@ -37,13 +37,13 @@ public:
 
 	auto module_count() const->std::size_t;
 
-	auto module_name(std::size_t module_id) const->HspStringView;
+	auto module_to_name(std::size_t module_id) const->HspStringView;
 
-	auto module_var_count(std::size_t module_id) const->std::size_t;
+	auto module_to_var_count(std::size_t module_id) const->std::size_t;
 
-	auto module_var_at(std::size_t module_id, std::size_t index) const->std::size_t;
+	auto module_to_var_at(std::size_t module_id, std::size_t index) const->std::size_t;
 
-	auto static_var_name(std::size_t static_var_id)->std::string;
+	auto static_var_to_name(std::size_t static_var_id)->std::string;
 
 	bool static_var_is_array(std::size_t static_var_id);
 
@@ -52,11 +52,11 @@ public:
 
 	auto static_var_to_type(std::size_t static_var_id)->HspType;
 
-	auto static_var_child_count(HspObjectPath::StaticVar const& path) const->std::size_t;
+	auto static_var_path_to_child_count(HspObjectPath::StaticVar const& path) const->std::size_t;
 
-	auto static_var_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index) const->std::shared_ptr<HspObjectPath const>;
+	auto static_var_path_to_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index) const->std::shared_ptr<HspObjectPath const>;
 
-	auto static_var_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata;
+	auto static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata;
 
 	auto param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t;
 
@@ -66,11 +66,11 @@ public:
 
 	auto str_path_to_value(HspObjectPath::Str const& path) const->HspStr;
 
-	auto path_to_int(HspObjectPath::Int const& path) const->HspInt;
+	auto int_path_to_value(HspObjectPath::Int const& path) const->HspInt;
 
-	auto flex_path_child_count(HspObjectPath::Flex const& path)->std::size_t;
+	auto flex_path_to_child_count(HspObjectPath::Flex const& path)->std::size_t;
 
-	auto flex_path_child_at(HspObjectPath::Flex const& path, std::size_t index)->std::shared_ptr<HspObjectPath const>;
+	auto flex_path_to_child_at(HspObjectPath::Flex const& path, std::size_t index)->std::shared_ptr<HspObjectPath const>;
 
 	bool flex_path_is_nullmod(HspObjectPath::Flex const& path);
 

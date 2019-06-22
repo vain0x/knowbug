@@ -68,7 +68,7 @@ HspObjectPath::Module::Module(std::shared_ptr<HspObjectPath const> parent, std::
 }
 
 auto HspObjectPath::Module::name(HspObjects& objects) const -> std::string {
-	return objects.module_name(module_id()).to_owned();
+	return objects.module_to_name(module_id()).to_owned();
 }
 
 bool HspObjectPath::Module::is_global(HspObjects& objects) const {
@@ -78,10 +78,10 @@ bool HspObjectPath::Module::is_global(HspObjects& objects) const {
 auto HspObjectPath::Module::child_count(HspObjects& objects) const -> std::size_t {
 	if (is_global(objects)) {
 		// グローバルモジュール以外のモジュールと、グローバルモジュールに含まれる変数
-		return objects.module_count() - 1 + objects.module_var_count(module_id());
+		return objects.module_count() - 1 + objects.module_to_var_count(module_id());
 	} else {
 		// モジュールに含まれる変数
-		return objects.module_var_count(module_id());
+		return objects.module_to_var_count(module_id());
 	}
 }
 
@@ -94,10 +94,10 @@ auto HspObjectPath::Module::child_at(std::size_t index, HspObjects& objects) con
 		}
 
 		index -= objects.module_count() - 1;
-		auto static_var_id = objects.module_var_at(module_id(), index);
+		auto static_var_id = objects.module_to_var_at(module_id(), index);
 		return new_static_var(static_var_id);
 	} else {
-		auto static_var_id = objects.module_var_at(module_id(), index);
+		auto static_var_id = objects.module_to_var_at(module_id(), index);
 		return new_static_var(static_var_id);
 	}
 }
@@ -124,15 +124,15 @@ HspObjectPath::StaticVar::StaticVar(std::shared_ptr<HspObjectPath const> parent,
 }
 
 auto HspObjectPath::StaticVar::child_count(HspObjects& objects) const -> std::size_t {
-	return objects.static_var_child_count(*this);
+	return objects.static_var_path_to_child_count(*this);
 }
 
 auto HspObjectPath::StaticVar::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
-	return objects.static_var_child_at(*this, index);
+	return objects.static_var_path_to_child_at(*this, index);
 }
 
 auto HspObjectPath::StaticVar::name(HspObjects& objects) const -> std::string {
-	return objects.static_var_name(static_var_id());
+	return objects.static_var_to_name(static_var_id());
 }
 
 bool HspObjectPath::StaticVar::is_array(HspObjects& objects) const {
@@ -144,7 +144,7 @@ auto HspObjectPath::StaticVar::type(HspObjects& objects) const -> HspType {
 }
 
 auto HspObjectPath::StaticVar::metadata(HspObjects& objects) const -> HspVarMetadata {
-	return objects.static_var_metadata(*this);
+	return objects.static_var_path_to_metadata(*this);
 }
 
 auto HspObjectPath::new_static_var(std::size_t static_var_id) const -> std::shared_ptr<HspObjectPath const> {
@@ -304,7 +304,7 @@ auto HspObjectPath::as_int() const -> HspObjectPath::Int const& {
 }
 
 auto HspObjectPath::Int::value(HspObjects& objects) const -> HspInt {
-	return objects.path_to_int(*this);
+	return objects.int_path_to_value(*this);
 }
 
 // -----------------------------------------------
@@ -329,11 +329,11 @@ auto HspObjectPath::as_flex() const -> HspObjectPath::Flex const& {
 }
 
 auto HspObjectPath::Flex::child_count(HspObjects& objects) const -> std::size_t {
-	return objects.flex_path_child_count(*this);
+	return objects.flex_path_to_child_count(*this);
 }
 
 auto HspObjectPath::Flex::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
-	return objects.flex_path_child_at(*this, child_index);
+	return objects.flex_path_to_child_at(*this, child_index);
 }
 
 bool HspObjectPath::Flex::is_nullmod(HspObjects& objects) const {
