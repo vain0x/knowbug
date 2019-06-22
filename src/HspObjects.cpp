@@ -146,13 +146,43 @@ static auto flex_path_to_value(HspObjectPath::Flex const& path, HspDebugApi& api
 	return std::make_optional(api.data_to_flex(*data));
 }
 
+static auto path_to_param_stack(HspObjectPath const& path, HspDebugApi& api) -> std::optional<HspParamStack> {
+	// FIXME: スタックフレームからも取れる。
+
+	switch (path.kind()) {
+	case HspObjectKind::Flex:
+		{
+			auto&& flex = flex_path_to_value(path.as_flex(), api);
+			if (!flex) {
+				return std::nullopt;
+			}
+			return std::make_optional<HspParamStack>(api.flex_to_param_stack(*flex));
+		}
+	default:
+		return std::nullopt;
+	}
+}
+
+static auto param_path_to_param_data(HspObjectPath::Param const& path, HspDebugApi& api) -> std::optional<HspParamData> {
+	auto&& parent = path.parent();
+
+	auto&& param_stack = path_to_param_stack(*parent, api);
+	if (!param_stack) {
+		assert(false && u8"param の親要素から param_stack が取れるはず");
+		return std::nullopt;
+	}
+
+	return api.param_stack_to_data_at(*param_stack, path.param_index());
+}
+
 // -----------------------------------------------
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HspDebugApi& api, HspStaticVars& static_vars)
+HspObjects::HspObjects(HspDebugApi& api, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment)
 	: api_(api)
 	, static_vars_(static_vars)
+	, debug_segment_(debug_segment)
 	, modules_(group_vars_by_module(static_vars.get_all_names()))
 	, types_(create_type_datas())
 {
@@ -231,6 +261,20 @@ auto HspObjects::static_var_metadata(HspObjectPath::StaticVar const& path) -> Hs
 	return metadata;
 }
 
+auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t {
+	// FIXME: 種類による
+	return 0;
+}
+
+auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const> {
+	throw new std::exception{ "out of range" };
+}
+
+auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> std::string {
+	auto&& param_data = param_path_to_param_data(path, api_);
+	return api_.param_to_name(param_data->param(), debug_segment_);
+}
+
 auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> HspStr {
 	static char empty[64]{};
 	return (::str_path_to_value(path, api_)).value_or(empty);
@@ -241,12 +285,22 @@ auto HspObjects::path_to_int(HspObjectPath::Int const& path) const -> HspInt {
 }
 
 auto HspObjects::flex_path_child_count(HspObjectPath::Flex const& path)->std::size_t {
-	// FIXME: メンバ
-	return 0;
+	auto&& value = flex_path_to_value(path, api_);
+	if (!value || api_.flex_is_nullmod(*value)) {
+		return 0;
+	}
+
+	return api_.flex_to_member_count(*value);
 }
 
 auto HspObjects::flex_path_child_at(HspObjectPath::Flex const& path, std::size_t index)->std::shared_ptr<HspObjectPath const> {
-	throw new std::exception{ "out of index" };
+	auto&& value = flex_path_to_value(path, api_);
+	if (!value || api_.flex_is_nullmod(*value)) {
+		throw new std::exception{ "out of range" };
+	}
+
+	auto param_index = api_.flex_to_member_at(*value, index).param_index();
+	return path.new_param(param_index);
 }
 
 bool HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) {

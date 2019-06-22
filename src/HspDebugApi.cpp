@@ -1,4 +1,5 @@
 #include "hpiutil/hpiutil.hpp"
+#include "hpiutil/dinfo.hpp"
 #include "HspDebugApi.h"
 
 #undef max
@@ -147,10 +148,12 @@ auto HspDebugApi::data_to_flex(HspData const& data) const -> FlexValue* {
 }
 
 bool HspDebugApi::flex_is_nullmod(FlexValue* flex) const {
+	assert(flex != nullptr);
 	return !flex->ptr || flex->type == FLEXVAL_TYPE_NONE;
 }
 
 bool HspDebugApi::flex_is_clone(FlexValue* flex) const {
+	assert(flex != nullptr);
 	return flex->type == FLEXVAL_TYPE_CLONE;
 }
 
@@ -160,6 +163,39 @@ auto HspDebugApi::flex_to_module_struct(FlexValue* flex) const -> STRUCTDAT cons
 
 auto HspDebugApi::flex_to_module_tag(FlexValue* flex) const -> STRUCTPRM const* {
 	return hpiutil::FlexValue_structTag(flex);
+}
+
+auto HspDebugApi::flex_to_member_count(FlexValue* flex) const -> std::size_t {
+	assert(flex != nullptr);
+
+	auto struct_dat = flex_to_module_struct(flex);
+	auto param_count = struct_to_param_count(struct_dat);
+
+	// NOTE: STRUCT_TAG というダミーのパラメータがあるため、メンバ変数の個数は1つ少ない。
+	if (param_count == 0) {
+		assert(false && u8"STRUCT_TAG を持たないモジュールはモジュール変数のインスタンスを作れないはず");
+		return 0;
+	}
+
+	return param_count - 1;
+}
+
+auto HspDebugApi::flex_to_member_at(FlexValue* flex, std::size_t member_index) const -> HspParamData {
+	auto member_count = flex_to_member_count(flex);
+	if (member_index >= member_count) {
+		throw new std::exception{ "out of range" };
+	}
+
+	// 先頭の STRUCT_TAG を除いて数える。
+	auto param_index = member_index + 1;
+
+	auto&& param_stack = flex_to_param_stack(flex);
+	return param_stack_to_data_at(param_stack, param_index);
+}
+
+auto HspDebugApi::flex_to_param_stack(FlexValue* flex) const -> HspParamStack {
+	auto struct_dat = flex_to_module_struct(flex);
+	return HspParamStack{ struct_dat, flex->ptr };
 }
 
 auto HspDebugApi::structs() const -> STRUCTDAT const* {
@@ -174,11 +210,11 @@ auto HspDebugApi::struct_to_name(STRUCTDAT const* struct_dat) const -> char cons
 	return hpiutil::STRUCTDAT_name(struct_dat);
 }
 
-auto HspDebugApi::struct_param_count(STRUCTDAT const* struct_dat) const -> std::size_t {
+auto HspDebugApi::struct_to_param_count(STRUCTDAT const* struct_dat) const -> std::size_t {
 	return hpiutil::STRUCTDAT_params(struct_dat).size();
 }
 
-auto HspDebugApi::struct_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> STRUCTPRM const* {
+auto HspDebugApi::struct_to_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> STRUCTPRM const* {
 	return hpiutil::STRUCTDAT_params(struct_dat).begin() + param_index;
 }
 
@@ -197,4 +233,32 @@ auto HspDebugApi::param_to_param_id(STRUCTPRM const* param) const -> std::size_t
 	}
 
 	return (std::size_t)id;
+}
+
+auto HspDebugApi::param_to_name(STRUCTPRM const* param, hpiutil::DInfo const& debug_segment) const -> std::string {
+	auto struct_dat = hpiutil::STRUCTPRM_stdat(param);
+	auto param_count = struct_to_param_count(struct_dat);
+
+	// この struct_dat は param を引数に持つので、少なくとも1つの引数を持つ。
+	assert(param_count >= 1);
+	auto first_param = struct_to_param_at(struct_dat, 0);
+
+	auto param_index = param - first_param;
+	assert(param_index <= param_count);
+
+	return hpiutil::nameFromStPrm(param, param_index, debug_segment);
+}
+
+auto HspDebugApi::param_stack_to_data_count(HspParamStack const& param_stack) const -> std::size_t {
+	return hpiutil::STRUCTDAT_params(param_stack.struct_dat()).size();
+}
+
+auto HspDebugApi::param_stack_to_data_at(HspParamStack const& param_stack, std::size_t param_index) const -> HspParamData {
+	if (param_index >= param_stack_to_data_count(param_stack)) {
+		throw new std::exception{ "out of range" };
+	}
+
+	auto param = hpiutil::STRUCTDAT_params(param_stack.struct_dat()).begin() + param_index;
+	auto ptr = (void*)((char const*)param_stack.ptr() + param->offset);
+	return HspParamData{ param, param_index, ptr };
 }

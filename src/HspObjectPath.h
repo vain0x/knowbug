@@ -19,6 +19,9 @@ enum class HspObjectKind {
 	// 配列要素
 	Element,
 
+	// 引数
+	Param,
+
 	Str,
 
 	Int,
@@ -37,6 +40,7 @@ public:
 	class Module;
 	class StaticVar;
 	class Element;
+	class Param;
 	class Str;
 	class Int;
 	class Flex;
@@ -83,6 +87,8 @@ public:
 
 	auto as_element() const -> HspObjectPath::Element const&;
 
+	auto as_param() const -> HspObjectPath::Param const&;
+
 	auto as_str() const -> HspObjectPath::Str const&;
 
 	auto as_int() const -> HspObjectPath::Int const&;
@@ -95,6 +101,9 @@ protected:
 	auto new_static_var(std::size_t static_var_id) const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_element(HspIndexes const& indexes) const -> std::shared_ptr<HspObjectPath const>;
+
+	// param_index: 親要素の何番目の引数か
+	auto new_param(std::size_t param_index) const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_str() const -> std::shared_ptr<HspObjectPath const>;
 
@@ -242,6 +251,41 @@ public:
 };
 
 // -----------------------------------------------
+// 引数
+// -----------------------------------------------
+
+class HspObjectPath::Param final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+	std::size_t param_index_;
+
+public:
+	using HspObjectPath::new_element;
+
+	Param(std::shared_ptr<HspObjectPath const> parent, std::size_t param_index);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::Param;
+	}
+
+	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
+		return parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override;
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
+
+	auto name(HspObjects& objects) const -> std::string override;
+
+	auto param_index() const -> std::size_t {
+		return param_index_;
+	}
+};
+
+// -----------------------------------------------
 // 文字列
 // -----------------------------------------------
 
@@ -314,7 +358,7 @@ public:
 };
 
 // -----------------------------------------------
-// 構造体
+// フレックス
 // -----------------------------------------------
 
 class HspObjectPath::Flex final
@@ -323,6 +367,8 @@ class HspObjectPath::Flex final
 	std::shared_ptr<HspObjectPath const> parent_;
 
 public:
+	using HspObjectPath::new_param;
+
 	Flex(std::shared_ptr<HspObjectPath const> parent);
 
 	auto kind() const -> HspObjectKind override {
@@ -378,6 +424,10 @@ public:
 	}
 
 	virtual void on_element(HspObjectPath::Element const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_param(HspObjectPath::Param const& path) {
 		accept_default(path);
 	}
 

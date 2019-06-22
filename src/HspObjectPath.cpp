@@ -225,6 +225,39 @@ auto HspObjectPath::as_element() const -> HspObjectPath::Element const& {
 }
 
 // -----------------------------------------------
+// 引数
+// -----------------------------------------------
+
+HspObjectPath::Param::Param(std::shared_ptr<HspObjectPath const> parent, std::size_t param_index)
+	: parent_(parent)
+	, param_index_(param_index)
+{
+}
+
+auto HspObjectPath::new_param(std::size_t param_index) const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::Param>(self(), param_index);
+}
+
+auto HspObjectPath::as_param() const -> HspObjectPath::Param const& {
+	if (kind() != HspObjectKind::Param) {
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Param const*)this;
+}
+
+auto HspObjectPath::Param::child_count(HspObjects& objects) const -> std::size_t {
+	return objects.param_path_to_child_count(*this);
+}
+
+auto HspObjectPath::Param::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
+	return objects.param_path_to_child_at(*this, index);
+}
+
+auto HspObjectPath::Param::name(HspObjects& objects) const -> std::string {
+	return objects.param_path_to_name(*this);
+}
+
+// -----------------------------------------------
 // 文字列
 // -----------------------------------------------
 
@@ -336,6 +369,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::Element:
 		on_element(path.as_element());
+		return;
+
+	case HspObjectKind::Param:
+		on_param(path.as_param());
 		return;
 
 	case HspObjectKind::Str:

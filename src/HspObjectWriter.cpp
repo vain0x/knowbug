@@ -139,29 +139,11 @@ void HspObjectWriter::BlockForm::on_static_var(HspObjectPath::StaticVar const& p
 }
 
 void HspObjectWriter::BlockForm::on_element(HspObjectPath::Element const& path) {
-	auto&& w = writer();
-	auto&& o = objects();
-	auto&& name = path.name(o);
+	add_name_children(path);
+}
 
-	auto child_count = path.child_count(o);
-	if (child_count == 0) {
-		w.catln(name.data());
-		return;
-	}
-
-	auto&& first_child = path.child_at(0, o);
-	if (child_count == 1 && object_path_is_compact(*first_child, o)) {
-		w.cat(name.data());
-		w.cat("\t= ");
-		varinf_.to_block_form().accept(*first_child);
-		return;
-	}
-
-	w.cat(name.data());
-	w.catln(":");
-	w.indent();
-	varinf_.to_block_form().accept_children(path);
-	w.unindent();
+void HspObjectWriter::BlockForm::on_param(HspObjectPath::Param const& path) {
+	add_name_children(path);
 }
 
 void HspObjectWriter::BlockForm::on_str(HspObjectPath::Str const& path) {
@@ -192,6 +174,34 @@ void HspObjectWriter::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 	w.cat(".module = ");
 	w.cat(module_name);
 	w.catCrlf();
+
+	accept_children(path);
+}
+
+void HspObjectWriter::BlockForm::add_name_children(HspObjectPath const& path) {
+	auto&& w = writer();
+	auto&& o = objects();
+	auto&& name = path.name(o);
+
+	auto child_count = path.child_count(o);
+	if (child_count == 0) {
+		w.catln(name.data());
+		return;
+	}
+
+	auto&& first_child = path.child_at(0, o);
+	if (child_count == 1 && object_path_is_compact(*first_child, o)) {
+		w.cat(name.data());
+		w.cat("\t= ");
+		varinf_.to_block_form().accept(*first_child);
+		return;
+	}
+
+	w.cat(name.data());
+	w.catln(":");
+	w.indent();
+	varinf_.to_block_form().accept_children(path);
+	w.unindent();
 }
 
 // -----------------------------------------------

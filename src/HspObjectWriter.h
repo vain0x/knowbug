@@ -55,6 +55,8 @@ public:
 
 	void on_element(HspObjectPath::Element const& path) override;
 
+	void on_param(HspObjectPath::Param const& path) override;
+
 	void on_str(HspObjectPath::Str const& path) override;
 
 	void on_int(HspObjectPath::Int const& path) override;
@@ -62,6 +64,8 @@ public:
 	void on_flex(HspObjectPath::Flex const& path) override;
 
 private:
+	void add_name_children(HspObjectPath const& path);
+
 	CVarinfoText& varinf_;
 };
 

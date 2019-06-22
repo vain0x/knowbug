@@ -6,6 +6,10 @@
 #include "HspTypes.h"
 #include "HspObjectPath.h"
 
+namespace hpiutil {
+	class DInfo;
+}
+
 class HspDebugApi;
 class HspStaticVars;
 
@@ -19,12 +23,13 @@ public:
 private:
 	HspDebugApi& api_;
 	HspStaticVars& static_vars_;
+	hpiutil::DInfo const& debug_segment_;
 
 	std::vector<Module> modules_;
 	std::vector<TypeData> types_;
 
 public:
-	HspObjects(HspDebugApi& api, HspStaticVars& static_vars);
+	HspObjects(HspDebugApi& api, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment);
 
 	auto type_name(HspType type) const->HspStringView;
 
@@ -52,6 +57,12 @@ public:
 	auto static_var_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index) const->std::shared_ptr<HspObjectPath const>;
 
 	auto static_var_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata;
+
+	auto param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t;
+
+	auto param_path_to_child_at(HspObjectPath::Param const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
+
+	auto param_path_to_name(HspObjectPath::Param const& path) const -> std::string;
 
 	auto str_path_to_value(HspObjectPath::Str const& path) const->HspStr;
 
