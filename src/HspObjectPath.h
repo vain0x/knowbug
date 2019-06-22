@@ -22,6 +22,9 @@ enum class HspObjectKind {
 	Str,
 
 	Int,
+
+	// フレックス (構造体やモジュール変数の型)
+	Flex,
 };
 
 // HSP のオブジェクトを指し示すルートからの経路
@@ -36,6 +39,7 @@ public:
 	class Element;
 	class Str;
 	class Int;
+	class Flex;
 
 	static auto get_root() -> HspObjectPath::Root const&;
 
@@ -83,6 +87,8 @@ public:
 
 	auto as_int() const -> HspObjectPath::Int const&;
 
+	auto as_flex() const -> HspObjectPath::Flex const&;
+
 protected:
 	auto new_module(std::size_t module_id) const->std::shared_ptr<HspObjectPath const>;
 
@@ -93,6 +99,8 @@ protected:
 	auto new_str() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_int() const -> std::shared_ptr<HspObjectPath const>;
+
+	auto new_flex() const -> std::shared_ptr<HspObjectPath const>;
 };
 
 // -----------------------------------------------
@@ -306,6 +314,38 @@ public:
 };
 
 // -----------------------------------------------
+// 構造体
+// -----------------------------------------------
+
+class HspObjectPath::Flex final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+public:
+	Flex(std::shared_ptr<HspObjectPath const> parent);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::Flex;
+	}
+
+	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
+		return parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override;
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
+
+	auto name(HspObjects& objects) const -> std::string override {
+		// FIXME: 名前自体がない
+		return std::string{};
+	}
+
+	bool is_nullmod(HspObjects& objects) const;
+};
+
+// -----------------------------------------------
 // ビジター
 // -----------------------------------------------
 
@@ -344,6 +384,10 @@ public:
 	}
 
 	virtual void on_int(HspObjectPath::Int const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_flex(HspObjectPath::Flex const& path) {
 		accept_default(path);
 	}
 

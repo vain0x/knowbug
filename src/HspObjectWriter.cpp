@@ -68,7 +68,7 @@ void HspObjectWriter::TableForm::on_static_var(HspObjectPath::StaticVar const& p
 	auto type = path.type(objects());
 
 	// 新APIが実装済みのケース
-	if (type == HspType::Str || type == HspType::Int) {
+	if (type == HspType::Str || type == HspType::Int || type == HspType::Struct) {
 		auto&& w = writer();
 		auto&& metadata = path.metadata(objects());
 
@@ -176,6 +176,18 @@ void HspObjectWriter::BlockForm::on_int(HspObjectPath::Int const& path) {
 	w.catln(strf("%-10d (0x%08X)", value, value));
 }
 
+void HspObjectWriter::BlockForm::on_flex(HspObjectPath::Flex const& path) {
+	auto&& w = writer();
+	auto&& o = objects();
+
+	if (path.is_nullmod(o)) {
+		w.catln("<null>");
+		return;
+	}
+
+	w.catln("<struct>");
+}
+
 // -----------------------------------------------
 // フローフォーム
 // -----------------------------------------------
@@ -220,4 +232,16 @@ void HspObjectWriter::FlowForm::on_str(HspObjectPath::Str const& path) {
 
 void HspObjectWriter::FlowForm::on_int(HspObjectPath::Int const& path) {
 	writer().cat(strf("%d", path.value(objects())));
+}
+
+void HspObjectWriter::FlowForm::on_flex(HspObjectPath::Flex const& path) {
+	auto&& w = writer();
+	auto&& o = objects();
+
+	if (path.is_nullmod(o)) {
+		w.cat("null");
+		return;
+	}
+
+	w.cat("<struct>");
 }

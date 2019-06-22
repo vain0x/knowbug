@@ -184,6 +184,9 @@ auto HspObjectPath::Element::child_at(std::size_t index, HspObjects& objects) co
 	if (type(objects) == HspType::Int) {
 		return new_int();
 	}
+	if (type(objects) == HspType::Struct) {
+		return new_flex();
+	}
 
 	throw new std::exception{ "unimpl" };
 }
@@ -272,6 +275,39 @@ auto HspObjectPath::Int::value(HspObjects& objects) const -> HspInt {
 }
 
 // -----------------------------------------------
+// フレックス
+// -----------------------------------------------
+
+HspObjectPath::Flex::Flex(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(parent)
+{
+}
+
+auto HspObjectPath::new_flex() const -> std::shared_ptr<HspObjectPath const> {
+	assert(kind_can_have_value(kind()));
+	return std::make_shared<HspObjectPath::Flex>(self());
+}
+
+auto HspObjectPath::as_flex() const -> HspObjectPath::Flex const& {
+	if (kind() != HspObjectKind::Flex) {
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Flex const*)this;
+}
+
+auto HspObjectPath::Flex::child_count(HspObjects& objects) const -> std::size_t {
+	return objects.flex_path_child_count(*this);
+}
+
+auto HspObjectPath::Flex::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
+	return objects.flex_path_child_at(*this, child_index);
+}
+
+bool HspObjectPath::Flex::is_nullmod(HspObjects& objects) const {
+	return objects.flex_path_is_nullmod(*this);
+}
+
+// -----------------------------------------------
 // ビジター
 // -----------------------------------------------
 
@@ -304,6 +340,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::Int:
 		on_int(path.as_int());
+		return;
+
+	case HspObjectKind::Flex:
+		on_flex(path.as_flex());
 		return;
 
 	default:

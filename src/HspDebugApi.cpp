@@ -138,3 +138,63 @@ auto HspDebugApi::data_to_int(HspData const& data) const -> HspInt {
 	}
 	return *(HspInt const*)data.ptr();
 }
+
+auto HspDebugApi::data_to_flex(HspData const& data) const -> FlexValue* {
+	if (data.type() != HspType::Struct) {
+		throw new std::bad_cast{};
+	}
+	return (FlexValue*)data.ptr();
+}
+
+bool HspDebugApi::flex_is_nullmod(FlexValue* flex) const {
+	return !flex->ptr || flex->type == FLEXVAL_TYPE_NONE;
+}
+
+bool HspDebugApi::flex_is_clone(FlexValue* flex) const {
+	return flex->type == FLEXVAL_TYPE_CLONE;
+}
+
+auto HspDebugApi::flex_to_module_struct(FlexValue* flex) const -> STRUCTDAT const* {
+	return hpiutil::FlexValue_module(flex);
+}
+
+auto HspDebugApi::flex_to_module_tag(FlexValue* flex) const -> STRUCTPRM const* {
+	return hpiutil::FlexValue_structTag(flex);
+}
+
+auto HspDebugApi::structs() const -> STRUCTDAT const* {
+	return hpiutil::finfo().begin();
+}
+
+auto HspDebugApi::struct_count() const -> std::size_t {
+	return hpiutil::finfo().size();
+}
+
+auto HspDebugApi::struct_to_name(STRUCTDAT const* struct_dat) const -> char const* {
+	return hpiutil::STRUCTDAT_name(struct_dat);
+}
+
+auto HspDebugApi::struct_param_count(STRUCTDAT const* struct_dat) const -> std::size_t {
+	return hpiutil::STRUCTDAT_params(struct_dat).size();
+}
+
+auto HspDebugApi::struct_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> STRUCTPRM const* {
+	return hpiutil::STRUCTDAT_params(struct_dat).begin() + param_index;
+}
+
+auto HspDebugApi::params() const -> STRUCTPRM const* {
+	return hpiutil::minfo().begin();
+}
+
+auto HspDebugApi::param_count() const -> std::size_t {
+	return hpiutil::minfo().size();
+}
+
+auto HspDebugApi::param_to_param_id(STRUCTPRM const* param) const -> std::size_t {
+	auto id = hpiutil::STRUCTPRM_miIndex(param);
+	if (id < 0) {
+		throw new std::exception{ "Invalid STRUCTPRM" };
+	}
+
+	return (std::size_t)id;
+}

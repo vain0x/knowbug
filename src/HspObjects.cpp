@@ -132,6 +132,20 @@ static auto path_to_int(HspObjectPath::Int const& path, HspDebugApi& api) -> std
 	return std::make_optional(api.data_to_int(*data));
 }
 
+static auto flex_path_to_value(HspObjectPath::Flex const& path, HspDebugApi& api) -> std::optional<FlexValue*> {
+	auto&& data = path_to_data(*path.parent(), api);
+	if (!data) {
+		assert(false && u8"flex の親は data を生成できるはず");
+		return std::nullopt;
+	}
+
+	if (data->type() != HspType::Struct) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(api.data_to_flex(*data));
+}
+
 // -----------------------------------------------
 // HspObjects
 // -----------------------------------------------
@@ -224,6 +238,24 @@ auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> HspS
 
 auto HspObjects::path_to_int(HspObjectPath::Int const& path) const -> HspInt {
 	return (::path_to_int(path, api_)).value_or(HspInt{});
+}
+
+auto HspObjects::flex_path_child_count(HspObjectPath::Flex const& path)->std::size_t {
+	// FIXME: メンバ
+	return 0;
+}
+
+auto HspObjects::flex_path_child_at(HspObjectPath::Flex const& path, std::size_t index)->std::shared_ptr<HspObjectPath const> {
+	throw new std::exception{ "out of index" };
+}
+
+bool HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) {
+	auto value = flex_path_to_value(path, api_);
+	if (!value) {
+		return true;
+	}
+
+	return api_.flex_is_nullmod(*value);
 }
 
 // -----------------------------------------------

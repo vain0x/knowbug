@@ -57,6 +57,12 @@ public:
 
 	auto path_to_int(HspObjectPath::Int const& path) const->HspInt;
 
+	auto flex_path_child_count(HspObjectPath::Flex const& path)->std::size_t;
+
+	auto flex_path_child_at(HspObjectPath::Flex const& path, std::size_t index)->std::shared_ptr<HspObjectPath const>;
+
+	bool flex_path_is_nullmod(HspObjectPath::Flex const& path);
+
 public:
 	class Module {
 		HspString name_;

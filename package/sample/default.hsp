@@ -21,6 +21,15 @@
 
 #global
 
+#module m_point x_, y_
+
+#modinit int x, int y
+	x_ = x
+	y_ = y
+	return
+
+#global
+
     hoge_init
     fuga_init
 
@@ -39,6 +48,10 @@
 	return
 
 #global
+
+	newmod points, m_point, 3, 14
+	newmod points, m_point, 40, 2
+	delmod points(0)
 
 	assert
 	f 1

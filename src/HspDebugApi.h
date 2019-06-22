@@ -10,6 +10,7 @@
 class HspDebugApi {
 public:
 	class BlockMemory;
+	class ModuleStruct;
 
 private:
 	HSPCTX* context_;
@@ -66,6 +67,34 @@ public:
 	auto data_to_str(HspData const& data) const -> HspStr;
 
 	auto data_to_int(HspData const& data) const -> HspInt;
+
+	auto data_to_flex(HspData const& data) const -> FlexValue*;
+
+	bool flex_is_nullmod(FlexValue* flex) const;
+
+	bool flex_is_clone(FlexValue* flex) const;
+
+	auto flex_to_module_struct(FlexValue* flex) const -> STRUCTDAT const*;
+
+	auto flex_to_module_tag(FlexValue* flex) const -> STRUCTPRM const*;
+
+	auto structs() const -> STRUCTDAT const*;
+
+	auto struct_count() const -> std::size_t;
+
+	auto struct_to_name(STRUCTDAT const* struct_dat) const -> char const*;
+
+	auto struct_param_count(STRUCTDAT const* struct_dat) const -> std::size_t;
+
+	auto struct_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> STRUCTPRM const*;
+
+	auto params() const -> STRUCTPRM const*;
+
+	auto param_count() const -> std::size_t;
+
+	auto param_to_param_id(STRUCTPRM const* param) const -> std::size_t;
+
+	auto param_to_name(STRUCTPRM const* param) const -> char const*;
 };
 
 class HspDebugApi::BlockMemory {
