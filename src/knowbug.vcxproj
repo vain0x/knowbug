@@ -555,6 +555,7 @@
     <ClCompile Include="HspDebugApi.cpp" />
     <ClCompile Include="HspObjectPath.cpp" />
     <ClCompile Include="HspObjects.cpp" />
+    <ClCompile Include="HspObjectWriter.cpp" />
     <ClCompile Include="HspRuntime.cpp" />
     <ClCompile Include="HspStaticVars.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -599,6 +600,7 @@
     <ClInclude Include="HspDebugApi.h" />
     <ClInclude Include="HspObjectPath.h" />
     <ClInclude Include="HspObjects.h" />
+    <ClInclude Include="HspObjectWriter.h" />
     <ClInclude Include="HspRuntime.h" />
     <ClInclude Include="HspStaticVars.h" />
     <ClInclude Include="HspTypes.h" />
