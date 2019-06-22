@@ -26,7 +26,7 @@ enum class HspObjectKind {
 
 	Int,
 
-	// フレックス (構造体やモジュール変数の型)
+	// フレックス (モジュール変数のインスタンス)
 	Flex,
 };
 
@@ -63,8 +63,7 @@ public:
 
 	virtual auto kind() const -> HspObjectKind = 0;
 
-	// FIXME: HspObjectPath const& を返す方がいいかも
-	virtual auto parent() const -> std::shared_ptr<HspObjectPath const> const& = 0;
+	virtual auto parent() const -> HspObjectPath const& = 0;
 
 	virtual auto child_count(HspObjects& objects) const -> std::size_t = 0;
 
@@ -124,7 +123,7 @@ public:
 		return HspObjectKind::Root;
 	}
 
-	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override;
+	auto parent() const -> HspObjectPath const& override;
 
 	auto child_count(HspObjects& objects) const -> std::size_t override;
 
@@ -155,8 +154,8 @@ public:
 		return HspObjectKind::Module;
 	}
 
-	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
-		return parent_;
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
 	}
 
 	auto child_count(HspObjects& objects) const -> std::size_t override;
@@ -192,8 +191,8 @@ public:
 		return HspObjectKind::StaticVar;
 	}
 
-	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
-		return parent_;
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
 	}
 
 	auto child_count(HspObjects& objects) const -> std::size_t override;
@@ -233,8 +232,8 @@ public:
 		return HspObjectKind::Element;
 	}
 
-	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
-		return parent_;
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
 	}
 
 	auto child_count(HspObjects& objects) const -> std::size_t override;
@@ -270,8 +269,8 @@ public:
 		return HspObjectKind::Param;
 	}
 
-	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
-		return parent_;
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
 	}
 
 	auto child_count(HspObjects& objects) const -> std::size_t override;
@@ -301,8 +300,8 @@ public:
 		return HspObjectKind::Str;
 	}
 
-	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
-		return parent_;
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
 	}
 
 	auto child_count(HspObjects& objects) const -> std::size_t override {
@@ -337,8 +336,8 @@ public:
 		return HspObjectKind::Int;
 	}
 
-	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
-		return parent_;
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
 	}
 
 	auto child_count(HspObjects& objects) const -> std::size_t override {
@@ -375,8 +374,8 @@ public:
 		return HspObjectKind::Flex;
 	}
 
-	auto parent() const -> std::shared_ptr<HspObjectPath const> const& override {
-		return parent_;
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
 	}
 
 	auto child_count(HspObjects& objects) const -> std::size_t override;

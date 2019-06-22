@@ -40,8 +40,8 @@ auto HspObjectPath::Root::name(HspObjects& objects) const -> std::string {
 	return g_root_name;
 }
 
-auto HspObjectPath::Root::parent() const -> std::shared_ptr<HspObjectPath const> const& {
-	return g_root;
+auto HspObjectPath::Root::parent() const -> HspObjectPath const& {
+	return *g_root;
 }
 
 auto HspObjectPath::Root::child_count(HspObjects& objects) const -> std::size_t {
@@ -176,8 +176,6 @@ auto HspObjectPath::Element::child_count(HspObjects& objects) const -> std::size
 auto HspObjectPath::Element::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
 	assert(index == 0);
 
-	auto&& p = parent();
-
 	if (type(objects) == HspType::Str) {
 		return new_str();
 	}
@@ -206,8 +204,8 @@ auto HspObjectPath::Element::name(HspObjects& objects) const -> std::string {
 auto HspObjectPath::Element::type(HspObjects& objects) const -> HspType {
 	auto&& p = parent();
 
-	if (p->kind() == HspObjectKind::StaticVar) {
-		return p->as_static_var().type(objects);
+	if (p.kind() == HspObjectKind::StaticVar) {
+		return p.as_static_var().type(objects);
 	}
 
 	throw new std::exception{ "unimpl" };
@@ -401,7 +399,7 @@ void HspObjectPath::Visitor::accept_parent(HspObjectPath const& path) {
 		return;
 	}
 
-	accept(*path.parent());
+	accept(path.parent());
 }
 
 void HspObjectPath::Visitor::accept_children(HspObjectPath const& path) {

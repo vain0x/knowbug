@@ -90,7 +90,7 @@ static auto path_to_data(HspObjectPath const& path, HspDebugApi& api) -> std::op
 	switch (path.kind()) {
 	case HspObjectKind::Element:
 		{
-			auto&& pval = path_to_pval(*path.parent(), api);
+			auto&& pval = path_to_pval(path.parent(), api);
 			if (!pval) {
 				assert(false && u8"配列要素の親は変数であるはず");
 				return std::nullopt;
@@ -105,7 +105,7 @@ static auto path_to_data(HspObjectPath const& path, HspDebugApi& api) -> std::op
 }
 
 static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) -> std::optional<HspStr> {
-	auto&& data = path_to_data(*path.parent(), api);
+	auto&& data = path_to_data(path.parent(), api);
 	if (!data) {
 		assert(false && u8"str の親は data を生成できるはず");
 		return std::nullopt;
@@ -119,7 +119,7 @@ static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) 
 }
 
 static auto int_path_to_value(HspObjectPath::Int const& path, HspDebugApi& api) -> std::optional<HspInt> {
-	auto&& data = path_to_data(*path.parent(), api);
+	auto&& data = path_to_data(path.parent(), api);
 	if (!data) {
 		assert(false && u8"int の親は data を生成できるはず");
 		return std::nullopt;
@@ -133,7 +133,7 @@ static auto int_path_to_value(HspObjectPath::Int const& path, HspDebugApi& api) 
 }
 
 static auto flex_path_to_value(HspObjectPath::Flex const& path, HspDebugApi& api) -> std::optional<FlexValue*> {
-	auto&& data = path_to_data(*path.parent(), api);
+	auto&& data = path_to_data(path.parent(), api);
 	if (!data) {
 		assert(false && u8"flex の親は data を生成できるはず");
 		return std::nullopt;
@@ -166,7 +166,7 @@ static auto path_to_param_stack(HspObjectPath const& path, HspDebugApi& api) -> 
 static auto param_path_to_param_data(HspObjectPath::Param const& path, HspDebugApi& api) -> std::optional<HspParamData> {
 	auto&& parent = path.parent();
 
-	auto&& param_stack = path_to_param_stack(*parent, api);
+	auto&& param_stack = path_to_param_stack(parent, api);
 	if (!param_stack) {
 		assert(false && u8"param の親要素から param_stack が取れるはず");
 		return std::nullopt;
