@@ -151,7 +151,6 @@ void HspObjectWriter::BlockForm::on_element(HspObjectPath::Element const& path) 
 		w.cat(name.data());
 		w.cat("\t= ");
 		varinf_.to_block_form().accept(*first_child);
-		w.catCrlf();
 		return;
 	}
 
@@ -168,6 +167,13 @@ void HspObjectWriter::BlockForm::on_str(HspObjectPath::Str const& path) {
 	auto&& value = path.value(objects());
 
 	w.catln(value);
+}
+
+void HspObjectWriter::BlockForm::on_int(HspObjectPath::Int const& path) {
+	auto&& w = writer();
+	auto value = path.value(objects());
+
+	w.catln(strf("%-10d (0x%08X)", value, value));
 }
 
 // -----------------------------------------------

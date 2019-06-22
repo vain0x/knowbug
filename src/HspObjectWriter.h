@@ -57,6 +57,8 @@ public:
 
 	void on_str(HspObjectPath::Str const& path) override;
 
+	void on_int(HspObjectPath::Int const& path) override;
+
 private:
 	CVarinfoText& varinf_;
 };
