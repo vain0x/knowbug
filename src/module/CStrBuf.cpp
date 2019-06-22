@@ -28,7 +28,7 @@ void CStrBuf::append(char const* s, size_t len)
 
 	assert(len <= std::strlen(s));
 	if ( len + stc_warningLength < lenLimit_ ) {
-		buf_.append(s);
+		buf_.append(s, s + len);
 		lenLimit_ -= len;
 	} else {
 		assert( lenLimit_ >= stc_warningLength );

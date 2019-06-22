@@ -159,10 +159,9 @@ void HspObjectWriter::BlockForm::on_element(HspObjectPath::Element const& path) 
 
 	w.cat(name.data());
 	w.catln(":");
-	// w.indent();
+	w.indent();
 	varinf_.to_block_form().accept_children(path);
-	// w.unindent();
-	// w.catCrlf();
+	w.unindent();
 }
 
 void HspObjectWriter::BlockForm::on_str(HspObjectPath::Str const& path) {
@@ -190,11 +189,9 @@ void HspObjectWriter::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 
 	auto&& module_name = path.module_name(o);
 
-	// w.indent();
 	w.cat(".module = ");
 	w.cat(module_name);
 	w.catCrlf();
-	// w.unindent();
 }
 
 // -----------------------------------------------
