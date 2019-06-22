@@ -4,11 +4,11 @@
 #include "main.h"
 #include "module/CStrWriter.h"
 #include "CVardataString.h"
-#include "HspObjectPath.h"
 #include "HspObjectWriter.h"
 
 class CVarinfoText;
 class VTNodeModule;
+class HspObjectPath;
 class HspStaticVars;
 
 namespace WrapCall
@@ -21,12 +21,6 @@ class CVarinfoText
 {
 public:
 	CVarinfoText(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars);
-
-	auto to_table_form() -> HspObjectWriter::TableForm;
-
-	auto to_block_form() -> HspObjectWriter::BlockForm;
-
-	auto to_flow_form() -> HspObjectWriter::FlowForm;
 
 	void add(HspObjectPath const& path);
 

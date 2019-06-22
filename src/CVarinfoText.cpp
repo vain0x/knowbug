@@ -55,20 +55,8 @@ auto CVarinfoText::create_treeform_writer() const -> CVardataStrWriter {
 	return CVardataStrWriter{ std::move(writer), debug_segment_, objects_, static_vars_ };
 }
 
-auto CVarinfoText::to_table_form() -> HspObjectWriter::TableForm {
-	return HspObjectWriter::TableForm{ objects_, getWriter(), *this };
-}
-
-auto CVarinfoText::to_block_form() -> HspObjectWriter::BlockForm {
-	return HspObjectWriter::BlockForm{ objects_, getWriter(), *this };
-}
-
-auto CVarinfoText::to_flow_form() -> HspObjectWriter::FlowForm {
-	return HspObjectWriter::FlowForm{ objects_, getWriter(), *this };
-}
-
 void CVarinfoText::add(HspObjectPath const& path) {
-	to_table_form().accept(path);
+	HspObjectWriter{ objects_, *this, getWriter() }.write_table_form(path);
 }
 
 //------------------------------------------------

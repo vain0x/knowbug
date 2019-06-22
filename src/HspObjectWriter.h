@@ -1,91 +1,22 @@
 #pragma once
 
-#include "HspObjectPath.h"
-
+class HspObjectPath;
+class HspObjects;
 class CStrWriter;
 class CVarinfoText;
 
-class HspObjectWriter
-	: public HspObjectPath::Visitor
-{
-public:
-	class TableForm;
-	class BlockForm;
-	class FlowForm;
-
-private:
+// HSP のオブジェクトの情報を文字列に書き出すもの。
+class HspObjectWriter {
+	HspObjects& objects_;
+	CVarinfoText& varinf_;
 	CStrWriter& writer_;
 
 public:
-	explicit HspObjectWriter(HspObjects& objects, CStrWriter& writer);
+	HspObjectWriter(HspObjects& objects, CVarinfoText& varinf, CStrWriter& writer);
 
-	auto writer() -> CStrWriter& {
-		return writer_;
-	}
-};
+	void write_table_form(HspObjectPath const& path);
 
-// テーブルフォーム。
-// 文字列全体を使って、オブジェクトの詳細情報を表示する。
-class HspObjectWriter::TableForm
-	: public HspObjectWriter
-{
-public:
-	TableForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf);
+	void write_block_form(HspObjectPath const& path);
 
-	void on_module(HspObjectPath::Module const& path) override;
-
-	void on_static_var(HspObjectPath::StaticVar const& path) override;
-
-private:
-	CVarinfoText& varinf_;
-};
-
-// ブロックフォーム。
-// 数行を使って、オブジェクトの情報を表示する。
-// 構築した文字列は、テーブルフォームの内部に埋め込まれる。
-class HspObjectWriter::BlockForm
-	: public HspObjectWriter
-{
-public:
-	BlockForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf);
-
-	void on_module(HspObjectPath::Module const& path) override;
-
-	void on_static_var(HspObjectPath::StaticVar const& path) override;
-
-	void on_element(HspObjectPath::Element const& path) override;
-
-	void on_param(HspObjectPath::Param const& path) override;
-
-	void on_str(HspObjectPath::Str const& path) override;
-
-	void on_int(HspObjectPath::Int const& path) override;
-
-	void on_flex(HspObjectPath::Flex const& path) override;
-
-private:
-	void add_name_children(HspObjectPath const& path);
-
-	CVarinfoText& varinf_;
-};
-
-// フローフォーム。
-// オブジェクトの情報を簡易的に表示する。
-// 基本的に改行を含まない。
-class HspObjectWriter::FlowForm
-	: public HspObjectWriter
-{
-public:
-	FlowForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf);
-
-	void on_static_var(HspObjectPath::StaticVar const& path) override;
-
-	void on_str(HspObjectPath::Str const& path) override;
-
-	void on_int(HspObjectPath::Int const& path) override;
-
-	void on_flex(HspObjectPath::Flex const& path) override;
-
-private:
-	CVarinfoText& varinf_;
+	void write_flow_form(HspObjectPath const& path);
 };
