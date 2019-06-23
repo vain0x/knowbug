@@ -60,7 +60,7 @@ static auto windowHandles() -> std::vector<HWND>
 	return std::vector<HWND> { g_res->mainWindow.get(), g_res->viewWindow.get() };
 }
 
-static void setEditStyle(HWND hEdit, int maxlen);
+static void setEditStyle(HWND hEdit);
 
 namespace View {
 
@@ -376,6 +376,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspStaticVars& stat
 				, (LPCTSTR)IDD_VIEW_PANE
 				, hViewWnd.get(), (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
+		setEditStyle(hViewEdit);
 
 		ShowWindow(hPane, SW_SHOW);
 	}
@@ -476,10 +477,9 @@ void update()
 	g_res->tv->update();
 }
 
-void setEditStyle( HWND hEdit, int maxlen )
+void setEditStyle( HWND hEdit )
 {
 	Edit_SetTabLength(hEdit, g_config->tabwidth);
-	SendMessage(hEdit, EM_SETLIMITTEXT, (WPARAM)maxlen, 0);
 }
 
 } // namespace Dialog
