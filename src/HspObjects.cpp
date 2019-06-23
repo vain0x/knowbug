@@ -104,6 +104,28 @@ static auto path_to_data(HspObjectPath const& path, HspDebugApi& api) -> std::op
 	}
 }
 
+static auto var_path_to_child_count(HspObjectPath const& path, HspDebugApi& api) -> std::size_t {
+	auto pval_opt = path_to_pval(path, api);
+	if (!pval_opt) {
+		return 0;
+	}
+
+	auto pval = *pval_opt;
+	return api.var_element_count(pval);
+}
+
+static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_index, HspDebugApi& api) -> std::shared_ptr<HspObjectPath const> {
+	auto pval_opt = path_to_pval(path, api);
+	if (!pval_opt || child_index >= var_path_to_child_count(path, api)) {
+		throw new std::invalid_argument{ u8"out of range" };
+	}
+
+	auto pval = *pval_opt;
+	auto aptr = (APTR)child_index;
+	auto&& indexes = api.var_element_to_indexes(pval, aptr);
+	return path.new_element(indexes);
+}
+
 static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) -> std::optional<HspStr> {
 	auto&& data = path_to_data(path.parent(), api);
 	if (!data) {
@@ -233,17 +255,11 @@ auto HspObjects::static_var_to_type(std::size_t static_var_id)->HspType {
 }
 
 auto HspObjects::static_var_path_to_child_count(HspObjectPath::StaticVar const& path) const->std::size_t {
-	auto static_var_id = path.static_var_id();
-	auto pval = api_.static_var_to_pval(static_var_id);
-	return api_.var_element_count(pval);
+	return var_path_to_child_count(path, api_);
 }
 
 auto HspObjects::static_var_path_to_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index) const->std::shared_ptr<HspObjectPath const> {
-	auto aptr = (APTR)child_index;
-	auto static_var_id = path.static_var_id();
-	auto pval = api_.static_var_to_pval(static_var_id);
-	auto&& indexes = api_.var_element_to_indexes(pval, aptr);
-	return path.new_element(indexes);
+	return var_path_to_child_at(path, child_index, api_);
 }
 
 auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata {

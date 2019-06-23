@@ -5,7 +5,6 @@ static bool kind_can_have_value(HspObjectKind kind) {
 	return kind == HspObjectKind::StaticVar || kind == HspObjectKind::Element;
 }
 
-
 HspObjectPath::~HspObjectPath() {
 }
 

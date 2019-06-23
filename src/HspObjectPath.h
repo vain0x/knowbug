@@ -99,8 +99,10 @@ protected:
 
 	auto new_static_var(std::size_t static_var_id) const -> std::shared_ptr<HspObjectPath const>;
 
+public:
 	auto new_element(HspIndexes const& indexes) const -> std::shared_ptr<HspObjectPath const>;
 
+protected:
 	// param_index: 親要素の何番目の引数か
 	auto new_param(std::size_t param_index) const -> std::shared_ptr<HspObjectPath const>;
 
