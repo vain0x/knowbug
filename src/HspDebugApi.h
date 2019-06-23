@@ -110,7 +110,9 @@ public:
 
 	auto param_stack_to_data_at(HspParamStack const& param_stack, std::size_t param_index) const -> HspParamData;
 
-	auto param_data_to_type(HspParamData const& param_data) const -> int;
+	auto param_data_to_type(HspParamData const& param_data) const -> HspParamType;
+
+	auto param_data_as_local_var(HspParamData const& param_data) const -> PVal*;
 };
 
 class HspDebugApi::BlockMemory {

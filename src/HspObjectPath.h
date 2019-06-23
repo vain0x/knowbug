@@ -104,7 +104,7 @@ public:
 
 protected:
 	// param_index: 親要素の何番目の引数か
-	auto new_param(std::size_t param_index) const -> std::shared_ptr<HspObjectPath const>;
+	auto new_param(HspParamType param_type, std::size_t param_index) const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_str() const -> std::shared_ptr<HspObjectPath const>;
 
@@ -226,7 +226,9 @@ class HspObjectPath::Element final
 	HspIndexes indexes_;
 
 public:
+	using HspObjectPath::new_str;
 	using HspObjectPath::new_int;
+	using HspObjectPath::new_flex;
 
 	Element(std::shared_ptr<HspObjectPath const> parent, HspIndexes indexes);
 
@@ -247,8 +249,6 @@ public:
 	auto indexes() const -> HspIndexes const& {
 		return indexes_;
 	}
-
-	auto type(HspObjects& objects) const -> HspType;
 };
 
 // -----------------------------------------------
@@ -260,12 +260,13 @@ class HspObjectPath::Param final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
+	HspParamType param_type_;
 	std::size_t param_index_;
 
 public:
 	using HspObjectPath::new_element;
 
-	Param(std::shared_ptr<HspObjectPath const> parent, std::size_t param_index);
+	Param(std::shared_ptr<HspObjectPath const> parent, HspParamType param_type, std::size_t param_index);
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::Param;
@@ -280,6 +281,10 @@ public:
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
 	auto name(HspObjects& objects) const -> std::string override;
+
+	auto param_type() const -> HspParamType {
+		return param_type_;
+	}
 
 	auto param_index() const -> std::size_t {
 		return param_index_;

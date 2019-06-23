@@ -168,24 +168,11 @@ HspObjectPath::Element::Element(std::shared_ptr<HspObjectPath const> parent, Hsp
 }
 
 auto HspObjectPath::Element::child_count(HspObjects& objects) const -> std::size_t {
-	// FIXME: 型による
-	return 1;
+	return objects.element_path_to_child_count(*this);
 }
 
-auto HspObjectPath::Element::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
-	assert(index == 0);
-
-	if (type(objects) == HspType::Str) {
-		return new_str();
-	}
-	if (type(objects) == HspType::Int) {
-		return new_int();
-	}
-	if (type(objects) == HspType::Struct) {
-		return new_flex();
-	}
-
-	throw new std::exception{ "unimpl" };
+auto HspObjectPath::Element::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
+	return objects.element_path_to_child_at(*this, child_index);
 }
 
 auto HspObjectPath::Element::name(HspObjects& objects) const -> std::string {
@@ -198,16 +185,6 @@ auto HspObjectPath::Element::name(HspObjects& objects) const -> std::string {
 		v.push_back((int)i);
 	}
 	return hpiutil::stringifyArrayIndex(v);
-}
-
-auto HspObjectPath::Element::type(HspObjects& objects) const -> HspType {
-	auto&& p = parent();
-
-	if (p.kind() == HspObjectKind::StaticVar) {
-		return p.as_static_var().type(objects);
-	}
-
-	throw new std::exception{ "unimpl" };
 }
 
 auto HspObjectPath::new_element(HspIndexes const& indexes) const -> std::shared_ptr<HspObjectPath const> {
@@ -225,14 +202,15 @@ auto HspObjectPath::as_element() const -> HspObjectPath::Element const& {
 // 引数
 // -----------------------------------------------
 
-HspObjectPath::Param::Param(std::shared_ptr<HspObjectPath const> parent, std::size_t param_index)
+HspObjectPath::Param::Param(std::shared_ptr<HspObjectPath const> parent, HspParamType param_type, std::size_t param_index)
 	: parent_(parent)
+	, param_type_(param_type)
 	, param_index_(param_index)
 {
 }
 
-auto HspObjectPath::new_param(std::size_t param_index) const -> std::shared_ptr<HspObjectPath const> {
-	return std::make_shared<HspObjectPath::Param>(self(), param_index);
+auto HspObjectPath::new_param(HspParamType param_type, std::size_t param_index) const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::Param>(self(), param_type, param_index);
 }
 
 auto HspObjectPath::as_param() const -> HspObjectPath::Param const& {

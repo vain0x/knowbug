@@ -3,6 +3,10 @@
 #include "HspObjects.h"
 #include "HspStaticVars.h"
 
+static auto param_path_to_param_data(HspObjectPath::Param const& path, HspDebugApi& api) -> std::optional<HspParamData>;
+
+static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugApi& api) -> std::optional<HspParamType>;
+
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
 
 static auto const GLOBAL_MODULE_NAME = "@";
@@ -78,6 +82,24 @@ static auto path_to_pval(HspObjectPath const& path, HspDebugApi& api) -> std::op
 		{
 			auto static_var_id = path.as_static_var().static_var_id();
 			return std::make_optional(api.static_var_to_pval(static_var_id));
+		}
+
+	case HspObjectKind::Element:
+		return path_to_pval(path.parent(), api);
+
+	case HspObjectKind::Param:
+		{
+			auto&& param_data_opt = param_path_to_param_data(path.as_param(), api);
+			if (!param_data_opt) {
+				return std::nullopt;
+			}
+			auto&& param_data = *param_data_opt;
+
+			if (api.param_data_to_type(param_data) == MPTYPE_LOCALVAR) {
+				auto pval = api.param_data_as_local_var(param_data);
+				return std::make_optional(pval);
+			}
+			return std::nullopt;
 		}
 	default:
 		return std::nullopt;
@@ -197,6 +219,15 @@ static auto param_path_to_param_data(HspObjectPath::Param const& path, HspDebugA
 	return api.param_stack_to_data_at(*param_stack, path.param_index());
 }
 
+static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugApi& api) -> std::optional<HspParamType> {
+	auto&& param_data_opt = param_path_to_param_data(path, api);
+	if (!param_data_opt) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(api.param_data_to_type(*param_data_opt));
+}
+
 // -----------------------------------------------
 // HspObjects
 // -----------------------------------------------
@@ -277,13 +308,56 @@ auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& pat
 	return metadata;
 }
 
+auto HspObjects::element_path_to_child_count(HspObjectPath::Element const& path) const -> std::size_t {
+	auto&& pval_opt = path_to_pval(path, api_);
+	if (!pval_opt) {
+		return 0;
+	}
+
+	return 1;
+}
+
+auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const> {
+	assert(child_index < element_path_to_child_count(path));
+
+	auto&& pval_opt = path_to_pval(path, api_);
+	if (!pval_opt) {
+		throw new std::exception{ "out of range" };
+	}
+
+	auto type = api_.var_to_type(*pval_opt);
+	switch (type) {
+	case HspType::Str:
+		return path.new_str();
+	case HspType::Int:
+		return path.new_int();
+	case HspType::Struct:
+		return path.new_flex();
+	default:
+		assert(false && u8"unimpl");
+		throw new std::exception{ "unimpl" };
+	}
+}
+
 auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t {
-	// FIXME: 種類による
-	return 0;
+	switch (path.param_type()) {
+	case MPTYPE_LOCALVAR:
+		return var_path_to_child_count(path, api_);
+	default:
+		// FIXME: 他の種類の実装
+		return 0;
+	}
 }
 
 auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const> {
-	throw new std::exception{ "out of range" };
+	assert(child_index < param_path_to_child_count(path));
+
+	switch (path.param_type()) {
+	case MPTYPE_LOCALVAR:
+		return var_path_to_child_at(path, child_index, api_);
+	default:
+		throw new std::invalid_argument{ "out of range" };
+	}
 }
 
 auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> std::string {
@@ -315,8 +389,10 @@ auto HspObjects::flex_path_to_child_at(HspObjectPath::Flex const& path, std::siz
 		throw new std::exception{ "out of range" };
 	}
 
-	auto param_index = api_.flex_to_member_at(*value, index).param_index();
-	return path.new_param(param_index);
+	auto&& param_data = api_.flex_to_member_at(*value, index);
+	auto param_type = api_.param_data_to_type(param_data);
+	auto param_index = param_data.param_index();
+	return path.new_param(param_type, param_index);
 }
 
 bool HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) {

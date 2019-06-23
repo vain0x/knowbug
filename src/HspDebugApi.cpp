@@ -262,3 +262,14 @@ auto HspDebugApi::param_stack_to_data_at(HspParamStack const& param_stack, std::
 	auto ptr = (void*)((char const*)param_stack.ptr() + param->offset);
 	return HspParamData{ param, param_index, ptr };
 }
+
+auto HspDebugApi::param_data_to_type(HspParamData const& param_data) const -> HspParamType {
+	return param_data.param()->mptype;
+}
+
+auto HspDebugApi::param_data_as_local_var(HspParamData const& param_data) const -> PVal* {
+	if (param_data_to_type(param_data) != MPTYPE_LOCALVAR) {
+		throw new std::bad_cast{};
+	}
+	return (PVal*)param_data.ptr();
+}

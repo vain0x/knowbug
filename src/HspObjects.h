@@ -58,6 +58,10 @@ public:
 
 	auto static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata;
 
+	auto element_path_to_child_count(HspObjectPath::Element const& path) const -> std::size_t;
+
+	auto element_path_to_child_at(HspObjectPath::Element const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
+
 	auto param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t;
 
 	auto param_path_to_child_at(HspObjectPath::Param const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
