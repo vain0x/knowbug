@@ -89,6 +89,21 @@ public:
 		return kind() == other.kind() && does_equal(other) && parent().equals(other.parent());
 	}
 
+	bool is_alive(HspObjects& objects) const {
+		if (kind() == HspObjectKind::Root || kind() == HspObjectKind::Module) {
+			return true;
+		}
+
+		auto sibling_count = parent().child_count(objects);
+		for (auto i = std::size_t{}; i < sibling_count; i++) {
+			auto&& sibling = parent().child_at(i, objects);
+			if (equals(*sibling)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	auto self() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto as_root() const->HspObjectPath::Root const&;

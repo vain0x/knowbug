@@ -1,5 +1,10 @@
 #include "hsp3utf.as"
 
+	xs = 1, 2, 3
+	assert
+	xs = "a", "b"
+	assert
+
     a = 8
     b = 9
 
