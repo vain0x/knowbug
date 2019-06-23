@@ -63,6 +63,10 @@ public:
 
 	virtual auto kind() const -> HspObjectKind = 0;
 
+	// パスとして同一かを判定する。
+	// equals が検査するため、other と this の kind() が等しく、親要素も等しいと仮定してよい。
+	virtual bool does_equal(HspObjectPath const& other) const = 0;
+
 	virtual auto parent() const -> HspObjectPath const& = 0;
 
 	virtual auto child_count(HspObjects& objects) const -> std::size_t = 0;
@@ -74,6 +78,15 @@ public:
 
 	virtual bool is_array(HspObjects& objects) const {
 		return false;
+	}
+
+	// パスとして同一かを判定する。
+	// (クローン変数など、異なるパスが単一のオブジェクトを指すこともあるが、ここでは加味しない。)
+	virtual bool equals(HspObjectPath const& other) const {
+		if (this == &other) {
+			return true;
+		}
+		return kind() == other.kind() && does_equal(other) && parent().equals(other.parent());
 	}
 
 	auto self() const -> std::shared_ptr<HspObjectPath const>;
@@ -125,6 +138,14 @@ public:
 		return HspObjectKind::Root;
 	}
 
+	bool does_equal(HspObjectPath const& other) const override {
+		return kind() == other.kind();
+	}
+
+	bool equals(HspObjectPath const& other) const override {
+		return kind() == other.kind();
+	}
+
 	auto parent() const -> HspObjectPath const& override;
 
 	auto child_count(HspObjects& objects) const -> std::size_t override;
@@ -154,6 +175,10 @@ public:
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::Module;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return module_id() == other.as_module().module_id();
 	}
 
 	auto parent() const -> HspObjectPath const& override {
@@ -191,6 +216,10 @@ public:
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::StaticVar;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return static_var_id() == other.as_static_var().static_var_id();
 	}
 
 	auto parent() const -> HspObjectPath const& override {
@@ -236,6 +265,10 @@ public:
 		return HspObjectKind::Element;
 	}
 
+	bool does_equal(HspObjectPath const& other) const override {
+		return indexes() == other.as_element().indexes();
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -272,6 +305,11 @@ public:
 		return HspObjectKind::Param;
 	}
 
+	bool does_equal(HspObjectPath const& other) const override {
+		auto&& o = other.as_param();
+		return param_type() == o.param_type() && param_index() == o.param_index();
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -305,6 +343,10 @@ public:
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::Str;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return true;
 	}
 
 	auto parent() const -> HspObjectPath const& override {
@@ -343,6 +385,10 @@ public:
 		return HspObjectKind::Int;
 	}
 
+	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -379,6 +425,10 @@ public:
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::Flex;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return true;
 	}
 
 	auto parent() const -> HspObjectPath const& override {
