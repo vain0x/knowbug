@@ -31,7 +31,7 @@ private:
 public:
 	HspObjects(HspDebugApi& api, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment);
 
-	auto type_name(HspType type) const->HspStringView;
+	auto type_to_name(HspType type) const->HspStringView;
 
 	auto module_global_id() const->std::size_t;
 

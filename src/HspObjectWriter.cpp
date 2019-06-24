@@ -323,7 +323,7 @@ HspObjectWriterImpl::FlowForm::FlowForm(HspObjects& objects, CStrWriter& writer,
 void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const& path) {
 	auto&& w = writer();
 	auto type = path.type(objects());
-	auto&& type_name = objects().type_name(type);
+	auto&& type_name = objects().type_to_name(type);
 	auto child_count = path.child_count(objects());
 
 	// FIXME: 多次元配列の表示を改善する

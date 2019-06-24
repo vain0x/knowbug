@@ -242,7 +242,7 @@ HspObjects::HspObjects(HspDebugApi& api, HspStaticVars& static_vars, hpiutil::DI
 {
 }
 
-auto HspObjects::type_name(HspType type) const->HspStringView {
+auto HspObjects::type_to_name(HspType type) const->HspStringView {
 	auto type_id = (std::size_t)type;
 	if (!(1 <= type_id && type_id < types_.size())) {
 		return types_[0].name();
