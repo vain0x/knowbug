@@ -133,7 +133,7 @@ static auto var_path_to_child_count(HspObjectPath const& path, HspDebugApi& api)
 	}
 
 	auto pval = *pval_opt;
-	return api.var_element_count(pval);
+	return api.var_to_element_count(pval);
 }
 
 static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_index, HspDebugApi& api) -> std::shared_ptr<HspObjectPath const> {
@@ -274,7 +274,7 @@ auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->
 }
 
 bool HspObjects::static_var_path_is_array(HspObjectPath::StaticVar const& path) {
-	return hpiutil::PVal_isStandardArray(api_.static_var_to_pval(path.static_var_id()));
+	return api_.var_is_array(api_.static_var_to_pval(path.static_var_id()));
 }
 
 auto HspObjects::static_var_path_to_pval(HspObjectPath::StaticVar const& path)->PVal* {
@@ -299,7 +299,7 @@ auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& pat
 
 	auto metadata = HspVarMetadata{};
 	metadata.lengths_ = api_.var_to_lengths(pval);
-	metadata.element_size_ = hpiutil::PVal_cntElems(pval);
+	metadata.element_size_ = api_.var_to_element_count(pval);
 	metadata.data_size_ = pval->size;
 	metadata.block_size_ = block_memory.size();
 	metadata.data_ptr_ = pval->pt;

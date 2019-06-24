@@ -54,7 +54,9 @@ public:
 
 	auto var_to_lengths(PVal* pval) const -> HspIndexes;
 
-	auto var_element_count(PVal* pval) -> std::size_t;
+	bool var_is_array(PVal* pval) const;
+
+	auto var_to_element_count(PVal* pval) -> std::size_t;
 
 	auto var_element_to_indexes(PVal* pval, std::size_t aptr) -> HspIndexes;
 

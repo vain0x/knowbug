@@ -76,7 +76,11 @@ auto HspDebugApi::var_to_lengths(PVal* pval) const -> HspIndexes {
 	return lengths;
 }
 
-auto HspDebugApi::var_element_count(PVal* pval) -> std::size_t {
+bool HspDebugApi::var_is_array(PVal* pval) const {
+	return hpiutil::PVal_isStandardArray(pval);
+}
+
+auto HspDebugApi::var_to_element_count(PVal* pval) -> std::size_t {
 	return hpiutil::PVal_cntElems((PVal*)pval);
 }
 
