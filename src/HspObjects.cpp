@@ -269,20 +269,20 @@ auto HspObjects::module_to_var_at(std::size_t module_id, std::size_t index) cons
 	return modules_.at(module_id).var_ids().at(index);
 }
 
-auto HspObjects::static_var_to_name(std::size_t static_var_id)->std::string {
-	return *api_.static_var_find_name(static_var_id);
+auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->std::string {
+	return *api_.static_var_find_name(path.static_var_id());
 }
 
-bool HspObjects::static_var_is_array(std::size_t static_var_id) {
-	return hpiutil::PVal_isStandardArray(&hpiutil::staticVars()[static_var_id]);
+bool HspObjects::static_var_path_is_array(HspObjectPath::StaticVar const& path) {
+	return hpiutil::PVal_isStandardArray(api_.static_var_to_pval(path.static_var_id()));
 }
 
-auto HspObjects::static_var_to_pval(std::size_t static_var_id)->PVal* {
-	return api_.static_var_to_pval(static_var_id);
+auto HspObjects::static_var_path_to_pval(HspObjectPath::StaticVar const& path)->PVal* {
+	return api_.static_var_to_pval(path.static_var_id());
 }
 
-auto HspObjects::static_var_to_type(std::size_t static_var_id)->HspType {
-	return api_.var_to_type(api_.static_var_to_pval(static_var_id));
+auto HspObjects::static_var_path_to_type(HspObjectPath::StaticVar const& path)->HspType {
+	return api_.var_to_type(api_.static_var_to_pval(path.static_var_id()));
 }
 
 auto HspObjects::static_var_path_to_child_count(HspObjectPath::StaticVar const& path) const->std::size_t {
@@ -294,7 +294,7 @@ auto HspObjects::static_var_path_to_child_at(HspObjectPath::StaticVar const& pat
 }
 
 auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata {
-	auto pval = static_var_to_pval(path.static_var_id());
+	auto pval = static_var_path_to_pval(path);
 	auto block_memory = api_.var_to_block_memory(pval);
 
 	auto metadata = HspVarMetadata{};

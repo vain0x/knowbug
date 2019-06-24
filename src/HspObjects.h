@@ -43,14 +43,14 @@ public:
 
 	auto module_to_var_at(std::size_t module_id, std::size_t index) const->std::size_t;
 
-	auto static_var_to_name(std::size_t static_var_id)->std::string;
+	auto static_var_path_to_name(HspObjectPath::StaticVar const& path)->std::string;
 
-	bool static_var_is_array(std::size_t static_var_id);
+	bool static_var_path_is_array(HspObjectPath::StaticVar const& path);
 
 	// FIXME: 一時的に存在する。knowbug は PVal* を直接触るべきでない
-	auto static_var_to_pval(std::size_t static_var_id)->PVal*;
+	auto static_var_path_to_pval(HspObjectPath::StaticVar const& path)->PVal*;
 
-	auto static_var_to_type(std::size_t static_var_id)->HspType;
+	auto static_var_path_to_type(HspObjectPath::StaticVar const& path)->HspType;
 
 	auto static_var_path_to_child_count(HspObjectPath::StaticVar const& path) const->std::size_t;
 

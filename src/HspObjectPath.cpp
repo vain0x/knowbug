@@ -131,15 +131,15 @@ auto HspObjectPath::StaticVar::child_at(std::size_t index, HspObjects& objects) 
 }
 
 auto HspObjectPath::StaticVar::name(HspObjects& objects) const -> std::string {
-	return objects.static_var_to_name(static_var_id());
+	return objects.static_var_path_to_name(*this);
 }
 
 bool HspObjectPath::StaticVar::is_array(HspObjects& objects) const {
-	return objects.static_var_is_array(static_var_id());
+	return objects.static_var_path_is_array(*this);
 }
 
 auto HspObjectPath::StaticVar::type(HspObjects& objects) const -> HspType {
-	return objects.static_var_to_type(static_var_id());
+	return objects.static_var_path_to_type(*this);
 }
 
 auto HspObjectPath::StaticVar::metadata(HspObjects& objects) const -> HspVarMetadata {

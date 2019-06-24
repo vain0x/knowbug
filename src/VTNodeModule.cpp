@@ -36,9 +36,8 @@ void VTNodeModule::init() {
 
 		{
 			assert(kind == HspObjectKind::StaticVar);
-			auto static_var_id = child_path->as_static_var().static_var_id();
 			auto name = child_path->name(objects_);
-			auto pval = objects_.static_var_to_pval(static_var_id);
+			auto pval = objects_.static_var_path_to_pval(child_path->as_static_var());
 			vars_.emplace_back(*this, std::move(name), pval, std::move(child_path));
 		}
 	}

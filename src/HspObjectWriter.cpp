@@ -174,7 +174,7 @@ void HspObjectWriterImpl::TableForm::on_module(HspObjectPath::Module const& path
 }
 
 void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar const& path) {
-	auto pval = objects().static_var_to_pval(path.static_var_id());
+	auto pval = objects().static_var_path_to_pval(path);
 	auto&& name = path.name(objects());
 	auto type = path.type(objects());
 
