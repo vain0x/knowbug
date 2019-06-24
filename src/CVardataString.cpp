@@ -380,7 +380,9 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 				addValue(name, HSPVAR_FLAG_INT, hpiutil::asPDAT<vtInt>(&Sysvar::getIntRef(id)));
 				break;
 			}
-			assert_sentinel;
+
+			assert(false && u8"Unknown Sysvar::Id");
+			break;
 	};
 }
 

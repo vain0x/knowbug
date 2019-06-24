@@ -139,7 +139,8 @@ static auto var_path_to_child_count(HspObjectPath const& path, HspDebugApi& api)
 static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_index, HspDebugApi& api) -> std::shared_ptr<HspObjectPath const> {
 	auto pval_opt = path_to_pval(path, api);
 	if (!pval_opt || child_index >= var_path_to_child_count(path, api)) {
-		throw new std::invalid_argument{ u8"out of range" };
+		assert(false && u8"Invalid var path child index");
+		throw new std::out_of_range{ u8"child_index" };
 	}
 
 	auto pval = *pval_opt;
@@ -322,7 +323,8 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 
 	auto&& pval_opt = path_to_pval(path, api_);
 	if (!pval_opt) {
-		throw new std::exception{ "out of range" };
+		assert(false && u8"Invalid element path child index");
+		throw new std::out_of_range{ u8"child_index" };
 	}
 
 	auto type = api_.var_to_type(*pval_opt);
@@ -335,7 +337,7 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 		return path.new_flex();
 	default:
 		assert(false && u8"unimpl");
-		throw new std::exception{ "unimpl" };
+		throw new std::exception{};
 	}
 }
 
@@ -356,7 +358,8 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 	case MPTYPE_LOCALVAR:
 		return var_path_to_child_at(path, child_index, api_);
 	default:
-		throw new std::invalid_argument{ "out of range" };
+		assert(false && u8"Invalid param path child index");
+		throw new std::out_of_range{ u8"child_index" };
 	}
 }
 
@@ -386,7 +389,8 @@ auto HspObjects::flex_path_to_child_count(HspObjectPath::Flex const& path)->std:
 auto HspObjects::flex_path_to_child_at(HspObjectPath::Flex const& path, std::size_t index)->std::shared_ptr<HspObjectPath const> {
 	auto&& flex_opt = flex_path_to_value(path, api_);
 	if (!flex_opt || api_.flex_is_nullmod(*flex_opt)) {
-		throw new std::exception{ "out of range" };
+		assert(false && u8"Invalid flex path child index");
+		throw new std::out_of_range{ u8"child_index" };
 	}
 
 	auto&& param_data = api_.flex_to_member_at(*flex_opt, index);

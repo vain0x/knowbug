@@ -30,6 +30,7 @@ auto HspObjectPath::get_root() -> HspObjectPath::Root const& {
 
 auto HspObjectPath::as_root() const -> HspObjectPath::Root const& {
 	if (kind() != HspObjectKind::Root) {
+		assert(false && u8"Casting to root");
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::Root const*)this;
@@ -107,6 +108,7 @@ auto HspObjectPath::new_module(std::size_t module_id) const -> std::shared_ptr<H
 
 auto HspObjectPath::as_module() const -> HspObjectPath::Module const& {
 	if (kind() != HspObjectKind::Module) {
+		assert(false && u8"Casting to module");
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::Module const*)this;
@@ -152,6 +154,7 @@ auto HspObjectPath::new_static_var(std::size_t static_var_id) const -> std::shar
 
 auto HspObjectPath::as_static_var() const -> HspObjectPath::StaticVar const& {
 	if (kind() != HspObjectKind::StaticVar) {
+		assert(false && u8"Casting to static var");
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::StaticVar const*)this;
@@ -193,6 +196,7 @@ auto HspObjectPath::new_element(HspIndexes const& indexes) const -> std::shared_
 
 auto HspObjectPath::as_element() const -> HspObjectPath::Element const& {
 	if (kind() != HspObjectKind::Element) {
+		assert(false && u8"Casting to element");
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::Element const*)this;
@@ -215,6 +219,7 @@ auto HspObjectPath::new_param(HspParamType param_type, std::size_t param_index) 
 
 auto HspObjectPath::as_param() const -> HspObjectPath::Param const& {
 	if (kind() != HspObjectKind::Param) {
+		assert(false && u8"Casting to param");
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::Param const*)this;
@@ -248,6 +253,7 @@ auto HspObjectPath::new_str() const -> std::shared_ptr<HspObjectPath const> {
 
 auto HspObjectPath::as_str() const -> HspObjectPath::Str const& {
 	if (kind() != HspObjectKind::Str) {
+		assert(false && u8"Casting to string");
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::Str const*)this;
@@ -273,6 +279,7 @@ auto HspObjectPath::new_int() const -> std::shared_ptr<HspObjectPath const> {
 
 auto HspObjectPath::as_int() const -> HspObjectPath::Int const& {
 	if (kind() != HspObjectKind::Int) {
+		assert(false && u8"Casting to int");
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::Int const*)this;
@@ -298,6 +305,7 @@ auto HspObjectPath::new_flex() const -> std::shared_ptr<HspObjectPath const> {
 
 auto HspObjectPath::as_flex() const -> HspObjectPath::Flex const& {
 	if (kind() != HspObjectKind::Flex) {
+		assert(false && u8"Casting to flex");
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::Flex const*)this;
@@ -363,7 +371,8 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 		return;
 
 	default:
-		throw new std::exception{ "unknown kind" };
+		assert(false && u8"Unknown HspObjectKind");
+		throw new std::exception{};
 	}
 }
 

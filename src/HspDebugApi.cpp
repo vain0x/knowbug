@@ -36,9 +36,7 @@ auto HspDebugApi::static_var_find_by_name(char const* var_name) -> std::optional
 }
 
 auto HspDebugApi::static_var_find_name(std::size_t static_var_id) -> std::optional<std::string> {
-	if (static_var_id >= static_var_count()) {
-		throw new std::exception{ "Invalid static var id" };
-	}
+	assert(static_var_id < static_var_count());
 
 	auto var_name = exinfo()->HspFunc_varname((int)static_var_id);
 	if (!var_name) {
@@ -50,8 +48,10 @@ auto HspDebugApi::static_var_find_name(std::size_t static_var_id) -> std::option
 
 auto HspDebugApi::static_var_to_pval(std::size_t static_var_id) -> PVal* {
 	if (static_var_id >= static_var_count()) {
-		throw new std::exception{ "invalid static var id" };
+		assert(false && u8"Unknown static_var_id");
+		throw new std::exception{};
 	}
+
 	return static_vars() + static_var_id;
 }
 
@@ -132,22 +132,28 @@ auto HspDebugApi::var_element_to_block_memory(PVal* pval, std::size_t aptr) -> H
 
 auto HspDebugApi::data_to_str(HspData const& data) const -> HspStr {
 	if (data.type() != HspType::Str) {
-		throw new std::exception{ "Invalid type" };
+		assert(false && u8"Invalid cast to string");
+		throw new std::bad_cast{};
 	}
+
 	return (HspStr)data.ptr();
 }
 
 auto HspDebugApi::data_to_int(HspData const& data) const -> HspInt {
 	if (data.type() != HspType::Int) {
-		throw new std::exception{ "Invalid type" };
+		assert(false && u8"Invalid cast to int");
+		throw new std::bad_cast{};
 	}
+
 	return *(HspInt const*)data.ptr();
 }
 
 auto HspDebugApi::data_to_flex(HspData const& data) const -> FlexValue* {
 	if (data.type() != HspType::Struct) {
+		assert(false && u8"Invalid cast to struct");
 		throw new std::bad_cast{};
 	}
+
 	return (FlexValue*)data.ptr();
 }
 
@@ -187,7 +193,8 @@ auto HspDebugApi::flex_to_member_count(FlexValue* flex) const -> std::size_t {
 auto HspDebugApi::flex_to_member_at(FlexValue* flex, std::size_t member_index) const -> HspParamData {
 	auto member_count = flex_to_member_count(flex);
 	if (member_index >= member_count) {
-		throw new std::exception{ "out of range" };
+		assert(false && u8"Invalid member_index in flex");
+		throw new std::exception{};
 	}
 
 	// 先頭の STRUCT_TAG を除いて数える。
@@ -233,7 +240,8 @@ auto HspDebugApi::param_count() const -> std::size_t {
 auto HspDebugApi::param_to_param_id(STRUCTPRM const* param) const -> std::size_t {
 	auto id = hpiutil::STRUCTPRM_miIndex(param);
 	if (id < 0) {
-		throw new std::exception{ "Invalid STRUCTPRM" };
+		assert(false && u8"Invalid STRUCTPRM");
+		throw new std::exception{};
 	}
 
 	return (std::size_t)id;
@@ -259,7 +267,8 @@ auto HspDebugApi::param_stack_to_data_count(HspParamStack const& param_stack) co
 
 auto HspDebugApi::param_stack_to_data_at(HspParamStack const& param_stack, std::size_t param_index) const -> HspParamData {
 	if (param_index >= param_stack_to_data_count(param_stack)) {
-		throw new std::exception{ "out of range" };
+		assert(false && u8"Invalid param_index");
+		throw new std::exception{};
 	}
 
 	auto param = hpiutil::STRUCTDAT_params(param_stack.struct_dat()).begin() + param_index;
@@ -273,6 +282,7 @@ auto HspDebugApi::param_data_to_type(HspParamData const& param_data) const -> Hs
 
 auto HspDebugApi::param_data_as_local_var(HspParamData const& param_data) const -> PVal* {
 	if (param_data_to_type(param_data) != MPTYPE_LOCALVAR) {
+		assert(false && u8"Casting to local var");
 		throw new std::bad_cast{};
 	}
 	return (PVal*)param_data.ptr();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include "hpiutil/hpiutil_fwd.hpp"
 
@@ -37,7 +38,8 @@ public:
 		, ptr_(ptr)
 	{
 		if (ptr == nullptr) {
-			throw new std::exception{ "Can't be null." };
+			assert(false && u8"HspData can't be null.");
+			throw new std::invalid_argument{ u8"ptr" };
 		}
 	}
 

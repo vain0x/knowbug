@@ -1,3 +1,4 @@
+#include <cassert>
 #include "hpiutil/hpiutil.hpp"
 #include "DebugInfo.h"
 #include "StepController.h"
@@ -14,7 +15,8 @@ static auto step_mode_to_hsp_run_mode(StepMode mode) -> int {
 		return HSPDEBUG_STEPIN;
 
 	default:
-		throw new std::exception{ "Unknown StepMode" };
+		assert(false && u8"Unknown StepMode");
+		throw new std::exception{};
 	}
 }
 
@@ -62,7 +64,8 @@ void KnowbugStepController::update(StepControl step_control) {
 		break;
 
 	default:
-		throw new std::exception{ "Unknown StepControlKind" };
+		assert(false && u8"Unknown StepControlKind");
+		throw new std::exception{};
 	}
 
 	end_update();

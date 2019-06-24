@@ -223,7 +223,9 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		}
 		case IDC_LOG_SAVE: LogBox::save(*Knowbug::get_logger()); break;
 		case IDC_LOG_CLEAR: LogBox::clear(*Knowbug::get_logger()); break;
-		default: assert_sentinel;
+		default:
+			assert(false && u8"Unknown popup menu command ID");
+			throw std::exception{};
 	}
 }
 

@@ -373,7 +373,8 @@ public:
 	}
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override {
-		throw new std::exception{ "no children" };
+		assert(false && u8"no children");
+		throw new std::exception{};
 	}
 
 	auto name(HspObjects& objects) const -> std::string override {
@@ -413,7 +414,8 @@ public:
 	}
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override {
-		throw new std::exception{ "no children" };
+		assert(false && u8"no children");
+		throw new std::exception{};
 	}
 
 	auto name(HspObjects& objects) const -> std::string override {
