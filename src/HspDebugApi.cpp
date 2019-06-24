@@ -243,10 +243,10 @@ auto HspDebugApi::param_to_name(STRUCTPRM const* param, hpiutil::DInfo const& de
 	assert(param_count >= 1);
 	auto first_param = struct_to_param_at(struct_dat, 0);
 
-	auto param_index = param - first_param;
-	assert(param_index <= param_count);
+	assert(first_param <= param && param < first_param + param_count);
+	auto param_index = (std::size_t)(param - first_param);
 
-	return hpiutil::nameFromStPrm(param, param_index, debug_segment);
+	return hpiutil::nameFromStPrm(param, (int)param_index, debug_segment);
 }
 
 auto HspDebugApi::param_stack_to_data_count(HspParamStack const& param_stack) const -> std::size_t {
