@@ -30,9 +30,14 @@ public:
 	virtual ~HspObjectTree() {
 	}
 
-	virtual void subscribe(std::unique_ptr<HspObjectTreeObserver>&& observer) = 0;
+	virtual void subscribe(std::weak_ptr<HspObjectTreeObserver>&& observer) = 0;
+
+	virtual auto root_id() const -> std::size_t = 0;
 
 	virtual auto path(std::size_t node_id) const -> std::optional<std::shared_ptr<HspObjectPath const>> = 0;
+
+	// 親ノードの ID を取得する。ルートノードからは取得できない。
+	virtual auto parent(std::size_t node_id) const -> std::optional<std::size_t> = 0;
 
 	// 親ノードの子ノードのうち、自身より1つ上の子ノード (兄ノード?) のIDを取得する。
 	// auto previous_sibling(std::size_t node_id) const -> std::optional<std::size_t>;

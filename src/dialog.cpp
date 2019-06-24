@@ -417,7 +417,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 0) } // node
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 1) } // invoke
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 2) } // log
-			, std::make_unique<VTView>(debug_segment, objects, static_vars, object_tree)
+			, std::make_unique<VTView>(debug_segment, objects, static_vars, object_tree, hVarTree)
 			, {{
 				  GetDlgItem(hPane, IDC_BTN1)
 				, GetDlgItem(hPane, IDC_BTN2)

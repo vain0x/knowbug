@@ -79,6 +79,8 @@ using WrapCall::ModcmdCallInfo;
 using detail::TvObserver;
 using detail::VarTreeLogObserver;
 
+class HspObjectTreeObserverImpl;
+
 static auto makeNodeName(VTNodeData const& node) -> string;
 static bool isAutoOpenNode(VTNodeData const& node);
 
@@ -96,7 +98,7 @@ struct VTView::Impl
 
 	HTREEITEM hNodeDynamic_, hNodeScript_, hNodeLog_;
 
-	unordered_map<HTREEITEM, std::size_t> node_ids_;
+	std::shared_ptr<HspObjectTreeObserverImpl> tree_observer_;
 
 public:
 	auto itemFromNode(VTNodeData const* p) const -> HTREEITEM;
@@ -126,14 +128,40 @@ public:
 class HspObjectTreeObserverImpl
 	: public HspObjectTreeObserver
 {
-	HspObjectTree& tree_;
+	hpiutil::DInfo const& debug_segment_;
 	HspObjects& objects_;
+	HspObjectTree& object_tree_;
+	HspStaticVars& static_vars_;
+
+	HWND tv_handle_;
+	std::unordered_map<HTREEITEM, std::size_t> node_ids_;
+	std::unordered_map<std::size_t, HTREEITEM> node_handles_;
 
 public:
-	HspObjectTreeObserverImpl(HspObjectTree& tree, HspObjects& objects)
-		: tree_(tree)
+	HspObjectTreeObserverImpl(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspObjectTree& object_tree, HspStaticVars& static_vars, HWND tv_handle)
+		: debug_segment_(debug_segment)
 		, objects_(objects)
+		, object_tree_(object_tree)
+		, static_vars_(static_vars)
+		, tv_handle_(tv_handle)
+		, node_ids_()
+		, node_handles_()
 	{
+		node_ids_.emplace(TVI_ROOT, object_tree_.root_id());
+		node_handles_.emplace(object_tree_.root_id(), TVI_ROOT);
+	}
+
+	auto tv() -> VarTreeView {
+		return VarTreeView{ tv_handle_ };
+	}
+
+	auto node_id(HTREEITEM node_handle) const -> std::optional<std::size_t> {
+		auto&& iter = node_ids_.find(node_handle);
+		if (iter == node_ids_.end()) {
+			return std::nullopt;
+		}
+
+		return std::make_optional(iter->second);
 	}
 
 	void log(std::string&& text) {
@@ -141,37 +169,74 @@ public:
 	}
 
 	virtual void did_create(std::size_t node_id) {
-		auto&& path = tree_.path(node_id);
-		if (!path) {
+		auto&& path_opt = object_tree_.path(node_id);
+		if (!path_opt) {
 			return;
 		}
+		auto&& path = *path_opt;
 
-		auto&& name = (**path).name(objects_);
+		auto&& name = path->name(objects_);
 		log(strf("create '%s' (%d)", name, node_id));
+
+		{
+			auto node_name = strf("!%s", name.data());
+
+			auto&& parent_id_opt = object_tree_.parent(node_id);
+
+			auto parent_handle = parent_id_opt && node_handles_.count(*parent_id_opt)
+				? node_handles_.at(*parent_id_opt)
+				: TVI_ROOT;
+
+			auto item_handle = tv().insert_item(parent_handle, node_name.data(), nullptr);
+
+			node_ids_.emplace(item_handle, node_id);
+			node_handles_.emplace(node_id, item_handle);
+
+			tv().expand_item(item_handle);
+		}
 	}
 
 	virtual void will_destroy(std::size_t node_id) {
-		auto&& path = tree_.path(node_id);
-		if (!path) {
+		auto&& path_opt = object_tree_.path(node_id);
+		if (!path_opt) {
 			return;
 		}
+		auto&& path = *path_opt;
 
-		auto&& name = (**path).name(objects_);
+		auto&& name = path->name(objects_);
 		log(strf("destroy '%s' (%d)", name, node_id));
+
+		{
+			assert(node_handles_.count(node_id) && u8"存在しないノードが削除されようとしています");
+			auto item_handle = node_handles_.at(node_id);
+
+			tv().delete_item(item_handle);
+
+			node_ids_.erase(item_handle);
+			node_handles_.erase(node_id);
+		}
 	}
 
 	virtual void did_focus(std::size_t node_id) {
-		auto&& path = tree_.path(node_id);
-		if (!path) {
+		auto&& path_opt = object_tree_.path(node_id);
+		if (!path_opt) {
 			return;
 		}
+		auto&& path = *path_opt;
 
-		auto&& name = (**path).name(objects_);
+		auto&& name = path->name(objects_);
 		log(strf("focus '%s' (%d)", name, node_id));
+
+		{
+			auto varinf = CVarinfoText{ debug_segment_, objects_, static_vars_ };
+			varinf.add(*path);
+			auto text = HspStringView{ varinf.getString().data() }.to_os_string();
+			Dialog::View::setText(text.as_ref());
+		}
 	}
 };
 
-VTView::VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars, HspObjectTree& object_tree)
+VTView::VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars, HspObjectTree& object_tree, HWND tv_handle)
 	: debug_segment_(debug_segment)
 	, objects_(objects)
 	, static_vars_(static_vars)
@@ -195,8 +260,8 @@ VTView::VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStat
 	p_->hNodeLog_     = p_->itemFromNode(&VTRoot::log());
 
 	// 新APIの部分
-	auto observer = std::unique_ptr<HspObjectTreeObserver>{ std::make_unique<HspObjectTreeObserverImpl>(object_tree_, objects) };
-	object_tree_.subscribe(std::move(observer));
+	p_->tree_observer_ = std::make_shared<HspObjectTreeObserverImpl>(debug_segment_, objects_, object_tree_, static_vars_, tv_handle);
+	object_tree_.subscribe(std::weak_ptr<HspObjectTreeObserver>{ p_->tree_observer_ });
 	object_tree_.focus_root();
 }
 
@@ -379,6 +444,14 @@ void VTView::updateViewWindow()
 
 	auto const hItem = tv.selected_item();
 	if ( hItem ) {
+		// 新API
+		{
+			if (auto&& node_id_opt = p_->tree_observer_->node_id(hItem)) {
+				object_tree_.focus(*node_id_opt);
+				return;
+			}
+		}
+
 		static auto stt_prevSelection = HTREEITEM { nullptr };
 		if ( hItem == stt_prevSelection ) {
 			Dialog::View::saveCurrentCaret();
@@ -403,38 +476,6 @@ void VTView::updateViewWindow()
 
 		} else {
 			Dialog::View::scroll(p_->viewCaretFromNode(hItem), 0);
-		}
-
-		// 新APIの試験
-		{
-			class FocusOnNode
-				: public VTNodeData::Visitor
-			{
-				HspObjectTree& object_tree_;
-
-			public:
-				FocusOnNode(HspObjectTree& object_tree)
-					: object_tree_(object_tree)
-				{
-				}
-
-				void fModule(VTNodeModule const& node) override
-				{
-					object_tree_.focus_path(*node.path());
-				}
-				void fVar(VTNodeVar const& node) override
-				{
-					auto const& path = node.path();
-					if (path) {
-						object_tree_.focus_path(*node.path());
-						return;
-					}
-				}
-			};
-
-			if (auto node = tv.tryGetNodeData(hItem)) {
-				node->acceptVisitor(FocusOnNode{ object_tree_ });
-			}
 		}
 	}
 }

@@ -22,7 +22,7 @@ struct VarTreeLogObserver;
 class VTView
 {
 public:
-	VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects_, HspStaticVars& static_vars, HspObjectTree& object_tree);
+	VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects_, HspStaticVars& static_vars, HspObjectTree& object_tree, HWND tv_handle_);
 	~VTView();
 
 	void update();

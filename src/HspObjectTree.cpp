@@ -44,7 +44,7 @@ private:
 	std::unordered_map<std::size_t, Node> nodes_;
 	std::size_t root_node_id_;
 	std::size_t last_node_id_;
-	std::vector<std::unique_ptr<HspObjectTreeObserver>> observers_;
+	std::vector<std::weak_ptr<HspObjectTreeObserver>> observers_;
 
 public:
 	HspObjectTreeImpl(HspObjects& objects)
@@ -57,8 +57,12 @@ public:
 		root_node_id_ = create_node(1, objects_.root_path().self());
 	}
 
-	void subscribe(std::unique_ptr<HspObjectTreeObserver>&& observer) override {
+	void subscribe(std::weak_ptr<HspObjectTreeObserver>&& observer) override {
 		observers_.emplace_back(std::move(observer));
+	}
+
+	auto root_id() const -> std::size_t override {
+		return root_node_id_;
 	}
 
 	auto path(std::size_t node_id) const -> std::optional<std::shared_ptr<HspObjectPath const>> override {
@@ -70,8 +74,19 @@ public:
 		return std::make_optional(nodes_.at(node_id).path().self());
 	}
 
-	// 親ノードのIDを取得する。
-	// auto parent(std::size_t node_id) const -> std::optional<std::size_t>;
+	auto parent(std::size_t node_id) const -> std::optional<std::size_t> override {
+		if (!nodes_.count(node_id)) {
+			assert(false && u8"存在しないパスの親ノードを探しています");
+			return std::nullopt;
+		}
+
+		auto parent = nodes_.at(node_id).parent();
+		if (parent == node_id) {
+			return std::nullopt;
+		}
+
+		return std::make_optional(parent);
+	}
 
 	// 親ノードの子ノードのうち、自身より1つ上の子ノード (兄ノード?) のIDを取得する。
 	auto previous_sibling(std::size_t node_id) const -> std::optional<std::size_t> {
@@ -97,8 +112,10 @@ public:
 
 		update_children(node_id);
 
-		for (auto&& observer : observers_) {
-			observer->did_focus(node_id);
+		for (auto&& observer_weak : observers_) {
+			if (auto&& observer = observer_weak.lock()) {
+				observer->did_focus(node_id);
+			}
 		}
 	}
 
@@ -141,8 +158,10 @@ private:
 
 	void notify_did_create(std::size_t node_id) {
 		auto&& node = nodes_.at(node_id);
-		for (auto&& observer : observers_) {
-			observer->did_create(node_id);
+		for (auto&& observer_weak : observers_) {
+			if (auto&& observer = observer_weak.lock()) {
+				observer->did_create(node_id);
+			}
 		}
 	}
 
@@ -172,8 +191,10 @@ private:
 			siblings.erase(std::find(std::begin(siblings), std::end(siblings), node_id));
 		}
 
-		for (auto&& observer : observers_) {
-			observer->will_destroy(node_id);
+		for (auto&& observer_weak : observers_) {
+			if (auto&& observer = observer_weak.lock()) {
+				observer->will_destroy(node_id);
+			}
 		}
 		nodes_.erase(node_id);
 	}
