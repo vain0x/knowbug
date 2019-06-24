@@ -112,14 +112,14 @@ static auto path_to_data(HspObjectPath const& path, HspDebugApi& api) -> std::op
 	switch (path.kind()) {
 	case HspObjectKind::Element:
 		{
-			auto&& pval = path_to_pval(path.parent(), api);
-			if (!pval) {
+			auto&& pval_opt = path_to_pval(path.parent(), api);
+			if (!pval_opt) {
 				assert(false && u8"配列要素の親は変数であるはず");
 				return std::nullopt;
 			}
 
-			auto aptr = api.var_element_to_aptr(*pval, path.as_element().indexes());
-			return std::make_optional( api.var_element_to_data(*pval, aptr));
+			auto aptr = api.var_element_to_aptr(*pval_opt, path.as_element().indexes());
+			return std::make_optional(api.var_element_to_data(*pval_opt, aptr));
 		}
 	default:
 		return std::nullopt;
@@ -127,7 +127,7 @@ static auto path_to_data(HspObjectPath const& path, HspDebugApi& api) -> std::op
 }
 
 static auto var_path_to_child_count(HspObjectPath const& path, HspDebugApi& api) -> std::size_t {
-	auto pval_opt = path_to_pval(path, api);
+	auto&& pval_opt = path_to_pval(path, api);
 	if (!pval_opt) {
 		return 0;
 	}
@@ -196,11 +196,11 @@ static auto path_to_param_stack(HspObjectPath const& path, HspDebugApi& api) -> 
 	switch (path.kind()) {
 	case HspObjectKind::Flex:
 		{
-			auto&& flex = flex_path_to_value(path.as_flex(), api);
-			if (!flex) {
+			auto&& flex_opt = flex_path_to_value(path.as_flex(), api);
+			if (!flex_opt) {
 				return std::nullopt;
 			}
-			return std::make_optional<HspParamStack>(api.flex_to_param_stack(*flex));
+			return std::make_optional<HspParamStack>(api.flex_to_param_stack(*flex_opt));
 		}
 	default:
 		return std::nullopt;
@@ -375,42 +375,42 @@ auto HspObjects::int_path_to_value(HspObjectPath::Int const& path) const -> HspI
 }
 
 auto HspObjects::flex_path_to_child_count(HspObjectPath::Flex const& path)->std::size_t {
-	auto&& value = flex_path_to_value(path, api_);
-	if (!value || api_.flex_is_nullmod(*value)) {
+	auto&& flex_opt = flex_path_to_value(path, api_);
+	if (!flex_opt || api_.flex_is_nullmod(*flex_opt)) {
 		return 0;
 	}
 
-	return api_.flex_to_member_count(*value);
+	return api_.flex_to_member_count(*flex_opt);
 }
 
 auto HspObjects::flex_path_to_child_at(HspObjectPath::Flex const& path, std::size_t index)->std::shared_ptr<HspObjectPath const> {
-	auto&& value = flex_path_to_value(path, api_);
-	if (!value || api_.flex_is_nullmod(*value)) {
+	auto&& flex_opt = flex_path_to_value(path, api_);
+	if (!flex_opt || api_.flex_is_nullmod(*flex_opt)) {
 		throw new std::exception{ "out of range" };
 	}
 
-	auto&& param_data = api_.flex_to_member_at(*value, index);
+	auto&& param_data = api_.flex_to_member_at(*flex_opt, index);
 	auto param_type = api_.param_data_to_type(param_data);
 	auto param_index = param_data.param_index();
 	return path.new_param(param_type, param_index);
 }
 
 bool HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) {
-	auto value = flex_path_to_value(path, api_);
-	if (!value) {
+	auto&& flex_opt = flex_path_to_value(path, api_);
+	if (!flex_opt) {
 		return true;
 	}
 
-	return api_.flex_is_nullmod(*value);
+	return api_.flex_is_nullmod(*flex_opt);
 }
 
 auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> char const* {
-	auto value = flex_path_to_value(path, api_);
-	if (!value || api_.flex_is_nullmod(*value)) {
+	auto&& flex_opt = flex_path_to_value(path, api_);
+	if (!flex_opt || api_.flex_is_nullmod(*flex_opt)) {
 		return "null";
 	}
 
-	auto struct_dat = api_.flex_to_module_struct(*value);
+	auto struct_dat = api_.flex_to_module_struct(*flex_opt);
 	return api_.struct_to_name(struct_dat);
 }
 
