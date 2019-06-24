@@ -16,17 +16,8 @@ auto HspObjectPath::self() const -> std::shared_ptr<HspObjectPath const> {
 // ルートパス
 // -----------------------------------------------
 
-// オブジェクトルートへのパス (path 型)
-static auto g_root = std::shared_ptr<HspObjectPath const>{
-	std::make_shared<HspObjectPath::Root const>()
-};
-
 // オブジェクトルートの名前。使われないはずなので適当な文字列にしておく。
 static auto g_root_name = std::string{ "<HspObjectPath::Root>" };
-
-auto HspObjectPath::get_root() -> HspObjectPath::Root const& {
-	return (HspObjectPath::Root const&)*g_root;
-}
 
 auto HspObjectPath::as_root() const -> HspObjectPath::Root const& {
 	if (kind() != HspObjectKind::Root) {
@@ -41,7 +32,7 @@ auto HspObjectPath::Root::name(HspObjects& objects) const -> std::string {
 }
 
 auto HspObjectPath::Root::parent() const -> HspObjectPath const& {
-	return *g_root;
+	return *this;
 }
 
 auto HspObjectPath::Root::child_count(HspObjects& objects) const -> std::size_t {

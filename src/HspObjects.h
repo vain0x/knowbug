@@ -25,11 +25,15 @@ private:
 	HspStaticVars& static_vars_;
 	hpiutil::DInfo const& debug_segment_;
 
+	std::shared_ptr<HspObjectPath const> root_path_;
+
 	std::vector<Module> modules_;
 	std::vector<TypeData> types_;
 
 public:
 	HspObjects(HspDebugApi& api, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment);
+
+	auto root_path() const->HspObjectPath::Root const&;
 
 	auto type_to_name(HspType type) const->HspStringView;
 

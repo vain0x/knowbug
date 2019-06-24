@@ -25,7 +25,7 @@ public:
 // オブジェクトツリー
 class HspObjectTree {
 public:
-	static auto create(HspObjects& objects, std::shared_ptr<HspObjectPath const> root_path) -> std::unique_ptr<HspObjectTree>;
+	static auto create(HspObjects& objects) -> std::unique_ptr<HspObjectTree>;
 
 	virtual ~HspObjectTree() {
 	}

@@ -237,9 +237,14 @@ HspObjects::HspObjects(HspDebugApi& api, HspStaticVars& static_vars, hpiutil::DI
 	: api_(api)
 	, static_vars_(static_vars)
 	, debug_segment_(debug_segment)
+	, root_path_(std::make_shared<HspObjectPath::Root>())
 	, modules_(group_vars_by_module(static_vars.get_all_names()))
 	, types_(create_type_datas())
 {
+}
+
+auto HspObjects::root_path() const->HspObjectPath::Root const& {
+	return root_path_->as_root();
 }
 
 auto HspObjects::type_to_name(HspType type) const->HspStringView {

@@ -47,14 +47,14 @@ private:
 	std::vector<std::unique_ptr<HspObjectTreeObserver>> observers_;
 
 public:
-	HspObjectTreeImpl(HspObjects& objects, std::shared_ptr<HspObjectPath const> root_path)
+	HspObjectTreeImpl(HspObjects& objects)
 		: objects_(objects)
 		, nodes_()
 		, root_node_id_(0)
 		, last_node_id_(0)
 		, observers_()
 	{
-		root_node_id_ = create_node(1, root_path);
+		root_node_id_ = create_node(1, objects_.root_path().self());
 	}
 
 	void subscribe(std::unique_ptr<HspObjectTreeObserver>&& observer) override {
@@ -242,7 +242,7 @@ private:
 	}
 };
 
-auto HspObjectTree::create(HspObjects& objects, std::shared_ptr<HspObjectPath const> root_path) -> std::unique_ptr<HspObjectTree> {
-	return std::unique_ptr<HspObjectTree>{ std::make_unique<HspObjectTreeImpl>(objects, root_path) };
+auto HspObjectTree::create(HspObjects& objects) -> std::unique_ptr<HspObjectTree> {
+	return std::unique_ptr<HspObjectTree>{ std::make_unique<HspObjectTreeImpl>(objects) };
 }
 

@@ -45,8 +45,6 @@ public:
 	class Int;
 	class Flex;
 
-	static auto get_root() -> HspObjectPath::Root const&;
-
 	virtual	~HspObjectPath();
 
 	HspObjectPath()
