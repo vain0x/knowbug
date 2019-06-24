@@ -47,16 +47,13 @@ public:
 
 	virtual	~HspObjectPath();
 
-	HspObjectPath()
-	{
+	HspObjectPath() {
 	}
 
+	// shared_ptr で管理されていないインスタンスを作れてしまうと shared_from_this が壊れるので、コピーやムーブを禁止する。
 	HspObjectPath(HspObjectPath&& other) = delete;
-
 	HspObjectPath(HspObjectPath const& other) = delete;
-
 	auto operator =(HspObjectPath&& other) -> HspObjectPath & = delete;
-
 	auto operator =(HspObjectPath const& other) -> HspObjectPath & = delete;
 
 	virtual auto kind() const -> HspObjectKind = 0;
