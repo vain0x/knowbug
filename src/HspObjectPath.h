@@ -28,6 +28,8 @@ enum class HspObjectKind {
 
 	// フレックス (モジュール変数のインスタンス)
 	Flex,
+
+	Log,
 };
 
 // HSP のオブジェクトを指し示すルートからの経路
@@ -44,6 +46,7 @@ public:
 	class Str;
 	class Int;
 	class Flex;
+	class Log;
 
 	virtual	~HspObjectPath();
 
@@ -117,6 +120,8 @@ public:
 
 	auto as_flex() const -> HspObjectPath::Flex const&;
 
+	auto as_log() const -> HspObjectPath::Log const&;
+
 protected:
 	auto new_module(std::size_t module_id) const->std::shared_ptr<HspObjectPath const>;
 
@@ -134,6 +139,8 @@ protected:
 	auto new_int() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_flex() const -> std::shared_ptr<HspObjectPath const>;
+
+	auto new_log() const -> std::shared_ptr<HspObjectPath const>;
 };
 
 // -----------------------------------------------
@@ -464,6 +471,50 @@ public:
 };
 
 // -----------------------------------------------
+// ログ
+// -----------------------------------------------
+
+class HspObjectPath::Log final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+public:
+	Log(std::shared_ptr<HspObjectPath const> parent);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::Log;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override {
+		return 0;
+	}
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override {
+		assert(false && u8"no children");
+		throw std::exception{};
+	}
+
+	auto name(HspObjects& objects) const -> std::string override {
+		return std::string{ "Log" };
+	}
+
+	auto content(HspObjects& objects) const -> std::string const&;
+
+	void append_line(HspObjects& objects) const;
+
+	void clear(HspObjects& objects) const;
+};
+
+// -----------------------------------------------
 // ビジター
 // -----------------------------------------------
 
@@ -510,6 +561,10 @@ public:
 	}
 
 	virtual void on_flex(HspObjectPath::Flex const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_log(HspObjectPath::Log const& path) {
 		accept_default(path);
 	}
 

@@ -319,6 +319,38 @@ auto HspObjectPath::Flex::module_name(HspObjects& objects) const -> char const* 
 }
 
 // -----------------------------------------------
+// ログ
+// -----------------------------------------------
+
+auto HspObjectPath::new_log() const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::Log>(self());
+}
+
+auto HspObjectPath::as_log() const -> HspObjectPath::Log const& {
+	if (kind() != HspObjectKind::Log) {
+		assert(false && u8"Casting to log");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Log const*)this;
+}
+
+HspObjectPath::Log::Log(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(std::move(parent))
+{
+}
+
+auto HspObjectPath::Log::content(HspObjects& objects) const -> std::string const& {
+	static std::string s_content{};
+	return s_content;
+}
+
+void HspObjectPath::Log::append_line(HspObjects& objects) const {
+}
+
+void HspObjectPath::Log::clear(HspObjects& objects) const {
+}
+
+// -----------------------------------------------
 // ビジター
 // -----------------------------------------------
 
@@ -359,6 +391,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::Flex:
 		on_flex(path.as_flex());
+		return;
+
+	case HspObjectKind::Log:
+		on_log(path.as_log());
 		return;
 
 	default:
