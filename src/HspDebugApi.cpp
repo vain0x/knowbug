@@ -287,3 +287,12 @@ auto HspDebugApi::param_data_as_local_var(HspParamData const& param_data) const 
 	}
 	return (PVal*)param_data.ptr();
 }
+
+auto HspDebugApi::param_data_to_data(HspParamData const& param_data) const -> std::optional<HspData> {
+	switch (param_data_to_type(param_data)) {
+	case MPTYPE_INUM:
+		return std::make_optional(HspData{ HspType::Int, (PDAT*)param_data.ptr() });
+	default:
+		return std::nullopt;
+	}
+}

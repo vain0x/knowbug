@@ -121,6 +121,15 @@ static auto path_to_data(HspObjectPath const& path, HspDebugApi& api) -> std::op
 			auto aptr = api.var_element_to_aptr(*pval_opt, path.as_element().indexes());
 			return std::make_optional(api.var_element_to_data(*pval_opt, aptr));
 		}
+	case HspObjectKind::Param:
+	{
+		auto&& param_data_opt = param_path_to_param_data(path.as_param(), api);
+		if (!param_data_opt) {
+			return std::nullopt;
+		}
+
+		return api.param_data_to_data(*param_data_opt);
+	}
 	default:
 		return std::nullopt;
 	}
@@ -350,6 +359,8 @@ auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) con
 	switch (path.param_type()) {
 	case MPTYPE_LOCALVAR:
 		return var_path_to_child_count(path, api_);
+	case MPTYPE_INUM:
+		return 1;
 	default:
 		// FIXME: 他の種類の実装
 		return 0;
@@ -362,6 +373,8 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 	switch (path.param_type()) {
 	case MPTYPE_LOCALVAR:
 		return var_path_to_child_at(path, child_index, api_);
+	case MPTYPE_INUM:
+		return path.new_int();
 	default:
 		assert(false && u8"Invalid param path child index");
 		throw new std::out_of_range{ u8"child_index" };

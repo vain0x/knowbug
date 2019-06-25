@@ -115,6 +115,8 @@ public:
 	auto param_data_to_type(HspParamData const& param_data) const -> HspParamType;
 
 	auto param_data_as_local_var(HspParamData const& param_data) const -> PVal*;
+
+	auto param_data_to_data(HspParamData const& param_data) const->std::optional<HspData>;
 };
 
 class HspDebugApi::BlockMemory {
