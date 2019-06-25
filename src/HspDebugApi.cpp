@@ -10,6 +10,14 @@ static auto pval_to_type(PVal const* pval) -> HspType {
 	return (HspType)pval->flag;
 }
 
+static auto str_ptr_to_data(HspStr value) -> HspData {
+	return HspData{ HspType::Str, (PDAT*)value };
+}
+
+static auto int_ptr_to_data(HspInt* ptr) -> HspData {
+	return HspData{ HspType::Int, (PDAT*)ptr };
+}
+
 HspDebugApi::HspDebugApi(HSP3DEBUG* debug)
 	: debug_(debug)
 	, context_(debug->hspctx)
@@ -299,13 +307,12 @@ auto HspDebugApi::param_data_to_data(HspParamData const& param_data) const -> st
 				assert(false && u8"str param must not be null");
 				return std::nullopt;
 			}
-			auto pdat = UNSAFE((PDAT*)str);
-			return std::make_optional(HspData{ HspType::Str, pdat });
+			return std::make_optional(str_ptr_to_data(str));
 		}
 	case MPTYPE_INUM:
 		{
-			auto pdat = UNSAFE((PDAT*)param_data.ptr());
-			return std::make_optional(HspData{ HspType::Int, pdat });
+			auto ptr = UNSAFE((HspInt*)param_data.ptr());
+			return std::make_optional(int_ptr_to_data(ptr));
 		}
 	default:
 		return std::nullopt;
