@@ -359,6 +359,7 @@ auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) con
 	switch (path.param_type()) {
 	case MPTYPE_LOCALVAR:
 		return var_path_to_child_count(path, api_);
+	case MPTYPE_LOCALSTRING:
 	case MPTYPE_INUM:
 		return 1;
 	default:
@@ -373,6 +374,8 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 	switch (path.param_type()) {
 	case MPTYPE_LOCALVAR:
 		return var_path_to_child_at(path, child_index, api_);
+	case MPTYPE_LOCALSTRING:
+		return path.new_str();
 	case MPTYPE_INUM:
 		return path.new_int();
 	default:

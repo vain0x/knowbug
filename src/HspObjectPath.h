@@ -308,6 +308,7 @@ class HspObjectPath::Param final
 
 public:
 	using HspObjectPath::new_element;
+	using HspObjectPath::new_str;
 	using HspObjectPath::new_int;
 
 	Param(std::shared_ptr<HspObjectPath const> parent, HspParamType param_type, std::size_t param_index);
