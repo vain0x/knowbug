@@ -4,6 +4,8 @@
 
 #undef max
 
+#define UNSAFE(E) (E)
+
 static auto pval_to_type(PVal const* pval) -> HspType {
 	return (HspType)pval->flag;
 }
@@ -136,7 +138,7 @@ auto HspDebugApi::data_to_str(HspData const& data) const -> HspStr {
 		throw new std::bad_cast{};
 	}
 
-	return (HspStr)data.ptr();
+	return UNSAFE((HspStr)data.ptr());
 }
 
 auto HspDebugApi::data_to_int(HspData const& data) const -> HspInt {
@@ -145,7 +147,7 @@ auto HspDebugApi::data_to_int(HspData const& data) const -> HspInt {
 		throw new std::bad_cast{};
 	}
 
-	return *(HspInt const*)data.ptr();
+	return UNSAFE(*(HspInt const*)data.ptr());
 }
 
 auto HspDebugApi::data_to_flex(HspData const& data) const -> FlexValue* {
@@ -154,7 +156,7 @@ auto HspDebugApi::data_to_flex(HspData const& data) const -> FlexValue* {
 		throw new std::bad_cast{};
 	}
 
-	return (FlexValue*)data.ptr();
+	return UNSAFE((FlexValue*)data.ptr());
 }
 
 bool HspDebugApi::flex_is_nullmod(FlexValue* flex) const {
@@ -285,22 +287,26 @@ auto HspDebugApi::param_data_as_local_var(HspParamData const& param_data) const 
 		assert(false && u8"Casting to local var");
 		throw new std::bad_cast{};
 	}
-	return (PVal*)param_data.ptr();
+	return UNSAFE((PVal*)param_data.ptr());
 }
 
 auto HspDebugApi::param_data_to_data(HspParamData const& param_data) const -> std::optional<HspData> {
 	switch (param_data_to_type(param_data)) {
 	case MPTYPE_LOCALSTRING:
 		{
-			auto str = *(char**)param_data.ptr();
+			auto str = UNSAFE(*(char**)param_data.ptr());
 			if (!str) {
 				assert(false && u8"str param must not be null");
 				return std::nullopt;
 			}
-			return std::make_optional(HspData{ HspType::Str, (PDAT*)str });
+			auto pdat = UNSAFE((PDAT*)str);
+			return std::make_optional(HspData{ HspType::Str, pdat });
 		}
 	case MPTYPE_INUM:
-		return std::make_optional(HspData{ HspType::Int, (PDAT*)param_data.ptr() });
+		{
+			auto pdat = UNSAFE((PDAT*)param_data.ptr());
+			return std::make_optional(HspData{ HspType::Int, pdat });
+		}
 	default:
 		return std::nullopt;
 	}
