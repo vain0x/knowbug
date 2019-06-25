@@ -242,8 +242,9 @@ static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugA
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HspDebugApi& api, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment)
+HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment)
 	: api_(api)
+	, logger_(logger)
 	, static_vars_(static_vars)
 	, debug_segment_(debug_segment)
 	, root_path_(std::make_shared<HspObjectPath::Root>())
@@ -437,6 +438,18 @@ auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> ch
 
 	auto struct_dat = api_.flex_to_module_struct(*flex_opt);
 	return api_.struct_to_name(struct_dat);
+}
+
+auto HspObjects::log_to_content() const -> std::string const& {
+	return logger_.content();
+}
+
+void HspObjects::log_do_append_line(char const* text) {
+	logger_.append_line(text);
+}
+
+void HspObjects::log_do_clear() {
+	logger_.clear();
 }
 
 // -----------------------------------------------

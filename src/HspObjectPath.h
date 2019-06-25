@@ -509,7 +509,7 @@ public:
 
 	auto content(HspObjects& objects) const -> std::string const&;
 
-	void append_line(HspObjects& objects) const;
+	void append_line(char const* text, HspObjects& objects) const;
 
 	void clear(HspObjects& objects) const;
 };

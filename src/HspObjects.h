@@ -13,6 +13,16 @@ namespace hpiutil {
 class HspDebugApi;
 class HspStaticVars;
 
+class HspLogger {
+public:
+	virtual ~HspLogger() {
+	}
+
+	virtual auto content() const -> std::string const& = 0;
+	virtual void append_line(char const* text) = 0;
+	virtual void clear() = 0;
+};
+
 // HSP のオブジェクト (モジュール、変数、値など) に関して
 // knowbug が知りたい情報を最適なインターフェイスで提供する。
 class HspObjects {
@@ -22,6 +32,7 @@ public:
 
 private:
 	HspDebugApi& api_;
+	HspLogger& logger_;
 	HspStaticVars& static_vars_;
 	hpiutil::DInfo const& debug_segment_;
 
@@ -31,7 +42,7 @@ private:
 	std::vector<TypeData> types_;
 
 public:
-	HspObjects(HspDebugApi& api, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment);
+	HspObjects(HspDebugApi& api, HspLogger& logger, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment);
 
 	auto root_path() const->HspObjectPath::Root const&;
 
@@ -83,6 +94,12 @@ public:
 	bool flex_path_is_nullmod(HspObjectPath::Flex const& path);
 
 	auto flex_path_to_module_name(HspObjectPath::Flex const& path) -> char const*;
+
+	auto log_to_content() const -> std::string const&;
+
+	void log_do_append_line(char const* text);
+
+	void log_do_clear();
 
 public:
 	class Module {

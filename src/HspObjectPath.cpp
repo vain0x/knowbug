@@ -340,14 +340,15 @@ HspObjectPath::Log::Log(std::shared_ptr<HspObjectPath const> parent)
 }
 
 auto HspObjectPath::Log::content(HspObjects& objects) const -> std::string const& {
-	static std::string s_content{};
-	return s_content;
+	return objects.log_to_content();
 }
 
-void HspObjectPath::Log::append_line(HspObjects& objects) const {
+void HspObjectPath::Log::append_line(char const* text, HspObjects& objects) const {
+	objects.log_do_append_line(text);
 }
 
 void HspObjectPath::Log::clear(HspObjects& objects) const {
+	objects.log_do_clear();
 }
 
 // -----------------------------------------------

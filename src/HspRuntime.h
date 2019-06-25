@@ -10,6 +10,7 @@
 // HSP 側から取得できる情報を knowbug 用に加工したりキャッシュしたりする機能を持つ (予定)
 class HspRuntime {
 	HspDebugApi api_;
+	std::unique_ptr<HspLogger> logger_;
 	HspStaticVars static_vars_;
 	HspObjects objects_;
 	std::unique_ptr<HspObjectTree> object_tree_;
