@@ -18,6 +18,10 @@ class HspRuntime {
 public:
 	HspRuntime(HspDebugApi&& api_);
 
+	auto logger() -> HspLogger& {
+		return *logger_;
+	}
+
 	auto objects() -> HspObjects& {
 		return objects_;
 	}

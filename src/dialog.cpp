@@ -116,6 +116,7 @@ namespace LogBox {
 			}
 		}
 
+		// FIXME: HspLogger の方は消えてない
 		logger.clear();
 	}
 

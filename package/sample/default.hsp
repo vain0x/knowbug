@@ -1,5 +1,8 @@
 #include "hsp3utf.as"
 
+	logmes "メッセージ1"
+	logmes "メッセージ2"
+
 	xs = 1, 2, 3
 	assert
 	xs = "a", "b"
