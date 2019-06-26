@@ -112,6 +112,8 @@ public:
 
 	auto script_to_content() const -> std::string const&;
 
+	auto script_to_current_line() const -> std::size_t;
+
 public:
 	class Module {
 		HspString name_;

@@ -559,6 +559,9 @@ public:
 	}
 
 	auto content(HspObjects& objects) const -> std::string const&;
+
+	// :thinking_face:
+	auto current_line(HspObjects& objects) const -> std::size_t;
 };
 
 // -----------------------------------------------

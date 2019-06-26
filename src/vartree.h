@@ -25,6 +25,10 @@ public:
 	}
 
 	virtual auto current_scroll_line() const -> std::size_t = 0;
+
+	virtual void scroll_to_line(std::size_t line_index) = 0;
+
+	virtual void select_line(std::size_t line_index) = 0;
 };
 
 class VTView

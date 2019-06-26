@@ -458,6 +458,10 @@ auto HspObjects::script_to_content() const -> std::string const& {
 	return scripts_.content(file_ref_name);
 }
 
+auto HspObjects::script_to_current_line() const -> std::size_t {
+	return api_.current_line();
+}
+
 // -----------------------------------------------
 // HspObjects::Module
 // -----------------------------------------------

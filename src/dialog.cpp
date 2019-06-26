@@ -71,6 +71,16 @@ public:
 	auto current_scroll_line() const -> std::size_t override {
 		return Edit_GetFirstVisibleLine(hViewEdit);
 	}
+
+	void scroll_to_line(std::size_t line_index) override {
+		Edit_Scroll(hViewEdit, (int)line_index, 0);
+	}
+
+	void select_line(std::size_t line_index) override {
+		auto start = Edit_LineIndex(hViewEdit, (int)line_index);
+		auto end = Edit_LineIndex(hViewEdit, (int)line_index + 1);
+		Edit_SetSel(hViewEdit, start, end);
+	}
 };
 
 void setText(OsStringView const& text) {

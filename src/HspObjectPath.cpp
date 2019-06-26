@@ -386,6 +386,11 @@ auto HspObjectPath::Script::content(HspObjects& objects) const -> std::string co
 	return objects.script_to_content();
 }
 
+// :thinking_face:
+auto HspObjectPath::Script::current_line(HspObjects& objects) const -> std::size_t {
+	return objects.script_to_current_line();
+}
+
 // -----------------------------------------------
 // ビジター
 // -----------------------------------------------

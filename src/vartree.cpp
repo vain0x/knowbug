@@ -23,6 +23,8 @@
 
 #include "module/supio/supio.h"
 
+#undef min
+
 // 変数ツリービューに対する操作のラッパー
 class VarTreeView {
 	HWND hwndVarTree;
@@ -84,6 +86,7 @@ class HspObjectTreeObserverImpl;
 static auto makeNodeName(VTNodeData const& node) -> string;
 static bool isAutoOpenNode(VTNodeData const& node);
 
+// ビューのスクロール位置を計算するもの
 class ScrollPreserver {
 	HTREEITEM active_item_;
 	std::unordered_map<HTREEITEM, std::size_t> scroll_lines_;
@@ -95,26 +98,45 @@ public:
 	{
 	}
 
-	void will_activate(HTREEITEM item, std::size_t scroll_line) {
+	void will_activate(HTREEITEM item, AbstractViewBox& view_box) {
+		auto old_scroll_line = view_box.current_scroll_line();
+
 		if (active_item_ == item) {
-			save_scroll(item, scroll_line);
+			save_scroll_line(item, old_scroll_line);
 		} else {
 			active_item_ = item;
 		}
 	}
 
-	auto scroll_line(HTREEITEM item) -> std::size_t {
+	void did_activate(HTREEITEM item, HspObjectPath const& path, HspObjects& objects, AbstractViewBox& view_box) {
+		switch (path.kind()) {
+		case HspObjectKind::Script:
+			{
+				auto current_line = path.as_script().current_line(objects);
+				auto scroll_line = current_line - std::min(current_line, std::size_t{ 3 });
+
+				view_box.scroll_to_line(scroll_line);
+				view_box.select_line(current_line);
+				return;
+			}
+		default:
+			view_box.scroll_to_line(get_scroll_line(item));
+			return;
+		}
+	}
+
+private:
+	void save_scroll_line(HTREEITEM item, std::size_t scroll_line) {
+		scroll_lines_[item] = scroll_line;
+	}
+
+	auto get_scroll_line(HTREEITEM item) -> std::size_t {
 		auto&& iter = scroll_lines_.find(item);
 		if (iter == scroll_lines_.end()) {
 			return 0;
 		}
 
 		return iter->second;
-	}
-
-private:
-	void save_scroll(HTREEITEM item, std::size_t scroll_line) {
-		scroll_lines_[item] = scroll_line;
 	}
 };
 
@@ -491,13 +513,11 @@ void VTView::updateViewWindow(AbstractViewBox& view_box)
 
 					// ビューウィンドウに反映する。
 					// スクロール位置を保存して、文字列を交換して、スクロール位置を適切に戻す。
-					// FIXME: ログとスクリプトの特別扱い
-					auto scroll_line = view_box.current_scroll_line();
-					p_->scroll_preserver_.will_activate(item_handle, scroll_line);
+					p_->scroll_preserver_.will_activate(item_handle, view_box);
 
 					Dialog::View::setText(text.as_ref());
 
-					Dialog::View::scroll(p_->scroll_preserver_.scroll_line(item_handle), 0);
+					p_->scroll_preserver_.did_activate(item_handle, *path, objects_, view_box);
 					return;
 				}
 			}
