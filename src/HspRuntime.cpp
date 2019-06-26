@@ -14,9 +14,8 @@ public:
 		return content_;
 	}
 
-	void append_line(char const* text) override {
+	void append(char const* text) override {
 		content_ += text;
-		content_ += "\r\n";
 	}
 
 	void clear() override {

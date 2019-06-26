@@ -444,8 +444,8 @@ auto HspObjects::log_to_content() const -> std::string const& {
 	return logger_.content();
 }
 
-void HspObjects::log_do_append_line(char const* text) {
-	logger_.append_line(text);
+void HspObjects::log_do_append(char const* text) {
+	logger_.append(text);
 }
 
 void HspObjects::log_do_clear() {

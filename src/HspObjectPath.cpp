@@ -343,8 +343,8 @@ auto HspObjectPath::Log::content(HspObjects& objects) const -> std::string const
 	return objects.log_to_content();
 }
 
-void HspObjectPath::Log::append_line(char const* text, HspObjects& objects) const {
-	objects.log_do_append_line(text);
+void HspObjectPath::Log::append(char const* text, HspObjects& objects) const {
+	objects.log_do_append(text);
 }
 
 void HspObjectPath::Log::clear(HspObjects& objects) const {

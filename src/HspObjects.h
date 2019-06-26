@@ -19,7 +19,7 @@ public:
 	}
 
 	virtual auto content() const -> std::string const& = 0;
-	virtual void append_line(char const* text) = 0;
+	virtual void append(char const* text) = 0;
 	virtual void clear() = 0;
 };
 
@@ -97,7 +97,7 @@ public:
 
 	auto log_to_content() const -> std::string const&;
 
-	void log_do_append_line(char const* text);
+	void log_do_append(char const* text);
 
 	void log_do_clear();
 
