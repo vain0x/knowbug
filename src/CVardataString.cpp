@@ -10,7 +10,9 @@
 #include "CVardataString.h"
 #include "CVarinfoText.h"
 #include "config_mng.h"
+#include "HspObjectPath.h"
 #include "HspStaticVars.h"
+#include "HspDebugApi.h"
 
 using namespace hpiutil::internal_vartype_tags;
 
@@ -18,6 +20,7 @@ CVardataStrWriter::CVardataStrWriter(CVardataStrWriter&& src)
 	: writer_(std::move(src.writer_))
 	, debug_segment_(src.debug_segment_)
 	, static_vars_(src.static_vars_)
+	, objects_(src.objects_)
 {
 }
 
@@ -377,7 +380,9 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 				addValue(name, HSPVAR_FLAG_INT, hpiutil::asPDAT<vtInt>(&Sysvar::getIntRef(id)));
 				break;
 			}
-			assert_sentinel;
+
+			assert(false && u8"Unknown Sysvar::Id");
+			break;
 	};
 }
 

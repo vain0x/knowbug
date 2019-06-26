@@ -1,5 +1,13 @@
 #include "hsp3utf.as"
 
+	logmes "メッセージ1"
+	logmes "メッセージ2"
+
+	xs = 1, 2, 3
+	assert
+	xs = "a", "b"
+	assert
+
     a = 8
     b = 9
 
@@ -21,6 +29,15 @@
 
 #global
 
+#module m_point x_, y_
+
+#modinit int x, int y
+	x_ = x
+	y_ = y
+	return
+
+#global
+
     hoge_init
     fuga_init
 
@@ -28,7 +45,9 @@
 
     dim bar, 3, 2
     bar(0, 0) = 3, 1, 4
-    bar(0, 1) = 1, 5, 9
+	bar(0, 1) = 1, 5, 9
+
+	x_str = "hello", "world!"
 
 #module
 
@@ -37,6 +56,15 @@
 	return
 
 #global
+
+	newmod points, m_point, 3, 14
+	newmod points, m_point, 40, 2
+	delmod points(0)
+
+	repeat
+		logmes "hello " + cnt
+		await 170
+	loop
 
 	assert
 	f 1

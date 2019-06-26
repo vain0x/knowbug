@@ -141,7 +141,7 @@ VTRoot::VTRoot()
 {}
 
 VTRoot::ChildNodes::ChildNodes(VTRoot& root)
-	: global_(root, Knowbug::get_hsp_runtime().static_vars())
+	: global_(root, Knowbug::get_hsp_runtime().objects().root_path().new_global_module(Knowbug::get_hsp_runtime().objects()), Knowbug::get_hsp_runtime().objects())
 	, log_(Knowbug::get_logger())
 	, script_(Knowbug::get_source_file_resolver())
 {}

@@ -1,13 +1,17 @@
 ﻿#ifndef IG_VARTREE_NODE_DATA_H
 #define IG_VARTREE_NODE_DATA_H
 
+#include <optional>
 #include "encoding.h"
 #include "main.h"
 #include "VarTreeNodeData_fwd.h"
 #include "WrapCall/ModcmdCallInfo.h"
 #include "module/Singleton.h"
 #include "module/utility.h"
+#include "HspObjectPath.h"
+#include "HspObjects.h"
 
+class HspObjectPath;
 class HspStaticVars;
 class LogObserver;
 class Logger;
@@ -20,15 +24,21 @@ class VTNodeVar
 	string const name_;
 	PVal* const pval_;
 
+	std::shared_ptr<HspObjectPath const> const path_;
+
 public:
-	VTNodeVar(VTNodeData& parent, string const& name, PVal* pval)
-		: parent_(parent), name_(name), pval_(pval)
+	VTNodeVar(VTNodeData& parent, string const& name, PVal* pval, std::shared_ptr<HspObjectPath const> path)
+		: parent_(parent), name_(name), pval_(pval), path_(path)
 	{
 		assert(pval_);
 	}
 
 	auto name() const -> string override { return name_; }
 	auto pval() const -> PVal* { return pval_; }
+
+	auto path() const -> std::shared_ptr<HspObjectPath const> const& {
+		return path_;
+	}
 
 	auto vartype() const -> vartype_t override { return pval_->flag; }
 
@@ -135,21 +145,36 @@ public:
 class VTNodeModule
 	: public VTNodeData
 {
-private:
-	struct Private;
-	std::unique_ptr<Private> p_;
-
 public:
 	class Global;
 
-	VTNodeModule(VTNodeData& parent, string const& name, HspStaticVars& static_vars);
+private:
+	VTNodeData& parent_;
+	HspObjects& objects_;
+
+	std::shared_ptr<HspObjectPath const> path_;
+	std::string name_;
+	std::vector<VTNodeModule> modules_;
+	std::vector<VTNodeVar> vars_;
+
+public:
+	VTNodeModule(VTNodeData& parent, std::shared_ptr<HspObjectPath const> const& path, HspObjects& objects);
 	virtual ~VTNodeModule();
 
-	auto name() const -> string override;
-	auto parent() const -> optional_ref<VTNodeData> override;
+	auto name() const -> string override {
+		return name_;
+	}
+
+	auto parent() const -> optional_ref<VTNodeData> override {
+		return &parent_;
+	}
+
 	bool updateSub(bool deep) override;
 
-	//foreach
+	auto path() const -> std::shared_ptr<HspObjectPath const> const& {
+		return path_;
+	}
+
 	struct Visitor
 	{
 		std::function<void(VTNodeModule const&)> fModule;
@@ -168,20 +193,6 @@ public:
 
 	// accept
 	void acceptVisitor(VTNodeData::Visitor& visitor) const override { visitor.fModule(*this); }
-};
-
-// グローバル領域のノード
-class VTNodeModule::Global
-	: public VTNodeModule
-{
-	friend class VTRoot;
-
-public:
-	static string const Name;
-	Global(VTRoot& parent, HspStaticVars& static_vars);
-
-private:
-	void addVar(const char* name);
 
 protected:
 	void init() override;
@@ -243,7 +254,7 @@ class VTRoot
 
 	struct ChildNodes
 	{
-		VTNodeModule::Global global_;
+		VTNodeModule         global_;
 		VTNodeDynamic        dynamic_;
 		VTNodeSysvarList     sysvarList_;
 		VTNodeScript         script_;
@@ -258,7 +269,7 @@ class VTRoot
 private:
 	auto children() -> std::vector<std::reference_wrapper<VTNodeData>> const&;
 public:
-	static auto global()     -> VTNodeModule::Global& { return instance().p_->global_; }
+	static auto global()     -> VTNodeModule        & { return instance().p_->global_; }
 	static auto dynamic()    -> VTNodeDynamic       & { return instance().p_->dynamic_; }
 	static auto sysvarList() -> VTNodeSysvarList    & { return instance().p_->sysvarList_; }
 	static auto script()     -> VTNodeScript        & { return instance().p_->script_; }

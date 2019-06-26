@@ -64,6 +64,37 @@ static void setEditStyle(HWND hEdit);
 
 namespace View {
 
+class ViewBoxImpl
+	: public AbstractViewBox
+{
+public:
+	auto current_scroll_line() const -> std::size_t override {
+		return Edit_GetFirstVisibleLine(hViewEdit);
+	}
+
+	bool at_bottom() const override {
+		auto line_count = Edit_GetLineCount(hViewEdit);
+
+		// ウィンドウに30行ぐらい表示されていると仮定して、スクロールが一番下にありそうかどうか判定する。
+		return line_count <= current_scroll_line() + 30UL;
+	}
+
+	void scroll_to_line(std::size_t line_index) override {
+		Edit_Scroll(hViewEdit, (int)line_index, 0);
+	}
+
+	void scroll_to_bottom() override {
+		auto line_count = Edit_GetLineCount(hViewEdit);
+		scroll_to_line(line_count);
+	}
+
+	void select_line(std::size_t line_index) override {
+		auto start = Edit_LineIndex(hViewEdit, (int)line_index);
+		auto end = Edit_LineIndex(hViewEdit, (int)line_index + 1);
+		Edit_SetSel(hViewEdit, start, end);
+	}
+};
+
 void setText(OsStringView const& text) {
 	SetWindowText(hViewEdit, text.data());
 };
@@ -90,10 +121,11 @@ void saveCurrentCaret()
 	g_res->tv->saveCurrentViewCaret(Edit_GetFirstVisibleLine(hViewEdit));
 }
 
-
 void update()
 {
-	g_res->tv->updateViewWindow();
+	auto view_box = ViewBoxImpl{};
+
+	g_res->tv->updateViewWindow(view_box);
 }
 
 } // namespace View
@@ -116,6 +148,7 @@ namespace LogBox {
 			}
 		}
 
+		// FIXME: HspLogger の方は消えてない
 		logger.clear();
 	}
 
@@ -223,7 +256,9 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		}
 		case IDC_LOG_SAVE: LogBox::save(*Knowbug::get_logger()); break;
 		case IDC_LOG_CLEAR: LogBox::clear(*Knowbug::get_logger()); break;
-		default: assert_sentinel;
+		default:
+			assert(false && u8"Unknown popup menu command ID");
+			throw std::exception{};
 	}
 }
 
@@ -349,7 +384,7 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars)
+void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars, HspObjectTree& object_tree)
 {
 	auto const dispx = GetSystemMetrics(SM_CXSCREEN);
 	auto const dispy = GetSystemMetrics(SM_CYSCREEN);
@@ -416,7 +451,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspStaticVars& stat
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 0) } // node
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 1) } // invoke
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 2) } // log
-			, std::make_unique<VTView>(debug_segment, static_vars)
+			, std::make_unique<VTView>(debug_segment, objects, static_vars, object_tree, hVarTree)
 			, {{
 				  GetDlgItem(hPane, IDC_BTN1)
 				, GetDlgItem(hPane, IDC_BTN2)

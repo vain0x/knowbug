@@ -23,9 +23,9 @@ if (!$scriptName) {
     exit 1
 }
 
-if ($mode = "hsp3") {
+if ($runtimeName -eq "hsp3") {
     $compilerArgs = @("-d", "-w")
-} elseif ($mode = "hsp3utf") {
+} elseif ($runtimeName -eq "hsp3utf") {
     $compilerArgs = @("-d", "-w", "-i", "-u")
 } else {
     write-error "ランタイムが不明です。hsp3 か hsp3utf を指定してください。"

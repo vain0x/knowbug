@@ -11,19 +11,38 @@
 #endif
 #include "VarTreeNodeData.h"
 
+class HspObjects;
+class HspObjectTree;
+
 namespace detail {
 struct TvObserver;
 struct VarTreeLogObserver;
 } // namespace detail
 
+class AbstractViewBox {
+public:
+	virtual ~AbstractViewBox() {
+	}
+
+	virtual auto current_scroll_line() const -> std::size_t = 0;
+
+	virtual bool at_bottom() const = 0;
+
+	virtual void scroll_to_line(std::size_t line_index) = 0;
+
+	virtual void scroll_to_bottom() = 0;
+
+	virtual void select_line(std::size_t line_index) = 0;
+};
+
 class VTView
 {
 public:
-	VTView(hpiutil::DInfo const& debug_segment, HspStaticVars& static_vars);
+	VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects_, HspStaticVars& static_vars, HspObjectTree& object_tree, HWND tv_handle_);
 	~VTView();
 
 	void update();
-	void updateViewWindow();
+	void updateViewWindow(AbstractViewBox& view_box);
 
 	void saveCurrentViewCaret(int vcaret);
 
@@ -37,7 +56,9 @@ private:
 	unique_ptr<Impl> p_;
 
 	hpiutil::DInfo const& debug_segment_;
+	HspObjects& objects_;
 	HspStaticVars& static_vars_;
+	HspObjectTree& object_tree_;
 
 	friend struct detail::TvObserver;
 	friend struct detail::VarTreeLogObserver;

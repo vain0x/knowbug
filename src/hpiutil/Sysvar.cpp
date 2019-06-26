@@ -40,7 +40,9 @@ auto getIntRef(Id id) -> int&
 			static_assert(sizeof(int) == sizeof(ctx->err), "");
 			return reinterpret_cast<int&>(ctx->err);
 		}
-		default: assert(false); throw;
+		default:
+			assert(false && u8"Unknown SysVar::Id");
+			throw std::exception{};
 	}
 }
 

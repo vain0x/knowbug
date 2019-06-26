@@ -59,8 +59,6 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	ctx    = api.context();
 	exinfo = api.exinfo();
 
-	g_hsp_runtime = std::make_unique<HspRuntime>(std::move(api));
-
 	g_logger = std::make_shared<Logger>();
 
 	g_dbginfo.reset(new DebugInfo(p1));
@@ -73,11 +71,18 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 	g_source_file_resolver = std::make_shared<SourceFileResolver>(g_config->commonPath(), debug_segment);
 
+	g_hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *g_source_file_resolver);
+
 	// 起動時の処理:
 
 	g_logger->enable_auto_save(g_config->logPath.as_ref());
 
-	Dialog::createMain(debug_segment, Knowbug::get_hsp_runtime().static_vars());
+	Dialog::createMain(
+		debug_segment,
+		g_hsp_runtime->objects(),
+		Knowbug::get_hsp_runtime().static_vars(),
+		g_hsp_runtime->object_tree()
+	);
 	return 0;
 }
 
@@ -93,8 +98,10 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 			break;
 		}
 		case hpiutil::DebugNotice_Logmes:
+			g_hsp_runtime->logger().append(ctx->stmp);
+			g_hsp_runtime->logger().append("\r\n");
 			g_logger->append_line(HspStringView{ ctx->stmp }.to_os_string().as_ref());
-		break;
+			break;
 	}
 	return 0;
 }

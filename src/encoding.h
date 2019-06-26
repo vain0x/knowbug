@@ -86,7 +86,8 @@ public:
 
 	auto data() const -> LPCTSTR {
 		if (inner_ == nullptr) {
-			throw new std::exception{ "OsStringView is null" };
+			assert(false && u8"OsStringView is null");
+			throw new std::exception{};
 		}
 		return inner_;
 	}
@@ -232,7 +233,8 @@ public:
 
 	auto data() const -> char const* {
 		if (inner_ == nullptr) {
-			throw new std::exception{ "SjisStringView is null" };
+			assert(false && u8"SjisStringView is null");
+			throw new std::exception{};
 		}
 		return inner_;
 	}
@@ -368,7 +370,8 @@ public:
 
 	auto data() const -> char const* {
 		if (inner_ == nullptr) {
-			throw new std::exception{ "Utf8StringView is null" };
+			assert(false && u8"Utf8StringView is null");
+			throw new std::exception{};
 		}
 		return inner_;
 	}

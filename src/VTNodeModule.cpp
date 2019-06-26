@@ -1,139 +1,68 @@
 ﻿
-#include <map>
 #include "encoding.h"
-#include "module/utility.h"
-#include "DebugInfo.h"
-#include "config_mng.h"
 #include "VarTreeNodeData.h"
+#include "HspObjectPath.h"
+#include "HspObjects.h"
 #include "HspStaticVars.h"
 
-using std::map;
+// FIXME: @__ で始まるモジュールを非表示にする機能は一時的に無効化されている。
 
-static auto var_name_to_scope_resolution(char const* var_name) -> char const* {
-	return std::strchr(var_name, '@');
-}
-
-static bool is_hidden_module(char const* scope_resolution) {
-	return std::strcmp(scope_resolution, "@__") == 0;
-}
-
-string const VTNodeModule::Global::Name { "@" };
-
-struct VTNodeModule::Private
+VTNodeModule::VTNodeModule(VTNodeData& parent, std::shared_ptr<HspObjectPath const> const& path, HspObjects& objects)
+	: parent_(parent)
+	, objects_(objects)
+	, path_(std::move(path))
+	, name_(path_->name(objects))
+	, modules_()
+	, vars_()
 {
-	VTNodeModule& self;
-	VTNodeData& parent_;
-	string const name_;
-	HspStaticVars& static_vars_;
-	map<string, unique_ptr<VTNodeVar>> vars_;
-	map<string, unique_ptr<VTNodeModule>> modules_;
-
-public:
-	void insertVar(char const* name);
-	auto insertModule(char const* pModname) -> optional_ref<VTNodeModule>;
-};
-
-VTNodeModule::VTNodeModule(VTNodeData& parent_, string const& name, HspStaticVars& static_vars)
-	: p_(new Private { *this, parent_, name, static_vars })
-{}
+}
 
 VTNodeModule::~VTNodeModule()
-{}
-
-auto VTNodeModule::name() const -> string
 {
-	return p_->name_;
 }
 
-auto VTNodeModule::parent() const -> optional_ref<VTNodeData>
-{
-	return &p_->parent_;
-}
+void VTNodeModule::init() {
+	for (auto i = std::size_t{}; i < path_->child_count(objects_); i++) {
+		auto&& child_path = path_->child_at(i, objects_);
+		auto kind = child_path->kind();
 
-//------------------------------------------------
-// グローバルノードを構築する
-//------------------------------------------------
-VTNodeModule::Global::Global(VTRoot& parent, HspStaticVars& static_vars)
-	: VTNodeModule(parent, Name, static_vars)
-{}
+		assert(kind == HspObjectKind::Module || kind == HspObjectKind::StaticVar);
 
-void VTNodeModule::Global::init()
-{
-	auto const& names = p_->static_vars_.get_all_names();
-	for ( auto const& name : names ) {
-		addVar(name.c_str());
-	}
-}
-
-//------------------------------------------------
-// 子ノードとして、変数ノードを追加する
-//------------------------------------------------
-void VTNodeModule::Global::addVar(char const* name)
-{
-	if ( auto scopeResolution = var_name_to_scope_resolution(name) ) {
-		if ( auto child = p_->insertModule(scopeResolution) ) {
-			child->p_->insertVar(name);
+		if (kind == HspObjectKind::Module) {
+			auto module_id = child_path->as_module().module_id();
+			modules_.emplace_back(*this, std::move(child_path), objects_);
+			continue;
 		}
 
-	} else {
-		p_->insertVar(name);
+		{
+			assert(kind == HspObjectKind::StaticVar);
+			auto name = child_path->name(objects_);
+			auto pval = objects_.static_var_path_to_pval(child_path->as_static_var());
+			vars_.emplace_back(*this, std::move(name), pval, std::move(child_path));
+		}
 	}
 }
 
-void VTNodeModule::Private::insertVar(char const* name)
-{
-	auto pval = static_vars_.access_by_name(name);
-	assert(pval);
-
-	vars_.emplace(std::string(name)
-		, std::make_unique<VTNodeVar>(self, std::string(name), pval));
-}
-
-//------------------------------------------------
-// 子ノードの、指定した名前のモジュール・ノードを取得する
-// なければ挿入する
-//------------------------------------------------
-auto VTNodeModule::Private::insertModule(char const* pModname)
-	-> optional_ref<VTNodeModule>
-{
-	assert(pModname[0] == '@');
-
-	if (is_hidden_module(pModname)) {
-		return nullptr;
-	}
-
-	auto module_name = std::string{ pModname };
-	auto iter = modules_.find(module_name);
-	if (iter == modules_.end()) {
-		iter = modules_.emplace_hint(iter, module_name, std::make_unique<VTNodeModule>(self, module_name, static_vars_));
-	}
-	return iter->second.get();
-}
-
-//------------------------------------------------
 // 浅い横断
-//------------------------------------------------
 void VTNodeModule::foreach(VTNodeModule::Visitor const& visitor) const
 {
-	for ( auto const& kv : p_->modules_ ) {
-		visitor.fModule(*kv.second);
+	for ( auto const& node : modules_ ) {
+		visitor.fModule(node);
 	}
-	for ( auto const& it : p_->vars_ ) {
-		visitor.fVar(it.first);
+	for ( auto const& node : vars_ ) {
+		visitor.fVar(node.name());
 	}
 }
 
-//------------------------------------------------
-// 更新
-//------------------------------------------------
+// 再帰的更新
 bool VTNodeModule::updateSub(bool deep)
 {
 	if ( deep ) {
-		for ( auto const& kv : p_->modules_ ) {
-			kv.second->updateDownDeep();
+		for ( auto& node : modules_ ) {
+			node.updateDownDeep();
 		}
-		for ( auto const& kv : p_->vars_ ) {
-			kv.second->updateDownDeep();
+		for ( auto& node : vars_ ) {
+			node.updateDownDeep();
 		}
 	}
 	return true;

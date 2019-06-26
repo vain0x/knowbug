@@ -27,7 +27,9 @@ void DInfo::parse()
 			case 0: return nullptr; // 変数名は記録しない
 			case 1: return &labelNames_;
 			case 2: return &paramNames_;
-			default: throw; //unreachable
+			default:
+				assert(false && u8"Unknown context index in debug segment");
+				throw std::exception{};
 		}
 	};
 

@@ -17,6 +17,8 @@ public:
 	virtual void did_change() = 0;
 };
 
+// FIXME: ロガーが2つあるので統合する
+
 class Logger {
 	// ログの中身。
 	OsString content_;

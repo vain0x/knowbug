@@ -32,6 +32,8 @@ public:
 	CStrWriter() = delete;
 	explicit CStrWriter(buf_t buf)
 		: buf_ { buf }
+		, depth_(0)
+		, head_(true)
 	{ }
 
 public:
@@ -44,16 +46,29 @@ public:
 	void catln(char const* s) { cat(s); catCrlf(); }
 	void catln(string const& s) { cat(s); catCrlf(); }
 	void catCrlf();
+
+	void catSize(std::size_t size);
+	void catPtr(void const* ptr);
 	void catDump(void const* data, size_t size);
+
+	// 字下げを1段階深くする。
+	void indent();
+
+	// 字下げを1段階浅くする。
+	void unindent();
+
 private:
 	void catDumpImpl(void const* data, size_t size);
+
 private:
 	buf_t buf_;
+	std::size_t depth_;
+	bool head_;
 };
 
 //------------------------------------------------
 // 構造付き (treeform or lineform)
-// 
+//
 // for CVardataStrWriter
 // name, left-right Bracket の生成はどちらかしか使わないのに両方用意させる、やや富豪的仕様
 // 標準配列変数の処理がいまいち
