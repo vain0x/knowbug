@@ -101,6 +101,8 @@ public:
 
 	void log_do_clear();
 
+	auto script_to_content() const -> std::string const&;
+
 public:
 	class Module {
 		HspString name_;

@@ -452,6 +452,11 @@ void HspObjects::log_do_clear() {
 	logger_.clear();
 }
 
+auto HspObjects::script_to_content() const -> std::string const& {
+	static auto s_content = std::string{ "missing" };
+	return s_content;
+}
+
 // -----------------------------------------------
 // HspObjects::Module
 // -----------------------------------------------

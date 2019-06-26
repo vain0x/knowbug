@@ -360,6 +360,31 @@ void HspObjectPath::Log::clear(HspObjects& objects) const {
 }
 
 // -----------------------------------------------
+// スクリプト
+// -----------------------------------------------
+
+auto HspObjectPath::new_script() const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::Script>(self());
+}
+
+auto HspObjectPath::as_script() const -> HspObjectPath::Script const& {
+	if (kind() != HspObjectKind::Script) {
+		assert(false && u8"Casting to script");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Script const*)this;
+}
+
+HspObjectPath::Script::Script(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(std::move(parent))
+{
+}
+
+auto HspObjectPath::Script::content(HspObjects& objects) const -> std::string const& {
+	return objects.script_to_content();
+}
+
+// -----------------------------------------------
 // ビジター
 // -----------------------------------------------
 
@@ -404,6 +429,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::Log:
 		on_log(path.as_log());
+		return;
+
+	case HspObjectKind::Script:
+		on_script(path.as_script());
 		return;
 
 	default:
