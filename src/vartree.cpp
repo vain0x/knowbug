@@ -90,11 +90,13 @@ static bool isAutoOpenNode(VTNodeData const& node);
 class ScrollPreserver {
 	HTREEITEM active_item_;
 	std::unordered_map<HTREEITEM, std::size_t> scroll_lines_;
+	std::unordered_set<HTREEITEM> at_bottom_;
 
 public:
 	ScrollPreserver()
 		: active_item_(TVI_ROOT)
 		, scroll_lines_()
+		, at_bottom_()
 	{
 	}
 
@@ -106,10 +108,26 @@ public:
 		} else {
 			active_item_ = item;
 		}
+
+		if (view_box.at_bottom()) {
+			at_bottom_.emplace(item);
+		} else {
+			at_bottom_.erase(item);
+		}
 	}
 
 	void did_activate(HTREEITEM item, HspObjectPath const& path, HspObjects& objects, AbstractViewBox& view_box) {
 		switch (path.kind()) {
+		case HspObjectKind::Log:
+			{
+				if (at_bottom_.count(item)) {
+					view_box.scroll_to_bottom();
+					return;
+				}
+
+				scroll_to_default(item, view_box);
+				return;
+			}
 		case HspObjectKind::Script:
 			{
 				auto current_line = path.as_script().current_line(objects);
@@ -120,12 +138,16 @@ public:
 				return;
 			}
 		default:
-			view_box.scroll_to_line(get_scroll_line(item));
+			scroll_to_default(item, view_box);
 			return;
 		}
 	}
 
 private:
+	void scroll_to_default(HTREEITEM item, AbstractViewBox& view_box) {
+		view_box.scroll_to_line(get_scroll_line(item));
+	}
+
 	void save_scroll_line(HTREEITEM item, std::size_t scroll_line) {
 		scroll_lines_[item] = scroll_line;
 	}

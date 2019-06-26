@@ -61,6 +61,11 @@
 	newmod points, m_point, 40, 2
 	delmod points(0)
 
+	repeat
+		logmes "hello " + cnt
+		await 170
+	loop
+
 	assert
 	f 1
 	f 2

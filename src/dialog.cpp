@@ -72,8 +72,20 @@ public:
 		return Edit_GetFirstVisibleLine(hViewEdit);
 	}
 
+	bool at_bottom() const override {
+		auto line_count = Edit_GetLineCount(hViewEdit);
+
+		// ウィンドウに30行ぐらい表示されていると仮定して、スクロールが一番下にありそうかどうか判定する。
+		return line_count <= current_scroll_line() + 30UL;
+	}
+
 	void scroll_to_line(std::size_t line_index) override {
 		Edit_Scroll(hViewEdit, (int)line_index, 0);
+	}
+
+	void scroll_to_bottom() override {
+		auto line_count = Edit_GetLineCount(hViewEdit);
+		scroll_to_line(line_count);
 	}
 
 	void select_line(std::size_t line_index) override {
