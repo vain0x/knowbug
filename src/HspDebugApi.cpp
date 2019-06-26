@@ -25,6 +25,27 @@ HspDebugApi::HspDebugApi(HSP3DEBUG* debug)
 {
 }
 
+auto HspDebugApi::current_file_ref_name() const -> std::optional<char const*> {
+	auto file_ref_name = debug_->fname;
+
+	if (file_ref_name == nullptr || std::strcmp(file_ref_name, u8"???") == 0) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(file_ref_name);
+}
+
+auto HspDebugApi::current_line() const -> std::size_t {
+	auto line_number = debug_->line;
+
+	if (line_number <= 0) {
+		assert(false && u8"line number should start with 1");
+		throw std::exception{};
+	}
+
+	return (std::size_t)(line_number - 1);
+}
+
 auto HspDebugApi::static_vars() -> PVal* {
 	return context()->mem_var;
 }

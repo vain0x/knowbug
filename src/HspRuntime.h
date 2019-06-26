@@ -6,17 +6,20 @@
 #include "HspObjectTree.h"
 #include "HspStaticVars.h"
 
+class SourceFileResolver;
+
 // HSP 関連の操作をまとめるもの。
 // HSP 側から取得できる情報を knowbug 用に加工したりキャッシュしたりする機能を持つ (予定)
 class HspRuntime {
 	HspDebugApi api_;
 	std::unique_ptr<HspLogger> logger_;
+	std::unique_ptr<HspScripts> scripts_;
 	HspStaticVars static_vars_;
 	HspObjects objects_;
 	std::unique_ptr<HspObjectTree> object_tree_;
 
 public:
-	HspRuntime(HspDebugApi&& api_);
+	HspRuntime(HspDebugApi&& api_, SourceFileResolver& source_file_resolver);
 
 	auto logger() -> HspLogger& {
 		return *logger_;

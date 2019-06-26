@@ -242,9 +242,10 @@ static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugA
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment)
+HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment)
 	: api_(api)
 	, logger_(logger)
+	, scripts_(scripts)
 	, static_vars_(static_vars)
 	, debug_segment_(debug_segment)
 	, root_path_(std::make_shared<HspObjectPath::Root>())
@@ -453,8 +454,8 @@ void HspObjects::log_do_clear() {
 }
 
 auto HspObjects::script_to_content() const -> std::string const& {
-	static auto s_content = std::string{ "missing" };
-	return s_content;
+	auto file_ref_name = api_.current_file_ref_name().value_or("");
+	return scripts_.content(file_ref_name);
 }
 
 // -----------------------------------------------

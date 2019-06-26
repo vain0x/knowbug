@@ -36,7 +36,7 @@ auto HspObjectPath::Root::parent() const -> HspObjectPath const& {
 }
 
 auto HspObjectPath::Root::child_count(HspObjects& objects) const -> std::size_t {
-	return 2;
+	return 3;
 }
 
 auto HspObjectPath::Root::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
@@ -46,6 +46,8 @@ auto HspObjectPath::Root::child_at(std::size_t index, HspObjects& objects) const
 		return new_global_module(objects);
 	case 1:
 		return new_log();
+	case 2:
+		return new_script();
 	default:
 		assert(false && u8"out of range");
 		throw std::exception{};

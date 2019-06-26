@@ -59,8 +59,6 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	ctx    = api.context();
 	exinfo = api.exinfo();
 
-	g_hsp_runtime = std::make_unique<HspRuntime>(std::move(api));
-
 	g_logger = std::make_shared<Logger>();
 
 	g_dbginfo.reset(new DebugInfo(p1));
@@ -72,6 +70,8 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	auto const& debug_segment = hpiutil::DInfo::instance();
 
 	g_source_file_resolver = std::make_shared<SourceFileResolver>(g_config->commonPath(), debug_segment);
+
+	g_hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *g_source_file_resolver);
 
 	// 起動時の処理:
 

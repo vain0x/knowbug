@@ -15,6 +15,7 @@ class HspDebugApi {
 public:
 	class BlockMemory;
 	class ModuleStruct;
+	class SourceLocation;
 
 private:
 	HSPCTX* context_;
@@ -37,6 +38,10 @@ public:
 	auto exinfo() -> HSPEXINFO* {
 		return exinfo_;
 	}
+
+	auto current_file_ref_name() const -> std::optional<char const*>;
+
+	auto current_line() const -> std::size_t;
 
 	auto static_vars() -> PVal*;
 

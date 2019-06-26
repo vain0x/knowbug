@@ -81,6 +81,8 @@ public:
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
 
 	void on_log(HspObjectPath::Log const& path) override;
+
+	void on_script(HspObjectPath::Script const& path) override;
 };
 
 // ブロックフォーム。
@@ -224,6 +226,12 @@ void HspObjectWriterImpl::TableForm::on_log(HspObjectPath::Log const& path) {
 	assert((content.empty() || content.back() == '\n') && u8"Log must be end with line break");
 
 	writer().cat(content);
+}
+
+void HspObjectWriterImpl::TableForm::on_script(HspObjectPath::Script const& path) {
+	auto&& content = path.content(objects());
+
+	writer().catln(content);
 }
 
 // -----------------------------------------------

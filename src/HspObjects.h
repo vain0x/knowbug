@@ -23,6 +23,14 @@ public:
 	virtual void clear() = 0;
 };
 
+class HspScripts {
+public:
+	virtual ~HspScripts() {
+	}
+
+	virtual auto content(char const* file_name_ref) -> std::string const& = 0;
+};
+
 // HSP のオブジェクト (モジュール、変数、値など) に関して
 // knowbug が知りたい情報を最適なインターフェイスで提供する。
 class HspObjects {
@@ -33,6 +41,7 @@ public:
 private:
 	HspDebugApi& api_;
 	HspLogger& logger_;
+	HspScripts& scripts_;
 	HspStaticVars& static_vars_;
 	hpiutil::DInfo const& debug_segment_;
 
@@ -42,7 +51,7 @@ private:
 	std::vector<TypeData> types_;
 
 public:
-	HspObjects(HspDebugApi& api, HspLogger& logger, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment);
+	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment);
 
 	auto root_path() const->HspObjectPath::Root const&;
 
