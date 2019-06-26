@@ -79,6 +79,8 @@ public:
 	void on_module(HspObjectPath::Module const& path) override;
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
+
+	void on_log(HspObjectPath::Log const& path) override;
 };
 
 // ブロックフォーム。
@@ -215,6 +217,13 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 
 	// 旧APIにフォールバック
 	varinf_.addVar(pval, name.data());
+}
+
+void HspObjectWriterImpl::TableForm::on_log(HspObjectPath::Log const& path) {
+	auto&& content = path.content(objects());
+	assert((content.empty() || content.back() == '\n') && u8"Log must be end with line break");
+
+	writer().cat(content);
 }
 
 // -----------------------------------------------
