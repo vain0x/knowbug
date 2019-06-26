@@ -216,24 +216,6 @@ public:
 			node_handles_.erase(node_id);
 		}
 	}
-
-	virtual void did_focus(std::size_t node_id) {
-		auto&& path_opt = object_tree_.path(node_id);
-		if (!path_opt) {
-			return;
-		}
-		auto&& path = *path_opt;
-
-		auto&& name = path->name(objects_);
-		log(strf("focus '%s' (%d)", name, node_id));
-
-		{
-			auto varinf = CVarinfoText{ debug_segment_, objects_, static_vars_ };
-			varinf.add(*path);
-			auto text = HspStringView{ varinf.getString().data() }.to_os_string();
-			Dialog::View::setText(text.as_ref());
-		}
-	}
 };
 
 VTView::VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars, HspObjectTree& object_tree, HWND tv_handle)
@@ -447,8 +429,15 @@ void VTView::updateViewWindow()
 		// 新API
 		{
 			if (auto&& node_id_opt = p_->tree_observer_->node_id(hItem)) {
-				object_tree_.focus(*node_id_opt);
-				return;
+				auto node_id = object_tree_.focus(*node_id_opt);
+				auto&& path_opt = object_tree_.path(node_id);
+
+				if (path_opt) {
+					auto varinf = CVarinfoText{ debug_segment_, objects_, static_vars_ };
+					varinf.add(**path_opt);
+					auto text = HspStringView{ varinf.getString().data() }.to_os_string();
+					Dialog::View::setText(text.as_ref());
+				}
 			}
 		}
 

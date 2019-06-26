@@ -17,9 +17,6 @@ public:
 
 	virtual void will_destroy(std::size_t node_id) {
 	}
-
-	virtual void did_focus(std::size_t node_id) {
-	}
 };
 
 // オブジェクトツリー
@@ -39,15 +36,15 @@ public:
 	// 親ノードの ID を取得する。ルートノードからは取得できない。
 	virtual auto parent(std::size_t node_id) const -> std::optional<std::size_t> = 0;
 
-	// 親ノードの子ノードのうち、自身より1つ上の子ノード (兄ノード?) のIDを取得する。
-	// auto previous_sibling(std::size_t node_id) const -> std::optional<std::size_t>;
+	// ノードをフォーカスする。
+	// ノードをフォーカスするとき、それが生存しているか判定する。
+	// 生存していなければ消去して、代わりに親ノードをフォーカスする。
+	// 生存しているなら、子ノードのリストを更新する。そして、フォーカスされたノードのIDを返す。
+	virtual auto focus(std::size_t node_id) -> std::size_t = 0;
 
-	// あるノードに焦点を当てる。
-	// ノードへのパスが存在しなくなっていれば消去して、代わりに親ノードに焦点を当てる。
-	// 存在していたら、子ノードの情報を更して、did_focus イベントを発行する。
-	virtual void focus(std::size_t node_id) = 0;
+	virtual auto focus_by_path(HspObjectPath const& path) -> std::size_t = 0;
 
-	virtual void focus_root() = 0;
-
-	virtual void focus_path(HspObjectPath const& path) = 0;
+	auto focus_root() -> std::size_t {
+		return focus(root_id());
+	}
 };

@@ -76,7 +76,7 @@ public:
 
 	auto parent(std::size_t node_id) const -> std::optional<std::size_t> override {
 		if (!nodes_.count(node_id)) {
-			assert(false && u8"存在しないパスの親ノードを探しています");
+			assert(false && u8"存在しないノードの親ノードを探しています");
 			return std::nullopt;
 		}
 
@@ -93,40 +93,30 @@ public:
 		return std::nullopt;
 	}
 
-	// あるノードに焦点を当てる。
-	// ノードへのパスが存在しなくなっていれば消去して、代わりに親ノードに焦点を当てる。
-	// 存在していたら、子ノードの情報を更して、did_focus イベントを発行する。
-	void focus(std::size_t node_id) override {
+	auto focus(std::size_t node_id) -> std::size_t override {
 		if (!nodes_.count(node_id)) {
 			assert(false && u8"存在しないノードにフォーカスしようとしています");
-			return;
+			return root_id();
 		}
 
 		if (!node_is_alive(node_id)) {
 			auto parent = nodes_.at(node_id).parent();
 
 			remove_node(node_id);
-			focus(parent);
-			return;
+			return focus(parent);
 		}
 
 		update_children(node_id);
 
-		for (auto&& observer_weak : observers_) {
-			if (auto&& observer = observer_weak.lock()) {
-				observer->did_focus(node_id);
-			}
-		}
+		return node_id;
 	}
 
-	void focus_root() override {
-		focus(root_node_id_);
-	}
-
-	void focus_path(HspObjectPath const& path) override {
+	auto focus_by_path(HspObjectPath const& path) -> std::size_t override {
 		if (auto&& node_id_opt = find_by_path(path)) {
-			focus(*node_id_opt);
+			return focus(*node_id_opt);
 		}
+
+		return root_id();
 	}
 
 private:
