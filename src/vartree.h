@@ -19,6 +19,14 @@ struct TvObserver;
 struct VarTreeLogObserver;
 } // namespace detail
 
+class AbstractViewBox {
+public:
+	virtual ~AbstractViewBox() {
+	}
+
+	virtual auto current_scroll_line() const -> std::size_t = 0;
+};
+
 class VTView
 {
 public:
@@ -26,7 +34,7 @@ public:
 	~VTView();
 
 	void update();
-	void updateViewWindow();
+	void updateViewWindow(AbstractViewBox& view_box);
 
 	void saveCurrentViewCaret(int vcaret);
 

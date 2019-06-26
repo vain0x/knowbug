@@ -84,6 +84,40 @@ class HspObjectTreeObserverImpl;
 static auto makeNodeName(VTNodeData const& node) -> string;
 static bool isAutoOpenNode(VTNodeData const& node);
 
+class ScrollPreserver {
+	HTREEITEM active_item_;
+	std::unordered_map<HTREEITEM, std::size_t> scroll_lines_;
+
+public:
+	ScrollPreserver()
+		: active_item_(TVI_ROOT)
+		, scroll_lines_()
+	{
+	}
+
+	void will_activate(HTREEITEM item, std::size_t scroll_line) {
+		if (active_item_ == item) {
+			save_scroll(item, scroll_line);
+		} else {
+			active_item_ = item;
+		}
+	}
+
+	auto scroll_line(HTREEITEM item) -> std::size_t {
+		auto&& iter = scroll_lines_.find(item);
+		if (iter == scroll_lines_.end()) {
+			return 0;
+		}
+
+		return iter->second;
+	}
+
+private:
+	void save_scroll(HTREEITEM item, std::size_t scroll_line) {
+		scroll_lines_[item] = scroll_line;
+	}
+};
+
 struct VTView::Impl
 {
 	VTView& self_;
@@ -99,6 +133,7 @@ struct VTView::Impl
 	HTREEITEM hNodeDynamic_, hNodeScript_, hNodeLog_;
 
 	std::shared_ptr<HspObjectTreeObserverImpl> tree_observer_;
+	ScrollPreserver scroll_preserver_;
 
 public:
 	auto itemFromNode(VTNodeData const* p) const -> HTREEITEM;
@@ -158,6 +193,15 @@ public:
 	auto node_id(HTREEITEM node_handle) const -> std::optional<std::size_t> {
 		auto&& iter = node_ids_.find(node_handle);
 		if (iter == node_ids_.end()) {
+			return std::nullopt;
+		}
+
+		return std::make_optional(iter->second);
+	}
+
+	auto item_handle(std::size_t node_id) const -> std::optional<HTREEITEM> {
+		auto&& iter = node_handles_.find(node_id);
+		if (iter == node_handles_.end()) {
 			return std::nullopt;
 		}
 
@@ -420,7 +464,7 @@ void VTView::selectNode(VTNodeData const& node)
 	}
 }
 
-void VTView::updateViewWindow()
+void VTView::updateViewWindow(AbstractViewBox& view_box)
 {
 	auto tv = VarTreeView{ hwndVarTree };
 
@@ -428,15 +472,33 @@ void VTView::updateViewWindow()
 	if ( hItem ) {
 		// 新API
 		{
+			// テキストを更新する
 			if (auto&& node_id_opt = p_->tree_observer_->node_id(hItem)) {
+				// フォーカスを当てる。
 				auto node_id = object_tree_.focus(*node_id_opt);
-				auto&& path_opt = object_tree_.path(node_id);
 
-				if (path_opt) {
+				// フォーカスの当たった要素のパスとハンドル。
+				auto&& path_opt = object_tree_.path(node_id);
+				auto&& item_handle_opt = p_->tree_observer_->item_handle(node_id);
+
+				if (path_opt && item_handle_opt) {
+					auto&& path = *path_opt;
+					auto&& item_handle = *item_handle_opt;
+
 					auto varinf = CVarinfoText{ debug_segment_, objects_, static_vars_ };
-					varinf.add(**path_opt);
+					varinf.add(*path);
 					auto text = HspStringView{ varinf.getString().data() }.to_os_string();
+
+					// ビューウィンドウに反映する。
+					// スクロール位置を保存して、文字列を交換して、スクロール位置を適切に戻す。
+					// FIXME: ログとスクリプトの特別扱い
+					auto scroll_line = view_box.current_scroll_line();
+					p_->scroll_preserver_.will_activate(item_handle, scroll_line);
+
 					Dialog::View::setText(text.as_ref());
+
+					Dialog::View::scroll(p_->scroll_preserver_.scroll_line(item_handle), 0);
+					return;
 				}
 			}
 		}

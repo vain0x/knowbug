@@ -64,6 +64,15 @@ static void setEditStyle(HWND hEdit, int maxlen);
 
 namespace View {
 
+class ViewBoxImpl
+	: public AbstractViewBox
+{
+public:
+	auto current_scroll_line() const -> std::size_t override {
+		return Edit_GetFirstVisibleLine(hViewEdit);
+	}
+};
+
 void setText(OsStringView const& text) {
 	SetWindowText(hViewEdit, text.data());
 };
@@ -90,10 +99,11 @@ void saveCurrentCaret()
 	g_res->tv->saveCurrentViewCaret(Edit_GetFirstVisibleLine(hViewEdit));
 }
 
-
 void update()
 {
-	g_res->tv->updateViewWindow();
+	auto view_box = ViewBoxImpl{};
+
+	g_res->tv->updateViewWindow(view_box);
 }
 
 } // namespace View
