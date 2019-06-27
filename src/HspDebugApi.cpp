@@ -14,6 +14,10 @@ static auto str_ptr_to_data(HspStr value) -> HspData {
 	return HspData{ HspType::Str, (PDAT*)value };
 }
 
+static auto double_ptr_to_data(HspDouble* value) -> HspData {
+	return HspData{ HspType::Str, (PDAT*)value };
+}
+
 static auto int_ptr_to_data(HspInt* ptr) -> HspData {
 	return HspData{ HspType::Int, (PDAT*)ptr };
 }
@@ -163,6 +167,10 @@ auto HspDebugApi::var_element_to_block_memory(PVal* pval, std::size_t aptr) -> H
 
 auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) -> std::optional<HspData> {
 	switch (system_var_kind) {
+	case HspSystemVarKind::Refdval:
+		return std::make_optional(double_ptr_to_data(&context()->refdval));
+	case HspSystemVarKind::Refstr:
+		return std::make_optional(str_ptr_to_data(context()->refstr));
 	case HspSystemVarKind::Stat:
 		return std::make_optional(int_ptr_to_data(&context()->stat));
 	default:

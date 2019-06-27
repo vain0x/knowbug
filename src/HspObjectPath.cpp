@@ -434,16 +434,21 @@ auto HspObjectPath::as_system_var_list() const -> HspObjectPath::SystemVarList c
 }
 
 auto HspObjectPath::SystemVarList::child_count(HspObjects& objects) const -> std::size_t {
-	return 1;
+	return 3;
 }
 
 auto HspObjectPath::SystemVarList::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
-	if (child_index >= 1) {
+	switch (child_index) {
+	case 0:
+		return new_system_var(HspSystemVarKind::Refdval);
+	case 1:
+		return new_system_var(HspSystemVarKind::Refstr);
+	case 2:
+		return new_system_var(HspSystemVarKind::Stat);
+	default:
 		assert(false && u8"out of range");
 		throw std::exception{};
 	}
-
-	return new_system_var(HspSystemVarKind::Stat);
 }
 
 // -----------------------------------------------

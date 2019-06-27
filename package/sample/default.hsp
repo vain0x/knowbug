@@ -2,6 +2,7 @@
 
 	assert
 	set_stat cnt + 1
+	set_refstr "ハロー\n\tこんにちは\r\nこんばんは"
 
 	floats = 3.14159265, sqrt(-1)
 
@@ -33,6 +34,9 @@
     return
 
 #deffunc set_stat int value
+	return value
+
+#deffunc set_refstr str value
 	return value
 
 #global
