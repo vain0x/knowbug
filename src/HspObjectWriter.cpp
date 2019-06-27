@@ -87,6 +87,8 @@ public:
 
 	void on_system_var(HspObjectPath::SystemVar const& path) override;
 
+	void on_call_stack(HspObjectPath::CallStack const& path) override;
+
 	void on_log(HspObjectPath::Log const& path) override;
 
 	void on_script(HspObjectPath::Script const& path) override;
@@ -122,6 +124,8 @@ public:
 	void on_unknown(HspObjectPath::Unknown const& path) override;
 
 	void on_system_var(HspObjectPath::SystemVar const& path) override;
+
+	void on_call_frame(HspObjectPath::CallFrame const& path) override;
 
 private:
 	void add_name_children(HspObjectPath const& path);
@@ -260,6 +264,18 @@ void HspObjectWriterImpl::TableForm::on_system_var(HspObjectPath::SystemVar cons
 	// FIXME: ダンプ
 }
 
+void HspObjectWriterImpl::TableForm::on_call_stack(HspObjectPath::CallStack const& path) {
+	// FIXME: この挙動を既定にするとよさそう
+	auto&& o = objects();
+	auto&& w = writer();
+
+	w.cat("[");
+	w.cat(path.name(o));
+	w.catln("]");
+
+	to_block_form().accept_children(path);
+}
+
 void HspObjectWriterImpl::TableForm::on_log(HspObjectPath::Log const& path) {
 	auto&& content = path.content(objects());
 	assert((content.empty() || content.back() == '\n') && u8"Log must be end with line break");
@@ -359,6 +375,11 @@ void HspObjectWriterImpl::BlockForm::on_unknown(HspObjectPath::Unknown const& pa
 }
 
 void HspObjectWriterImpl::BlockForm::on_system_var(HspObjectPath::SystemVar const& path) {
+	add_name_children(path);
+}
+
+void HspObjectWriterImpl::BlockForm::on_call_frame(HspObjectPath::CallFrame const& path) {
+	// FIXME: この挙動を既定にするとよさそう
 	add_name_children(path);
 }
 

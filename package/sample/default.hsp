@@ -1,6 +1,6 @@
 #include "hsp3utf.as"
+#include "WrapCall.as"
 
-	assert
 	repeat 2
 		y = cnt
 		repeat 2

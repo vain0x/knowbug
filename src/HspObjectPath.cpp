@@ -2,7 +2,10 @@
 #include "HspObjectPath.h"
 
 static bool kind_can_have_value(HspObjectKind kind) {
-	return kind == HspObjectKind::StaticVar || kind == HspObjectKind::Element || kind == HspObjectKind::SystemVar;
+	return kind == HspObjectKind::StaticVar
+		|| kind == HspObjectKind::Element
+		|| kind == HspObjectKind::Param
+		|| kind == HspObjectKind::SystemVar;
 }
 
 HspObjectPath::~HspObjectPath() {
@@ -36,7 +39,7 @@ auto HspObjectPath::Root::parent() const -> HspObjectPath const& {
 }
 
 auto HspObjectPath::Root::child_count(HspObjects& objects) const -> std::size_t {
-	return 4;
+	return 5;
 }
 
 auto HspObjectPath::Root::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
@@ -47,8 +50,10 @@ auto HspObjectPath::Root::child_at(std::size_t index, HspObjects& objects) const
 	case 1:
 		return new_system_var_list();
 	case 2:
-		return new_log();
+		return new_call_stack();
 	case 3:
+		return new_log();
+	case 4:
 		return new_script();
 	default:
 		assert(false && u8"out of range");
@@ -494,6 +499,87 @@ auto HspObjectPath::SystemVar::name(HspObjects& objects) const -> std::string {
 }
 
 // -----------------------------------------------
+// コールスタック
+// -----------------------------------------------
+
+HspObjectPath::CallStack::CallStack(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(std::move(parent))
+{
+}
+
+auto HspObjectPath::new_call_stack() const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::CallStack>(self());
+}
+
+auto HspObjectPath::as_call_stack() const -> HspObjectPath::CallStack const& {
+	if (kind() != HspObjectKind::CallStack) {
+		assert(false && u8"Casting to CallStack");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::CallStack const*)this;
+}
+
+auto HspObjectPath::CallStack::child_count(HspObjects& objects) const -> std::size_t {
+	return objects.call_stack_path_to_call_frame_count(*this);
+}
+
+auto HspObjectPath::CallStack::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
+	assert(child_index < child_count(objects));
+
+	// 逆順
+	auto index = child_count(objects) - 1 - child_index;
+
+	auto&& call_frame_id_opt = objects.call_stack_path_to_call_frame_id_at(*this, index);
+	if (!call_frame_id_opt) {
+		// FIXME: どうにかする
+		assert(false && u8"コールフレームを取得できるはず");
+		return new_call_frame(0);
+	}
+
+	return new_call_frame(*call_frame_id_opt);
+}
+
+// -----------------------------------------------
+// コールフレーム
+// -----------------------------------------------
+
+HspObjectPath::CallFrame::CallFrame(std::shared_ptr<HspObjectPath const> parent, std::size_t call_frame_id)
+	: parent_(std::move(parent))
+	, call_frame_id_(call_frame_id)
+{
+}
+
+auto HspObjectPath::new_call_frame(std::size_t call_frame_id) const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::CallFrame>(self(), call_frame_id);
+}
+
+auto HspObjectPath::as_call_frame() const -> HspObjectPath::CallFrame const& {
+	if (kind() != HspObjectKind::CallFrame) {
+		assert(false && u8"Casting to CallFrame");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::CallFrame const*)this;
+}
+
+auto HspObjectPath::CallFrame::child_count(HspObjects& objects) const -> std::size_t {
+	return objects.call_frame_path_to_child_count(*this);
+}
+
+auto HspObjectPath::CallFrame::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
+	auto&& child_opt = objects.call_frame_path_to_child_at(*this, child_index);
+	if (!child_opt) {
+		assert(false && u8"FIXME: 実装");
+		throw new std::exception{};
+	}
+
+	return *child_opt;
+}
+
+auto HspObjectPath::CallFrame::name(HspObjects& objects) const -> std::string {
+	return objects.call_frame_path_to_name(*this).value_or("???");
+}
+
+// -----------------------------------------------
 // ログ
 // -----------------------------------------------
 
@@ -617,6 +703,14 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::SystemVar:
 		on_system_var(path.as_system_var());
+		return;
+
+	case HspObjectKind::CallStack:
+		on_call_stack(path.as_call_stack());
+		return;
+
+	case HspObjectKind::CallFrame:
+		on_call_frame(path.as_call_frame());
 		return;
 
 	case HspObjectKind::Log:

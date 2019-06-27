@@ -22,6 +22,8 @@ namespace WrapCall
 
 static auto g_stkCallInfo = stkCallInfo_t {};
 
+static auto s_call_frame_id = std::size_t{};
+
 //------------------------------------------------
 // プラグイン初期化関数
 //------------------------------------------------
@@ -51,6 +53,7 @@ void onBgnCalling(stdat_t stdat)
 	// 呼び出しリストに追加
 	auto idx = g_stkCallInfo.size();
 	g_stkCallInfo.emplace_back(new ModcmdCallInfo(
+		++s_call_frame_id,
 		stdat, ctx->prmstack, ctx->sublev, ctx->looplev,
 		g_dbginfo->curPos(),
 		idx
@@ -105,6 +108,29 @@ auto getCallInfoRange() -> stkCallInfoRange_t
 {
 	return make_pair_range(g_stkCallInfo);
 }
+
+auto call_frame_count() -> std::size_t {
+	return g_stkCallInfo.size();
+}
+
+auto call_frame_id_at(std::size_t index) -> std::optional<std::size_t> {
+	if (index >= g_stkCallInfo.size()) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(g_stkCallInfo.at(index)->call_frame_id());
+}
+
+auto call_frame_get(std::size_t call_frame_id) -> std::optional<ModcmdCallInfo::shared_ptr_type> {
+	for (auto&& call_info : g_stkCallInfo) {
+		if (call_info->call_frame_id() == call_frame_id) {
+			return std::make_optional(call_info);
+		}
+	}
+
+	return std::nullopt;
+}
+
 
 } //namespace WrapCall
 
