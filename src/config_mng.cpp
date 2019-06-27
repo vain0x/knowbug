@@ -59,10 +59,6 @@ auto KnowbugConfig::load(OsString&& hsp_dir) -> KnowbugConfig {
 	config.warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
 	config.scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
 
-#ifdef with_WrapCall
-	config.logsInvocation = ini.getBool("Log", "logsInvocation", false);
-#endif
-
 	return config;
 }
 

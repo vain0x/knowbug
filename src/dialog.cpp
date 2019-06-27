@@ -130,11 +130,6 @@ void update()
 
 } // namespace View
 
-bool logsCalling()
-{
-	return g_config->logsInvocation;
-}
-
 namespace LogBox {
 
 	void clear(Logger& logger)
@@ -248,10 +243,6 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 #endif //defined(with_WrapCall)
 		case IDC_LOG_AUTO_SCROLL: {
 			Menu_ToggleCheck(hPop, IDC_LOG_AUTO_SCROLL, g_config->scrollsLogAutomatically);
-			break;
-		}
-		case IDC_LOG_INVOCATION: {
-			Menu_ToggleCheck(hPop, IDC_LOG_INVOCATION, g_config->logsInvocation);
 			break;
 		}
 		case IDC_LOG_SAVE: LogBox::save(*Knowbug::get_logger()); break;
@@ -474,9 +465,6 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 	}
 	if ( g_config->scrollsLogAutomatically ) {
 		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_AUTO_SCROLL, MF_CHECKED);
-	}
-	if ( g_config->logsInvocation ) {
-		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_INVOCATION, MF_CHECKED);
 	}
 
 	for ( auto&& hwnd : { hSrcLine, hViewEdit } ) {

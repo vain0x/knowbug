@@ -26,9 +26,6 @@ struct KnowbugConfig {
 	OsString logPath;
 	bool warnsBeforeClearingLog;
 	bool scrollsLogAutomatically;
-#ifdef with_WrapCall
-	bool logsInvocation;
-#endif
 
 	auto commonPath() const -> OsString {
 		return OsString{ hspDir + TEXT("common") };

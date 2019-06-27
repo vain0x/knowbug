@@ -22,7 +22,6 @@ void createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspSta
 void destroyMain();
 
 void update();
-bool logsCalling();
 
 namespace View {
 

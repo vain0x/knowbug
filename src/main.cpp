@@ -183,30 +183,11 @@ namespace Knowbug
 void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
 {
 	VTRoot::dynamic().onBgnCalling(callinfo);
-
-	if ( Dialog::logsCalling() ) {
-		auto logText =
-			strf
-			( "[CallBgn] %s\t%s]\r\n"
-			, callinfo->name()
-			, callinfo->callerPos.toString()
-			);
-		Knowbug::logmes(logText.c_str());
-	}
 }
 
 void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype)
 {
 	VTRoot::dynamic().onEndCalling(callinfo, ptr, vtype);
-
-	if ( Dialog::logsCalling() ) {
-		auto logText =
-			strf
-			( "[CallEnd] %s\r\n"
-			, callinfo->name()
-			);
-		Knowbug::logmes(logText.c_str());
-	}
 }
 #endif
 

@@ -75,7 +75,6 @@ IDR_NODE_MENU MENUEX
         MENUITEM "全消去(&C)", IDC_LOG_CLEAR, 0, 0
         MENUITEM "", 0, MFT_SEPARATOR, 0
 		MENUITEM "自動スクロール(&A)", IDC_LOG_AUTO_SCROLL, 0, 0
-        MENUITEM "呼び出しを記録(&I)", IDC_LOG_INVOCATION, 0, 0
     }
 }
 
