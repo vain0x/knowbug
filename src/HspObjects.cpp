@@ -1,5 +1,6 @@
 #include "hpiutil/hpiutil.hpp"
 #include "hpiutil/DInfo.hpp"
+#include "WrapCall/WrapCall.h"
 #include "HspDebugApi.h"
 #include "HspObjects.h"
 #include "HspStaticVars.h"
@@ -613,6 +614,28 @@ auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) c
 		assert(false && u8"Invalid HspSystemVarKind");
 		throw std::exception{};
 	}
+}
+
+auto HspObjects::call_stack_path_to_call_frame_count(HspObjectPath::CallStack const& path) const -> std::size_t {
+	return WrapCall::call_frame_count();
+}
+
+auto HspObjects::call_stack_path_to_call_frame_id_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<std::size_t> {
+	return WrapCall::call_frame_id_at(call_frame_index);
+}
+
+auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<std::string> {
+	auto&& call_info_opt = WrapCall::call_frame_get(path.call_frame_id());
+	if (!call_info_opt || !*call_info_opt) {
+		return std::nullopt;
+	}
+
+	return (**call_info_opt).name();
+}
+
+auto HspObjects::call_frame_path_to_param_stack(HspObjectPath::CallFrame const& path) const -> std::optional<HspParamStack> {
+	assert(false && u8"FIXME: 実装");
+	throw std::exception{};
 }
 
 auto HspObjects::log_to_content() const -> std::string const& {

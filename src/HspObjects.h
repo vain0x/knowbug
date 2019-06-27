@@ -35,6 +35,7 @@ public:
 // knowbug が知りたい情報を最適なインターフェイスで提供する。
 class HspObjects {
 public:
+	class CallFrame;
 	class Module;
 	class TypeData;
 
@@ -118,6 +119,14 @@ public:
 
 	auto system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::string;
 
+	auto call_stack_path_to_call_frame_count(HspObjectPath::CallStack const& path) const -> std::size_t;
+
+	auto call_stack_path_to_call_frame_id_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<std::size_t>;
+
+	auto call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<std::string>;
+
+	auto call_frame_path_to_param_stack(HspObjectPath::CallFrame const& path) const -> std::optional<HspParamStack>;
+
 	auto log_to_content() const -> std::string const&;
 
 	void log_do_append(char const* text);
@@ -149,7 +158,6 @@ public:
 		void add_var(std::size_t static_var_id);
 	};
 };
-
 class HspObjects::TypeData {
 	HspString name_;
 

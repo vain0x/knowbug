@@ -42,6 +42,10 @@ enum class HspObjectKind {
 	// システム変数
 	SystemVar,
 
+	CallStack,
+
+	CallFrame,
+
 	Log,
 
 	Script,
@@ -66,6 +70,8 @@ public:
 	class Unknown;
 	class SystemVarList;
 	class SystemVar;
+	class CallStack;
+	class CallFrame;
 	class Log;
 	class Script;
 
@@ -151,6 +157,10 @@ public:
 
 	auto as_system_var() const -> HspObjectPath::SystemVar const&;
 
+	auto as_call_stack() const -> HspObjectPath::CallStack const&;
+
+	auto as_call_frame() const -> HspObjectPath::CallFrame const&;
+
 	auto as_log() const -> HspObjectPath::Log const&;
 
 	auto as_script() const -> HspObjectPath::Script const&;
@@ -182,6 +192,10 @@ protected:
 	auto new_system_var_list() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_system_var(HspSystemVarKind system_var_kind) const -> std::shared_ptr<HspObjectPath const>;
+
+	auto new_call_stack() const -> std::shared_ptr<HspObjectPath const>;
+
+	auto new_call_frame(std::size_t call_frame_id) const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_log() const -> std::shared_ptr<HspObjectPath const>;
 
@@ -719,6 +733,84 @@ public:
 };
 
 // -----------------------------------------------
+// コールスタック
+// -----------------------------------------------
+
+class HspObjectPath::CallStack final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+public:
+	using HspObjectPath::new_call_frame;
+
+	CallStack(std::shared_ptr<HspObjectPath const> parent);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::CallStack;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override;
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
+
+	auto name(HspObjects& objects) const -> std::string override {
+		return u8"コールスタック";
+	}
+
+	auto frame_count(HspObjects& objects) const -> std::size_t;
+
+	auto frame_at(std::size_t frame_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const>;
+};
+
+// -----------------------------------------------
+// コールフレーム
+// -----------------------------------------------
+
+class HspObjectPath::CallFrame final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+	std::size_t call_frame_id_;
+
+public:
+	using HspObjectPath::new_param;
+
+	CallFrame(std::shared_ptr<HspObjectPath const> parent, std::size_t call_frame_id);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::CallFrame;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return call_frame_id() == other.as_call_frame().call_frame_id();
+	}
+
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override;
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
+
+	auto name(HspObjects& objects) const -> std::string override;
+
+	auto call_frame_id() const -> std::size_t {
+		return call_frame_id_;
+	}
+};
+
+// -----------------------------------------------
 // ログ
 // -----------------------------------------------
 
@@ -872,6 +964,14 @@ public:
 	}
 
 	virtual void on_system_var(HspObjectPath::SystemVar const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_call_stack(HspObjectPath::CallStack const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_call_frame(HspObjectPath::CallFrame const& path) {
 		accept_default(path);
 	}
 

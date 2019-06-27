@@ -16,6 +16,8 @@ struct ModcmdCallInfo
 	using shared_ptr_type = std::shared_ptr<ModcmdCallInfo const>;
 	using weak_ptr_type = std::weak_ptr<ModcmdCallInfo const>;
 
+	std::size_t call_frame_id_;
+
 	// 呼び出されたコマンド
 	stdat_t const stdat;
 
@@ -28,14 +30,18 @@ struct ModcmdCallInfo
 
 	// 呼び出し側の位置
 	hpiutil::SourcePos const callerPos;
-	
+
 	// g_stkCallInfo における位置
 	size_t const idx;
 
 public:
-	ModcmdCallInfo(stdat_t stdat, void* prevPrmstk, int sublev, int looplev, hpiutil::SourcePos const& callerPos, size_t idx)
-		: stdat(stdat), prevPrmstk(prevPrmstk), sublev(sublev), looplev(looplev), callerPos(callerPos), idx(idx)
+	ModcmdCallInfo(std::size_t call_frame_id, stdat_t stdat, void* prevPrmstk, int sublev, int looplev, hpiutil::SourcePos const& callerPos, size_t idx)
+		: call_frame_id_(call_frame_id), stdat(stdat), prevPrmstk(prevPrmstk), sublev(sublev), looplev(looplev), callerPos(callerPos), idx(idx)
 	{ }
+
+	auto call_frame_id() const -> std::size_t {
+		return call_frame_id_;
+	}
 
 	auto tryGetPrev() const -> shared_ptr_type;
 	auto tryGetNext() const -> shared_ptr_type;
