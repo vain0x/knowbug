@@ -529,6 +529,7 @@ auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> ch
 
 auto HspObjects::system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t {
 	switch (path.system_var_kind()) {
+	case HspSystemVarKind::Cnt:
 	case HspSystemVarKind::Refdval:
 	case HspSystemVarKind::Refstr:
 	case HspSystemVarKind::Stat:
@@ -543,12 +544,18 @@ auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& pat
 	assert(child_index < system_var_path_to_child_count(path));
 
 	switch (path.system_var_kind()) {
+	case HspSystemVarKind::Cnt:
+		return path.new_int();
+
 	case HspSystemVarKind::Refdval:
 		return path.new_double();
+
 	case HspSystemVarKind::Refstr:
 		return path.new_str();
+
 	case HspSystemVarKind::Stat:
 		return path.new_int();
+
 	default:
 		assert(false && u8"Unknown HspSystemVarKind");
 		throw std::exception{};
@@ -557,12 +564,18 @@ auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& pat
 
 auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::string {
 	switch (path.system_var_kind()) {
+	case HspSystemVarKind::Cnt:
+		return std::string{ u8"cnt" };
+
 	case HspSystemVarKind::Refdval:
 		return std::string{ u8"refdval" };
+
 	case HspSystemVarKind::Refstr:
 		return std::string{ u8"refstr" };
+
 	case HspSystemVarKind::Stat:
 		return std::string{ u8"stat" };
+
 	default:
 		assert(false && u8"Invalid HspSystemVarKind");
 		throw std::exception{};

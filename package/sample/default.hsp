@@ -1,6 +1,14 @@
 #include "hsp3utf.as"
 
 	assert
+	repeat 2
+		y = cnt
+		repeat 2
+			x = cnt
+			mes strf("(y, x) = (%d, %d)", y, x)
+		loop
+	loop
+
 	set_stat cnt + 1
 	set_refstr "ハロー\n\tこんにちは\r\nこんばんは"
 

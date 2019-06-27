@@ -154,6 +154,7 @@ public:
 };
 
 enum HspSystemVarKind {
+	Cnt = 1,
 	Refdval,
 	Refstr,
 	Stat,
