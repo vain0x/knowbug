@@ -1,5 +1,14 @@
 #include "hsp3utf.as"
 
+	dimtype labels, vartype("label"), 5
+
+	labels(2) = *first
+	labels(3) = *second
+	labels(4) = *last
+
+*first
+*second
+
 	logmes "メッセージ1"
 	logmes "メッセージ2"
 
@@ -69,3 +78,5 @@
 	assert
 	f 1
 	f 2
+
+*last

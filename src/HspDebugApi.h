@@ -75,11 +75,19 @@ public:
 
 	auto var_element_to_block_memory(PVal* pval, std::size_t aptr) -> BlockMemory;
 
+	auto data_to_label(HspData const& data) const -> HspLabel;
+
 	auto data_to_str(HspData const& data) const -> HspStr;
 
 	auto data_to_int(HspData const& data) const -> HspInt;
 
 	auto data_to_flex(HspData const& data) const -> FlexValue*;
+
+	auto static_labels() -> HspCodeOffset const*;
+
+	auto static_label_count() -> std::size_t;
+
+	auto static_label_to_label(std::size_t static_label_id) -> std::optional<HspLabel>;
 
 	bool flex_is_nullmod(FlexValue* flex) const;
 

@@ -5,6 +5,13 @@
 #include <cstdint>
 #include "hpiutil/hpiutil_fwd.hpp"
 
+// code segment の先頭からのオフセット。ラベルが指す位置を表現する。
+using HspCodeOffset = std::int32_t;
+
+// code segment 内へのポインタ (有効) または nullptr (無効)
+// このラベルの位置にラベルが書かれているとは限らない (newlab 命令で生成された可能性がある)。
+using HspLabel = unsigned short const*;
+
 using HspStr = char*;
 
 using HspInt = std::int32_t;

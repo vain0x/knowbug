@@ -239,6 +239,40 @@ auto HspObjectPath::Param::name(HspObjects& objects) const -> std::string {
 }
 
 // -----------------------------------------------
+// ラベル
+// -----------------------------------------------
+
+HspObjectPath::Label::Label(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(parent)
+{
+}
+
+auto HspObjectPath::new_label() const -> std::shared_ptr<HspObjectPath const> {
+	assert(kind_can_have_value(kind()));
+	return std::make_shared<HspObjectPath::Label>(self());
+}
+
+auto HspObjectPath::as_label() const -> HspObjectPath::Label const& {
+	if (kind() != HspObjectKind::Label) {
+		assert(false && u8"Casting to label");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Label const*)this;
+}
+
+bool HspObjectPath::Label::is_null(HspObjects& objects) const {
+	return objects.label_path_is_null(*this);
+}
+
+auto HspObjectPath::Label::static_label_name(HspObjects& objects) const -> std::optional<std::string> {
+	return objects.label_path_to_static_label_name(*this);
+}
+
+auto HspObjectPath::Label::static_label_id(HspObjects& objects) const -> std::optional<std::size_t> {
+	return objects.label_path_to_static_label_id(*this);
+}
+
+// -----------------------------------------------
 // 文字列
 // -----------------------------------------------
 
@@ -420,6 +454,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::Param:
 		on_param(path.as_param());
+		return;
+
+	case HspObjectKind::Label:
+		on_label(path.as_label());
 		return;
 
 	case HspObjectKind::Str:

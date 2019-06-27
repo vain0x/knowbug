@@ -1,4 +1,5 @@
 #include "hpiutil/hpiutil.hpp"
+#include "hpiutil/DInfo.hpp"
 #include "HspDebugApi.h"
 #include "HspObjects.h"
 #include "HspStaticVars.h"
@@ -156,6 +157,20 @@ static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_in
 	auto aptr = (APTR)child_index;
 	auto&& indexes = api.var_element_to_indexes(pval, aptr);
 	return path.new_element(indexes);
+}
+
+static auto label_path_to_value(HspObjectPath::Label const& path, HspDebugApi& api) -> std::optional<HspLabel> {
+	auto&& data_opt = path_to_data(path.parent(), api);
+	if (!data_opt) {
+		assert(false && u8"label の親は data を生成できるはず");
+		return std::nullopt;
+	}
+
+	if (data_opt->type() != HspType::Label) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(api.data_to_label(*data_opt));
 }
 
 static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) -> std::optional<HspStr> {
@@ -345,6 +360,8 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 
 	auto type = api_.var_to_type(*pval_opt);
 	switch (type) {
+	case HspType::Label:
+		return path.new_label();
 	case HspType::Str:
 		return path.new_str();
 	case HspType::Int:
@@ -389,6 +406,52 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> std::string {
 	auto&& param_data = param_path_to_param_data(path, api_);
 	return api_.param_to_name(param_data->param(), debug_segment_);
+}
+
+bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {
+	auto&& label_opt = label_path_to_value(path, api_);
+	if (!label_opt) {
+		return true;
+	}
+
+	return *label_opt == nullptr;
+}
+
+auto HspObjects::label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<std::string> {
+	auto&& static_label_id_opt = label_path_to_static_label_id(path);
+	if (!static_label_id_opt) {
+		return std::nullopt;
+	}
+
+	auto&& name = debug_segment_.tryFindLabelName((int)*static_label_id_opt);
+	if (!name) {
+		return std::nullopt;
+	}
+
+	// FIXME: 効率化 (文字列の参照かビューを返す)
+	return std::make_optional(std::string{ name });
+}
+
+auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path) const -> std::optional<std::size_t> {
+	auto&& label_opt = label_path_to_value(path, api_);
+	if (!label_opt) {
+		return std::nullopt;
+	}
+
+	// FIXME: 効率化 (事前にハッシュテーブルをつくる)
+	for (auto id = std::size_t{}; id < api_.static_label_count(); id++) {
+		auto&& opt = api_.static_label_to_label(id);
+		if (!opt) {
+			assert(false && u8"id must be valid");
+			continue;
+		}
+
+		if (*opt == *label_opt) {
+			return std::make_optional(id);
+		}
+	}
+
+	return std::nullopt;
 }
 
 auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> HspStr {
