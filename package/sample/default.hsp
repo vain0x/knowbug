@@ -1,5 +1,17 @@
 #include "hsp3utf.as"
 
+	assert
+	repeat 2
+		y = cnt
+		repeat 2
+			x = cnt
+			mes strf("(y, x) = (%d, %d)", y, x)
+		loop
+	loop
+
+	set_stat cnt + 1
+	set_refstr "ハロー\n\tこんにちは\r\nこんばんは"
+
 	floats = 3.14159265, sqrt(-1)
 
 	dimtype labels, vartype("label"), 5
@@ -28,6 +40,12 @@
     b = 2
     a = 1
     return
+
+#deffunc set_stat int value
+	return value
+
+#deffunc set_refstr str value
+	return value
 
 #global
 

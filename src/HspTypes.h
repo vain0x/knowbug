@@ -152,3 +152,19 @@ public:
 		return block_ptr_;
 	}
 };
+
+// システム変数の種類。
+// 順番は名前順、ただし類似したものは近くに集める。
+enum HspSystemVarKind {
+	Cnt = 1,
+	Err,
+	IParam,
+	WParam,
+	LParam,
+	LoopLev,
+	SubLev,
+	Refstr,
+	Refdval,
+	Stat,
+	StrSize,
+};

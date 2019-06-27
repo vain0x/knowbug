@@ -2,7 +2,7 @@
 #include "HspObjectPath.h"
 
 static bool kind_can_have_value(HspObjectKind kind) {
-	return kind == HspObjectKind::StaticVar || kind == HspObjectKind::Element;
+	return kind == HspObjectKind::StaticVar || kind == HspObjectKind::Element || kind == HspObjectKind::SystemVar;
 }
 
 HspObjectPath::~HspObjectPath() {
@@ -36,7 +36,7 @@ auto HspObjectPath::Root::parent() const -> HspObjectPath const& {
 }
 
 auto HspObjectPath::Root::child_count(HspObjects& objects) const -> std::size_t {
-	return 3;
+	return 4;
 }
 
 auto HspObjectPath::Root::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
@@ -45,8 +45,10 @@ auto HspObjectPath::Root::child_at(std::size_t index, HspObjects& objects) const
 	case 0:
 		return new_global_module(objects);
 	case 1:
-		return new_log();
+		return new_system_var_list();
 	case 2:
+		return new_log();
+	case 3:
 		return new_script();
 	default:
 		assert(false && u8"out of range");
@@ -411,6 +413,87 @@ auto HspObjectPath::as_unknown() const -> HspObjectPath::Unknown const& {
 }
 
 // -----------------------------------------------
+// システム変数リスト
+// -----------------------------------------------
+
+static auto const s_system_var_list = std::array<HspSystemVarKind, 11>{{
+	HspSystemVarKind::Cnt,
+	HspSystemVarKind::Err,
+	HspSystemVarKind::IParam,
+	HspSystemVarKind::WParam,
+	HspSystemVarKind::LParam,
+	HspSystemVarKind::LoopLev,
+	HspSystemVarKind::SubLev,
+	HspSystemVarKind::Refstr,
+	HspSystemVarKind::Refdval,
+	HspSystemVarKind::Stat,
+	HspSystemVarKind::StrSize,
+}};
+
+HspObjectPath::SystemVarList::SystemVarList(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(std::move(parent))
+{
+}
+
+auto HspObjectPath::new_system_var_list() const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::SystemVarList>(self());
+}
+
+auto HspObjectPath::as_system_var_list() const -> HspObjectPath::SystemVarList const& {
+	if (kind() != HspObjectKind::SystemVarList) {
+		assert(false && u8"Casting to SystemVarList");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::SystemVarList const*)this;
+}
+
+auto HspObjectPath::SystemVarList::child_count(HspObjects& objects) const -> std::size_t {
+	assert(s_system_var_list.back() == HspSystemVarKind::StrSize);
+	return s_system_var_list.size();
+}
+
+auto HspObjectPath::SystemVarList::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
+	assert(child_index < child_count(objects));
+
+	auto kind = s_system_var_list.at(child_index);
+	return new_system_var(kind);
+}
+
+// -----------------------------------------------
+// システム変数
+// -----------------------------------------------
+
+HspObjectPath::SystemVar::SystemVar(std::shared_ptr<HspObjectPath const> parent, HspSystemVarKind system_var_kind)
+	: parent_(std::move(parent))
+	, system_var_kind_(system_var_kind)
+{
+}
+
+auto HspObjectPath::new_system_var(HspSystemVarKind system_var_kind) const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::SystemVar>(self(), system_var_kind);
+}
+
+auto HspObjectPath::as_system_var() const -> HspObjectPath::SystemVar const& {
+	if (kind() != HspObjectKind::SystemVar) {
+		assert(false && u8"Casting to SystemVar");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::SystemVar const*)this;
+}
+
+auto HspObjectPath::SystemVar::child_count(HspObjects& objects) const -> std::size_t {
+	return objects.system_var_path_to_child_count(*this);
+}
+
+auto HspObjectPath::SystemVar::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
+	return objects.system_var_path_to_child_at(*this, child_index);
+}
+
+auto HspObjectPath::SystemVar::name(HspObjects& objects) const -> std::string {
+	return objects.system_var_path_to_name(*this);
+}
+
+// -----------------------------------------------
 // ログ
 // -----------------------------------------------
 
@@ -526,6 +609,14 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::Unknown:
 		on_unknown(path.as_unknown());
+		return;
+
+	case HspObjectKind::SystemVarList:
+		on_system_var_list(path.as_system_var_list());
+		return;
+
+	case HspObjectKind::SystemVar:
+		on_system_var(path.as_system_var());
 		return;
 
 	case HspObjectKind::Log:

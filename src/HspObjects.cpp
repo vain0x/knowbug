@@ -131,6 +131,10 @@ static auto path_to_data(HspObjectPath const& path, HspDebugApi& api) -> std::op
 
 		return api.param_data_to_data(*param_data_opt);
 	}
+	case HspObjectKind::SystemVar:
+	{
+		return api.system_var_to_data(path.as_system_var().system_var_kind());
+	}
 	default:
 		return std::nullopt;
 	}
@@ -521,6 +525,94 @@ auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> ch
 
 	auto struct_dat = api_.flex_to_module_struct(*flex_opt);
 	return api_.struct_to_name(struct_dat);
+}
+
+auto HspObjects::system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t {
+	switch (path.system_var_kind()) {
+	case HspSystemVarKind::Cnt:
+	case HspSystemVarKind::Err:
+	case HspSystemVarKind::IParam:
+	case HspSystemVarKind::WParam:
+	case HspSystemVarKind::LParam:
+	case HspSystemVarKind::LoopLev:
+	case HspSystemVarKind::SubLev:
+	case HspSystemVarKind::Refstr:
+	case HspSystemVarKind::Refdval:
+	case HspSystemVarKind::Stat:
+	case HspSystemVarKind::StrSize:
+		return 1;
+	default:
+		assert(false && u8"Unknown HspSystemVarKind");
+		throw std::exception{};
+	}
+}
+
+auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const> {
+	assert(child_index < system_var_path_to_child_count(path));
+
+	switch (path.system_var_kind()) {
+	case HspSystemVarKind::Cnt:
+	case HspSystemVarKind::Err:
+	case HspSystemVarKind::IParam:
+	case HspSystemVarKind::WParam:
+	case HspSystemVarKind::LParam:
+	case HspSystemVarKind::LoopLev:
+	case HspSystemVarKind::SubLev:
+	case HspSystemVarKind::Stat:
+	case HspSystemVarKind::StrSize:
+		return path.new_int();
+
+	case HspSystemVarKind::Refstr:
+		return path.new_str();
+
+	case HspSystemVarKind::Refdval:
+		return path.new_double();
+
+	default:
+		assert(false && u8"Unknown HspSystemVarKind");
+		throw std::exception{};
+	}
+}
+
+auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::string {
+	switch (path.system_var_kind()) {
+	case HspSystemVarKind::Cnt:
+		return u8"cnt";
+
+	case HspSystemVarKind::Err:
+		return u8"err";
+
+	case HspSystemVarKind::IParam:
+		return u8"iparam";
+
+	case HspSystemVarKind::WParam:
+		return u8"wparam";
+
+	case HspSystemVarKind::LParam:
+		return u8"lparam";
+
+	case HspSystemVarKind::LoopLev:
+		return u8"looplev";
+
+	case HspSystemVarKind::SubLev:
+		return u8"sublev";
+
+	case HspSystemVarKind::Refstr:
+		return u8"refstr";
+
+	case HspSystemVarKind::Refdval:
+		return u8"refdval";
+
+	case HspSystemVarKind::Stat:
+		return u8"stat";
+
+	case HspSystemVarKind::StrSize:
+		return u8"strsize";
+
+	default:
+		assert(false && u8"Invalid HspSystemVarKind");
+		throw std::exception{};
+	}
 }
 
 auto HspObjects::log_to_content() const -> std::string const& {
