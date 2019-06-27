@@ -92,7 +92,15 @@ public:
 
 	auto param_path_to_name(HspObjectPath::Param const& path) const -> std::string;
 
+	bool label_path_is_null(HspObjectPath::Label const& path) const;
+
+	auto label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<std::string>;
+
+	auto label_path_to_static_label_id(HspObjectPath::Label const& path) const -> std::optional<std::size_t>;
+
 	auto str_path_to_value(HspObjectPath::Str const& path) const->HspStr;
+
+	auto double_path_to_value(HspObjectPath::Double const& path) const->HspDouble;
 
 	auto int_path_to_value(HspObjectPath::Int const& path) const->HspInt;
 

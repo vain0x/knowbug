@@ -239,6 +239,40 @@ auto HspObjectPath::Param::name(HspObjects& objects) const -> std::string {
 }
 
 // -----------------------------------------------
+// ラベル
+// -----------------------------------------------
+
+HspObjectPath::Label::Label(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(parent)
+{
+}
+
+auto HspObjectPath::new_label() const -> std::shared_ptr<HspObjectPath const> {
+	assert(kind_can_have_value(kind()));
+	return std::make_shared<HspObjectPath::Label>(self());
+}
+
+auto HspObjectPath::as_label() const -> HspObjectPath::Label const& {
+	if (kind() != HspObjectKind::Label) {
+		assert(false && u8"Casting to label");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Label const*)this;
+}
+
+bool HspObjectPath::Label::is_null(HspObjects& objects) const {
+	return objects.label_path_is_null(*this);
+}
+
+auto HspObjectPath::Label::static_label_name(HspObjects& objects) const -> std::optional<std::string> {
+	return objects.label_path_to_static_label_name(*this);
+}
+
+auto HspObjectPath::Label::static_label_id(HspObjects& objects) const -> std::optional<std::size_t> {
+	return objects.label_path_to_static_label_id(*this);
+}
+
+// -----------------------------------------------
 // 文字列
 // -----------------------------------------------
 
@@ -262,6 +296,32 @@ auto HspObjectPath::as_str() const -> HspObjectPath::Str const& {
 
 auto HspObjectPath::Str::value(HspObjects& objects) const -> HspStr {
 	return objects.str_path_to_value(*this);
+}
+
+// -----------------------------------------------
+// 浮動小数点数
+// -----------------------------------------------
+
+HspObjectPath::Double::Double(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(parent)
+{
+}
+
+auto HspObjectPath::new_double() const -> std::shared_ptr<HspObjectPath const> {
+	assert(kind_can_have_value(kind()));
+	return std::make_shared<HspObjectPath::Double>(self());
+}
+
+auto HspObjectPath::as_double() const -> HspObjectPath::Double const& {
+	if (kind() != HspObjectKind::Double) {
+		assert(false && u8"Casting to double");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Double const*)this;
+}
+
+auto HspObjectPath::Double::value(HspObjects& objects) const -> HspDouble {
+	return objects.double_path_to_value(*this);
 }
 
 // -----------------------------------------------
@@ -326,6 +386,28 @@ bool HspObjectPath::Flex::is_nullmod(HspObjects& objects) const {
 
 auto HspObjectPath::Flex::module_name(HspObjects& objects) const -> char const* {
 	return objects.flex_path_to_module_name(*this);
+}
+
+// -----------------------------------------------
+// アンノウン
+// -----------------------------------------------
+
+HspObjectPath::Unknown::Unknown(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(std::move(parent))
+{
+}
+
+auto HspObjectPath::new_unknown() const -> std::shared_ptr<HspObjectPath const> {
+	assert(kind_can_have_value(kind()));
+	return std::make_shared<HspObjectPath::Unknown>(self());
+}
+
+auto HspObjectPath::as_unknown() const -> HspObjectPath::Unknown const& {
+	if (kind() != HspObjectKind::Flex) {
+		assert(false && u8"Casting to unknown");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Unknown const*)this;
 }
 
 // -----------------------------------------------
@@ -422,8 +504,16 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 		on_param(path.as_param());
 		return;
 
+	case HspObjectKind::Label:
+		on_label(path.as_label());
+		return;
+
 	case HspObjectKind::Str:
 		on_str(path.as_str());
+		return;
+
+	case HspObjectKind::Double:
+		on_double(path.as_double());
 		return;
 
 	case HspObjectKind::Int:
@@ -432,6 +522,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::Flex:
 		on_flex(path.as_flex());
+		return;
+
+	case HspObjectKind::Unknown:
+		on_unknown(path.as_unknown());
 		return;
 
 	case HspObjectKind::Log:
