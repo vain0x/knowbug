@@ -14,6 +14,8 @@ using HspLabel = unsigned short const*;
 
 using HspStr = char*;
 
+using HspDouble = double;
+
 using HspInt = std::int32_t;
 
 using HspIndexes = std::array<std::size_t, hpiutil::ArrayDimMax>;

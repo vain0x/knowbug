@@ -26,6 +26,8 @@ enum class HspObjectKind {
 
 	Str,
 
+	Double,
+
 	Int,
 
 	// フレックス (モジュール変数のインスタンス)
@@ -49,6 +51,7 @@ public:
 	class Param;
 	class Label;
 	class Str;
+	class Double;
 	class Int;
 	class Flex;
 	class Log;
@@ -124,6 +127,8 @@ public:
 
 	auto as_str() const -> HspObjectPath::Str const&;
 
+	auto as_double() const -> HspObjectPath::Double const&;
+
 	auto as_int() const -> HspObjectPath::Int const&;
 
 	auto as_flex() const -> HspObjectPath::Flex const&;
@@ -147,6 +152,8 @@ protected:
 	auto new_label() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_str() const -> std::shared_ptr<HspObjectPath const>;
+
+	auto new_double() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_int() const -> std::shared_ptr<HspObjectPath const>;
 
@@ -288,6 +295,7 @@ class HspObjectPath::Element final
 public:
 	using HspObjectPath::new_label;
 	using HspObjectPath::new_str;
+	using HspObjectPath::new_double;
 	using HspObjectPath::new_int;
 	using HspObjectPath::new_flex;
 
@@ -331,6 +339,7 @@ class HspObjectPath::Param final
 public:
 	using HspObjectPath::new_element;
 	using HspObjectPath::new_str;
+	using HspObjectPath::new_double;
 	using HspObjectPath::new_int;
 
 	Param(std::shared_ptr<HspObjectPath const> parent, HspParamType param_type, std::size_t param_index);
@@ -447,6 +456,47 @@ public:
 	}
 
 	auto value(HspObjects& objects) const -> HspStr;
+};
+
+// -----------------------------------------------
+// 浮動小数点数
+// -----------------------------------------------
+
+class HspObjectPath::Double final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+public:
+	Double(std::shared_ptr<HspObjectPath const> parent);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::Double;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override {
+		return 0;
+	}
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override {
+		assert(false && u8"no children");
+		throw new std::exception{};
+	}
+
+	auto name(HspObjects& objects) const -> std::string override {
+		// FIXME: 名前自体がない
+		return std::string{};
+	}
+
+	auto value(HspObjects& objects) const -> HspDouble;
 };
 
 // -----------------------------------------------
@@ -660,6 +710,10 @@ public:
 	}
 
 	virtual void on_str(HspObjectPath::Str const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_double(HspObjectPath::Double const& path) {
 		accept_default(path);
 	}
 

@@ -100,6 +100,8 @@ public:
 
 	auto str_path_to_value(HspObjectPath::Str const& path) const->HspStr;
 
+	auto double_path_to_value(HspObjectPath::Double const& path) const->HspDouble;
+
 	auto int_path_to_value(HspObjectPath::Int const& path) const->HspInt;
 
 	auto flex_path_to_child_count(HspObjectPath::Flex const& path)->std::size_t;

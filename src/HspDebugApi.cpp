@@ -179,6 +179,15 @@ auto HspDebugApi::data_to_str(HspData const& data) const -> HspStr {
 	return UNSAFE((HspStr)data.ptr());
 }
 
+auto HspDebugApi::data_to_double(HspData const& data) const -> HspDouble {
+	if (data.type() != HspType::Double) {
+		assert(false && u8"Invalid cast to double");
+		throw new std::bad_cast{};
+	}
+
+	return UNSAFE(*(HspDouble const*)data.ptr());
+}
+
 auto HspDebugApi::data_to_int(HspData const& data) const -> HspInt {
 	if (data.type() != HspType::Int) {
 		assert(false && u8"Invalid cast to int");

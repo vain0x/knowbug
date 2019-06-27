@@ -1,5 +1,7 @@
 #include "hsp3utf.as"
 
+	floats = 3.14159265, sqrt(-1)
+
 	dimtype labels, vartype("label"), 5
 
 	labels(2) = *first

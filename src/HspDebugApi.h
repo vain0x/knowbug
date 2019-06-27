@@ -79,6 +79,8 @@ public:
 
 	auto data_to_str(HspData const& data) const -> HspStr;
 
+	auto data_to_double(HspData const& data) const -> HspDouble;
+
 	auto data_to_int(HspData const& data) const -> HspInt;
 
 	auto data_to_flex(HspData const& data) const -> FlexValue*;

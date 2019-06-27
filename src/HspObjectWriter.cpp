@@ -25,13 +25,12 @@ static bool string_is_compact(char const* str) {
 static bool object_path_is_compact(HspObjectPath const& path, HspObjects& objects) {
 	switch (path.kind()) {
 	case HspObjectKind::Label:
+	case HspObjectKind::Double:
+	case HspObjectKind::Int:
 		return true;
 
 	case HspObjectKind::Str:
 		return string_is_compact(path.as_str().value(objects));
-
-	case HspObjectKind::Int:
-		return true;
 
 	case HspObjectKind::Flex:
 		return path.as_flex().is_nullmod(objects);
@@ -109,6 +108,8 @@ public:
 
 	void on_str(HspObjectPath::Str const& path) override;
 
+	void on_double(HspObjectPath::Double const& path) override;
+
 	void on_int(HspObjectPath::Int const& path) override;
 
 	void on_flex(HspObjectPath::Flex const& path) override;
@@ -131,6 +132,8 @@ public:
 	void on_label(HspObjectPath::Label const& path) override;
 
 	void on_str(HspObjectPath::Str const& path) override;
+
+	void on_double(HspObjectPath::Double const& path) override;
 
 	void on_int(HspObjectPath::Int const& path) override;
 
@@ -190,7 +193,7 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	auto type = path.type(objects());
 
 	// 新APIが実装済みのケース
-	if (type == HspType::Label || type == HspType::Str || type == HspType::Int || type == HspType::Struct) {
+	if (type == HspType::Label || type == HspType::Str || type == HspType::Double || type == HspType::Int || type == HspType::Struct) {
 		auto&& w = writer();
 		auto&& metadata = path.metadata(objects());
 
@@ -287,6 +290,13 @@ void HspObjectWriterImpl::BlockForm::on_str(HspObjectPath::Str const& path) {
 	auto&& value = path.value(objects());
 
 	w.catln(value);
+}
+
+void HspObjectWriterImpl::BlockForm::on_double(HspObjectPath::Double const& path) {
+	auto&& w = writer();
+	auto value = path.value(objects());
+
+	w.catln(strf("%.16f", value));
 }
 
 void HspObjectWriterImpl::BlockForm::on_int(HspObjectPath::Int const& path) {
@@ -403,6 +413,10 @@ void HspObjectWriterImpl::FlowForm::on_str(HspObjectPath::Str const& path) {
 	auto&& literal = hpiutil::literalFormString(value);
 
 	writer().cat(literal);
+}
+
+void HspObjectWriterImpl::FlowForm::on_double(HspObjectPath::Double const& path) {
+	writer().cat(strf("%f", path.value(objects())));
 }
 
 void HspObjectWriterImpl::FlowForm::on_int(HspObjectPath::Int const& path) {

@@ -187,6 +187,20 @@ static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) 
 	return std::make_optional(api.data_to_str(*data));
 }
 
+static auto double_path_to_value(HspObjectPath::Double const& path, HspDebugApi& api) -> std::optional<HspDouble> {
+	auto&& data = path_to_data(path.parent(), api);
+	if (!data) {
+		assert(false && u8"double の親は data を生成できるはず");
+		return std::nullopt;
+	}
+
+	if (data->type() != HspType::Double) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(api.data_to_double(*data));
+}
+
 static auto int_path_to_value(HspObjectPath::Int const& path, HspDebugApi& api) -> std::optional<HspInt> {
 	auto&& data = path_to_data(path.parent(), api);
 	if (!data) {
@@ -364,6 +378,8 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 		return path.new_label();
 	case HspType::Str:
 		return path.new_str();
+	case HspType::Double:
+		return path.new_double();
 	case HspType::Int:
 		return path.new_int();
 	case HspType::Struct:
@@ -457,6 +473,10 @@ auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path)
 auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> HspStr {
 	static char empty[64]{};
 	return (::str_path_to_value(path, api_)).value_or(empty);
+}
+
+auto HspObjects::double_path_to_value(HspObjectPath::Double const& path) const->HspDouble {
+	return (::double_path_to_value(path, api_)).value_or(HspDouble{});
 }
 
 auto HspObjects::int_path_to_value(HspObjectPath::Int const& path) const -> HspInt {

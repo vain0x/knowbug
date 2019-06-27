@@ -299,6 +299,32 @@ auto HspObjectPath::Str::value(HspObjects& objects) const -> HspStr {
 }
 
 // -----------------------------------------------
+// 浮動小数点数
+// -----------------------------------------------
+
+HspObjectPath::Double::Double(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(parent)
+{
+}
+
+auto HspObjectPath::new_double() const -> std::shared_ptr<HspObjectPath const> {
+	assert(kind_can_have_value(kind()));
+	return std::make_shared<HspObjectPath::Double>(self());
+}
+
+auto HspObjectPath::as_double() const -> HspObjectPath::Double const& {
+	if (kind() != HspObjectKind::Double) {
+		assert(false && u8"Casting to double");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Double const*)this;
+}
+
+auto HspObjectPath::Double::value(HspObjects& objects) const -> HspDouble {
+	return objects.double_path_to_value(*this);
+}
+
+// -----------------------------------------------
 // 整数
 // -----------------------------------------------
 
@@ -462,6 +488,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::Str:
 		on_str(path.as_str());
+		return;
+
+	case HspObjectKind::Double:
+		on_double(path.as_double());
 		return;
 
 	case HspObjectKind::Int:
