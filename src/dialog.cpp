@@ -241,10 +241,6 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 			break;
 		}
 #endif //defined(with_WrapCall)
-		case IDC_LOG_AUTO_SCROLL: {
-			Menu_ToggleCheck(hPop, IDC_LOG_AUTO_SCROLL, g_config->scrollsLogAutomatically);
-			break;
-		}
 		case IDC_LOG_SAVE: LogBox::save(*Knowbug::get_logger()); break;
 		case IDC_LOG_CLEAR: LogBox::clear(*Knowbug::get_logger()); break;
 		default:
@@ -462,9 +458,6 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 		for ( auto&& hwnd : windowHandles() ) {
 			Window_SetTopMost(hwnd, true);
 		}
-	}
-	if ( g_config->scrollsLogAutomatically ) {
-		CheckMenuItem(g_res->logMenu.get(), IDC_LOG_AUTO_SCROLL, MF_CHECKED);
 	}
 
 	for ( auto&& hwnd : { hSrcLine, hViewEdit } ) {
