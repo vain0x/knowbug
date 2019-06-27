@@ -389,6 +389,28 @@ auto HspObjectPath::Flex::module_name(HspObjects& objects) const -> char const* 
 }
 
 // -----------------------------------------------
+// アンノウン
+// -----------------------------------------------
+
+HspObjectPath::Unknown::Unknown(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(std::move(parent))
+{
+}
+
+auto HspObjectPath::new_unknown() const -> std::shared_ptr<HspObjectPath const> {
+	assert(kind_can_have_value(kind()));
+	return std::make_shared<HspObjectPath::Unknown>(self());
+}
+
+auto HspObjectPath::as_unknown() const -> HspObjectPath::Unknown const& {
+	if (kind() != HspObjectKind::Flex) {
+		assert(false && u8"Casting to unknown");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Unknown const*)this;
+}
+
+// -----------------------------------------------
 // ログ
 // -----------------------------------------------
 
@@ -500,6 +522,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::Flex:
 		on_flex(path.as_flex());
+		return;
+
+	case HspObjectKind::Unknown:
+		on_unknown(path.as_unknown());
 		return;
 
 	case HspObjectKind::Log:

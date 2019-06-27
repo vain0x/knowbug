@@ -385,8 +385,7 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 	case HspType::Struct:
 		return path.new_flex();
 	default:
-		assert(false && u8"unimpl");
-		throw new std::exception{};
+		return path.new_unknown();
 	}
 }
 

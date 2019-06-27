@@ -33,6 +33,9 @@ enum class HspObjectKind {
 	// フレックス (モジュール変数のインスタンス)
 	Flex,
 
+	// 不明な型の値
+	Unknown,
+
 	Log,
 
 	Script,
@@ -54,6 +57,7 @@ public:
 	class Double;
 	class Int;
 	class Flex;
+	class Unknown;
 	class Log;
 	class Script;
 
@@ -133,6 +137,8 @@ public:
 
 	auto as_flex() const -> HspObjectPath::Flex const&;
 
+	auto as_unknown() const -> HspObjectPath::Unknown const&;
+
 	auto as_log() const -> HspObjectPath::Log const&;
 
 	auto as_script() const -> HspObjectPath::Script const&;
@@ -158,6 +164,8 @@ protected:
 	auto new_int() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_flex() const -> std::shared_ptr<HspObjectPath const>;
+
+	auto new_unknown() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_log() const -> std::shared_ptr<HspObjectPath const>;
 
@@ -298,6 +306,7 @@ public:
 	using HspObjectPath::new_double;
 	using HspObjectPath::new_int;
 	using HspObjectPath::new_flex;
+	using HspObjectPath::new_unknown;
 
 	Element(std::shared_ptr<HspObjectPath const> parent, HspIndexes indexes);
 
@@ -581,6 +590,45 @@ public:
 };
 
 // -----------------------------------------------
+// アンノウン
+// -----------------------------------------------
+
+class HspObjectPath::Unknown final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+public:
+	Unknown(std::shared_ptr<HspObjectPath const> parent);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::Unknown;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override {
+		return 0;
+	}
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override {
+		assert(false && u8"no children");
+		throw new std::exception{};
+	}
+
+	auto name(HspObjects& objects) const -> std::string override {
+		// FIXME: 名前自体がない
+		return std::string{};
+	}
+};
+
+// -----------------------------------------------
 // ログ
 // -----------------------------------------------
 
@@ -722,6 +770,10 @@ public:
 	}
 
 	virtual void on_flex(HspObjectPath::Flex const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_unknown(HspObjectPath::Unknown const& path) {
 		accept_default(path);
 	}
 

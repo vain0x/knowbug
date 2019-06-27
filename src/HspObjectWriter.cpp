@@ -27,6 +27,7 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 	case HspObjectKind::Label:
 	case HspObjectKind::Double:
 	case HspObjectKind::Int:
+	case HspObjectKind::Unknown:
 		return true;
 
 	case HspObjectKind::Str:
@@ -114,6 +115,8 @@ public:
 
 	void on_flex(HspObjectPath::Flex const& path) override;
 
+	void on_unknown(HspObjectPath::Unknown const& path) override;
+
 private:
 	void add_name_children(HspObjectPath const& path);
 };
@@ -138,6 +141,8 @@ public:
 	void on_int(HspObjectPath::Int const& path) override;
 
 	void on_flex(HspObjectPath::Flex const& path) override;
+
+	void on_unknown(HspObjectPath::Unknown const& path) override;
 };
 
 // -----------------------------------------------
@@ -324,6 +329,11 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 	accept_children(path);
 }
 
+void HspObjectWriterImpl::BlockForm::on_unknown(HspObjectPath::Unknown const& path) {
+	to_flow_form().on_unknown(path);
+	writer().catCrlf();
+}
+
 void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path) {
 	auto&& w = writer();
 	auto&& o = objects();
@@ -433,6 +443,10 @@ void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
 	}
 
 	w.cat("<struct>");
+}
+
+void HspObjectWriterImpl::FlowForm::on_unknown(HspObjectPath::Unknown const& path) {
+	writer().cat("<unknown>");
 }
 
 // -----------------------------------------------
