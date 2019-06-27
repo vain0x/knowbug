@@ -173,14 +173,39 @@ auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) -> std::o
 			return std::make_optional(int_ptr_to_data(&context()->mem_loop[context()->looplev].cnt));
 		}
 
-	case HspSystemVarKind::Refdval:
-		return std::make_optional(double_ptr_to_data(&context()->refdval));
+	case HspSystemVarKind::Err:
+		{
+			static_assert(sizeof(context()->err) == sizeof(HspInt), "HSPERROR は int のはず");
+			auto ptr = UNSAFE((HspInt*)(&context()->err));
+			return std::make_optional(int_ptr_to_data(ptr));
+		}
+
+	case HspSystemVarKind::IParam:
+		return std::make_optional(int_ptr_to_data(&context()->iparam));
+
+	case HspSystemVarKind::WParam:
+		return std::make_optional(int_ptr_to_data(&context()->wparam));
+
+	case HspSystemVarKind::LParam:
+		return std::make_optional(int_ptr_to_data(&context()->lparam));
+
+	case HspSystemVarKind::LoopLev:
+		return std::make_optional(int_ptr_to_data(&context()->looplev));
+
+	case HspSystemVarKind::SubLev:
+		return std::make_optional(int_ptr_to_data(&context()->sublev));
 
 	case HspSystemVarKind::Refstr:
 		return std::make_optional(str_ptr_to_data(context()->refstr));
 
+	case HspSystemVarKind::Refdval:
+		return std::make_optional(double_ptr_to_data(&context()->refdval));
+
 	case HspSystemVarKind::Stat:
 		return std::make_optional(int_ptr_to_data(&context()->stat));
+
+	case HspSystemVarKind::StrSize:
+		return std::make_optional(int_ptr_to_data(&context()->strsize));
 
 	default:
 		assert(false && u8"Invalid HspSystemVarKind");

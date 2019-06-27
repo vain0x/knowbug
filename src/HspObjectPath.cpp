@@ -416,6 +416,20 @@ auto HspObjectPath::as_unknown() const -> HspObjectPath::Unknown const& {
 // システム変数リスト
 // -----------------------------------------------
 
+static auto const s_system_var_list = std::array<HspSystemVarKind, 11>{{
+	HspSystemVarKind::Cnt,
+	HspSystemVarKind::Err,
+	HspSystemVarKind::IParam,
+	HspSystemVarKind::WParam,
+	HspSystemVarKind::LParam,
+	HspSystemVarKind::LoopLev,
+	HspSystemVarKind::SubLev,
+	HspSystemVarKind::Refstr,
+	HspSystemVarKind::Refdval,
+	HspSystemVarKind::Stat,
+	HspSystemVarKind::StrSize,
+}};
+
 HspObjectPath::SystemVarList::SystemVarList(std::shared_ptr<HspObjectPath const> parent)
 	: parent_(std::move(parent))
 {
@@ -434,23 +448,15 @@ auto HspObjectPath::as_system_var_list() const -> HspObjectPath::SystemVarList c
 }
 
 auto HspObjectPath::SystemVarList::child_count(HspObjects& objects) const -> std::size_t {
-	return 4;
+	assert(s_system_var_list.back() == HspSystemVarKind::StrSize);
+	return s_system_var_list.size();
 }
 
 auto HspObjectPath::SystemVarList::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
-	switch (child_index) {
-	case 0:
-		return new_system_var(HspSystemVarKind::Cnt);
-	case 1:
-		return new_system_var(HspSystemVarKind::Refdval);
-	case 2:
-		return new_system_var(HspSystemVarKind::Refstr);
-	case 3:
-		return new_system_var(HspSystemVarKind::Stat);
-	default:
-		assert(false && u8"out of range");
-		throw std::exception{};
-	}
+	assert(child_index < child_count(objects));
+
+	auto kind = s_system_var_list.at(child_index);
+	return new_system_var(kind);
 }
 
 // -----------------------------------------------

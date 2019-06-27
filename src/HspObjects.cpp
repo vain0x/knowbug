@@ -530,9 +530,16 @@ auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> ch
 auto HspObjects::system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t {
 	switch (path.system_var_kind()) {
 	case HspSystemVarKind::Cnt:
-	case HspSystemVarKind::Refdval:
+	case HspSystemVarKind::Err:
+	case HspSystemVarKind::IParam:
+	case HspSystemVarKind::WParam:
+	case HspSystemVarKind::LParam:
+	case HspSystemVarKind::LoopLev:
+	case HspSystemVarKind::SubLev:
 	case HspSystemVarKind::Refstr:
+	case HspSystemVarKind::Refdval:
 	case HspSystemVarKind::Stat:
+	case HspSystemVarKind::StrSize:
 		return 1;
 	default:
 		assert(false && u8"Unknown HspSystemVarKind");
@@ -545,16 +552,21 @@ auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& pat
 
 	switch (path.system_var_kind()) {
 	case HspSystemVarKind::Cnt:
+	case HspSystemVarKind::Err:
+	case HspSystemVarKind::IParam:
+	case HspSystemVarKind::WParam:
+	case HspSystemVarKind::LParam:
+	case HspSystemVarKind::LoopLev:
+	case HspSystemVarKind::SubLev:
+	case HspSystemVarKind::Stat:
+	case HspSystemVarKind::StrSize:
 		return path.new_int();
-
-	case HspSystemVarKind::Refdval:
-		return path.new_double();
 
 	case HspSystemVarKind::Refstr:
 		return path.new_str();
 
-	case HspSystemVarKind::Stat:
-		return path.new_int();
+	case HspSystemVarKind::Refdval:
+		return path.new_double();
 
 	default:
 		assert(false && u8"Unknown HspSystemVarKind");
@@ -565,16 +577,37 @@ auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& pat
 auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::string {
 	switch (path.system_var_kind()) {
 	case HspSystemVarKind::Cnt:
-		return std::string{ u8"cnt" };
+		return u8"cnt";
 
-	case HspSystemVarKind::Refdval:
-		return std::string{ u8"refdval" };
+	case HspSystemVarKind::Err:
+		return u8"err";
+
+	case HspSystemVarKind::IParam:
+		return u8"iparam";
+
+	case HspSystemVarKind::WParam:
+		return u8"wparam";
+
+	case HspSystemVarKind::LParam:
+		return u8"lparam";
+
+	case HspSystemVarKind::LoopLev:
+		return u8"looplev";
+
+	case HspSystemVarKind::SubLev:
+		return u8"sublev";
 
 	case HspSystemVarKind::Refstr:
-		return std::string{ u8"refstr" };
+		return u8"refstr";
+
+	case HspSystemVarKind::Refdval:
+		return u8"refdval";
 
 	case HspSystemVarKind::Stat:
-		return std::string{ u8"stat" };
+		return u8"stat";
+
+	case HspSystemVarKind::StrSize:
+		return u8"strsize";
 
 	default:
 		assert(false && u8"Invalid HspSystemVarKind");

@@ -153,9 +153,18 @@ public:
 	}
 };
 
+// システム変数の種類。
+// 順番は名前順、ただし類似したものは近くに集める。
 enum HspSystemVarKind {
 	Cnt = 1,
-	Refdval,
+	Err,
+	IParam,
+	WParam,
+	LParam,
+	LoopLev,
+	SubLev,
 	Refstr,
+	Refdval,
 	Stat,
+	StrSize,
 };
