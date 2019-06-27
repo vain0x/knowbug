@@ -152,3 +152,7 @@ public:
 		return block_ptr_;
 	}
 };
+
+enum HspSystemVarKind {
+	Stat,
+};

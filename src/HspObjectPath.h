@@ -36,6 +36,12 @@ enum class HspObjectKind {
 	// 不明な型の値
 	Unknown,
 
+	// システム変数のリスト
+	SystemVarList,
+
+	// システム変数
+	SystemVar,
+
 	Log,
 
 	Script,
@@ -58,6 +64,8 @@ public:
 	class Int;
 	class Flex;
 	class Unknown;
+	class SystemVarList;
+	class SystemVar;
 	class Log;
 	class Script;
 
@@ -139,6 +147,10 @@ public:
 
 	auto as_unknown() const -> HspObjectPath::Unknown const&;
 
+	auto as_system_var_list() const -> HspObjectPath::SystemVarList const&;
+
+	auto as_system_var() const -> HspObjectPath::SystemVar const&;
+
 	auto as_log() const -> HspObjectPath::Log const&;
 
 	auto as_script() const -> HspObjectPath::Script const&;
@@ -166,6 +178,10 @@ protected:
 	auto new_flex() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_unknown() const -> std::shared_ptr<HspObjectPath const>;
+
+	auto new_system_var_list() const -> std::shared_ptr<HspObjectPath const>;
+
+	auto new_system_var(HspSystemVarKind system_var_kind) const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_log() const -> std::shared_ptr<HspObjectPath const>;
 
@@ -629,6 +645,80 @@ public:
 };
 
 // -----------------------------------------------
+// システム変数リスト
+// -----------------------------------------------
+
+class HspObjectPath::SystemVarList final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+public:
+	SystemVarList(std::shared_ptr<HspObjectPath const> parent);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::SystemVarList;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override;
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
+
+	auto name(HspObjects& objects) const -> std::string override {
+		return std::string{ u8"システム変数" };
+	}
+};
+
+// -----------------------------------------------
+// システム変数
+// -----------------------------------------------
+
+class HspObjectPath::SystemVar final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+	HspSystemVarKind system_var_kind_;
+
+public:
+	using HspObjectPath::new_str;
+	using HspObjectPath::new_double;
+	using HspObjectPath::new_int;
+
+	SystemVar(std::shared_ptr<HspObjectPath const> parent, HspSystemVarKind system_var_kind);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::SystemVar;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return system_var_kind() == other.as_system_var().system_var_kind();
+	}
+
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override;
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
+
+	auto name(HspObjects& objects) const -> std::string override;
+
+	auto system_var_kind() const -> HspSystemVarKind {
+		return system_var_kind_;
+	}
+};
+
+// -----------------------------------------------
 // ログ
 // -----------------------------------------------
 
@@ -774,6 +864,14 @@ public:
 	}
 
 	virtual void on_unknown(HspObjectPath::Unknown const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_system_var_list(HspObjectPath::SystemVarList const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_system_var(HspObjectPath::SystemVar const& path) {
 		accept_default(path);
 	}
 

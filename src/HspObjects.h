@@ -112,6 +112,12 @@ public:
 
 	auto flex_path_to_module_name(HspObjectPath::Flex const& path) -> char const*;
 
+	auto system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t;
+
+	auto system_var_path_to_child_at(HspObjectPath::SystemVar const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
+
+	auto system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::string;
+
 	auto log_to_content() const -> std::string const&;
 
 	void log_do_append(char const* text);

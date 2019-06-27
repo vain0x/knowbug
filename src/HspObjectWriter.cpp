@@ -83,6 +83,10 @@ public:
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
 
+	void on_system_var_list(HspObjectPath::SystemVarList const& path) override;
+
+	void on_system_var(HspObjectPath::SystemVar const& path) override;
+
 	void on_log(HspObjectPath::Log const& path) override;
 
 	void on_script(HspObjectPath::Script const& path) override;
@@ -116,6 +120,8 @@ public:
 	void on_flex(HspObjectPath::Flex const& path) override;
 
 	void on_unknown(HspObjectPath::Unknown const& path) override;
+
+	void on_system_var(HspObjectPath::SystemVar const& path) override;
 
 private:
 	void add_name_children(HspObjectPath const& path);
@@ -236,6 +242,24 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	varinf_.addVar(pval, name.data());
 }
 
+void HspObjectWriterImpl::TableForm::on_system_var_list(HspObjectPath::SystemVarList const& path) {
+	writer().catln(u8"[システム変数]");
+	to_block_form().accept_children(path);
+}
+
+void HspObjectWriterImpl::TableForm::on_system_var(HspObjectPath::SystemVar const& path) {
+	auto&& o = objects();
+	auto&& w = writer();
+
+	w.cat("[");
+	w.cat(path.name(o));
+	w.catln("]");
+
+	to_block_form().accept_children(path);
+
+	// FIXME: ダンプ
+}
+
 void HspObjectWriterImpl::TableForm::on_log(HspObjectPath::Log const& path) {
 	auto&& content = path.content(objects());
 	assert((content.empty() || content.back() == '\n') && u8"Log must be end with line break");
@@ -332,6 +356,10 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 void HspObjectWriterImpl::BlockForm::on_unknown(HspObjectPath::Unknown const& path) {
 	to_flow_form().on_unknown(path);
 	writer().catCrlf();
+}
+
+void HspObjectWriterImpl::BlockForm::on_system_var(HspObjectPath::SystemVar const& path) {
+	add_name_children(path);
 }
 
 void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path) {

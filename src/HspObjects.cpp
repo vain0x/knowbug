@@ -131,6 +131,10 @@ static auto path_to_data(HspObjectPath const& path, HspDebugApi& api) -> std::op
 
 		return api.param_data_to_data(*param_data_opt);
 	}
+	case HspObjectKind::SystemVar:
+	{
+		return api.system_var_to_data(path.as_system_var().system_var_kind());
+	}
 	default:
 		return std::nullopt;
 	}
@@ -521,6 +525,38 @@ auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> ch
 
 	auto struct_dat = api_.flex_to_module_struct(*flex_opt);
 	return api_.struct_to_name(struct_dat);
+}
+
+auto HspObjects::system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t {
+	switch (path.system_var_kind()) {
+	case HspSystemVarKind::Stat:
+		return 1;
+	default:
+		assert(false && u8"Unknown HspSystemVarKind");
+		throw std::exception{};
+	}
+}
+
+auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const> {
+	assert(child_index < system_var_path_to_child_count(path));
+
+	switch (path.system_var_kind()) {
+	case HspSystemVarKind::Stat:
+		return path.new_int();
+	default:
+		assert(false && u8"Unknown HspSystemVarKind");
+		throw std::exception{};
+	}
+}
+
+auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::string {
+	switch (path.system_var_kind()) {
+	case HspSystemVarKind::Stat:
+		return std::string{ u8"stat" };
+	default:
+		assert(false && u8"Invalid HspSystemVarKind");
+		throw std::exception{};
+	}
 }
 
 auto HspObjects::log_to_content() const -> std::string const& {

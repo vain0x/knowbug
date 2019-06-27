@@ -75,6 +75,8 @@ public:
 
 	auto var_element_to_block_memory(PVal* pval, std::size_t aptr) -> BlockMemory;
 
+	auto system_var_to_data(HspSystemVarKind system_var_kind) -> std::optional<HspData>;
+
 	auto data_to_label(HspData const& data) const -> HspLabel;
 
 	auto data_to_str(HspData const& data) const -> HspStr;

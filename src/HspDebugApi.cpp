@@ -161,6 +161,16 @@ auto HspDebugApi::var_element_to_block_memory(PVal* pval, std::size_t aptr) -> H
 	return var_data_to_block_memory(pval, pdat);
 }
 
+auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) -> std::optional<HspData> {
+	switch (system_var_kind) {
+	case HspSystemVarKind::Stat:
+		return std::make_optional(int_ptr_to_data(&context()->stat));
+	default:
+		assert(false && u8"Invalid HspSystemVarKind");
+		throw std::exception{};
+	}
+}
+
 auto HspDebugApi::data_to_label(HspData const& data) const -> HspLabel {
 	if (data.type() != HspType::Label) {
 		assert(false && u8"Invalid cast to label");
