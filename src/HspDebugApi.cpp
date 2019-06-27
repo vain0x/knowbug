@@ -328,7 +328,8 @@ auto HspDebugApi::flex_to_member_at(FlexValue* flex, std::size_t member_index) c
 
 auto HspDebugApi::flex_to_param_stack(FlexValue* flex) const -> HspParamStack {
 	auto struct_dat = flex_to_module_struct(flex);
-	return HspParamStack{ struct_dat, flex->ptr };
+	auto safety = true;
+	return HspParamStack{ struct_dat, flex->ptr, safety };
 }
 
 auto HspDebugApi::structs() const -> STRUCTDAT const* {
@@ -369,17 +370,8 @@ auto HspDebugApi::param_to_param_id(STRUCTPRM const* param) const -> std::size_t
 	return (std::size_t)id;
 }
 
-auto HspDebugApi::param_to_name(STRUCTPRM const* param, hpiutil::DInfo const& debug_segment) const -> std::string {
+auto HspDebugApi::param_to_name(STRUCTPRM const* param, std::size_t param_index, hpiutil::DInfo const& debug_segment) const -> std::string {
 	auto struct_dat = hpiutil::STRUCTPRM_stdat(param);
-	auto param_count = struct_to_param_count(struct_dat);
-
-	// この struct_dat は param を引数に持つので、少なくとも1つの引数を持つ。
-	assert(param_count >= 1);
-	auto first_param = struct_to_param_at(struct_dat, 0);
-
-	assert(first_param <= param && param < first_param + param_count);
-	auto param_index = (std::size_t)(param - first_param);
-
 	return hpiutil::nameFromStPrm(param, (int)param_index, debug_segment);
 }
 
@@ -395,7 +387,7 @@ auto HspDebugApi::param_stack_to_data_at(HspParamStack const& param_stack, std::
 
 	auto param = hpiutil::STRUCTDAT_params(param_stack.struct_dat()).begin() + param_index;
 	auto ptr = (void*)((char const*)param_stack.ptr() + param->offset);
-	return HspParamData{ param, param_index, ptr };
+	return HspParamData{ param, param_index, ptr, param_stack.safety() };
 }
 
 auto HspDebugApi::param_data_to_type(HspParamData const& param_data) const -> HspParamType {
@@ -411,6 +403,10 @@ auto HspDebugApi::param_data_as_local_var(HspParamData const& param_data) const 
 }
 
 auto HspDebugApi::param_data_to_data(HspParamData const& param_data) const -> std::optional<HspData> {
+	if (!param_data.safety()) {
+		return std::nullopt;
+	}
+
 	switch (param_data_to_type(param_data)) {
 	case MPTYPE_LOCALSTRING:
 		{

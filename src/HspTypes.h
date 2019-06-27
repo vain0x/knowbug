@@ -64,12 +64,16 @@ public:
 // HSP の引数リストへの参照
 class HspParamStack {
 	STRUCTDAT const* struct_dat_;
+
 	void* ptr_;
 
+	bool safety_;
+
 public:
-	HspParamStack(STRUCTDAT const* struct_dat, void* ptr)
+	HspParamStack(STRUCTDAT const* struct_dat, void* ptr, bool safety)
 		: struct_dat_(struct_dat)
 		, ptr_(ptr)
+		, safety_(safety)
 	{
 		assert(struct_dat != nullptr);
 		assert(ptr != nullptr);
@@ -82,6 +86,11 @@ public:
 	auto ptr() const -> void* {
 		return ptr_;
 	}
+
+	// 引数のデータの読み取りが安全か
+	bool safety() const {
+		return safety_;
+	}
 };
 
 // HSP の引数 (引数リストの1要素) への参照
@@ -89,12 +98,14 @@ class HspParamData {
 	STRUCTPRM const* param_;
 	std::size_t param_index_;
 	void* ptr_;
+	bool safety_;
 
 public:
-	HspParamData(STRUCTPRM const* param, std::size_t param_index, void* ptr)
+	HspParamData(STRUCTPRM const* param, std::size_t param_index, void* ptr, bool safety)
 		: param_(param)
 		, param_index_(param_index)
 		, ptr_(ptr)
+		, safety_(safety)
 	{
 		assert(param != nullptr);
 		assert(ptr != nullptr);
@@ -110,6 +121,10 @@ public:
 
 	auto ptr() const -> void* {
 		return ptr_;
+	}
+
+	bool safety() const {
+		return safety_;
 	}
 };
 

@@ -125,7 +125,9 @@ public:
 
 	auto call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<std::string>;
 
-	auto call_frame_path_to_param_stack(HspObjectPath::CallFrame const& path) const -> std::optional<HspParamStack>;
+	auto call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t;
+
+	auto call_frame_path_to_child_at(HspObjectPath::CallFrame const& path, std::size_t child_index) const -> std::optional<std::shared_ptr<HspObjectPath const>>;
 
 	auto log_to_content() const -> std::string const&;
 

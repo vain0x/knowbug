@@ -2,7 +2,10 @@
 #include "HspObjectPath.h"
 
 static bool kind_can_have_value(HspObjectKind kind) {
-	return kind == HspObjectKind::StaticVar || kind == HspObjectKind::Element || kind == HspObjectKind::SystemVar;
+	return kind == HspObjectKind::StaticVar
+		|| kind == HspObjectKind::Element
+		|| kind == HspObjectKind::Param
+		|| kind == HspObjectKind::SystemVar;
 }
 
 HspObjectPath::~HspObjectPath() {
@@ -559,14 +562,17 @@ auto HspObjectPath::as_call_frame() const -> HspObjectPath::CallFrame const& {
 }
 
 auto HspObjectPath::CallFrame::child_count(HspObjects& objects) const -> std::size_t {
-	// FIXME: 実装
-	return 0;
+	return objects.call_frame_path_to_child_count(*this);
 }
 
 auto HspObjectPath::CallFrame::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
-	// FIXME: 実装
-	assert(false && u8"unimpl");
-	throw std::exception();
+	auto&& child_opt = objects.call_frame_path_to_child_at(*this, child_index);
+	if (!child_opt) {
+		assert(false && u8"FIXME: 実装");
+		throw new std::exception{};
+	}
+
+	return *child_opt;
 }
 
 auto HspObjectPath::CallFrame::name(HspObjects& objects) const -> std::string {

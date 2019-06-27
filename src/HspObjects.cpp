@@ -235,8 +235,6 @@ static auto flex_path_to_value(HspObjectPath::Flex const& path, HspDebugApi& api
 }
 
 static auto path_to_param_stack(HspObjectPath const& path, HspDebugApi& api) -> std::optional<HspParamStack> {
-	// FIXME: スタックフレームからも取れる。
-
 	switch (path.kind()) {
 	case HspObjectKind::Flex:
 		{
@@ -245,6 +243,26 @@ static auto path_to_param_stack(HspObjectPath const& path, HspDebugApi& api) -> 
 				return std::nullopt;
 			}
 			return std::make_optional<HspParamStack>(api.flex_to_param_stack(*flex_opt));
+		}
+	case HspObjectKind::CallFrame:
+		{
+			auto&& call_info_opt = WrapCall::call_frame_get(path.as_call_frame().call_frame_id());
+			if (!call_info_opt || !*call_info_opt) {
+				return std::nullopt;
+			}
+
+			auto&& call_info = **call_info_opt;
+			auto struct_dat = call_info.stdat;
+			auto&& pair = call_info.tryGetPrmstk();
+
+			auto param_stack_ptr = pair.first;
+			if (param_stack_ptr == nullptr) {
+				return std::nullopt;
+			}
+
+			auto param_stack_safety = pair.second;
+			auto param_stack = HspParamStack{ struct_dat, param_stack_ptr, param_stack_safety };
+			return std::make_optional<HspParamStack>(param_stack);
 		}
 	default:
 		return std::nullopt;
@@ -425,7 +443,7 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 
 auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> std::string {
 	auto&& param_data = param_path_to_param_data(path, api_);
-	return api_.param_to_name(param_data->param(), debug_segment_);
+	return api_.param_to_name(param_data->param(), param_data->param_index(), debug_segment_);
 }
 
 bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {
@@ -633,9 +651,24 @@ auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) c
 	return (**call_info_opt).name();
 }
 
-auto HspObjects::call_frame_path_to_param_stack(HspObjectPath::CallFrame const& path) const -> std::optional<HspParamStack> {
-	assert(false && u8"FIXME: 実装");
-	throw std::exception{};
+auto HspObjects::call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t {
+	auto&& param_stack_opt = path_to_param_stack(path, api_);
+	if (!param_stack_opt) {
+		return 0;
+	}
+
+	return api_.param_stack_to_data_count(*param_stack_opt);
+}
+
+auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& path, std::size_t child_index) const -> std::optional<std::shared_ptr<HspObjectPath const>> {
+	auto&& param_stack_opt = path_to_param_stack(path, api_);
+	if (!param_stack_opt) {
+		return std::nullopt;
+	}
+
+	auto&& param_data = api_.param_stack_to_data_at(*param_stack_opt, child_index);
+	auto param_type = api_.param_data_to_type(param_data);
+	return std::make_optional(path.new_param(param_type, param_data.param_index()));
 }
 
 auto HspObjects::log_to_content() const -> std::string const& {

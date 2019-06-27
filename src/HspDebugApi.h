@@ -123,7 +123,7 @@ public:
 
 	auto param_to_param_id(STRUCTPRM const* param) const -> std::size_t;
 
-	auto param_to_name(STRUCTPRM const* param, hpiutil::DInfo const& debug_segment) const -> std::string;
+	auto param_to_name(STRUCTPRM const* param, std::size_t param_index, hpiutil::DInfo const& debug_segment) const -> std::string;
 
 	auto param_stack_to_data_count(HspParamStack const& param_stack) const -> std::size_t;
 
