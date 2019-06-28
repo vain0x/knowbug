@@ -49,6 +49,10 @@ enum class HspObjectKind {
 	Log,
 
 	Script,
+
+	// 利用不能なオブジェクト。
+	// 子ノードの取得に思わず失敗したときなどに生成される。
+	Unavailable,
 };
 
 // HSP のオブジェクトを指し示すルートからの経路
@@ -74,6 +78,7 @@ public:
 	class CallFrame;
 	class Log;
 	class Script;
+	class Unavailable;
 
 	virtual	~HspObjectPath();
 
@@ -165,6 +170,8 @@ public:
 
 	auto as_script() const -> HspObjectPath::Script const&;
 
+	auto as_unavailable() const->HspObjectPath::Unavailable const&;
+
 protected:
 	auto new_module(std::size_t module_id) const->std::shared_ptr<HspObjectPath const>;
 
@@ -200,6 +207,9 @@ protected:
 	auto new_log() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_script() const -> std::shared_ptr<HspObjectPath const>;
+
+public:
+	auto new_unavailable(std::string&& reason) const->std::shared_ptr<HspObjectPath const>;
 };
 
 // -----------------------------------------------
@@ -898,6 +908,47 @@ public:
 };
 
 // -----------------------------------------------
+// 利用不能
+// -----------------------------------------------
+
+class HspObjectPath::Unavailable final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+	std::string reason_;
+
+public:
+	Unavailable(std::shared_ptr<HspObjectPath const> parent, std::string&& reason);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::Unavailable;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override {
+		return 0;
+	}
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override {
+		return self();
+	}
+
+	auto name(HspObjects& objects) const -> std::string override {
+		return std::string{ "<unavailable>" };
+	}
+
+	auto reason() const->std::string const&;
+};
+
+// -----------------------------------------------
 // ビジター
 // -----------------------------------------------
 
@@ -980,6 +1031,10 @@ public:
 	}
 
 	virtual void on_script(HspObjectPath::Script const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_unavailable(HspObjectPath::Unavailable const& path) {
 		accept_default(path);
 	}
 

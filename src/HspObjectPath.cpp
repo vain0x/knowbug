@@ -635,6 +635,32 @@ auto HspObjectPath::Script::current_line(HspObjects& objects) const -> std::size
 }
 
 // -----------------------------------------------
+// 利用不能
+// -----------------------------------------------
+
+auto HspObjectPath::new_unavailable(std::string&& reason) const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::Unavailable>(self(), std::move(reason));
+}
+
+auto HspObjectPath::as_unavailable() const -> HspObjectPath::Unavailable const& {
+	if (kind() != HspObjectKind::Unavailable) {
+		assert(false && u8"Casting to Unavailable");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Unavailable const*)this;
+}
+
+HspObjectPath::Unavailable::Unavailable(std::shared_ptr<HspObjectPath const> parent, std::string&& reason)
+	: parent_(std::move(parent))
+	, reason_(std::move(reason))
+{
+}
+
+auto HspObjectPath::Unavailable::reason() const -> std::string const& {
+	return reason_;
+}
+
+// -----------------------------------------------
 // ビジター
 // -----------------------------------------------
 
@@ -711,6 +737,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::Script:
 		on_script(path.as_script());
+		return;
+
+	case HspObjectKind::Unavailable:
+		on_unavailable(path.as_unavailable());
 		return;
 
 	default:
