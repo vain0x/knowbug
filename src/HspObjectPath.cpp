@@ -70,7 +70,7 @@ auto HspObjectPath::Root::new_global_module(HspObjects& objects) const->std::sha
 // -----------------------------------------------
 
 HspObjectPath::Module::Module(std::shared_ptr<HspObjectPath const> parent, std::size_t module_id)
-	: parent_(parent)
+	: parent_(std::move(parent))
 	, module_id_(module_id)
 {
 }
@@ -127,7 +127,7 @@ auto HspObjectPath::as_module() const -> HspObjectPath::Module const& {
 // -----------------------------------------------
 
 HspObjectPath::StaticVar::StaticVar(std::shared_ptr<HspObjectPath const> parent, std::size_t static_var_id)
-	: parent_(parent)
+	: parent_(std::move(parent))
 	, static_var_id_(static_var_id)
 {
 }
@@ -173,7 +173,7 @@ auto HspObjectPath::as_static_var() const -> HspObjectPath::StaticVar const& {
 // -----------------------------------------------
 
 HspObjectPath::Element::Element(std::shared_ptr<HspObjectPath const> parent, HspDimIndex const& indexes)
-	: parent_(parent)
+	: parent_(std::move(parent))
 	, indexes_(indexes)
 {
 }
@@ -207,7 +207,7 @@ auto HspObjectPath::as_element() const -> HspObjectPath::Element const& {
 // -----------------------------------------------
 
 HspObjectPath::Param::Param(std::shared_ptr<HspObjectPath const> parent, HspParamType param_type, std::size_t param_index)
-	: parent_(parent)
+	: parent_(std::move(parent))
 	, param_type_(param_type)
 	, param_index_(param_index)
 {
@@ -242,7 +242,7 @@ auto HspObjectPath::Param::name(HspObjects& objects) const -> std::string {
 // -----------------------------------------------
 
 HspObjectPath::Label::Label(std::shared_ptr<HspObjectPath const> parent)
-	: parent_(parent)
+	: parent_(std::move(parent))
 {
 }
 
@@ -276,7 +276,7 @@ auto HspObjectPath::Label::static_label_id(HspObjects& objects) const -> std::op
 // -----------------------------------------------
 
 HspObjectPath::Str::Str(std::shared_ptr<HspObjectPath const> parent)
-	: parent_(parent)
+	: parent_(std::move(parent))
 {
 }
 
@@ -302,7 +302,7 @@ auto HspObjectPath::Str::value(HspObjects& objects) const -> HspStr {
 // -----------------------------------------------
 
 HspObjectPath::Double::Double(std::shared_ptr<HspObjectPath const> parent)
-	: parent_(parent)
+	: parent_(std::move(parent))
 {
 }
 
@@ -328,7 +328,7 @@ auto HspObjectPath::Double::value(HspObjects& objects) const -> HspDouble {
 // -----------------------------------------------
 
 HspObjectPath::Int::Int(std::shared_ptr<HspObjectPath const> parent)
-	: parent_(parent)
+	: parent_(std::move(parent))
 {
 }
 
@@ -354,7 +354,7 @@ auto HspObjectPath::Int::value(HspObjects& objects) const -> HspInt {
 // -----------------------------------------------
 
 HspObjectPath::Flex::Flex(std::shared_ptr<HspObjectPath const> parent)
-	: parent_(parent)
+	: parent_(std::move(parent))
 {
 }
 
