@@ -435,6 +435,11 @@ auto HspDebugApi::param_data_to_data(HspParamData const& param_data) const -> st
 			}
 			return std::make_optional(str_ptr_to_data(str));
 		}
+	case MPTYPE_DNUM:
+		{
+			auto ptr = UNSAFE((HspDouble*)param_data.ptr());
+			return std::make_optional(double_ptr_to_data(ptr));
+		}
 	case MPTYPE_INUM:
 		{
 			auto ptr = UNSAFE((HspInt*)param_data.ptr());
