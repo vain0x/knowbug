@@ -510,7 +510,20 @@ void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
 		return;
 	}
 
-	w.cat("<struct>");
+	auto&& module_name = path.module_name(o);
+	w.cat(module_name);
+	w.cat("{");
+
+	for (auto i = std::size_t{}; i < path.child_count(o); i++) {
+		auto&& child_path = path.child_at(i, o);
+
+		if (i != 0) {
+			w.cat(", ");
+		}
+		accept(*child_path);
+	}
+
+	w.cat("}");
 }
 
 void HspObjectWriterImpl::FlowForm::on_unknown(HspObjectPath::Unknown const& path) {
