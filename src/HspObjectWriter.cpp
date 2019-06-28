@@ -104,15 +104,11 @@ class HspObjectWriterImpl::TableForm
 public:
 	TableForm(HspObjects& objects, CStrWriter& writer);
 
-	void on_module(HspObjectPath::Module const& path) override;
+	void accept_default(HspObjectPath const& path) override;
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
 
 	void on_system_var_list(HspObjectPath::SystemVarList const& path) override;
-
-	void on_system_var(HspObjectPath::SystemVar const& path) override;
-
-	void on_call_stack(HspObjectPath::CallStack const& path) override;
 
 	void on_log(HspObjectPath::Log const& path) override;
 
@@ -128,13 +124,11 @@ class HspObjectWriterImpl::BlockForm
 public:
 	BlockForm(HspObjects& objects, CStrWriter& writer);
 
+	void accept_default(HspObjectPath const& path) override;
+
 	void on_module(HspObjectPath::Module const& path) override;
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
-
-	void on_element(HspObjectPath::Element const& path) override;
-
-	void on_param(HspObjectPath::Param const& path) override;
 
 	void on_label(HspObjectPath::Label const& path) override;
 
@@ -147,10 +141,6 @@ public:
 	void on_flex(HspObjectPath::Flex const& path) override;
 
 	void on_unknown(HspObjectPath::Unknown const& path) override;
-
-	void on_system_var(HspObjectPath::SystemVar const& path) override;
-
-	void on_call_frame(HspObjectPath::CallFrame const& path) override;
 
 private:
 	void add_name_children(HspObjectPath const& path);
@@ -211,19 +201,15 @@ HspObjectWriterImpl::TableForm::TableForm(HspObjects& objects, CStrWriter& write
 {
 }
 
-void HspObjectWriterImpl::TableForm::on_module(HspObjectPath::Module const& path) {
+void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
+	auto&& o = objects();
 	auto&& w = writer();
-	auto&& objects_ = objects();
-	auto&& name = path.name(objects_);
 
 	w.cat("[");
-	w.cat(name.data());
+	w.cat(path.name(o));
 	w.catln("]");
 
-	for (auto i = std::size_t{}; i < path.child_count(objects_); i++) {
-		auto&& child_path = path.child_at(i, objects_);
-		to_block_form().accept(*child_path);
-	}
+	to_block_form().accept_children(path);
 }
 
 void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar const& path) {
@@ -270,31 +256,6 @@ void HspObjectWriterImpl::TableForm::on_system_var_list(HspObjectPath::SystemVar
 	to_block_form().accept_children(path);
 }
 
-void HspObjectWriterImpl::TableForm::on_system_var(HspObjectPath::SystemVar const& path) {
-	auto&& o = objects();
-	auto&& w = writer();
-
-	w.cat("[");
-	w.cat(path.name(o));
-	w.catln("]");
-
-	to_block_form().accept_children(path);
-
-	// FIXME: ダンプ
-}
-
-void HspObjectWriterImpl::TableForm::on_call_stack(HspObjectPath::CallStack const& path) {
-	// FIXME: この挙動を既定にするとよさそう
-	auto&& o = objects();
-	auto&& w = writer();
-
-	w.cat("[");
-	w.cat(path.name(o));
-	w.catln("]");
-
-	to_block_form().accept_children(path);
-}
-
 void HspObjectWriterImpl::TableForm::on_log(HspObjectPath::Log const& path) {
 	auto&& content = path.content(objects());
 	assert((content.empty() || content.back() == '\n') && u8"Log must be end with line break");
@@ -317,6 +278,12 @@ HspObjectWriterImpl::BlockForm::BlockForm(HspObjects& objects, CStrWriter& write
 {
 }
 
+void HspObjectWriterImpl::BlockForm::accept_default(HspObjectPath const& path) {
+	add_name_children(path);
+
+	// FIXME: システム変数ならメモリダンプを出力できる
+}
+
 void HspObjectWriterImpl::BlockForm::on_module(HspObjectPath::Module const& path) {
 	auto&& name = path.name(objects());
 
@@ -334,14 +301,6 @@ void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar cons
 	to_flow_form().accept(path);
 
 	writer().catCrlf();
-}
-
-void HspObjectWriterImpl::BlockForm::on_element(HspObjectPath::Element const& path) {
-	add_name_children(path);
-}
-
-void HspObjectWriterImpl::BlockForm::on_param(HspObjectPath::Param const& path) {
-	add_name_children(path);
 }
 
 void HspObjectWriterImpl::BlockForm::on_label(HspObjectPath::Label const& path) {
@@ -391,15 +350,6 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 void HspObjectWriterImpl::BlockForm::on_unknown(HspObjectPath::Unknown const& path) {
 	to_flow_form().on_unknown(path);
 	writer().catCrlf();
-}
-
-void HspObjectWriterImpl::BlockForm::on_system_var(HspObjectPath::SystemVar const& path) {
-	add_name_children(path);
-}
-
-void HspObjectWriterImpl::BlockForm::on_call_frame(HspObjectPath::CallFrame const& path) {
-	// FIXME: この挙動を既定にするとよさそう
-	add_name_children(path);
 }
 
 void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path) {
