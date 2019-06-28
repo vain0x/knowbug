@@ -171,7 +171,7 @@ protected:
 	auto new_static_var(std::size_t static_var_id) const -> std::shared_ptr<HspObjectPath const>;
 
 public:
-	auto new_element(HspIndexes const& indexes) const -> std::shared_ptr<HspObjectPath const>;
+	auto new_element(HspDimIndex const& indexes) const -> std::shared_ptr<HspObjectPath const>;
 
 protected:
 	// param_index: 親要素の何番目の引数か
@@ -328,7 +328,7 @@ class HspObjectPath::Element final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	HspIndexes indexes_;
+	HspDimIndex indexes_;
 
 public:
 	using HspObjectPath::new_label;
@@ -338,7 +338,7 @@ public:
 	using HspObjectPath::new_flex;
 	using HspObjectPath::new_unknown;
 
-	Element(std::shared_ptr<HspObjectPath const> parent, HspIndexes indexes);
+	Element(std::shared_ptr<HspObjectPath const> parent, HspDimIndex const& indexes);
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::Element;
@@ -358,7 +358,7 @@ public:
 
 	auto name(HspObjects& objects) const -> std::string override;
 
-	auto indexes() const -> HspIndexes const& {
+	auto indexes() const -> HspDimIndex const& {
 		return indexes_;
 	}
 };

@@ -57,15 +57,15 @@ public:
 
 	auto var_to_data(PVal* pval) -> HspData;
 
-	auto var_to_lengths(PVal* pval) const -> HspIndexes;
+	auto var_to_lengths(PVal* pval) const -> HspDimIndex;
 
 	bool var_is_array(PVal* pval) const;
 
 	auto var_to_element_count(PVal* pval) -> std::size_t;
 
-	auto var_element_to_indexes(PVal* pval, std::size_t aptr) -> HspIndexes;
+	auto var_element_to_indexes(PVal* pval, std::size_t aptr) -> HspDimIndex;
 
-	auto var_element_to_aptr(PVal* pval, HspIndexes const& indexes) -> std::size_t;
+	auto var_element_to_aptr(PVal* pval, HspDimIndex const& indexes) -> std::size_t;
 
 	auto var_element_to_data(PVal* pval, std::size_t aptr) -> HspData;
 

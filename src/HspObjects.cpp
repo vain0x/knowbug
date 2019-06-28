@@ -413,12 +413,8 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 }
 
 auto HspObjects::element_path_to_name(HspObjectPath::Element const& path) const -> std::string {
-	// FIXME: 配列の次元数をみて決める。例えば2次元配列なら (1) ではなく (1, 0) などにする。
 	auto v = std::vector<int>{};
 	for (auto i : path.indexes()) {
-		if (!v.empty() && i == 0) {
-			break;
-		}
 		v.push_back((int)i);
 	}
 	return hpiutil::stringifyArrayIndex(v);

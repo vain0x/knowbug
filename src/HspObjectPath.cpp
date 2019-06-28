@@ -172,7 +172,7 @@ auto HspObjectPath::as_static_var() const -> HspObjectPath::StaticVar const& {
 // 配列要素
 // -----------------------------------------------
 
-HspObjectPath::Element::Element(std::shared_ptr<HspObjectPath const> parent, HspIndexes indexes)
+HspObjectPath::Element::Element(std::shared_ptr<HspObjectPath const> parent, HspDimIndex const& indexes)
 	: parent_(parent)
 	, indexes_(indexes)
 {
@@ -190,7 +190,7 @@ auto HspObjectPath::Element::name(HspObjects& objects) const -> std::string {
 	return objects.element_path_to_name(*this);
 }
 
-auto HspObjectPath::new_element(HspIndexes const& indexes) const -> std::shared_ptr<HspObjectPath const> {
+auto HspObjectPath::new_element(HspDimIndex const& indexes) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::Element>(self(), indexes);
 }
 

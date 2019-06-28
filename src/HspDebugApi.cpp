@@ -100,15 +100,23 @@ auto HspDebugApi::var_to_data(PVal* pval) -> HspData {
 	return HspData{ type, pdat };
 }
 
-auto HspDebugApi::var_to_lengths(PVal* pval) const -> HspIndexes {
+auto HspDebugApi::var_to_lengths(PVal* pval) const -> HspDimIndex {
 	assert(pval != nullptr);
 
-	auto lengths = HspIndexes{};
-	for (auto i = std::size_t{}; i < hpiutil::ArrayDimMax; i++) {
+	auto lengths = std::array<std::size_t, HspDimIndex::MAX_DIM>{};
+	auto i = std::size_t{};
+
+	while (i < HspDimIndex::MAX_DIM) {
 		lengths[i] = pval->len[i + 1];
+
+		if (i >= 1 && lengths[i] == 0) {
+			break;
+		}
+
+		i++;
 	}
 
-	return lengths;
+	return HspDimIndex{ i, lengths };
 }
 
 bool HspDebugApi::var_is_array(PVal* pval) const {
@@ -119,16 +127,30 @@ auto HspDebugApi::var_to_element_count(PVal* pval) -> std::size_t {
 	return hpiutil::PVal_cntElems((PVal*)pval);
 }
 
-auto HspDebugApi::var_element_to_indexes(PVal* pval, std::size_t aptr) -> HspIndexes {
-	// FIXME: 2次元以上のケースを実装
-	auto indexes = HspIndexes{};
-	indexes[0] = aptr;
-	return indexes;
+auto HspDebugApi::var_element_to_indexes(PVal* pval, std::size_t aptr) -> HspDimIndex {
+	auto lengths = var_to_lengths(pval);
+
+	// E.g. lengths=(2, 3), aptr=5, indexes=(1, 2)
+	auto indexes = std::array<std::size_t, HspDimIndex::MAX_DIM>{};
+	for (auto i = std::size_t{}; i < lengths.dim(); i++) {
+		indexes[i] = aptr % lengths[i];
+		aptr /= lengths[i];
+	}
+
+	return HspDimIndex{ lengths.dim(), indexes };
 }
 
-auto HspDebugApi::var_element_to_aptr(PVal* pval, HspIndexes const& indexes) -> std::size_t {
-	// FIXME: 2次元以上のケースを実装
-	return indexes[0];
+auto HspDebugApi::var_element_to_aptr(PVal* pval, HspDimIndex const& indexes) -> std::size_t {
+	auto lengths = var_to_lengths(pval);
+
+	auto unit = std::size_t{ 1 };
+	auto aptr = std::size_t{};
+	for (auto i = std::size_t{}; i < lengths.dim(); i++) {
+		aptr += indexes[i] * unit;
+		unit *= lengths[i];
+	}
+
+	return aptr;
 }
 
 auto HspDebugApi::var_element_to_data(PVal* pval, std::size_t aptr) -> HspData {

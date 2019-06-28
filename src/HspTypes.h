@@ -5,6 +5,8 @@
 #include <cstdint>
 #include "hpiutil/hpiutil_fwd.hpp"
 
+#undef min
+
 // code segment の先頭からのオフセット。ラベルが指す位置を表現する。
 using HspCodeOffset = std::int32_t;
 
@@ -17,8 +19,6 @@ using HspStr = char*;
 using HspDouble = double;
 
 using HspInt = std::int32_t;
-
-using HspIndexes = std::array<std::size_t, hpiutil::ArrayDimMax>;
 
 // 引数の種類
 // MPTYPE_*
@@ -34,6 +34,70 @@ enum class HspType
 	Int = HSPVAR_FLAG_INT,
 	Struct = HSPVAR_FLAG_STRUCT,
 	Comstruct = HSPVAR_FLAG_COMSTRUCT,
+};
+
+// 多次元配列へのインデックス。(最大4次元)
+// 多次元配列の要素の位置を表す。あるいは、次元数と要素数を表す。
+class HspDimIndex {
+public:
+	static std::size_t const MAX_DIM = 4;
+
+private:
+	// 次元数 (1-4)
+	std::size_t dim_;
+
+	std::array<std::size_t, MAX_DIM> indexes_;
+
+public:
+	HspDimIndex()
+		: dim_(1)
+		, indexes_({ 0, 0, 0, 0 })
+	{
+	}
+
+	HspDimIndex(std::size_t dim, std::array<std::size_t, MAX_DIM> indexes)
+		: dim_(dim)
+		, indexes_(indexes)
+	{
+		assert(1 <= dim && dim <= MAX_DIM);
+	}
+
+	bool operator ==(HspDimIndex const& other) const {
+		return dim() == other.dim() && indexes_ == other.indexes_;
+	}
+
+	auto dim() const -> std::size_t {
+		return dim_;
+	}
+
+	auto operator[](std::size_t i) const -> std::size_t {
+		return at(i);
+	}
+
+	auto at(std::size_t i) const -> std::size_t {
+		if (i >= dim()) {
+			assert(false && u8"次元数を超えています");
+			throw std::exception{};
+		}
+
+		return indexes_[i];
+	}
+
+	auto begin() const -> std::size_t const* {
+		return indexes_.data();
+	}
+
+	auto end() const -> std::size_t const* {
+		return indexes_.data() + std::min(MAX_DIM, dim());
+	}
+
+	auto size() const -> std::size_t {
+		auto count = std::size_t{ 1 };
+		for (auto i : *this) {
+			count *= i;
+		}
+		return count;
+	}
 };
 
 // HSP の変数が持つデータへのポインタ
@@ -130,7 +194,7 @@ public:
 
 class HspVarMetadata {
 public:
-	HspIndexes lengths_;
+	HspDimIndex lengths_;
 	std::size_t element_size_;
 	std::size_t data_size_;
 	std::size_t block_size_;
@@ -139,7 +203,7 @@ public:
 	void const* block_ptr_;
 
 public:
-	auto lengths() const -> HspIndexes const& {
+	auto lengths() const -> HspDimIndex const& {
 		return lengths_;
 	}
 
