@@ -87,6 +87,8 @@ public:
 
 	auto element_path_to_child_at(HspObjectPath::Element const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
 
+	auto element_path_to_name(HspObjectPath::Element const& path) const->std::string;
+
 	auto param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t;
 
 	auto param_path_to_child_at(HspObjectPath::Param const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
