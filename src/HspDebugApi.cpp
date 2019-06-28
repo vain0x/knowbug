@@ -40,14 +40,10 @@ auto HspDebugApi::current_file_ref_name() const -> std::optional<char const*> {
 }
 
 auto HspDebugApi::current_line() const -> std::size_t {
+	// 1-indexed。ただしファイルがないときは 0。
 	auto line_number = debug_->line;
 
-	if (line_number <= 0) {
-		assert(false && u8"line number should start with 1");
-		throw std::exception{};
-	}
-
-	return (std::size_t)(line_number - 1);
+	return (std::size_t)std::max(0, line_number - 1);
 }
 
 auto HspDebugApi::static_vars() -> PVal* {
