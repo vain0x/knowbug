@@ -3,7 +3,7 @@
 ## 開発環境
 
 - Windows 10
-- Visual Studio 2015
+- Visual Studio 2019
     - C++ 開発用の機能をインストールしておく。
 
 ## ビルド
@@ -11,19 +11,26 @@
 ソリューション (knowbug.sln) を Visual Studio で開いて「ビルド」(Ctrl+B)する。
 
 - ビルドプロファイル
-    - Debug/Release
-        - Debug は knowbug 自体のデバッグ用。Release は配布用。
-    - x86/x64
-        - **x86**: 32 bit 版 HSP 用
+    - Debug/Release2
+        - Debug は knowbug 自体のデバッグ用。Release2 は配布用。
+        - どちらも hsp3 (shift_jis) ランタイム対応
+    - DebugUtf/ReleseUtf
+        - hsp3utf ランタイム対応 (hsp3debug_u8.dll)
+    - Win32/x64
+        - **Win32**: 32 bit 版 HSP 用
         - **x64**: 64 bit 版 HSP 用。hsp3debug_64.dll
 
 ## テスト
 
-./package/sample/ のサンプルコードなどでちまちま検証する。
+./package/sample/ のサンプルコードなどでちまちま動作確認する。
 
 ## デバッグ
 
-Debug モードでビルドしたものをHSPの hsp3debug.dll と入れ替えて、HSPを実行する。Visual Studio の「プロセスにアタッチ」(Ctrl+Alt+P)でHSPのランタイム (hsp3.exe) にアタッチすると、ブレークポイントに止まって、変数の値を確認したりトレース実行したりできる。
+ビルドで生成される DLL を指すシンボリックリンクを HSP のディレクトリに配置しておくと便利である。(FIXME: 作業手順を書く。 [install-dev](./scripts/install-dev.ps1) 参照)
+
+HSP の起動時、あるいは起動中に Visual Studio の「プロセスにアタッチ」(Ctrl+Alt+P)をすると、ブレークポイントや assert で停止したときに knowbug 側のコードをトレース実行できる。
+
+デバッグ用の knowbug の起動時にシフトキーを押しておくと、knowbug が初期化される前に停止するようになっているので、アタッチしやすい。
 
 ## デプロイ
 
