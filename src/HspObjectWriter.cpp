@@ -10,6 +10,35 @@ extern auto stringizeVartype(PVal const* pval) -> string;
 // ヘルパー
 // -----------------------------------------------
 
+static void write_array_type(CStrWriter& writer, char const* type_name, HspDimIndex const& lengths) {
+	writer.cat(type_name);
+
+	switch (lengths.dim()) {
+	case 0:
+		writer.cat("(empty)");
+		return;
+	case 1:
+		// (%d)
+		writer.cat("(");
+		writer.catSize(lengths.at(0));
+		writer.cat(")");
+		return;
+	default:
+		// (%d, %d, ..) (%d in total)
+		writer.cat("(");
+		for (auto i = std::size_t{}; i < lengths.dim(); i++) {
+			if (i != 0) {
+				writer.cat(", ");
+			}
+			writer.catSize(lengths.at(i));
+		}
+		writer.cat(") (");
+		writer.catSize(lengths.size());
+		writer.cat(" in total)");
+		return;
+	}
+}
+
 static bool string_is_compact(char const* str) {
 	for (auto i = std::size_t{}; i < 64; i++) {
 		if (str[i] == '\0') {
@@ -210,6 +239,7 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	// 新APIが実装済みのケース
 	if (type == HspType::Label || type == HspType::Str || type == HspType::Double || type == HspType::Int || type == HspType::Struct) {
 		auto&& w = writer();
+		auto&& o = objects();
 		auto&& metadata = path.metadata(objects());
 
 		// 変数に関する情報
@@ -217,7 +247,8 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 		w.catln(name);
 
 		w.cat("変数型: ");
-		w.catln(stringizeVartype(pval));
+		write_array_type(w, o.type_to_name(path.type(o)).data(), metadata.lengths());
+		w.catCrlf();
 
 		w.cat("アドレス: ");
 		w.catPtr(metadata.data_ptr());
