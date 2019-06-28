@@ -2,9 +2,6 @@
 #include "module/CStrWriter.h"
 #include "HspObjects.h"
 #include "HspObjectWriter.h"
-#include "CVarinfoText.h"
-
-extern auto stringizeVartype(PVal const* pval) -> string;
 
 // -----------------------------------------------
 // ヘルパー
@@ -83,11 +80,10 @@ public:
 	class FlowForm;
 
 private:
-	CVarinfoText& varinf_;
 	CStrWriter& writer_;
 
 public:
-	explicit HspObjectWriterImpl(HspObjects& objects, CVarinfoText& varinf, CStrWriter& writer);
+	explicit HspObjectWriterImpl(HspObjects& objects, CStrWriter& writer);
 
 	auto writer() -> CStrWriter& {
 		return writer_;
@@ -106,7 +102,7 @@ class HspObjectWriterImpl::TableForm
 	: public HspObjectWriterImpl
 {
 public:
-	TableForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf);
+	TableForm(HspObjects& objects, CStrWriter& writer);
 
 	void on_module(HspObjectPath::Module const& path) override;
 
@@ -130,7 +126,7 @@ class HspObjectWriterImpl::BlockForm
 	: public HspObjectWriterImpl
 {
 public:
-	BlockForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf);
+	BlockForm(HspObjects& objects, CStrWriter& writer);
 
 	void on_module(HspObjectPath::Module const& path) override;
 
@@ -167,7 +163,7 @@ class HspObjectWriterImpl::FlowForm
 	: public HspObjectWriterImpl
 {
 public:
-	FlowForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf);
+	FlowForm(HspObjects& objects, CStrWriter& writer);
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
 
@@ -188,31 +184,30 @@ public:
 // 基底クラスの実装
 // -----------------------------------------------
 
-HspObjectWriterImpl::HspObjectWriterImpl(HspObjects& objects, CVarinfoText& varinf, CStrWriter& writer)
+HspObjectWriterImpl::HspObjectWriterImpl(HspObjects& objects, CStrWriter& writer)
 	: Visitor(objects)
-	, varinf_(varinf)
 	, writer_(writer)
 {
 }
 
 auto HspObjectWriterImpl::to_table_form() -> HspObjectWriterImpl::TableForm {
-	return TableForm{ objects(), writer(), varinf_ };
+	return TableForm{ objects(), writer() };
 }
 
 auto HspObjectWriterImpl::to_block_form() -> HspObjectWriterImpl::BlockForm {
-	return BlockForm{ objects(), writer(), varinf_ };
+	return BlockForm{ objects(), writer() };
 }
 
 auto HspObjectWriterImpl::to_flow_form() -> HspObjectWriterImpl::FlowForm {
-	return FlowForm{ objects(), writer(), varinf_ };
+	return FlowForm{ objects(), writer() };
 }
 
 // -----------------------------------------------
 // テーブルフォーム
 // -----------------------------------------------
 
-HspObjectWriterImpl::TableForm::TableForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf)
-	: HspObjectWriterImpl(objects, varinf, writer)
+HspObjectWriterImpl::TableForm::TableForm(HspObjects& objects, CStrWriter& writer)
+	: HspObjectWriterImpl(objects, writer)
 {
 }
 
@@ -232,49 +227,42 @@ void HspObjectWriterImpl::TableForm::on_module(HspObjectPath::Module const& path
 }
 
 void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar const& path) {
-	auto pval = objects().static_var_path_to_pval(path);
-	auto&& name = path.name(objects());
-	auto type = path.type(objects());
+	auto&& o = objects();
+	auto&& w = writer();
 
-	// 新APIが実装済みのケース
-	if (type == HspType::Label || type == HspType::Str || type == HspType::Double || type == HspType::Int || type == HspType::Struct) {
-		auto&& w = writer();
-		auto&& o = objects();
-		auto&& metadata = path.metadata(objects());
+	auto&& name = path.name(o);
+	auto type = path.type(o);
+	auto type_name = o.type_to_name(type).data();
+	auto&& metadata = path.metadata(o);
 
-		// 変数に関する情報
-		w.cat("変数名: ");
-		w.catln(name);
+	// 変数に関する情報
+	w.cat("変数名: ");
+	w.catln(name);
 
-		w.cat("変数型: ");
-		write_array_type(w, o.type_to_name(path.type(o)).data(), metadata.lengths());
-		w.catCrlf();
+	w.cat("変数型: ");
+	write_array_type(w, type_name, metadata.lengths());
+	w.catCrlf();
 
-		w.cat("アドレス: ");
-		w.catPtr(metadata.data_ptr());
-		w.cat(", ");
-		w.catPtr(metadata.master_ptr());
-		w.catCrlf();
+	w.cat("アドレス: ");
+	w.catPtr(metadata.data_ptr());
+	w.cat(", ");
+	w.catPtr(metadata.master_ptr());
+	w.catCrlf();
 
-		w.cat("サイズ: ");
-		w.catSize(metadata.data_size());
-		w.cat(" / ");
-		w.catSize(metadata.block_size());
-		w.cat(" [byte]");
-		w.catCrlf();
-		w.catCrlf();
+	w.cat("サイズ: ");
+	w.catSize(metadata.data_size());
+	w.cat(" / ");
+	w.catSize(metadata.block_size());
+	w.cat(" [byte]");
+	w.catCrlf();
+	w.catCrlf();
 
-		// 変数の内容に関する情報
-		to_block_form().accept_children(path);
-		w.catCrlf();
+	// 変数の内容に関する情報
+	to_block_form().accept_children(path);
+	w.catCrlf();
 
-		// メモリダンプ
-		w.catDump(metadata.block_ptr(), metadata.block_size());
-		return;
-	}
-
-	// 旧APIにフォールバック
-	varinf_.addVar(pval, name.data());
+	// メモリダンプ
+	w.catDump(metadata.block_ptr(), metadata.block_size());
 }
 
 void HspObjectWriterImpl::TableForm::on_system_var_list(HspObjectPath::SystemVarList const& path) {
@@ -324,8 +312,8 @@ void HspObjectWriterImpl::TableForm::on_script(HspObjectPath::Script const& path
 // ブロックフォーム
 // -----------------------------------------------
 
-HspObjectWriterImpl::BlockForm::BlockForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf)
-	: HspObjectWriterImpl(objects, varinf, writer)
+HspObjectWriterImpl::BlockForm::BlockForm(HspObjects& objects, CStrWriter& writer)
+	: HspObjectWriterImpl(objects, writer)
 {
 }
 
@@ -444,8 +432,8 @@ void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path
 // フローフォーム
 // -----------------------------------------------
 
-HspObjectWriterImpl::FlowForm::FlowForm(HspObjects& objects, CStrWriter& writer, CVarinfoText& varinf)
-	: HspObjectWriterImpl(objects, varinf, writer)
+HspObjectWriterImpl::FlowForm::FlowForm(HspObjects& objects, CStrWriter& writer)
+	: HspObjectWriterImpl(objects, writer)
 {
 }
 
@@ -533,21 +521,20 @@ void HspObjectWriterImpl::FlowForm::on_unknown(HspObjectPath::Unknown const& pat
 // 公開クラス
 // -----------------------------------------------
 
-HspObjectWriter::HspObjectWriter(HspObjects& objects, CVarinfoText& varinf, CStrWriter& writer)
+HspObjectWriter::HspObjectWriter(HspObjects& objects, CStrWriter& writer)
 	: objects_(objects)
-	, varinf_(varinf)
 	, writer_(writer)
 {
 }
 
 void HspObjectWriter::write_table_form(HspObjectPath const& path) {
-	HspObjectWriterImpl::TableForm{ objects_, writer_, varinf_ }.accept(path);
+	HspObjectWriterImpl::TableForm{ objects_, writer_ }.accept(path);
 }
 
 void HspObjectWriter::write_block_form(HspObjectPath const& path) {
-	HspObjectWriterImpl::BlockForm{ objects_, writer_, varinf_ }.accept(path);
+	HspObjectWriterImpl::BlockForm{ objects_, writer_ }.accept(path);
 }
 
 void HspObjectWriter::write_flow_form(HspObjectPath const& path) {
-	HspObjectWriterImpl::FlowForm{ objects_, writer_, varinf_ }.accept(path);
+	HspObjectWriterImpl::FlowForm{ objects_, writer_ }.accept(path);
 }

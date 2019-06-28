@@ -3,16 +3,14 @@
 class HspObjectPath;
 class HspObjects;
 class CStrWriter;
-class CVarinfoText;
 
 // HSP のオブジェクトの情報を文字列に書き出すもの。
 class HspObjectWriter {
 	HspObjects& objects_;
-	CVarinfoText& varinf_;
 	CStrWriter& writer_;
 
 public:
-	HspObjectWriter(HspObjects& objects, CVarinfoText& varinf, CStrWriter& writer);
+	HspObjectWriter(HspObjects& objects, CStrWriter& writer);
 
 	void write_table_form(HspObjectPath const& path);
 

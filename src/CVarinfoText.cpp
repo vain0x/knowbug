@@ -56,7 +56,7 @@ auto CVarinfoText::create_treeform_writer() const -> CVardataStrWriter {
 }
 
 void CVarinfoText::add(HspObjectPath const& path) {
-	HspObjectWriter{ objects_, *this, getWriter() }.write_table_form(path);
+	HspObjectWriter{ objects_, getWriter() }.write_table_form(path);
 }
 
 //------------------------------------------------
