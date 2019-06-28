@@ -13,6 +13,7 @@ namespace hpiutil {
 class HspDebugApi;
 class HspStaticVars;
 
+// FIXME: ログが更新されるたびにビューを更新する
 class HspLogger {
 public:
 	virtual ~HspLogger() {
@@ -30,6 +31,9 @@ public:
 
 	virtual auto content(char const* file_name_ref) -> std::string const& = 0;
 };
+
+// FIXME: インターフェイスを抽出する
+// FIXME: ファイル参照名をインターン化する
 
 // HSP のオブジェクト (モジュール、変数、値など) に関して
 // knowbug が知りたい情報を最適なインターフェイスで提供する。
@@ -162,6 +166,7 @@ public:
 		void add_var(std::size_t static_var_id);
 	};
 };
+
 class HspObjects::TypeData {
 	HspString name_;
 

@@ -431,7 +431,7 @@ auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) con
 		return 1;
 
 	default:
-		// FIXME: 他の種類の実装
+		// FIXME: 他の種類の引数に対応する (label, var, array, modvar)
 		return 0;
 	}
 }

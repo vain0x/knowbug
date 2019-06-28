@@ -1,3 +1,5 @@
+// FIXME: 無限のネストに対処
+
 #include "encoding.h"
 #include "module/CStrWriter.h"
 #include "HspObjects.h"
@@ -7,6 +9,7 @@
 // ヘルパー
 // -----------------------------------------------
 
+// FIXME: クローン変数なら & をつける
 static void write_array_type(CStrWriter& writer, char const* type_name, HspDimIndex const& lengths) {
 	writer.cat(type_name);
 
@@ -113,6 +116,10 @@ public:
 	void on_log(HspObjectPath::Log const& path) override;
 
 	void on_script(HspObjectPath::Script const& path) override;
+
+	// FIXME: unavailable に対応
+
+	// FIXME: CallFrame ならシグネチャと呼び出し位置とダンプを表示する
 };
 
 // ブロックフォーム。
@@ -338,6 +345,7 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 		return;
 	}
 
+	// FIXME: クローンなら & をつける
 	auto&& module_name = path.module_name(o);
 
 	w.cat(".module = ");
@@ -460,6 +468,7 @@ void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
 		return;
 	}
 
+	// FIXME: クローンなら & をつける
 	auto&& module_name = path.module_name(o);
 	w.cat(module_name);
 	w.cat("{");
@@ -477,6 +486,7 @@ void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
 }
 
 void HspObjectWriterImpl::FlowForm::on_unknown(HspObjectPath::Unknown const& path) {
+	// FIXME: 型名を表示する
 	writer().cat("<unknown>");
 }
 

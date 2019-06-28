@@ -2,6 +2,7 @@
 #pragma once
 #include "hpiutil/SourcePos.hpp"
 
+// FIXME: たいして役に立っていないので削除したい。HspObjects か HspDebugApi に統合したい
 // HSP3DEBUG wrapper
 class DebugInfo
 {

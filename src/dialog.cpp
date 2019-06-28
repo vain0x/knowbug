@@ -1,4 +1,5 @@
-﻿
+﻿//! knowbug の UI 関連
+
 #pragma comment(lib, "comctl32.lib")
 
 #include <windows.h>
@@ -175,6 +176,7 @@ namespace LogBox {
 // ソース小窓の更新
 static void UpdateCurInfEdit(hpiutil::SourcePos const& spos)
 {
+	// FIXME: ソース小窓の更新を新モデルに移行
 	auto curinf = spos.toString();
 	HSPAPICHAR *hactmp1;
 
@@ -191,6 +193,7 @@ static void CurrentUpdate()
 	UpdateCurInfEdit(g_dbginfo->curPos());
 }
 
+// FIXME: ツリービューのコンテクストメニューを新モデルに移行
 // ツリーノードのコンテキストメニュー
 void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 {
@@ -335,6 +338,7 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			auto const nmhdr = reinterpret_cast<LPNMHDR>(lp);
 			if ( nmhdr->hwndFrom == hVarTree ) {
 				switch ( nmhdr->code ) {
+					// FIXME: フォーカスした要素の周囲を更新する
 					case NM_DBLCLK:
 					case NM_RETURN:
 					case TVN_SELCHANGED:

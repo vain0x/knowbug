@@ -1,4 +1,6 @@
-﻿// 変数データテキスト生成クラス
+﻿// deprecated: HspObjectWriter に移行中
+
+// 変数データテキスト生成クラス
 
 #include <numeric>	// for accumulate
 #include <algorithm>

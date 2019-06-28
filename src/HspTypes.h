@@ -234,6 +234,7 @@ public:
 
 // システム変数の種類。
 // 順番は名前順、ただし類似したものは近くに集める。
+// FIXME: thismod を追加
 enum HspSystemVarKind {
 	Cnt = 1,
 	Err,

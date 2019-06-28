@@ -16,6 +16,7 @@
 #include "HspDebugApi.h"
 #include "hpiutil/dinfo.hpp"
 
+// FIXME: グローバル変数はクラスにまとめたい (DllMain で初期化するものと、debugini で初期化するものの2つ)
 static auto g_hInstance = HINSTANCE {};
 std::unique_ptr<DebugInfo> g_dbginfo {};
 static std::unique_ptr<KnowbugStepController> g_step_controller_;

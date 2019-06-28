@@ -8,6 +8,8 @@
 
 class SourceFileResolver;
 
+// FIXME: 名前がよくないので変える
+
 // HSP 関連の操作をまとめるもの。
 // HSP 側から取得できる情報を knowbug 用に加工したりキャッシュしたりする機能を持つ (予定)
 class HspRuntime {

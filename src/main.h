@@ -32,6 +32,7 @@ class Logger;
 class OsStringView;
 class SourceFileResolver;
 
+// FIXME: インターフェイスを抽出
 // knowbug コントロール
 namespace Knowbug
 {

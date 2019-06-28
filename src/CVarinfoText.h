@@ -1,4 +1,6 @@
-﻿#ifndef IG_CLASS_VARINFO_TEXT_H
+﻿// deprecated: HspObjectWriter に移行中
+
+#ifndef IG_CLASS_VARINFO_TEXT_H
 #define IG_CLASS_VARINFO_TEXT_H
 
 #include "main.h"

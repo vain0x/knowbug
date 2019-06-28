@@ -1,4 +1,6 @@
-﻿// 変数データのツリー形式文字列
+﻿// deprecated: HspObjectWriter に移行中
+
+// 変数データのツリー形式文字列
 
 #include <algorithm>
 #include "module/ptr_cast.h"

@@ -8,6 +8,7 @@
 
 class HspDebugApi;
 
+// FIXME: おそらくメンバ変数は HspObjects に持たせて、これを構築する関数を公開するのがよい。
 class HspStaticVars {
 	HspDebugApi& api_;
 

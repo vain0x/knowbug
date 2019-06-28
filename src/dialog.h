@@ -1,4 +1,4 @@
-﻿// knowbug dialogs
+﻿//! knowbug の UI 関連
 
 #pragma once
 

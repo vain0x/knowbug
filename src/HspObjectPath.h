@@ -60,6 +60,8 @@ class HspObjectPath
 	: public std::enable_shared_from_this<HspObjectPath>
 {
 public:
+	// FIXME: 「全般」を追加
+
 	class Visitor;
 	class Root;
 	class Module;
@@ -124,6 +126,7 @@ public:
 			return true;
 		}
 
+		// FIXME: 効率化 (is_alive)
 		auto sibling_count = parent().child_count(objects);
 		for (auto i = std::size_t{}; i < sibling_count; i++) {
 			auto&& sibling = parent().child_at(i, objects);

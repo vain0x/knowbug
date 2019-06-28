@@ -44,7 +44,7 @@ public:
 		HTREEITEM res;
 		HSPAPICHAR* hactmp1;
 		tvis.hParent = hParent;
-		tvis.hInsertAfter = TVI_LAST;
+		tvis.hInsertAfter = TVI_LAST; // FIXME: 引数で受け取る (コールスタックでは先頭への挿入が起こる)
 		tvis.item.mask = TVIF_TEXT | TVIF_PARAM;
 		tvis.item.lParam = (LPARAM)node;
 		tvis.item.pszText = chartoapichar(const_cast<char*>(name), &hactmp1);
