@@ -523,9 +523,8 @@ auto HspObjectPath::CallStack::child_at(std::size_t child_index, HspObjects& obj
 
 	auto&& call_frame_id_opt = objects.call_stack_path_to_call_frame_id_at(*this, index);
 	if (!call_frame_id_opt) {
-		// FIXME: どうにかする
-		assert(false && u8"コールフレームを取得できるはず");
-		return new_call_frame(0);
+		assert(false && u8"コールフレームを取得できません");
+		return new_unavailable(u8"コールフレームを取得できません");
 	}
 
 	return new_call_frame(*call_frame_id_opt);
@@ -560,8 +559,7 @@ auto HspObjectPath::CallFrame::child_count(HspObjects& objects) const -> std::si
 auto HspObjectPath::CallFrame::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
 	auto&& child_opt = objects.call_frame_path_to_child_at(*this, child_index);
 	if (!child_opt) {
-		assert(false && u8"FIXME: 実装");
-		throw new std::exception{};
+		return new_unavailable(u8"エラーが発生するおそれがあるため、この引数は表示されません");
 	}
 
 	return *child_opt;
