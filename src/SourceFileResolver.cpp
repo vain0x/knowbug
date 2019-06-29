@@ -103,9 +103,8 @@ auto SourceFileResolver::resolve_file_ref_names()->void {
 			}
 
 			// 絶対パスを探す。
-			OsStringView full_path;
-			auto ok = find_full_path_core(file_ref_name.as_ref(), full_path);
-			if (!ok) {
+			auto&& full_path_opt = find_full_path_core(file_ref_name.as_ref());
+			if (!full_path_opt) {
 				continue;
 			}
 
@@ -124,17 +123,22 @@ auto SourceFileResolver::find_full_path(OsStringView const& file_ref_name, OsStr
 	resolve_file_ref_names();
 
 	// 探す。
-	return find_full_path_core(file_ref_name, out_full_path);
+	auto&& full_path_opt = find_full_path_core(file_ref_name);
+	if (!full_path_opt) {
+		return false;
+	}
+
+	out_full_path = *full_path_opt;
+	return true;
 }
 
-auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name, OsStringView& out_full_path) -> bool {
+auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name) -> std::optional<OsStringView> {
 	auto file_ref_name_str = file_ref_name.to_owned(); // FIXME: 無駄なコピー
 
 	// キャッシュから探す。
 	auto iter = full_paths_.find(file_ref_name_str);
 	if (iter != std::end(full_paths_)) {
-		out_full_path = iter->second.as_ref();
-		return true;
+		return std::make_optional(iter->second.as_ref());
 	}
 
 	// ファイルシステムから探す。
@@ -149,11 +153,10 @@ auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name, 
 		full_paths_.emplace(file_ref_name.to_owned(), std::move(full_path));
 
 		// メモ内の絶対パスへの参照を返す。
-		out_full_path = full_paths_[file_ref_name_str].as_ref();
-		return true;
+		return std::make_optional(full_paths_[file_ref_name_str].as_ref());
 	}
 
-	return false;
+	return std::nullopt;
 }
 
 auto SourceFileResolver::find_script_content(OsStringView const& file_ref_name, OsStringView& out_content) -> bool {

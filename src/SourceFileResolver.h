@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <optional>
 #include <set>
 #include "encoding.h"
 #include "SourceFile.h"
@@ -39,7 +40,7 @@ public:
 private:
 	auto resolve_file_ref_names()->void;
 
-	auto find_full_path_core(OsStringView const& file_ref_name, OsStringView& out_full_path)->bool;
+	auto find_full_path_core(OsStringView const& file_ref_name)->std::optional<OsStringView>;
 
 	auto find_source_file(OsStringView const& file_ref_name, std::shared_ptr<SourceFile>& out_source_file)->bool;
 };
