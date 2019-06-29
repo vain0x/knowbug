@@ -142,7 +142,7 @@ auto TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem) -> LPARAM
 
 //------------------------------------------------
 // ツリービューのフォーカスを回避する
-// 
+//
 // @ 対象のノードが選択状態なら、その兄ノードか親ノードを選択する。
 //------------------------------------------------
 void TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem)
@@ -228,6 +228,8 @@ auto Font_Create(OsStringView family, int size, bool antialias) -> HFONT
 	lf.lfClipPrecision  = CLIP_DEFAULT_PRECIS;
 	lf.lfQuality        = (antialias ? ANTIALIASED_QUALITY : DEFAULT_QUALITY);
 	lf.lfPitchAndFamily = DEFAULT_PITCH;
-	family.copy_to(lf.lfFaceName, ARRAY_LENGTH(lf.lfFaceName));
+
+	std::copy(std::begin(family), std::end(family), lf.lfFaceName);
+
 	return CreateFontIndirect(&lf);
 }

@@ -147,10 +147,6 @@ public:
 		return size() == other.size() && _tccmp(data(), other.data()) == 0;
 	}
 
-	auto copy_to(LPTSTR dest, std::size_t dest_size) const -> void {
-		_tcsnccpy_s(dest, dest_size, data(), size());
-	}
-
 	auto operator [](std::size_t i) const -> TCHAR {
 		return i < size() ? data()[i] : TCHAR{};
 	}
