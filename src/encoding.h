@@ -252,11 +252,6 @@ public:
 		return *this;
 	}
 
-	static auto from_ascii(char const* str) -> SjisStringView {
-		assert(string_is_ascii(str));
-		return SjisStringView{ str };
-	}
-
 	auto data() const -> char const* {
 		if (inner_ == nullptr) {
 			assert(false && u8"SjisStringView is null");
@@ -299,11 +294,6 @@ public:
 	SjisString(SjisString&& other) : basic_string(other) {}
 
 	explicit SjisString(std::string&& inner) : basic_string(inner) {}
-
-	static auto from_ascii(char const* str) -> SjisString {
-		assert(string_is_ascii(str));
-		return SjisString{ std::string{str } };
-	}
 
 	auto operator =(SjisString&& other) -> SjisString & {
 		swap(other);
@@ -375,11 +365,6 @@ public:
 	{
 	}
 
-	static auto from_ascii(char const* str) -> Utf8StringView {
-		assert(string_is_ascii(str));
-		return Utf8StringView{ str, 0 };
-	}
-
 	auto operator =(Utf8StringView&& other) -> Utf8StringView& {
 		inner_ = other.inner_;
 		size_ = other.size_;
@@ -428,11 +413,6 @@ public:
 	Utf8String(Utf8String&& other) : basic_string(other) {}
 
 	explicit Utf8String(std::string&& inner) : basic_string(inner) {}
-
-	static auto from_ascii(char const* str) -> Utf8String {
-		assert(string_is_ascii(str));
-		return Utf8String{ std::string{ str } };
-	}
 
 	auto operator =(Utf8String&& other) -> Utf8String & {
 		swap(other);
@@ -502,11 +482,6 @@ static auto to_utf8(OsString const& source) -> Utf8String {
 
 static auto to_utf8(SjisString const& source) -> Utf8String {
 	return to_utf8(as_view(source));
-}
-
-// utf-8 エンコーディングされた文字列リテラルをキャストする。
-inline auto of_u8str(char const* str) -> Utf8StringView {
-	return Utf8StringView{ str, 0 };
 }
 
 namespace std {
