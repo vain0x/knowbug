@@ -118,18 +118,12 @@ auto SourceFileResolver::resolve_file_ref_names()->void {
 	}
 }
 
-auto SourceFileResolver::find_full_path(OsStringView const& file_ref_name, OsStringView& out_full_path) -> bool {
+auto SourceFileResolver::find_full_path(OsStringView const& file_ref_name) -> std::optional<OsStringView> {
 	// 依存関係の解決をする。
 	resolve_file_ref_names();
 
 	// 探す。
-	auto&& full_path_opt = find_full_path_core(file_ref_name);
-	if (!full_path_opt) {
-		return false;
-	}
-
-	out_full_path = *full_path_opt;
-	return true;
+	return find_full_path_core(file_ref_name);
 }
 
 auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name) -> std::optional<OsStringView> {
@@ -180,14 +174,13 @@ auto SourceFileResolver::find_script_line(OsStringView const& file_ref_name, std
 }
 
 auto SourceFileResolver::find_source_file(OsStringView const& file_ref_name) -> std::optional<std::shared_ptr<SourceFile>> {
-	OsStringView full_path;
-	auto ok = find_full_path(file_ref_name, full_path);
-	if (!ok) {
+	auto&& full_path_opt = find_full_path(file_ref_name);
+	if (!full_path_opt) {
 		return std::nullopt;
 	}
 
-	auto source_file = open_source_file(full_path);
-	source_files_.emplace(full_path.to_owned(), std::move(source_file));
+	auto source_file = open_source_file(*full_path_opt);
+	source_files_.emplace(full_path_opt->to_owned(), std::move(source_file));
 
-	return std::make_optional(source_files_[full_path.to_owned()]); // FIXME: 無駄なコピー
+	return std::make_optional(source_files_[full_path_opt->to_owned()]); // FIXME: 無駄なコピー
 }
