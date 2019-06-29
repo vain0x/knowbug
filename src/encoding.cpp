@@ -83,90 +83,6 @@ static auto os_to_utf8_str(LPCTSTR os_str) -> std::string {
 	return std::string{ utf8_str.data() };
 }
 
-auto OsStringView::to_hsp_string() const -> HspString {
-#ifdef HSP3_UTF8
-	return to_utf8_string();
-#else
-	return to_sjis_string();
-#endif
-}
-
-auto OsStringView::to_owned() const -> OsString {
-	return OsString{ BasicOsString{ data() } };
-}
-
-auto OsStringView::to_sjis_string() const -> SjisString {
-	return SjisString{ os_to_ansi_str(data()) };
-}
-
-auto OsStringView::to_utf8_string() const -> Utf8String {
-	return Utf8String{ os_to_utf8_str(data()) };
-}
-
-auto OsString::to_hsp_string() const -> HspString {
-	return as_ref().to_hsp_string();
-}
-
-auto OsString::to_sjis_string() const -> SjisString {
-	return as_ref().to_sjis_string();
-}
-
-auto OsString::to_utf8_string() const -> Utf8String {
-	return as_ref().to_utf8_string();
-}
-
-auto SjisStringView::to_owned() const -> SjisString {
-	return SjisString{ std::string{data()} };
-}
-
-auto SjisStringView::to_hsp_string() const -> HspString {
-#ifdef HSP3_UTF8
-	return to_utf8_string();
-#else
-	return to_owned();
-#endif
-}
-
-auto SjisStringView::to_os_string() const -> OsString {
-	return OsString{ ansi_to_os_str(data()) };
-}
-
-auto SjisStringView::to_utf8_string() const -> Utf8String {
-	return to_os_string().to_utf8_string();
-}
-
-auto SjisString::to_hsp_string() const -> HspString {
-	return as_ref().to_hsp_string();
-}
-
-auto SjisString::to_os_string() const -> OsString {
-	return as_ref().to_os_string();
-}
-
-auto SjisString::to_utf8_string() const -> Utf8String {
-	return as_ref().to_utf8_string();
-}
-
-auto Utf8StringView::to_owned() const -> Utf8String {
-	return Utf8String{ std::string{ data() } };
-}
-
-auto Utf8StringView::to_hsp_string() const -> HspString {
-#ifdef HSP3_UTF8
-	return to_owned();
-#else
-	return to_sjis_string();
-#endif
-}
-
-auto Utf8StringView::to_os_string() const -> OsString {
-	return OsString{ utf8_to_os_str(data()) };
-}
-
-auto Utf8StringView::to_sjis_string() const -> SjisString {
-	return to_os_string().to_sjis_string();
-}
-
 auto ascii_as_utf8(char const* source) -> Utf8StringView {
 	assert(string_is_ascii(source));
 	return Utf8StringView{ source };
@@ -187,15 +103,27 @@ auto as_hsp(char const* str) -> HspStringView {
 }
 
 auto to_hsp(OsStringView const& source) -> HspString {
-	return source.to_hsp_string();
+#ifdef HSP3_UTF8
+	return to_utf8(source);
+#else
+	return to_sjis(source);
+#endif
 }
 
 auto to_hsp(SjisStringView const& source) -> HspString {
-	return source.to_hsp_string();
+#ifdef HSP3_UTF8
+	return to_utf8(source);
+#else
+	return to_owned(source);
+#endif
 }
 
 auto to_hsp(Utf8StringView const& source) -> HspString {
-	return source.to_hsp_string();
+#ifdef HSP3_UTF8
+	return to_owned(source);
+#else
+	return to_sjis(source);
+#endif
 }
 
 auto as_sjis(char const* str) -> SjisStringView {
@@ -235,15 +163,15 @@ auto to_utf8(SjisStringView const& source) -> Utf8String {
 }
 
 auto to_owned(OsStringView const& source) -> OsString {
-	return source.to_owned();
+	return OsString{ BasicOsString{ source.begin(), source.end() } };
 }
 
 auto to_owned(SjisStringView const& source) -> SjisString {
-	return source.to_owned();
+	return SjisString{ std::string{ source.begin(), source.end() } };
 }
 
 auto to_owned(Utf8StringView const& source) -> Utf8String {
-	return source.to_owned();
+	return Utf8String{ std::string{ source.begin(), source.end() } };
 }
 
 auto as_view(OsString const& source) -> OsStringView {

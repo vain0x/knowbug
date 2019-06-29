@@ -143,14 +143,6 @@ public:
 		return size_;
 	}
 
-	auto to_owned() const->OsString;
-
-	auto to_hsp_string() const->HspString;
-
-	auto to_sjis_string() const->SjisString;
-
-	auto to_utf8_string() const->Utf8String;
-
 	auto operator ==(OsStringView const& other) -> bool {
 		return size() == other.size() && _tccmp(data(), other.data()) == 0;
 	}
@@ -203,16 +195,6 @@ public:
 	auto as_ref() const -> OsStringView {
 		return OsStringView{ data(), size() };
 	}
-
-	auto to_owned() const -> OsString {
-		return as_ref().to_owned();
-	}
-
-	auto to_hsp_string() const->HspString;
-
-	auto to_sjis_string() const->SjisString;
-
-	auto to_utf8_string() const->Utf8String;
 
 	auto begin() const -> LPCTSTR {
 		return as_ref().begin();
@@ -289,14 +271,6 @@ public:
 		}
 		return size_;
 	}
-
-	auto to_owned() const->SjisString;
-
-	auto to_hsp_string() const->HspString;
-
-	auto to_os_string() const->OsString;
-
-	auto to_utf8_string() const->Utf8String;
 
 	auto operator ==(SjisStringView const& other) const -> bool {
 		return size() == other.size() && std::strcmp(data(), other.data()) == 0;
@@ -427,14 +401,6 @@ public:
 		return size_;
 	}
 
-	auto to_owned() const->Utf8String;
-
-	auto to_hsp_string() const->HspString;
-
-	auto to_os_string() const->OsString;
-
-	auto to_sjis_string() const->SjisString;
-
 	auto operator ==(Utf8StringView const& other) const -> bool {
 		return size() == other.size() && std::strcmp(data(), other.data()) == 0;
 	}
@@ -475,22 +441,6 @@ public:
 
 	auto as_ref() const -> Utf8StringView {
 		return Utf8StringView{ data(), size() };
-	}
-
-	auto to_owned() const -> Utf8String {
-		return as_ref().to_owned();
-	}
-
-	auto to_hsp_string() const -> HspString {
-		return as_ref().to_hsp_string();
-	}
-
-	auto to_os_string() const -> OsString {
-		return as_ref().to_os_string();
-	}
-
-	auto to_sjis_string() const -> SjisString {
-		return as_ref().to_sjis_string();
 	}
 
 	auto operator ==(Utf8String const& other) const -> bool {
