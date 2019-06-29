@@ -103,9 +103,8 @@ auto SourceFileResolver::resolve_file_ref_names()->void {
 			}
 
 			// 絶対パスを探す。
-			OsStringView full_path;
-			auto ok = find_full_path_core(file_ref_name.as_ref(), full_path);
-			if (!ok) {
+			auto&& full_path_opt = find_full_path_core(file_ref_name.as_ref());
+			if (!full_path_opt) {
 				continue;
 			}
 
@@ -119,22 +118,21 @@ auto SourceFileResolver::resolve_file_ref_names()->void {
 	}
 }
 
-auto SourceFileResolver::find_full_path(OsStringView const& file_ref_name, OsStringView& out_full_path) -> bool {
+auto SourceFileResolver::find_full_path(OsStringView const& file_ref_name) -> std::optional<OsStringView> {
 	// 依存関係の解決をする。
 	resolve_file_ref_names();
 
 	// 探す。
-	return find_full_path_core(file_ref_name, out_full_path);
+	return find_full_path_core(file_ref_name);
 }
 
-auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name, OsStringView& out_full_path) -> bool {
+auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name) -> std::optional<OsStringView> {
 	auto file_ref_name_str = file_ref_name.to_owned(); // FIXME: 無駄なコピー
 
 	// キャッシュから探す。
 	auto iter = full_paths_.find(file_ref_name_str);
 	if (iter != std::end(full_paths_)) {
-		out_full_path = iter->second.as_ref();
-		return true;
+		return std::make_optional(iter->second.as_ref());
 	}
 
 	// ファイルシステムから探す。
@@ -149,45 +147,40 @@ auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name, 
 		full_paths_.emplace(file_ref_name.to_owned(), std::move(full_path));
 
 		// メモ内の絶対パスへの参照を返す。
-		out_full_path = full_paths_[file_ref_name_str].as_ref();
-		return true;
+		return std::make_optional(full_paths_[file_ref_name_str].as_ref());
 	}
 
-	return false;
+	return std::nullopt;
 }
 
-auto SourceFileResolver::find_script_content(OsStringView const& file_ref_name, OsStringView& out_content) -> bool {
-	std::shared_ptr<SourceFile> source_file;
-	auto ok = find_source_file(file_ref_name, source_file);
-	if (!ok) {
-		return false;
+auto SourceFileResolver::find_script_content(OsStringView const& file_ref_name) -> std::optional<OsStringView> {
+	auto&& source_file_opt = find_source_file(file_ref_name);
+	if (!source_file_opt) {
+		return std::nullopt;
 	}
 
-	out_content = source_file->content();
-	return true;
+	auto&& content = (*source_file_opt)->content();
+	return std::make_optional(content);
 }
 
-auto SourceFileResolver::find_script_line(OsStringView const& file_ref_name, std::size_t line_index, OsStringView& out_content)->bool {
-	std::shared_ptr<SourceFile> source_file;
-	auto ok = find_source_file(file_ref_name, source_file);
-	if (!ok) {
-		return false;
+auto SourceFileResolver::find_script_line(OsStringView const& file_ref_name, std::size_t line_index)->std::optional<OsStringView> {
+	auto&& source_file_opt = find_source_file(file_ref_name);
+	if (!source_file_opt) {
+		return std::nullopt;
 	}
 
-	out_content = source_file->line_at(line_index);
-	return true;
+	auto&& content  = (*source_file_opt)->line_at(line_index);
+	return std::make_optional(content);
 }
 
-auto SourceFileResolver::find_source_file(OsStringView const& file_ref_name, std::shared_ptr<SourceFile>& out_source_file) -> bool {
-	OsStringView full_path;
-	auto ok = find_full_path(file_ref_name, full_path);
-	if (!ok) {
-		return false;
+auto SourceFileResolver::find_source_file(OsStringView const& file_ref_name) -> std::optional<std::shared_ptr<SourceFile>> {
+	auto&& full_path_opt = find_full_path(file_ref_name);
+	if (!full_path_opt) {
+		return std::nullopt;
 	}
 
-	auto source_file = open_source_file(full_path);
-	source_files_.emplace(full_path.to_owned(), std::move(source_file));
+	auto source_file = open_source_file(*full_path_opt);
+	source_files_.emplace(full_path_opt->to_owned(), std::move(source_file));
 
-	out_source_file = source_files_[full_path.to_owned()]; // FIXME: 無駄なコピー
-	return true;
+	return std::make_optional(source_files_[full_path_opt->to_owned()]); // FIXME: 無駄なコピー
 }

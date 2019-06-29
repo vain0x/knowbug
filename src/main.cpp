@@ -159,10 +159,9 @@ namespace Knowbug
 
 	void open_current_script_file() {
 		auto file_ref_name = HspStringView{ g_dbginfo->curPos().fileRefName() }.to_os_string();
-		OsStringView full_path;
-		auto ok = Knowbug::get_source_file_resolver()->find_full_path(file_ref_name.as_ref(), full_path);
-		if (ok) {
-			ShellExecute(nullptr, TEXT("open"), full_path.data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
+		auto&& full_path_opt = Knowbug::get_source_file_resolver()->find_full_path(file_ref_name.as_ref());
+		if (full_path_opt) {
+			ShellExecute(nullptr, TEXT("open"), full_path_opt->data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
 		}
 	}
 
