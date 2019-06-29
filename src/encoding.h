@@ -5,15 +5,17 @@
 #include <cassert>
 #include <cstring>
 #include <string>
+#include <string_view>
 #include <Windows.h>
 #include <tchar.h>
 
 class OsString;
-class OsStringView;
 class SjisString;
 class SjisStringView;
 class Utf8String;
 class Utf8StringView;
+
+using OsStringView = std::basic_string_view<TCHAR>;
 
 #ifdef HSP3_UTF8
 
@@ -79,87 +81,6 @@ extern auto as_view(SjisString const& source) -> SjisStringView;
 
 extern auto as_view(Utf8String const& source) -> Utf8StringView;
 
-// Windows API のための文字列への参照。
-class OsStringView {
-	LPCTSTR inner_;
-	mutable std::size_t size_;
-
-public:
-	// FIXME: NULL 初期化はよくない。出力引数として使うときに要求されるので用意している。
-	OsStringView()
-		: inner_(nullptr)
-		, size_(0)
-	{
-	}
-
-	OsStringView(OsStringView&& other)
-		: inner_(other.inner_)
-		, size_(other.size_)
-	{
-	}
-
-	OsStringView(OsStringView const& other)
-		: inner_(other.inner_)
-		, size_(other.size_)
-	{
-	}
-
-	explicit OsStringView(LPCTSTR inner, std::size_t size)
-		: inner_(inner)
-		, size_(size)
-	{
-		assert(inner != nullptr);
-	}
-
-	explicit OsStringView(LPCTSTR inner)
-		: OsStringView(inner, std::size_t{ 0 })
-	{
-	}
-
-	auto operator =(OsStringView&& other) -> OsStringView & {
-		inner_ = other.inner_;
-		size_ = other.size_;
-		return *this;
-	}
-
-	auto operator =(OsStringView const& other) -> OsStringView & {
-		inner_ = other.inner_;
-		size_ = other.size_;
-		return *this;
-	}
-
-	auto data() const -> LPCTSTR {
-		if (inner_ == nullptr) {
-			assert(false && u8"OsStringView is null");
-			throw new std::exception{};
-		}
-		return inner_;
-	}
-
-	auto size() const -> std::size_t {
-		if (size_ == 0) {
-			size_ = _tcslen(data());
-		}
-		return size_;
-	}
-
-	auto operator ==(OsStringView const& other) -> bool {
-		return size() == other.size() && _tccmp(data(), other.data()) == 0;
-	}
-
-	auto operator [](std::size_t i) const -> TCHAR {
-		return i < size() ? data()[i] : TCHAR{};
-	}
-
-	auto begin() const -> LPCTSTR {
-		return data();
-	}
-
-	auto end() const -> LPCTSTR {
-		return data() + size();
-	}
-};
-
 // Windows API のための文字列。
 // UNICODE 版なら utf-16、そうでなければ ANSI (shift_jis)。
 class OsString
@@ -193,11 +114,11 @@ public:
 	}
 
 	auto begin() const -> LPCTSTR {
-		return as_ref().begin();
+		return as_ref().data();
 	}
 
 	auto end() const -> LPCTSTR {
-		return as_ref().end();
+		return as_ref().data() + size();
 	}
 };
 

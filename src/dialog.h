@@ -3,11 +3,11 @@
 #pragma once
 
 #include <Windows.h>
+#include "encoding.h"
 
 class HspObjects;
 class HspObjectTree;
 class HspStaticVars;
-class OsStringView;
 
 namespace hpiutil {
 	class DInfo;
