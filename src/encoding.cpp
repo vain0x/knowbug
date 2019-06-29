@@ -127,15 +127,15 @@ auto to_hsp(Utf8StringView const& source) -> HspString {
 }
 
 auto as_sjis(char const* str) -> SjisStringView {
-	return SjisStringView{ str };
+	return SjisStringView{ (SjisChar const*)str };
 }
 
 auto to_sjis(OsStringView const& source) -> SjisString {
-	return SjisString{ os_to_ansi_str(source.data()) };
+	return SjisString{ (SjisString&&)os_to_ansi_str(source.data()) };
 }
 
 auto to_sjis(Utf8StringView const& source) -> SjisString {
-	return SjisString{ os_to_ansi_str(utf8_to_os_str(source.data()).data()) };
+	return to_sjis(to_os(source));
 }
 
 auto as_os(LPCTSTR str) -> OsStringView {
@@ -143,7 +143,7 @@ auto as_os(LPCTSTR str) -> OsStringView {
 }
 
 auto to_os(SjisStringView const& source) -> OsString {
-	return OsString{ ansi_to_os_str(source.data()) };
+	return OsString{ ansi_to_os_str((char const*)source.data()) };
 }
 
 auto to_os(Utf8StringView const& source) -> OsString {
@@ -159,7 +159,7 @@ auto to_utf8(OsStringView const& source) -> Utf8String {
 }
 
 auto to_utf8(SjisStringView const& source) -> Utf8String {
-	return Utf8String{ os_to_utf8_str(ansi_to_os_str(source.data()).data()) };
+	return to_utf8(to_os(source));
 }
 
 auto to_owned(OsStringView const& source) -> OsString {
@@ -167,7 +167,7 @@ auto to_owned(OsStringView const& source) -> OsString {
 }
 
 auto to_owned(SjisStringView const& source) -> SjisString {
-	return SjisString{ std::string{ source.begin(), source.end() } };
+	return SjisString{ source.begin(), source.end() };
 }
 
 auto to_owned(Utf8StringView const& source) -> Utf8String {
@@ -179,7 +179,7 @@ auto as_view(OsString const& source) -> OsStringView {
 }
 
 auto as_view(SjisString const& source) -> SjisStringView {
-	return source.as_ref();
+	return SjisStringView{ source };
 }
 
 auto as_view(Utf8String const& source) -> Utf8StringView {

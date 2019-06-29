@@ -9,8 +9,12 @@
 #include <Windows.h>
 #include <tchar.h>
 
-class SjisString;
-class SjisStringView;
+// shift_jis エンコーディングされた文字列の要素 (バイト)
+enum class SjisChar
+	: char
+{
+};
+
 class Utf8String;
 class Utf8StringView;
 
@@ -20,6 +24,12 @@ using OsString = std::basic_string<TCHAR>;
 
 // Windows API のための文字列への参照。
 using OsStringView = std::basic_string_view<TCHAR>;
+
+// shift_jis (cp932) でエンコーディングされた文字列。
+using SjisString = std::basic_string<SjisChar>;
+
+// shift_jis 文字列への参照
+using SjisStringView = std::basic_string_view<SjisChar>;
 
 #ifdef HSP3_UTF8
 
@@ -84,136 +94,6 @@ extern auto as_view(OsString const& source) -> OsStringView;
 extern auto as_view(SjisString const& source) -> SjisStringView;
 
 extern auto as_view(Utf8String const& source) -> Utf8StringView;
-
-class SjisStringView {
-	char const* inner_;
-	mutable std::size_t size_;
-
-public:
-	SjisStringView()
-		: inner_{ nullptr }
-		, size_{ 0 }
-	{
-	}
-
-	SjisStringView(SjisStringView const& other)
-		: inner_(other.inner_)
-		, size_(other.size_)
-	{
-	}
-
-	SjisStringView(SjisStringView&& other)
-		: inner_(other.inner_)
-		, size_(other.size_)
-	{
-	}
-
-	explicit SjisStringView(char const* inner, std::size_t size)
-		: inner_(inner)
-		, size_(size)
-	{
-		assert(inner != nullptr);
-	}
-
-	explicit SjisStringView(char const* inner)
-		: SjisStringView(inner, std::size_t{ 0 })
-	{
-	}
-
-	auto operator =(SjisStringView&& other) -> SjisStringView & {
-		inner_ = other.inner_;
-		size_ = other.size_;
-		return *this;
-	}
-
-	auto operator =(SjisStringView const& other) -> SjisStringView & {
-		inner_ = other.inner_;
-		size_ = other.size_;
-		return *this;
-	}
-
-	auto data() const -> char const* {
-		if (inner_ == nullptr) {
-			assert(false && u8"SjisStringView is null");
-			throw new std::exception{};
-		}
-		return inner_;
-	}
-
-	auto size() const -> std::size_t {
-		if (size_ == 0) {
-			size_ = std::strlen(data());
-		}
-		return size_;
-	}
-
-	auto operator ==(SjisStringView const& other) const -> bool {
-		return size() == other.size() && std::strcmp(data(), other.data()) == 0;
-	}
-
-	auto operator <(SjisStringView const& other) const -> bool {
-		return std::strcmp(data(), other.data()) < 0;
-	}
-
-	auto begin() const -> char const* {
-		return data();
-	}
-
-	auto end() const -> char const* {
-		return data() + size();
-	}
-};
-
-// shift_jis (cp-932)
-class SjisString
-	: public std::string
-{
-public:
-	SjisString() {}
-
-	SjisString(SjisString&& other) : basic_string(other) {}
-
-	explicit SjisString(std::string&& inner) : basic_string(inner) {}
-
-	auto operator =(SjisString&& other) -> SjisString & {
-		swap(other);
-		return *this;
-	}
-
-	auto as_ref() const -> SjisStringView {
-		return SjisStringView{ data(), size() };
-	}
-
-	auto to_hsp_string() const->HspString;
-
-	auto to_os_string() const->OsString;
-
-	auto to_utf8_string() const->Utf8String;
-
-	auto operator ==(SjisString const& other) const -> bool {
-		return as_ref() == other.as_ref();
-	}
-
-	auto operator ==(SjisStringView const& other) const -> bool {
-		return as_ref() == other;
-	}
-
-	auto operator <(SjisString const& other) const -> bool {
-		return as_ref() < other.as_ref();
-	}
-
-	auto operator <(SjisStringView const& other) const -> bool {
-		return as_ref() < other;
-	}
-
-	auto begin() const -> char const* {
-		return as_ref().begin();
-	}
-
-	auto end() const -> char const* {
-		return as_ref().end();
-	}
-};
 
 // utf-8 エンコーディングの文字列への参照。
 class Utf8StringView {
