@@ -45,5 +45,5 @@ SourceFile::SourceFile(OsString&& full_path, OsString&& content)
 	: full_path_(std::move(full_path))
 	, content_(std::move(content))
 {
-	lines_ = split_by_lines(content_.as_ref());
+	lines_ = split_by_lines(as_view(content_));
 }

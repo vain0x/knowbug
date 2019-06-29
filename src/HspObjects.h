@@ -156,7 +156,7 @@ public:
 		Module(HspString&& name);
 
 		auto name() const->HspStringView {
-			return name_.as_ref();
+			return as_view(name_);
 		}
 
 		auto var_ids() const->std::vector<std::size_t> const& {
@@ -174,6 +174,6 @@ public:
 	explicit TypeData(HspString&& name);
 
 	auto name() const -> HspStringView {
-		return name_.as_ref();
+		return as_view(name_);
 	}
 };

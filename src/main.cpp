@@ -76,7 +76,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 	// 起動時の処理:
 
-	g_logger->enable_auto_save(g_config->logPath.as_ref());
+	g_logger->enable_auto_save(as_view(g_config->logPath));
 
 	Dialog::createMain(
 		debug_segment,
@@ -159,7 +159,7 @@ namespace Knowbug
 
 	void open_current_script_file() {
 		auto file_ref_name = to_os(as_hsp(g_dbginfo->curPos().fileRefName()));
-		auto&& full_path_opt = Knowbug::get_source_file_resolver()->find_full_path(file_ref_name.as_ref());
+		auto&& full_path_opt = Knowbug::get_source_file_resolver()->find_full_path(as_view(file_ref_name));
 		if (full_path_opt) {
 			ShellExecute(nullptr, TEXT("open"), full_path_opt->data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
 		}

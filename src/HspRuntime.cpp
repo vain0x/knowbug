@@ -47,7 +47,7 @@ public:
 
 		auto file_ref_name_os_str = to_os(as_hsp(file_ref_name));
 
-		auto&& content_opt = source_file_resolver_.find_script_content(file_ref_name_os_str.as_ref());
+		auto&& content_opt = source_file_resolver_.find_script_content(as_view(file_ref_name_os_str));
 		if (!content_opt) {
 			return empty_;
 		}

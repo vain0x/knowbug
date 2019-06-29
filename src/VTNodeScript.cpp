@@ -21,7 +21,7 @@ auto VTNodeScript::resolveRefName(char const* fileRefNameInput) const
 	// FIXME: 無駄なコピーの塊
 	auto file_ref_name = to_os(as_hsp(fileRefNameInput));
 
-	auto&& full_path_opt = resolver_->find_full_path(file_ref_name.as_ref());
+	auto&& full_path_opt = resolver_->find_full_path(as_view(file_ref_name));
 	if (!full_path_opt) {
 		return nullptr;
 	}
@@ -35,12 +35,12 @@ auto VTNodeScript::fetchScriptAll(char const* fileRefName) const
 	// FIXME: 無駄なコピーの塊
 	auto file_ref_name = to_os(as_hsp(fileRefName));
 
-	auto&& content_opt = resolver_->find_script_content(file_ref_name.as_ref());
+	auto&& content_opt = resolver_->find_script_content(as_view(file_ref_name));
 	if (!content_opt) {
 		return nullptr;
 	}
 
-	return std::make_unique<OsString>(content_opt->to_owned());
+	return std::make_unique<OsString>(to_owned(*content_opt));
 }
 
 auto VTNodeScript::fetchScriptLine(hpiutil::SourcePos const& spos) const
@@ -49,7 +49,7 @@ auto VTNodeScript::fetchScriptLine(hpiutil::SourcePos const& spos) const
 	// FIXME: 無駄なコピーの塊
 	auto file_ref_name = to_os(as_hsp(spos.fileRefName()));
 
-	auto&& line_opt = resolver_->find_script_line(file_ref_name.as_ref(), (std::size_t)spos.line());
+	auto&& line_opt = resolver_->find_script_line(as_view(file_ref_name), (std::size_t)spos.line());
 	if (!line_opt) {
 		return nullptr;
 	}

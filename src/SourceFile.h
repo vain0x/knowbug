@@ -13,20 +13,20 @@ public:
 	SourceFile(OsString&& full_path, OsString&& content);
 
 	auto full_path() const -> OsStringView {
-		return full_path_.as_ref();
+		return as_view(full_path_);
 	}
 
 	auto content() const->OsStringView {
-		return content_.as_ref();
+		return as_view(content_);
 	}
 
 	// 指定した行の文字列を取得する。
 	// 編集中で保存されていないスクリプトを実行しているときは、行番号が行数を超える可能性があるので注意。
 	auto line_at(std::size_t line_index) const->OsStringView {
 		if (line_index >= lines_.size()) {
-			return OsStringView{ TEXT("") };
+			return as_os(TEXT(""));
 		}
 
-		return lines_[line_index].as_ref();
+		return as_view(lines_[line_index]);
 	}
 };

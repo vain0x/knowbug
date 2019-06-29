@@ -168,7 +168,7 @@ namespace LogBox {
 		);
 
 		if (path) {
-			do_save(path->as_ref(), logger);
+			do_save(as_view(*path), logger);
 		}
 	}
 } //namespace LogBox
@@ -232,7 +232,7 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		case 0: break;
 		case IDC_NODE_UPDATE: View::update(); break;
 		case IDC_NODE_LOG: {
-			Knowbug::logmes(g_res->tv->getItemVarText(hItem)->as_ref());
+			Knowbug::logmes(as_view(*g_res->tv->getItemVarText(hItem)));
 			break;
 		}
 #ifdef with_WrapCall
@@ -451,7 +451,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 				, GetDlgItem(hPane, IDC_BTN5) }}
 			, gdi_obj_t {
 					Font_Create
-						( g_config->fontFamily.as_ref()
+						( as_view(g_config->fontFamily)
 						, g_config->fontSize
 						, g_config->fontAntialias ) }
 			});

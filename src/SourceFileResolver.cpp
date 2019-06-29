@@ -47,7 +47,7 @@ static auto search_file_from_dirs(
 ) -> bool {
 	for (auto&& dir : dirs) {
 		auto ok = search_file_from_dir(
-			file_ref, dir.as_ref(), /* use_current_dir = */ false,
+			file_ref, as_view(dir), /* use_current_dir = */ false,
 			out_dir_name, out_full_path
 		);
 		if (!ok) {
@@ -58,7 +58,7 @@ static auto search_file_from_dirs(
 	}
 
 	// カレントディレクトリから探す。
-	auto no_dir = OsStringView{ TEXT("") };
+	auto no_dir = as_os(TEXT(""));
 	return search_file_from_dir(
 		file_ref, no_dir, true,
 		out_dir_name, out_full_path
@@ -73,7 +73,7 @@ static auto open_source_file(OsStringView const& full_path) -> std::shared_ptr<S
 	auto content = std::string{ std::istreambuf_iterator<char>{ifs}, {} };
 	auto content_str = to_os(HspString{ std::move(content) });
 
-	return std::make_shared<SourceFile>(full_path.to_owned(), std::move(content_str));
+	return std::make_shared<SourceFile>(to_owned(full_path), std::move(content_str));
 }
 
 SourceFileResolver::SourceFileResolver(OsString&& common_path, hpiutil::DInfo const& debug_segment)
@@ -103,7 +103,7 @@ auto SourceFileResolver::resolve_file_ref_names()->void {
 			}
 
 			// 絶対パスを探す。
-			auto&& full_path_opt = find_full_path_core(file_ref_name.as_ref());
+			auto&& full_path_opt = find_full_path_core(as_view(file_ref_name));
 			if (!full_path_opt) {
 				continue;
 			}
@@ -127,12 +127,12 @@ auto SourceFileResolver::find_full_path(OsStringView const& file_ref_name) -> st
 }
 
 auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name) -> std::optional<OsStringView> {
-	auto file_ref_name_str = file_ref_name.to_owned(); // FIXME: 無駄なコピー
+	auto file_ref_name_str = to_owned(file_ref_name); // FIXME: 無駄なコピー
 
 	// キャッシュから探す。
 	auto iter = full_paths_.find(file_ref_name_str);
 	if (iter != std::end(full_paths_)) {
-		return std::make_optional(iter->second.as_ref());
+		return std::make_optional(as_view(iter->second));
 	}
 
 	// ファイルシステムから探す。
@@ -144,10 +144,10 @@ auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name) 
 		dirs_.emplace(std::move(dir_name));
 
 		// メモ化する。
-		full_paths_.emplace(file_ref_name.to_owned(), std::move(full_path));
+		full_paths_.emplace(to_owned(file_ref_name), std::move(full_path));
 
 		// メモ内の絶対パスへの参照を返す。
-		return std::make_optional(full_paths_[file_ref_name_str].as_ref());
+		return std::make_optional(as_view(full_paths_[file_ref_name_str]));
 	}
 
 	return std::nullopt;
@@ -180,7 +180,7 @@ auto SourceFileResolver::find_source_file(OsStringView const& file_ref_name) -> 
 	}
 
 	auto source_file = open_source_file(*full_path_opt);
-	source_files_.emplace(full_path_opt->to_owned(), std::move(source_file));
+	source_files_.emplace(to_owned(*full_path_opt), std::move(source_file));
 
-	return std::make_optional(source_files_[full_path_opt->to_owned()]); // FIXME: 無駄なコピー
+	return std::make_optional(source_files_[to_owned(*full_path_opt)]); // FIXME: 無駄なコピー
 }

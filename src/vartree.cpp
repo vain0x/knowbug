@@ -441,7 +441,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 		}
 		void fLog(VTNodeLog const& node) override
 		{
-			result = std::make_unique<OsString>(node.content().to_owned()); // FIXME: 無駄なコピー
+			result = std::make_unique<OsString>(to_owned(node.content())); // FIXME: 無駄なコピー
 		}
 		void fScript(VTNodeScript const& node) override
 		{
@@ -539,7 +539,7 @@ void VTView::updateViewWindow(AbstractViewBox& view_box)
 					// スクロール位置を保存して、文字列を交換して、スクロール位置を適切に戻す。
 					p_->scroll_preserver_.will_activate(item_handle, view_box);
 
-					Dialog::View::setText(text.as_ref());
+					Dialog::View::setText(as_view(text));
 
 					p_->scroll_preserver_.did_activate(item_handle, *path, objects_, view_box);
 					return;
@@ -555,7 +555,7 @@ void VTView::updateViewWindow(AbstractViewBox& view_box)
 		}
 
 		auto varinfoText = getItemVarText(hItem);
-		Dialog::View::setText(varinfoText->as_ref());
+		Dialog::View::setText(as_view(*varinfoText));
 
 		//+script ノードなら現在の実行位置を選択
 		if ( hItem == p_->hNodeScript_ ) {

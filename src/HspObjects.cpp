@@ -31,7 +31,7 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 			auto p = var_name_to_scope_resolution(var_name.data());
 			auto module_name = HspStringView{ (p ? p : GLOBAL_MODULE_NAME) };
 
-			tuples.emplace_back(module_name, var_name.as_ref(), vi);
+			tuples.emplace_back(module_name, as_view(var_name), vi);
 		}
 	}
 
@@ -39,7 +39,7 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 
 	// モジュールと変数の関係を構築する。
 	{
-		modules.emplace_back(HspStringView{ GLOBAL_MODULE_NAME }.to_owned());
+		modules.emplace_back(to_owned(as_hsp(GLOBAL_MODULE_NAME)));
 
 		for (auto&& t : tuples) {
 			auto module_name_ref = std::get<0>(t);
@@ -49,7 +49,7 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 			{
 				auto module_id = modules.size() - 1;
 				if (!(modules[module_id].name() == module_name_ref)) {
-					modules.emplace_back(module_name_ref.to_owned());
+					modules.emplace_back(to_owned(module_name_ref));
 				}
 			}
 
@@ -68,13 +68,13 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 
 static auto create_type_datas() -> std::vector<HspObjects::TypeData> {
 	auto types = std::vector<HspObjects::TypeData>{};
-	types.emplace_back(HspStringView{ "unknown" }.to_owned());
-	types.emplace_back(HspStringView{ "label" }.to_owned());
-	types.emplace_back(HspStringView{ "str" }.to_owned());
-	types.emplace_back(HspStringView{ "double" }.to_owned());
-	types.emplace_back(HspStringView{ "int" }.to_owned());
-	types.emplace_back(HspStringView{ "struct" }.to_owned());
-	types.emplace_back(HspStringView{ "comobj" }.to_owned());
+	types.emplace_back(to_hsp(ascii_to_utf8(u8"unknown")));
+	types.emplace_back(to_hsp(ascii_to_utf8(u8"label")));
+	types.emplace_back(to_hsp(ascii_to_utf8(u8"str")));
+	types.emplace_back(to_hsp(ascii_to_utf8(u8"double")));
+	types.emplace_back(to_hsp(ascii_to_utf8(u8"int")));
+	types.emplace_back(to_hsp(ascii_to_utf8(u8"struct")));
+	types.emplace_back(to_hsp(ascii_to_utf8(u8"comobj")));
 	return types;
 }
 
