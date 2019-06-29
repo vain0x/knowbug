@@ -30,7 +30,7 @@ static auto search_file_from_dir(
 	}
 
 	assert(full_path_buf.data() <= file_name_ptr && file_name_ptr <= full_path_buf.data() + full_path_buf.size());
-	auto dir_name = OsString::from_range(full_path_buf.data(), file_name_ptr);
+	auto dir_name = OsString{ full_path_buf.data(), file_name_ptr };
 
 	out_dir_name = std::move(dir_name);
 	out_full_path = OsString{ full_path_buf.data() };

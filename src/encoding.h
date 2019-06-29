@@ -9,12 +9,16 @@
 #include <Windows.h>
 #include <tchar.h>
 
-class OsString;
 class SjisString;
 class SjisStringView;
 class Utf8String;
 class Utf8StringView;
 
+// Windows API のための文字列。
+// UNICODE 版なら utf-16、そうでなければ ANSI (shift_jis)。
+using OsString = std::basic_string<TCHAR>;
+
+// Windows API のための文字列への参照。
 using OsStringView = std::basic_string_view<TCHAR>;
 
 #ifdef HSP3_UTF8
@@ -80,47 +84,6 @@ extern auto as_view(OsString const& source) -> OsStringView;
 extern auto as_view(SjisString const& source) -> SjisStringView;
 
 extern auto as_view(Utf8String const& source) -> Utf8StringView;
-
-// Windows API のための文字列。
-// UNICODE 版なら utf-16、そうでなければ ANSI (shift_jis)。
-class OsString
-	: public std::basic_string<TCHAR>
-{
-public:
-	OsString() {}
-
-	OsString(OsString&& other) : basic_string(other) {}
-
-	// FIXME: 暗黙のコピーはよくない。map のキーとして使うときに要求されるので用意している。
-	OsString(OsString const& other) : basic_string(other) {}
-
-	auto operator =(OsString&& other)->OsString & {
-		swap(other);
-		return *this;
-	}
-
-	auto operator =(OsString const& other)->OsString & = delete;
-
-	explicit OsString(std::basic_string<TCHAR>&& inner) : basic_string(inner) {}
-
-	static auto from_range(LPCTSTR begin, LPCTSTR end) -> OsString {
-		assert(begin <= end);
-		auto count = (std::size_t)(end - begin);
-		return OsString{ std::basic_string<TCHAR>{ begin, count } };
-	}
-
-	auto as_ref() const -> OsStringView {
-		return OsStringView{ data(), size() };
-	}
-
-	auto begin() const -> LPCTSTR {
-		return as_ref().data();
-	}
-
-	auto end() const -> LPCTSTR {
-		return as_ref().data() + size();
-	}
-};
 
 class SjisStringView {
 	char const* inner_;

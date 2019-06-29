@@ -175,7 +175,7 @@ auto to_owned(Utf8StringView const& source) -> Utf8String {
 }
 
 auto as_view(OsString const& source) -> OsStringView {
-	return source.as_ref();
+	return OsStringView{ source };
 }
 
 auto as_view(SjisString const& source) -> SjisStringView {
