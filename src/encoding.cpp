@@ -25,6 +25,7 @@ auto string_is_ascii(char const* str) -> bool {
 static auto ansi_to_os_str(const char* ansi_str) -> BasicOsString {
 	assert(ansi_str != nullptr);
 
+	// FIXME: 長さを引数に受け取る (他の変換関数も同様)
 	auto ansi_str_len = std::strlen(ansi_str) + 1;
 
 	auto len = MultiByteToWideChar(CP_ACP, 0, ansi_str, (int)ansi_str_len, nullptr, 0);
@@ -164,4 +165,95 @@ auto Utf8StringView::to_os_string() const -> OsString {
 
 auto Utf8StringView::to_sjis_string() const -> SjisString {
 	return to_os_string().to_sjis_string();
+}
+
+auto ascii_as_utf8(char const* source) -> Utf8StringView {
+	assert(string_is_ascii(source));
+	return Utf8StringView{ source };
+}
+
+auto ascii_to_utf8(std::string&& source) -> Utf8String {
+	assert(string_is_ascii(source.data()));
+	return Utf8String{ std::move(source) };
+}
+
+auto ascii_to_utf8(std::string const& source) -> Utf8String {
+	assert(string_is_ascii(source.data()));
+	return to_owned(ascii_as_utf8(source.data()));
+}
+
+auto as_hsp(char const* str) -> HspStringView {
+	return HspStringView{ str };
+}
+
+auto to_hsp(OsStringView const& source) -> HspString {
+	return source.to_hsp_string();
+}
+
+auto to_hsp(SjisStringView const& source) -> HspString {
+	return source.to_hsp_string();
+}
+
+auto to_hsp(Utf8StringView const& source) -> HspString {
+	return source.to_hsp_string();
+}
+
+auto as_sjis(char const* str) -> SjisStringView {
+	return SjisStringView{ str };
+}
+
+auto to_sjis(OsStringView const& source) -> SjisString {
+	return SjisString{ os_to_ansi_str(source.data()) };
+}
+
+auto to_sjis(Utf8StringView const& source) -> SjisString {
+	return SjisString{ os_to_ansi_str(utf8_to_os_str(source.data()).data()) };
+}
+
+auto as_os(LPCTSTR str) -> OsStringView {
+	return OsStringView{ str, std::size_t{} };
+}
+
+auto to_os(SjisStringView const& source) -> OsString {
+	return OsString{ ansi_to_os_str(source.data()) };
+}
+
+auto to_os(Utf8StringView const& source) -> OsString {
+	return OsString{ utf8_to_os_str(source.data()) };
+}
+
+auto as_utf8(char const* str) -> Utf8StringView {
+	return Utf8StringView{ str };
+}
+
+auto to_utf8(OsStringView const& source) -> Utf8String {
+	return Utf8String{ os_to_utf8_str(source.data()) };
+}
+
+auto to_utf8(SjisStringView const& source) -> Utf8String {
+	return Utf8String{ os_to_utf8_str(ansi_to_os_str(source.data()).data()) };
+}
+
+auto to_owned(OsStringView const& source) -> OsString {
+	return source.to_owned();
+}
+
+auto to_owned(SjisStringView const& source) -> SjisString {
+	return source.to_owned();
+}
+
+auto to_owned(Utf8StringView const& source) -> Utf8String {
+	return source.to_owned();
+}
+
+auto as_view(OsString const& source) -> OsStringView {
+	return source.as_ref();
+}
+
+auto as_view(SjisString const& source) -> SjisStringView {
+	return source.as_ref();
+}
+
+auto as_view(Utf8String const& source) -> Utf8StringView {
+	return source.as_ref();
 }

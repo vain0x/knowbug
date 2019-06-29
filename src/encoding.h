@@ -15,8 +15,6 @@ class SjisStringView;
 class Utf8String;
 class Utf8StringView;
 
-extern auto string_is_ascii(char const* str) -> bool;
-
 #ifdef HSP3_UTF8
 
 // HSP が使用するエンコーディングの文字列。
@@ -34,6 +32,52 @@ using HspString = SjisString;
 using HspStringView = SjisStringView;
 
 #endif
+
+extern auto string_is_ascii(char const* str) -> bool;
+
+extern auto ascii_as_utf8(char const* source) -> Utf8StringView;
+
+extern auto ascii_to_utf8(std::string&& source) -> Utf8String;
+
+extern auto ascii_to_utf8(std::string const& source) -> Utf8String;
+
+extern auto as_hsp(char const* str) -> HspStringView;
+
+extern auto to_hsp(OsStringView const& source) -> HspString;
+
+extern auto to_hsp(SjisStringView const& source) -> HspString;
+
+extern auto to_hsp(Utf8StringView const& source) -> HspString;
+
+extern auto as_os(LPCTSTR str) -> OsStringView;
+
+extern auto to_os(SjisStringView const& source) -> OsString;
+
+extern auto to_os(Utf8StringView const& source) -> OsString;
+
+extern auto as_sjis(char const* str) -> SjisStringView;
+
+extern auto to_sjis(OsStringView const& source) -> SjisString;
+
+extern auto to_sjis(Utf8StringView const& source) -> SjisString;
+
+extern auto as_utf8(char const* str) -> Utf8StringView;
+
+extern auto to_utf8(OsStringView const& source) -> Utf8String;
+
+extern auto to_utf8(SjisStringView const& source) -> Utf8String;
+
+extern auto to_owned(OsStringView const& source) -> OsString;
+
+extern auto to_owned(SjisStringView const& source) -> SjisString;
+
+extern auto to_owned(Utf8StringView const& source) -> Utf8String;
+
+extern auto as_view(OsString const& source) -> OsStringView;
+
+extern auto as_view(SjisString const& source) -> SjisStringView;
+
+extern auto as_view(Utf8String const& source) -> Utf8StringView;
 
 // Windows API のための文字列への参照。
 class OsStringView {
@@ -473,6 +517,42 @@ public:
 		return as_ref().end();
 	}
 };
+
+static auto to_hsp(OsString const& source) -> HspString {
+	return to_hsp(as_view(source));
+}
+
+static auto to_hsp(SjisString const& source) -> HspString {
+	return to_hsp(as_view(source));
+}
+
+static auto to_hsp(Utf8String const& source) -> HspString {
+	return to_hsp(as_view(source));
+}
+
+static auto to_os(SjisString const& source) -> OsString {
+	return to_os(as_view(source));
+}
+
+static auto to_os(Utf8String const& source) -> OsString {
+	return to_os(as_view(source));
+}
+
+static auto to_sjis(OsString const& source) -> SjisString {
+	return to_sjis(as_view(source));
+}
+
+static auto to_sjis(Utf8String const& source) -> SjisString {
+	return to_sjis(as_view(source));
+}
+
+static auto to_utf8(OsString const& source) -> Utf8String {
+	return to_utf8(as_view(source));
+}
+
+static auto to_utf8(SjisString const& source) -> Utf8String {
+	return to_utf8(as_view(source));
+}
 
 // utf-8 エンコーディングされた文字列リテラルをキャストする。
 inline auto of_u8str(char const* str) -> Utf8StringView {
