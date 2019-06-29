@@ -42,5 +42,5 @@ private:
 
 	auto find_full_path_core(OsStringView const& file_ref_name)->std::optional<OsStringView>;
 
-	auto find_source_file(OsStringView const& file_ref_name, std::shared_ptr<SourceFile>& out_source_file)->bool;
+	auto find_source_file(OsStringView const& file_ref_name) -> std::optional<std::shared_ptr<SourceFile>>;
 };
