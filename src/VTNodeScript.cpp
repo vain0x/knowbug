@@ -36,13 +36,12 @@ auto VTNodeScript::fetchScriptAll(char const* fileRefName) const
 	// FIXME: 無駄なコピーの塊
 	auto file_ref_name = HspStringView{ fileRefName }.to_os_string();
 
-	OsStringView content;
-	auto ok = resolver_->find_script_content(file_ref_name.as_ref(), content);
-	if (!ok) {
+	auto&& content_opt = resolver_->find_script_content(file_ref_name.as_ref());
+	if (!content_opt) {
 		return nullptr;
 	}
 
-	return std::make_unique<OsString>(content.to_owned());
+	return std::make_unique<OsString>(content_opt->to_owned());
 }
 
 auto VTNodeScript::fetchScriptLine(hpiutil::SourcePos const& spos) const

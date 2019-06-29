@@ -159,14 +159,14 @@ auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name) 
 	return std::nullopt;
 }
 
-auto SourceFileResolver::find_script_content(OsStringView const& file_ref_name, OsStringView& out_content) -> bool {
+auto SourceFileResolver::find_script_content(OsStringView const& file_ref_name) -> std::optional<OsStringView> {
 	auto&& source_file_opt = find_source_file(file_ref_name);
 	if (!source_file_opt) {
-		return false;
+		return std::nullopt;
 	}
 
-	out_content = (*source_file_opt)->content();
-	return true;
+	auto&& content = (*source_file_opt)->content();
+	return std::make_optional(content);
 }
 
 auto SourceFileResolver::find_script_line(OsStringView const& file_ref_name, std::size_t line_index)->std::optional<OsStringView> {

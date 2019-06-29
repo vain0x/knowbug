@@ -47,12 +47,12 @@ public:
 
 		auto file_ref_name_os_str = HspStringView{ file_ref_name }.to_os_string();
 
-		OsStringView content;
-		if (!source_file_resolver_.find_script_content(file_ref_name_os_str.as_ref(), content)) {
+		auto&& content_opt = source_file_resolver_.find_script_content(file_ref_name_os_str.as_ref());
+		if (!content_opt) {
 			return empty_;
 		}
 
-		scripts_.emplace(std::string{ file_ref_name }, std::make_shared<std::string>(content.to_hsp_string()));
+		scripts_.emplace(std::string{ file_ref_name }, std::make_shared<std::string>(content_opt->to_hsp_string()));
 		return *scripts_.at(file_ref_name);
 	}
 };
