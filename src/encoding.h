@@ -114,12 +114,3 @@ extern auto as_native(Utf8StringView const& source) -> char const*;
 extern auto as_native(SjisString&& source) -> std::string;
 
 extern auto as_native(Utf8String&& source) -> std::string;
-
-namespace std {
-	template<>
-	struct hash<OsString> {
-		auto operator ()(OsString const& str) const -> std::size_t {
-			return std::hash<std::basic_string<TCHAR>>{}(str);
-		}
-	};
-}
