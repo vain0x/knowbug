@@ -1,4 +1,5 @@
 // FIXME: 無限のネストに対処
+// FIXME: 文字コードの混在に対処
 
 #include "encoding.h"
 #include "module/CStrWriter.h"
@@ -288,7 +289,7 @@ HspObjectWriterImpl::BlockForm::BlockForm(HspObjects& objects, CStrWriter& write
 void HspObjectWriterImpl::BlockForm::accept_default(HspObjectPath const& path) {
 	add_name_children(path);
 
-	// FIXME: システム変数ならメモリダンプを出力できる
+	// FIXME: システム変数や引数リストならメモリダンプを出力できる
 }
 
 void HspObjectWriterImpl::BlockForm::on_module(HspObjectPath::Module const& path) {

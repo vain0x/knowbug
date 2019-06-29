@@ -147,6 +147,7 @@ static auto var_path_to_child_count(HspObjectPath const& path, HspDebugApi& api)
 		return 0;
 	}
 
+	// FIXME: 要素数が多すぎると動作が遅くなりすぎるので適度に打ち切るかグループ化する
 	auto pval = *pval_opt;
 	return api.var_to_element_count(pval);
 }
