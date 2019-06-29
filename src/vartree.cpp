@@ -253,7 +253,8 @@ public:
 	}
 
 	void log(std::string&& text) {
-		Knowbug::get_logger()->append_line(HspString{ std::move(text) }.to_os_string().as_ref());
+		auto&& text_os_str = to_os(HspString{ std::move(text) });
+		Knowbug::get_logger()->append_line(as_view(text_os_str));
 	}
 
 	virtual void did_create(std::size_t node_id) {
@@ -447,7 +448,8 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 			if ( auto p = node.fetchScriptAll(g_dbginfo->curPos().fileRefName()) ) {
 				result = std::move(p);
 			} else {
-				result = std::make_unique<OsString>(HspStringView{ g_dbginfo->getCurInfString().data() }.to_os_string());
+				auto&& cur_inf = g_dbginfo->getCurInfString();
+				result = std::make_unique<OsString>(to_os(as_hsp(cur_inf.data())));
 			}
 		}
 		void fGeneral(VTNodeGeneral const&) override
@@ -473,7 +475,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 			node.acceptVisitor(*this);
 			return result
 				? std::move(result)
-				: std::make_unique<OsString>(HspStringView{ varinf.getString().data() }.to_os_string());
+				: std::make_unique<OsString>(to_os(as_hsp(varinf.getString().data())));
 		}
 	};
 
@@ -531,7 +533,7 @@ void VTView::updateViewWindow(AbstractViewBox& view_box)
 
 					auto varinf = CVarinfoText{ debug_segment_, objects_, static_vars_ };
 					varinf.add(*path);
-					auto text = HspStringView{ varinf.getString().data() }.to_os_string();
+					auto text = to_os(as_hsp(varinf.getString().data()));
 
 					// ビューウィンドウに反映する。
 					// スクロール位置を保存して、文字列を交換して、スクロール位置を適切に戻す。

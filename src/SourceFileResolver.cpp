@@ -71,7 +71,7 @@ static auto open_source_file(OsStringView const& full_path) -> std::shared_ptr<S
 
 	// FIXME: ソースコードの文字コードが HSP ランタイムの文字コードと同じとは限らない。
 	auto content = std::string{ std::istreambuf_iterator<char>{ifs}, {} };
-	auto content_str = HspStringView{ content.data() }.to_os_string();
+	auto content_str = to_os(HspString{ std::move(content) });
 
 	return std::make_shared<SourceFile>(full_path.to_owned(), std::move(content_str));
 }
@@ -90,7 +90,7 @@ auto SourceFileResolver::resolve_file_ref_names()->void {
 
 	auto file_ref_names = std::vector<OsString>{};
 	for (auto&& file_ref_name : debug_segment_.fileRefNames()) {
-		file_ref_names.push_back(HspStringView{ file_ref_name.data() }.to_os_string());
+		file_ref_names.push_back(to_os(as_hsp(file_ref_name.data())));
 	}
 
 	while (!resolution_done_) {

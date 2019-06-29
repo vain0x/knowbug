@@ -48,7 +48,7 @@ void Logger::clear() {
 }
 
 bool Logger::save(OsStringView const& file_path) {
-	auto content = content_.to_utf8_string();
+	auto content = to_utf8(content_);
 
 	auto file_stream = std::ofstream{ file_path.data() };
 	file_stream.write(content.data(), content.size());

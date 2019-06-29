@@ -101,7 +101,7 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 		case hpiutil::DebugNotice_Logmes:
 			g_hsp_runtime->logger().append(ctx->stmp);
 			g_hsp_runtime->logger().append("\r\n");
-			g_logger->append_line(HspStringView{ ctx->stmp }.to_os_string().as_ref());
+			g_logger->append_line(as_view(to_os(as_hsp(ctx->stmp))));
 			break;
 	}
 	return 0;
@@ -143,22 +143,22 @@ namespace Knowbug
 	}
 
 	void logmes( char const* msg ) {
-		logmes(HspStringView{ msg }.to_os_string().as_ref());
+		logmes(as_view(to_os(as_hsp(msg))));
 	}
 
 	void logmesWarning(OsStringView const& msg) {
 		g_dbginfo->updateCurInf();
-		auto execution_location = HspStringView{ g_dbginfo->getCurInfString().data() }.to_os_string();
+		auto&& execution_location = to_os(as_hsp(g_dbginfo->getCurInfString().data()));
 
-		g_logger->append_warning(msg, execution_location.as_ref());
+		g_logger->append_warning(msg, as_view(execution_location));
 	}
 
 	void logmesWarning(char const* msg) {
-		logmesWarning(HspStringView{ msg }.to_os_string().as_ref());
+		logmesWarning(as_view(to_os(as_hsp(msg))));
 	}
 
 	void open_current_script_file() {
-		auto file_ref_name = HspStringView{ g_dbginfo->curPos().fileRefName() }.to_os_string();
+		auto file_ref_name = to_os(as_hsp(g_dbginfo->curPos().fileRefName()));
 		auto&& full_path_opt = Knowbug::get_source_file_resolver()->find_full_path(file_ref_name.as_ref());
 		if (full_path_opt) {
 			ShellExecute(nullptr, TEXT("open"), full_path_opt->data(), nullptr, TEXT(""), SW_SHOWDEFAULT);

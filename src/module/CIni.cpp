@@ -25,8 +25,8 @@ CIni::CIni(OsString&& file_name)
 //------------------------------------------------
 bool CIni::getBool(char const* sec, char const* key, bool defval)
 {
-	auto sec_str = Utf8StringView::from_ascii(sec).to_os_string();
-	auto key_str = Utf8StringView::from_ascii(key).to_os_string();
+	auto sec_str = to_os(ascii_to_utf8(sec));
+	auto key_str = to_os(ascii_to_utf8(key));
 
 	GetPrivateProfileString(
 		sec_str.data(), key_str.data(), STR_BOOLEAN[defval ? 1 : 0],
@@ -45,8 +45,8 @@ bool CIni::getBool(char const* sec, char const* key, bool defval)
 //------------------------------------------------
 auto CIni::getInt(char const* sec, char const* key, int default_value) const -> int
 {
-	auto sec_str = Utf8StringView::from_ascii(sec).to_os_string();
-	auto key_str = Utf8StringView::from_ascii(key).to_os_string();
+	auto sec_str = to_os(ascii_to_utf8(sec));
+	auto key_str = to_os(ascii_to_utf8(key));
 
 	return GetPrivateProfileInt(
 		sec_str.data(), key_str.data(), default_value,
@@ -60,9 +60,9 @@ auto CIni::getInt(char const* sec, char const* key, int default_value) const -> 
 auto CIni::getString(char const* sec, char const* key, char const* defval, size_t size)
 -> OsStringView
 {
-	auto sec_str = Utf8StringView::from_ascii(sec).to_os_string();
-	auto key_str = Utf8StringView::from_ascii(key).to_os_string();
-	auto default_str = Utf8StringView::from_ascii(defval).to_os_string();
+	auto sec_str = to_os(ascii_to_utf8(sec));
+	auto key_str = to_os(ascii_to_utf8(key));
+	auto default_str = to_os(ascii_to_utf8(defval));
 
 	if ( size > buf_.size() ) buf_.resize(size);
 
