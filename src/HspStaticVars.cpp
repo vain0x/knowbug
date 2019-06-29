@@ -22,7 +22,7 @@ static void fetch_static_var_names(HSP3DEBUG* debug_, std::size_t static_var_cou
 		auto name = std::array<char, 0x100> {};
 		auto const chk = strsp_get(p.get(), name.data(), '\0', name.size() - 1);
 		if ( chk == 0 ) break;
-		names.emplace_back(name.data());
+		names.emplace_back(as_hsp(name.data()));
 	}
 }
 
@@ -61,5 +61,5 @@ auto HspStaticVars::find_name_by_pval(PVal* pval) -> std::optional<HspString> {
 		return std::nullopt;
 	}
 
-	return std::make_optional(HspString{ *(std::move(var_name)) });
+	return std::make_optional(to_owned(as_hsp(var_name->data())));
 }

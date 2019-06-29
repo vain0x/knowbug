@@ -253,7 +253,7 @@ public:
 	}
 
 	void log(std::string&& text) {
-		auto&& text_os_str = to_os(HspString{ std::move(text) });
+		auto&& text_os_str = to_os(as_hsp(std::move(text)));
 		Knowbug::get_logger()->append_line(as_view(text_os_str));
 	}
 

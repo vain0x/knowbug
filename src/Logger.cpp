@@ -51,7 +51,7 @@ bool Logger::save(OsStringView const& file_path) {
 	auto content = to_utf8(content_);
 
 	auto file_stream = std::ofstream{ file_path.data() };
-	file_stream.write(content.data(), content.size());
+	file_stream.write(as_native(as_view(content)), content.size());
 	return file_stream.good();
 }
 

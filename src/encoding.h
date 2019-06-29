@@ -15,8 +15,12 @@ enum class SjisChar
 {
 };
 
-class Utf8String;
-class Utf8StringView;
+// UTF-8 エンコーディングされた文字列の要素 (バイト)
+// NOTE: char8_t が存在しなかった時代のため
+enum class Utf8Char
+	: char
+{
+};
 
 // Windows API のための文字列。
 // UNICODE 版なら utf-16、そうでなければ ANSI (shift_jis)。
@@ -30,6 +34,12 @@ using SjisString = std::basic_string<SjisChar>;
 
 // shift_jis 文字列への参照
 using SjisStringView = std::basic_string_view<SjisChar>;
+
+// UTF-8 でエンコーディングされた文字列
+using Utf8String = std::basic_string<Utf8Char>;
+
+// UTF-8 文字列への参照
+using Utf8StringView = std::basic_string_view<Utf8Char>;
 
 #ifdef HSP3_UTF8
 
@@ -58,6 +68,8 @@ extern auto ascii_to_utf8(std::string&& source) -> Utf8String;
 extern auto ascii_to_utf8(std::string const& source) -> Utf8String;
 
 extern auto as_hsp(char const* str) -> HspStringView;
+
+extern auto as_hsp(std::string&& str) -> HspString;
 
 extern auto to_hsp(OsStringView const& source) -> HspString;
 
@@ -95,154 +107,13 @@ extern auto as_view(SjisString const& source) -> SjisStringView;
 
 extern auto as_view(Utf8String const& source) -> Utf8StringView;
 
-// utf-8 エンコーディングの文字列への参照。
-class Utf8StringView {
-	char const* inner_;
-	mutable std::size_t size_;
+extern auto as_native(SjisStringView const& source) -> char const*;
 
-public:
-	Utf8StringView()
-		: inner_{ nullptr }
-		, size_{ 0 }
-	{
-	}
+extern auto as_native(Utf8StringView const& source) -> char const*;
 
-	Utf8StringView(Utf8StringView const& other)
-		: inner_(other.inner_)
-		, size_(other.size_)
-	{
-	}
+extern auto as_native(SjisString&& source) -> std::string;
 
-	explicit Utf8StringView(char const* inner, std::size_t size)
-		: inner_(inner)
-		, size_(size)
-	{
-		assert(inner != nullptr);
-	}
-
-	explicit Utf8StringView(char const* inner)
-		: Utf8StringView(inner, std::size_t{ 0 })
-	{
-	}
-
-	auto operator =(Utf8StringView&& other) -> Utf8StringView& {
-		inner_ = other.inner_;
-		size_ = other.size_;
-		return *this;
-	}
-
-	auto data() const -> char const* {
-		if (inner_ == nullptr) {
-			assert(false && u8"Utf8StringView is null");
-			throw new std::exception{};
-		}
-		return inner_;
-	}
-
-	auto size() const -> std::size_t {
-		if (size_ == 0) {
-			size_ = std::strlen(data());
-		}
-		return size_;
-	}
-
-	auto operator ==(Utf8StringView const& other) const -> bool {
-		return size() == other.size() && std::strcmp(data(), other.data()) == 0;
-	}
-
-	auto operator <(Utf8StringView const& other) const -> bool {
-		return std::strcmp(data(), other.data()) < 0;
-	}
-
-	auto begin() const -> char const* {
-		return data();
-	}
-
-	auto end() const -> char const* {
-		return data() + size();
-	}
-};
-
-// utf-8 エンコーディングの文字列。
-class Utf8String
-	: public std::string
-{
-public:
-	Utf8String() {}
-
-	Utf8String(Utf8String&& other) : basic_string(other) {}
-
-	explicit Utf8String(std::string&& inner) : basic_string(inner) {}
-
-	auto operator =(Utf8String&& other) -> Utf8String & {
-		swap(other);
-		return *this;
-	}
-
-	auto as_ref() const -> Utf8StringView {
-		return Utf8StringView{ data(), size() };
-	}
-
-	auto operator ==(Utf8String const& other) const -> bool {
-		return as_ref() == other.as_ref();
-	}
-
-	auto operator ==(Utf8StringView const& other) const -> bool {
-		return as_ref() == other;
-	}
-
-	auto operator <(Utf8String const& other) const -> bool {
-		return as_ref() < other.as_ref();
-	}
-
-	auto operator <(Utf8StringView const& other) const -> bool {
-		return as_ref() < other;
-	}
-
-	auto begin() const -> char const* {
-		return as_ref().begin();
-	}
-
-	auto end() const -> char const* {
-		return as_ref().end();
-	}
-};
-
-static auto to_hsp(OsString const& source) -> HspString {
-	return to_hsp(as_view(source));
-}
-
-static auto to_hsp(SjisString const& source) -> HspString {
-	return to_hsp(as_view(source));
-}
-
-static auto to_hsp(Utf8String const& source) -> HspString {
-	return to_hsp(as_view(source));
-}
-
-static auto to_os(SjisString const& source) -> OsString {
-	return to_os(as_view(source));
-}
-
-static auto to_os(Utf8String const& source) -> OsString {
-	return to_os(as_view(source));
-}
-
-static auto to_sjis(OsString const& source) -> SjisString {
-	return to_sjis(as_view(source));
-}
-
-static auto to_sjis(Utf8String const& source) -> SjisString {
-	return to_sjis(as_view(source));
-}
-
-static auto to_utf8(OsString const& source) -> Utf8String {
-	return to_utf8(as_view(source));
-}
-
-static auto to_utf8(SjisString const& source) -> Utf8String {
-	return to_utf8(as_view(source));
-}
+extern auto as_native(Utf8String&& source) -> std::string;
 
 namespace std {
 	template<>

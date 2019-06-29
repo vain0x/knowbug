@@ -11,10 +11,15 @@ static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugA
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
 
-static auto const GLOBAL_MODULE_NAME = "@";
+static auto const GLOBAL_MODULE_NAME = as_hsp(u8"@");
 
-static auto var_name_to_scope_resolution(char const* var_name) -> char const* {
-	return std::strchr(var_name, '@');
+static auto var_name_to_scope_resolution(Utf8StringView const& var_name) -> std::optional<Utf8StringView> {
+	auto ptr = std::strchr(as_native(var_name), '@');
+	if (!ptr) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(as_utf8(ptr));
 }
 
 // 変数をモジュールごとに分類する。
@@ -28,8 +33,8 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 		for (auto vi = std::size_t{}; vi < var_names.size(); vi++) {
 			auto&& var_name = var_names[vi];
 
-			auto p = var_name_to_scope_resolution(var_name.data());
-			auto module_name = HspStringView{ (p ? p : GLOBAL_MODULE_NAME) };
+			auto resolution_opt = var_name_to_scope_resolution(as_view(var_name));
+			auto module_name = resolution_opt ? *resolution_opt : GLOBAL_MODULE_NAME;
 
 			tuples.emplace_back(module_name, as_view(var_name), vi);
 		}
@@ -39,7 +44,7 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 
 	// モジュールと変数の関係を構築する。
 	{
-		modules.emplace_back(to_owned(as_hsp(GLOBAL_MODULE_NAME)));
+		modules.emplace_back(to_owned(GLOBAL_MODULE_NAME));
 
 		for (auto&& t : tuples) {
 			auto module_name_ref = std::get<0>(t);
@@ -62,7 +67,7 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 	}
 
 	// 事後条件
-	assert(modules[GLOBAL_MODULE_ID].name() == HspStringView{ "@" });
+	assert(modules[GLOBAL_MODULE_ID].name() == as_hsp(u8"@"));
 	return modules;
 }
 

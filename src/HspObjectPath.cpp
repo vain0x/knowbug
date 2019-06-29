@@ -76,7 +76,7 @@ HspObjectPath::Module::Module(std::shared_ptr<HspObjectPath const> parent, std::
 }
 
 auto HspObjectPath::Module::name(HspObjects& objects) const -> std::string {
-	return to_owned(objects.module_to_name(module_id()));
+	return as_native(to_owned(objects.module_to_name(module_id())));
 }
 
 bool HspObjectPath::Module::is_global(HspObjects& objects) const {

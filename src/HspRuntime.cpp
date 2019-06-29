@@ -52,7 +52,7 @@ public:
 			return empty_;
 		}
 
-		scripts_.emplace(std::string{ file_ref_name }, std::make_shared<std::string>(to_hsp(*content_opt)));
+		scripts_.emplace(std::string{ file_ref_name }, std::make_shared<std::string>(as_native(to_hsp(*content_opt))));
 		return *scripts_.at(file_ref_name);
 	}
 };

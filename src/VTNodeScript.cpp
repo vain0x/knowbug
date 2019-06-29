@@ -26,7 +26,7 @@ auto VTNodeScript::resolveRefName(char const* fileRefNameInput) const
 		return nullptr;
 	}
 
-	return std::make_shared<string const>(to_hsp(*full_path_opt));
+	return std::make_shared<string const>(as_native(to_hsp(*full_path_opt)));
 }
 
 auto VTNodeScript::fetchScriptAll(char const* fileRefName) const
@@ -54,5 +54,5 @@ auto VTNodeScript::fetchScriptLine(hpiutil::SourcePos const& spos) const
 		return nullptr;
 	}
 
-	return std::make_unique<string>(to_hsp(*line_opt));
+	return std::make_unique<string>(as_native(to_hsp(*line_opt)));
 }

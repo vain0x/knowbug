@@ -11,8 +11,8 @@
 // -----------------------------------------------
 
 // FIXME: クローン変数なら & をつける
-static void write_array_type(CStrWriter& writer, char const* type_name, HspDimIndex const& lengths) {
-	writer.cat(type_name);
+static void write_array_type(CStrWriter& writer, Utf8Char const* type_name, HspDimIndex const& lengths) {
+	writer.cat(as_native(type_name));
 
 	switch (lengths.dim()) {
 	case 0:
@@ -405,7 +405,7 @@ void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const
 	// FIXME: 多次元配列の表示を改善する
 
 	w.cat("<");
-	w.cat(type_name.data());
+	w.cat(as_native(type_name));
 	w.cat(">[");
 
 	for (auto i = std::size_t{}; i < child_count; i++) {

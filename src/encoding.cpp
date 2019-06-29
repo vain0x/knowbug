@@ -85,12 +85,12 @@ static auto os_to_utf8_str(LPCTSTR os_str) -> std::string {
 
 auto ascii_as_utf8(char const* source) -> Utf8StringView {
 	assert(string_is_ascii(source));
-	return Utf8StringView{ source };
+	return Utf8StringView{ (Utf8Char const*)source };
 }
 
 auto ascii_to_utf8(std::string&& source) -> Utf8String {
 	assert(string_is_ascii(source.data()));
-	return Utf8String{ std::move(source) };
+	return Utf8String{ (Utf8String&&)source };
 }
 
 auto ascii_to_utf8(std::string const& source) -> Utf8String {
@@ -99,7 +99,15 @@ auto ascii_to_utf8(std::string const& source) -> Utf8String {
 }
 
 auto as_hsp(char const* str) -> HspStringView {
-	return HspStringView{ str };
+#ifdef HSP3_UTF8
+	return as_utf8(str);
+#else
+	return as_sjis(str);
+#endif
+}
+
+auto as_hsp(std::string&& str) -> HspString {
+	return HspString{ (HspString&&)str };
 }
 
 auto to_hsp(OsStringView const& source) -> HspString {
@@ -147,15 +155,15 @@ auto to_os(SjisStringView const& source) -> OsString {
 }
 
 auto to_os(Utf8StringView const& source) -> OsString {
-	return OsString{ utf8_to_os_str(source.data()) };
+	return OsString{ utf8_to_os_str((char const*)source.data()) };
 }
 
 auto as_utf8(char const* str) -> Utf8StringView {
-	return Utf8StringView{ str };
+	return Utf8StringView{ (Utf8Char const*)str };
 }
 
 auto to_utf8(OsStringView const& source) -> Utf8String {
-	return Utf8String{ os_to_utf8_str(source.data()) };
+	return Utf8String{ (Utf8String&&)os_to_utf8_str(source.data()) };
 }
 
 auto to_utf8(SjisStringView const& source) -> Utf8String {
@@ -171,7 +179,7 @@ auto to_owned(SjisStringView const& source) -> SjisString {
 }
 
 auto to_owned(Utf8StringView const& source) -> Utf8String {
-	return Utf8String{ std::string{ source.begin(), source.end() } };
+	return Utf8String{ source.begin(), source.end() };
 }
 
 auto as_view(OsString const& source) -> OsStringView {
@@ -183,5 +191,21 @@ auto as_view(SjisString const& source) -> SjisStringView {
 }
 
 auto as_view(Utf8String const& source) -> Utf8StringView {
-	return source.as_ref();
+	return Utf8StringView{ source };
+}
+
+auto as_native(SjisStringView const& source) -> char const* {
+	return (char const*)source.data();
+}
+
+auto as_native(Utf8StringView const& source) -> char const* {
+	return (char const*)source.data();
+}
+
+auto as_native(SjisString&& source) -> std::string {
+	return std::string{ (std::string&&)source };
+}
+
+auto as_native(Utf8String&& source) -> std::string {
+	return std::string{ (std::string&&)source };
 }
