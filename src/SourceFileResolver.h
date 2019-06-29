@@ -35,7 +35,7 @@ public:
 
 	auto find_script_content(OsStringView const& file_ref_name, OsStringView& out_content)->bool;
 
-	auto find_script_line(OsStringView const& file_ref_name, std::size_t line_index, OsStringView& out_content)->bool;
+	auto find_script_line(OsStringView const& file_ref_name, std::size_t line_index)->std::optional<OsStringView>;
 
 private:
 	auto resolve_file_ref_names()->void;

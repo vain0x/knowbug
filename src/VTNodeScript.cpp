@@ -51,11 +51,10 @@ auto VTNodeScript::fetchScriptLine(hpiutil::SourcePos const& spos) const
 	// FIXME: 無駄なコピーの塊
 	auto file_ref_name = HspStringView{ spos.fileRefName() }.to_os_string();
 
-	OsStringView line;
-	auto ok = resolver_->find_script_line(file_ref_name.as_ref(), (std::size_t)spos.line(), line);
-	if (!ok) {
+	auto&& line_opt = resolver_->find_script_line(file_ref_name.as_ref(), (std::size_t)spos.line());
+	if (!line_opt) {
 		return nullptr;
 	}
 
-	return std::make_unique<string>(line.to_hsp_string());
+	return std::make_unique<string>(line_opt->to_hsp_string());
 }

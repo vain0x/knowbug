@@ -169,14 +169,14 @@ auto SourceFileResolver::find_script_content(OsStringView const& file_ref_name, 
 	return true;
 }
 
-auto SourceFileResolver::find_script_line(OsStringView const& file_ref_name, std::size_t line_index, OsStringView& out_content)->bool {
+auto SourceFileResolver::find_script_line(OsStringView const& file_ref_name, std::size_t line_index)->std::optional<OsStringView> {
 	auto&& source_file_opt = find_source_file(file_ref_name);
 	if (!source_file_opt) {
-		return false;
+		return std::nullopt;
 	}
 
-	out_content = (*source_file_opt)->line_at(line_index);
-	return true;
+	auto&& content  = (*source_file_opt)->line_at(line_index);
+	return std::make_optional(content);
 }
 
 auto SourceFileResolver::find_source_file(OsStringView const& file_ref_name) -> std::optional<std::shared_ptr<SourceFile>> {
