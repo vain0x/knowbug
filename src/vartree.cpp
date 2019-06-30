@@ -474,7 +474,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 			node.acceptVisitor(*this);
 			return result
 				? std::move(result)
-				: std::make_unique<OsString>(to_os(as_hsp(varinf.getString().data())));
+				: std::make_unique<OsString>(to_os(as_utf8(varinf.getString().data())));
 		}
 	};
 
@@ -532,7 +532,7 @@ void VTView::updateViewWindow(AbstractViewBox& view_box)
 
 					auto varinf = CVarinfoText{ debug_segment_, objects_, static_vars_ };
 					varinf.add(*path);
-					auto text = to_os(as_hsp(varinf.getString().data()));
+					auto text = to_os(as_utf8(varinf.getString().data()));
 
 					// ビューウィンドウに反映する。
 					// スクロール位置を保存して、文字列を交換して、スクロール位置を適切に戻す。
