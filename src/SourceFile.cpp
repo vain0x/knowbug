@@ -27,7 +27,7 @@ static auto split_by_lines(OsStringView const& str) -> std::vector<OsString> {
 			}
 
 			// l..r が1行の範囲
-			lines.emplace_back(OsString::from_range(str.data() + l, str.data() + r));
+			lines.emplace_back(OsString{ str.data() + l, str.data() + r });
 
 			// LF を飛ばす。
 			i++;
@@ -45,5 +45,5 @@ SourceFile::SourceFile(OsString&& full_path, OsString&& content)
 	: full_path_(std::move(full_path))
 	, content_(std::move(content))
 {
-	lines_ = split_by_lines(content_.as_ref());
+	lines_ = split_by_lines(as_view(content_));
 }

@@ -12,6 +12,7 @@
 
 #include "hpiutil/hpiutil.hpp"
 #include "DebugInfo.h"
+#include "encoding.h"
 #include "module/utility.h"
 #include "StepController.h"
 
@@ -29,7 +30,6 @@ using hpiutil::HSPVAR_FLAG_VARIANT;
 
 class HspRuntime;
 class Logger;
-class OsStringView;
 class SourceFileResolver;
 
 // FIXME: インターフェイスを抽出

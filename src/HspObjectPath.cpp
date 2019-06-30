@@ -20,7 +20,7 @@ auto HspObjectPath::self() const -> std::shared_ptr<HspObjectPath const> {
 // -----------------------------------------------
 
 // オブジェクトルートの名前。使われないはずなので適当な文字列にしておく。
-static auto g_root_name = std::string{ "<HspObjectPath::Root>" };
+static auto const g_root_name = as_utf8(u8"<HspObjectPath::Root>");
 
 auto HspObjectPath::as_root() const -> HspObjectPath::Root const& {
 	if (kind() != HspObjectKind::Root) {
@@ -30,8 +30,8 @@ auto HspObjectPath::as_root() const -> HspObjectPath::Root const& {
 	return *(HspObjectPath::Root const*)this;
 }
 
-auto HspObjectPath::Root::name(HspObjects& objects) const -> std::string {
-	return g_root_name;
+auto HspObjectPath::Root::name(HspObjects& objects) const -> Utf8String {
+	return to_owned(g_root_name);
 }
 
 auto HspObjectPath::Root::parent() const -> HspObjectPath const& {
@@ -75,8 +75,8 @@ HspObjectPath::Module::Module(std::shared_ptr<HspObjectPath const> parent, std::
 {
 }
 
-auto HspObjectPath::Module::name(HspObjects& objects) const -> std::string {
-	return objects.module_to_name(module_id()).to_owned();
+auto HspObjectPath::Module::name(HspObjects& objects) const -> Utf8String {
+	return to_owned(objects.module_to_name(module_id()));
 }
 
 bool HspObjectPath::Module::is_global(HspObjects& objects) const {
@@ -140,7 +140,7 @@ auto HspObjectPath::StaticVar::child_at(std::size_t index, HspObjects& objects) 
 	return objects.static_var_path_to_child_at(*this, index);
 }
 
-auto HspObjectPath::StaticVar::name(HspObjects& objects) const -> std::string {
+auto HspObjectPath::StaticVar::name(HspObjects& objects) const -> Utf8String {
 	return objects.static_var_path_to_name(*this);
 }
 
@@ -186,7 +186,7 @@ auto HspObjectPath::Element::child_at(std::size_t child_index, HspObjects& objec
 	return objects.element_path_to_child_at(*this, child_index);
 }
 
-auto HspObjectPath::Element::name(HspObjects& objects) const -> std::string {
+auto HspObjectPath::Element::name(HspObjects& objects) const -> Utf8String {
 	return objects.element_path_to_name(*this);
 }
 
@@ -233,7 +233,7 @@ auto HspObjectPath::Param::child_at(std::size_t index, HspObjects& objects) cons
 	return objects.param_path_to_child_at(*this, index);
 }
 
-auto HspObjectPath::Param::name(HspObjects& objects) const -> std::string {
+auto HspObjectPath::Param::name(HspObjects& objects) const -> Utf8String {
 	return objects.param_path_to_name(*this);
 }
 
@@ -263,7 +263,7 @@ bool HspObjectPath::Label::is_null(HspObjects& objects) const {
 	return objects.label_path_is_null(*this);
 }
 
-auto HspObjectPath::Label::static_label_name(HspObjects& objects) const -> std::optional<std::string> {
+auto HspObjectPath::Label::static_label_name(HspObjects& objects) const -> std::optional<Utf8String> {
 	return objects.label_path_to_static_label_name(*this);
 }
 
@@ -293,7 +293,7 @@ auto HspObjectPath::as_str() const -> HspObjectPath::Str const& {
 	return *(HspObjectPath::Str const*)this;
 }
 
-auto HspObjectPath::Str::value(HspObjects& objects) const -> HspStr {
+auto HspObjectPath::Str::value(HspObjects& objects) const -> Utf8String {
 	return objects.str_path_to_value(*this);
 }
 
@@ -383,7 +383,7 @@ bool HspObjectPath::Flex::is_nullmod(HspObjects& objects) const {
 	return objects.flex_path_is_nullmod(*this);
 }
 
-auto HspObjectPath::Flex::module_name(HspObjects& objects) const -> char const* {
+auto HspObjectPath::Flex::module_name(HspObjects& objects) const -> Utf8String {
 	return objects.flex_path_to_module_name(*this);
 }
 
@@ -486,7 +486,7 @@ auto HspObjectPath::SystemVar::child_at(std::size_t child_index, HspObjects& obj
 	return objects.system_var_path_to_child_at(*this, child_index);
 }
 
-auto HspObjectPath::SystemVar::name(HspObjects& objects) const -> std::string {
+auto HspObjectPath::SystemVar::name(HspObjects& objects) const -> Utf8String {
 	return objects.system_var_path_to_name(*this);
 }
 
@@ -524,7 +524,7 @@ auto HspObjectPath::CallStack::child_at(std::size_t child_index, HspObjects& obj
 	auto&& call_frame_id_opt = objects.call_stack_path_to_call_frame_id_at(*this, index);
 	if (!call_frame_id_opt) {
 		assert(false && u8"コールフレームを取得できません");
-		return new_unavailable(u8"コールフレームを取得できません");
+		return new_unavailable(to_owned(as_utf8(u8"コールフレームを取得できません")));
 	}
 
 	return new_call_frame(*call_frame_id_opt);
@@ -559,14 +559,18 @@ auto HspObjectPath::CallFrame::child_count(HspObjects& objects) const -> std::si
 auto HspObjectPath::CallFrame::child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
 	auto&& child_opt = objects.call_frame_path_to_child_at(*this, child_index);
 	if (!child_opt) {
-		return new_unavailable(u8"エラーが発生するおそれがあるため、この引数は表示されません");
+		return new_unavailable(to_owned(as_utf8(u8"エラーが発生するおそれがあるため、この引数は表示されません")));
 	}
 
 	return *child_opt;
 }
 
-auto HspObjectPath::CallFrame::name(HspObjects& objects) const -> std::string {
-	return objects.call_frame_path_to_name(*this).value_or("???");
+auto HspObjectPath::CallFrame::name(HspObjects& objects) const -> Utf8String {
+	auto&& name_opt = objects.call_frame_path_to_name(*this);
+	if (!name_opt) {
+		return to_owned(as_utf8(u8"???"));
+	}
+	return *std::move(name_opt);
 }
 
 // -----------------------------------------------
@@ -590,11 +594,11 @@ HspObjectPath::Log::Log(std::shared_ptr<HspObjectPath const> parent)
 {
 }
 
-auto HspObjectPath::Log::content(HspObjects& objects) const -> std::string const& {
+auto HspObjectPath::Log::content(HspObjects& objects) const -> Utf8StringView {
 	return objects.log_to_content();
 }
 
-void HspObjectPath::Log::append(char const* text, HspObjects& objects) const {
+void HspObjectPath::Log::append(Utf8StringView const& text, HspObjects& objects) const {
 	objects.log_do_append(text);
 }
 
@@ -623,7 +627,7 @@ HspObjectPath::Script::Script(std::shared_ptr<HspObjectPath const> parent)
 {
 }
 
-auto HspObjectPath::Script::content(HspObjects& objects) const -> std::string const& {
+auto HspObjectPath::Script::content(HspObjects& objects) const -> Utf8StringView {
 	return objects.script_to_content();
 }
 
@@ -636,7 +640,7 @@ auto HspObjectPath::Script::current_line(HspObjects& objects) const -> std::size
 // 利用不能
 // -----------------------------------------------
 
-auto HspObjectPath::new_unavailable(std::string&& reason) const -> std::shared_ptr<HspObjectPath const> {
+auto HspObjectPath::new_unavailable(Utf8String&& reason) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::Unavailable>(self(), std::move(reason));
 }
 
@@ -648,13 +652,13 @@ auto HspObjectPath::as_unavailable() const -> HspObjectPath::Unavailable const& 
 	return *(HspObjectPath::Unavailable const*)this;
 }
 
-HspObjectPath::Unavailable::Unavailable(std::shared_ptr<HspObjectPath const> parent, std::string&& reason)
+HspObjectPath::Unavailable::Unavailable(std::shared_ptr<HspObjectPath const> parent, Utf8String&& reason)
 	: parent_(std::move(parent))
 	, reason_(std::move(reason))
 {
 }
 
-auto HspObjectPath::Unavailable::reason() const -> std::string const& {
+auto HspObjectPath::Unavailable::reason() const -> Utf8StringView {
 	return reason_;
 }
 

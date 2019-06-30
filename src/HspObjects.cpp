@@ -11,27 +11,32 @@ static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugA
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
 
-static auto const GLOBAL_MODULE_NAME = "@";
+static auto const GLOBAL_MODULE_NAME = as_utf8(u8"@");
 
-static auto var_name_to_scope_resolution(char const* var_name) -> char const* {
-	return std::strchr(var_name, '@');
+static auto var_name_to_scope_resolution(Utf8StringView const& var_name) -> std::optional<Utf8StringView> {
+	auto ptr = std::strchr(as_native(var_name).data(), '@');
+	if (!ptr) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(as_utf8(ptr));
 }
 
 // 変数をモジュールごとに分類する。
-static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std::vector<HspObjects::Module> {
+static auto group_vars_by_module(std::vector<Utf8String> const& var_names) -> std::vector<HspObjects::Module> {
 	auto modules = std::vector<HspObjects::Module>{};
 
 	// モジュール名、変数名、変数IDの組
-	auto tuples = std::vector<std::tuple<HspStringView, HspStringView, std::size_t>>{};
+	auto tuples = std::vector<std::tuple<Utf8StringView, Utf8StringView, std::size_t>>{};
 
 	{
 		for (auto vi = std::size_t{}; vi < var_names.size(); vi++) {
 			auto&& var_name = var_names[vi];
 
-			auto p = var_name_to_scope_resolution(var_name.data());
-			auto module_name = HspStringView{ (p ? p : GLOBAL_MODULE_NAME) };
+			auto resolution_opt = var_name_to_scope_resolution(as_view(var_name));
+			auto module_name = resolution_opt ? *resolution_opt : GLOBAL_MODULE_NAME;
 
-			tuples.emplace_back(module_name, var_name.as_ref(), vi);
+			tuples.emplace_back(module_name, as_view(var_name), vi);
 		}
 	}
 
@@ -39,7 +44,7 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 
 	// モジュールと変数の関係を構築する。
 	{
-		modules.emplace_back(HspStringView{ GLOBAL_MODULE_NAME }.to_owned());
+		modules.emplace_back(to_owned(GLOBAL_MODULE_NAME));
 
 		for (auto&& t : tuples) {
 			auto module_name_ref = std::get<0>(t);
@@ -49,7 +54,7 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 			{
 				auto module_id = modules.size() - 1;
 				if (!(modules[module_id].name() == module_name_ref)) {
-					modules.emplace_back(module_name_ref.to_owned());
+					modules.emplace_back(to_owned(module_name_ref));
 				}
 			}
 
@@ -62,19 +67,19 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 	}
 
 	// 事後条件
-	assert(modules[GLOBAL_MODULE_ID].name() == HspStringView{ "@" });
+	assert(modules[GLOBAL_MODULE_ID].name() == GLOBAL_MODULE_NAME);
 	return modules;
 }
 
 static auto create_type_datas() -> std::vector<HspObjects::TypeData> {
 	auto types = std::vector<HspObjects::TypeData>{};
-	types.emplace_back(HspStringView{ "unknown" }.to_owned());
-	types.emplace_back(HspStringView{ "label" }.to_owned());
-	types.emplace_back(HspStringView{ "str" }.to_owned());
-	types.emplace_back(HspStringView{ "double" }.to_owned());
-	types.emplace_back(HspStringView{ "int" }.to_owned());
-	types.emplace_back(HspStringView{ "struct" }.to_owned());
-	types.emplace_back(HspStringView{ "comobj" }.to_owned());
+	types.emplace_back(ascii_to_utf8(u8"unknown"));
+	types.emplace_back(ascii_to_utf8(u8"label"));
+	types.emplace_back(ascii_to_utf8(u8"str"));
+	types.emplace_back(ascii_to_utf8(u8"double"));
+	types.emplace_back(ascii_to_utf8(u8"int"));
+	types.emplace_back(ascii_to_utf8(u8"struct"));
+	types.emplace_back(ascii_to_utf8(u8"comobj"));
 	return types;
 }
 
@@ -179,7 +184,7 @@ static auto label_path_to_value(HspObjectPath::Label const& path, HspDebugApi& a
 	return std::make_optional(api.data_to_label(*data_opt));
 }
 
-static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) -> std::optional<HspStr> {
+static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) -> std::optional<Utf8String> {
 	auto&& data = path_to_data(path.parent(), api);
 	if (!data) {
 		assert(false && u8"str の親は data を生成できるはず");
@@ -190,7 +195,8 @@ static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) 
 		return std::nullopt;
 	}
 
-	return std::make_optional(api.data_to_str(*data));
+	auto&& str = api.data_to_str(*data);
+	return std::make_optional(to_utf8(as_hsp(str)));
 }
 
 static auto double_path_to_value(HspObjectPath::Double const& path, HspDebugApi& api) -> std::optional<HspDouble> {
@@ -311,7 +317,7 @@ auto HspObjects::root_path() const->HspObjectPath::Root const& {
 	return root_path_->as_root();
 }
 
-auto HspObjects::type_to_name(HspType type) const->HspStringView {
+auto HspObjects::type_to_name(HspType type) const->Utf8StringView {
 	auto type_id = (std::size_t)type;
 	if (!(1 <= type_id && type_id < types_.size())) {
 		return types_[0].name();
@@ -327,7 +333,7 @@ auto HspObjects::module_count() const->std::size_t {
 	return modules_.size();
 }
 
-auto HspObjects::module_to_name(std::size_t module_id) const -> HspStringView {
+auto HspObjects::module_to_name(std::size_t module_id) const -> Utf8StringView {
 	return modules_.at(module_id).name();
 }
 
@@ -339,8 +345,14 @@ auto HspObjects::module_to_var_at(std::size_t module_id, std::size_t index) cons
 	return modules_.at(module_id).var_ids().at(index);
 }
 
-auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->std::string {
-	return *api_.static_var_find_name(path.static_var_id());
+auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->Utf8String {
+	auto&& name_opt = api_.static_var_find_name(path.static_var_id());
+	if (!name_opt) {
+		assert(false && u8"静的変数の名前が見つかるはず");
+		return to_owned(as_utf8(u8"?"));
+	}
+
+	return to_utf8(as_hsp(*std::move(name_opt)));
 }
 
 bool HspObjects::static_var_path_is_array(HspObjectPath::StaticVar const& path) {
@@ -413,12 +425,14 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 	}
 }
 
-auto HspObjects::element_path_to_name(HspObjectPath::Element const& path) const -> std::string {
+auto HspObjects::element_path_to_name(HspObjectPath::Element const& path) const -> Utf8String {
 	auto v = std::vector<int>{};
 	for (auto i : path.indexes()) {
 		v.push_back((int)i);
 	}
-	return hpiutil::stringifyArrayIndex(v);
+	auto name = hpiutil::stringifyArrayIndex(v);
+
+	return ascii_as_utf8(std::move(name));
 }
 
 auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t {
@@ -459,9 +473,10 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 	}
 }
 
-auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> std::string {
+auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> Utf8String {
 	auto&& param_data = param_path_to_param_data(path, api_);
-	return api_.param_to_name(param_data->param(), param_data->param_index(), debug_segment_);
+	auto&& name = api_.param_to_name(param_data->param(), param_data->param_index(), debug_segment_);
+	return to_utf8(as_hsp(std::move(name)));
 }
 
 bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {
@@ -473,7 +488,7 @@ bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {
 	return *label_opt == nullptr;
 }
 
-auto HspObjects::label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<std::string> {
+auto HspObjects::label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<Utf8String> {
 	auto&& static_label_id_opt = label_path_to_static_label_id(path);
 	if (!static_label_id_opt) {
 		return std::nullopt;
@@ -485,7 +500,7 @@ auto HspObjects::label_path_to_static_label_name(HspObjectPath::Label const& pat
 	}
 
 	// FIXME: 効率化 (文字列の参照かビューを返す)
-	return std::make_optional(std::string{ name });
+	return std::make_optional(to_utf8(as_hsp(name)));
 }
 
 auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path) const -> std::optional<std::size_t> {
@@ -510,8 +525,9 @@ auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path)
 	return std::nullopt;
 }
 
-auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> HspStr {
-	static char empty[64]{};
+auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> Utf8String {
+	static auto empty = ascii_to_utf8(u8"");
+
 	return (::str_path_to_value(path, api_)).value_or(empty);
 }
 
@@ -554,14 +570,15 @@ bool HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) {
 	return api_.flex_is_nullmod(*flex_opt);
 }
 
-auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> char const* {
+auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String {
 	auto&& flex_opt = flex_path_to_value(path, api_);
 	if (!flex_opt || api_.flex_is_nullmod(*flex_opt)) {
-		return "null";
+		return to_owned(as_utf8(u8"null"));
 	}
 
 	auto struct_dat = api_.flex_to_module_struct(*flex_opt);
-	return api_.struct_to_name(struct_dat);
+	auto name = api_.struct_to_name(struct_dat);
+	return to_utf8(as_hsp(name));
 }
 
 auto HspObjects::system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t {
@@ -611,40 +628,40 @@ auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& pat
 	}
 }
 
-auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::string {
+auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> Utf8String {
 	switch (path.system_var_kind()) {
 	case HspSystemVarKind::Cnt:
-		return u8"cnt";
+		return to_owned(as_utf8(u8"cnt"));
 
 	case HspSystemVarKind::Err:
-		return u8"err";
+		return to_owned(as_utf8(u8"err"));
 
 	case HspSystemVarKind::IParam:
-		return u8"iparam";
+		return to_owned(as_utf8(u8"iparam"));
 
 	case HspSystemVarKind::WParam:
-		return u8"wparam";
+		return to_owned(as_utf8(u8"wparam"));
 
 	case HspSystemVarKind::LParam:
-		return u8"lparam";
+		return to_owned(as_utf8(u8"lparam"));
 
 	case HspSystemVarKind::LoopLev:
-		return u8"looplev";
+		return to_owned(as_utf8(u8"looplev"));
 
 	case HspSystemVarKind::SubLev:
-		return u8"sublev";
+		return to_owned(as_utf8(u8"sublev"));
 
 	case HspSystemVarKind::Refstr:
-		return u8"refstr";
+		return to_owned(as_utf8(u8"refstr"));
 
 	case HspSystemVarKind::Refdval:
-		return u8"refdval";
+		return to_owned(as_utf8(u8"refdval"));
 
 	case HspSystemVarKind::Stat:
-		return u8"stat";
+		return to_owned(as_utf8(u8"stat"));
 
 	case HspSystemVarKind::StrSize:
-		return u8"strsize";
+		return to_owned(as_utf8(u8"strsize"));
 
 	default:
 		assert(false && u8"Invalid HspSystemVarKind");
@@ -660,13 +677,14 @@ auto HspObjects::call_stack_path_to_call_frame_id_at(HspObjectPath::CallStack co
 	return WrapCall::call_frame_id_at(call_frame_index);
 }
 
-auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<std::string> {
+auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {
 	auto&& call_info_opt = WrapCall::call_frame_get(path.call_frame_id());
 	if (!call_info_opt || !*call_info_opt) {
 		return std::nullopt;
 	}
 
-	return (**call_info_opt).name();
+	auto&& name = (**call_info_opt).name();
+	return to_utf8(as_hsp(std::move(name)));
 }
 
 auto HspObjects::call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t {
@@ -689,11 +707,11 @@ auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& pat
 	return std::make_optional(path.new_param(param_type, param_data.param_index()));
 }
 
-auto HspObjects::log_to_content() const -> std::string const& {
+auto HspObjects::log_to_content() const -> Utf8StringView {
 	return logger_.content();
 }
 
-void HspObjects::log_do_append(char const* text) {
+void HspObjects::log_do_append(Utf8StringView const& text) {
 	logger_.append(text);
 }
 
@@ -701,7 +719,7 @@ void HspObjects::log_do_clear() {
 	logger_.clear();
 }
 
-auto HspObjects::script_to_content() const -> std::string const& {
+auto HspObjects::script_to_content() const -> Utf8StringView {
 	auto file_ref_name = api_.current_file_ref_name().value_or("");
 	return scripts_.content(file_ref_name);
 }
@@ -714,7 +732,7 @@ auto HspObjects::script_to_current_line() const -> std::size_t {
 // HspObjects::Module
 // -----------------------------------------------
 
-HspObjects::Module::Module(HspString&& name)
+HspObjects::Module::Module(Utf8String&& name)
 	: name_(std::move(name))
 	, var_ids_()
 {
@@ -728,7 +746,7 @@ void HspObjects::Module::add_var(std::size_t static_var_id) {
 // HspObjects::TypeData
 // -----------------------------------------------
 
-HspObjects::TypeData::TypeData(HspString&& name)
+HspObjects::TypeData::TypeData(Utf8String&& name)
 	: name_(std::move(name))
 {
 }

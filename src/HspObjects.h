@@ -19,8 +19,8 @@ public:
 	virtual ~HspLogger() {
 	}
 
-	virtual auto content() const -> std::string const& = 0;
-	virtual void append(char const* text) = 0;
+	virtual auto content() const -> Utf8StringView = 0;
+	virtual void append(Utf8StringView const& text) = 0;
 	virtual void clear() = 0;
 };
 
@@ -29,7 +29,7 @@ public:
 	virtual ~HspScripts() {
 	}
 
-	virtual auto content(char const* file_name_ref) -> std::string const& = 0;
+	virtual auto content(char const* file_name_ref) -> Utf8StringView = 0;
 };
 
 // FIXME: インターフェイスを抽出する
@@ -60,19 +60,19 @@ public:
 
 	auto root_path() const->HspObjectPath::Root const&;
 
-	auto type_to_name(HspType type) const->HspStringView;
+	auto type_to_name(HspType type) const->Utf8StringView;
 
 	auto module_global_id() const->std::size_t;
 
 	auto module_count() const->std::size_t;
 
-	auto module_to_name(std::size_t module_id) const->HspStringView;
+	auto module_to_name(std::size_t module_id) const->Utf8StringView;
 
 	auto module_to_var_count(std::size_t module_id) const->std::size_t;
 
 	auto module_to_var_at(std::size_t module_id, std::size_t index) const->std::size_t;
 
-	auto static_var_path_to_name(HspObjectPath::StaticVar const& path)->std::string;
+	auto static_var_path_to_name(HspObjectPath::StaticVar const& path)->Utf8String;
 
 	bool static_var_path_is_array(HspObjectPath::StaticVar const& path);
 
@@ -91,21 +91,21 @@ public:
 
 	auto element_path_to_child_at(HspObjectPath::Element const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
 
-	auto element_path_to_name(HspObjectPath::Element const& path) const->std::string;
+	auto element_path_to_name(HspObjectPath::Element const& path) const->Utf8String;
 
 	auto param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t;
 
 	auto param_path_to_child_at(HspObjectPath::Param const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
 
-	auto param_path_to_name(HspObjectPath::Param const& path) const -> std::string;
+	auto param_path_to_name(HspObjectPath::Param const& path) const -> Utf8String;
 
 	bool label_path_is_null(HspObjectPath::Label const& path) const;
 
-	auto label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<std::string>;
+	auto label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<Utf8String>;
 
 	auto label_path_to_static_label_id(HspObjectPath::Label const& path) const -> std::optional<std::size_t>;
 
-	auto str_path_to_value(HspObjectPath::Str const& path) const->HspStr;
+	auto str_path_to_value(HspObjectPath::Str const& path) const->Utf8String;
 
 	auto double_path_to_value(HspObjectPath::Double const& path) const->HspDouble;
 
@@ -117,46 +117,46 @@ public:
 
 	bool flex_path_is_nullmod(HspObjectPath::Flex const& path);
 
-	auto flex_path_to_module_name(HspObjectPath::Flex const& path) -> char const*;
+	auto flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String;
 
 	auto system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t;
 
 	auto system_var_path_to_child_at(HspObjectPath::SystemVar const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
 
-	auto system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::string;
+	auto system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> Utf8String;
 
 	auto call_stack_path_to_call_frame_count(HspObjectPath::CallStack const& path) const -> std::size_t;
 
 	auto call_stack_path_to_call_frame_id_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<std::size_t>;
 
-	auto call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<std::string>;
+	auto call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String>;
 
 	auto call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t;
 
 	auto call_frame_path_to_child_at(HspObjectPath::CallFrame const& path, std::size_t child_index) const -> std::optional<std::shared_ptr<HspObjectPath const>>;
 
-	auto log_to_content() const -> std::string const&;
+	auto log_to_content() const -> Utf8StringView;
 
-	void log_do_append(char const* text);
+	void log_do_append(Utf8StringView const& text);
 
 	void log_do_clear();
 
-	auto script_to_content() const -> std::string const&;
+	auto script_to_content() const -> Utf8StringView;
 
 	auto script_to_current_line() const -> std::size_t;
 
 public:
 	class Module {
-		HspString name_;
+		Utf8String name_;
 
 		// モジュールに含まれる静的変数のIDのリスト。変数名について昇順。
 		std::vector<std::size_t> var_ids_;
 
 	public:
-		Module(HspString&& name);
+		Module(Utf8String&& name);
 
-		auto name() const->HspStringView {
-			return name_.as_ref();
+		auto name() const->Utf8StringView {
+			return as_view(name_);
 		}
 
 		auto var_ids() const->std::vector<std::size_t> const& {
@@ -168,12 +168,12 @@ public:
 };
 
 class HspObjects::TypeData {
-	HspString name_;
+	Utf8String name_;
 
 public:
-	explicit TypeData(HspString&& name);
+	explicit TypeData(Utf8String&& name);
 
-	auto name() const -> HspStringView {
-		return name_.as_ref();
+	auto name() const -> Utf8StringView {
+		return as_view(name_);
 	}
 };

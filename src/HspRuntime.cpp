@@ -8,14 +8,14 @@
 class HspLoggerImpl
 	: public HspLogger
 {
-	std::string content_;
+	Utf8String content_;
 
 public:
-	auto content() const -> std::string const& override {
-		return content_;
+	auto content() const -> Utf8StringView override {
+		return as_view(content_);
 	}
 
-	void append(char const* text) override {
+	void append(Utf8StringView const& text) override {
 		content_ += text;
 	}
 
@@ -29,30 +29,30 @@ class HspScriptsImpl
 {
 	SourceFileResolver& source_file_resolver_;
 
-	std::string empty_;
-	std::unordered_map<std::string, std::shared_ptr<std::string>> scripts_;
+	Utf8String empty_;
+	std::unordered_map<std::string, std::shared_ptr<Utf8String>> scripts_;
 
 public:
 	HspScriptsImpl(SourceFileResolver& source_file_resolver)
 		: source_file_resolver_(source_file_resolver)
-		, empty_(u8"ファイルが見つかりません")
+		, empty_(to_owned(as_utf8(u8"ファイルが見つかりません")))
 	{
 	}
 
-	auto content(char const* file_ref_name) -> std::string const& override {
+	auto content(char const* file_ref_name) -> Utf8StringView override {
 		auto&& iter = scripts_.find(file_ref_name);
 		if (iter != scripts_.end()) {
 			return *iter->second;
 		}
 
-		auto file_ref_name_os_str = HspStringView{ file_ref_name }.to_os_string();
+		auto file_ref_name_os_str = to_os(as_hsp(file_ref_name));
 
-		auto&& content_opt = source_file_resolver_.find_script_content(file_ref_name_os_str.as_ref());
+		auto&& content_opt = source_file_resolver_.find_script_content(as_view(file_ref_name_os_str));
 		if (!content_opt) {
 			return empty_;
 		}
 
-		scripts_.emplace(std::string{ file_ref_name }, std::make_shared<std::string>(content_opt->to_hsp_string()));
+		scripts_.emplace(std::string{ file_ref_name }, std::make_shared<Utf8String>(to_utf8(*content_opt)));
 		return *scripts_.at(file_ref_name);
 	}
 };

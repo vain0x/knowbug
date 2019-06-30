@@ -30,7 +30,7 @@ static auto get_hsp_dir() -> OsString {
 }
 
 static auto ini_file_path(OsStringView const& hsp_dir) -> OsString {
-	return OsString{ hsp_dir.to_owned() + TEXT("knowbug.ini") };
+	return OsString{ to_owned(hsp_dir) + TEXT("knowbug.ini") };
 }
 
 void KnowbugConfig::initialize() {
@@ -39,7 +39,7 @@ void KnowbugConfig::initialize() {
 }
 
 auto KnowbugConfig::load(OsString&& hsp_dir) -> KnowbugConfig {
-	auto&& ini = CIni{ ini_file_path(hsp_dir.as_ref()) };
+	auto&& ini = CIni{ ini_file_path(as_view(hsp_dir)) };
 	auto config = KnowbugConfig{};
 
 	config.hspDir = std::move(hsp_dir);
@@ -51,11 +51,11 @@ auto KnowbugConfig::load(OsString&& hsp_dir) -> KnowbugConfig {
 	config.viewSizeX  = ini.getInt("Window", "viewSizeX", 412);
 	config.viewSizeY  = ini.getInt("Window", "viewSizeY", 380);
 	config.tabwidth   = ini.getInt( "Interface", "tabwidth", 3 );
-	config.fontFamily = ini.getString("Interface", "fontFamily", "MS Gothic").to_owned();
+	config.fontFamily = to_owned(ini.getString("Interface", "fontFamily", "MS Gothic"));
 	config.fontSize   = ini.getInt("Interface", "fontSize", 13);
 	config.fontAntialias = ini.getBool("Interface", "fontAntialias", false);
 
-	config.logPath = ini.getString("Log", "autoSavePath", "").to_owned();
+	config.logPath = to_owned(ini.getString("Log", "autoSavePath", ""));
 	config.warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
 	config.scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
 
@@ -63,5 +63,5 @@ auto KnowbugConfig::load(OsString&& hsp_dir) -> KnowbugConfig {
 }
 
 auto KnowbugConfig::selfPath() const -> OsString {
-	return ini_file_path(hspDir.as_ref());
+	return ini_file_path(as_view(hspDir));
 }

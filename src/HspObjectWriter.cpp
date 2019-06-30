@@ -11,8 +11,8 @@
 // -----------------------------------------------
 
 // FIXME: クローン変数なら & をつける
-static void write_array_type(CStrWriter& writer, char const* type_name, HspDimIndex const& lengths) {
-	writer.cat(type_name);
+static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, HspDimIndex const& lengths) {
+	writer.cat(as_native(type_name));
 
 	switch (lengths.dim()) {
 	case 0:
@@ -40,16 +40,16 @@ static void write_array_type(CStrWriter& writer, char const* type_name, HspDimIn
 	}
 }
 
-static bool string_is_compact(char const* str) {
-	for (auto i = std::size_t{}; i < 64; i++) {
-		if (str[i] == '\0') {
-			return true;
-		}
-		if (str[i] == '\n') {
-			return false;
-		}
+static bool string_is_compact(Utf8StringView const& str) {
+	if (str.size() >= 64) {
+		return false;
 	}
-	return false;
+
+	if (str.find((Utf8Char)'\n') != Utf8StringView::npos) {
+		return false;
+	}
+
+	return true;
 }
 
 static bool object_path_is_compact(HspObjectPath const& path, HspObjects& objects) {
@@ -226,24 +226,24 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 
 	auto&& name = path.name(o);
 	auto type = path.type(o);
-	auto type_name = o.type_to_name(type).data();
+	auto&& type_name = o.type_to_name(type);
 	auto&& metadata = path.metadata(o);
 
 	// 変数に関する情報
-	w.cat("変数名: ");
+	w.cat(u8"変数名: ");
 	w.catln(name);
 
-	w.cat("変数型: ");
+	w.cat(u8"変数型: ");
 	write_array_type(w, type_name, metadata.lengths());
 	w.catCrlf();
 
-	w.cat("アドレス: ");
+	w.cat(u8"アドレス: ");
 	w.catPtr(metadata.data_ptr());
 	w.cat(", ");
 	w.catPtr(metadata.master_ptr());
 	w.catCrlf();
 
-	w.cat("サイズ: ");
+	w.cat(u8"サイズ: ");
 	w.catSize(metadata.data_size());
 	w.cat(" / ");
 	w.catSize(metadata.block_size());
@@ -266,7 +266,7 @@ void HspObjectWriterImpl::TableForm::on_system_var_list(HspObjectPath::SystemVar
 
 void HspObjectWriterImpl::TableForm::on_log(HspObjectPath::Log const& path) {
 	auto&& content = path.content(objects());
-	assert((content.empty() || content.back() == '\n') && u8"Log must be end with line break");
+	assert((content.empty() || (char)content.back() == '\n') && u8"Log must be end with line break");
 
 	writer().cat(content);
 }
@@ -300,10 +300,10 @@ void HspObjectWriterImpl::BlockForm::on_module(HspObjectPath::Module const& path
 }
 
 void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar const& path) {
-	auto&& name = path.name(objects());
-	auto short_name = hpiutil::nameExcludingScopeResolution(name.data());
+	auto name = as_native(path.name(objects()));
+	auto short_name = hpiutil::nameExcludingScopeResolution(name);
 
-	writer().cat(short_name.data());
+	writer().cat(short_name);
 	writer().cat("\t= ");
 
 	to_flow_form().accept(path);
@@ -405,7 +405,7 @@ void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const
 	// FIXME: 多次元配列の表示を改善する
 
 	w.cat("<");
-	w.cat(type_name.data());
+	w.cat(as_native(type_name));
 	w.cat(">[");
 
 	for (auto i = std::size_t{}; i < child_count; i++) {
@@ -447,7 +447,7 @@ void HspObjectWriterImpl::FlowForm::on_label(HspObjectPath::Label const& path) {
 
 void HspObjectWriterImpl::FlowForm::on_str(HspObjectPath::Str const& path) {
 	auto&& value = path.value(objects());
-	auto&& literal = hpiutil::literalFormString(value);
+	auto&& literal = hpiutil::literalFormString(as_native(value).data());
 
 	writer().cat(literal);
 }

@@ -9,7 +9,7 @@
 #include "HspDebugApi.h"
 #include "HspStaticVars.h"
 
-static void fetch_static_var_names(HSP3DEBUG* debug_, std::size_t static_var_count, std::vector<HspString>& names) {
+static void fetch_static_var_names(HSP3DEBUG* debug_, std::size_t static_var_count, std::vector<Utf8String>& names) {
 	names.reserve(static_var_count);
 
 	auto p =
@@ -22,7 +22,7 @@ static void fetch_static_var_names(HSP3DEBUG* debug_, std::size_t static_var_cou
 		auto name = std::array<char, 0x100> {};
 		auto const chk = strsp_get(p.get(), name.data(), '\0', name.size() - 1);
 		if ( chk == 0 ) break;
-		names.emplace_back(name.data());
+		names.emplace_back(to_utf8(as_hsp(name.data())));
 	}
 }
 
@@ -39,15 +39,11 @@ HspStaticVars::HspStaticVars(HspDebugApi& api)
 	fetch_static_var_names(api_.debug(), api_.static_var_count(), all_names_);
 }
 
-auto HspStaticVars::access_by_name(char const* var_name) -> PVal* {
-	return seekSttVar(var_name, api_.context(), api_.exinfo());
+auto HspStaticVars::access_by_name(Utf8StringView const& var_name) -> PVal* {
+	return seekSttVar(as_native(to_hsp(var_name)).data(), api_.context(), api_.exinfo());
 }
 
-auto HspStaticVars::find_id(char const* var_name) -> std::optional<std::size_t> {
-	return api_.static_var_find_by_name(var_name);
-}
-
-auto HspStaticVars::find_name_by_pval(PVal* pval) -> std::optional<HspString> {
+auto HspStaticVars::find_name_by_pval(PVal* pval) -> std::optional<Utf8String> {
 	auto begin = api_.static_vars();
 	auto end = api_.static_vars() + api_.static_var_count();
 
@@ -61,5 +57,5 @@ auto HspStaticVars::find_name_by_pval(PVal* pval) -> std::optional<HspString> {
 		return std::nullopt;
 	}
 
-	return std::make_optional(HspString{ *(std::move(var_name)) });
+	return std::make_optional(to_utf8(as_hsp(var_name->data())));
 }

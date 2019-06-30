@@ -39,17 +39,15 @@ public:
 		return TreeView_GetSelection(hwndVarTree);
 	}
 
-	auto insert_item(HTREEITEM hParent, char const* name, VTNodeData* node) -> HTREEITEM {
+	auto insert_item(HTREEITEM hParent, OsStringView const& name, VTNodeData* node) -> HTREEITEM {
 		auto tvis = TVINSERTSTRUCT{};
 		HTREEITEM res;
-		HSPAPICHAR* hactmp1;
 		tvis.hParent = hParent;
 		tvis.hInsertAfter = TVI_LAST; // FIXME: 引数で受け取る (コールスタックでは先頭への挿入が起こる)
 		tvis.item.mask = TVIF_TEXT | TVIF_PARAM;
 		tvis.item.lParam = (LPARAM)node;
-		tvis.item.pszText = chartoapichar(const_cast<char*>(name), &hactmp1);
+		tvis.item.pszText = const_cast<LPTSTR>(name.data());
 		res = TreeView_InsertItem(hwndVarTree, &tvis);
-		freehac(&hactmp1);
 		return res;
 	}
 
@@ -253,7 +251,8 @@ public:
 	}
 
 	void log(std::string&& text) {
-		Knowbug::get_logger()->append_line(HspString{ std::move(text) }.to_os_string().as_ref());
+		auto&& text_os_str = to_os(as_hsp(std::move(text)));
+		Knowbug::get_logger()->append_line(as_view(text_os_str));
 	}
 
 	virtual void did_create(std::size_t node_id) {
@@ -264,10 +263,10 @@ public:
 		auto&& path = *path_opt;
 
 		auto&& name = path->name(objects_);
-		log(strf("create '%s' (%d)", name, node_id));
+		log(strf("create '%s' (%d)", as_native(as_view(name)).data(), node_id));
 
 		{
-			auto node_name = strf("!%s", name.data());
+			auto node_name = to_os(name);
 
 			auto&& parent_id_opt = object_tree_.parent(node_id);
 
@@ -275,7 +274,7 @@ public:
 				? node_handles_.at(*parent_id_opt)
 				: TVI_ROOT;
 
-			auto item_handle = tv().insert_item(parent_handle, node_name.data(), nullptr);
+			auto item_handle = tv().insert_item(parent_handle, as_view(node_name), nullptr);
 
 			node_ids_.emplace(item_handle, node_id);
 			node_handles_.emplace(node_id, item_handle);
@@ -292,7 +291,7 @@ public:
 		auto&& path = *path_opt;
 
 		auto&& name = path->name(objects_);
-		log(strf("destroy '%s' (%d)", name, node_id));
+		log(strf("destroy '%s' (%d)", as_native(as_view(name)).data(), node_id));
 
 		{
 			assert(node_handles_.count(node_id) && u8"存在しないノードが削除されようとしています");
@@ -361,7 +360,8 @@ void TvObserver::onInit(VTNodeData& node)
 	auto const hParent = self.itemFromNode(parent);
 	assert(hParent != nullptr);
 
-	auto const hItem = tv.insert_item(hParent, makeNodeName(node).c_str(), &node);
+	auto name = to_os(as_hsp(makeNodeName(node)));
+	auto const hItem = tv.insert_item(hParent, as_view(name), &node);
 
 	assert(self.itemFromNode_[&node] == nullptr);
 	self.itemFromNode_[&node] = hItem;
@@ -440,14 +440,15 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 		}
 		void fLog(VTNodeLog const& node) override
 		{
-			result = std::make_unique<OsString>(node.content().to_owned()); // FIXME: 無駄なコピー
+			result = std::make_unique<OsString>(to_owned(node.content())); // FIXME: 無駄なコピー
 		}
 		void fScript(VTNodeScript const& node) override
 		{
 			if ( auto p = node.fetchScriptAll(g_dbginfo->curPos().fileRefName()) ) {
 				result = std::move(p);
 			} else {
-				result = std::make_unique<OsString>(HspStringView{ g_dbginfo->getCurInfString().data() }.to_os_string());
+				auto&& cur_inf = g_dbginfo->getCurInfString();
+				result = std::make_unique<OsString>(to_os(as_hsp(cur_inf.data())));
 			}
 		}
 		void fGeneral(VTNodeGeneral const&) override
@@ -473,7 +474,7 @@ auto VTView::getItemVarText(HTREEITEM hItem) const -> std::unique_ptr<OsString>
 			node.acceptVisitor(*this);
 			return result
 				? std::move(result)
-				: std::make_unique<OsString>(HspStringView{ varinf.getString().data() }.to_os_string());
+				: std::make_unique<OsString>(to_os(as_utf8(varinf.getString().data())));
 		}
 	};
 
@@ -531,13 +532,13 @@ void VTView::updateViewWindow(AbstractViewBox& view_box)
 
 					auto varinf = CVarinfoText{ debug_segment_, objects_, static_vars_ };
 					varinf.add(*path);
-					auto text = HspStringView{ varinf.getString().data() }.to_os_string();
+					auto text = to_os(as_utf8(varinf.getString().data()));
 
 					// ビューウィンドウに反映する。
 					// スクロール位置を保存して、文字列を交換して、スクロール位置を適切に戻す。
 					p_->scroll_preserver_.will_activate(item_handle, view_box);
 
-					Dialog::View::setText(text.as_ref());
+					Dialog::View::setText(as_view(text));
 
 					p_->scroll_preserver_.did_activate(item_handle, *path, objects_, view_box);
 					return;
@@ -553,7 +554,7 @@ void VTView::updateViewWindow(AbstractViewBox& view_box)
 		}
 
 		auto varinfoText = getItemVarText(hItem);
-		Dialog::View::setText(varinfoText->as_ref());
+		Dialog::View::setText(as_view(*varinfoText));
 
 		//+script ノードなら現在の実行位置を選択
 		if ( hItem == p_->hNodeScript_ ) {

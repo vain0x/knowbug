@@ -12,18 +12,16 @@ class HspDebugApi;
 class HspStaticVars {
 	HspDebugApi& api_;
 
-	std::vector<HspString> all_names_;
+	std::vector<Utf8String> all_names_;
 
 public:
 	HspStaticVars(HspDebugApi& api);
 
-	auto find_id(char const* var_name) -> std::optional<std::size_t>;
-
-	auto get_all_names() const -> std::vector<HspString> const& {
+	auto get_all_names() const -> std::vector<Utf8String> const& {
 		return all_names_;
 	}
 
-	auto access_by_name(char const* var_name) -> PVal*;
+	auto access_by_name(Utf8StringView const& var_name) -> PVal*;
 
-	auto find_name_by_pval(PVal* pval) -> std::optional<HspString>;
+	auto find_name_by_pval(PVal* pval) -> std::optional<Utf8String>;
 };
