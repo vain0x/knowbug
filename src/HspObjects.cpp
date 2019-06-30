@@ -570,14 +570,15 @@ bool HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) {
 	return api_.flex_is_nullmod(*flex_opt);
 }
 
-auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> char const* {
+auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String {
 	auto&& flex_opt = flex_path_to_value(path, api_);
 	if (!flex_opt || api_.flex_is_nullmod(*flex_opt)) {
-		return "null";
+		return to_owned(as_utf8(u8"null"));
 	}
 
 	auto struct_dat = api_.flex_to_module_struct(*flex_opt);
-	return api_.struct_to_name(struct_dat);
+	auto name = api_.struct_to_name(struct_dat);
+	return to_utf8(as_hsp(name));
 }
 
 auto HspObjects::system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t {

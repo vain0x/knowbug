@@ -630,7 +630,7 @@ public:
 
 	bool is_nullmod(HspObjects& objects) const;
 
-	auto module_name(HspObjects& objects) const -> char const*;
+	auto module_name(HspObjects& objects) const -> Utf8String;
 };
 
 // -----------------------------------------------

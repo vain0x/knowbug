@@ -117,7 +117,7 @@ public:
 
 	bool flex_path_is_nullmod(HspObjectPath::Flex const& path);
 
-	auto flex_path_to_module_name(HspObjectPath::Flex const& path) -> char const*;
+	auto flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String;
 
 	auto system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t;
 
