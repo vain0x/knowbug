@@ -263,7 +263,7 @@ bool HspObjectPath::Label::is_null(HspObjects& objects) const {
 	return objects.label_path_is_null(*this);
 }
 
-auto HspObjectPath::Label::static_label_name(HspObjects& objects) const -> std::optional<std::string> {
+auto HspObjectPath::Label::static_label_name(HspObjects& objects) const -> std::optional<Utf8String> {
 	return objects.label_path_to_static_label_name(*this);
 }
 

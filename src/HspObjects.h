@@ -101,7 +101,7 @@ public:
 
 	bool label_path_is_null(HspObjectPath::Label const& path) const;
 
-	auto label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<std::string>;
+	auto label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<Utf8String>;
 
 	auto label_path_to_static_label_id(HspObjectPath::Label const& path) const -> std::optional<std::size_t>;
 

@@ -465,7 +465,7 @@ public:
 
 	bool is_null(HspObjects& objects) const;
 
-	auto static_label_name(HspObjects& objects) const -> std::optional<std::string>;
+	auto static_label_name(HspObjects& objects) const -> std::optional<Utf8String>;
 
 	auto static_label_id(HspObjects& objects) const -> std::optional<std::size_t>;
 };

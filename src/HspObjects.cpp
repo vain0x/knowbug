@@ -478,7 +478,7 @@ bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {
 	return *label_opt == nullptr;
 }
 
-auto HspObjects::label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<std::string> {
+auto HspObjects::label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<Utf8String> {
 	auto&& static_label_id_opt = label_path_to_static_label_id(path);
 	if (!static_label_id_opt) {
 		return std::nullopt;
@@ -490,7 +490,7 @@ auto HspObjects::label_path_to_static_label_name(HspObjectPath::Label const& pat
 	}
 
 	// FIXME: 効率化 (文字列の参照かビューを返す)
-	return std::make_optional(std::string{ name });
+	return std::make_optional(to_utf8(as_hsp(name)));
 }
 
 auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path) const -> std::optional<std::size_t> {
