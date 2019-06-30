@@ -138,8 +138,12 @@ auto as_sjis(char const* str) -> SjisStringView {
 	return SjisStringView{ (SjisChar const*)str };
 }
 
+auto as_sjis(std::string&& source) -> SjisString {
+	return SjisString{ (SjisString&&)source };
+}
+
 auto to_sjis(OsStringView const& source) -> SjisString {
-	return SjisString{ (SjisString&&)os_to_ansi_str(source.data()) };
+	return SjisString{ as_sjis(os_to_ansi_str(source.data())) };
 }
 
 auto to_sjis(Utf8StringView const& source) -> SjisString {
@@ -162,8 +166,12 @@ auto as_utf8(char const* str) -> Utf8StringView {
 	return Utf8StringView{ (Utf8Char const*)str };
 }
 
+auto as_utf8(std::string&& source) -> Utf8String {
+	return Utf8String{ (Utf8String&&)source };
+}
+
 auto to_utf8(OsStringView const& source) -> Utf8String {
-	return Utf8String{ (Utf8String&&)os_to_utf8_str(source.data()) };
+	return Utf8String{ as_utf8(os_to_utf8_str(source.data())) };
 }
 
 auto to_utf8(SjisStringView const& source) -> Utf8String {
@@ -171,7 +179,7 @@ auto to_utf8(SjisStringView const& source) -> Utf8String {
 }
 
 auto to_owned(OsStringView const& source) -> OsString {
-	return OsString{ BasicOsString{ source.begin(), source.end() } };
+	return OsString{ source.begin(), source.end() };
 }
 
 auto to_owned(SjisStringView const& source) -> SjisString {

@@ -87,11 +87,15 @@ extern auto to_os(Utf8StringView const& source) -> OsString;
 
 extern auto as_sjis(char const* str) -> SjisStringView;
 
+extern auto as_sjis(std::string&& source) -> SjisString;
+
 extern auto to_sjis(OsStringView const& source) -> SjisString;
 
 extern auto to_sjis(Utf8StringView const& source) -> SjisString;
 
 extern auto as_utf8(char const* str) -> Utf8StringView;
+
+extern auto as_utf8(std::string&& source) -> Utf8String;
 
 extern auto to_utf8(OsStringView const& source) -> Utf8String;
 
