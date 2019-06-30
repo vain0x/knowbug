@@ -11,7 +11,7 @@
 // -----------------------------------------------
 
 // FIXME: クローン変数なら & をつける
-static void write_array_type(CStrWriter& writer, HspStringView const& type_name, HspDimIndex const& lengths) {
+static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, HspDimIndex const& lengths) {
 	writer.cat(as_native(type_name));
 
 	switch (lengths.dim()) {

@@ -11,23 +11,23 @@ static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugA
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
 
-static auto const GLOBAL_MODULE_NAME = as_hsp(u8"@");
+static auto const GLOBAL_MODULE_NAME = as_utf8(u8"@");
 
-static auto var_name_to_scope_resolution(HspStringView const& var_name) -> std::optional<HspStringView> {
+static auto var_name_to_scope_resolution(Utf8StringView const& var_name) -> std::optional<Utf8StringView> {
 	auto ptr = std::strchr(as_native(var_name).data(), '@');
 	if (!ptr) {
 		return std::nullopt;
 	}
 
-	return std::make_optional(as_hsp(ptr));
+	return std::make_optional(as_utf8(ptr));
 }
 
 // 変数をモジュールごとに分類する。
-static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std::vector<HspObjects::Module> {
+static auto group_vars_by_module(std::vector<Utf8String> const& var_names) -> std::vector<HspObjects::Module> {
 	auto modules = std::vector<HspObjects::Module>{};
 
 	// モジュール名、変数名、変数IDの組
-	auto tuples = std::vector<std::tuple<HspStringView, HspStringView, std::size_t>>{};
+	auto tuples = std::vector<std::tuple<Utf8StringView, Utf8StringView, std::size_t>>{};
 
 	{
 		for (auto vi = std::size_t{}; vi < var_names.size(); vi++) {
@@ -67,19 +67,19 @@ static auto group_vars_by_module(std::vector<HspString> const& var_names) -> std
 	}
 
 	// 事後条件
-	assert(modules[GLOBAL_MODULE_ID].name() == as_hsp(u8"@"));
+	assert(modules[GLOBAL_MODULE_ID].name() == GLOBAL_MODULE_NAME);
 	return modules;
 }
 
 static auto create_type_datas() -> std::vector<HspObjects::TypeData> {
 	auto types = std::vector<HspObjects::TypeData>{};
-	types.emplace_back(to_hsp(ascii_to_utf8(u8"unknown")));
-	types.emplace_back(to_hsp(ascii_to_utf8(u8"label")));
-	types.emplace_back(to_hsp(ascii_to_utf8(u8"str")));
-	types.emplace_back(to_hsp(ascii_to_utf8(u8"double")));
-	types.emplace_back(to_hsp(ascii_to_utf8(u8"int")));
-	types.emplace_back(to_hsp(ascii_to_utf8(u8"struct")));
-	types.emplace_back(to_hsp(ascii_to_utf8(u8"comobj")));
+	types.emplace_back(ascii_to_utf8(u8"unknown"));
+	types.emplace_back(ascii_to_utf8(u8"label"));
+	types.emplace_back(ascii_to_utf8(u8"str"));
+	types.emplace_back(ascii_to_utf8(u8"double"));
+	types.emplace_back(ascii_to_utf8(u8"int"));
+	types.emplace_back(ascii_to_utf8(u8"struct"));
+	types.emplace_back(ascii_to_utf8(u8"comobj"));
 	return types;
 }
 
@@ -316,7 +316,7 @@ auto HspObjects::root_path() const->HspObjectPath::Root const& {
 	return root_path_->as_root();
 }
 
-auto HspObjects::type_to_name(HspType type) const->HspStringView {
+auto HspObjects::type_to_name(HspType type) const->Utf8StringView {
 	auto type_id = (std::size_t)type;
 	if (!(1 <= type_id && type_id < types_.size())) {
 		return types_[0].name();
@@ -332,7 +332,7 @@ auto HspObjects::module_count() const->std::size_t {
 	return modules_.size();
 }
 
-auto HspObjects::module_to_name(std::size_t module_id) const -> HspStringView {
+auto HspObjects::module_to_name(std::size_t module_id) const -> Utf8StringView {
 	return modules_.at(module_id).name();
 }
 
@@ -719,7 +719,7 @@ auto HspObjects::script_to_current_line() const -> std::size_t {
 // HspObjects::Module
 // -----------------------------------------------
 
-HspObjects::Module::Module(HspString&& name)
+HspObjects::Module::Module(Utf8String&& name)
 	: name_(std::move(name))
 	, var_ids_()
 {
@@ -733,7 +733,7 @@ void HspObjects::Module::add_var(std::size_t static_var_id) {
 // HspObjects::TypeData
 // -----------------------------------------------
 
-HspObjects::TypeData::TypeData(HspString&& name)
+HspObjects::TypeData::TypeData(Utf8String&& name)
 	: name_(std::move(name))
 {
 }

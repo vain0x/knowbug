@@ -60,13 +60,13 @@ public:
 
 	auto root_path() const->HspObjectPath::Root const&;
 
-	auto type_to_name(HspType type) const->HspStringView;
+	auto type_to_name(HspType type) const->Utf8StringView;
 
 	auto module_global_id() const->std::size_t;
 
 	auto module_count() const->std::size_t;
 
-	auto module_to_name(std::size_t module_id) const->HspStringView;
+	auto module_to_name(std::size_t module_id) const->Utf8StringView;
 
 	auto module_to_var_count(std::size_t module_id) const->std::size_t;
 
@@ -147,15 +147,15 @@ public:
 
 public:
 	class Module {
-		HspString name_;
+		Utf8String name_;
 
 		// モジュールに含まれる静的変数のIDのリスト。変数名について昇順。
 		std::vector<std::size_t> var_ids_;
 
 	public:
-		Module(HspString&& name);
+		Module(Utf8String&& name);
 
-		auto name() const->HspStringView {
+		auto name() const->Utf8StringView {
 			return as_view(name_);
 		}
 
@@ -168,12 +168,12 @@ public:
 };
 
 class HspObjects::TypeData {
-	HspString name_;
+	Utf8String name_;
 
 public:
-	explicit TypeData(HspString&& name);
+	explicit TypeData(Utf8String&& name);
 
-	auto name() const -> HspStringView {
+	auto name() const -> Utf8StringView {
 		return as_view(name_);
 	}
 };
