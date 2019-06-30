@@ -293,7 +293,7 @@ auto HspObjectPath::as_str() const -> HspObjectPath::Str const& {
 	return *(HspObjectPath::Str const*)this;
 }
 
-auto HspObjectPath::Str::value(HspObjects& objects) const -> HspStr {
+auto HspObjectPath::Str::value(HspObjects& objects) const -> Utf8String {
 	return objects.str_path_to_value(*this);
 }
 

@@ -508,7 +508,7 @@ public:
 		return std::string{};
 	}
 
-	auto value(HspObjects& objects) const -> HspStr;
+	auto value(HspObjects& objects) const -> Utf8String;
 };
 
 // -----------------------------------------------

@@ -40,16 +40,16 @@ static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name
 	}
 }
 
-static bool string_is_compact(char const* str) {
-	for (auto i = std::size_t{}; i < 64; i++) {
-		if (str[i] == '\0') {
-			return true;
-		}
-		if (str[i] == '\n') {
-			return false;
-		}
+static bool string_is_compact(Utf8StringView const& str) {
+	if (str.size() >= 64) {
+		return false;
 	}
-	return false;
+
+	if (str.find((Utf8Char)'\n') != Utf8StringView::npos) {
+		return false;
+	}
+
+	return true;
 }
 
 static bool object_path_is_compact(HspObjectPath const& path, HspObjects& objects) {
@@ -447,7 +447,7 @@ void HspObjectWriterImpl::FlowForm::on_label(HspObjectPath::Label const& path) {
 
 void HspObjectWriterImpl::FlowForm::on_str(HspObjectPath::Str const& path) {
 	auto&& value = path.value(objects());
-	auto&& literal = hpiutil::literalFormString(value);
+	auto&& literal = hpiutil::literalFormString(as_native(value).data());
 
 	writer().cat(literal);
 }

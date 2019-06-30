@@ -184,7 +184,7 @@ static auto label_path_to_value(HspObjectPath::Label const& path, HspDebugApi& a
 	return std::make_optional(api.data_to_label(*data_opt));
 }
 
-static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) -> std::optional<HspStr> {
+static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) -> std::optional<Utf8String> {
 	auto&& data = path_to_data(path.parent(), api);
 	if (!data) {
 		assert(false && u8"str の親は data を生成できるはず");
@@ -195,7 +195,8 @@ static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) 
 		return std::nullopt;
 	}
 
-	return std::make_optional(api.data_to_str(*data));
+	auto&& str = api.data_to_str(*data);
+	return std::make_optional(to_utf8(as_hsp(str)));
 }
 
 static auto double_path_to_value(HspObjectPath::Double const& path, HspDebugApi& api) -> std::optional<HspDouble> {
@@ -515,8 +516,9 @@ auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path)
 	return std::nullopt;
 }
 
-auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> HspStr {
-	static char empty[64]{};
+auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> Utf8String {
+	static auto empty = ascii_to_utf8(u8"");
+
 	return (::str_path_to_value(path, api_)).value_or(empty);
 }
 
