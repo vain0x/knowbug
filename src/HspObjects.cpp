@@ -13,13 +13,13 @@ static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
 
 static auto const GLOBAL_MODULE_NAME = as_hsp(u8"@");
 
-static auto var_name_to_scope_resolution(Utf8StringView const& var_name) -> std::optional<Utf8StringView> {
+static auto var_name_to_scope_resolution(HspStringView const& var_name) -> std::optional<HspStringView> {
 	auto ptr = std::strchr(as_native(var_name).data(), '@');
 	if (!ptr) {
 		return std::nullopt;
 	}
 
-	return std::make_optional(as_utf8(ptr));
+	return std::make_optional(as_hsp(ptr));
 }
 
 // 変数をモジュールごとに分類する。

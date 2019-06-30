@@ -11,7 +11,7 @@
 // -----------------------------------------------
 
 // FIXME: クローン変数なら & をつける
-static void write_array_type(CStrWriter& writer, Utf8Char const* type_name, HspDimIndex const& lengths) {
+static void write_array_type(CStrWriter& writer, HspStringView const& type_name, HspDimIndex const& lengths) {
 	writer.cat(as_native(type_name));
 
 	switch (lengths.dim()) {
@@ -226,7 +226,7 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 
 	auto&& name = path.name(o);
 	auto type = path.type(o);
-	auto type_name = o.type_to_name(type).data();
+	auto&& type_name = o.type_to_name(type);
 	auto&& metadata = path.metadata(o);
 
 	// 変数に関する情報
