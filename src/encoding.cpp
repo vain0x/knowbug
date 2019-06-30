@@ -7,7 +7,7 @@
 
 using BasicOsString = std::basic_string<TCHAR>;
 
-auto string_is_ascii(char const* str) -> bool {
+static auto string_is_ascii(char const* str) -> bool {
 	if (str == nullptr) {
 		return false;
 	}

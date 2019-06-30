@@ -63,8 +63,6 @@ using HspStringView = SjisStringView;
 
 #endif
 
-extern auto string_is_ascii(char const* str) -> bool;
-
 extern auto ascii_as_utf8(char const* source) -> Utf8StringView;
 
 extern auto ascii_to_utf8(std::string&& source) -> Utf8String;
