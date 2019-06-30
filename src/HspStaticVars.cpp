@@ -43,10 +43,6 @@ auto HspStaticVars::access_by_name(char const* var_name) -> PVal* {
 	return seekSttVar(var_name, api_.context(), api_.exinfo());
 }
 
-auto HspStaticVars::find_id(char const* var_name) -> std::optional<std::size_t> {
-	return api_.static_var_find_by_name(var_name);
-}
-
 auto HspStaticVars::find_name_by_pval(PVal* pval) -> std::optional<HspString> {
 	auto begin = api_.static_vars();
 	auto end = api_.static_vars() + api_.static_var_count();
