@@ -29,17 +29,17 @@ class HspScriptsImpl
 {
 	SourceFileResolver& source_file_resolver_;
 
-	std::string empty_;
-	std::unordered_map<std::string, std::shared_ptr<std::string>> scripts_;
+	Utf8String empty_;
+	std::unordered_map<std::string, std::shared_ptr<Utf8String>> scripts_;
 
 public:
 	HspScriptsImpl(SourceFileResolver& source_file_resolver)
 		: source_file_resolver_(source_file_resolver)
-		, empty_(u8"ファイルが見つかりません")
+		, empty_(to_owned(as_utf8(u8"ファイルが見つかりません")))
 	{
 	}
 
-	auto content(char const* file_ref_name) -> std::string const& override {
+	auto content(char const* file_ref_name) -> Utf8StringView override {
 		auto&& iter = scripts_.find(file_ref_name);
 		if (iter != scripts_.end()) {
 			return *iter->second;
@@ -52,7 +52,7 @@ public:
 			return empty_;
 		}
 
-		scripts_.emplace(std::string{ file_ref_name }, std::make_shared<std::string>(as_native(to_hsp(*content_opt))));
+		scripts_.emplace(std::string{ file_ref_name }, std::make_shared<Utf8String>(to_utf8(*content_opt)));
 		return *scripts_.at(file_ref_name);
 	}
 };

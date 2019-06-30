@@ -7,6 +7,7 @@
 #include <stack>
 #include <memory>
 #include <cassert>
+#include "../encoding.h"
 #include "strf.h"
 
 class CStrBuf;
@@ -49,6 +50,10 @@ public:
 
 	void cat(std::string_view const& source) {
 		cat(source.data());
+	}
+
+	void catln(Utf8StringView const& source) {
+		catln(as_native(source).data());
 	}
 
 	void catSize(std::size_t size);

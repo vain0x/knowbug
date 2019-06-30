@@ -29,7 +29,7 @@ public:
 	virtual ~HspScripts() {
 	}
 
-	virtual auto content(char const* file_name_ref) -> std::string const& = 0;
+	virtual auto content(char const* file_name_ref) -> Utf8StringView = 0;
 };
 
 // FIXME: インターフェイスを抽出する
@@ -141,7 +141,7 @@ public:
 
 	void log_do_clear();
 
-	auto script_to_content() const -> std::string const&;
+	auto script_to_content() const -> Utf8StringView;
 
 	auto script_to_current_line() const -> std::size_t;
 

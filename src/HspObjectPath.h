@@ -905,7 +905,7 @@ public:
 		return std::string{ "script" };
 	}
 
-	auto content(HspObjects& objects) const -> std::string const&;
+	auto content(HspObjects& objects) const -> Utf8StringView;
 
 	// :thinking_face:
 	auto current_line(HspObjects& objects) const -> std::size_t;

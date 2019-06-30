@@ -706,7 +706,7 @@ void HspObjects::log_do_clear() {
 	logger_.clear();
 }
 
-auto HspObjects::script_to_content() const -> std::string const& {
+auto HspObjects::script_to_content() const -> Utf8StringView {
 	auto file_ref_name = api_.current_file_ref_name().value_or("");
 	return scripts_.content(file_ref_name);
 }

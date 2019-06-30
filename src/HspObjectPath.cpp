@@ -623,7 +623,7 @@ HspObjectPath::Script::Script(std::shared_ptr<HspObjectPath const> parent)
 {
 }
 
-auto HspObjectPath::Script::content(HspObjects& objects) const -> std::string const& {
+auto HspObjectPath::Script::content(HspObjects& objects) const -> Utf8StringView {
 	return objects.script_to_content();
 }
 
