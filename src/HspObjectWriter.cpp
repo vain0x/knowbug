@@ -230,20 +230,20 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	auto&& metadata = path.metadata(o);
 
 	// 変数に関する情報
-	w.cat("変数名: ");
+	w.cat(u8"変数名: ");
 	w.catln(name);
 
-	w.cat("変数型: ");
+	w.cat(u8"変数型: ");
 	write_array_type(w, type_name, metadata.lengths());
 	w.catCrlf();
 
-	w.cat("アドレス: ");
+	w.cat(u8"アドレス: ");
 	w.catPtr(metadata.data_ptr());
 	w.cat(", ");
 	w.catPtr(metadata.master_ptr());
 	w.catCrlf();
 
-	w.cat("サイズ: ");
+	w.cat(u8"サイズ: ");
 	w.catSize(metadata.data_size());
 	w.cat(" / ");
 	w.catSize(metadata.block_size());

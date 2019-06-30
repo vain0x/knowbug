@@ -701,7 +701,7 @@ public:
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
 	auto name(HspObjects& objects) const -> Utf8String override {
-		return to_owned(as_utf8("システム変数"));
+		return to_owned(as_utf8(u8"システム変数"));
 	}
 };
 
