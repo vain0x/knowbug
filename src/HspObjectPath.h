@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "encoding.h"
 #include "HspDebugApi.h"
 
 class HspObjects;
@@ -212,7 +213,7 @@ protected:
 	auto new_script() const -> std::shared_ptr<HspObjectPath const>;
 
 public:
-	auto new_unavailable(std::string&& reason) const->std::shared_ptr<HspObjectPath const>;
+	auto new_unavailable(Utf8String&& reason) const->std::shared_ptr<HspObjectPath const>;
 };
 
 // -----------------------------------------------
@@ -919,10 +920,10 @@ class HspObjectPath::Unavailable final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	std::string reason_;
+	Utf8String reason_;
 
 public:
-	Unavailable(std::shared_ptr<HspObjectPath const> parent, std::string&& reason);
+	Unavailable(std::shared_ptr<HspObjectPath const> parent, Utf8String&& reason);
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::Unavailable;
@@ -948,7 +949,7 @@ public:
 		return std::string{ "<unavailable>" };
 	}
 
-	auto reason() const->std::string const&;
+	auto reason() const->Utf8StringView;
 };
 
 // -----------------------------------------------
