@@ -698,7 +698,7 @@ auto HspObjects::log_to_content() const -> Utf8StringView {
 	return logger_.content();
 }
 
-void HspObjects::log_do_append(char const* text) {
+void HspObjects::log_do_append(Utf8StringView const& text) {
 	logger_.append(text);
 }
 

@@ -594,7 +594,7 @@ auto HspObjectPath::Log::content(HspObjects& objects) const -> Utf8StringView {
 	return objects.log_to_content();
 }
 
-void HspObjectPath::Log::append(char const* text, HspObjects& objects) const {
+void HspObjectPath::Log::append(Utf8StringView const& text, HspObjects& objects) const {
 	objects.log_do_append(text);
 }
 

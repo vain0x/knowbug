@@ -863,7 +863,7 @@ public:
 
 	auto content(HspObjects& objects) const -> Utf8StringView;
 
-	void append(char const* text, HspObjects& objects) const;
+	void append(Utf8StringView const& text, HspObjects& objects) const;
 
 	void clear(HspObjects& objects) const;
 };

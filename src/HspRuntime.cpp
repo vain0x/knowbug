@@ -15,8 +15,8 @@ public:
 		return as_view(content_);
 	}
 
-	void append(char const* text) override {
-		content_ += as_utf8(text);
+	void append(Utf8StringView const& text) override {
+		content_ += text;
 	}
 
 	void clear() override {

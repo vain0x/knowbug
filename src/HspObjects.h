@@ -20,7 +20,7 @@ public:
 	}
 
 	virtual auto content() const -> Utf8StringView = 0;
-	virtual void append(char const* text) = 0;
+	virtual void append(Utf8StringView const& text) = 0;
 	virtual void clear() = 0;
 };
 
@@ -137,7 +137,7 @@ public:
 
 	auto log_to_content() const -> Utf8StringView;
 
-	void log_do_append(char const* text);
+	void log_do_append(Utf8StringView const& text);
 
 	void log_do_clear();
 

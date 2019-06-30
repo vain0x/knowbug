@@ -99,8 +99,8 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 			break;
 		}
 		case hpiutil::DebugNotice_Logmes:
-			g_hsp_runtime->logger().append(ctx->stmp);
-			g_hsp_runtime->logger().append("\r\n");
+			g_hsp_runtime->logger().append(to_utf8(as_hsp(ctx->stmp)));
+			g_hsp_runtime->logger().append(as_utf8(u8"\r\n"));
 			g_logger->append_line(as_view(to_os(as_hsp(ctx->stmp))));
 			break;
 	}
