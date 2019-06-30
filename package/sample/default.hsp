@@ -1,6 +1,8 @@
 #include "hsp3utf.as"
 #include "WrapCall.as"
 
+	你好 = "こんにちは world"
+
 	floats = 3.14159265, sqrt(-1)
 	check_params *first, "hello", 3.14, 1, floats(1), floats
 

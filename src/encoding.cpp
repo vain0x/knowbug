@@ -22,11 +22,11 @@ static auto string_is_ascii(char const* str) -> bool {
 	return true;
 }
 
-static auto ansi_to_os_str(const char* ansi_str) -> BasicOsString {
+static auto ansi_to_os_str(const char* ansi_str, std::size_t ansi_str_len) -> BasicOsString {
 	assert(ansi_str != nullptr);
+	assert(ansi_str_len == std::strlen(ansi_str));
 
-	// FIXME: 長さを引数に受け取る (他の変換関数も同様)
-	auto ansi_str_len = std::strlen(ansi_str) + 1;
+	ansi_str_len++;
 
 	auto len = MultiByteToWideChar(CP_ACP, 0, ansi_str, (int)ansi_str_len, nullptr, 0);
 	assert(len >= 1);
@@ -38,10 +38,11 @@ static auto ansi_to_os_str(const char* ansi_str) -> BasicOsString {
 	return BasicOsString{ os_str.data() };
 }
 
-static auto utf8_to_os_str(char const* utf8_str) -> BasicOsString {
+static auto utf8_to_os_str(char const* utf8_str, std::size_t utf8_str_len) -> BasicOsString {
 	assert(utf8_str != nullptr);
+	assert(utf8_str_len == std::strlen(utf8_str));
 
-	auto utf8_str_len = std::strlen(utf8_str) + 1;
+	utf8_str_len++;
 
 	auto len = MultiByteToWideChar(CP_UTF8, 0, utf8_str, (int)utf8_str_len, nullptr, 0);
 	assert(len >= 1);
@@ -53,10 +54,11 @@ static auto utf8_to_os_str(char const* utf8_str) -> BasicOsString {
 	return BasicOsString{ os_str.data() };
 }
 
-static auto os_to_ansi_str(LPCTSTR os_str) -> std::string {
+static auto os_to_ansi_str(LPCTSTR os_str, std::size_t os_str_len) -> std::string {
 	assert(os_str != nullptr);
+	assert(os_str_len == _tcslen(os_str));
 
-	auto os_str_len = _tcslen(os_str) + 1;
+	os_str_len++;
 
 	auto len = WideCharToMultiByte(CP_ACP, 0, os_str, (int)os_str_len, nullptr, 0, nullptr, nullptr);
 	assert(len >= 1);
@@ -143,7 +145,7 @@ auto as_sjis(std::string&& source) -> SjisString {
 }
 
 auto to_sjis(OsStringView const& source) -> SjisString {
-	return SjisString{ as_sjis(os_to_ansi_str(source.data())) };
+	return SjisString{ as_sjis(os_to_ansi_str(source.data(), source.size())) };
 }
 
 auto to_sjis(Utf8StringView const& source) -> SjisString {
@@ -155,11 +157,11 @@ auto as_os(LPCTSTR str) -> OsStringView {
 }
 
 auto to_os(SjisStringView const& source) -> OsString {
-	return OsString{ ansi_to_os_str((char const*)source.data()) };
+	return OsString{ ansi_to_os_str((char const*)source.data(), source.size()) };
 }
 
 auto to_os(Utf8StringView const& source) -> OsString {
-	return OsString{ utf8_to_os_str((char const*)source.data()) };
+	return OsString{ utf8_to_os_str((char const*)source.data(), source.size()) };
 }
 
 auto as_utf8(char const* str) -> Utf8StringView {
