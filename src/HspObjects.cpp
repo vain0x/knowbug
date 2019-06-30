@@ -345,8 +345,14 @@ auto HspObjects::module_to_var_at(std::size_t module_id, std::size_t index) cons
 	return modules_.at(module_id).var_ids().at(index);
 }
 
-auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->std::string {
-	return *api_.static_var_find_name(path.static_var_id());
+auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->Utf8String {
+	auto&& name_opt = api_.static_var_find_name(path.static_var_id());
+	if (!name_opt) {
+		assert(false && u8"静的変数の名前が見つかるはず");
+		return to_owned(as_utf8(u8"?"));
+	}
+
+	return to_utf8(as_hsp(*std::move(name_opt)));
 }
 
 bool HspObjects::static_var_path_is_array(HspObjectPath::StaticVar const& path) {
@@ -419,12 +425,14 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 	}
 }
 
-auto HspObjects::element_path_to_name(HspObjectPath::Element const& path) const -> std::string {
+auto HspObjects::element_path_to_name(HspObjectPath::Element const& path) const -> Utf8String {
 	auto v = std::vector<int>{};
 	for (auto i : path.indexes()) {
 		v.push_back((int)i);
 	}
-	return hpiutil::stringifyArrayIndex(v);
+	auto name = hpiutil::stringifyArrayIndex(v);
+
+	return ascii_as_utf8(std::move(name));
 }
 
 auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t {
@@ -465,9 +473,10 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 	}
 }
 
-auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> std::string {
+auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> Utf8String {
 	auto&& param_data = param_path_to_param_data(path, api_);
-	return api_.param_to_name(param_data->param(), param_data->param_index(), debug_segment_);
+	auto&& name = api_.param_to_name(param_data->param(), param_data->param_index(), debug_segment_);
+	return to_utf8(as_hsp(std::move(name)));
 }
 
 bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {
@@ -618,40 +627,40 @@ auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& pat
 	}
 }
 
-auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::string {
+auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> Utf8String {
 	switch (path.system_var_kind()) {
 	case HspSystemVarKind::Cnt:
-		return u8"cnt";
+		return to_owned(as_utf8(u8"cnt"));
 
 	case HspSystemVarKind::Err:
-		return u8"err";
+		return to_owned(as_utf8(u8"err"));
 
 	case HspSystemVarKind::IParam:
-		return u8"iparam";
+		return to_owned(as_utf8(u8"iparam"));
 
 	case HspSystemVarKind::WParam:
-		return u8"wparam";
+		return to_owned(as_utf8(u8"wparam"));
 
 	case HspSystemVarKind::LParam:
-		return u8"lparam";
+		return to_owned(as_utf8(u8"lparam"));
 
 	case HspSystemVarKind::LoopLev:
-		return u8"looplev";
+		return to_owned(as_utf8(u8"looplev"));
 
 	case HspSystemVarKind::SubLev:
-		return u8"sublev";
+		return to_owned(as_utf8(u8"sublev"));
 
 	case HspSystemVarKind::Refstr:
-		return u8"refstr";
+		return to_owned(as_utf8(u8"refstr"));
 
 	case HspSystemVarKind::Refdval:
-		return u8"refdval";
+		return to_owned(as_utf8(u8"refdval"));
 
 	case HspSystemVarKind::Stat:
-		return u8"stat";
+		return to_owned(as_utf8(u8"stat"));
 
 	case HspSystemVarKind::StrSize:
-		return u8"strsize";
+		return to_owned(as_utf8(u8"strsize"));
 
 	default:
 		assert(false && u8"Invalid HspSystemVarKind");
@@ -667,13 +676,14 @@ auto HspObjects::call_stack_path_to_call_frame_id_at(HspObjectPath::CallStack co
 	return WrapCall::call_frame_id_at(call_frame_index);
 }
 
-auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<std::string> {
+auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {
 	auto&& call_info_opt = WrapCall::call_frame_get(path.call_frame_id());
 	if (!call_info_opt || !*call_info_opt) {
 		return std::nullopt;
 	}
 
-	return (**call_info_opt).name();
+	auto&& name = (**call_info_opt).name();
+	return to_utf8(as_hsp(std::move(name)));
 }
 
 auto HspObjects::call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t {

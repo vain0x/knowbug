@@ -20,7 +20,7 @@ auto HspObjectPath::self() const -> std::shared_ptr<HspObjectPath const> {
 // -----------------------------------------------
 
 // オブジェクトルートの名前。使われないはずなので適当な文字列にしておく。
-static auto g_root_name = std::string{ "<HspObjectPath::Root>" };
+static auto const g_root_name = as_utf8(u8"<HspObjectPath::Root>");
 
 auto HspObjectPath::as_root() const -> HspObjectPath::Root const& {
 	if (kind() != HspObjectKind::Root) {
@@ -30,8 +30,8 @@ auto HspObjectPath::as_root() const -> HspObjectPath::Root const& {
 	return *(HspObjectPath::Root const*)this;
 }
 
-auto HspObjectPath::Root::name(HspObjects& objects) const -> std::string {
-	return g_root_name;
+auto HspObjectPath::Root::name(HspObjects& objects) const -> Utf8String {
+	return to_owned(g_root_name);
 }
 
 auto HspObjectPath::Root::parent() const -> HspObjectPath const& {
@@ -75,8 +75,8 @@ HspObjectPath::Module::Module(std::shared_ptr<HspObjectPath const> parent, std::
 {
 }
 
-auto HspObjectPath::Module::name(HspObjects& objects) const -> std::string {
-	return as_native(to_owned(objects.module_to_name(module_id())));
+auto HspObjectPath::Module::name(HspObjects& objects) const -> Utf8String {
+	return to_owned(objects.module_to_name(module_id()));
 }
 
 bool HspObjectPath::Module::is_global(HspObjects& objects) const {
@@ -140,7 +140,7 @@ auto HspObjectPath::StaticVar::child_at(std::size_t index, HspObjects& objects) 
 	return objects.static_var_path_to_child_at(*this, index);
 }
 
-auto HspObjectPath::StaticVar::name(HspObjects& objects) const -> std::string {
+auto HspObjectPath::StaticVar::name(HspObjects& objects) const -> Utf8String {
 	return objects.static_var_path_to_name(*this);
 }
 
@@ -186,7 +186,7 @@ auto HspObjectPath::Element::child_at(std::size_t child_index, HspObjects& objec
 	return objects.element_path_to_child_at(*this, child_index);
 }
 
-auto HspObjectPath::Element::name(HspObjects& objects) const -> std::string {
+auto HspObjectPath::Element::name(HspObjects& objects) const -> Utf8String {
 	return objects.element_path_to_name(*this);
 }
 
@@ -233,7 +233,7 @@ auto HspObjectPath::Param::child_at(std::size_t index, HspObjects& objects) cons
 	return objects.param_path_to_child_at(*this, index);
 }
 
-auto HspObjectPath::Param::name(HspObjects& objects) const -> std::string {
+auto HspObjectPath::Param::name(HspObjects& objects) const -> Utf8String {
 	return objects.param_path_to_name(*this);
 }
 
@@ -486,7 +486,7 @@ auto HspObjectPath::SystemVar::child_at(std::size_t child_index, HspObjects& obj
 	return objects.system_var_path_to_child_at(*this, child_index);
 }
 
-auto HspObjectPath::SystemVar::name(HspObjects& objects) const -> std::string {
+auto HspObjectPath::SystemVar::name(HspObjects& objects) const -> Utf8String {
 	return objects.system_var_path_to_name(*this);
 }
 
@@ -565,8 +565,12 @@ auto HspObjectPath::CallFrame::child_at(std::size_t child_index, HspObjects& obj
 	return *child_opt;
 }
 
-auto HspObjectPath::CallFrame::name(HspObjects& objects) const -> std::string {
-	return objects.call_frame_path_to_name(*this).value_or("???");
+auto HspObjectPath::CallFrame::name(HspObjects& objects) const -> Utf8String {
+	auto&& name_opt = objects.call_frame_path_to_name(*this);
+	if (!name_opt) {
+		return to_owned(as_utf8(u8"???"));
+	}
+	return *std::move(name_opt);
 }
 
 // -----------------------------------------------

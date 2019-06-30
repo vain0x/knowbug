@@ -300,10 +300,10 @@ void HspObjectWriterImpl::BlockForm::on_module(HspObjectPath::Module const& path
 }
 
 void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar const& path) {
-	auto&& name = path.name(objects());
-	auto short_name = hpiutil::nameExcludingScopeResolution(name.data());
+	auto name = as_native(path.name(objects()));
+	auto short_name = hpiutil::nameExcludingScopeResolution(name);
 
-	writer().cat(short_name.data());
+	writer().cat(short_name);
 	writer().cat("\t= ");
 
 	to_flow_form().accept(path);

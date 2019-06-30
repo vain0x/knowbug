@@ -11,7 +11,7 @@ VTNodeModule::VTNodeModule(VTNodeData& parent, std::shared_ptr<HspObjectPath con
 	: parent_(parent)
 	, objects_(objects)
 	, path_(std::move(path))
-	, name_(path_->name(objects))
+	, name_(as_native(path_->name(objects)))
 	, modules_()
 	, vars_()
 {
@@ -36,7 +36,7 @@ void VTNodeModule::init() {
 
 		{
 			assert(kind == HspObjectKind::StaticVar);
-			auto name = child_path->name(objects_);
+			auto name = as_native(child_path->name(objects_));
 			auto pval = objects_.static_var_path_to_pval(child_path->as_static_var());
 			vars_.emplace_back(*this, std::move(name), pval, std::move(child_path));
 		}

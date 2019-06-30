@@ -39,17 +39,15 @@ public:
 		return TreeView_GetSelection(hwndVarTree);
 	}
 
-	auto insert_item(HTREEITEM hParent, char const* name, VTNodeData* node) -> HTREEITEM {
+	auto insert_item(HTREEITEM hParent, OsStringView const& name, VTNodeData* node) -> HTREEITEM {
 		auto tvis = TVINSERTSTRUCT{};
 		HTREEITEM res;
-		HSPAPICHAR* hactmp1;
 		tvis.hParent = hParent;
 		tvis.hInsertAfter = TVI_LAST; // FIXME: 引数で受け取る (コールスタックでは先頭への挿入が起こる)
 		tvis.item.mask = TVIF_TEXT | TVIF_PARAM;
 		tvis.item.lParam = (LPARAM)node;
-		tvis.item.pszText = chartoapichar(const_cast<char*>(name), &hactmp1);
+		tvis.item.pszText = const_cast<LPTSTR>(name.data());
 		res = TreeView_InsertItem(hwndVarTree, &tvis);
-		freehac(&hactmp1);
 		return res;
 	}
 
@@ -265,10 +263,10 @@ public:
 		auto&& path = *path_opt;
 
 		auto&& name = path->name(objects_);
-		log(strf("create '%s' (%d)", name, node_id));
+		log(strf("create '%s' (%d)", as_native(as_view(name)).data(), node_id));
 
 		{
-			auto node_name = strf("!%s", name.data());
+			auto node_name = to_os(name);
 
 			auto&& parent_id_opt = object_tree_.parent(node_id);
 
@@ -276,7 +274,7 @@ public:
 				? node_handles_.at(*parent_id_opt)
 				: TVI_ROOT;
 
-			auto item_handle = tv().insert_item(parent_handle, node_name.data(), nullptr);
+			auto item_handle = tv().insert_item(parent_handle, as_view(node_name), nullptr);
 
 			node_ids_.emplace(item_handle, node_id);
 			node_handles_.emplace(node_id, item_handle);
@@ -293,7 +291,7 @@ public:
 		auto&& path = *path_opt;
 
 		auto&& name = path->name(objects_);
-		log(strf("destroy '%s' (%d)", name, node_id));
+		log(strf("destroy '%s' (%d)", as_native(as_view(name)).data(), node_id));
 
 		{
 			assert(node_handles_.count(node_id) && u8"存在しないノードが削除されようとしています");
@@ -362,7 +360,8 @@ void TvObserver::onInit(VTNodeData& node)
 	auto const hParent = self.itemFromNode(parent);
 	assert(hParent != nullptr);
 
-	auto const hItem = tv.insert_item(hParent, makeNodeName(node).c_str(), &node);
+	auto name = to_os(as_hsp(makeNodeName(node)));
+	auto const hItem = tv.insert_item(hParent, as_view(name), &node);
 
 	assert(self.itemFromNode_[&node] == nullptr);
 	self.itemFromNode_[&node] = hItem;

@@ -72,7 +72,7 @@ public:
 
 	auto module_to_var_at(std::size_t module_id, std::size_t index) const->std::size_t;
 
-	auto static_var_path_to_name(HspObjectPath::StaticVar const& path)->std::string;
+	auto static_var_path_to_name(HspObjectPath::StaticVar const& path)->Utf8String;
 
 	bool static_var_path_is_array(HspObjectPath::StaticVar const& path);
 
@@ -91,13 +91,13 @@ public:
 
 	auto element_path_to_child_at(HspObjectPath::Element const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
 
-	auto element_path_to_name(HspObjectPath::Element const& path) const->std::string;
+	auto element_path_to_name(HspObjectPath::Element const& path) const->Utf8String;
 
 	auto param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t;
 
 	auto param_path_to_child_at(HspObjectPath::Param const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
 
-	auto param_path_to_name(HspObjectPath::Param const& path) const -> std::string;
+	auto param_path_to_name(HspObjectPath::Param const& path) const -> Utf8String;
 
 	bool label_path_is_null(HspObjectPath::Label const& path) const;
 
@@ -123,13 +123,13 @@ public:
 
 	auto system_var_path_to_child_at(HspObjectPath::SystemVar const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
 
-	auto system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::string;
+	auto system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> Utf8String;
 
 	auto call_stack_path_to_call_frame_count(HspObjectPath::CallStack const& path) const -> std::size_t;
 
 	auto call_stack_path_to_call_frame_id_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<std::size_t>;
 
-	auto call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<std::string>;
+	auto call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String>;
 
 	auto call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t;
 

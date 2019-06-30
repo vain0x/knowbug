@@ -107,7 +107,7 @@ public:
 	virtual auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> = 0;
 
 	// FIXME: 名前のないノードのときはどうする？
-	virtual auto name(HspObjects& objects) const -> std::string = 0;
+	virtual auto name(HspObjects& objects) const -> Utf8String = 0;
 
 	virtual bool is_array(HspObjects& objects) const {
 		return false;
@@ -242,7 +242,7 @@ public:
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
-	auto name(HspObjects& objects) const -> std::string override;
+	auto name(HspObjects& objects) const -> Utf8String override;
 
 	auto new_global_module(HspObjects& objects) const->std::shared_ptr<HspObjectPath const>;
 };
@@ -279,7 +279,7 @@ public:
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
-	auto name(HspObjects& objects) const->std::string override;
+	auto name(HspObjects& objects) const->Utf8String override;
 
 	auto module_id() const -> std::size_t {
 		return module_id_;
@@ -320,7 +320,7 @@ public:
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
-	auto name(HspObjects& objects) const -> std::string override;
+	auto name(HspObjects& objects) const -> Utf8String override;
 
 	bool is_array(HspObjects& objects) const override;
 
@@ -370,7 +370,7 @@ public:
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
-	auto name(HspObjects& objects) const -> std::string override;
+	auto name(HspObjects& objects) const -> Utf8String override;
 
 	auto indexes() const -> HspDimIndex const& {
 		return indexes_;
@@ -414,7 +414,7 @@ public:
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
-	auto name(HspObjects& objects) const -> std::string override;
+	auto name(HspObjects& objects) const -> Utf8String override;
 
 	auto param_type() const -> HspParamType {
 		return param_type_;
@@ -458,9 +458,9 @@ public:
 		throw new std::exception{};
 	}
 
-	auto name(HspObjects& objects) const -> std::string override {
+	auto name(HspObjects& objects) const -> Utf8String override {
 		// FIXME: パス自体には名前がない (ラベル名は使わない)
-		return std::string{};
+		return to_owned(as_utf8(u8"<anonymous>"));
 	}
 
 	bool is_null(HspObjects& objects) const;
@@ -503,9 +503,9 @@ public:
 		throw new std::exception{};
 	}
 
-	auto name(HspObjects& objects) const -> std::string override {
+	auto name(HspObjects& objects) const -> Utf8String override {
 		// FIXME: 名前自体がない
-		return std::string{};
+		return to_owned(as_utf8(u8"<anonymous>"));
 	}
 
 	auto value(HspObjects& objects) const -> Utf8String;
@@ -544,9 +544,9 @@ public:
 		throw new std::exception{};
 	}
 
-	auto name(HspObjects& objects) const -> std::string override {
+	auto name(HspObjects& objects) const -> Utf8String override {
 		// FIXME: 名前自体がない
-		return std::string{};
+		return to_owned(as_utf8(u8"<anonymous>"));
 	}
 
 	auto value(HspObjects& objects) const -> HspDouble;
@@ -585,9 +585,9 @@ public:
 		throw new std::exception{};
 	}
 
-	auto name(HspObjects& objects) const -> std::string override {
+	auto name(HspObjects& objects) const -> Utf8String override {
 		// FIXME: 名前自体がない
-		return std::string{};
+		return to_owned(as_utf8(u8"<anonymous>"));
 	}
 
 	auto value(HspObjects& objects) const -> HspInt;
@@ -623,9 +623,9 @@ public:
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
-	auto name(HspObjects& objects) const -> std::string override {
+	auto name(HspObjects& objects) const -> Utf8String override {
 		// FIXME: 名前自体がない
-		return std::string{};
+		return to_owned(as_utf8(u8"<anonymous>"));
 	}
 
 	bool is_nullmod(HspObjects& objects) const;
@@ -666,9 +666,9 @@ public:
 		throw new std::exception{};
 	}
 
-	auto name(HspObjects& objects) const -> std::string override {
+	auto name(HspObjects& objects) const -> Utf8String override {
 		// FIXME: 名前自体がない
-		return std::string{};
+		return to_owned(as_utf8(u8"<anonymous>"));
 	}
 };
 
@@ -700,8 +700,8 @@ public:
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
-	auto name(HspObjects& objects) const -> std::string override {
-		return std::string{ u8"システム変数" };
+	auto name(HspObjects& objects) const -> Utf8String override {
+		return to_owned(as_utf8("システム変数"));
 	}
 };
 
@@ -739,7 +739,7 @@ public:
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
-	auto name(HspObjects& objects) const -> std::string override;
+	auto name(HspObjects& objects) const -> Utf8String override;
 
 	auto system_var_kind() const -> HspSystemVarKind {
 		return system_var_kind_;
@@ -776,8 +776,8 @@ public:
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
-	auto name(HspObjects& objects) const -> std::string override {
-		return u8"コールスタック";
+	auto name(HspObjects& objects) const -> Utf8String override {
+		return to_owned(as_utf8(u8"コールスタック"));
 	}
 
 	auto frame_count(HspObjects& objects) const -> std::size_t;
@@ -817,7 +817,7 @@ public:
 
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
-	auto name(HspObjects& objects) const -> std::string override;
+	auto name(HspObjects& objects) const -> Utf8String override;
 
 	auto call_frame_id() const -> std::size_t {
 		return call_frame_id_;
@@ -857,8 +857,8 @@ public:
 		throw std::exception{};
 	}
 
-	auto name(HspObjects& objects) const -> std::string override {
-		return std::string{ "Log" };
+	auto name(HspObjects& objects) const -> Utf8String override {
+		return to_owned(as_utf8(u8"ログ"));
 	}
 
 	auto content(HspObjects& objects) const -> Utf8StringView;
@@ -901,8 +901,8 @@ public:
 		throw std::exception{};
 	}
 
-	auto name(HspObjects& objects) const -> std::string override {
-		return std::string{ "script" };
+	auto name(HspObjects& objects) const -> Utf8String override {
+		return to_owned(as_utf8(u8"スクリプト"));
 	}
 
 	auto content(HspObjects& objects) const -> Utf8StringView;
@@ -945,8 +945,8 @@ public:
 		return self();
 	}
 
-	auto name(HspObjects& objects) const -> std::string override {
-		return std::string{ "<unavailable>" };
+	auto name(HspObjects& objects) const -> Utf8String override {
+		return to_owned(as_utf8(u8"<unavailable>"));
 	}
 
 	auto reason() const->Utf8StringView;
