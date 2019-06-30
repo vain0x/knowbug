@@ -861,7 +861,7 @@ public:
 		return std::string{ "Log" };
 	}
 
-	auto content(HspObjects& objects) const -> std::string const&;
+	auto content(HspObjects& objects) const -> Utf8StringView;
 
 	void append(char const* text, HspObjects& objects) const;
 

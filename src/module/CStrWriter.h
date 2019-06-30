@@ -52,6 +52,10 @@ public:
 		cat(source.data());
 	}
 
+	void cat(Utf8StringView const& source) {
+		cat(as_native(source).data());
+	}
+
 	void catln(Utf8StringView const& source) {
 		catln(as_native(source).data());
 	}

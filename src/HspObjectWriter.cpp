@@ -266,7 +266,7 @@ void HspObjectWriterImpl::TableForm::on_system_var_list(HspObjectPath::SystemVar
 
 void HspObjectWriterImpl::TableForm::on_log(HspObjectPath::Log const& path) {
 	auto&& content = path.content(objects());
-	assert((content.empty() || content.back() == '\n') && u8"Log must be end with line break");
+	assert((content.empty() || (char)content.back() == '\n') && u8"Log must be end with line break");
 
 	writer().cat(content);
 }

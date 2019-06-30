@@ -694,7 +694,7 @@ auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& pat
 	return std::make_optional(path.new_param(param_type, param_data.param_index()));
 }
 
-auto HspObjects::log_to_content() const -> std::string const& {
+auto HspObjects::log_to_content() const -> Utf8StringView {
 	return logger_.content();
 }
 

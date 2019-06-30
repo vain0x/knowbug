@@ -8,15 +8,15 @@
 class HspLoggerImpl
 	: public HspLogger
 {
-	std::string content_;
+	Utf8String content_;
 
 public:
-	auto content() const -> std::string const& override {
-		return content_;
+	auto content() const -> Utf8StringView override {
+		return as_view(content_);
 	}
 
 	void append(char const* text) override {
-		content_ += text;
+		content_ += as_utf8(text);
 	}
 
 	void clear() override {

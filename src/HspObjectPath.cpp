@@ -590,7 +590,7 @@ HspObjectPath::Log::Log(std::shared_ptr<HspObjectPath const> parent)
 {
 }
 
-auto HspObjectPath::Log::content(HspObjects& objects) const -> std::string const& {
+auto HspObjectPath::Log::content(HspObjects& objects) const -> Utf8StringView {
 	return objects.log_to_content();
 }
 

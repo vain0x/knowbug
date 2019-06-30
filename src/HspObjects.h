@@ -19,7 +19,7 @@ public:
 	virtual ~HspLogger() {
 	}
 
-	virtual auto content() const -> std::string const& = 0;
+	virtual auto content() const -> Utf8StringView = 0;
 	virtual void append(char const* text) = 0;
 	virtual void clear() = 0;
 };
@@ -135,7 +135,7 @@ public:
 
 	auto call_frame_path_to_child_at(HspObjectPath::CallFrame const& path, std::size_t child_index) const -> std::optional<std::shared_ptr<HspObjectPath const>>;
 
-	auto log_to_content() const -> std::string const&;
+	auto log_to_content() const -> Utf8StringView;
 
 	void log_do_append(char const* text);
 
