@@ -202,12 +202,12 @@ auto as_view(Utf8String const& source) -> Utf8StringView {
 	return Utf8StringView{ source };
 }
 
-auto as_native(SjisStringView const& source) -> char const* {
-	return (char const*)source.data();
+auto as_native(SjisStringView const& source) -> std::string_view {
+	return std::string_view{ (std::string_view const&)source };
 }
 
-auto as_native(Utf8StringView const& source) -> char const* {
-	return (char const*)source.data();
+auto as_native(Utf8StringView const& source) -> std::string_view {
+	return std::string_view{ (std::string_view const&)source };
 }
 
 auto as_native(SjisString&& source) -> std::string {

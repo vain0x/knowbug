@@ -47,6 +47,10 @@ public:
 	void catln(string const& s) { cat(s); catCrlf(); }
 	void catCrlf();
 
+	void cat(std::string_view const& source) {
+		cat(source.data());
+	}
+
 	void catSize(std::size_t size);
 	void catPtr(void const* ptr);
 	void catDump(void const* data, size_t size);

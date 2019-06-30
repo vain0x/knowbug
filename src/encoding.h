@@ -113,9 +113,9 @@ extern auto as_view(SjisString const& source) -> SjisStringView;
 
 extern auto as_view(Utf8String const& source) -> Utf8StringView;
 
-extern auto as_native(SjisStringView const& source) -> char const*;
+extern auto as_native(SjisStringView const& source) -> std::string_view;
 
-extern auto as_native(Utf8StringView const& source) -> char const*;
+extern auto as_native(Utf8StringView const& source) -> std::string_view;
 
 extern auto as_native(SjisString&& source) -> std::string;
 

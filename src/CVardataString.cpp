@@ -362,7 +362,7 @@ void CVardataStrWriter::addSysvar(hpiutil::Sysvar::Id id)
 				auto varName     = static_vars_.find_name_by_pval(pval);
 				auto name2 =
 					varName
-					? strf("%s (%s%s)", name, as_native(*varName), indexString)
+					? strf("%s (%s%s)", name, as_native(*varName).data(), indexString)
 					: strf("%s (%p (%d))", name, cptr_cast<void*>(pval), aptr);
 				addVarScalar(name2.c_str(), pval, aptr);
 			} else {
