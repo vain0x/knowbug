@@ -43,6 +43,8 @@ using Utf8StringView = std::basic_string_view<Utf8Char>;
 
 #ifdef HSP3_UTF8
 
+using HspChar = Utf8Char;
+
 // HSP が使用するエンコーディングの文字列。
 using HspString = Utf8String;
 
@@ -50,6 +52,8 @@ using HspString = Utf8String;
 using HspStringView = Utf8StringView;
 
 #else
+
+using HspChar = SjisChar;
 
 // HSP が使用するエンコーディングの文字列。
 using HspString = SjisString;
