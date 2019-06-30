@@ -88,7 +88,7 @@ auto ascii_as_utf8(char const* source) -> Utf8StringView {
 	return Utf8StringView{ (Utf8Char const*)source };
 }
 
-auto ascii_to_utf8(std::string&& source) -> Utf8String {
+auto ascii_as_utf8(std::string&& source) -> Utf8String {
 	assert(string_is_ascii(source.data()));
 	return Utf8String{ (Utf8String&&)source };
 }
