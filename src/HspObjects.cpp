@@ -123,6 +123,7 @@ static auto path_to_pval(HspObjectPath const& path, HspDebugApi& api) -> std::op
 					return std::make_optional(pval);
 				}
 			case MPTYPE_SINGLEVAR:
+			case MPTYPE_ARRAYVAR:
 				{
 					auto mp_var_data = api.param_data_to_single_var(param_data);
 					auto pval = api.mp_var_data_to_pval(mp_var_data);
@@ -463,6 +464,7 @@ auto HspObjects::element_path_to_name(HspObjectPath::Element const& path) const 
 auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t {
 	switch (path.param_type()) {
 	case MPTYPE_LOCALVAR:
+	case MPTYPE_ARRAYVAR:
 		return var_path_to_child_count(path, api_);
 
 	case MPTYPE_SINGLEVAR:
@@ -485,6 +487,7 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 
 	switch (path.param_type()) {
 	case MPTYPE_LOCALVAR:
+	case MPTYPE_ARRAYVAR:
 		return var_path_to_child_at(path, child_index, api_);
 
 	case MPTYPE_SINGLEVAR:
