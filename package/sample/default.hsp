@@ -41,6 +41,7 @@
 
 #deffunc check_params label l, str s, double d, int i, var v, array a
 	assert
+	floats@ = "vanish!"
 	return
 
 #deffunc hoge_init

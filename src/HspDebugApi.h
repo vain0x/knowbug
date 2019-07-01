@@ -75,6 +75,10 @@ public:
 
 	auto var_element_to_block_memory(PVal* pval, std::size_t aptr) -> BlockMemory;
 
+	auto mp_var_data_to_pval(MPVarData* var_data) -> PVal*;
+
+	auto mp_var_data_to_aptr(MPVarData* var_data) -> std::size_t;
+
 	auto system_var_to_data(HspSystemVarKind system_var_kind) -> std::optional<HspData>;
 
 	auto data_to_label(HspData const& data) const -> HspLabel;
@@ -132,6 +136,10 @@ public:
 	auto param_data_to_type(HspParamData const& param_data) const -> HspParamType;
 
 	auto param_data_as_local_var(HspParamData const& param_data) const -> PVal*;
+
+	auto param_data_to_single_var(HspParamData const& param_data) const -> MPVarData*;
+
+	auto param_data_to_array_var(HspParamData const& param_data) const -> MPVarData*;
 
 	auto param_data_to_data(HspParamData const& param_data) const->std::optional<HspData>;
 };
