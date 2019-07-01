@@ -14,8 +14,8 @@ static auto str_ptr_to_data(HspStr value) -> HspData {
 	return HspData{ HspType::Str, (PDAT*)value };
 }
 
-static auto double_ptr_to_data(HspDouble* value) -> HspData {
-	return HspData{ HspType::Str, (PDAT*)value };
+static auto double_ptr_to_data(HspDouble* ptr) -> HspData {
+	return HspData{ HspType::Double, (PDAT*)ptr };
 }
 
 static auto int_ptr_to_data(HspInt* ptr) -> HspData {
