@@ -10,6 +10,10 @@ static auto pval_to_type(PVal const* pval) -> HspType {
 	return (HspType)pval->flag;
 }
 
+static auto label_ptr_to_data(HspLabel* ptr) -> HspData {
+	return HspData{ HspType::Label, (PDAT*)ptr };
+}
+
 static auto str_ptr_to_data(HspStr value) -> HspData {
 	return HspData{ HspType::Str, (PDAT*)value };
 }
@@ -426,6 +430,11 @@ auto HspDebugApi::param_data_to_data(HspParamData const& param_data) const -> st
 	}
 
 	switch (param_data_to_type(param_data)) {
+	case MPTYPE_LABEL:
+		{
+			auto ptr = UNSAFE((HspLabel*)param_data.ptr());
+			return std::make_optional(label_ptr_to_data(ptr));
+		}
 	case MPTYPE_LOCALSTRING:
 		{
 			auto str = UNSAFE(*(char**)param_data.ptr());
