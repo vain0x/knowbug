@@ -77,7 +77,7 @@ public:
 		auto line_count = Edit_GetLineCount(hViewEdit);
 
 		// ウィンドウに30行ぐらい表示されていると仮定して、スクロールが一番下にありそうかどうか判定する。
-		return line_count <= current_scroll_line() + 30UL;
+		return line_count <= (int)current_scroll_line() + 30;
 	}
 
 	void scroll_to_line(std::size_t line_index) override {
