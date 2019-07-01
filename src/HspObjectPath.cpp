@@ -39,7 +39,7 @@ auto HspObjectPath::Root::parent() const -> HspObjectPath const& {
 }
 
 auto HspObjectPath::Root::child_count(HspObjects& objects) const -> std::size_t {
-	return 5;
+	return 6;
 }
 
 auto HspObjectPath::Root::child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> {
@@ -52,8 +52,10 @@ auto HspObjectPath::Root::child_at(std::size_t index, HspObjects& objects) const
 	case 2:
 		return new_call_stack();
 	case 3:
-		return new_log();
+		return new_general();
 	case 4:
+		return new_log();
+	case 5:
 		return new_script();
 	default:
 		assert(false && u8"out of range");
@@ -574,6 +576,31 @@ auto HspObjectPath::CallFrame::name(HspObjects& objects) const -> Utf8String {
 }
 
 // -----------------------------------------------
+// 全般
+// -----------------------------------------------
+
+auto HspObjectPath::new_general() const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::General>(self());
+}
+
+auto HspObjectPath::as_general() const -> HspObjectPath::General const& {
+	if (kind() != HspObjectKind::General) {
+		assert(false && u8"Casting to General");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::General const*)this;
+}
+
+HspObjectPath::General::General(std::shared_ptr<HspObjectPath const> parent)
+	: parent_(std::move(parent))
+{
+}
+
+auto HspObjectPath::General::content(HspObjects& objects) const -> Utf8StringView {
+	return objects.general_to_content();
+}
+
+// -----------------------------------------------
 // ログ
 // -----------------------------------------------
 
@@ -731,6 +758,10 @@ void HspObjectPath::Visitor::accept(HspObjectPath const& path) {
 
 	case HspObjectKind::CallFrame:
 		on_call_frame(path.as_call_frame());
+		return;
+
+	case HspObjectKind::General:
+		on_general(path.as_general());
 		return;
 
 	case HspObjectKind::Log:

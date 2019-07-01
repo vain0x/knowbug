@@ -47,12 +47,15 @@ enum class HspObjectKind {
 
 	CallFrame,
 
+	// 全般
+	General,
+
 	Log,
 
 	Script,
 
 	// 利用不能なオブジェクト。
-	// 子ノードの取得に思わず失敗したときなどに生成される。
+	// 子ノードの取得に失敗したときなどに生成される。
 	Unavailable,
 };
 
@@ -79,6 +82,7 @@ public:
 	class SystemVar;
 	class CallStack;
 	class CallFrame;
+	class General;
 	class Log;
 	class Script;
 	class Unavailable;
@@ -170,6 +174,8 @@ public:
 
 	auto as_call_frame() const -> HspObjectPath::CallFrame const&;
 
+	auto as_general() const -> HspObjectPath::General const&;
+
 	auto as_log() const -> HspObjectPath::Log const&;
 
 	auto as_script() const -> HspObjectPath::Script const&;
@@ -207,6 +213,8 @@ protected:
 	auto new_call_stack() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_call_frame(std::size_t call_frame_id) const -> std::shared_ptr<HspObjectPath const>;
+
+	auto new_general() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_log() const -> std::shared_ptr<HspObjectPath const>;
 
@@ -825,6 +833,46 @@ public:
 };
 
 // -----------------------------------------------
+// 全般
+// -----------------------------------------------
+
+class HspObjectPath::General final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+
+public:
+	General(std::shared_ptr<HspObjectPath const> parent);
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::General;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
+	}
+
+	auto child_count(HspObjects& objects) const -> std::size_t override {
+		return 0;
+	}
+
+	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override {
+		assert(false && u8"no children");
+		throw std::exception{};
+	}
+
+	auto name(HspObjects& objects) const -> Utf8String override {
+		return to_owned(as_utf8(u8"全般"));
+	}
+
+	auto content(HspObjects& objects) const -> Utf8StringView;
+};
+
+// -----------------------------------------------
 // ログ
 // -----------------------------------------------
 
@@ -1027,6 +1075,10 @@ public:
 	}
 
 	virtual void on_call_frame(HspObjectPath::CallFrame const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_general(HspObjectPath::General const& path) {
 		accept_default(path);
 	}
 

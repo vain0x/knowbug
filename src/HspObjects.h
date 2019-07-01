@@ -10,6 +10,7 @@ namespace hpiutil {
 	class DInfo;
 }
 
+class DebugInfo;
 class HspDebugApi;
 class HspStaticVars;
 
@@ -55,8 +56,10 @@ private:
 	std::vector<Module> modules_;
 	std::vector<TypeData> types_;
 
+	Utf8String general_content_;
+
 public:
-	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment);
+	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info_, hpiutil::DInfo const& debug_segment);
 
 	auto root_path() const->HspObjectPath::Root const&;
 
@@ -134,6 +137,8 @@ public:
 	auto call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t;
 
 	auto call_frame_path_to_child_at(HspObjectPath::CallFrame const& path, std::size_t child_index) const -> std::optional<std::shared_ptr<HspObjectPath const>>;
+
+	auto general_to_content() const -> Utf8StringView;
 
 	auto log_to_content() const -> Utf8StringView;
 

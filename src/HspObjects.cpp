@@ -1,6 +1,7 @@
 #include "hpiutil/hpiutil.hpp"
 #include "hpiutil/DInfo.hpp"
 #include "WrapCall/WrapCall.h"
+#include "DebugInfo.h"
 #include "HspDebugApi.h"
 #include "HspObjects.h"
 #include "HspStaticVars.h"
@@ -81,6 +82,19 @@ static auto create_type_datas() -> std::vector<HspObjects::TypeData> {
 	types.emplace_back(ascii_to_utf8(u8"struct"));
 	types.emplace_back(ascii_to_utf8(u8"comobj"));
 	return types;
+}
+
+static auto create_general_content(DebugInfo const& debug_info) -> Utf8String {
+	auto kvs = debug_info.fetchGeneralInfo();
+
+	auto buffer = Utf8String{};
+	for (auto&& kv : kvs) {
+		buffer += to_utf8(as_hsp(std::move(kv.first)));
+		buffer += as_utf8(u8" = ");
+		buffer += to_utf8(as_hsp(std::move(kv.second)));
+		buffer += as_utf8(u8"\r\n");
+	}
+	return buffer;
 }
 
 static auto path_to_pval(HspObjectPath const& path, HspDebugApi& api) -> std::optional<PVal*> {
@@ -301,7 +315,7 @@ static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugA
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment)
+HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info, hpiutil::DInfo const& debug_segment)
 	: api_(api)
 	, logger_(logger)
 	, scripts_(scripts)
@@ -310,6 +324,7 @@ HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts,
 	, root_path_(std::make_shared<HspObjectPath::Root>())
 	, modules_(group_vars_by_module(static_vars.get_all_names()))
 	, types_(create_type_datas())
+	, general_content_(create_general_content(debug_info))
 {
 }
 
@@ -705,6 +720,10 @@ auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& pat
 	auto&& param_data = api_.param_stack_to_data_at(*param_stack_opt, child_index);
 	auto param_type = api_.param_data_to_type(param_data);
 	return std::make_optional(path.new_param(param_type, param_data.param_index()));
+}
+
+auto HspObjects::general_to_content() const -> Utf8StringView {
+	return general_content_;
 }
 
 auto HspObjects::log_to_content() const -> Utf8StringView {

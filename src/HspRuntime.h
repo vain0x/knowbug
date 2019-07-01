@@ -6,6 +6,7 @@
 #include "HspObjectTree.h"
 #include "HspStaticVars.h"
 
+class DebugInfo;
 class SourceFileResolver;
 
 // FIXME: 名前がよくないので変える
@@ -21,7 +22,7 @@ class HspRuntime {
 	std::unique_ptr<HspObjectTree> object_tree_;
 
 public:
-	HspRuntime(HspDebugApi&& api_, SourceFileResolver& source_file_resolver);
+	HspRuntime(HspDebugApi&& api_, DebugInfo const& debug_info, SourceFileResolver& source_file_resolver);
 
 	auto logger() -> HspLogger& {
 		return *logger_;

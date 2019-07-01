@@ -57,12 +57,12 @@ public:
 	}
 };
 
-HspRuntime::HspRuntime(HspDebugApi&& api, SourceFileResolver& source_file_resolver)
+HspRuntime::HspRuntime(HspDebugApi&& api, DebugInfo const& debug_info, SourceFileResolver& source_file_resolver)
 	: api_(std::move(api))
 	, logger_(std::make_unique<HspLoggerImpl>())
 	, scripts_(std::make_unique<HspScriptsImpl>(source_file_resolver))
 	, static_vars_(api_)
-	, objects_(api_, *logger_, *scripts_, static_vars_, hpiutil::DInfo::instance())
+	, objects_(api_, *logger_, *scripts_, static_vars_, debug_info, hpiutil::DInfo::instance())
 	, object_tree_(HspObjectTree::create(objects_))
 {
 }
