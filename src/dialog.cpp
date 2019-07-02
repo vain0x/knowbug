@@ -354,6 +354,14 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		case WM_SIZE:
 			resizeMainWindow(LOWORD(lp), HIWORD(lp), true);
 			break;
+		case WM_ACTIVATE:
+			{
+				auto is_activated = LOWORD(wp) != 0;
+				if (g_res && is_activated) {
+					SetWindowPos(g_res->viewWindow.get(), hDlg, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+				}
+				break;
+			}
 		case WM_CREATE: return TRUE;
 		case WM_CLOSE: return FALSE;
 		case WM_DESTROY:
