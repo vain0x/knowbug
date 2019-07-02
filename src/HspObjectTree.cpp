@@ -178,7 +178,10 @@ private:
 		if (node.parent() != node_id) {
 			auto&& parent = nodes_.at(node.parent());
 			auto&& siblings = parent.children();
-			siblings.erase(std::find(std::begin(siblings), std::end(siblings), node_id));
+			auto&& iter = std::find(siblings.begin(), siblings.end(), node_id);
+			if (iter != siblings.end()) {
+				siblings.erase(iter);
+			}
 		}
 
 		for (auto&& observer_weak : observers_) {

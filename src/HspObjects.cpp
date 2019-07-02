@@ -286,6 +286,7 @@ static auto path_to_param_stack(HspObjectPath const& path, HspDebugApi& api) -> 
 			return std::make_optional<HspParamStack>(param_stack);
 		}
 	default:
+		assert(false && u8"param_stack が取れるべき");
 		return std::nullopt;
 	}
 }
@@ -295,7 +296,6 @@ static auto param_path_to_param_data(HspObjectPath::Param const& path, HspDebugA
 
 	auto&& param_stack = path_to_param_stack(parent, api);
 	if (!param_stack) {
-		assert(false && u8"param の親要素から param_stack が取れるはず");
 		return std::nullopt;
 	}
 
@@ -489,8 +489,12 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 }
 
 auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> Utf8String {
-	auto&& param_data = param_path_to_param_data(path, api_);
-	auto&& name = api_.param_to_name(param_data->param(), param_data->param_index(), debug_segment_);
+	auto&& param_data_opt = param_path_to_param_data(path, api_);
+	if (!param_data_opt) {
+		return to_owned(as_utf8(u8"<unavailable>"));
+	}
+
+	auto&& name = api_.param_to_name(param_data_opt->param(), param_data_opt->param_index(), debug_segment_);
 	return to_utf8(as_hsp(std::move(name)));
 }
 
