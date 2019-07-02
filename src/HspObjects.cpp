@@ -286,6 +286,7 @@ static auto path_to_param_stack(HspObjectPath const& path, HspDebugApi& api) -> 
 			return std::make_optional<HspParamStack>(param_stack);
 		}
 	default:
+		assert(false && u8"param_stack が取れるべき");
 		return std::nullopt;
 	}
 }
@@ -295,7 +296,6 @@ static auto param_path_to_param_data(HspObjectPath::Param const& path, HspDebugA
 
 	auto&& param_stack = path_to_param_stack(parent, api);
 	if (!param_stack) {
-		assert(false && u8"param の親要素から param_stack が取れるはず");
 		return std::nullopt;
 	}
 
