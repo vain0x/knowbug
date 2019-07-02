@@ -481,8 +481,11 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 
 	for ( auto&& hwnd : windowHandles() ) {
 		UpdateWindow(hwnd);
-		ShowWindow(hwnd, SW_SHOW);
+		ShowWindow(hwnd, SW_SHOWNOACTIVATE);
 	}
+
+	// 他のウィンドウより後ろに移動する (Z オーダーを下げる)
+	SetWindowPos(hViewWnd.get(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
 void Dialog::destroyMain()
