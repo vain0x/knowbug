@@ -10,12 +10,16 @@ static auto pval_to_type(PVal const* pval) -> HspType {
 	return (HspType)pval->flag;
 }
 
+static auto label_ptr_to_data(HspLabel* ptr) -> HspData {
+	return HspData{ HspType::Label, (PDAT*)ptr };
+}
+
 static auto str_ptr_to_data(HspStr value) -> HspData {
 	return HspData{ HspType::Str, (PDAT*)value };
 }
 
-static auto double_ptr_to_data(HspDouble* value) -> HspData {
-	return HspData{ HspType::Str, (PDAT*)value };
+static auto double_ptr_to_data(HspDouble* ptr) -> HspData {
+	return HspData{ HspType::Double, (PDAT*)ptr };
 }
 
 static auto int_ptr_to_data(HspInt* ptr) -> HspData {
@@ -181,6 +185,18 @@ auto HspDebugApi::var_element_to_block_memory(PVal* pval, std::size_t aptr) -> H
 
 	auto pdat = hpiutil::PVal_getPtr(pval, aptr);
 	return var_data_to_block_memory(pval, pdat);
+}
+
+auto HspDebugApi::mp_var_data_to_pval(MPVarData* var_data) -> PVal* {
+	assert(var_data != nullptr);
+	assert(var_data->pval != nullptr);
+	return var_data->pval;
+}
+
+auto HspDebugApi::mp_var_data_to_aptr(MPVarData* var_data) -> std::size_t {
+	assert(var_data != nullptr);
+	assert(var_data->aptr >= 0);
+	return var_data->aptr;
 }
 
 auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) -> std::optional<HspData> {
@@ -420,12 +436,30 @@ auto HspDebugApi::param_data_as_local_var(HspParamData const& param_data) const 
 	return UNSAFE((PVal*)param_data.ptr());
 }
 
+auto HspDebugApi::param_data_to_single_var(HspParamData const& param_data) const -> MPVarData* {
+	auto type = param_data_to_type(param_data);
+	if (type != MPTYPE_SINGLEVAR && type != MPTYPE_ARRAYVAR) {
+		assert(false && u8"Casting to local var");
+		throw new std::bad_cast{};
+	}
+	return UNSAFE((MPVarData*)param_data.ptr());
+}
+
+auto HspDebugApi::param_data_to_array_var(HspParamData const& param_data) const -> MPVarData* {
+	return param_data_to_single_var(param_data);
+}
+
 auto HspDebugApi::param_data_to_data(HspParamData const& param_data) const -> std::optional<HspData> {
 	if (!param_data.safety()) {
 		return std::nullopt;
 	}
 
 	switch (param_data_to_type(param_data)) {
+	case MPTYPE_LABEL:
+		{
+			auto ptr = UNSAFE((HspLabel*)param_data.ptr());
+			return std::make_optional(label_ptr_to_data(ptr));
+		}
 	case MPTYPE_LOCALSTRING:
 		{
 			auto str = UNSAFE(*(char**)param_data.ptr());

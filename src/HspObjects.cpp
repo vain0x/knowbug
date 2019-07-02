@@ -116,11 +116,22 @@ static auto path_to_pval(HspObjectPath const& path, HspDebugApi& api) -> std::op
 			}
 			auto&& param_data = *param_data_opt;
 
-			if (api.param_data_to_type(param_data) == MPTYPE_LOCALVAR) {
-				auto pval = api.param_data_as_local_var(param_data);
-				return std::make_optional(pval);
+			switch (api.param_data_to_type(param_data)) {
+			case MPTYPE_LOCALVAR:
+				{
+					auto pval = api.param_data_as_local_var(param_data);
+					return std::make_optional(pval);
+				}
+			case MPTYPE_SINGLEVAR:
+			case MPTYPE_ARRAYVAR:
+				{
+					auto mp_var_data = api.param_data_to_single_var(param_data);
+					auto pval = api.mp_var_data_to_pval(mp_var_data);
+					return std::make_optional(pval);
+				}
+			default:
+				return std::nullopt;
 			}
-			return std::nullopt;
 		}
 	default:
 		return std::nullopt;
@@ -453,8 +464,13 @@ auto HspObjects::element_path_to_name(HspObjectPath::Element const& path) const 
 auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t {
 	switch (path.param_type()) {
 	case MPTYPE_LOCALVAR:
+	case MPTYPE_ARRAYVAR:
 		return var_path_to_child_count(path, api_);
 
+	case MPTYPE_SINGLEVAR:
+		return 1;
+
+	case MPTYPE_LABEL:
 	case MPTYPE_LOCALSTRING:
 	case MPTYPE_DNUM:
 	case MPTYPE_INUM:
@@ -471,7 +487,29 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 
 	switch (path.param_type()) {
 	case MPTYPE_LOCALVAR:
+	case MPTYPE_ARRAYVAR:
 		return var_path_to_child_at(path, child_index, api_);
+
+	case MPTYPE_SINGLEVAR:
+		{
+			auto param_data_opt = param_path_to_param_data(path, api_);
+			if (!param_data_opt) {
+				return path.new_unavailable(to_owned(as_utf8(u8"引数データを取得できません")));
+			}
+
+			auto var_data = api_.param_data_to_single_var(*param_data_opt);
+			auto pval = api_.mp_var_data_to_pval(var_data);
+			auto aptr = api_.mp_var_data_to_aptr(var_data);
+			if (aptr >= api_.var_to_element_count(pval)) {
+				return path.new_unavailable(to_owned(as_utf8(u8"引数に渡された要素が存在しません")));
+			}
+
+			auto indexes = api_.var_element_to_indexes(pval, aptr);
+			return path.new_element(indexes);
+		}
+
+	case MPTYPE_LABEL:
+		return path.new_label();
 
 	case MPTYPE_LOCALSTRING:
 		return path.new_str();

@@ -399,6 +399,7 @@ class HspObjectPath::Param final
 
 public:
 	using HspObjectPath::new_element;
+	using HspObjectPath::new_label;
 	using HspObjectPath::new_str;
 	using HspObjectPath::new_double;
 	using HspObjectPath::new_int;
