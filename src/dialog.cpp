@@ -155,45 +155,39 @@ static void CurrentUpdate()
 // ツリーノードのコンテキストメニュー
 void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 {
-	struct GetPopMenu
-		: public VTNodeData::Visitor
-	{
-		void fInvoke(VTNodeInvoke const&) override
-		{
-			hPop = g_res->invokeMenu.get();
-		}
-		void fLog(VTNodeLog const&) override
-		{
-			hPop = g_res->logMenu.get();
-		}
-		auto apply(VTNodeData const& node) -> HMENU
-		{
-			hPop = g_res->nodeMenu.get(); // default
-			node.acceptVisitor(*this);
-			return hPop;
-		}
-	private:
-		HMENU hPop;
-	};
+	auto&& path_opt = g_res->tv->item_to_path(hItem);
+	if (!path_opt) {
+		return;
+	}
 
-	auto node = g_res->tv->tryGetNodeData(hItem);
-	if ( ! node ) return;
-	auto const hPop = GetPopMenu {}.apply(*node);
+	HMENU pop_menu;
+	switch ((**path_opt).kind()) {
+	case HspObjectKind::CallFrame:
+		pop_menu = g_res->invokeMenu.get();
+		break;
+	case HspObjectKind::Log:
+		pop_menu = g_res->logMenu.get();
+		break;
+	default:
+		pop_menu = g_res->nodeMenu.get();
+		break;
+	}
 
 	// ポップアップメニューを表示する
 	auto const idSelected =
 		TrackPopupMenuEx
-			( hPop, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD)
+			( pop_menu, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD)
 			, pt.x, pt.y, g_res->mainWindow.get(), nullptr);
 
 	switch ( idSelected ) {
-		case 0: break;
-		case IDC_NODE_UPDATE: View::update(); break;
+		case 0:
+			break;
+
+		case IDC_NODE_UPDATE:
+			View::update();
+			break;
+
 		case IDC_NODE_LOG: {
-			auto&& path_opt = g_res->tv->item_to_path(hItem);
-			if (!path_opt) {
-				return;
-			}
 			Knowbug::add_object_text_to_log(*std::move(path_opt));
 			break;
 		}
