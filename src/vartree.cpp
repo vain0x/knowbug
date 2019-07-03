@@ -303,6 +303,16 @@ public:
 			node_handles_.erase(node_id);
 		}
 	}
+
+	auto selected_node_id() -> std::optional<std::size_t> {
+		auto item = tv().selected_item();
+
+		auto&& iter = node_ids_.find(item);
+		if (iter == node_ids_.end()) {
+			return std::nullopt;
+		}
+		return std::make_optional(iter->second);
+	}
 };
 
 VTView::VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars, HspObjectTree& object_tree, HWND tv_handle)
@@ -571,6 +581,21 @@ void VTView::updateViewWindow(AbstractViewBox& view_box)
 		} else {
 			Dialog::View::scroll(p_->viewCaretFromNode(hItem), 0);
 		}
+	}
+}
+
+void VTView::did_log_change() {
+	auto log_is_selected = false;
+	if (auto&& node_id_opt = p_->tree_observer_->selected_node_id()) {
+		if (auto&& path_opt = object_tree_.path(*node_id_opt)) {
+			if ((*path_opt)->kind() == HspObjectKind::Log) {
+				log_is_selected = true;
+			}
+		}
+	}
+
+	if (log_is_selected) {
+		update();
 	}
 }
 

@@ -51,6 +51,8 @@ public:
 
 	void selectNode(VTNodeData const&);
 
+	void did_log_change();
+
 private:
 	struct Impl;
 	unique_ptr<Impl> p_;

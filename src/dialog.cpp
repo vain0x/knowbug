@@ -505,6 +505,12 @@ void update()
 	g_res->tv->update();
 }
 
+void did_log_change() {
+	if (g_res && g_res->tv) {
+		g_res->tv->did_log_change();
+	}
+}
+
 void setEditStyle( HWND hEdit )
 {
 	Edit_SetTabLength(hEdit, g_config->tabwidth);

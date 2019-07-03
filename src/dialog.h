@@ -23,6 +23,8 @@ void destroyMain();
 
 void update();
 
+void did_log_change();
+
 namespace View {
 
 void setText(OsStringView const& text);
