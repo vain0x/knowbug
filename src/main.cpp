@@ -159,6 +159,14 @@ namespace Knowbug
 		logmesWarning(as_view(to_os(as_hsp(msg))));
 	}
 
+	void clear_log() {
+		if (!Dialog::confirm_to_clear_log()) {
+			return;
+		}
+
+		g_hsp_runtime->logger().clear();
+	}
+
 	void open_current_script_file() {
 		auto file_ref_name = to_os(as_hsp(g_dbginfo->curPos().fileRefName()));
 		auto&& full_path_opt = Knowbug::get_source_file_resolver()->find_full_path(as_view(file_ref_name));

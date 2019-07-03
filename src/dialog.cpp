@@ -132,22 +132,6 @@ void update()
 } // namespace View
 
 namespace LogBox {
-
-	void clear(Logger& logger)
-	{
-		if (g_config->warnsBeforeClearingLog) {
-			auto msg = TEXT("ログをすべて消去しますか？");
-			auto ok = MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OKCANCEL) == IDOK;
-
-			if (!ok) {
-				return;
-			}
-		}
-
-		// FIXME: HspLogger の方は消えてない
-		logger.clear();
-	}
-
 	static void do_save(OsStringView const& filepath, Logger& logger) {
 		auto success = logger.save(filepath);
 
@@ -245,7 +229,11 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		}
 #endif //defined(with_WrapCall)
 		case IDC_LOG_SAVE: LogBox::save(*Knowbug::get_logger()); break;
-		case IDC_LOG_CLEAR: LogBox::clear(*Knowbug::get_logger()); break;
+
+		case IDC_LOG_CLEAR:
+			Knowbug::clear_log();
+			break;
+
 		default:
 			assert(false && u8"Unknown popup menu command ID");
 			throw std::exception{};
@@ -514,6 +502,18 @@ void did_log_change() {
 void setEditStyle( HWND hEdit )
 {
 	Edit_SetTabLength(hEdit, g_config->tabwidth);
+}
+
+auto confirm_to_clear_log() -> bool {
+	if (g_config->warnsBeforeClearingLog) {
+		auto msg = TEXT("ログをすべて消去しますか？");
+		auto ok = MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OKCANCEL) == IDOK;
+
+		if (!ok) {
+			return false;
+		}
+	}
+	return true;
 }
 
 } // namespace Dialog

@@ -25,6 +25,8 @@ void update();
 
 void did_log_change();
 
+auto confirm_to_clear_log() -> bool;
+
 namespace View {
 
 void setText(OsStringView const& text);
