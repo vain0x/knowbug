@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <CommCtrl.h>
 
+#include "module/CStrBuf.h"
+#include "module/CStrWriter.h"
 #include "module/GuiUtility.h"
 
 #include "main.h"
@@ -510,9 +512,13 @@ void VTView::updateViewWindow(AbstractViewBox& view_box)
 					auto&& path = *path_opt;
 					auto&& item_handle = *item_handle_opt;
 
-					auto varinf = CVarinfoText{ debug_segment_, objects_, static_vars_ };
-					varinf.add(*path);
-					auto text = to_os(as_utf8(varinf.getString().data()));
+					// 文字列を生成する。
+					static auto const MAX_TEXT_LENGTH = std::size_t{ 0x8000 };
+					auto buffer = std::make_shared<CStrBuf>();
+					buffer->limit(MAX_TEXT_LENGTH);
+					auto writer = CStrWriter{ buffer };
+					HspObjectWriter{ objects_, writer }.write_table_form(*path);
+					auto text = to_os(as_utf8(buffer->getMove()));
 
 					// ビューウィンドウに反映する。
 					// スクロール位置を保存して、文字列を交換して、スクロール位置を適切に戻す。
