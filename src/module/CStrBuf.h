@@ -16,6 +16,8 @@ public:
 
 	auto get() -> string const& { return buf_; }
 	auto getMove() -> string&& { return std::move(buf_); }
+
+	auto is_full() const -> bool;
 private:
 	string buf_;
 	size_t lenLimit_;

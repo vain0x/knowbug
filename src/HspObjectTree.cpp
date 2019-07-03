@@ -5,6 +5,8 @@
 #include "HspObjects.h"
 #include "HspObjectTree.h"
 
+static auto const MAX_CHILD_COUNT = std::size_t{ 3000 };
+
 class Node {
 	std::size_t parent_;
 	std::shared_ptr<HspObjectPath const> path_;
@@ -237,7 +239,7 @@ private:
 		}
 
 		// 挿入
-		for (auto i = n; i < child_count; i++) {
+		for (auto i = n; i < std::min(MAX_CHILD_COUNT, child_count); i++) {
 			auto&& child_path = path.child_at(i, objects());
 
 			auto child_node_id = create_node(node_id, child_path);
@@ -261,4 +263,3 @@ private:
 auto HspObjectTree::create(HspObjects& objects) -> std::unique_ptr<HspObjectTree> {
 	return std::unique_ptr<HspObjectTree>{ std::make_unique<HspObjectTreeImpl>(objects) };
 }
-

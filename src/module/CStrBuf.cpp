@@ -11,6 +11,10 @@ CStrBuf::CStrBuf()
 {
 }
 
+auto CStrBuf::is_full() const -> bool {
+	return lenLimit_ == 0;
+}
+
 void CStrBuf::limit(size_t newLimit)
 {
 	assert(newLimit >= stc_warningLength);
