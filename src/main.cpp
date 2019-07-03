@@ -167,6 +167,23 @@ namespace Knowbug
 		g_hsp_runtime->logger().clear();
 	}
 
+	void save_log() {
+		auto&& file_path_opt = Dialog::select_save_log_file();
+		if (!file_path_opt) {
+			return;
+		}
+
+		auto&& content = g_hsp_runtime->logger().content();
+
+		auto file_stream = std::ofstream{ file_path_opt->data() };
+		file_stream.write(as_native(content).data(), content.size());
+		auto success = file_stream.good();
+
+		if (!success) {
+			Dialog::notify_save_failure();
+		}
+	}
+
 	void open_current_script_file() {
 		auto file_ref_name = to_os(as_hsp(g_dbginfo->curPos().fileRefName()));
 		auto&& full_path_opt = Knowbug::get_source_file_resolver()->find_full_path(as_view(file_ref_name));

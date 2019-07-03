@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <optional>
 #include <Windows.h>
 #include "encoding.h"
 
@@ -26,6 +27,10 @@ void update();
 void did_log_change();
 
 auto confirm_to_clear_log() -> bool;
+
+auto select_save_log_file() -> std::optional<OsString>;
+
+void notify_save_failure();
 
 namespace View {
 

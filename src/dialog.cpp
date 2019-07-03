@@ -131,32 +131,6 @@ void update()
 
 } // namespace View
 
-namespace LogBox {
-	static void do_save(OsStringView const& filepath, Logger& logger) {
-		auto success = logger.save(filepath);
-
-		if (!success) {
-			auto msg = TEXT("ログの保存に失敗しました。");
-			MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OK);
-		}
-	}
-
-	void save(Logger& logger) {
-		static auto const filter =
-			TEXT("log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0");
-		auto path = Dialog_SaveFileName(
-			g_res->mainWindow.get(),
-			filter,
-			TEXT("log"),
-			TEXT("hspdbg.log")
-		);
-
-		if (path) {
-			do_save(as_view(*path), logger);
-		}
-	}
-} //namespace LogBox
-
 // ソース小窓の更新
 static void UpdateCurInfEdit(hpiutil::SourcePos const& spos)
 {
@@ -228,7 +202,9 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 			break;
 		}
 #endif //defined(with_WrapCall)
-		case IDC_LOG_SAVE: LogBox::save(*Knowbug::get_logger()); break;
+		case IDC_LOG_SAVE:
+			Knowbug::save_log();
+			break;
 
 		case IDC_LOG_CLEAR:
 			Knowbug::clear_log();
@@ -514,6 +490,29 @@ auto confirm_to_clear_log() -> bool {
 		}
 	}
 	return true;
+}
+
+auto select_save_log_file() -> std::optional<OsString> {
+	static auto const filter =
+		TEXT("log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0");
+
+	auto path = Dialog_SaveFileName(
+		g_res->mainWindow.get(),
+		filter,
+		TEXT("log"),
+		TEXT("hspdbg.log")
+	);
+
+	if (!path) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(*std::move(path));
+}
+
+void notify_save_failure() {
+	auto msg = TEXT("ログの保存に失敗しました。");
+	MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OK);
 }
 
 } // namespace Dialog
