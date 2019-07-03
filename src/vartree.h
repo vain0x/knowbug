@@ -14,10 +14,6 @@
 class HspObjects;
 class HspObjectTree;
 
-namespace detail {
-struct TvObserver;
-} // namespace detail
-
 class AbstractViewBox {
 public:
 	virtual ~AbstractViewBox() {
@@ -62,6 +58,4 @@ private:
 	HspObjects& objects_;
 	HspStaticVars& static_vars_;
 	HspObjectTree& object_tree_;
-
-	friend struct detail::TvObserver;
 };

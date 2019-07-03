@@ -78,7 +78,6 @@ public:
 #ifdef with_WrapCall
 using WrapCall::ModcmdCallInfo;
 #endif
-using detail::TvObserver;
 
 class HspObjectTreeObserverImpl;
 
@@ -170,8 +169,6 @@ struct VTView::Impl
 	//ノードごとのビューウィンドウのキャレット位置
 	unordered_map<HTREEITEM, int> viewCaret_;
 
-	shared_ptr<TvObserver> observer_;
-
 	HTREEITEM hNodeDynamic_, hNodeScript_, hNodeLog_;
 
 	std::shared_ptr<HspObjectTreeObserverImpl> tree_observer_;
@@ -181,16 +178,6 @@ public:
 	auto itemFromNode(VTNodeData const* p) const -> HTREEITEM;
 
 	auto viewCaretFromNode(HTREEITEM hItem) const -> int;
-};
-
-struct TvObserver
-	: VTNodeData::Observer
-{
-	VTView::Impl& self;
-public:
-	TvObserver(VTView::Impl& self);
-	void onInit(VTNodeData& node) override;
-	void onTerm(VTNodeData& node) override;
 };
 
 class HspObjectTreeObserverImpl
@@ -306,10 +293,6 @@ VTView::VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStat
 	, object_tree_(object_tree)
 	, p_(new Impl { *this })
 {
-	// Register observers
-	p_->observer_ = std::make_shared<TvObserver>(*p_);
-	VTNodeData::registerObserver(p_->observer_);
-
 	// Initialize tree
 	VTRoot::instance().updateDeep();
 
@@ -333,45 +316,6 @@ auto VTView::Impl::itemFromNode(VTNodeData const* p) const -> HTREEITEM
 {
 	auto const iter = itemFromNode_.find(p);
 	return (iter != itemFromNode_.end()) ? iter->second : nullptr;
-}
-
-TvObserver::TvObserver(VTView::Impl& self)
-	: self(self)
-{
-	self.itemFromNode_[&VTRoot::instance()] = TVI_ROOT;
-}
-
-void TvObserver::onInit(VTNodeData& node)
-{
-	auto tv = VarTreeView{ hwndVarTree };
-
-	auto const parent = node.parent();
-	if ( ! parent ) return; // VTRoot
-
-	auto const hParent = self.itemFromNode(parent);
-	assert(hParent != nullptr);
-
-	auto name = to_os(as_hsp(makeNodeName(node)));
-	auto const hItem = tv.insert_item(hParent, as_view(name), &node);
-
-	assert(self.itemFromNode_[&node] == nullptr);
-	self.itemFromNode_[&node] = hItem;
-
-	self.viewCaret_.erase(hItem);
-
-	if ( isAutoOpenNode(*parent) ) {
-		tv.expand_item(hParent);
-	}
-}
-
-void TvObserver::onTerm(VTNodeData& node)
-{
-	auto tv = VarTreeView{ hwndVarTree };
-
-	if ( auto const hItem = self.itemFromNode(&node) ) {
-		self.itemFromNode_[&node] = nullptr;
-		tv.delete_item(hItem);
-	}
 }
 
 void VTView::update()
