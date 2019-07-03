@@ -193,15 +193,6 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 			Knowbug::logmes(as_view(*g_res->tv->getItemVarText(hItem)));
 			break;
 		}
-#ifdef with_WrapCall
-		case IDC_NODE_STEP_OUT: {
-			if ( auto nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {
-				// 対象が呼び出された階層まで進む
-				Knowbug::step_run(StepControl::step_return(nodeInvoke->callinfo().sublev));
-			}
-			break;
-		}
-#endif //defined(with_WrapCall)
 		case IDC_LOG_SAVE:
 			Knowbug::save_log();
 			break;
