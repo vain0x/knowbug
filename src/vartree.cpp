@@ -77,7 +77,6 @@ public:
 using WrapCall::ModcmdCallInfo;
 #endif
 using detail::TvObserver;
-using detail::VarTreeLogObserver;
 
 class HspObjectTreeObserverImpl;
 
@@ -170,7 +169,6 @@ struct VTView::Impl
 	unordered_map<HTREEITEM, int> viewCaret_;
 
 	shared_ptr<TvObserver> observer_;
-	shared_ptr<LogObserver> logObserver_;
 
 	HTREEITEM hNodeDynamic_, hNodeScript_, hNodeLog_;
 
@@ -191,15 +189,6 @@ public:
 	TvObserver(VTView::Impl& self);
 	void onInit(VTNodeData& node) override;
 	void onTerm(VTNodeData& node) override;
-};
-
-struct VarTreeLogObserver
-	: LogObserver
-{
-	VTView::Impl& self;
-public:
-	VarTreeLogObserver(VTView::Impl& self) : self(self) {}
-	void did_change() override;
 };
 
 class HspObjectTreeObserverImpl
@@ -319,9 +308,6 @@ VTView::VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStat
 	p_->observer_ = std::make_shared<TvObserver>(*p_);
 	VTNodeData::registerObserver(p_->observer_);
 
-	p_->logObserver_ = std::make_shared<VarTreeLogObserver>(*p_);
-	VTRoot::log().setLogObserver(p_->logObserver_);
-
 	// Initialize tree
 	VTRoot::instance().updateDeep();
 
@@ -383,15 +369,6 @@ void TvObserver::onTerm(VTNodeData& node)
 	if ( auto const hItem = self.itemFromNode(&node) ) {
 		self.itemFromNode_[&node] = nullptr;
 		tv.delete_item(hItem);
-	}
-}
-
-void VarTreeLogObserver::did_change()
-{
-	auto tv = VarTreeView{ hwndVarTree };
-
-	if ( tv.selected_item() == self.hNodeLog_ ) {
-		Dialog::View::update();
 	}
 }
 

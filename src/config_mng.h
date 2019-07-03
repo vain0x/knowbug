@@ -8,7 +8,6 @@
 #include "module/handle_deleter.hpp"
 
 struct KnowbugConfig;
-class Logger;
 
 extern std::unique_ptr<KnowbugConfig> g_knowbug_config;
 

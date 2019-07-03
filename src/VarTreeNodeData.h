@@ -13,8 +13,6 @@
 
 class HspObjectPath;
 class HspStaticVars;
-class LogObserver;
-class Logger;
 class SourceFileResolver;
 
 class VTNodeVar
@@ -125,8 +123,6 @@ public:
 	auto name() const -> string override { return "+log"; }
 	auto parent() const -> optional_ref<VTNodeData> override;
 	void acceptVisitor(Visitor& visitor) const override { visitor.fLog(*this); }
-
-	void setLogObserver(weak_ptr<LogObserver>);
 };
 
 class VTNodeGeneral

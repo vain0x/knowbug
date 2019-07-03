@@ -30,7 +30,6 @@ using hpiutil::HSPVAR_FLAG_VARIANT;
 
 class HspObjectPath;
 class HspRuntime;
-class Logger;
 class SourceFileResolver;
 
 // FIXME: インターフェイスを抽出

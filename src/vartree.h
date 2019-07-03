@@ -16,7 +16,6 @@ class HspObjectTree;
 
 namespace detail {
 struct TvObserver;
-struct VarTreeLogObserver;
 } // namespace detail
 
 class AbstractViewBox {
@@ -65,5 +64,4 @@ private:
 	HspObjectTree& object_tree_;
 
 	friend struct detail::TvObserver;
-	friend struct detail::VarTreeLogObserver;
 };
