@@ -7,16 +7,14 @@
 #include "main.h"
 #include "module/strf.h"
 #include "DebugInfo.h"
-#include "VarTreeNodeData.h"
-#include "CVarinfoText.h"
 #include "config_mng.h"
 #include "dialog.h"
 #include "StepController.h"
-#include "Logger.h"
 #include "SourceFileResolver.h"
 #include "HspRuntime.h"
 #include "HspDebugApi.h"
 #include "hpiutil/dinfo.hpp"
+#include "HspObjectWriter.h"
 
 // FIXME: グローバル変数はクラスにまとめたい (DllMain で初期化するものと、debugini で初期化するものの2つ)
 static auto g_hInstance = HINSTANCE {};
@@ -78,7 +76,6 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	Dialog::createMain(
 		debug_segment,
 		g_hsp_runtime->objects(),
-		Knowbug::get_hsp_runtime().static_vars(),
 		g_hsp_runtime->object_tree()
 	);
 	return 0;

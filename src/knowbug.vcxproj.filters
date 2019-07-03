@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="class">
-      <UniqueIdentifier>{275ea044-7b87-4f01-a1ec-78305b577e21}</UniqueIdentifier>
-    </Filter>
     <Filter Include="module">
       <UniqueIdentifier>{0e8e0823-bb97-4d73-81f7-d399e205e61d}</UniqueIdentifier>
     </Filter>
@@ -42,9 +39,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CVarinfoText.cpp">
-      <Filter>class</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -65,9 +59,6 @@
     </ClCompile>
     <ClCompile Include="module\CIni.cpp">
       <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="CVardataString.cpp">
-      <Filter>class</Filter>
     </ClCompile>
     <ClCompile Include="module\CStrWriter.cpp">
       <Filter>module</Filter>
@@ -96,18 +87,6 @@
     <ClCompile Include="hpiutil\hspsdk\hsp3plugin.cpp">
       <Filter>module\hspsdk</Filter>
     </ClCompile>
-    <ClCompile Include="VarTreeNodeData.cpp">
-      <Filter>class</Filter>
-    </ClCompile>
-    <ClCompile Include="VTNodeModule.cpp">
-      <Filter>class</Filter>
-    </ClCompile>
-    <ClCompile Include="VTNodeScript.cpp">
-      <Filter>class</Filter>
-    </ClCompile>
-    <ClCompile Include="VTNodeLog.cpp">
-      <Filter>class</Filter>
-    </ClCompile>
     <ClCompile Include="hpiutil\DInfo.cpp">
       <Filter>module\hpiutil</Filter>
     </ClCompile>
@@ -124,9 +103,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="StepController.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Logger.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="HspStaticVars.cpp">
@@ -152,9 +128,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CVarinfoText.h">
-      <Filter>class</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -187,9 +160,6 @@
     </ClInclude>
     <ClInclude Include="DebugInfo.h">
       <Filter>ソース ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="CVardataString.h">
-      <Filter>class</Filter>
     </ClInclude>
     <ClInclude Include="module\CStrWriter.h">
       <Filter>module</Filter>
@@ -254,12 +224,6 @@
     <ClInclude Include="hpiutil\hspsdk\win32gui\hspwnd_win.h">
       <Filter>module\hspsdk</Filter>
     </ClInclude>
-    <ClInclude Include="VarTreeNodeData_fwd.h">
-      <Filter>class</Filter>
-    </ClInclude>
-    <ClInclude Include="VarTreeNodeData.h">
-      <Filter>class</Filter>
-    </ClInclude>
     <ClInclude Include="module\utility.h">
       <Filter>module</Filter>
     </ClInclude>
@@ -276,9 +240,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="StepController.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Logger.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="HspStaticVars.h">

@@ -19,8 +19,8 @@
 #include "vartree.h"
 #include "config_mng.h"
 #include "DebugInfo.h"
-#include "Logger.h"
 #include "SourceFileResolver.h"
+#include "HspObjectPath.h"
 
 #include "module/supio/supio.h"
 
@@ -117,11 +117,6 @@ void selectLine(size_t index)
 		, Edit_LineIndex(hViewEdit, index + 1));
 }
 
-void saveCurrentCaret()
-{
-	g_res->tv->saveCurrentViewCaret(Edit_GetFirstVisibleLine(hViewEdit));
-}
-
 void update()
 {
 	auto view_box = ViewBoxImpl{};
@@ -131,19 +126,9 @@ void update()
 
 } // namespace View
 
-// ソース小窓の更新
 static void UpdateCurInfEdit(hpiutil::SourcePos const& spos)
 {
-	// FIXME: ソース小窓の更新を新モデルに移行
-	auto curinf = spos.toString();
-	HSPAPICHAR *hactmp1;
-
-	if ( auto p = VTRoot::script().fetchScriptLine(spos) ) {
-		SetWindowText(hSrcLine, chartoapichar((curinf + "\r\n" + *p).c_str(),&hactmp1));
-
-	} else {
-		SetWindowText(hSrcLine, chartoapichar(curinf.c_str(),&hactmp1));
-	}
+	// FIXME: スクリプト小窓を更新する
 }
 
 static void CurrentUpdate()
@@ -267,11 +252,11 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_GOTO_LOG: {
-					g_res->tv->selectNode(VTRoot::log());
+					// FIXME: ログノードを選択する。
 					break;
 				}
 				case IDC_GOTO_SCRIPT: {
-					g_res->tv->selectNode(VTRoot::script());
+					// FIXME: スクリプトノードを選択する。
 					break;
 				}
 			}
@@ -296,9 +281,6 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					case NM_RETURN:
 					case TVN_SELCHANGED:
 						View::update();
-						break;
-					case TVN_SELCHANGING:
-						View::saveCurrentCaret();
 						break;
 				}
 			}
@@ -336,7 +318,7 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars, HspObjectTree& object_tree)
+void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspObjectTree& object_tree)
 {
 	auto const dispx = GetSystemMetrics(SM_CXSCREEN);
 	auto const dispy = GetSystemMetrics(SM_CYSCREEN);
@@ -403,7 +385,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 0) } // node
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 1) } // invoke
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 2) } // log
-			, std::make_unique<VTView>(debug_segment, objects, static_vars, object_tree, hVarTree)
+			, std::make_unique<VTView>(debug_segment, objects, object_tree, hVarTree)
 			, {{
 				  GetDlgItem(hPane, IDC_BTN1)
 				, GetDlgItem(hPane, IDC_BTN2)

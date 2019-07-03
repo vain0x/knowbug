@@ -19,7 +19,7 @@ namespace Dialog
 
 auto getVarTreeHandle() -> HWND;
 
-void createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars, HspObjectTree& object_tree);
+void createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspObjectTree& object_tree);
 void destroyMain();
 
 void update();
@@ -39,7 +39,6 @@ void scroll(int y, int x);
 void scrollBottom();
 void selectLine(size_t index);
 void update();
-void saveCurrentCaret();
 
 } // namespace View
 
