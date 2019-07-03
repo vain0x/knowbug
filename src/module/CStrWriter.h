@@ -41,6 +41,8 @@ public:
 	auto get() const -> string const&;
 	auto getBuf() const -> buf_t { return buf_; }
 
+	auto is_full() const -> bool;
+
 	// 出力メソッド
 	void cat(char const* src);
 	void cat(string const& src) { cat(src.c_str()); }

@@ -138,6 +138,8 @@ class HspObjectWriterImpl::BlockForm
 public:
 	BlockForm(HspObjects& objects, CStrWriter& writer);
 
+	void accept(HspObjectPath const& path) override;
+
 	void accept_default(HspObjectPath const& path) override;
 
 	void accept_children(HspObjectPath const& path) override;
@@ -316,6 +318,14 @@ void HspObjectWriterImpl::TableForm::on_script(HspObjectPath::Script const& path
 HspObjectWriterImpl::BlockForm::BlockForm(HspObjects& objects, CStrWriter& writer)
 	: HspObjectWriterImpl(objects, writer)
 {
+}
+
+void HspObjectWriterImpl::BlockForm::accept(HspObjectPath const& path) {
+	if (writer().is_full()) {
+		return;
+	}
+
+	Visitor::accept(path);
 }
 
 void HspObjectWriterImpl::BlockForm::accept_default(HspObjectPath const& path) {
