@@ -28,6 +28,7 @@ using hpiutil::HSPVAR_FLAG_VARIANT;
 //extern HSPCTX* ctx; // declared and defined in hsp3plugin.(h/cpp)
 //extern HSPEXINFO* exinfo;
 
+class HspObjectPath;
 class HspRuntime;
 class Logger;
 class SourceFileResolver;
@@ -51,6 +52,8 @@ namespace Knowbug
 	extern void logmes(OsStringView const& msg);
 	extern void logmesWarning(char const* msg);
 	extern void logmesWarning(OsStringView const& msg);
+
+	extern void add_object_text_to_log(std::shared_ptr<HspObjectPath const> path);
 
 	extern void clear_log();
 

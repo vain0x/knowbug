@@ -53,6 +53,8 @@ public:
 
 	void did_log_change();
 
+	auto item_to_path(HTREEITEM tree_item) -> std::optional<std::shared_ptr<HspObjectPath const>>;
+
 private:
 	struct Impl;
 	unique_ptr<Impl> p_;

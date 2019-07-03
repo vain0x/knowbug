@@ -190,7 +190,11 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 		case 0: break;
 		case IDC_NODE_UPDATE: View::update(); break;
 		case IDC_NODE_LOG: {
-			Knowbug::logmes(as_view(*g_res->tv->getItemVarText(hItem)));
+			auto&& path_opt = g_res->tv->item_to_path(hItem);
+			if (!path_opt) {
+				return;
+			}
+			Knowbug::add_object_text_to_log(*std::move(path_opt));
 			break;
 		}
 		case IDC_LOG_SAVE:

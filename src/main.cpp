@@ -1,6 +1,8 @@
 ﻿
 #include <fstream>
 #include <winapifamily.h>
+#include "module/CStrBuf.h"
+#include "module/CStrWriter.h"
 #include "encoding.h"
 #include "main.h"
 #include "module/strf.h"
@@ -161,6 +163,19 @@ namespace Knowbug
 		logmesWarning(as_view(to_os(as_hsp(msg))));
 	}
 
+	void add_object_text_to_log(std::shared_ptr<HspObjectPath const> path) {
+		auto&& objects = g_hsp_runtime->objects();
+
+		// FIXME: 共通化
+		auto buffer = std::make_shared<CStrBuf>();
+		buffer->limit(8000); // FIXME: 定数を共通化
+		auto writer = CStrWriter{ buffer };
+		HspObjectWriter{ objects, writer }.write_table_form(*path);
+		auto text = as_utf8(buffer->getMove());
+
+		g_hsp_runtime->logger().append(text);
+	}
+
 	void clear_log() {
 		if (!Dialog::confirm_to_clear_log()) {
 			return;
@@ -175,6 +190,8 @@ namespace Knowbug
 		auto file_stream = std::ofstream{ file_path.data() };
 		file_stream.write(as_native(content).data(), content.size());
 		auto success = file_stream.good();
+
+		return success;
 	}
 
 	void save_log() {

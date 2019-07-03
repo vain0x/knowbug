@@ -599,6 +599,15 @@ void VTView::did_log_change() {
 	}
 }
 
+auto VTView::item_to_path(HTREEITEM tree_item) -> std::optional<std::shared_ptr<HspObjectPath const>> {
+	if (auto&& node_id_opt = p_->tree_observer_->selected_node_id()) {
+		if (auto&& path_opt = object_tree_.path(*node_id_opt)) {
+			return path_opt;
+		}
+	}
+	return std::nullopt;
+}
+
 // ノードにつけるべき名前
 auto makeNodeName(VTNodeData const& node) -> string
 {
