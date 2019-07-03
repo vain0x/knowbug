@@ -111,6 +111,8 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 void debugbye()
 {
+	Knowbug::auto_save_log();
+
 	Dialog::destroyMain();
 }
 
@@ -167,21 +169,34 @@ namespace Knowbug
 		g_hsp_runtime->logger().clear();
 	}
 
+	static auto do_save_log(OsStringView const& file_path) -> bool {
+		auto&& content = g_hsp_runtime->logger().content();
+
+		auto file_stream = std::ofstream{ file_path.data() };
+		file_stream.write(as_native(content).data(), content.size());
+		auto success = file_stream.good();
+	}
+
 	void save_log() {
 		auto&& file_path_opt = Dialog::select_save_log_file();
 		if (!file_path_opt) {
 			return;
 		}
 
-		auto&& content = g_hsp_runtime->logger().content();
-
-		auto file_stream = std::ofstream{ file_path_opt->data() };
-		file_stream.write(as_native(content).data(), content.size());
-		auto success = file_stream.good();
-
+		auto success = do_save_log(*file_path_opt);
 		if (!success) {
 			Dialog::notify_save_failure();
 		}
+	}
+
+	void auto_save_log() {
+		auto&& file_path = g_config->logPath;
+		if (file_path.empty()) {
+			return;
+		}
+
+		// NOTE: アプリの終了中なのでエラーを報告しない。
+		do_save_log(file_path);
 	}
 
 	void open_current_script_file() {

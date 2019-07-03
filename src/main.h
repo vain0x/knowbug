@@ -55,6 +55,7 @@ namespace Knowbug
 	extern void clear_log();
 
 	extern void save_log();
+	extern void auto_save_log();
 
 	extern void open_current_script_file();
 	extern void open_config_file();
