@@ -250,11 +250,6 @@ public:
 		return std::make_optional(iter->second);
 	}
 
-	void log(std::string&& text) {
-		auto&& text_os_str = to_os(as_hsp(std::move(text)));
-		Knowbug::get_logger()->append_line(as_view(text_os_str));
-	}
-
 	virtual void did_create(std::size_t node_id) {
 		auto&& path_opt = object_tree_.path(node_id);
 		if (!path_opt) {
@@ -263,7 +258,6 @@ public:
 		auto&& path = *path_opt;
 
 		auto&& name = path->name(objects_);
-		log(strf("create '%s' (%d)", as_native(as_view(name)).data(), node_id));
 
 		{
 			auto node_name = to_os(name);
@@ -291,7 +285,6 @@ public:
 		auto&& path = *path_opt;
 
 		auto&& name = path->name(objects_);
-		log(strf("destroy '%s' (%d)", as_native(as_view(name)).data(), node_id));
 
 		{
 			assert(node_handles_.count(node_id) && u8"存在しないノードが削除されようとしています");

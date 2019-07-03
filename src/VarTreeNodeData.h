@@ -117,10 +117,8 @@ class VTNodeLog
 {
 	friend class VTRoot;
 
-	std::shared_ptr<Logger> logger_;
-
 public:
-	VTNodeLog(std::shared_ptr<Logger> logger);
+	VTNodeLog();
 
 	auto content() const->OsStringView;
 

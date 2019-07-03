@@ -22,7 +22,6 @@
 static auto g_hInstance = HINSTANCE {};
 std::unique_ptr<DebugInfo> g_dbginfo {};
 static std::unique_ptr<KnowbugStepController> g_step_controller_;
-static std::shared_ptr<Logger> g_logger;
 static std::shared_ptr<SourceFileResolver> g_source_file_resolver;
 static std::unique_ptr<HspRuntime> g_hsp_runtime;
 
@@ -62,8 +61,6 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	ctx    = api.context();
 	exinfo = api.exinfo();
 
-	g_logger = std::make_shared<Logger>();
-
 	g_dbginfo.reset(new DebugInfo(p1));
 
 	g_step_controller_ = std::make_unique<KnowbugStepController>(ctx, *g_dbginfo);
@@ -77,8 +74,6 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	g_hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *g_dbginfo, *g_source_file_resolver);
 
 	// 起動時の処理:
-
-	g_logger->enable_auto_save(as_view(g_config->logPath));
 
 	Dialog::createMain(
 		debug_segment,
@@ -103,7 +98,6 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 		case hpiutil::DebugNotice_Logmes:
 			g_hsp_runtime->logger().append(to_utf8(as_hsp(ctx->stmp)));
 			g_hsp_runtime->logger().append(as_utf8(u8"\r\n"));
-			g_logger->append_line(as_view(to_os(as_hsp(ctx->stmp))));
 
 			Dialog::did_log_change();
 			break;
@@ -128,10 +122,6 @@ namespace Knowbug
 		return *g_hsp_runtime;
 	}
 
-	auto get_logger() -> std::shared_ptr<Logger> {
-		return g_logger;
-	}
-
 	auto get_source_file_resolver() -> std::shared_ptr<SourceFileResolver> {
 		return g_source_file_resolver;
 	}
@@ -142,25 +132,6 @@ namespace Knowbug
 
 	bool continueConditionalRun() {
 		return g_step_controller_->continue_step_running();
-	}
-
-	void logmes(OsStringView const& msg) {
-		g_logger->append(msg);
-	}
-
-	void logmes( char const* msg ) {
-		logmes(as_view(to_os(as_hsp(msg))));
-	}
-
-	void logmesWarning(OsStringView const& msg) {
-		g_dbginfo->updateCurInf();
-		auto&& execution_location = to_os(as_hsp(g_dbginfo->getCurInfString().data()));
-
-		g_logger->append_warning(msg, as_view(execution_location));
-	}
-
-	void logmesWarning(char const* msg) {
-		logmesWarning(as_view(to_os(as_hsp(msg))));
 	}
 
 	void add_object_text_to_log(std::shared_ptr<HspObjectPath const> path) {
