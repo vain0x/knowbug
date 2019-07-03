@@ -19,8 +19,8 @@
 #include "vartree.h"
 #include "config_mng.h"
 #include "DebugInfo.h"
-#include "Logger.h"
 #include "SourceFileResolver.h"
+#include "HspObjectPath.h"
 
 #include "module/supio/supio.h"
 
@@ -117,11 +117,6 @@ void selectLine(size_t index)
 		, Edit_LineIndex(hViewEdit, index + 1));
 }
 
-void saveCurrentCaret()
-{
-	g_res->tv->saveCurrentViewCaret(Edit_GetFirstVisibleLine(hViewEdit));
-}
-
 void update()
 {
 	auto view_box = ViewBoxImpl{};
@@ -131,121 +126,54 @@ void update()
 
 } // namespace View
 
-namespace LogBox {
-
-	void clear(Logger& logger)
-	{
-		if (g_config->warnsBeforeClearingLog) {
-			auto msg = TEXT("ログをすべて消去しますか？");
-			auto ok = MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OKCANCEL) == IDOK;
-
-			if (!ok) {
-				return;
-			}
-		}
-
-		// FIXME: HspLogger の方は消えてない
-		logger.clear();
-	}
-
-	static void do_save(OsStringView const& filepath, Logger& logger) {
-		auto success = logger.save(filepath);
-
-		if (!success) {
-			auto msg = TEXT("ログの保存に失敗しました。");
-			MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OK);
-		}
-	}
-
-	void save(Logger& logger) {
-		static auto const filter =
-			TEXT("log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0");
-		auto path = Dialog_SaveFileName(
-			g_res->mainWindow.get(),
-			filter,
-			TEXT("log"),
-			TEXT("hspdbg.log")
-		);
-
-		if (path) {
-			do_save(as_view(*path), logger);
-		}
-	}
-} //namespace LogBox
-
-// ソース小窓の更新
-static void UpdateCurInfEdit(hpiutil::SourcePos const& spos)
-{
-	// FIXME: ソース小窓の更新を新モデルに移行
-	auto curinf = spos.toString();
-	HSPAPICHAR *hactmp1;
-
-	if ( auto p = VTRoot::script().fetchScriptLine(spos) ) {
-		SetWindowText(hSrcLine, chartoapichar((curinf + "\r\n" + *p).c_str(),&hactmp1));
-
-	} else {
-		SetWindowText(hSrcLine, chartoapichar(curinf.c_str(),&hactmp1));
-	}
-}
-
-static void CurrentUpdate()
-{
-	UpdateCurInfEdit(g_dbginfo->curPos());
-}
-
 // FIXME: ツリービューのコンテクストメニューを新モデルに移行
 // ツリーノードのコンテキストメニュー
 void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 {
-	struct GetPopMenu
-		: public VTNodeData::Visitor
-	{
-		void fInvoke(VTNodeInvoke const&) override
-		{
-			hPop = g_res->invokeMenu.get();
-		}
-		void fLog(VTNodeLog const&) override
-		{
-			hPop = g_res->logMenu.get();
-		}
-		auto apply(VTNodeData const& node) -> HMENU
-		{
-			hPop = g_res->nodeMenu.get(); // default
-			node.acceptVisitor(*this);
-			return hPop;
-		}
-	private:
-		HMENU hPop;
-	};
+	auto&& path_opt = g_res->tv->item_to_path(hItem);
+	if (!path_opt) {
+		return;
+	}
 
-	auto node = g_res->tv->tryGetNodeData(hItem);
-	if ( ! node ) return;
-	auto const hPop = GetPopMenu {}.apply(*node);
+	HMENU pop_menu;
+	switch ((**path_opt).kind()) {
+	case HspObjectKind::CallFrame:
+		pop_menu = g_res->invokeMenu.get();
+		break;
+	case HspObjectKind::Log:
+		pop_menu = g_res->logMenu.get();
+		break;
+	default:
+		pop_menu = g_res->nodeMenu.get();
+		break;
+	}
 
 	// ポップアップメニューを表示する
 	auto const idSelected =
 		TrackPopupMenuEx
-			( hPop, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD)
+			( pop_menu, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD)
 			, pt.x, pt.y, g_res->mainWindow.get(), nullptr);
 
 	switch ( idSelected ) {
-		case 0: break;
-		case IDC_NODE_UPDATE: View::update(); break;
+		case 0:
+			break;
+
+		case IDC_NODE_UPDATE:
+			View::update();
+			break;
+
 		case IDC_NODE_LOG: {
-			Knowbug::logmes(as_view(*g_res->tv->getItemVarText(hItem)));
+			Knowbug::add_object_text_to_log(*std::move(path_opt));
 			break;
 		}
-#ifdef with_WrapCall
-		case IDC_NODE_STEP_OUT: {
-			if ( auto nodeInvoke = dynamic_cast<VTNodeInvoke const*>(node) ) {
-				// 対象が呼び出された階層まで進む
-				Knowbug::step_run(StepControl::step_return(nodeInvoke->callinfo().sublev));
-			}
+		case IDC_LOG_SAVE:
+			Knowbug::save_log();
 			break;
-		}
-#endif //defined(with_WrapCall)
-		case IDC_LOG_SAVE: LogBox::save(*Knowbug::get_logger()); break;
-		case IDC_LOG_CLEAR: LogBox::clear(*Knowbug::get_logger()); break;
+
+		case IDC_LOG_CLEAR:
+			Knowbug::clear_log();
+			break;
+
 		default:
 			assert(false && u8"Unknown popup menu command ID");
 			throw std::exception{};
@@ -314,11 +242,11 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					break;
 				}
 				case IDC_GOTO_LOG: {
-					g_res->tv->selectNode(VTRoot::log());
+					// FIXME: ログノードを選択する。
 					break;
 				}
 				case IDC_GOTO_SCRIPT: {
-					g_res->tv->selectNode(VTRoot::script());
+					// FIXME: スクリプトノードを選択する。
 					break;
 				}
 			}
@@ -343,9 +271,6 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					case NM_RETURN:
 					case TVN_SELCHANGED:
 						View::update();
-						break;
-					case TVN_SELCHANGING:
-						View::saveCurrentCaret();
 						break;
 				}
 			}
@@ -383,7 +308,7 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars, HspObjectTree& object_tree)
+void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspObjectTree& object_tree)
 {
 	auto const dispx = GetSystemMetrics(SM_CXSCREEN);
 	auto const dispy = GetSystemMetrics(SM_CYSCREEN);
@@ -450,7 +375,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 0) } // node
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 1) } // invoke
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 2) } // log
-			, std::make_unique<VTView>(debug_segment, objects, static_vars, object_tree, hVarTree)
+			, std::make_unique<VTView>(debug_segment, objects, object_tree, hVarTree)
 			, {{
 				  GetDlgItem(hPane, IDC_BTN1)
 				, GetDlgItem(hPane, IDC_BTN2)
@@ -501,13 +426,57 @@ void Dialog::destroyMain()
 // 一時停止時に dbgnotice から呼ばれる
 void update()
 {
-	CurrentUpdate();
 	g_res->tv->update();
+}
+
+void update_source_view(OsStringView const& content) {
+	Edit_SetText(hSrcLine, content.data());
+}
+
+void did_log_change() {
+	if (g_res && g_res->tv) {
+		g_res->tv->did_log_change();
+	}
 }
 
 void setEditStyle( HWND hEdit )
 {
 	Edit_SetTabLength(hEdit, g_config->tabwidth);
+}
+
+auto confirm_to_clear_log() -> bool {
+	if (g_config->warnsBeforeClearingLog) {
+		auto msg = TEXT("ログをすべて消去しますか？");
+		auto ok = MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OKCANCEL) == IDOK;
+
+		if (!ok) {
+			return false;
+		}
+	}
+	return true;
+}
+
+auto select_save_log_file() -> std::optional<OsString> {
+	static auto const filter =
+		TEXT("log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0");
+
+	auto path = Dialog_SaveFileName(
+		g_res->mainWindow.get(),
+		filter,
+		TEXT("log"),
+		TEXT("hspdbg.log")
+	);
+
+	if (!path) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(*std::move(path));
+}
+
+void notify_save_failure() {
+	auto msg = TEXT("ログの保存に失敗しました。");
+	MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OK);
 }
 
 } // namespace Dialog

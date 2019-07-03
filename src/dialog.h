@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <optional>
 #include <Windows.h>
 #include "encoding.h"
 
@@ -18,10 +19,20 @@ namespace Dialog
 
 auto getVarTreeHandle() -> HWND;
 
-void createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars, HspObjectTree& object_tree);
+void createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspObjectTree& object_tree);
 void destroyMain();
 
 void update();
+
+void update_source_view(OsStringView const& content);
+
+void did_log_change();
+
+auto confirm_to_clear_log() -> bool;
+
+auto select_save_log_file() -> std::optional<OsString>;
+
+void notify_save_failure();
 
 namespace View {
 
@@ -30,7 +41,6 @@ void scroll(int y, int x);
 void scrollBottom();
 void selectLine(size_t index);
 void update();
-void saveCurrentCaret();
 
 } // namespace View
 

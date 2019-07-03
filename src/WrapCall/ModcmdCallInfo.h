@@ -5,7 +5,6 @@
 #ifdef with_WrapCall
 
 #include "../main.h"
-#include "../VarTreeNodeData_fwd.h"
 
 namespace WrapCall
 {

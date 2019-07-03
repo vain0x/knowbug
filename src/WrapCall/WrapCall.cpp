@@ -74,14 +74,15 @@ void onEndCalling(PDAT* p, vartype_t vt)
 
 	auto const& callinfo = g_stkCallInfo.back();
 
-	// 警告
-	if ( ctx->looplev != callinfo->looplev ) {
-		Knowbug::logmesWarning("呼び出し中に入った loop から正常に脱出しないまま、呼び出しが終了した。");
-	}
+	// FIXME: 警告表示機能を戻す
+	// // 警告
+	// if ( ctx->looplev != callinfo->looplev ) {
+	// 	Knowbug::logmesWarning("呼び出し中に入った loop から正常に脱出しないまま、呼び出しが終了した。");
+	// }
 
-	if ( ctx->sublev != callinfo->sublev ) {
-		Knowbug::logmesWarning("呼び出し中に入ったサブルーチンから正常に脱出しないまま、呼び出しが終了した。");
-	}
+	// if ( ctx->sublev != callinfo->sublev ) {
+	// 	Knowbug::logmesWarning("呼び出し中に入ったサブルーチンから正常に脱出しないまま、呼び出しが終了した。");
+	// }
 
 	// DebugWindow への通知
 	Knowbug::onEndCalling(callinfo, p, vt);

@@ -30,7 +30,9 @@ public:
 	virtual ~HspScripts() {
 	}
 
-	virtual auto content(char const* file_name_ref) -> Utf8StringView = 0;
+	virtual auto content(char const* file_ref_name) -> Utf8StringView = 0;
+
+	virtual auto line(char const* file_ref_name, std::size_t line_index)->std::optional<Utf8String> = 0;
 };
 
 // FIXME: インターフェイスを抽出する
@@ -149,6 +151,8 @@ public:
 	auto script_to_content() const -> Utf8StringView;
 
 	auto script_to_current_line() const -> std::size_t;
+
+	auto script_to_current_location_summary() const->Utf8String;
 
 public:
 	class Module {

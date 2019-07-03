@@ -1,3 +1,4 @@
+#include <sstream>
 #include "hpiutil/hpiutil.hpp"
 #include "hpiutil/DInfo.hpp"
 #include "WrapCall/WrapCall.h"
@@ -822,6 +823,18 @@ auto HspObjects::script_to_content() const -> Utf8StringView {
 
 auto HspObjects::script_to_current_line() const -> std::size_t {
 	return api_.current_line();
+}
+
+auto HspObjects::script_to_current_location_summary() const -> Utf8String {
+	// FIXME: 長すぎるときは切る
+	auto file_ref_name = api_.current_file_ref_name().value_or("???");
+	auto line_index = script_to_current_line();
+	auto line = scripts_.line(file_ref_name, line_index).value_or(to_owned(as_utf8("???")));
+
+	auto text = std::stringstream{};
+	text << "#" << (line_index + 1) << " " << file_ref_name << "\r\n";
+	text << as_native(line);
+	return as_utf8(text.str());
 }
 
 // -----------------------------------------------

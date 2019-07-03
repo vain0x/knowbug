@@ -55,6 +55,22 @@ public:
 		scripts_.emplace(std::string{ file_ref_name }, std::make_shared<Utf8String>(to_utf8(*content_opt)));
 		return *scripts_.at(file_ref_name);
 	}
+
+	auto line(char const* file_ref_name, std::size_t line_index) -> std::optional<Utf8String> override {
+		auto&& iter = scripts_.find(file_ref_name);
+		if (iter != scripts_.end()) {
+			return *iter->second;
+		}
+
+		auto file_ref_name_os_str = to_os(as_hsp(file_ref_name));
+
+		auto&& line_opt = source_file_resolver_.find_script_line(file_ref_name_os_str, line_index);
+		if (!line_opt) {
+			return std::nullopt;
+		}
+
+		return std::make_optional(to_utf8(*line_opt));
+	}
 };
 
 HspRuntime::HspRuntime(HspDebugApi&& api, DebugInfo const& debug_info, SourceFileResolver& source_file_resolver)
