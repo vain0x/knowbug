@@ -653,14 +653,13 @@ auto HspObjects::flex_path_to_child_at(HspObjectPath::Flex const& path, std::siz
 	return path.new_param(param_type, param_index);
 }
 
-bool HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) {
+auto HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) -> std::optional<bool> {
 	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, api_);
 	if (!flex_opt) {
-		// FIXME: これは嘘 (無限再帰の可能性がある)
-		return true;
+		return std::nullopt;
 	}
 
-	return api_.flex_is_nullmod(*flex_opt);
+	return std::make_optional(api_.flex_is_nullmod(*flex_opt));
 }
 
 auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String {

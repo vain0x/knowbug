@@ -637,7 +637,7 @@ public:
 		return to_owned(as_utf8(u8"<anonymous>"));
 	}
 
-	bool is_nullmod(HspObjects& objects) const;
+	auto is_nullmod(HspObjects& objects) const -> std::optional<bool>;
 
 	auto module_name(HspObjects& objects) const -> Utf8String;
 };

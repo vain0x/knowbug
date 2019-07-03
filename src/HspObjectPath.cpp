@@ -381,7 +381,7 @@ auto HspObjectPath::Flex::child_at(std::size_t child_index, HspObjects& objects)
 	return objects.flex_path_to_child_at(*this, child_index);
 }
 
-bool HspObjectPath::Flex::is_nullmod(HspObjects& objects) const {
+auto HspObjectPath::Flex::is_nullmod(HspObjects& objects) const -> std::optional<bool> {
 	return objects.flex_path_is_nullmod(*this);
 }
 

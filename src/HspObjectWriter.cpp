@@ -66,7 +66,10 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 		return string_is_compact(path.as_str().value(objects));
 
 	case HspObjectKind::Flex:
-		return path.as_flex().is_nullmod(objects);
+		{
+			auto&& is_nullmod_opt = path.as_flex().is_nullmod(objects);
+			return !is_nullmod_opt || *is_nullmod_opt;
+		}
 
 	default:
 		return false;
@@ -399,7 +402,13 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 	auto&& w = writer();
 	auto&& o = objects();
 
-	if (path.is_nullmod(o)) {
+	auto&& is_nullmod_opt = path.is_nullmod(o);
+	if (!is_nullmod_opt) {
+		w.cat("<unavailable>");
+		return;
+	}
+
+	if (*is_nullmod_opt) {
 		w.catln("<null>");
 		return;
 	}
@@ -530,7 +539,13 @@ void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
 	auto&& w = writer();
 	auto&& o = objects();
 
-	if (path.is_nullmod(o)) {
+	auto&& is_nullmod_opt = path.is_nullmod(o);
+	if (!is_nullmod_opt) {
+		w.cat("<unavailable>");
+		return;
+	}
+
+	if (*is_nullmod_opt) {
 		w.cat("null");
 		return;
 	}

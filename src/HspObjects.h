@@ -118,7 +118,7 @@ public:
 
 	auto flex_path_to_child_at(HspObjectPath::Flex const& path, std::size_t index)->std::shared_ptr<HspObjectPath const>;
 
-	bool flex_path_is_nullmod(HspObjectPath::Flex const& path);
+	auto flex_path_is_nullmod(HspObjectPath::Flex const& path) -> std::optional<bool>;
 
 	auto flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String;
 
