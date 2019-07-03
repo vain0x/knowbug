@@ -210,14 +210,10 @@ namespace Knowbug
 	}
 
 #ifdef with_WrapCall
-void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
-{
-	VTRoot::dynamic().onBgnCalling(callinfo);
+void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo) {
 }
 
-void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype)
-{
-	VTRoot::dynamic().onEndCalling(callinfo, ptr, vtype);
+void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype) {
 }
 #endif
 
