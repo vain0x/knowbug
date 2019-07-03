@@ -89,6 +89,7 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 			if ( Knowbug::continueConditionalRun() ) break;
 
 			g_dbginfo->updateCurInf();
+			Dialog::update_source_view(to_os(g_hsp_runtime->objects().script_to_current_location_summary()));
 			Dialog::update();
 			break;
 		}

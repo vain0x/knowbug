@@ -24,6 +24,8 @@ void destroyMain();
 
 void update();
 
+void update_source_view(OsStringView const& content);
+
 void did_log_change();
 
 auto confirm_to_clear_log() -> bool;

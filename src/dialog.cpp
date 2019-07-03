@@ -126,16 +126,6 @@ void update()
 
 } // namespace View
 
-static void UpdateCurInfEdit(hpiutil::SourcePos const& spos)
-{
-	// FIXME: スクリプト小窓を更新する
-}
-
-static void CurrentUpdate()
-{
-	UpdateCurInfEdit(g_dbginfo->curPos());
-}
-
 // FIXME: ツリービューのコンテクストメニューを新モデルに移行
 // ツリーノードのコンテキストメニュー
 void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
@@ -436,8 +426,11 @@ void Dialog::destroyMain()
 // 一時停止時に dbgnotice から呼ばれる
 void update()
 {
-	CurrentUpdate();
 	g_res->tv->update();
+}
+
+void update_source_view(OsStringView const& content) {
+	Edit_SetText(hSrcLine, content.data());
 }
 
 void did_log_change() {
