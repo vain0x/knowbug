@@ -1,6 +1,8 @@
 #include "hsp3utf.as"
 #include "WrapCall.as"
 
+	dim long_long, 256 * 1024 * 1024
+
 	你好 = "こんにちは world"
 
 	floats = 3.14159265, sqrt(-1)
