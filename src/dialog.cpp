@@ -100,27 +100,6 @@ public:
 	}
 };
 
-void setText(OsStringView const& text) {
-	SetWindowText(hViewEdit, text.data());
-};
-
-void scroll(int y, int x)
-{
-	Edit_Scroll(hViewEdit, y, x);
-}
-
-void scrollBottom()
-{
-	scroll(Edit_GetLineCount(hViewEdit), 0);
-}
-
-void selectLine(size_t index)
-{
-	Edit_SetSel(hViewEdit
-		, Edit_LineIndex(hViewEdit, index)
-		, Edit_LineIndex(hViewEdit, index + 1));
-}
-
 void update()
 {
 	auto view_box = ViewBoxImpl{};
@@ -130,7 +109,6 @@ void update()
 
 } // namespace View
 
-// FIXME: ツリービューのコンテクストメニューを新モデルに移行
 // ツリーノードのコンテキストメニュー
 void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 {

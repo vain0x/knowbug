@@ -36,10 +36,6 @@ void notify_save_failure();
 
 namespace View {
 
-void setText(OsStringView const& text);
-void scroll(int y, int x);
-void scrollBottom();
-void selectLine(size_t index);
 void update();
 
 } // namespace View
