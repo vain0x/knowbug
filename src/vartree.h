@@ -5,6 +5,7 @@
 #include <CommCtrl.h>
 
 #include "hpiutil/dinfo.hpp"
+#include "encoding.h"
 #include "main.h"
 #ifdef with_WrapCall
 # include "WrapCall/ModcmdCallInfo.h"
@@ -27,6 +28,8 @@ public:
 	virtual void scroll_to_bottom() = 0;
 
 	virtual void select_line(std::size_t line_index) = 0;
+
+	virtual void set_text(OsStringView const& text) = 0;
 };
 
 class VTView

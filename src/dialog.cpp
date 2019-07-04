@@ -94,6 +94,10 @@ public:
 		auto end = Edit_LineIndex(hViewEdit, (int)line_index + 1);
 		Edit_SetSel(hViewEdit, start, end);
 	}
+
+	void set_text(OsStringView const& text) override {
+		SetWindowText(hViewEdit, text.data());
+	}
 };
 
 void setText(OsStringView const& text) {

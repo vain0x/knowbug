@@ -319,7 +319,7 @@ void VTView::updateViewWindow(AbstractViewBox& view_box)
 	// スクロール位置を保存して、文字列を交換して、スクロール位置を適切に戻す。
 	p_->scroll_preserver_.will_activate(item_handle, view_box);
 
-	Dialog::View::setText(as_view(text));
+	view_box.set_text(as_view(text));
 
 	p_->scroll_preserver_.did_activate(item_handle, *path, objects_, view_box);
 }
