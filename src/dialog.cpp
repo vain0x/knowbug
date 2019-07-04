@@ -34,10 +34,42 @@
 static auto KnowbugMainWindowTitle = KnowbugAppName TEXT(" ") KnowbugVersion;
 static auto KnowbugViewWindowTitle = TEXT("Knowbug View");
 
+static auto const STEP_BUTTON_COUNT = std::size_t{ 5 };
+
+using StepButtonHandleArray = std::array<HWND, STEP_BUTTON_COUNT>;
+
+static void resize_main_window(std::size_t client_x, std::size_t client_y, bool repaints, HWND tree_view, HWND source_edit, StepButtonHandleArray const& step_button_handles) {
+	auto const source_edit_size_y = 50;
+	auto const step_button_size_x = client_x / STEP_BUTTON_COUNT;
+	auto const step_button_size_y = 20;
+	auto const tree_view_size_y = client_y - (source_edit_size_y + step_button_size_y);
+
+	MoveWindow(
+		tree_view,
+		0, 0,
+		client_x, tree_view_size_y,
+		repaints
+	);
+
+	MoveWindow(
+		source_edit,
+		0, tree_view_size_y,
+		client_x, source_edit_size_y,
+		repaints
+	);
+
+	for (auto i = std::size_t{}; i < step_button_handles.size(); ++i) {
+		MoveWindow(
+			step_button_handles[i],
+			i * step_button_size_x, tree_view_size_y + source_edit_size_y,
+			step_button_size_x, step_button_size_y,
+			repaints
+		);
+	}
+}
+
 namespace Dialog
 {
-
-static auto const countStepButtons = size_t { 5 };
 
 static HWND hVarTree;
 static HWND hSrcLine;
@@ -49,7 +81,7 @@ struct Resource
 	menu_handle_t dialogMenu, nodeMenu, invokeMenu, logMenu;
 	std::unique_ptr<VarTreeViewControl> tv;
 
-	std::array<HWND, countStepButtons> stepButtons;
+	StepButtonHandleArray stepButtons;
 	gdi_obj_t font;
 };
 static auto g_res = unique_ptr<Resource> {};
@@ -162,31 +194,10 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 	}
 }
 
-static void resizeMainWindow(size_t cx, size_t cy, bool repaints)
-{
+static void resizeMainWindow(size_t cx, size_t cy, bool repaints) {
 	if ( ! g_res ) return;
 
-	auto const sourceLineBoxSizeY = 50;
-	auto const buttonSizeX = cx / countStepButtons;
-	auto const buttonSizeY = 20;
-	auto const tvSizeY     = cy - (sourceLineBoxSizeY + buttonSizeY);
-
-	MoveWindow(hVarTree
-		, 0, 0
-		, cx, tvSizeY
-		, repaints);
-	MoveWindow(hSrcLine
-		, 0, tvSizeY
-		, cx, sourceLineBoxSizeY
-		, repaints);
-
-	for ( auto i = size_t { 0 }; i < countStepButtons; ++ i ) {
-		MoveWindow(g_res->stepButtons[i]
-			, i * buttonSizeX
-			, tvSizeY + sourceLineBoxSizeY
-			, buttonSizeX, buttonSizeY
-			, repaints);
-	}
+	resize_main_window(cx, cy, repaints, hVarTree, hSrcLine, g_res->stepButtons);
 }
 
 // メインウィンドウのコールバック関数
