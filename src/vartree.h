@@ -39,7 +39,7 @@ public:
 
 	virtual void update_view_window(AbstractViewBox& view_box) = 0;
 
-	virtual void did_log_change() = 0;
+	virtual auto log_is_selected() const -> bool = 0;
 
 	// :thinking_face:
 	virtual auto item_to_path(HTREEITEM tree_item) const -> std::optional<std::shared_ptr<HspObjectPath const>> = 0;

@@ -8,12 +8,10 @@
 #include "module/CStrBuf.h"
 #include "module/CStrWriter.h"
 #include "module/GuiUtility.h"
-#include "dialog.h"
 #include "HspObjectPath.h"
 #include "HspObjects.h"
 #include "HspObjectTree.h"
 #include "HspObjectWriter.h"
-
 #include "vartree.h"
 
 #undef min
@@ -200,20 +198,15 @@ public:
 		scroll_preserver_.did_activate(tv_item, path, objects_, view_box);
 	}
 
-	void did_log_change() override {
-		auto log_is_selected = false;
+	auto log_is_selected() const -> bool override {
 		if (auto&& node_id_opt = selected_node_id()) {
 			if (auto&& path_opt = object_tree_.path(*node_id_opt)) {
 				if ((*path_opt)->kind() == HspObjectKind::Log) {
-					log_is_selected = true;
+					return true;
 				}
 			}
 		}
-
-		if (log_is_selected) {
-			// FIXME:
-			Dialog::View::update();
-		}
+		return false;
 	}
 
 	auto item_to_path(HTREEITEM tv_item) const -> std::optional<std::shared_ptr<HspObjectPath const>> override {

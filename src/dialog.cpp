@@ -416,8 +416,8 @@ void update_source_view(OsStringView const& content) {
 }
 
 void did_log_change() {
-	if (g_res && g_res->tv) {
-		g_res->tv->did_log_change();
+	if (g_res && g_res->tv && g_res->tv->log_is_selected()) {
+		Dialog::View::update();
 	}
 }
 
