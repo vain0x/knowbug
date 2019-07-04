@@ -47,7 +47,7 @@ struct Resource
 {
 	window_handle_t mainWindow, viewWindow;
 	menu_handle_t dialogMenu, nodeMenu, invokeMenu, logMenu;
-	unique_ptr<VTView> tv;
+	std::unique_ptr<VarTreeViewControl> tv;
 
 	std::array<HWND, countStepButtons> stepButtons;
 	gdi_obj_t font;
@@ -104,7 +104,7 @@ void update()
 {
 	auto view_box = ViewBoxImpl{};
 
-	g_res->tv->updateViewWindow(view_box);
+	g_res->tv->update_view_window(view_box);
 }
 
 } // namespace View
@@ -357,7 +357,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 0) } // node
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 1) } // invoke
 			, menu_handle_t { GetSubMenu(hNodeMenuBar, 2) } // log
-			, std::make_unique<VTView>(debug_segment, objects, object_tree, hVarTree)
+			, VarTreeViewControl::create(objects, object_tree, hVarTree)
 			, {{
 				  GetDlgItem(hPane, IDC_BTN1)
 				, GetDlgItem(hPane, IDC_BTN2)
@@ -408,7 +408,7 @@ void Dialog::destroyMain()
 // 一時停止時に dbgnotice から呼ばれる
 void update()
 {
-	g_res->tv->update();
+	View::update();
 }
 
 void update_source_view(OsStringView const& content) {

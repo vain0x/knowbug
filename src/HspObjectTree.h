@@ -27,8 +27,6 @@ public:
 	virtual ~HspObjectTree() {
 	}
 
-	virtual void subscribe(std::weak_ptr<HspObjectTreeObserver>&& observer) = 0;
-
 	virtual auto root_id() const -> std::size_t = 0;
 
 	virtual auto path(std::size_t node_id) const -> std::optional<std::shared_ptr<HspObjectPath const>> = 0;
@@ -40,11 +38,11 @@ public:
 	// ノードをフォーカスするとき、それが生存しているか判定する。
 	// 生存していなければ消去して、代わりに親ノードをフォーカスする。
 	// 生存しているなら、子ノードのリストを更新する。そして、フォーカスされたノードのIDを返す。
-	virtual auto focus(std::size_t node_id) -> std::size_t = 0;
+	virtual auto focus(std::size_t node_id, HspObjectTreeObserver& observer) -> std::size_t = 0;
 
-	virtual auto focus_by_path(HspObjectPath const& path) -> std::size_t = 0;
+	virtual auto focus_by_path(HspObjectPath const& path, HspObjectTreeObserver& observer) -> std::size_t = 0;
 
-	auto focus_root() -> std::size_t {
-		return focus(root_id());
+	auto focus_root(HspObjectTreeObserver& observer) -> std::size_t {
+		return focus(root_id(), observer);
 	}
 };

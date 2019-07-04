@@ -1,15 +1,13 @@
-﻿
+﻿//! 変数ツリービュー関連
+
 #pragma once
 
+#include <cstdint>
+#include <memory>
+#include <optional>
 #include <Windows.h>
 #include <CommCtrl.h>
-
-#include "hpiutil/dinfo.hpp"
 #include "encoding.h"
-#include "main.h"
-#ifdef with_WrapCall
-# include "WrapCall/ModcmdCallInfo.h"
-#endif
 
 class HspObjects;
 class HspObjectTree;
@@ -32,24 +30,17 @@ public:
 	virtual void set_text(OsStringView const& text) = 0;
 };
 
-class VTView
-{
+class VarTreeViewControl {
 public:
-	VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects_, HspObjectTree& object_tree, HWND tv_handle_);
-	~VTView();
+	static auto create(HspObjects& objects, HspObjectTree& object_tree, HWND tree_view) -> std::unique_ptr<VarTreeViewControl>;
 
-	void update();
-	void updateViewWindow(AbstractViewBox& view_box);
+	virtual ~VarTreeViewControl() {
+	}
 
-	void did_log_change();
+	virtual void update_view_window(AbstractViewBox& view_box) = 0;
 
-	auto item_to_path(HTREEITEM tree_item) -> std::optional<std::shared_ptr<HspObjectPath const>>;
+	virtual void did_log_change() = 0;
 
-private:
-	struct Impl;
-	unique_ptr<Impl> p_;
-
-	hpiutil::DInfo const& debug_segment_;
-	HspObjects& objects_;
-	HspObjectTree& object_tree_;
+	// :thinking_face:
+	virtual auto item_to_path(HTREEITEM tree_item) const -> std::optional<std::shared_ptr<HspObjectPath const>> = 0;
 };
