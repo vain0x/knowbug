@@ -167,13 +167,9 @@ public:
 		resize_main_window(rc.right, rc.bottom, !REPAINT);
 	}
 
-	void resize_main_window(int client_x, int client_y, bool repaint) {
-		::resize_main_window(client_x, client_y, repaint, var_tree_view(), source_edit(), step_buttons());
-	}
-
 	void initialize_view_window_layout() {
 		auto rc = window_to_client_rect(view_window());
-		MoveWindow(view_edit(), 0, 0, rc.right, rc.bottom, !REPAINT);
+		resize_view_window(rc.right, rc.bottom, !REPAINT);
 	}
 
 	void show_windows() {
@@ -184,6 +180,14 @@ public:
 	}
 
 	// 更新:
+
+	void resize_main_window(int client_x, int client_y, bool repaint) {
+		::resize_main_window(client_x, client_y, repaint, var_tree_view(), source_edit(), step_buttons());
+	}
+
+	void resize_view_window(int client_x, int client_y, bool repaint) {
+		MoveWindow(view_edit(), 0, 0, client_x, client_y, repaint);
+	}
 
 	void update_view_edit() {
 		var_tree_view_control().update_view_window(view_box());
@@ -413,8 +417,12 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			}
 			break;
 
-		case WM_CREATE: return TRUE;
-		case WM_CLOSE: return FALSE;
+		case WM_CREATE:
+			return TRUE;
+
+		case WM_CLOSE:
+			return FALSE;
+
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			break;
@@ -425,10 +433,16 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
 	switch ( msg ) {
-		case WM_CREATE: return TRUE;
-		case WM_CLOSE: return FALSE;
+		case WM_CREATE:
+			return TRUE;
+
+		case WM_CLOSE:
+			return FALSE;
+
 		case WM_SIZE:
-			MoveWindow(hViewEdit, 0, 0, LOWORD(lp), HIWORD(lp), TRUE);
+			if (auto&& view_opt = get_knowbug_view()) {
+				view_opt->resize_view_window(LOWORD(lp), HIWORD(lp), REPAINT);
+			}
 			break;
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
