@@ -149,6 +149,15 @@ public:
 	{
 	}
 
+	void apply_main_font() {
+		for (auto hwnd : {
+			source_edit(),
+			view_edit()
+		}) {
+			SendMessage(hwnd, WM_SETFONT, (WPARAM)main_font(), !REPAINT);
+		}
+	}
+
 	void initialize_main_window_layout() {
 		auto rc = window_to_client_rect(main_window());
 		resize_main_window(rc.right, rc.bottom, !REPAINT);
@@ -164,6 +173,10 @@ public:
 	}
 
 private:
+	auto main_font() const -> HGDIOBJ {
+		return r_.font.get();
+	}
+
 	auto main_window() const -> HWND {
 		return r_.mainWindow.get();
 	}
@@ -467,13 +480,8 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 		}
 	}
 
-	for ( auto&& hwnd : { hSrcLine, hViewEdit } ) {
-		SendMessage(hwnd, WM_SETFONT
-			, (WPARAM)(g_res->font.get())
-			, /* repaints = */ FALSE);
-	}
-
 	if (auto&& view_opt = get_knowbug_view()) {
+		view_opt->apply_main_font();
 		view_opt->initialize_main_window_layout();
 		view_opt->initialize_view_window_layout();
 	}
