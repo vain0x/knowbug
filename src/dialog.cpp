@@ -224,6 +224,19 @@ public:
 		move_view_window_to_front();
 	}
 
+	void did_notify(LPNMHDR nmhdr) {
+		if (nmhdr->hwndFrom == var_tree_view()) {
+			// FIXME: フォーカスした要素の周囲を更新する
+			switch (nmhdr->code) {
+			case NM_DBLCLK:
+			case NM_RETURN:
+			case TVN_SELCHANGED:
+				update_view_edit();
+				break;
+			}
+		}
+	}
+
 	auto open_context_menu(HWND hwnd, POINT point) -> bool {
 		if (hwnd == var_tree_view()) {
 			return open_context_menu_var_tree_view(point);
@@ -431,22 +444,12 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			}
 			break;
 		}
-		case WM_NOTIFY: {
-			auto const nmhdr = reinterpret_cast<LPNMHDR>(lp);
-			if ( nmhdr->hwndFrom == hVarTree ) {
-				switch ( nmhdr->code ) {
-					// FIXME: フォーカスした要素の周囲を更新する
-					case NM_DBLCLK:
-					case NM_RETURN:
-					case TVN_SELCHANGED:
-						if (auto&& view_opt = get_knowbug_view()) {
-							view_opt->update_view_edit();
-						}
-						break;
-				}
+		case WM_NOTIFY:
+			if (auto&& view_opt = get_knowbug_view()) {
+				view_opt->did_notify((LPNMHDR)lp);
 			}
 			break;
-		}
+
 		case WM_SIZE:
 			if (auto&& view_opt = get_knowbug_view()) {
 				view_opt->resize_main_window(LOWORD(lp), HIWORD(lp), REPAINT);
