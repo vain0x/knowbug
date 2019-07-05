@@ -132,14 +132,14 @@ namespace Knowbug
 		return g_step_controller_->continue_step_running();
 	}
 
-	void add_object_text_to_log(std::shared_ptr<HspObjectPath const> path) {
+	void add_object_text_to_log(HspObjectPath const& path) {
 		auto&& objects = g_hsp_runtime->objects();
 
 		// FIXME: 共通化
 		auto buffer = std::make_shared<CStrBuf>();
 		buffer->limit(8000); // FIXME: 定数を共通化
 		auto writer = CStrWriter{ buffer };
-		HspObjectWriter{ objects, writer }.write_table_form(*path);
+		HspObjectWriter{ objects, writer }.write_table_form(path);
 		auto text = as_utf8(buffer->getMove());
 
 		g_hsp_runtime->logger().append(text);

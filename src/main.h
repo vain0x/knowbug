@@ -45,7 +45,7 @@ namespace Knowbug
 	extern void step_run(StepControl step_control);
 	extern bool continueConditionalRun();
 
-	extern void add_object_text_to_log(std::shared_ptr<HspObjectPath const> path);
+	extern void add_object_text_to_log(HspObjectPath const& path);
 
 	extern void clear_log();
 

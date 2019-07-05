@@ -181,6 +181,8 @@ public:
 
 	// 更新:
 
+	// UI イベント:
+
 	void resize_main_window(int client_x, int client_y, bool repaint) {
 		::resize_main_window(client_x, client_y, repaint, var_tree_view(), source_edit(), step_buttons());
 	}
@@ -193,14 +195,35 @@ public:
 		var_tree_view_control().update_view_window(view_box());
 	}
 
-	// その他:
-
 	void did_main_window_activate(bool is_activated) {
 		if (!is_activated) {
 			return;
 		}
 
 		move_view_window_to_front();
+	}
+
+	auto open_context_menu(HWND hwnd, POINT point) -> bool {
+		if (hwnd == var_tree_view()) {
+			return open_context_menu_var_tree_view(point);
+		}
+		return false;
+	}
+
+	auto open_context_menu_var_tree_view(POINT const& point) -> bool {
+		auto&& path_opt = point_to_path(point);
+		if (!path_opt) {
+			return false;
+		}
+
+		auto popup_menu = get_node_menu(**path_opt);
+		auto selected_id = open_popup_menu(popup_menu, point);
+		if (selected_id == FALSE) {
+			return false;
+		}
+
+		execute_popup_menu_action(selected_id, **path_opt);
+		return true;
 	}
 
 private:
@@ -254,6 +277,63 @@ private:
 	void move_view_window_to_front() {
 		SetWindowPos(view_window(), main_window(), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 	}
+
+	auto point_to_path(POINT const& point) -> std::optional<std::shared_ptr<HspObjectPath const>> {
+		auto tree_item = TreeView_GetItemAtPoint(var_tree_view(), point);
+		if (!tree_item) {
+			return std::nullopt;
+		}
+
+		return var_tree_view_control().item_to_path(tree_item);
+	}
+
+	auto get_node_menu(HspObjectPath const& path) -> HMENU {
+		switch (path.kind()) {
+		case HspObjectKind::CallFrame:
+			return r_.invokeMenu.get();
+			break;
+
+		case HspObjectKind::Log:
+			return r_.logMenu.get();
+
+		default:
+			return r_.nodeMenu.get();
+		}
+	}
+
+	auto open_popup_menu(HMENU popup_menu, POINT const& point) -> int {
+		return TrackPopupMenuEx(
+			popup_menu,
+			TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD,
+			point.x, point.y,
+			main_window(),
+			nullptr
+		);
+	}
+
+	void execute_popup_menu_action(int selected_id, HspObjectPath const& path) {
+		switch (selected_id) {
+		case IDC_NODE_UPDATE:
+			View::update();
+			return;
+
+		case IDC_NODE_LOG:
+			Knowbug::add_object_text_to_log(path);
+			return;
+
+		case IDC_LOG_SAVE:
+			Knowbug::save_log();
+			return;
+
+		case IDC_LOG_CLEAR:
+			Knowbug::clear_log();
+			return;
+
+		default:
+			assert(false && u8"Unknown popup menu command ID");
+			throw std::exception{};
+		}
+	}
 };
 
 static auto get_knowbug_view() -> std::optional<KnowbugView> {
@@ -281,59 +361,6 @@ void update()
 }
 
 } // namespace View
-
-// ツリーノードのコンテキストメニュー
-void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
-{
-	auto&& path_opt = g_res->tv->item_to_path(hItem);
-	if (!path_opt) {
-		return;
-	}
-
-	HMENU pop_menu;
-	switch ((**path_opt).kind()) {
-	case HspObjectKind::CallFrame:
-		pop_menu = g_res->invokeMenu.get();
-		break;
-	case HspObjectKind::Log:
-		pop_menu = g_res->logMenu.get();
-		break;
-	default:
-		pop_menu = g_res->nodeMenu.get();
-		break;
-	}
-
-	// ポップアップメニューを表示する
-	auto const idSelected =
-		TrackPopupMenuEx
-			( pop_menu, (TPM_LEFTALIGN | TPM_TOPALIGN | TPM_NONOTIFY | TPM_RETURNCMD)
-			, pt.x, pt.y, g_res->mainWindow.get(), nullptr);
-
-	switch ( idSelected ) {
-		case 0:
-			break;
-
-		case IDC_NODE_UPDATE:
-			View::update();
-			break;
-
-		case IDC_NODE_LOG: {
-			Knowbug::add_object_text_to_log(*std::move(path_opt));
-			break;
-		}
-		case IDC_LOG_SAVE:
-			Knowbug::save_log();
-			break;
-
-		case IDC_LOG_CLEAR:
-			Knowbug::clear_log();
-			break;
-
-		default:
-			assert(false && u8"Unknown popup menu command ID");
-			throw std::exception{};
-	}
-}
 
 // メインウィンドウのコールバック関数
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
@@ -381,10 +408,9 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			break;
 
 		case WM_CONTEXTMENU: {
-			if ( (HWND)wp == hVarTree ) {
-				auto pt = POINT { LOWORD(lp), HIWORD(lp) };
-				if ( auto hItem = TreeView_GetItemAtPoint(hVarTree, pt) ) {
-					VarTree_PopupMenu(hItem, pt);
+			if (auto&& view_opt = get_knowbug_view()) {
+				auto done = view_opt->open_context_menu((HWND)wp, POINT{ LOWORD(lp), HIWORD(lp) });
+				if (done) {
 					return TRUE;
 				}
 			}
