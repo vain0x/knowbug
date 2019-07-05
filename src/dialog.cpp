@@ -142,12 +142,16 @@ static auto g_res = unique_ptr<Resource> {};
 
 class KnowbugView {
 	Resource const& r_;
+	ViewBoxImpl view_box_;
 
 public:
 	KnowbugView(Resource const& r)
 		: r_(r)
+		, view_box_(hViewEdit)
 	{
 	}
+
+	// 初期化:
 
 	void apply_main_font() {
 		for (auto hwnd : {
@@ -177,6 +181,12 @@ public:
 			UpdateWindow(hwnd);
 			ShowWindow(hwnd, SW_SHOW);
 		}
+	}
+
+	// 更新:
+
+	void update_view_edit() {
+		var_tree_view_control().update_view_window(view_box());
 	}
 
 private:
@@ -212,6 +222,14 @@ private:
 		return hViewEdit;
 	}
 
+	auto var_tree_view_control() -> VarTreeViewControl& {
+		return *r_.tv;
+	}
+
+	auto view_box() -> AbstractViewBox& {
+		return view_box_;
+	}
+
 	auto windows() const -> std::vector<HWND> {
 		auto v = std::vector<HWND>{};
 		v.emplace_back(main_window());
@@ -239,9 +257,9 @@ namespace View {
 
 void update()
 {
-	auto view_box = ViewBoxImpl{ hViewEdit };
-
-	g_res->tv->update_view_window(view_box);
+	if (auto&& view_opt = get_knowbug_view()) {
+		view_opt->update_view_edit();
+	}
 }
 
 } // namespace View
