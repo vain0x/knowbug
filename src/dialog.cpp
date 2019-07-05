@@ -172,6 +172,13 @@ public:
 		MoveWindow(view_edit(), 0, 0, rc.right, rc.bottom, !REPAINT);
 	}
 
+	void show_windows() {
+		for (auto hwnd : windows()) {
+			UpdateWindow(hwnd);
+			ShowWindow(hwnd, SW_SHOW);
+		}
+	}
+
 private:
 	auto main_font() const -> HGDIOBJ {
 		return r_.font.get();
@@ -484,11 +491,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 		view_opt->apply_main_font();
 		view_opt->initialize_main_window_layout();
 		view_opt->initialize_view_window_layout();
-	}
-
-	for ( auto&& hwnd : windowHandles() ) {
-		UpdateWindow(hwnd);
-		ShowWindow(hwnd, SW_SHOW);
+		view_opt->show_windows();
 	}
 }
 
