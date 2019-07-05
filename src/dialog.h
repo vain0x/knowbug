@@ -32,10 +32,4 @@ auto select_save_log_file() -> std::optional<OsString>;
 
 void notify_save_failure();
 
-namespace View {
-
-void update();
-
-} // namespace View
-
 } // namespace Dialog

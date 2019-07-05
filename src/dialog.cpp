@@ -339,7 +339,7 @@ private:
 	void execute_popup_menu_action(int selected_id, HspObjectPath const& path) {
 		switch (selected_id) {
 		case IDC_NODE_UPDATE:
-			View::update();
+			update_view_edit();
 			return;
 
 		case IDC_NODE_LOG:
@@ -376,17 +376,6 @@ static auto windowHandles() -> std::vector<HWND>
 
 static void setEditStyle(HWND hEdit);
 
-namespace View {
-
-void update()
-{
-	if (auto&& view_opt = get_knowbug_view()) {
-		view_opt->update_view_edit();
-	}
-}
-
-} // namespace View
-
 // メインウィンドウのコールバック関数
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -412,10 +401,12 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					Knowbug::open_config_file();
 					break;
 				}
-				case IDC_UPDATE: {
-					View::update();
+				case IDC_UPDATE:
+					if (auto&& view_opt = get_knowbug_view()) {
+						view_opt->update_view_edit();
+					}
 					break;
-				}
+
 				case IDC_OPEN_KNOWBUG_REPOS: {
 					Knowbug::open_knowbug_repository();
 					break;
@@ -448,7 +439,9 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 					case NM_DBLCLK:
 					case NM_RETURN:
 					case TVN_SELCHANGED:
-						View::update();
+						if (auto&& view_opt = get_knowbug_view()) {
+							view_opt->update_view_edit();
+						}
 						break;
 				}
 			}
@@ -593,7 +586,9 @@ void Dialog::destroyMain()
 // 一時停止時に dbgnotice から呼ばれる
 void update()
 {
-	View::update();
+	if (auto&& view_opt = get_knowbug_view()) {
+		view_opt->update_view_edit();
+	}
 }
 
 void update_source_view(OsStringView const& content) {
@@ -602,7 +597,9 @@ void update_source_view(OsStringView const& content) {
 
 void did_log_change() {
 	if (g_res && g_res->tv && g_res->tv->log_is_selected()) {
-		Dialog::View::update();
+		if (auto&& view_opt = get_knowbug_view()) {
+			view_opt->update_view_edit();
+		}
 	}
 }
 
