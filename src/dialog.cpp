@@ -221,6 +221,11 @@ public:
 		return std::make_optional(*std::move(path));
 	}
 
+	void notify_save_failure() {
+		static auto const MSG = TEXT("ログの保存に失敗しました。");
+		MessageBox(main_window(), MSG, KnowbugAppName, MB_OK);
+	}
+
 	// UI イベント:
 
 	void resize_main_window(int client_x, int client_y, bool repaint) {
@@ -648,8 +653,9 @@ auto select_save_log_file() -> std::optional<OsString> {
 }
 
 void notify_save_failure() {
-	auto msg = TEXT("ログの保存に失敗しました。");
-	MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OK);
+	if (auto&& view_opt = get_knowbug_view()) {
+		view_opt->notify_save_failure();
+	}
 }
 
 } // namespace Dialog
