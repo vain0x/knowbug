@@ -196,6 +196,12 @@ public:
 		Edit_SetText(source_edit(), content.data());
 	}
 
+	void did_log_change() {
+		if (var_tree_view_control().log_is_selected()) {
+			update_view_edit();
+		}
+	}
+
 	// UI イベント:
 
 	void resize_main_window(int client_x, int client_y, bool repaint) {
@@ -605,10 +611,8 @@ void update_source_view(OsStringView const& content) {
 }
 
 void did_log_change() {
-	if (g_res && g_res->tv && g_res->tv->log_is_selected()) {
-		if (auto&& view_opt = get_knowbug_view()) {
-			view_opt->update_view_edit();
-		}
+	if (auto&& view_opt = get_knowbug_view()) {
+		view_opt->did_log_change();
 	}
 }
 
