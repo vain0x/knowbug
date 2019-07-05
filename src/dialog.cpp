@@ -192,6 +192,10 @@ public:
 
 	// 更新:
 
+	void update_source_edit(OsStringView const& content) {
+		Edit_SetText(source_edit(), content.data());
+	}
+
 	// UI イベント:
 
 	void resize_main_window(int client_x, int client_y, bool repaint) {
@@ -595,7 +599,9 @@ void update()
 }
 
 void update_source_view(OsStringView const& content) {
-	Edit_SetText(hSrcLine, content.data());
+	if (auto&& view_opt = get_knowbug_view()) {
+		view_opt->update_source_edit(content);
+	}
 }
 
 void did_log_change() {
