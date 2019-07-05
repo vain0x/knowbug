@@ -128,8 +128,6 @@ struct Resource
 };
 static auto g_res = unique_ptr<Resource> {};
 
-auto getVarTreeHandle() -> HWND { return hVarTree; }
-
 static auto windowHandles() -> std::vector<HWND>
 {
 	return std::vector<HWND> { g_res->mainWindow.get(), g_res->viewWindow.get() };
