@@ -128,6 +128,24 @@ struct Resource
 };
 static auto g_res = unique_ptr<Resource> {};
 
+class KnowbugView {
+	Resource const& r_;
+
+public:
+	KnowbugView(Resource const& r)
+		: r_(r)
+	{
+	}
+};
+
+static auto get_knowbug_view() -> std::optional<KnowbugView> {
+	if (!g_res) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(KnowbugView{ *g_res });
+}
+
 static auto windowHandles() -> std::vector<HWND>
 {
 	return std::vector<HWND> { g_res->mainWindow.get(), g_res->viewWindow.get() };
