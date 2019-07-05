@@ -416,13 +416,6 @@ static auto get_knowbug_view() -> std::optional<KnowbugView> {
 	return std::make_optional(KnowbugView{ *g_res, *g_config });
 }
 
-static auto windowHandles() -> std::vector<HWND>
-{
-	return std::vector<HWND> { g_res->mainWindow.get(), g_res->viewWindow.get() };
-}
-
-static void setEditStyle(HWND hEdit);
-
 // メインウィンドウのコールバック関数
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -555,7 +548,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 				, (LPCTSTR)IDD_VIEW_PANE
 				, hViewWnd.get(), (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
-		setEditStyle(hViewEdit);
+		Edit_SetTabLength(hViewEdit, g_config->tabwidth);
 
 		ShowWindow(hPane, SW_SHOW);
 	}
@@ -638,11 +631,6 @@ void did_log_change() {
 	if (auto&& view_opt = get_knowbug_view()) {
 		view_opt->did_log_change();
 	}
-}
-
-void setEditStyle( HWND hEdit )
-{
-	Edit_SetTabLength(hEdit, g_config->tabwidth);
 }
 
 auto select_save_log_file() -> std::optional<OsString> {
