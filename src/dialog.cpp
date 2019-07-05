@@ -34,11 +34,13 @@
 static auto KnowbugMainWindowTitle = KnowbugAppName TEXT(" ") KnowbugVersion;
 static auto KnowbugViewWindowTitle = TEXT("Knowbug View");
 
+static auto const REPAINT = true;
+
 static auto const STEP_BUTTON_COUNT = std::size_t{ 5 };
 
 using StepButtonHandleArray = std::array<HWND, STEP_BUTTON_COUNT>;
 
-static void resize_main_window(std::size_t client_x, std::size_t client_y, bool repaints, HWND tree_view, HWND source_edit, StepButtonHandleArray const& step_button_handles) {
+static void resize_main_window(int client_x, int client_y, bool repaints, HWND tree_view, HWND source_edit, StepButtonHandleArray const& step_button_handles) {
 	auto const source_edit_size_y = 50;
 	auto const step_button_size_x = client_x / STEP_BUTTON_COUNT;
 	auto const step_button_size_y = 20;
@@ -136,6 +138,42 @@ public:
 		: r_(r)
 	{
 	}
+
+	auto resize_main_window(int client_x, int client_y, bool repaint) {
+		::resize_main_window(client_x, client_y, repaint, var_tree_view(), source_edit(), step_buttons());
+	}
+
+private:
+	auto main_window() const -> HWND {
+		return r_.mainWindow.get();
+	}
+
+	auto view_window() const -> HWND {
+		return r_.viewWindow.get();
+	}
+
+	auto dialog_menu() const -> HMENU {
+		return r_.dialogMenu.get();
+	}
+
+	auto var_tree_view() const -> HWND {
+		return hVarTree;
+	}
+
+	auto source_edit() const -> HWND {
+		return hSrcLine;
+	}
+
+	auto step_buttons() const -> StepButtonHandleArray const& {
+		return r_.stepButtons;
+	}
+
+	auto windows() const -> std::vector<HWND> {
+		auto v = std::vector<HWND>{};
+		v.emplace_back(main_window());
+		v.emplace_back(view_window());
+		return v;
+	}
 };
 
 static auto get_knowbug_view() -> std::optional<KnowbugView> {
@@ -217,12 +255,6 @@ void VarTree_PopupMenu(HTREEITEM hItem, POINT pt)
 	}
 }
 
-static void resizeMainWindow(size_t cx, size_t cy, bool repaints) {
-	if ( ! g_res ) return;
-
-	resize_main_window(cx, cy, repaints, hVarTree, hSrcLine, g_res->stepButtons);
-}
-
 // メインウィンドウのコールバック関数
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -293,7 +325,9 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			break;
 		}
 		case WM_SIZE:
-			resizeMainWindow(LOWORD(lp), HIWORD(lp), true);
+			if (auto&& view_opt = get_knowbug_view()) {
+				view_opt->resize_main_window(LOWORD(lp), HIWORD(lp), REPAINT);
+			}
 			break;
 		case WM_ACTIVATE:
 			{
@@ -419,9 +453,9 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 			, /* repaints = */ FALSE);
 	}
 
-	{
+	if (auto&& view_opt = get_knowbug_view()) {
 		RECT rc; GetClientRect(g_res->mainWindow.get(), &rc);
-		resizeMainWindow(rc.right, rc.bottom, false);
+		view_opt->resize_main_window(rc.right, rc.bottom, !REPAINT);
 	}
 	{
 		RECT rc; GetClientRect(g_res->viewWindow.get(), &rc);
