@@ -202,6 +202,25 @@ public:
 		}
 	}
 
+	// UI 操作:
+
+	auto select_save_log_file() -> std::optional<OsString> {
+		static auto const filter =
+			TEXT("log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0");
+
+		auto path = Dialog_SaveFileName(
+			main_window(),
+			filter,
+			TEXT("log"),
+			TEXT("hspdbg.log")
+		);
+		if (!path) {
+			return std::nullopt;
+		}
+
+		return std::make_optional(*std::move(path));
+	}
+
 	// UI イベント:
 
 	void resize_main_window(int client_x, int client_y, bool repaint) {
@@ -622,21 +641,10 @@ void setEditStyle( HWND hEdit )
 }
 
 auto select_save_log_file() -> std::optional<OsString> {
-	static auto const filter =
-		TEXT("log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0");
-
-	auto path = Dialog_SaveFileName(
-		g_res->mainWindow.get(),
-		filter,
-		TEXT("log"),
-		TEXT("hspdbg.log")
-	);
-
-	if (!path) {
-		return std::nullopt;
+	if (auto&& view_opt = get_knowbug_view()) {
+		return view_opt->select_save_log_file();
 	}
-
-	return std::make_optional(*std::move(path));
+	return std::nullopt;
 }
 
 void notify_save_failure() {
