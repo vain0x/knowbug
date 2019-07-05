@@ -56,8 +56,6 @@ auto KnowbugConfig::load(OsString&& hsp_dir) -> KnowbugConfig {
 	config.fontAntialias = ini.getBool("Interface", "fontAntialias", false);
 
 	config.logPath = to_owned(ini.getString("Log", "autoSavePath", ""));
-	config.warnsBeforeClearingLog = ini.getBool("Log", "warnsBeforeClearingLog", true);
-	config.scrollsLogAutomatically = ini.getBool("Log", "scrollsLogAutomatically", true);
 
 	return config;
 }

@@ -621,18 +621,6 @@ void setEditStyle( HWND hEdit )
 	Edit_SetTabLength(hEdit, g_config->tabwidth);
 }
 
-auto confirm_to_clear_log() -> bool {
-	if (g_config->warnsBeforeClearingLog) {
-		auto msg = TEXT("ログをすべて消去しますか？");
-		auto ok = MessageBox(g_res->mainWindow.get(), msg, KnowbugAppName, MB_OKCANCEL) == IDOK;
-
-		if (!ok) {
-			return false;
-		}
-	}
-	return true;
-}
-
 auto select_save_log_file() -> std::optional<OsString> {
 	static auto const filter =
 		TEXT("log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0");

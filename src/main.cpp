@@ -146,10 +146,6 @@ namespace Knowbug
 	}
 
 	void clear_log() {
-		if (!Dialog::confirm_to_clear_log()) {
-			return;
-		}
-
 		g_hsp_runtime->logger().clear();
 	}
 

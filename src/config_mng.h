@@ -23,7 +23,6 @@ struct KnowbugConfig {
 	int fontSize;
 	bool fontAntialias;
 	OsString logPath;
-	bool warnsBeforeClearingLog;
 
 	auto commonPath() const -> OsString {
 		return OsString{ hspDir + TEXT("common") };
