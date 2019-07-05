@@ -41,6 +41,10 @@ struct KnowbugConfig {
 			assert(g_knowbug_config != nullptr);
 			return g_knowbug_config.get();
 		}
+
+		auto operator*() const -> KnowbugConfig const& {
+			return *g_knowbug_config;
+		}
 	};
 };
 

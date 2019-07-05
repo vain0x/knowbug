@@ -46,6 +46,10 @@ static auto window_to_client_rect(HWND hwnd) -> RECT {
 	return rc;
 }
 
+static auto create_main_font(KnowbugConfig const& config) -> gdi_obj_t {
+	return gdi_obj_t{ Font_Create(as_view(config.fontFamily), config.fontSize, config.fontAntialias) };
+}
+
 static void resize_main_window(int client_x, int client_y, bool repaints, HWND tree_view, HWND source_edit, StepButtonHandleArray const& step_button_handles) {
 	auto const source_edit_size_y = 50;
 	auto const step_button_size_x = client_x / STEP_BUTTON_COUNT;
@@ -452,11 +456,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 				, GetDlgItem(hPane, IDC_BTN3)
 				, GetDlgItem(hPane, IDC_BTN4)
 				, GetDlgItem(hPane, IDC_BTN5) }}
-			, gdi_obj_t {
-					Font_Create
-						( as_view(g_config->fontFamily)
-						, g_config->fontSize
-						, g_config->fontAntialias ) }
+			, create_main_font(*g_config)
 			});
 	}
 
