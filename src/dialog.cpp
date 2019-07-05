@@ -142,16 +142,27 @@ static auto g_res = unique_ptr<Resource> {};
 
 class KnowbugView {
 	Resource const& r_;
+	KnowbugConfig const& config_;
 	ViewBoxImpl view_box_;
 
 public:
-	KnowbugView(Resource const& r)
+	KnowbugView(Resource const& r, KnowbugConfig const& config)
 		: r_(r)
+		, config_(config)
 		, view_box_(hViewEdit)
 	{
 	}
 
 	// 初期化:
+
+	void set_windows_top_most() {
+		if (config().bTopMost) {
+			CheckMenuItem(dialog_menu(), IDC_TOPMOST, MF_CHECKED);
+			for (auto hwnd : windows()) {
+				Window_SetTopMost(hwnd, true);
+			}
+		}
+	}
 
 	void apply_main_font() {
 		for (auto hwnd : {
@@ -227,6 +238,10 @@ public:
 	}
 
 private:
+	auto config() const -> KnowbugConfig const& {
+		return config_;
+	}
+
 	auto main_font() const -> HGDIOBJ {
 		return r_.font.get();
 	}
@@ -341,7 +356,7 @@ static auto get_knowbug_view() -> std::optional<KnowbugView> {
 		return std::nullopt;
 	}
 
-	return std::make_optional(KnowbugView{ *g_res });
+	return std::make_optional(KnowbugView{ *g_res, *g_config });
 }
 
 static auto windowHandles() -> std::vector<HWND>
@@ -552,14 +567,8 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 			});
 	}
 
-	if ( g_config->bTopMost ) {
-		CheckMenuItem(g_res->dialogMenu.get(), IDC_TOPMOST, MF_CHECKED);
-		for ( auto&& hwnd : windowHandles() ) {
-			Window_SetTopMost(hwnd, true);
-		}
-	}
-
 	if (auto&& view_opt = get_knowbug_view()) {
+		view_opt->set_windows_top_most();
 		view_opt->apply_main_font();
 		view_opt->initialize_main_window_layout();
 		view_opt->initialize_view_window_layout();
