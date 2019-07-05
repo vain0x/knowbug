@@ -138,7 +138,10 @@ struct Resource
 	StepButtonHandleArray stepButtons;
 	gdi_obj_t font;
 };
+
 static auto g_res = unique_ptr<Resource> {};
+
+static auto g_top_most = std::make_unique<bool>(false);
 
 class KnowbugView {
 	Resource const& r_;
@@ -157,10 +160,7 @@ public:
 
 	void set_windows_top_most() {
 		if (config().bTopMost) {
-			CheckMenuItem(dialog_menu(), IDC_TOPMOST, MF_CHECKED);
-			for (auto hwnd : windows()) {
-				Window_SetTopMost(hwnd, true);
-			}
+			toggle_windows_top_most();
 		}
 	}
 
@@ -200,6 +200,16 @@ public:
 
 	void resize_view_window(int client_x, int client_y, bool repaint) {
 		MoveWindow(view_edit(), 0, 0, client_x, client_y, repaint);
+	}
+
+	void toggle_windows_top_most() {
+		auto top_most = !*g_top_most;
+		*g_top_most = top_most;
+
+		CheckMenuItem(dialog_menu(), IDC_TOPMOST, top_most ? MF_CHECKED : MF_UNCHECKED);
+		for (auto hwnd : windows()) {
+			Window_SetTopMost(hwnd, top_most);
+		}
 	}
 
 	void update_view_edit() {
@@ -389,13 +399,12 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				case IDC_BTN4: Knowbug::step_run(StepControl::step_over()); break;
 				case IDC_BTN5: Knowbug::step_run(StepControl::step_out());  break;
 
-				case IDC_TOPMOST: {
-					Menu_ToggleCheck(g_res->dialogMenu.get(), IDC_TOPMOST, g_config->bTopMost);
-					for ( auto&& hwnd : windowHandles() ) {
-						Window_SetTopMost(hwnd, g_config->bTopMost);
+				case IDC_TOPMOST:
+					if (auto&& view_opt = get_knowbug_view()) {
+						view_opt->toggle_windows_top_most();
 					}
 					break;
-				}
+
 				case IDC_OPEN_CURRENT_SCRIPT:
 					Knowbug::open_current_script_file();
 					break;
