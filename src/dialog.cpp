@@ -189,6 +189,16 @@ public:
 		var_tree_view_control().update_view_window(view_box());
 	}
 
+	// その他:
+
+	void did_main_window_activate(bool is_activated) {
+		if (!is_activated) {
+			return;
+		}
+
+		move_view_window_to_front();
+	}
+
 private:
 	auto main_font() const -> HGDIOBJ {
 		return r_.font.get();
@@ -235,6 +245,10 @@ private:
 		v.emplace_back(main_window());
 		v.emplace_back(view_window());
 		return v;
+	}
+
+	void move_view_window_to_front() {
+		SetWindowPos(view_window(), main_window(), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 	}
 };
 
@@ -391,14 +405,14 @@ LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				view_opt->resize_main_window(LOWORD(lp), HIWORD(lp), REPAINT);
 			}
 			break;
+
 		case WM_ACTIVATE:
-			{
+			if (auto&& view_opt = get_knowbug_view()) {
 				auto is_activated = LOWORD(wp) != 0;
-				if (g_res && is_activated) {
-					SetWindowPos(g_res->viewWindow.get(), hDlg, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-				}
-				break;
+				view_opt->did_main_window_activate(is_activated);
 			}
+			break;
+
 		case WM_CREATE: return TRUE;
 		case WM_CLOSE: return FALSE;
 		case WM_DESTROY:
