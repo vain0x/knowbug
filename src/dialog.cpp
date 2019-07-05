@@ -40,6 +40,12 @@ static auto const STEP_BUTTON_COUNT = std::size_t{ 5 };
 
 using StepButtonHandleArray = std::array<HWND, STEP_BUTTON_COUNT>;
 
+static auto window_to_client_rect(HWND hwnd) -> RECT {
+	RECT rc;
+	GetClientRect(hwnd, &rc);
+	return rc;
+}
+
 static void resize_main_window(int client_x, int client_y, bool repaints, HWND tree_view, HWND source_edit, StepButtonHandleArray const& step_button_handles) {
 	auto const source_edit_size_y = 50;
 	auto const step_button_size_x = client_x / STEP_BUTTON_COUNT;
@@ -139,7 +145,12 @@ public:
 	{
 	}
 
-	auto resize_main_window(int client_x, int client_y, bool repaint) {
+	void initialize_main_window_layout() {
+		auto rc = window_to_client_rect(main_window());
+		resize_main_window(rc.right, rc.bottom, !REPAINT);
+	}
+
+	void resize_main_window(int client_x, int client_y, bool repaint) {
 		::resize_main_window(client_x, client_y, repaint, var_tree_view(), source_edit(), step_buttons());
 	}
 
@@ -454,8 +465,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 	}
 
 	if (auto&& view_opt = get_knowbug_view()) {
-		RECT rc; GetClientRect(g_res->mainWindow.get(), &rc);
-		view_opt->resize_main_window(rc.right, rc.bottom, !REPAINT);
+		view_opt->initialize_main_window_layout();
 	}
 	{
 		RECT rc; GetClientRect(g_res->viewWindow.get(), &rc);
