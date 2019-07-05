@@ -154,6 +154,11 @@ public:
 		::resize_main_window(client_x, client_y, repaint, var_tree_view(), source_edit(), step_buttons());
 	}
 
+	void initialize_view_window_layout() {
+		auto rc = window_to_client_rect(view_window());
+		MoveWindow(view_edit(), 0, 0, rc.right, rc.bottom, !REPAINT);
+	}
+
 private:
 	auto main_window() const -> HWND {
 		return r_.mainWindow.get();
@@ -177,6 +182,10 @@ private:
 
 	auto step_buttons() const -> StepButtonHandleArray const& {
 		return r_.stepButtons;
+	}
+
+	auto view_edit() const -> HWND {
+		return hViewEdit;
 	}
 
 	auto windows() const -> std::vector<HWND> {
@@ -466,10 +475,7 @@ void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects
 
 	if (auto&& view_opt = get_knowbug_view()) {
 		view_opt->initialize_main_window_layout();
-	}
-	{
-		RECT rc; GetClientRect(g_res->viewWindow.get(), &rc);
-		MoveWindow(hViewEdit, 0, 0, rc.right, rc.bottom, FALSE);
+		view_opt->initialize_view_window_layout();
 	}
 
 	for ( auto&& hwnd : windowHandles() ) {
