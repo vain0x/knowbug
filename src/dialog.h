@@ -17,7 +17,7 @@ namespace hpiutil {
 namespace Dialog
 {
 
-void createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspObjectTree& object_tree);
+void createMain(HspObjects& objects, HspObjectTree& object_tree);
 void destroyMain();
 
 void update();

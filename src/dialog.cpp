@@ -521,7 +521,7 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-void Dialog::createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspObjectTree& object_tree)
+void Dialog::createMain(HspObjects& objects, HspObjectTree& object_tree)
 {
 	auto const dispx = GetSystemMetrics(SM_CXSCREEN);
 	auto const dispy = GetSystemMetrics(SM_CYSCREEN);

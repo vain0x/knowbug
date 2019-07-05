@@ -74,7 +74,6 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	// 起動時の処理:
 
 	Dialog::createMain(
-		debug_segment,
 		g_hsp_runtime->objects(),
 		g_hsp_runtime->object_tree()
 	);
