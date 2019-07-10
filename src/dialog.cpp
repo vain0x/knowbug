@@ -145,6 +145,34 @@ struct Resource
 
 	StepButtonHandleArray stepButtons;
 	gdi_obj_t font;
+
+public:
+	Resource(
+		window_handle_t&& main_window,
+		window_handle_t&& view_window,
+		menu_handle_t&& dialog_menu,
+		HMENU hNodeMenuBar,
+		HWND hPane,
+		std::unique_ptr<VarTreeViewControl>&& tv,
+		gdi_obj_t&& main_font
+	)
+		: mainWindow(std::move(main_window))
+		, viewWindow(std::move(view_window))
+		, dialogMenu(std::move(dialog_menu))
+		, nodeMenu(GetSubMenu(hNodeMenuBar, 0))
+		, invokeMenu(GetSubMenu(hNodeMenuBar, 1))
+		, logMenu(GetSubMenu(hNodeMenuBar, 2))
+		, tv(std::move(tv))
+		, stepButtons({
+			GetDlgItem(hPane, IDC_BTN1),
+			GetDlgItem(hPane, IDC_BTN2),
+			GetDlgItem(hPane, IDC_BTN3),
+			GetDlgItem(hPane, IDC_BTN4),
+			GetDlgItem(hPane, IDC_BTN5)
+		})
+		, font(std::move(main_font))
+	{
+	}
 };
 
 static auto g_res = unique_ptr<Resource> {};
@@ -537,6 +565,8 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 	auto const view_pos_x = !g_config->viewPosXIsDefault ? g_config->viewPosX : display_x - main_size_x - view_size_x;
 	auto const view_pos_y = !g_config->viewPosYIsDefault ? g_config->viewPosY : 0;
 
+	auto main_font = create_main_font(*g_config);
+
 	//ビューウィンドウ
 	auto hViewWnd = window_handle_t {
 		Window_Create
@@ -586,23 +616,17 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 		hVarTree = GetDlgItem(hPane, IDC_VARTREE);
 		hSrcLine = GetDlgItem(hPane, IDC_SRC_LINE);
 
-		// メンバの順番に注意
-		g_res.reset(new Resource
-			{ std::move(hDlgWnd)
-			, std::move(hViewWnd)
-			, std::move(hDlgMenu)
-			, menu_handle_t { GetSubMenu(hNodeMenuBar, 0) } // node
-			, menu_handle_t { GetSubMenu(hNodeMenuBar, 1) } // invoke
-			, menu_handle_t { GetSubMenu(hNodeMenuBar, 2) } // log
-			, VarTreeViewControl::create(objects, object_tree, hVarTree)
-			, {{
-				  GetDlgItem(hPane, IDC_BTN1)
-				, GetDlgItem(hPane, IDC_BTN2)
-				, GetDlgItem(hPane, IDC_BTN3)
-				, GetDlgItem(hPane, IDC_BTN4)
-				, GetDlgItem(hPane, IDC_BTN5) }}
-			, create_main_font(*g_config)
-			});
+		auto tv = VarTreeViewControl::create(objects, object_tree, hVarTree);
+
+		g_res = std::make_unique<Resource>(
+			std::move(hDlgWnd),
+			std::move(hViewWnd),
+			std::move(hDlgMenu),
+			hNodeMenuBar,
+			hPane,
+			std::move(tv),
+			std::move(main_font)
+		);
 	}
 
 	if (auto&& view_opt = get_knowbug_view()) {
