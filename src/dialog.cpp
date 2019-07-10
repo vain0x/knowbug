@@ -133,14 +133,13 @@ public:
 namespace Dialog
 {
 
-static HWND hVarTree;
-static HWND hSrcLine;
-static HWND hViewEdit;
-
 struct Resource
 {
 	window_handle_t mainWindow, viewWindow;
 	menu_handle_t dialogMenu, nodeMenu, invokeMenu, logMenu;
+	HWND hVarTree;
+	HWND hSrcLine;
+	HWND hViewEdit;
 	std::unique_ptr<VarTreeViewControl> tv;
 
 	StepButtonHandleArray stepButtons;
@@ -152,6 +151,9 @@ public:
 		window_handle_t&& view_window,
 		menu_handle_t&& dialog_menu,
 		HMENU hNodeMenuBar,
+		HWND hVarTree,
+		HWND hSrcLine,
+		HWND hViewEdit,
 		HWND hPane,
 		std::unique_ptr<VarTreeViewControl>&& tv,
 		gdi_obj_t&& main_font
@@ -162,6 +164,9 @@ public:
 		, nodeMenu(GetSubMenu(hNodeMenuBar, 0))
 		, invokeMenu(GetSubMenu(hNodeMenuBar, 1))
 		, logMenu(GetSubMenu(hNodeMenuBar, 2))
+		, hVarTree(hVarTree)
+		, hSrcLine(hSrcLine)
+		, hViewEdit(hViewEdit)
 		, tv(std::move(tv))
 		, stepButtons({
 			GetDlgItem(hPane, IDC_BTN1),
@@ -188,7 +193,7 @@ public:
 	KnowbugView(Resource const& r, KnowbugConfig const& config)
 		: r_(r)
 		, config_(config)
-		, view_box_(hViewEdit)
+		, view_box_(r.hViewEdit)
 	{
 	}
 
@@ -349,11 +354,11 @@ private:
 	}
 
 	auto var_tree_view() const -> HWND {
-		return hVarTree;
+		return r_.hVarTree;
 	}
 
 	auto source_edit() const -> HWND {
-		return hSrcLine;
+		return r_.hSrcLine;
 	}
 
 	auto step_buttons() const -> StepButtonHandleArray const& {
@@ -361,7 +366,7 @@ private:
 	}
 
 	auto view_edit() const -> HWND {
-		return hViewEdit;
+		return r_.hViewEdit;
 	}
 
 	auto var_tree_view_control() -> VarTreeViewControl& {
@@ -589,7 +594,7 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 		(DLGPROC)ViewDialogProc
 	);
 
-	hViewEdit = GetDlgItem(view_pane, IDC_VIEW);
+	auto const hViewEdit = GetDlgItem(view_pane, IDC_VIEW);
 	Edit_SetTabLength(hViewEdit, g_config->tabwidth);
 
 	ShowWindow(view_pane, SW_SHOW);
@@ -622,17 +627,20 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 	auto const hNodeMenuBar = LoadMenu(instance, (LPCTSTR)IDR_NODE_MENU);
 
 	// ツリービュー
-	hVarTree = GetDlgItem(main_pane, IDC_VARTREE);
+	auto const hVarTree = GetDlgItem(main_pane, IDC_VARTREE);
 
 	auto tv = VarTreeViewControl::create(objects, object_tree, hVarTree);
 
-	hSrcLine = GetDlgItem(main_pane, IDC_SRC_LINE);
+	auto const hSrcLine = GetDlgItem(main_pane, IDC_SRC_LINE);
 
 	g_res = std::make_unique<Resource>(
 		std::move(hDlgWnd),
 		std::move(hViewWnd),
 		std::move(hDlgMenu),
 		hNodeMenuBar,
+		hVarTree,
+		hSrcLine,
+		hViewEdit,
 		main_pane,
 		std::move(tv),
 		std::move(main_font)
