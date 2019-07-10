@@ -80,6 +80,22 @@ static void resize_main_window(int client_x, int client_y, bool repaints, HWND t
 	}
 }
 
+static auto select_save_log_file(HWND window) -> std::optional<OsString> {
+	static auto const FILTER = TEXT("log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0");
+
+	auto path = Dialog_SaveFileName(
+		window,
+		FILTER,
+		TEXT("log"),
+		TEXT("hspdbg.log")
+	);
+	if (!path) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(*std::move(path));
+}
+
 class ViewBoxImpl
 	: public AbstractViewBox
 {
@@ -205,20 +221,7 @@ public:
 	// UI 操作:
 
 	auto select_save_log_file() -> std::optional<OsString> {
-		static auto const filter =
-			TEXT("log text(*.txt;*.log)\0*.txt;*.log\0All files(*.*)\0*.*\0\0");
-
-		auto path = Dialog_SaveFileName(
-			main_window(),
-			filter,
-			TEXT("log"),
-			TEXT("hspdbg.log")
-		);
-		if (!path) {
-			return std::nullopt;
-		}
-
-		return std::make_optional(*std::move(path));
+		return (::select_save_log_file)(main_window());
 	}
 
 	void notify_save_failure() {
