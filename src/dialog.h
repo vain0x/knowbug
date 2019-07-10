@@ -17,7 +17,7 @@ namespace hpiutil {
 namespace Dialog
 {
 
-void createMain(HspObjects& objects, HspObjectTree& object_tree);
+void createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree);
 void destroyMain();
 
 void update();

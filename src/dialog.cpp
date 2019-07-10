@@ -525,7 +525,7 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-void Dialog::createMain(HspObjects& objects, HspObjectTree& object_tree)
+void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree)
 {
 	auto const dispx = GetSystemMetrics(SM_CXSCREEN);
 	auto const dispy = GetSystemMetrics(SM_CYSCREEN);
@@ -542,13 +542,13 @@ void Dialog::createMain(HspObjects& objects, HspObjectTree& object_tree)
 			, OsStringView{ KnowbugViewWindowTitle }, (WS_THICKFRAME)
 			, viewSizeX, viewSizeY
 			, viewPosX, viewPosY
-			, Knowbug::getInstance()
+			, instance
 			) };
 	SetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE
 		, GetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
 	{
 		auto const hPane =
-			CreateDialog(Knowbug::getInstance()
+			CreateDialog(instance
 				, (LPCTSTR)IDD_VIEW_PANE
 				, hViewWnd.get(), (DLGPROC)ViewDialogProc);
 		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
@@ -564,21 +564,21 @@ void Dialog::createMain(HspObjects& objects, HspObjectTree& object_tree)
 			, OsStringView{ KnowbugMainWindowTitle }, WS_THICKFRAME
 			, mainSizeX, mainSizeY
 			, dispx - mainSizeX, 0
-			, Knowbug::getInstance()
+			, instance
 			) };
 	{
 		auto const hPane =
-			CreateDialog(Knowbug::getInstance()
+			CreateDialog(instance
 				, (LPCTSTR)IDD_MAIN_PANE
 				, hDlgWnd.get(), (DLGPROC)DlgProc);
 		ShowWindow(hPane, SW_SHOW);
 
 		//メニューバー
-		auto hDlgMenu = menu_handle_t { LoadMenu(Knowbug::getInstance(), (LPCTSTR)IDR_MAIN_MENU) };
+		auto hDlgMenu = menu_handle_t { LoadMenu(instance, (LPCTSTR)IDR_MAIN_MENU) };
 		SetMenu(hDlgWnd.get(), hDlgMenu.get());
 
 		//ポップメニュー
-		auto const hNodeMenuBar = LoadMenu(Knowbug::getInstance(), (LPCTSTR)IDR_NODE_MENU);
+		auto const hNodeMenuBar = LoadMenu(instance, (LPCTSTR)IDR_NODE_MENU);
 
 		//いろいろ
 		hVarTree = GetDlgItem(hPane, IDC_VARTREE);
