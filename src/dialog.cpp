@@ -527,21 +527,23 @@ LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 
 void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree)
 {
-	auto const dispx = GetSystemMetrics(SM_CXSCREEN);
-	auto const dispy = GetSystemMetrics(SM_CYSCREEN);
+	auto const display_x = GetSystemMetrics(SM_CXSCREEN);
+	auto const display_y = GetSystemMetrics(SM_CYSCREEN);
 
-	auto const mainSizeX = 234, mainSizeY = 380;
-	auto const viewSizeX = g_config->viewSizeX, viewSizeY = g_config->viewSizeY;
-	auto const viewPosX = !g_config->viewPosXIsDefault ? g_config->viewPosX : dispx - mainSizeX - viewSizeX;
-	auto const viewPosY = !g_config->viewPosYIsDefault ? g_config->viewPosY : 0;
+	auto const main_size_x = 234;
+	auto const main_size_y = 380;
+	auto const view_size_x = g_config->viewSizeX;
+	auto const view_size_y = g_config->viewSizeY;
+	auto const view_pos_x = !g_config->viewPosXIsDefault ? g_config->viewPosX : display_x - main_size_x - view_size_x;
+	auto const view_pos_y = !g_config->viewPosYIsDefault ? g_config->viewPosY : 0;
 
 	//ビューウィンドウ
 	auto hViewWnd = window_handle_t {
 		Window_Create
 			( OsStringView{ TEXT("KnowbugViewWindow") }, ViewDialogProc
 			, OsStringView{ KnowbugViewWindowTitle }, (WS_THICKFRAME)
-			, viewSizeX, viewSizeY
-			, viewPosX, viewPosY
+			, view_size_x, view_size_y
+			, view_pos_x, view_pos_y
 			, instance
 			) };
 	SetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE
@@ -562,8 +564,8 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 		Window_Create
 			( OsStringView{ TEXT("KnowbugMainWindow") }, DlgProc
 			, OsStringView{ KnowbugMainWindowTitle }, WS_THICKFRAME
-			, mainSizeX, mainSizeY
-			, dispx - mainSizeX, 0
+			, main_size_x, main_size_y
+			, display_x - main_size_x, 0
 			, instance
 			) };
 	{
