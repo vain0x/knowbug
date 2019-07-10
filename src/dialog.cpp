@@ -172,6 +172,7 @@ public:
 	{
 	}
 
+private:
 	// 初期化:
 
 	void set_windows_top_most() {
@@ -204,6 +205,15 @@ public:
 			UpdateWindow(hwnd);
 			ShowWindow(hwnd, SW_SHOW);
 		}
+	}
+
+public:
+	void initialize() {
+		set_windows_top_most();
+		apply_main_font();
+		initialize_main_window_layout();
+		initialize_view_window_layout();
+		show_windows();
 	}
 
 	// 更新:
@@ -602,11 +612,7 @@ void Dialog::createMain(HspObjects& objects, HspObjectTree& object_tree)
 	}
 
 	if (auto&& view_opt = get_knowbug_view()) {
-		view_opt->set_windows_top_most();
-		view_opt->apply_main_font();
-		view_opt->initialize_main_window_layout();
-		view_opt->initialize_view_window_layout();
-		view_opt->show_windows();
+		view_opt->initialize();
 	}
 }
 
