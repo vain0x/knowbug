@@ -5,24 +5,16 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
-#include <algorithm>
-#include <fstream>
 
 #include "main.h"
 #include "resource.h"
 #include "hpiutil/hspsdk/hspwnd.h"
 #include "module/GuiUtility.h"
-#include "module/strf.h"
-#include "WrapCall/WrapCall.h"
 
 #include "dialog.h"
 #include "vartree.h"
 #include "config_mng.h"
-#include "DebugInfo.h"
-#include "SourceFileResolver.h"
 #include "HspObjectPath.h"
-
-#include "module/supio/supio.h"
 
 #ifdef _M_X64
 # define KnowbugPlatformString TEXT("(x64)")
