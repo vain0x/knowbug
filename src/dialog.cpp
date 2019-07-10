@@ -560,6 +560,8 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 
 	auto const main_size_x = 234;
 	auto const main_size_y = 380;
+	auto const main_pos_x = display_x - main_size_x;
+	auto const main_pos_y = 0;
 	auto const view_size_x = g_config->viewSizeX;
 	auto const view_size_y = g_config->viewSizeY;
 	auto const view_pos_x = !g_config->viewPosXIsDefault ? g_config->viewPosX : display_x - main_size_x - view_size_x;
@@ -567,67 +569,74 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 
 	auto main_font = create_main_font(*g_config);
 
-	//ビューウィンドウ
-	auto hViewWnd = window_handle_t {
-		Window_Create
-			( OsStringView{ TEXT("KnowbugViewWindow") }, ViewDialogProc
-			, OsStringView{ KnowbugViewWindowTitle }, (WS_THICKFRAME)
-			, view_size_x, view_size_y
-			, view_pos_x, view_pos_y
-			, instance
-			) };
-	SetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE
-		, GetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
-	{
-		auto const hPane =
-			CreateDialog(instance
-				, (LPCTSTR)IDD_VIEW_PANE
-				, hViewWnd.get(), (DLGPROC)ViewDialogProc);
-		hViewEdit = GetDlgItem(hPane, IDC_VIEW);
-		Edit_SetTabLength(hViewEdit, g_config->tabwidth);
+	// ビューウィンドウ
+	auto hViewWnd = window_handle_t{
+		Window_Create(
+			OsStringView{ TEXT("KnowbugViewWindow") },
+			ViewDialogProc,
+			OsStringView{ KnowbugViewWindowTitle },
+			WS_THICKFRAME,
+			view_size_x, view_size_y,
+			view_pos_x, view_pos_y,
+			instance
+		) };
+	SetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE, GetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
 
-		ShowWindow(hPane, SW_SHOW);
-	}
+	auto const view_pane = CreateDialog(
+		instance,
+		(LPCTSTR)IDD_VIEW_PANE,
+		hViewWnd.get(),
+		(DLGPROC)ViewDialogProc
+	);
 
-	//メインウィンドウ
-	auto hDlgWnd = window_handle_t {
-		Window_Create
-			( OsStringView{ TEXT("KnowbugMainWindow") }, DlgProc
-			, OsStringView{ KnowbugMainWindowTitle }, WS_THICKFRAME
-			, main_size_x, main_size_y
-			, display_x - main_size_x, 0
-			, instance
-			) };
-	{
-		auto const hPane =
-			CreateDialog(instance
-				, (LPCTSTR)IDD_MAIN_PANE
-				, hDlgWnd.get(), (DLGPROC)DlgProc);
-		ShowWindow(hPane, SW_SHOW);
+	hViewEdit = GetDlgItem(view_pane, IDC_VIEW);
+	Edit_SetTabLength(hViewEdit, g_config->tabwidth);
 
-		//メニューバー
-		auto hDlgMenu = menu_handle_t { LoadMenu(instance, (LPCTSTR)IDR_MAIN_MENU) };
-		SetMenu(hDlgWnd.get(), hDlgMenu.get());
+	ShowWindow(view_pane, SW_SHOW);
 
-		//ポップメニュー
-		auto const hNodeMenuBar = LoadMenu(instance, (LPCTSTR)IDR_NODE_MENU);
+	// メインウィンドウ
+	auto hDlgWnd = window_handle_t{
+		Window_Create(
+			OsStringView{ TEXT("KnowbugMainWindow") },
+			DlgProc,
+			OsStringView{ KnowbugMainWindowTitle },
+			WS_THICKFRAME,
+			main_size_x, main_size_y,
+			main_pos_x, main_pos_y,
+			instance
+		) };
 
-		//いろいろ
-		hVarTree = GetDlgItem(hPane, IDC_VARTREE);
-		hSrcLine = GetDlgItem(hPane, IDC_SRC_LINE);
+	auto const main_pane = CreateDialog(
+		instance,
+		(LPCTSTR)IDD_MAIN_PANE,
+		hDlgWnd.get(),
+		(DLGPROC)DlgProc
+	);
+	ShowWindow(main_pane, SW_SHOW);
 
-		auto tv = VarTreeViewControl::create(objects, object_tree, hVarTree);
+	// メニューバー
+	auto hDlgMenu = menu_handle_t{ LoadMenu(instance, (LPCTSTR)IDR_MAIN_MENU) };
+	SetMenu(hDlgWnd.get(), hDlgMenu.get());
 
-		g_res = std::make_unique<Resource>(
-			std::move(hDlgWnd),
-			std::move(hViewWnd),
-			std::move(hDlgMenu),
-			hNodeMenuBar,
-			hPane,
-			std::move(tv),
-			std::move(main_font)
-		);
-	}
+	// ポップメニュー
+	auto const hNodeMenuBar = LoadMenu(instance, (LPCTSTR)IDR_NODE_MENU);
+
+	// ツリービュー
+	hVarTree = GetDlgItem(main_pane, IDC_VARTREE);
+
+	auto tv = VarTreeViewControl::create(objects, object_tree, hVarTree);
+
+	hSrcLine = GetDlgItem(main_pane, IDC_SRC_LINE);
+
+	g_res = std::make_unique<Resource>(
+		std::move(hDlgWnd),
+		std::move(hViewWnd),
+		std::move(hDlgMenu),
+		hNodeMenuBar,
+		main_pane,
+		std::move(tv),
+		std::move(main_font)
+	);
 
 	if (auto&& view_opt = get_knowbug_view()) {
 		view_opt->initialize();
