@@ -363,7 +363,6 @@ private:
 		switch (path.kind()) {
 		case HspObjectKind::CallFrame:
 			return r_.invokeMenu.get();
-			break;
 
 		case HspObjectKind::Log:
 			return r_.logMenu.get();
