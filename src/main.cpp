@@ -22,6 +22,7 @@ std::unique_ptr<DebugInfo> g_dbginfo {};
 static std::unique_ptr<KnowbugStepController> g_step_controller_;
 static std::shared_ptr<SourceFileResolver> g_source_file_resolver;
 static std::unique_ptr<HspRuntime> g_hsp_runtime;
+static std::unique_ptr<KnowbugView> g_knowbug_view;
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
@@ -71,13 +72,13 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 	g_hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *g_dbginfo, *g_source_file_resolver);
 
-	// 起動時の処理:
-
-	Dialog::createMain(
+	g_knowbug_view = KnowbugView::create(
 		g_hInstance,
 		g_hsp_runtime->objects(),
 		g_hsp_runtime->object_tree()
 	);
+
+	g_knowbug_view->initialize();
 	return 0;
 }
 
@@ -89,15 +90,19 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 			if ( Knowbug::continueConditionalRun() ) break;
 
 			g_dbginfo->updateCurInf();
-			Dialog::update_source_view(to_os(g_hsp_runtime->objects().script_to_current_location_summary()));
-			Dialog::update();
+			if (auto&& view_opt = Knowbug::get_view()) {
+				view_opt->update_source_edit(to_os(g_hsp_runtime->objects().script_to_current_location_summary()));
+				view_opt->update();
+			}
 			break;
 		}
 		case hpiutil::DebugNotice_Logmes:
 			g_hsp_runtime->logger().append(to_utf8(as_hsp(ctx->stmp)));
 			g_hsp_runtime->logger().append(as_utf8(u8"\r\n"));
 
-			Dialog::did_log_change();
+			if (auto&& view_opt = Knowbug::get_view()) {
+				view_opt->did_log_change();
+			}
 			break;
 	}
 	return 0;
@@ -107,13 +112,17 @@ void debugbye()
 {
 	Knowbug::auto_save_log();
 
-	Dialog::destroyMain();
+	g_knowbug_view.reset();
 }
 
 namespace Knowbug
 {
 	auto getInstance() -> HINSTANCE {
 		return g_hInstance;
+	}
+
+	auto get_view() -> KnowbugView* {
+		return g_knowbug_view.get();
 	}
 
 	auto get_hsp_runtime() -> HspRuntime& {
@@ -160,14 +169,16 @@ namespace Knowbug
 	}
 
 	void save_log() {
-		auto&& file_path_opt = Dialog::select_save_log_file();
-		if (!file_path_opt) {
-			return;
-		}
+		if (auto&& view_opt = Knowbug::get_view()) {
+			auto&& file_path_opt = view_opt->select_save_log_file();
+			if (!file_path_opt) {
+				return;
+			}
 
-		auto success = do_save_log(*file_path_opt);
-		if (!success) {
-			Dialog::notify_save_failure();
+			auto success = do_save_log(*file_path_opt);
+			if (!success) {
+				view_opt->notify_save_failure();
+			}
 		}
 	}
 

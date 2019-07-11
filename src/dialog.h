@@ -14,20 +14,26 @@ namespace hpiutil {
 	class DInfo;
 }
 
-namespace Dialog
-{
+class KnowbugView {
+public:
+	static auto create(HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView>;
 
-void createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree);
-void destroyMain();
+	virtual ~KnowbugView() {
+	}
 
-void update();
+	virtual void initialize() = 0;
 
-void update_source_view(OsStringView const& content);
+	virtual void update() = 0;
 
-void did_log_change();
+	virtual void update_source_edit(OsStringView const& content) = 0;
 
-auto select_save_log_file() -> std::optional<OsString>;
+	virtual void did_log_change() = 0;
 
-void notify_save_failure();
+	virtual auto select_save_log_file() -> std::optional<OsString> = 0;
 
-} // namespace Dialog
+	virtual void notify_save_failure() = 0;
+
+	virtual auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT = 0;
+
+	virtual auto process_view_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT = 0;
+};

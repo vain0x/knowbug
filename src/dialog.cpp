@@ -34,8 +34,6 @@ static auto const STEP_BUTTON_COUNT = std::size_t{ 5 };
 
 using StepButtonHandleArray = std::array<HWND, STEP_BUTTON_COUNT>;
 
-static auto g_knowbug_view = std::unique_ptr<KnowbugView>{};
-
 static auto window_to_client_rect(HWND hwnd) -> RECT {
 	RECT rc;
 	GetClientRect(hwnd, &rc);
@@ -134,7 +132,9 @@ public:
 	}
 };
 
-class KnowbugView {
+class KnowbugViewImpl
+	: public KnowbugView
+{
 	window_handle_t mainWindow, viewWindow;
 	menu_handle_t dialogMenu, nodeMenu, invokeMenu, logMenu;
 	HWND hVarTree;
@@ -150,7 +150,7 @@ class KnowbugView {
 	bool top_most_;
 
 public:
-	KnowbugView(
+	KnowbugViewImpl(
 		window_handle_t&& main_window,
 		window_handle_t&& view_window,
 		menu_handle_t&& dialog_menu,
@@ -219,7 +219,9 @@ private:
 	}
 
 public:
-	void initialize() {
+	// 更新:
+
+	void initialize() override {
 		set_windows_top_most();
 		apply_main_font();
 		initialize_main_window_layout();
@@ -227,13 +229,15 @@ public:
 		show_windows();
 	}
 
-	// 更新:
+	void update() override {
+		update_view_edit();
+	}
 
-	void update_source_edit(OsStringView const& content) {
+	void update_source_edit(OsStringView const& content) override {
 		Edit_SetText(source_edit(), content.data());
 	}
 
-	void did_log_change() {
+	void did_log_change() override {
 		if (var_tree_view_control().log_is_selected()) {
 			update_view_edit();
 		}
@@ -241,11 +245,11 @@ public:
 
 	// UI 操作:
 
-	auto select_save_log_file() -> std::optional<OsString> {
+	auto select_save_log_file() -> std::optional<OsString> override {
 		return (::select_save_log_file)(main_window());
 	}
 
-	void notify_save_failure() {
+	void notify_save_failure() override {
 		static auto const MSG = TEXT("ログの保存に失敗しました。");
 		MessageBox(main_window(), MSG, KnowbugAppName, MB_OK);
 	}
@@ -318,7 +322,7 @@ public:
 		return true;
 	}
 
-	auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT {
+	auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT override {
 		switch (msg) {
 		case WM_COMMAND:
 			switch (LOWORD(wp)) {
@@ -409,7 +413,7 @@ public:
 		return DefWindowProc(hwnd, msg, wp, lp);
 	}
 
-	auto process_view_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT {
+	auto process_view_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT override {
 		switch (msg) {
 		case WM_CREATE:
 			return TRUE;
@@ -537,29 +541,22 @@ private:
 	}
 };
 
-static auto get_knowbug_view() -> KnowbugView* {
-	return g_knowbug_view.get();
-}
-
 // メインウィンドウのコールバック関数
-LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
-{
-	if (auto&& view_opt = get_knowbug_view()) {
+LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+	if (auto&& view_opt = Knowbug::get_view()) {
 		return view_opt->process_main_window(hDlg, msg, wp, lp);
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
-{
-	if (auto&& view_opt = get_knowbug_view()) {
+LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+	if (auto&& view_opt = Knowbug::get_view()) {
 		return view_opt->process_view_window(hDlg, msg, wp, lp);
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree)
-{
+auto KnowbugView::create(HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView> {
 	auto const display_x = GetSystemMetrics(SM_CXSCREEN);
 	auto const display_y = GetSystemMetrics(SM_CYSCREEN);
 
@@ -646,7 +643,7 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 		GetDlgItem(main_pane, IDC_BTN5)
 	};
 
-	g_knowbug_view = std::make_unique<KnowbugView>(
+	auto view = std::make_unique<KnowbugViewImpl>(
 		std::move(hDlgWnd),
 		std::move(hViewWnd),
 		std::move(hDlgMenu),
@@ -662,49 +659,5 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 		*g_config
 	);
 
-	if (auto&& view_opt = get_knowbug_view()) {
-		view_opt->initialize();
-	}
+	return std::unique_ptr<KnowbugView>{ std::move(view) };
 }
-
-namespace Dialog {
-
-void Dialog::destroyMain()
-{
-	g_knowbug_view.reset();
-}
-
-// 一時停止時に dbgnotice から呼ばれる
-void update()
-{
-	if (auto&& view_opt = get_knowbug_view()) {
-		view_opt->update_view_edit();
-	}
-}
-
-void update_source_view(OsStringView const& content) {
-	if (auto&& view_opt = get_knowbug_view()) {
-		view_opt->update_source_edit(content);
-	}
-}
-
-void did_log_change() {
-	if (auto&& view_opt = get_knowbug_view()) {
-		view_opt->did_log_change();
-	}
-}
-
-auto select_save_log_file() -> std::optional<OsString> {
-	if (auto&& view_opt = get_knowbug_view()) {
-		return view_opt->select_save_log_file();
-	}
-	return std::nullopt;
-}
-
-void notify_save_failure() {
-	if (auto&& view_opt = get_knowbug_view()) {
-		view_opt->notify_save_failure();
-	}
-}
-
-} // namespace Dialog

@@ -30,6 +30,7 @@ using hpiutil::HSPVAR_FLAG_VARIANT;
 
 class HspObjectPath;
 class HspRuntime;
+class KnowbugView;
 class SourceFileResolver;
 
 // FIXME: インターフェイスを抽出
@@ -37,6 +38,8 @@ class SourceFileResolver;
 namespace Knowbug
 {
 	extern auto getInstance() -> HINSTANCE;
+
+	extern auto get_view() -> KnowbugView*;
 
 	extern auto get_hsp_runtime() -> HspRuntime&;
 
