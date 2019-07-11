@@ -36,8 +36,6 @@ using StepButtonHandleArray = std::array<HWND, STEP_BUTTON_COUNT>;
 
 static auto g_knowbug_view = std::unique_ptr<KnowbugView>{};
 
-static auto g_top_most = std::make_unique<bool>(false);
-
 static auto window_to_client_rect(HWND hwnd) -> RECT {
 	RECT rc;
 	GetClientRect(hwnd, &rc);
@@ -149,6 +147,7 @@ class KnowbugView {
 
 	KnowbugConfig const& config_;
 	ViewBoxImpl view_box_;
+	bool top_most_;
 
 public:
 	KnowbugView(
@@ -184,6 +183,7 @@ public:
 		, font(std::move(main_font))
 		, config_(config)
 		, view_box_(hViewEdit)
+		, top_most_(false)
 	{
 	}
 
@@ -265,8 +265,8 @@ public:
 	}
 
 	void toggle_windows_top_most() {
-		auto top_most = !*g_top_most;
-		*g_top_most = top_most;
+		auto top_most = !top_most_;
+		top_most_ = top_most;
 
 		CheckMenuItem(dialog_menu(), IDC_TOPMOST, top_most ? MF_CHECKED : MF_UNCHECKED);
 		for (auto hwnd : windows()) {
