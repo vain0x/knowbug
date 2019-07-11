@@ -26,11 +26,17 @@
 static auto KnowbugMainWindowTitle = KnowbugAppName TEXT(" ") KnowbugVersion;
 static auto KnowbugViewWindowTitle = TEXT("Knowbug View");
 
+class KnowbugView;
+
 static auto const REPAINT = true;
 
 static auto const STEP_BUTTON_COUNT = std::size_t{ 5 };
 
 using StepButtonHandleArray = std::array<HWND, STEP_BUTTON_COUNT>;
+
+static auto g_knowbug_view = std::unique_ptr<KnowbugView>{};
+
+static auto g_top_most = std::make_unique<bool>(false);
 
 static auto window_to_client_rect(HWND hwnd) -> RECT {
 	RECT rc;
@@ -130,11 +136,7 @@ public:
 	}
 };
 
-namespace Dialog
-{
-
-struct Resource
-{
+class KnowbugView {
 	window_handle_t mainWindow, viewWindow;
 	menu_handle_t dialogMenu, nodeMenu, invokeMenu, logMenu;
 	HWND hVarTree;
@@ -145,8 +147,11 @@ struct Resource
 	StepButtonHandleArray stepButtons;
 	gdi_obj_t font;
 
+	KnowbugConfig const& config_;
+	ViewBoxImpl view_box_;
+
 public:
-	Resource(
+	KnowbugView(
 		window_handle_t&& main_window,
 		window_handle_t&& view_window,
 		menu_handle_t&& dialog_menu,
@@ -156,7 +161,8 @@ public:
 		HWND hViewEdit,
 		HWND hPane,
 		std::unique_ptr<VarTreeViewControl>&& tv,
-		gdi_obj_t&& main_font
+		gdi_obj_t&& main_font,
+		KnowbugConfig const& config
 	)
 		: mainWindow(std::move(main_window))
 		, viewWindow(std::move(view_window))
@@ -176,24 +182,8 @@ public:
 			GetDlgItem(hPane, IDC_BTN5)
 		})
 		, font(std::move(main_font))
-	{
-	}
-};
-
-static auto g_res = unique_ptr<Resource> {};
-
-static auto g_top_most = std::make_unique<bool>(false);
-
-class KnowbugView {
-	Resource const& r_;
-	KnowbugConfig const& config_;
-	ViewBoxImpl view_box_;
-
-public:
-	KnowbugView(Resource const& r, KnowbugConfig const& config)
-		: r_(r)
 		, config_(config)
-		, view_box_(r.hViewEdit)
+		, view_box_(hViewEdit)
 	{
 	}
 
@@ -338,39 +328,39 @@ private:
 	}
 
 	auto main_font() const -> HGDIOBJ {
-		return r_.font.get();
+		return font.get();
 	}
 
 	auto main_window() const -> HWND {
-		return r_.mainWindow.get();
+		return mainWindow.get();
 	}
 
 	auto view_window() const -> HWND {
-		return r_.viewWindow.get();
+		return viewWindow.get();
 	}
 
 	auto dialog_menu() const -> HMENU {
-		return r_.dialogMenu.get();
+		return dialogMenu.get();
 	}
 
 	auto var_tree_view() const -> HWND {
-		return r_.hVarTree;
+		return hVarTree;
 	}
 
 	auto source_edit() const -> HWND {
-		return r_.hSrcLine;
+		return hSrcLine;
 	}
 
 	auto step_buttons() const -> StepButtonHandleArray const& {
-		return r_.stepButtons;
+		return stepButtons;
 	}
 
 	auto view_edit() const -> HWND {
-		return r_.hViewEdit;
+		return hViewEdit;
 	}
 
 	auto var_tree_view_control() -> VarTreeViewControl& {
-		return *r_.tv;
+		return *tv;
 	}
 
 	auto view_box() -> AbstractViewBox& {
@@ -400,13 +390,13 @@ private:
 	auto get_node_menu(HspObjectPath const& path) -> HMENU {
 		switch (path.kind()) {
 		case HspObjectKind::CallFrame:
-			return r_.invokeMenu.get();
+			return invokeMenu.get();
 
 		case HspObjectKind::Log:
-			return r_.logMenu.get();
+			return logMenu.get();
 
 		default:
-			return r_.nodeMenu.get();
+			return nodeMenu.get();
 		}
 	}
 
@@ -445,12 +435,8 @@ private:
 	}
 };
 
-static auto get_knowbug_view() -> std::optional<KnowbugView> {
-	if (!g_res) {
-		return std::nullopt;
-	}
-
-	return std::make_optional(KnowbugView{ *g_res, *g_config });
+static auto get_knowbug_view() -> KnowbugView* {
+	return g_knowbug_view.get();
 }
 
 // メインウィンドウのコールバック関数
@@ -633,7 +619,7 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 
 	auto const hSrcLine = GetDlgItem(main_pane, IDC_SRC_LINE);
 
-	g_res = std::make_unique<Resource>(
+	g_knowbug_view = std::make_unique<KnowbugView>(
 		std::move(hDlgWnd),
 		std::move(hViewWnd),
 		std::move(hDlgMenu),
@@ -643,7 +629,8 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 		hViewEdit,
 		main_pane,
 		std::move(tv),
-		std::move(main_font)
+		std::move(main_font),
+		*g_config
 	);
 
 	if (auto&& view_opt = get_knowbug_view()) {
@@ -651,9 +638,11 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 	}
 }
 
+namespace Dialog {
+
 void Dialog::destroyMain()
 {
-	g_res.reset();
+	g_knowbug_view.reset();
 }
 
 // 一時停止時に dbgnotice から呼ばれる
