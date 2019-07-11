@@ -17,22 +17,28 @@
 #include "HspObjectPath.h"
 
 #ifdef _M_X64
-# define KnowbugPlatformString TEXT("(x64)")
+# define KNOWBUG_CPU_SUFFIX TEXT("(x64)")
 #else //defined(_M_X64)
-# define KnowbugPlatformString TEXT("(x86)")
+# define KNOWBUG_CPU_SUFFIX TEXT("(x86)")
 #endif //defined(_M_X64)
-#define KnowbugAppName TEXT("Knowbug")
-#define KnowbugVersion TEXT("1.22.2 ") KnowbugPlatformString
-static auto KnowbugMainWindowTitle = KnowbugAppName TEXT(" ") KnowbugVersion;
-static auto KnowbugViewWindowTitle = TEXT("Knowbug View");
+#define KNOWBUG_TITLE TEXT("Knowbug")
+#define KNOWBUG_VERSION TEXT("1.22.2 ") KNOWBUG_CPU_SUFFIX
 
-class KnowbugView;
+static auto const KNOWBUG_MAIN_WINDOW_TITLE = KNOWBUG_TITLE TEXT(" ") KNOWBUG_VERSION;
+
+static auto const KNOWBUG_VIEW_WINDOW_TITLE = TEXT("Knowbug View");
 
 static auto const REPAINT = true;
 
 static auto const STEP_BUTTON_COUNT = std::size_t{ 5 };
 
 using StepButtonHandleArray = std::array<HWND, STEP_BUTTON_COUNT>;
+
+using WindowHandle = window_handle_t;
+
+using MenuHandle = menu_handle_t;
+
+using FontHandle = gdi_obj_t;
 
 static auto window_to_client_rect(HWND hwnd) -> RECT {
 	RECT rc;
@@ -90,13 +96,13 @@ static auto select_save_log_file(HWND window) -> std::optional<OsString> {
 	return std::make_optional(*std::move(path));
 }
 
-class ViewBoxImpl
+class ViewEditControlImpl
 	: public AbstractViewBox
 {
 	HWND view_edit_;
 
 public:
-	ViewBoxImpl(HWND view_edit)
+	ViewEditControlImpl(HWND view_edit)
 		: view_edit_(view_edit)
 	{
 	}
@@ -135,50 +141,50 @@ public:
 class KnowbugViewImpl
 	: public KnowbugView
 {
-	window_handle_t mainWindow, viewWindow;
-	menu_handle_t dialogMenu, nodeMenu, invokeMenu, logMenu;
-	HWND hVarTree;
-	HWND hSrcLine;
-	HWND hViewEdit;
-	std::unique_ptr<VarTreeViewControl> tv;
+	WindowHandle main_window_, view_window_;
+	MenuHandle main_menu_, node_menu_, call_frame_menu_, log_menu_;
+	HWND tree_view_;
+	HWND source_edit_;
+	HWND view_edit_;
+	std::unique_ptr<VarTreeViewControl> var_tree_view_control_;
 
-	StepButtonHandleArray stepButtons;
-	gdi_obj_t font;
+	StepButtonHandleArray step_buttons_;
+	FontHandle main_font_;
 
 	KnowbugConfig const& config_;
-	ViewBoxImpl view_box_;
+	ViewEditControlImpl view_edit_control_;
 	bool top_most_;
 
 public:
 	KnowbugViewImpl(
-		window_handle_t&& main_window,
-		window_handle_t&& view_window,
-		menu_handle_t&& dialog_menu,
-		menu_handle_t&& node_menu,
-		menu_handle_t&& invoke_menu,
-		menu_handle_t&& log_menu,
+		WindowHandle&& main_window,
+		WindowHandle&& view_window,
+		MenuHandle&& main_menu,
+		MenuHandle&& node_menu,
+		MenuHandle&& call_frame_menu,
+		MenuHandle&& log_menu,
 		HWND var_tree,
 		HWND source_edit,
 		HWND view_edit,
-		std::unique_ptr<VarTreeViewControl>&& tv,
+		std::unique_ptr<VarTreeViewControl>&& var_tree_view_control,
 		StepButtonHandleArray const& step_buttons,
-		gdi_obj_t&& main_font,
+		FontHandle&& main_font,
 		KnowbugConfig const& config
 	)
-		: mainWindow(std::move(main_window))
-		, viewWindow(std::move(view_window))
-		, dialogMenu(std::move(dialog_menu))
-		, nodeMenu(std::move(node_menu))
-		, invokeMenu(std::move(invoke_menu))
-		, logMenu(std::move(log_menu))
-		, hVarTree(var_tree)
-		, hSrcLine(source_edit)
-		, hViewEdit(view_edit)
-		, tv(std::move(tv))
-		, stepButtons(step_buttons)
-		, font(std::move(main_font))
+		: main_window_(std::move(main_window))
+		, view_window_(std::move(view_window))
+		, main_menu_(std::move(main_menu))
+		, node_menu_(std::move(node_menu))
+		, call_frame_menu_(std::move(call_frame_menu))
+		, log_menu_(std::move(log_menu))
+		, tree_view_(var_tree)
+		, source_edit_(source_edit)
+		, view_edit_(view_edit)
+		, var_tree_view_control_(std::move(var_tree_view_control))
+		, step_buttons_(step_buttons)
+		, main_font_(std::move(main_font))
 		, config_(config)
-		, view_box_(hViewEdit)
+		, view_edit_control_(view_edit_)
 		, top_most_(false)
 	{
 	}
@@ -250,8 +256,8 @@ public:
 	}
 
 	void notify_save_failure() override {
-		static auto const MSG = TEXT("ログの保存に失敗しました。");
-		MessageBox(main_window(), MSG, KnowbugAppName, MB_OK);
+		static auto const MESSAGE = TEXT("ログの保存に失敗しました。");
+		MessageBox(main_window(), MESSAGE, KNOWBUG_TITLE, MB_OK);
 	}
 
 	// UI イベント:
@@ -268,14 +274,14 @@ public:
 		auto top_most = !top_most_;
 		top_most_ = top_most;
 
-		CheckMenuItem(dialog_menu(), IDC_TOPMOST, top_most ? MF_CHECKED : MF_UNCHECKED);
+		CheckMenuItem(main_menu(), IDC_TOPMOST, top_most ? MF_CHECKED : MF_UNCHECKED);
 		for (auto hwnd : windows()) {
 			Window_SetTopMost(hwnd, top_most);
 		}
 	}
 
 	void update_view_edit() {
-		var_tree_view_control().update_view_window(view_box());
+		var_tree_view_control().update_view_window(view_edit_control());
 	}
 
 	void did_main_window_activate(bool is_activated) {
@@ -434,43 +440,43 @@ private:
 	}
 
 	auto main_font() const -> HGDIOBJ {
-		return font.get();
+		return main_font_.get();
 	}
 
 	auto main_window() const -> HWND {
-		return mainWindow.get();
+		return main_window_.get();
 	}
 
 	auto view_window() const -> HWND {
-		return viewWindow.get();
+		return view_window_.get();
 	}
 
-	auto dialog_menu() const -> HMENU {
-		return dialogMenu.get();
+	auto main_menu() const -> HMENU {
+		return main_menu_.get();
 	}
 
 	auto var_tree_view() const -> HWND {
-		return hVarTree;
+		return tree_view_;
 	}
 
 	auto source_edit() const -> HWND {
-		return hSrcLine;
+		return source_edit_;
 	}
 
 	auto step_buttons() const -> StepButtonHandleArray const& {
-		return stepButtons;
+		return step_buttons_;
 	}
 
 	auto view_edit() const -> HWND {
-		return hViewEdit;
+		return view_edit_;
 	}
 
 	auto var_tree_view_control() -> VarTreeViewControl& {
-		return *tv;
+		return *var_tree_view_control_;
 	}
 
-	auto view_box() -> AbstractViewBox& {
-		return view_box_;
+	auto view_edit_control() -> AbstractViewBox& {
+		return view_edit_control_;
 	}
 
 	auto windows() const -> std::vector<HWND> {
@@ -496,13 +502,13 @@ private:
 	auto get_node_menu(HspObjectPath const& path) -> HMENU {
 		switch (path.kind()) {
 		case HspObjectKind::CallFrame:
-			return invokeMenu.get();
+			return call_frame_menu_.get();
 
 		case HspObjectKind::Log:
-			return logMenu.get();
+			return log_menu_.get();
 
 		default:
-			return nodeMenu.get();
+			return node_menu_.get();
 		}
 	}
 
@@ -542,16 +548,16 @@ private:
 };
 
 // メインウィンドウのコールバック関数
-LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
-	if (auto&& view_opt = Knowbug::get_view()) {
-		return view_opt->process_main_window(hDlg, msg, wp, lp);
+LRESULT CALLBACK process_main_window(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+	if (auto&& view = Knowbug::get_view()) {
+		return view->process_main_window(hDlg, msg, wp, lp);
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
-	if (auto&& view_opt = Knowbug::get_view()) {
-		return view_opt->process_view_window(hDlg, msg, wp, lp);
+LRESULT CALLBACK process_view_window(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+	if (auto&& view = Knowbug::get_view()) {
+		return view->process_view_window(hDlg, msg, wp, lp);
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
@@ -569,39 +575,40 @@ auto KnowbugView::create(HINSTANCE instance, HspObjects& objects, HspObjectTree&
 	auto const view_pos_x = !g_config->viewPosXIsDefault ? g_config->viewPosX : display_x - main_size_x - view_size_x;
 	auto const view_pos_y = !g_config->viewPosYIsDefault ? g_config->viewPosY : 0;
 
+	auto const tab_width = g_config->tabwidth;
 	auto main_font = create_main_font(*g_config);
 
 	// ビューウィンドウ
-	auto hViewWnd = window_handle_t{
+	auto view_window = window_handle_t{
 		Window_Create(
 			OsStringView{ TEXT("KnowbugViewWindow") },
-			ViewDialogProc,
-			OsStringView{ KnowbugViewWindowTitle },
+			::process_view_window,
+			OsStringView{ KNOWBUG_VIEW_WINDOW_TITLE },
 			WS_THICKFRAME,
 			view_size_x, view_size_y,
 			view_pos_x, view_pos_y,
 			instance
 		) };
-	SetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE, GetWindowLongPtr(hViewWnd.get(), GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
+	SetWindowLongPtr(view_window.get(), GWL_EXSTYLE, GetWindowLongPtr(view_window.get(), GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
 
 	auto const view_pane = CreateDialog(
 		instance,
 		(LPCTSTR)IDD_VIEW_PANE,
-		hViewWnd.get(),
-		(DLGPROC)ViewDialogProc
+		view_window.get(),
+		(DLGPROC)::process_view_window
 	);
 
-	auto const hViewEdit = GetDlgItem(view_pane, IDC_VIEW);
-	Edit_SetTabLength(hViewEdit, g_config->tabwidth);
+	auto const view_edit = GetDlgItem(view_pane, IDC_VIEW);
+	Edit_SetTabLength(view_edit, tab_width);
 
 	ShowWindow(view_pane, SW_SHOW);
 
 	// メインウィンドウ
-	auto hDlgWnd = window_handle_t{
+	auto main_window = window_handle_t{
 		Window_Create(
 			OsStringView{ TEXT("KnowbugMainWindow") },
-			DlgProc,
-			OsStringView{ KnowbugMainWindowTitle },
+			::process_main_window,
+			OsStringView{ KNOWBUG_MAIN_WINDOW_TITLE },
 			WS_THICKFRAME,
 			main_size_x, main_size_y,
 			main_pos_x, main_pos_y,
@@ -611,28 +618,28 @@ auto KnowbugView::create(HINSTANCE instance, HspObjects& objects, HspObjectTree&
 	auto const main_pane = CreateDialog(
 		instance,
 		(LPCTSTR)IDD_MAIN_PANE,
-		hDlgWnd.get(),
-		(DLGPROC)DlgProc
+		main_window.get(),
+		(DLGPROC)::process_main_window
 	);
 	ShowWindow(main_pane, SW_SHOW);
 
 	// メニューバー
-	auto hDlgMenu = menu_handle_t{ LoadMenu(instance, (LPCTSTR)IDR_MAIN_MENU) };
-	SetMenu(hDlgWnd.get(), hDlgMenu.get());
+	auto main_menu = menu_handle_t{ LoadMenu(instance, (LPCTSTR)IDR_MAIN_MENU) };
+	SetMenu(main_window.get(), main_menu.get());
 
 	// ポップメニュー
-	auto const hNodeMenuBar = LoadMenu(instance, (LPCTSTR)IDR_NODE_MENU);
+	auto const node_menu_Bar = LoadMenu(instance, (LPCTSTR)IDR_NODE_MENU);
 
-	auto node_menu = menu_handle_t{ GetSubMenu(hNodeMenuBar, 0) };
-	auto invoke_menu = menu_handle_t{ GetSubMenu(hNodeMenuBar, 1) };
-	auto log_menu = menu_handle_t{ GetSubMenu(hNodeMenuBar, 2) };
+	auto node_menu = menu_handle_t{ GetSubMenu(node_menu_Bar, 0) };
+	auto call_frame_menu = menu_handle_t{ GetSubMenu(node_menu_Bar, 1) };
+	auto log_menu = menu_handle_t{ GetSubMenu(node_menu_Bar, 2) };
 
 	// ツリービュー
-	auto const hVarTree = GetDlgItem(main_pane, IDC_VARTREE);
+	auto const tree_view = GetDlgItem(main_pane, IDC_VARTREE);
 
-	auto tv = VarTreeViewControl::create(objects, object_tree, hVarTree);
+	auto var_tree_view_control = VarTreeViewControl::create(objects, object_tree, tree_view);
 
-	auto const hSrcLine = GetDlgItem(main_pane, IDC_SRC_LINE);
+	auto const source_edit = GetDlgItem(main_pane, IDC_SRC_LINE);
 
 	// ステップボタン
 	auto const step_buttons = StepButtonHandleArray{
@@ -644,16 +651,16 @@ auto KnowbugView::create(HINSTANCE instance, HspObjects& objects, HspObjectTree&
 	};
 
 	auto view = std::make_unique<KnowbugViewImpl>(
-		std::move(hDlgWnd),
-		std::move(hViewWnd),
-		std::move(hDlgMenu),
+		std::move(main_window),
+		std::move(view_window),
+		std::move(main_menu),
 		std::move(node_menu),
-		std::move(invoke_menu),
+		std::move(call_frame_menu),
 		std::move(log_menu),
-		hVarTree,
-		hSrcLine,
-		hViewEdit,
-		std::move(tv),
+		tree_view,
+		source_edit,
+		view_edit,
+		std::move(var_tree_view_control),
 		step_buttons,
 		std::move(main_font),
 		*g_config
