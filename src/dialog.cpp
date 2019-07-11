@@ -154,32 +154,28 @@ public:
 		window_handle_t&& main_window,
 		window_handle_t&& view_window,
 		menu_handle_t&& dialog_menu,
-		HMENU hNodeMenuBar,
-		HWND hVarTree,
-		HWND hSrcLine,
-		HWND hViewEdit,
-		HWND hPane,
+		menu_handle_t&& node_menu,
+		menu_handle_t&& invoke_menu,
+		menu_handle_t&& log_menu,
+		HWND var_tree,
+		HWND source_edit,
+		HWND view_edit,
 		std::unique_ptr<VarTreeViewControl>&& tv,
+		StepButtonHandleArray const& step_buttons,
 		gdi_obj_t&& main_font,
 		KnowbugConfig const& config
 	)
 		: mainWindow(std::move(main_window))
 		, viewWindow(std::move(view_window))
 		, dialogMenu(std::move(dialog_menu))
-		, nodeMenu(GetSubMenu(hNodeMenuBar, 0))
-		, invokeMenu(GetSubMenu(hNodeMenuBar, 1))
-		, logMenu(GetSubMenu(hNodeMenuBar, 2))
-		, hVarTree(hVarTree)
-		, hSrcLine(hSrcLine)
-		, hViewEdit(hViewEdit)
+		, nodeMenu(std::move(node_menu))
+		, invokeMenu(std::move(invoke_menu))
+		, logMenu(std::move(log_menu))
+		, hVarTree(var_tree)
+		, hSrcLine(source_edit)
+		, hViewEdit(view_edit)
 		, tv(std::move(tv))
-		, stepButtons({
-			GetDlgItem(hPane, IDC_BTN1),
-			GetDlgItem(hPane, IDC_BTN2),
-			GetDlgItem(hPane, IDC_BTN3),
-			GetDlgItem(hPane, IDC_BTN4),
-			GetDlgItem(hPane, IDC_BTN5)
-		})
+		, stepButtons(step_buttons)
 		, font(std::move(main_font))
 		, config_(config)
 		, view_box_(hViewEdit)
@@ -612,6 +608,10 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 	// ポップメニュー
 	auto const hNodeMenuBar = LoadMenu(instance, (LPCTSTR)IDR_NODE_MENU);
 
+	auto node_menu = menu_handle_t{ GetSubMenu(hNodeMenuBar, 0) };
+	auto invoke_menu = menu_handle_t{ GetSubMenu(hNodeMenuBar, 1) };
+	auto log_menu = menu_handle_t{ GetSubMenu(hNodeMenuBar, 2) };
+
 	// ツリービュー
 	auto const hVarTree = GetDlgItem(main_pane, IDC_VARTREE);
 
@@ -619,16 +619,27 @@ void Dialog::createMain(HINSTANCE instance, HspObjects& objects, HspObjectTree& 
 
 	auto const hSrcLine = GetDlgItem(main_pane, IDC_SRC_LINE);
 
+	// ステップボタン
+	auto const step_buttons = StepButtonHandleArray{
+		GetDlgItem(main_pane, IDC_BTN1),
+		GetDlgItem(main_pane, IDC_BTN2),
+		GetDlgItem(main_pane, IDC_BTN3),
+		GetDlgItem(main_pane, IDC_BTN4),
+		GetDlgItem(main_pane, IDC_BTN5)
+	};
+
 	g_knowbug_view = std::make_unique<KnowbugView>(
 		std::move(hDlgWnd),
 		std::move(hViewWnd),
 		std::move(hDlgMenu),
-		hNodeMenuBar,
+		std::move(node_menu),
+		std::move(invoke_menu),
+		std::move(log_menu),
 		hVarTree,
 		hSrcLine,
 		hViewEdit,
-		main_pane,
 		std::move(tv),
+		step_buttons,
 		std::move(main_font),
 		*g_config
 	);
