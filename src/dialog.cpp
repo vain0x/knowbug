@@ -318,6 +318,112 @@ public:
 		return true;
 	}
 
+	auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT {
+		switch (msg) {
+		case WM_COMMAND:
+			switch (LOWORD(wp)) {
+			case IDC_BTN1:
+				Knowbug::step_run(StepControl::run());
+				break;
+
+			case IDC_BTN2:
+				Knowbug::step_run(StepControl::step_in());
+				break;
+
+			case IDC_BTN3:
+				Knowbug::step_run(StepControl::stop());
+				break;
+
+			case IDC_BTN4:
+				Knowbug::step_run(StepControl::step_over());
+				break;
+
+			case IDC_BTN5:
+				Knowbug::step_run(StepControl::step_out());
+				break;
+
+			case IDC_TOPMOST:
+				toggle_windows_top_most();
+				break;
+
+			case IDC_OPEN_CURRENT_SCRIPT:
+				Knowbug::open_current_script_file();
+				break;
+
+			case IDC_OPEN_INI:
+				Knowbug::open_config_file();
+				break;
+
+			case IDC_UPDATE:
+				update_view_edit();
+				break;
+
+			case IDC_OPEN_KNOWBUG_REPOS:
+				Knowbug::open_knowbug_repository();
+				break;
+
+			case IDC_GOTO_LOG:
+				// FIXME: ログノードを選択する。
+				break;
+
+			case IDC_GOTO_SCRIPT:
+				// FIXME: スクリプトノードを選択する。
+				break;
+			}
+			break;
+
+		case WM_CONTEXTMENU:
+			{
+				auto done = open_context_menu((HWND)wp, POINT{ LOWORD(lp), HIWORD(lp) });
+				if (done) {
+					return TRUE;
+				}
+			}
+			break;
+
+		case WM_NOTIFY:
+			did_notify((LPNMHDR)lp);
+			break;
+
+		case WM_SIZE:
+			resize_main_window(LOWORD(lp), HIWORD(lp), REPAINT);
+			break;
+
+		case WM_ACTIVATE:
+			{
+				auto is_activated = LOWORD(wp) != 0;
+				did_main_window_activate(is_activated);
+			}
+			break;
+
+		case WM_CREATE:
+			return TRUE;
+
+		case WM_CLOSE:
+			return FALSE;
+
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+		}
+		return DefWindowProc(hwnd, msg, wp, lp);
+	}
+
+	auto process_view_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT {
+		switch (msg) {
+		case WM_CREATE:
+			return TRUE;
+
+		case WM_CLOSE:
+			return FALSE;
+
+		case WM_SIZE:
+			resize_view_window(LOWORD(lp), HIWORD(lp), REPAINT);
+			break;
+		}
+		return DefWindowProc(hwnd, msg, wp, lp);
+	}
+
 private:
 	auto config() const -> KnowbugConfig const& {
 		return config_;
@@ -438,104 +544,16 @@ static auto get_knowbug_view() -> KnowbugView* {
 // メインウィンドウのコールバック関数
 LRESULT CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
-	switch ( msg ) {
-		case WM_COMMAND:
-			switch ( LOWORD(wp) ) {
-				case IDC_BTN1: Knowbug::step_run(StepControl::run());       break;
-				case IDC_BTN2: Knowbug::step_run(StepControl::step_in());   break;
-				case IDC_BTN3: Knowbug::step_run(StepControl::stop());      break;
-				case IDC_BTN4: Knowbug::step_run(StepControl::step_over()); break;
-				case IDC_BTN5: Knowbug::step_run(StepControl::step_out());  break;
-
-				case IDC_TOPMOST:
-					if (auto&& view_opt = get_knowbug_view()) {
-						view_opt->toggle_windows_top_most();
-					}
-					break;
-
-				case IDC_OPEN_CURRENT_SCRIPT:
-					Knowbug::open_current_script_file();
-					break;
-				case IDC_OPEN_INI: {
-					Knowbug::open_config_file();
-					break;
-				}
-				case IDC_UPDATE:
-					if (auto&& view_opt = get_knowbug_view()) {
-						view_opt->update_view_edit();
-					}
-					break;
-
-				case IDC_OPEN_KNOWBUG_REPOS: {
-					Knowbug::open_knowbug_repository();
-					break;
-				}
-				case IDC_GOTO_LOG: {
-					// FIXME: ログノードを選択する。
-					break;
-				}
-				case IDC_GOTO_SCRIPT: {
-					// FIXME: スクリプトノードを選択する。
-					break;
-				}
-			}
-			break;
-
-		case WM_CONTEXTMENU: {
-			if (auto&& view_opt = get_knowbug_view()) {
-				auto done = view_opt->open_context_menu((HWND)wp, POINT{ LOWORD(lp), HIWORD(lp) });
-				if (done) {
-					return TRUE;
-				}
-			}
-			break;
-		}
-		case WM_NOTIFY:
-			if (auto&& view_opt = get_knowbug_view()) {
-				view_opt->did_notify((LPNMHDR)lp);
-			}
-			break;
-
-		case WM_SIZE:
-			if (auto&& view_opt = get_knowbug_view()) {
-				view_opt->resize_main_window(LOWORD(lp), HIWORD(lp), REPAINT);
-			}
-			break;
-
-		case WM_ACTIVATE:
-			if (auto&& view_opt = get_knowbug_view()) {
-				auto is_activated = LOWORD(wp) != 0;
-				view_opt->did_main_window_activate(is_activated);
-			}
-			break;
-
-		case WM_CREATE:
-			return TRUE;
-
-		case WM_CLOSE:
-			return FALSE;
-
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			break;
+	if (auto&& view_opt = get_knowbug_view()) {
+		return view_opt->process_main_window(hDlg, msg, wp, lp);
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
 LRESULT CALLBACK ViewDialogProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
-	switch ( msg ) {
-		case WM_CREATE:
-			return TRUE;
-
-		case WM_CLOSE:
-			return FALSE;
-
-		case WM_SIZE:
-			if (auto&& view_opt = get_knowbug_view()) {
-				view_opt->resize_view_window(LOWORD(lp), HIWORD(lp), REPAINT);
-			}
-			break;
+	if (auto&& view_opt = get_knowbug_view()) {
+		return view_opt->process_view_window(hDlg, msg, wp, lp);
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
