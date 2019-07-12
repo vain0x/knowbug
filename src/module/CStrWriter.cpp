@@ -6,9 +6,11 @@
 #include "CStrWriter.h"
 #include "CStrBuf.h"
 
-char const* const CStructedStrWriter::stc_strUnused = "???";
-
 auto CStrWriter::get() const -> std::string const& { return buf_->get(); }
+
+auto CStrWriter::is_full() const -> bool {
+	return buf_->is_full();
+}
 
 void CStrWriter::indent() {
 	depth_++;

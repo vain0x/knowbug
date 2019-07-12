@@ -1,28 +1,28 @@
 ﻿
 #include <fstream>
 #include <winapifamily.h>
+#include "module/CStrBuf.h"
+#include "module/CStrWriter.h"
 #include "encoding.h"
 #include "main.h"
 #include "module/strf.h"
 #include "DebugInfo.h"
-#include "VarTreeNodeData.h"
-#include "CVarinfoText.h"
 #include "config_mng.h"
 #include "dialog.h"
 #include "StepController.h"
-#include "Logger.h"
 #include "SourceFileResolver.h"
 #include "HspRuntime.h"
 #include "HspDebugApi.h"
 #include "hpiutil/dinfo.hpp"
+#include "HspObjectWriter.h"
 
 // FIXME: グローバル変数はクラスにまとめたい (DllMain で初期化するものと、debugini で初期化するものの2つ)
 static auto g_hInstance = HINSTANCE {};
 std::unique_ptr<DebugInfo> g_dbginfo {};
 static std::unique_ptr<KnowbugStepController> g_step_controller_;
-static std::shared_ptr<Logger> g_logger;
 static std::shared_ptr<SourceFileResolver> g_source_file_resolver;
 static std::unique_ptr<HspRuntime> g_hsp_runtime;
+static std::unique_ptr<KnowbugView> g_knowbug_view;
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
@@ -60,30 +60,28 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	ctx    = api.context();
 	exinfo = api.exinfo();
 
-	g_logger = std::make_shared<Logger>();
-
 	g_dbginfo.reset(new DebugInfo(p1));
 
 	g_step_controller_ = std::make_unique<KnowbugStepController>(ctx, *g_dbginfo);
 
 	KnowbugConfig::initialize();
 
+	auto const& config = *g_config;
+
 	auto const& debug_segment = hpiutil::DInfo::instance();
 
-	g_source_file_resolver = std::make_shared<SourceFileResolver>(g_config->commonPath(), debug_segment);
+	g_source_file_resolver = std::make_shared<SourceFileResolver>(config.commonPath(), debug_segment);
 
 	g_hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *g_dbginfo, *g_source_file_resolver);
 
-	// 起動時の処理:
-
-	g_logger->enable_auto_save(as_view(g_config->logPath));
-
-	Dialog::createMain(
-		debug_segment,
+	g_knowbug_view = KnowbugView::create(
+		config,
+		g_hInstance,
 		g_hsp_runtime->objects(),
-		Knowbug::get_hsp_runtime().static_vars(),
 		g_hsp_runtime->object_tree()
 	);
+
+	g_knowbug_view->initialize();
 	return 0;
 }
 
@@ -95,13 +93,19 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 			if ( Knowbug::continueConditionalRun() ) break;
 
 			g_dbginfo->updateCurInf();
-			Dialog::update();
+			if (auto&& view_opt = Knowbug::get_view()) {
+				view_opt->update_source_edit(to_os(g_hsp_runtime->objects().script_to_current_location_summary()));
+				view_opt->update();
+			}
 			break;
 		}
 		case hpiutil::DebugNotice_Logmes:
 			g_hsp_runtime->logger().append(to_utf8(as_hsp(ctx->stmp)));
 			g_hsp_runtime->logger().append(as_utf8(u8"\r\n"));
-			g_logger->append_line(as_view(to_os(as_hsp(ctx->stmp))));
+
+			if (auto&& view_opt = Knowbug::get_view()) {
+				view_opt->did_log_change();
+			}
 			break;
 	}
 	return 0;
@@ -109,7 +113,9 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 void debugbye()
 {
-	Dialog::destroyMain();
+	Knowbug::auto_save_log();
+
+	g_knowbug_view.reset();
 }
 
 namespace Knowbug
@@ -118,12 +124,12 @@ namespace Knowbug
 		return g_hInstance;
 	}
 
-	auto get_hsp_runtime() -> HspRuntime& {
-		return *g_hsp_runtime;
+	auto get_view() -> KnowbugView* {
+		return g_knowbug_view.get();
 	}
 
-	auto get_logger() -> std::shared_ptr<Logger> {
-		return g_logger;
+	auto get_hsp_runtime() -> HspRuntime& {
+		return *g_hsp_runtime;
 	}
 
 	auto get_source_file_resolver() -> std::shared_ptr<SourceFileResolver> {
@@ -138,23 +144,55 @@ namespace Knowbug
 		return g_step_controller_->continue_step_running();
 	}
 
-	void logmes(OsStringView const& msg) {
-		g_logger->append(msg);
+	void add_object_text_to_log(HspObjectPath const& path) {
+		auto&& objects = g_hsp_runtime->objects();
+
+		// FIXME: 共通化
+		auto buffer = std::make_shared<CStrBuf>();
+		buffer->limit(8000); // FIXME: 定数を共通化
+		auto writer = CStrWriter{ buffer };
+		HspObjectWriter{ objects, writer }.write_table_form(path);
+		auto text = as_utf8(buffer->getMove());
+
+		g_hsp_runtime->logger().append(text);
 	}
 
-	void logmes( char const* msg ) {
-		logmes(as_view(to_os(as_hsp(msg))));
+	void clear_log() {
+		g_hsp_runtime->logger().clear();
 	}
 
-	void logmesWarning(OsStringView const& msg) {
-		g_dbginfo->updateCurInf();
-		auto&& execution_location = to_os(as_hsp(g_dbginfo->getCurInfString().data()));
+	static auto do_save_log(OsStringView const& file_path) -> bool {
+		auto&& content = g_hsp_runtime->logger().content();
 
-		g_logger->append_warning(msg, as_view(execution_location));
+		auto file_stream = std::ofstream{ file_path.data() };
+		file_stream.write(as_native(content).data(), content.size());
+		auto success = file_stream.good();
+
+		return success;
 	}
 
-	void logmesWarning(char const* msg) {
-		logmesWarning(as_view(to_os(as_hsp(msg))));
+	void save_log() {
+		if (auto&& view_opt = Knowbug::get_view()) {
+			auto&& file_path_opt = view_opt->select_save_log_file();
+			if (!file_path_opt) {
+				return;
+			}
+
+			auto success = do_save_log(*file_path_opt);
+			if (!success) {
+				view_opt->notify_save_failure();
+			}
+		}
+	}
+
+	void auto_save_log() {
+		auto&& file_path = g_config->logPath;
+		if (file_path.empty()) {
+			return;
+		}
+
+		// NOTE: アプリの終了中なのでエラーを報告しない。
+		do_save_log(file_path);
 	}
 
 	void open_current_script_file() {
@@ -180,14 +218,10 @@ namespace Knowbug
 	}
 
 #ifdef with_WrapCall
-void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo)
-{
-	VTRoot::dynamic().onBgnCalling(callinfo);
+void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo) {
 }
 
-void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype)
-{
-	VTRoot::dynamic().onEndCalling(callinfo, ptr, vtype);
+void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype) {
 }
 #endif
 

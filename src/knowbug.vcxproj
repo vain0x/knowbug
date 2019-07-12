@@ -542,11 +542,6 @@
   <ItemGroup>
     <ClCompile Include="config_mng.cpp" />
     <ClCompile Include="cppformat\cppformat\format.cc" />
-    <ClCompile Include="CVardataString.cpp" />
-    <ClCompile Include="CVarinfoText.cpp">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">hsp;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">hsp;HSPWIN;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
     <ClCompile Include="encoding.cpp" />
     <ClCompile Include="hpiutil\DInfo.cpp" />
     <ClCompile Include="hpiutil\hspsdk\hsp3plugin.cpp" />
@@ -559,12 +554,9 @@
     <ClCompile Include="HspObjectWriter.cpp" />
     <ClCompile Include="HspRuntime.cpp" />
     <ClCompile Include="HspStaticVars.cpp" />
-    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="SourceFile.cpp" />
     <ClCompile Include="SourceFileResolver.cpp" />
     <ClCompile Include="StepController.cpp" />
-    <ClCompile Include="VTNodeLog.cpp" />
-    <ClCompile Include="VTNodeModule.cpp" />
     <ClCompile Include="DebugInfo.cpp" />
     <ClCompile Include="dialog.cpp" />
     <ClCompile Include="main.cpp" />
@@ -574,8 +566,6 @@
     <ClCompile Include="module\GuiUtility.cpp" />
     <ClCompile Include="module\supio\supio.cpp" />
     <ClCompile Include="vartree.cpp" />
-    <ClCompile Include="VarTreeNodeData.cpp" />
-    <ClCompile Include="VTNodeScript.cpp" />
     <ClCompile Include="WrapCall\ModcmdCallInfo.cpp" />
     <ClCompile Include="WrapCall\type_modcmd.cpp" />
     <ClCompile Include="WrapCall\WrapCall.cpp" />
@@ -583,8 +573,6 @@
   <ItemGroup>
     <ClInclude Include="config_mng.h" />
     <ClInclude Include="cppformat\cppformat\format.h" />
-    <ClInclude Include="CVardataString.h" />
-    <ClInclude Include="CVarinfoText.h" />
     <ClInclude Include="encoding.h" />
     <ClInclude Include="hpiutil\dinfo.hpp" />
     <ClInclude Include="hpiutil\hpiutil.hpp" />
@@ -606,7 +594,6 @@
     <ClInclude Include="HspRuntime.h" />
     <ClInclude Include="HspStaticVars.h" />
     <ClInclude Include="HspTypes.h" />
-    <ClInclude Include="Logger.h" />
     <ClInclude Include="module\handle_deleter.hpp" />
     <ClInclude Include="module\pair_range.hpp" />
     <ClInclude Include="module\range_all.hpp" />
@@ -627,8 +614,6 @@
     <ClInclude Include="SourceFileResolver.h" />
     <ClInclude Include="StepController.h" />
     <ClInclude Include="vartree.h" />
-    <ClInclude Include="VarTreeNodeData.h" />
-    <ClInclude Include="VarTreeNodeData_fwd.h" />
     <ClInclude Include="WrapCall\ModcmdCallInfo.h" />
     <ClInclude Include="WrapCall\type_modcmd.h" />
     <ClInclude Include="WrapCall\WrapCall.h" />

@@ -2,36 +2,35 @@
 
 #pragma once
 
+#include <optional>
 #include <Windows.h>
 #include "encoding.h"
 
 class HspObjects;
 class HspObjectTree;
 class HspStaticVars;
+struct KnowbugConfig;
 
-namespace hpiutil {
-	class DInfo;
-}
+class KnowbugView {
+public:
+	static auto create(KnowbugConfig const& config, HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView>;
 
-namespace Dialog
-{
+	virtual ~KnowbugView() {
+	}
 
-auto getVarTreeHandle() -> HWND;
+	virtual void initialize() = 0;
 
-void createMain(hpiutil::DInfo const& debug_segment, HspObjects& objects, HspStaticVars& static_vars, HspObjectTree& object_tree);
-void destroyMain();
+	virtual void update() = 0;
 
-void update();
+	virtual void update_source_edit(OsStringView const& content) = 0;
 
-namespace View {
+	virtual void did_log_change() = 0;
 
-void setText(OsStringView const& text);
-void scroll(int y, int x);
-void scrollBottom();
-void selectLine(size_t index);
-void update();
-void saveCurrentCaret();
+	virtual auto select_save_log_file() -> std::optional<OsString> = 0;
 
-} // namespace View
+	virtual void notify_save_failure() = 0;
 
-} // namespace Dialog
+	virtual auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT = 0;
+
+	virtual auto process_view_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT = 0;
+};

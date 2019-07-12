@@ -1,23 +1,16 @@
-﻿
+﻿//! 変数ツリービュー関連
+
 #pragma once
 
+#include <cstdint>
+#include <memory>
+#include <optional>
 #include <Windows.h>
 #include <CommCtrl.h>
-
-#include "hpiutil/dinfo.hpp"
-#include "main.h"
-#ifdef with_WrapCall
-# include "WrapCall/ModcmdCallInfo.h"
-#endif
-#include "VarTreeNodeData.h"
+#include "encoding.h"
 
 class HspObjects;
 class HspObjectTree;
-
-namespace detail {
-struct TvObserver;
-struct VarTreeLogObserver;
-} // namespace detail
 
 class AbstractViewBox {
 public:
@@ -33,33 +26,21 @@ public:
 	virtual void scroll_to_bottom() = 0;
 
 	virtual void select_line(std::size_t line_index) = 0;
+
+	virtual void set_text(OsStringView const& text) = 0;
 };
 
-class VTView
-{
+class VarTreeViewControl {
 public:
-	VTView(hpiutil::DInfo const& debug_segment, HspObjects& objects_, HspStaticVars& static_vars, HspObjectTree& object_tree, HWND tv_handle_);
-	~VTView();
+	static auto create(HspObjects& objects, HspObjectTree& object_tree, HWND tree_view) -> std::unique_ptr<VarTreeViewControl>;
 
-	void update();
-	void updateViewWindow(AbstractViewBox& view_box);
+	virtual ~VarTreeViewControl() {
+	}
 
-	void saveCurrentViewCaret(int vcaret);
+	virtual void update_view_window(AbstractViewBox& view_box) = 0;
 
-	auto getItemVarText(HTREEITEM hItem) const -> unique_ptr<OsString>;
-	auto tryGetNodeData(HTREEITEM hItem) const -> optional_ref<VTNodeData>;
+	virtual auto log_is_selected() const -> bool = 0;
 
-	void selectNode(VTNodeData const&);
-
-private:
-	struct Impl;
-	unique_ptr<Impl> p_;
-
-	hpiutil::DInfo const& debug_segment_;
-	HspObjects& objects_;
-	HspStaticVars& static_vars_;
-	HspObjectTree& object_tree_;
-
-	friend struct detail::TvObserver;
-	friend struct detail::VarTreeLogObserver;
+	// :thinking_face:
+	virtual auto item_to_path(HTREEITEM tree_item) const -> std::optional<std::shared_ptr<HspObjectPath const>> = 0;
 };

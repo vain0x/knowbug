@@ -8,7 +8,6 @@
 #include "module/handle_deleter.hpp"
 
 struct KnowbugConfig;
-class Logger;
 
 extern std::unique_ptr<KnowbugConfig> g_knowbug_config;
 
@@ -24,8 +23,6 @@ struct KnowbugConfig {
 	int fontSize;
 	bool fontAntialias;
 	OsString logPath;
-	bool warnsBeforeClearingLog;
-	bool scrollsLogAutomatically;
 
 	auto commonPath() const -> OsString {
 		return OsString{ hspDir + TEXT("common") };
@@ -41,6 +38,10 @@ struct KnowbugConfig {
 		auto operator->() -> KnowbugConfig* {
 			assert(g_knowbug_config != nullptr);
 			return g_knowbug_config.get();
+		}
+
+		auto operator*() const -> KnowbugConfig const& {
+			return *g_knowbug_config;
 		}
 	};
 };
