@@ -284,27 +284,6 @@ public:
 		var_tree_view_control().update_view_window(view_edit_control());
 	}
 
-	void did_main_window_activate(bool is_activated) {
-		if (!is_activated) {
-			return;
-		}
-
-		move_view_window_to_front();
-	}
-
-	void did_notify(LPNMHDR nmhdr) {
-		if (nmhdr->hwndFrom == var_tree_view()) {
-			// FIXME: フォーカスした要素の周囲を更新する
-			switch (nmhdr->code) {
-			case NM_DBLCLK:
-			case NM_RETURN:
-			case TVN_SELCHANGED:
-				update_view_edit();
-				break;
-			}
-		}
-	}
-
 	auto open_context_menu(HWND hwnd, POINT point) -> bool {
 		if (hwnd == var_tree_view()) {
 			return open_context_menu_var_tree_view(point);
@@ -392,7 +371,19 @@ public:
 			break;
 
 		case WM_NOTIFY:
-			did_notify((LPNMHDR)lp);
+			{
+				auto nmhdr = (LPNMHDR)lp;
+				if (nmhdr->hwndFrom == var_tree_view()) {
+					// FIXME: フォーカスした要素の周囲を更新する
+					switch (nmhdr->code) {
+					case NM_DBLCLK:
+					case NM_RETURN:
+					case TVN_SELCHANGED:
+						update_view_edit();
+						break;
+					}
+				}
+			}
 			break;
 
 		case WM_SIZE:
@@ -402,7 +393,9 @@ public:
 		case WM_ACTIVATE:
 			{
 				auto is_activated = LOWORD(wp) != 0;
-				did_main_window_activate(is_activated);
+				if (is_activated) {
+					move_view_window_to_front();
+				}
 			}
 			break;
 
