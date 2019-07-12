@@ -9,6 +9,7 @@
 class HspObjects;
 class HspObjectTree;
 class HspStaticVars;
+class KnowbugApp;
 struct KnowbugConfig;
 
 class KnowbugView {
@@ -30,7 +31,7 @@ public:
 
 	virtual void notify_save_failure() = 0;
 
-	virtual auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT = 0;
+	virtual auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, KnowbugApp& app) -> LRESULT = 0;
 
-	virtual auto process_view_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT = 0;
+	virtual auto process_view_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, KnowbugApp& app) -> LRESULT = 0;
 };

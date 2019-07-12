@@ -30,6 +30,7 @@ using hpiutil::HSPVAR_FLAG_VARIANT;
 
 class HspObjectPath;
 class HspRuntime;
+class KnowbugApp;
 class KnowbugView;
 class SourceFileResolver;
 
@@ -37,22 +38,29 @@ class SourceFileResolver;
 // knowbug コントロール
 namespace Knowbug
 {
-	extern auto get_view() -> KnowbugView*;
-
-	extern void step_run(StepControl step_control);
-	extern bool continueConditionalRun();
-
-	extern void add_object_text_to_log(HspObjectPath const& path);
-
-	extern void clear_log();
-
-	extern void save_log();
-	extern void auto_save_log();
-
-	extern void open_current_script_file();
-	extern void open_config_file();
-	extern void open_knowbug_repository();
-
+	extern auto get_app() -> std::shared_ptr<KnowbugApp>;
 } // namespace Knowbug
+
+class KnowbugApp {
+public:
+	virtual ~KnowbugApp() {
+	}
+
+	virtual auto view() -> KnowbugView& = 0;
+
+	virtual void step_run(StepControl step_control) = 0;
+
+	virtual void add_object_text_to_log(HspObjectPath const& path) = 0;
+
+	virtual void clear_log() = 0;
+
+	virtual void save_log() = 0;
+
+	virtual void open_current_script_file() = 0;
+
+	virtual void open_config_file() = 0;
+
+	virtual void open_knowbug_repository() = 0;
+};
 
 #endif
