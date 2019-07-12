@@ -555,7 +555,7 @@ LRESULT CALLBACK process_view_window(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) 
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-auto KnowbugView::create(HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView> {
+auto KnowbugView::create(KnowbugConfig const& config, HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView> {
 	auto const display_x = GetSystemMetrics(SM_CXSCREEN);
 	auto const display_y = GetSystemMetrics(SM_CYSCREEN);
 
@@ -563,13 +563,13 @@ auto KnowbugView::create(HINSTANCE instance, HspObjects& objects, HspObjectTree&
 	auto const main_size_y = 380;
 	auto const main_pos_x = display_x - main_size_x;
 	auto const main_pos_y = 0;
-	auto const view_size_x = g_config->viewSizeX;
-	auto const view_size_y = g_config->viewSizeY;
-	auto const view_pos_x = !g_config->viewPosXIsDefault ? g_config->viewPosX : display_x - main_size_x - view_size_x;
-	auto const view_pos_y = !g_config->viewPosYIsDefault ? g_config->viewPosY : 0;
+	auto const view_size_x = config.viewSizeX;
+	auto const view_size_y = config.viewSizeY;
+	auto const view_pos_x = !config.viewPosXIsDefault ? config.viewPosX : display_x - main_size_x - view_size_x;
+	auto const view_pos_y = !config.viewPosYIsDefault ? config.viewPosY : 0;
 
-	auto const tab_width = g_config->tabwidth;
-	auto main_font = create_main_font(*g_config);
+	auto const tab_width = config.tabwidth;
+	auto main_font = create_main_font(config);
 
 	// ビューウィンドウ
 	auto view_window = window_handle_t{
@@ -656,7 +656,7 @@ auto KnowbugView::create(HINSTANCE instance, HspObjects& objects, HspObjectTree&
 		std::move(var_tree_view_control),
 		step_buttons,
 		std::move(main_font),
-		*g_config
+		config
 	);
 
 	return std::unique_ptr<KnowbugView>{ std::move(view) };

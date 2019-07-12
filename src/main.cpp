@@ -66,13 +66,16 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 	KnowbugConfig::initialize();
 
+	auto const& config = *g_config;
+
 	auto const& debug_segment = hpiutil::DInfo::instance();
 
-	g_source_file_resolver = std::make_shared<SourceFileResolver>(g_config->commonPath(), debug_segment);
+	g_source_file_resolver = std::make_shared<SourceFileResolver>(config.commonPath(), debug_segment);
 
 	g_hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *g_dbginfo, *g_source_file_resolver);
 
 	g_knowbug_view = KnowbugView::create(
+		config,
 		g_hInstance,
 		g_hsp_runtime->objects(),
 		g_hsp_runtime->object_tree()

@@ -9,14 +9,11 @@
 class HspObjects;
 class HspObjectTree;
 class HspStaticVars;
-
-namespace hpiutil {
-	class DInfo;
-}
+struct KnowbugConfig;
 
 class KnowbugView {
 public:
-	static auto create(HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView>;
+	static auto create(KnowbugConfig const& config, HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView>;
 
 	virtual ~KnowbugView() {
 	}
