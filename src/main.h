@@ -37,13 +37,7 @@ class SourceFileResolver;
 // knowbug コントロール
 namespace Knowbug
 {
-	extern auto getInstance() -> HINSTANCE;
-
 	extern auto get_view() -> KnowbugView*;
-
-	extern auto get_hsp_runtime() -> HspRuntime&;
-
-	extern auto get_source_file_resolver()->std::shared_ptr<SourceFileResolver>;
 
 	extern void step_run(StepControl step_control);
 	extern bool continueConditionalRun();

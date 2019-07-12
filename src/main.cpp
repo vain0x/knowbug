@@ -120,20 +120,8 @@ void debugbye()
 
 namespace Knowbug
 {
-	auto getInstance() -> HINSTANCE {
-		return g_hInstance;
-	}
-
 	auto get_view() -> KnowbugView* {
 		return g_knowbug_view.get();
-	}
-
-	auto get_hsp_runtime() -> HspRuntime& {
-		return *g_hsp_runtime;
-	}
-
-	auto get_source_file_resolver() -> std::shared_ptr<SourceFileResolver> {
-		return g_source_file_resolver;
 	}
 
 	void step_run(StepControl step_control) {
@@ -197,7 +185,7 @@ namespace Knowbug
 
 	void open_current_script_file() {
 		auto file_ref_name = to_os(as_hsp(g_dbginfo->curPos().fileRefName()));
-		auto&& full_path_opt = Knowbug::get_source_file_resolver()->find_full_path(as_view(file_ref_name));
+		auto&& full_path_opt = g_source_file_resolver->find_full_path(as_view(file_ref_name));
 		if (full_path_opt) {
 			ShellExecute(nullptr, TEXT("open"), full_path_opt->data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
 		}
