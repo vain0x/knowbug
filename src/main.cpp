@@ -16,7 +16,7 @@
 #include "hpiutil/dinfo.hpp"
 #include "HspObjectWriter.h"
 
-static auto g_hInstance = HINSTANCE{};
+static auto g_dll_instance = HINSTANCE{};
 
 // FIXME: KnowbugApp に置く
 std::unique_ptr<DebugInfo> g_dbginfo {};
@@ -36,10 +36,10 @@ using WrapCall::ModcmdCallInfo;
 class KnowbugAppImpl
 	: public KnowbugApp
 {
-	std::unique_ptr<KnowbugConfig> g_config;
-	std::unique_ptr<KnowbugStepController> g_step_controller_;
-	std::unique_ptr<SourceFileResolver> g_source_file_resolver;
-	std::unique_ptr<HspRuntime> g_hsp_runtime;
+	std::unique_ptr<KnowbugConfig> config_;
+	std::unique_ptr<KnowbugStepController> step_controller_;
+	std::unique_ptr<SourceFileResolver> source_file_resolver_;
+	std::unique_ptr<HspRuntime> hsp_runtime_;
 	std::unique_ptr<KnowbugView> view_;
 
 public:
@@ -50,10 +50,10 @@ public:
 		std::unique_ptr<HspRuntime> hsp_runtime,
 		std::unique_ptr<KnowbugView> view
 	)
-		: g_config(std::move(config))
-		, g_step_controller_(std::move(step_controller))
-		, g_source_file_resolver(std::move(source_file_resolver))
-		, g_hsp_runtime(std::move(hsp_runtime))
+		: config_(std::move(config))
+		, step_controller_(std::move(step_controller))
+		, source_file_resolver_(std::move(source_file_resolver))
+		, hsp_runtime_(std::move(hsp_runtime))
 		, view_(std::move(view))
 	{
 	}
@@ -63,26 +63,26 @@ public:
 	}
 
 	void did_hsp_pause() {
-		if (g_step_controller_->continue_step_running()) return;
+		if (step_controller_->continue_step_running()) return;
 
 		g_dbginfo->updateCurInf();
-		view().update_source_edit(to_os(g_hsp_runtime->objects().script_to_current_location_summary()));
+		view().update_source_edit(to_os(hsp_runtime_->objects().script_to_current_location_summary()));
 		view().update();
 	}
 
 	void did_hsp_logmes(HspStringView const& text) {
-		g_hsp_runtime->logger().append(to_utf8(text));
-		g_hsp_runtime->logger().append(as_utf8(u8"\r\n"));
+		hsp_runtime_->logger().append(to_utf8(text));
+		hsp_runtime_->logger().append(as_utf8(u8"\r\n"));
 
 		view().did_log_change();
 	}
 
 	void step_run(StepControl step_control) override {
-		g_step_controller_->update(step_control);
+		step_controller_->update(step_control);
 	}
 
 	void add_object_text_to_log(HspObjectPath const& path) override {
-		auto&& objects = g_hsp_runtime->objects();
+		auto&& objects = hsp_runtime_->objects();
 
 		// FIXME: 共通化
 		auto buffer = std::make_shared<CStrBuf>();
@@ -91,15 +91,15 @@ public:
 		HspObjectWriter{ objects, writer }.write_table_form(path);
 		auto text = as_utf8(buffer->getMove());
 
-		g_hsp_runtime->logger().append(text);
+		hsp_runtime_->logger().append(text);
 	}
 
 	void clear_log() override {
-		g_hsp_runtime->logger().clear();
+		hsp_runtime_->logger().clear();
 	}
 
 	auto do_save_log(OsStringView const& file_path) -> bool {
-		auto&& content = g_hsp_runtime->logger().content();
+		auto&& content = hsp_runtime_->logger().content();
 
 		auto file_stream = std::ofstream{ file_path.data() };
 		file_stream.write(as_native(content).data(), content.size());
@@ -121,7 +121,7 @@ public:
 	}
 
 	void auto_save_log() {
-		auto&& file_path = g_config->logPath;
+		auto&& file_path = config_->logPath;
 		if (file_path.empty()) {
 			return;
 		}
@@ -132,7 +132,7 @@ public:
 
 	void open_current_script_file() override {
 		auto file_ref_name = to_os(as_hsp(g_dbginfo->curPos().fileRefName()));
-		auto&& full_path_opt = g_source_file_resolver->find_full_path(as_view(file_ref_name));
+		auto&& full_path_opt = source_file_resolver_->find_full_path(as_view(file_ref_name));
 		if (full_path_opt) {
 			ShellExecute(nullptr, TEXT("open"), full_path_opt->data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
 		}
@@ -140,9 +140,9 @@ public:
 
 	void open_config_file() override {
 		// ファイルが存在しなければ作成される。
-		auto of = std::ofstream{ g_config->selfPath(), std::ios::app };
+		auto of = std::ofstream{ config_->selfPath(), std::ios::app };
 
-		ShellExecute(nullptr, TEXT("open"), g_config->selfPath().data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
+		ShellExecute(nullptr, TEXT("open"), config_->selfPath().data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
 	}
 
 	void open_knowbug_repository() override {
@@ -155,11 +155,14 @@ public:
 
 static auto g_app = std::shared_ptr<KnowbugAppImpl>{};
 
-auto WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) -> int
-{
+auto KnowbugApp::instance() -> std::shared_ptr<KnowbugApp> {
+	return g_app;
+}
+
+BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) {
 	switch ( fdwReason ) {
 		case DLL_PROCESS_ATTACH: {
-			g_hInstance = hInstance;
+			g_dll_instance = hInstance;
 #if _DEBUG
 			if (GetKeyState(VK_SHIFT) & 0x8000) { MessageBox(nullptr, TEXT("Attach Me!"), TEXT("knowbug"), MB_OK); }
 #endif
@@ -170,8 +173,7 @@ auto WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) -> i
 	return TRUE;
 }
 
-EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
-{
+EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	auto api = HspDebugApi{ p1 };
 
 	// グローバル変数の初期化:
@@ -181,9 +183,9 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 	auto debug_info = std::make_unique<DebugInfo>(p1);
 
-	auto step_controller = std::make_unique<KnowbugStepController>(api.context(), *debug_info);
-
 	auto config = KnowbugConfig::create();
+
+	auto step_controller = std::make_unique<KnowbugStepController>(api.context(), *debug_info);
 
 	auto const& debug_segment = hpiutil::DInfo::instance();
 
@@ -191,7 +193,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 	auto hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *debug_info, *source_file_resolver);
 
-	auto view = KnowbugView::create(*config, g_hInstance, hsp_runtime->objects(), hsp_runtime->object_tree());
+	auto view = KnowbugView::create(*config, g_dll_instance, hsp_runtime->objects(), hsp_runtime->object_tree());
 
 	g_dbginfo = std::move(debug_info);
 	g_app = std::make_shared<KnowbugAppImpl>(
@@ -210,8 +212,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 	return 0;
 }
 
-EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
-{
+EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	if (auto&& app_opt = g_app) {
 		switch (p2) {
 		// 実行が停止した (assert、ステップ実行の完了時など)
@@ -227,27 +228,10 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4)
 	return 0;
 }
 
-void debugbye()
-{
+void debugbye() {
 	if (auto&& app_opt = g_app) {
 		app_opt->auto_save_log();
 	}
 
 	g_app.reset();
 }
-
-namespace Knowbug
-{
-	auto get_app() -> std::shared_ptr<KnowbugApp> {
-		return g_app;
-	}
-
-#ifdef with_WrapCall
-void onBgnCalling(ModcmdCallInfo::shared_ptr_type const& callinfo) {
-}
-
-void onEndCalling(ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype) {
-}
-#endif
-
-} //namespace Knowbug

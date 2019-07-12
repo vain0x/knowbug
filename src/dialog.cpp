@@ -542,14 +542,14 @@ private:
 
 // メインウィンドウのコールバック関数
 LRESULT CALLBACK process_main_window(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
-	if (auto&& app = Knowbug::get_app()) {
+	if (auto&& app = KnowbugApp::instance()) {
 		app->view().process_main_window(hDlg, msg, wp, lp, *app);
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
 LRESULT CALLBACK process_view_window(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
-	if (auto&& app = Knowbug::get_app()) {
+	if (auto&& app = KnowbugApp::instance()) {
 		return app->view().process_view_window(hDlg, msg, wp, lp, *app);
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);

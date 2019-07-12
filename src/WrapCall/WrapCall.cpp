@@ -6,17 +6,6 @@
 #include "type_modcmd.h"
 #include "ModcmdCallInfo.h"
 
-//------------------------------------------------
-// Knowbug 側へのコールバック
-//------------------------------------------------
-namespace Knowbug
-{
-
-extern void onBgnCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo);
-extern void onEndCalling(WrapCall::ModcmdCallInfo::shared_ptr_type const& callinfo, PDAT* ptr, vartype_t vtype);
-
-} //namespace Knowbug
-
 namespace WrapCall
 {
 
@@ -60,9 +49,6 @@ void onBgnCalling(stdat_t stdat)
 	));
 
 	auto& callinfo = g_stkCallInfo.back();
-
-	// DebugWindow への通知
-	Knowbug::onBgnCalling(callinfo);
 }
 
 //------------------------------------------------
@@ -83,9 +69,6 @@ void onEndCalling(PDAT* p, vartype_t vt)
 	// if ( ctx->sublev != callinfo->sublev ) {
 	// 	Knowbug::logmesWarning("呼び出し中に入ったサブルーチンから正常に脱出しないまま、呼び出しが終了した。");
 	// }
-
-	// DebugWindow への通知
-	Knowbug::onEndCalling(callinfo, p, vt);
 
 	g_stkCallInfo.pop_back();
 }

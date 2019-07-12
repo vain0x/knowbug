@@ -34,15 +34,10 @@ class KnowbugApp;
 class KnowbugView;
 class SourceFileResolver;
 
-// FIXME: インターフェイスを抽出
-// knowbug コントロール
-namespace Knowbug
-{
-	extern auto get_app() -> std::shared_ptr<KnowbugApp>;
-} // namespace Knowbug
-
 class KnowbugApp {
 public:
+	static auto instance() -> std::shared_ptr<KnowbugApp>;
+
 	virtual ~KnowbugApp() {
 	}
 
