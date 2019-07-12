@@ -1,6 +1,10 @@
 ﻿
 #pragma once
+
+#include <string>
 #include "hpiutil/SourcePos.hpp"
+
+#undef max
 
 // FIXME: たいして役に立っていないので削除したい。HspObjects か HspDebugApi に統合したい
 // HSP3DEBUG wrapper
@@ -31,6 +35,14 @@ public:
 	void updateCurInf()
 	{
 		debug_->dbg_curinf();
+	}
+
+	auto file_ref_name() const -> std::string {
+		return debug_->fname;
+	}
+
+	auto line_index() const -> std::size_t {
+		return std::max(0, debug_->line - 1);
 	}
 };
 

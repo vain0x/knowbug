@@ -303,25 +303,8 @@ static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, Hs
 			return std::make_optional<HspParamStack>(api.flex_to_param_stack(*flex_opt));
 		}
 	case HspObjectKind::CallFrame:
-		{
-			auto&& call_info_opt = WrapCall::call_frame_get(path.as_call_frame().call_frame_id());
-			if (!call_info_opt || !*call_info_opt) {
-				return std::nullopt;
-			}
+		return wc_call_frame_to_param_stack(path.as_call_frame().call_frame_id());
 
-			auto&& call_info = **call_info_opt;
-			auto struct_dat = call_info.stdat;
-			auto&& pair = call_info.tryGetPrmstk();
-
-			auto param_stack_ptr = pair.first;
-			if (param_stack_ptr == nullptr) {
-				return std::nullopt;
-			}
-
-			auto param_stack_safety = pair.second;
-			auto param_stack = HspParamStack{ struct_dat, param_stack_ptr, param_stack_safety };
-			return std::make_optional<HspParamStack>(param_stack);
-		}
 	default:
 		assert(false && u8"param_stack が取れるべき");
 		return std::nullopt;
@@ -763,21 +746,22 @@ auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) c
 }
 
 auto HspObjects::call_stack_path_to_call_frame_count(HspObjectPath::CallStack const& path) const -> std::size_t {
-	return WrapCall::call_frame_count();
+	return wc_call_frame_count();
 }
 
 auto HspObjects::call_stack_path_to_call_frame_id_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<std::size_t> {
-	return WrapCall::call_frame_id_at(call_frame_index);
+	return wc_call_frame_id_at(call_frame_index);
 }
 
 auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {
-	auto&& call_info_opt = WrapCall::call_frame_get(path.call_frame_id());
-	if (!call_info_opt || !*call_info_opt) {
+	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
+	if (!call_frame_opt) {
 		return std::nullopt;
 	}
 
-	auto&& name = (**call_info_opt).name();
-	return to_utf8(as_hsp(std::move(name)));
+	auto struct_dat = call_frame_opt->get().struct_dat();
+	auto name = hpiutil::STRUCTDAT_name(struct_dat);
+	return to_utf8(as_hsp(name));
 }
 
 auto HspObjects::call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t {

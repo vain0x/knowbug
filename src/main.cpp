@@ -26,13 +26,6 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
 EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4);
 static void debugbye();
 
-// WrapCall 関連
-#include "WrapCall/WrapCall.h"
-#include "WrapCall/ModcmdCallInfo.h"
-#ifdef with_WrapCall
-using WrapCall::ModcmdCallInfo;
-#endif
-
 class KnowbugAppImpl
 	: public KnowbugApp
 {

@@ -566,8 +566,6 @@
     <ClCompile Include="module\GuiUtility.cpp" />
     <ClCompile Include="module\supio\supio.cpp" />
     <ClCompile Include="vartree.cpp" />
-    <ClCompile Include="WrapCall\ModcmdCallInfo.cpp" />
-    <ClCompile Include="WrapCall\type_modcmd.cpp" />
     <ClCompile Include="WrapCall\WrapCall.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -614,8 +612,6 @@
     <ClInclude Include="SourceFileResolver.h" />
     <ClInclude Include="StepController.h" />
     <ClInclude Include="vartree.h" />
-    <ClInclude Include="WrapCall\ModcmdCallInfo.h" />
-    <ClInclude Include="WrapCall\type_modcmd.h" />
     <ClInclude Include="WrapCall\WrapCall.h" />
   </ItemGroup>
   <ItemGroup>
