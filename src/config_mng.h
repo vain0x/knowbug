@@ -9,8 +9,6 @@
 
 struct KnowbugConfig;
 
-extern std::unique_ptr<KnowbugConfig> g_knowbug_config;
-
 // knowbug のすべての設定。package/knowbug.ini を参照。
 struct KnowbugConfig {
 	OsString hspDir;
@@ -30,20 +28,5 @@ struct KnowbugConfig {
 
 	auto selfPath() const->OsString;
 
-	static void initialize();
-	static auto load(OsString&& hsp_dir)->KnowbugConfig;
-
-	// `g_config->member` のような記述のコンパイルを通すためのもの。
-	struct SingletonAccessor {
-		auto operator->() -> KnowbugConfig* {
-			assert(g_knowbug_config != nullptr);
-			return g_knowbug_config.get();
-		}
-
-		auto operator*() const -> KnowbugConfig const& {
-			return *g_knowbug_config;
-		}
-	};
+	static auto create()->std::unique_ptr<KnowbugConfig>;
 };
-
-extern KnowbugConfig::SingletonAccessor g_config;

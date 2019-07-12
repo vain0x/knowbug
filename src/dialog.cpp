@@ -284,14 +284,14 @@ public:
 		var_tree_view_control().update_view_window(view_edit_control());
 	}
 
-	auto open_context_menu(HWND hwnd, POINT point) -> bool {
+	auto open_context_menu(HWND hwnd, POINT point, KnowbugApp& app) -> bool {
 		if (hwnd == var_tree_view()) {
-			return open_context_menu_var_tree_view(point);
+			return open_context_menu_var_tree_view(point, app);
 		}
 		return false;
 	}
 
-	auto open_context_menu_var_tree_view(POINT const& point) -> bool {
+	auto open_context_menu_var_tree_view(POINT const& point, KnowbugApp& app) -> bool {
 		auto&& path_opt = point_to_path(point);
 		if (!path_opt) {
 			return false;
@@ -303,32 +303,32 @@ public:
 			return false;
 		}
 
-		execute_popup_menu_action(selected_id, **path_opt);
+		execute_popup_menu_action(selected_id, **path_opt, app);
 		return true;
 	}
 
-	auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT override {
+	auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, KnowbugApp& app) -> LRESULT override {
 		switch (msg) {
 		case WM_COMMAND:
 			switch (LOWORD(wp)) {
 			case IDC_BTN1:
-				Knowbug::step_run(StepControl::run());
+				app.step_run(StepControl::run());
 				break;
 
 			case IDC_BTN2:
-				Knowbug::step_run(StepControl::step_in());
+				app.step_run(StepControl::step_in());
 				break;
 
 			case IDC_BTN3:
-				Knowbug::step_run(StepControl::stop());
+				app.step_run(StepControl::stop());
 				break;
 
 			case IDC_BTN4:
-				Knowbug::step_run(StepControl::step_over());
+				app.step_run(StepControl::step_over());
 				break;
 
 			case IDC_BTN5:
-				Knowbug::step_run(StepControl::step_out());
+				app.step_run(StepControl::step_out());
 				break;
 
 			case IDC_TOPMOST:
@@ -336,11 +336,11 @@ public:
 				break;
 
 			case IDC_OPEN_CURRENT_SCRIPT:
-				Knowbug::open_current_script_file();
+				app.open_current_script_file();
 				break;
 
 			case IDC_OPEN_INI:
-				Knowbug::open_config_file();
+				app.open_config_file();
 				break;
 
 			case IDC_UPDATE:
@@ -348,7 +348,7 @@ public:
 				break;
 
 			case IDC_OPEN_KNOWBUG_REPOS:
-				Knowbug::open_knowbug_repository();
+				app.open_knowbug_repository();
 				break;
 
 			case IDC_GOTO_LOG:
@@ -363,7 +363,7 @@ public:
 
 		case WM_CONTEXTMENU:
 			{
-				auto done = open_context_menu((HWND)wp, POINT{ LOWORD(lp), HIWORD(lp) });
+				auto done = open_context_menu((HWND)wp, POINT{ LOWORD(lp), HIWORD(lp) }, app);
 				if (done) {
 					return TRUE;
 				}
@@ -412,7 +412,7 @@ public:
 		return DefWindowProc(hwnd, msg, wp, lp);
 	}
 
-	auto process_view_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT override {
+	auto process_view_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, KnowbugApp& app) -> LRESULT override {
 		switch (msg) {
 		case WM_CREATE:
 			return TRUE;
@@ -515,22 +515,22 @@ private:
 		);
 	}
 
-	void execute_popup_menu_action(int selected_id, HspObjectPath const& path) {
+	void execute_popup_menu_action(int selected_id, HspObjectPath const& path, KnowbugApp& app) {
 		switch (selected_id) {
 		case IDC_NODE_UPDATE:
 			update_view_edit();
 			return;
 
 		case IDC_NODE_LOG:
-			Knowbug::add_object_text_to_log(path);
+			app.add_object_text_to_log(path);
 			return;
 
 		case IDC_LOG_SAVE:
-			Knowbug::save_log();
+			app.save_log();
 			return;
 
 		case IDC_LOG_CLEAR:
-			Knowbug::clear_log();
+			app.clear_log();
 			return;
 
 		default:
@@ -542,15 +542,15 @@ private:
 
 // メインウィンドウのコールバック関数
 LRESULT CALLBACK process_main_window(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
-	if (auto&& view = Knowbug::get_view()) {
-		return view->process_main_window(hDlg, msg, wp, lp);
+	if (auto&& app = KnowbugApp::instance()) {
+		app->view().process_main_window(hDlg, msg, wp, lp, *app);
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
 LRESULT CALLBACK process_view_window(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
-	if (auto&& view = Knowbug::get_view()) {
-		return view->process_view_window(hDlg, msg, wp, lp);
+	if (auto&& app = KnowbugApp::instance()) {
+		return app->view().process_view_window(hDlg, msg, wp, lp, *app);
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }

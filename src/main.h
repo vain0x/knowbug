@@ -30,35 +30,32 @@ using hpiutil::HSPVAR_FLAG_VARIANT;
 
 class HspObjectPath;
 class HspRuntime;
+class KnowbugApp;
 class KnowbugView;
 class SourceFileResolver;
 
-// FIXME: インターフェイスを抽出
-// knowbug コントロール
-namespace Knowbug
-{
-	extern auto getInstance() -> HINSTANCE;
+class KnowbugApp {
+public:
+	static auto instance() -> std::shared_ptr<KnowbugApp>;
 
-	extern auto get_view() -> KnowbugView*;
+	virtual ~KnowbugApp() {
+	}
 
-	extern auto get_hsp_runtime() -> HspRuntime&;
+	virtual auto view() -> KnowbugView& = 0;
 
-	extern auto get_source_file_resolver()->std::shared_ptr<SourceFileResolver>;
+	virtual void step_run(StepControl step_control) = 0;
 
-	extern void step_run(StepControl step_control);
-	extern bool continueConditionalRun();
+	virtual void add_object_text_to_log(HspObjectPath const& path) = 0;
 
-	extern void add_object_text_to_log(HspObjectPath const& path);
+	virtual void clear_log() = 0;
 
-	extern void clear_log();
+	virtual void save_log() = 0;
 
-	extern void save_log();
-	extern void auto_save_log();
+	virtual void open_current_script_file() = 0;
 
-	extern void open_current_script_file();
-	extern void open_config_file();
-	extern void open_knowbug_repository();
+	virtual void open_config_file() = 0;
 
-} // namespace Knowbug
+	virtual void open_knowbug_repository() = 0;
+};
 
 #endif

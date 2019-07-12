@@ -51,9 +51,6 @@
     <ClCompile Include="vartree.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="WrapCall\type_modcmd.cpp">
-      <Filter>WrapCall</Filter>
-    </ClCompile>
     <ClCompile Include="WrapCall\WrapCall.cpp">
       <Filter>WrapCall</Filter>
     </ClCompile>
@@ -74,9 +71,6 @@
     </ClCompile>
     <ClCompile Include="module\GuiUtility.cpp">
       <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="WrapCall\ModcmdCallInfo.cpp">
-      <Filter>WrapCall</Filter>
     </ClCompile>
     <ClCompile Include="hpiutil\stringify.cpp">
       <Filter>module\hpiutil</Filter>
@@ -139,12 +133,6 @@
     </ClInclude>
     <ClInclude Include="vartree.h">
       <Filter>ソース ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="WrapCall\ModcmdCallInfo.h">
-      <Filter>WrapCall</Filter>
-    </ClInclude>
-    <ClInclude Include="WrapCall\type_modcmd.h">
-      <Filter>WrapCall</Filter>
     </ClInclude>
     <ClInclude Include="WrapCall\WrapCall.h">
       <Filter>WrapCall</Filter>
