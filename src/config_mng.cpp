@@ -6,10 +6,6 @@
 #include "encoding.h"
 #include "module\/supio\/supio.h"
 
-std::unique_ptr<KnowbugConfig> g_knowbug_config;
-
-KnowbugConfig::SingletonAccessor g_config;
-
 static auto get_hsp_dir() -> OsString {
 	// knowbug の DLL の絶対パスを取得する。
 	TCHAR path[MAX_PATH];
@@ -33,12 +29,7 @@ static auto ini_file_path(OsStringView const& hsp_dir) -> OsString {
 	return OsString{ to_owned(hsp_dir) + TEXT("knowbug.ini") };
 }
 
-void KnowbugConfig::initialize() {
-	assert(g_knowbug_config == nullptr);
-	g_knowbug_config = std::make_unique<KnowbugConfig>(load(get_hsp_dir()));
-}
-
-auto KnowbugConfig::load(OsString&& hsp_dir) -> KnowbugConfig {
+auto load(OsString&& hsp_dir) -> KnowbugConfig {
 	auto&& ini = CIni{ ini_file_path(as_view(hsp_dir)) };
 	auto config = KnowbugConfig{};
 
@@ -62,4 +53,8 @@ auto KnowbugConfig::load(OsString&& hsp_dir) -> KnowbugConfig {
 
 auto KnowbugConfig::selfPath() const -> OsString {
 	return ini_file_path(as_view(hspDir));
+}
+
+auto KnowbugConfig::create() -> std::unique_ptr<KnowbugConfig> {
+	return std::make_unique<KnowbugConfig>(load(get_hsp_dir()));
 }

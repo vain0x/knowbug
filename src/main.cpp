@@ -36,6 +36,7 @@ using WrapCall::ModcmdCallInfo;
 class KnowbugAppImpl
 	: public KnowbugApp
 {
+	std::unique_ptr<KnowbugConfig> g_config;
 	std::unique_ptr<KnowbugStepController> g_step_controller_;
 	std::unique_ptr<SourceFileResolver> g_source_file_resolver;
 	std::unique_ptr<HspRuntime> g_hsp_runtime;
@@ -43,12 +44,14 @@ class KnowbugAppImpl
 
 public:
 	KnowbugAppImpl(
+		std::unique_ptr<KnowbugConfig> config,
 		std::unique_ptr<KnowbugStepController> step_controller,
 		std::unique_ptr<SourceFileResolver> source_file_resolver,
 		std::unique_ptr<HspRuntime> hsp_runtime,
 		std::unique_ptr<KnowbugView> view
 	)
-		: g_step_controller_(std::move(step_controller))
+		: g_config(std::move(config))
+		, g_step_controller_(std::move(step_controller))
 		, g_source_file_resolver(std::move(source_file_resolver))
 		, g_hsp_runtime(std::move(hsp_runtime))
 		, view_(std::move(view))
@@ -180,19 +183,19 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4)
 
 	auto step_controller = std::make_unique<KnowbugStepController>(api.context(), *debug_info);
 
-	KnowbugConfig::initialize();
-	auto const& config = *g_config;
+	auto config = KnowbugConfig::create();
 
 	auto const& debug_segment = hpiutil::DInfo::instance();
 
-	auto source_file_resolver = std::make_unique<SourceFileResolver>(config.commonPath(), debug_segment);
+	auto source_file_resolver = std::make_unique<SourceFileResolver>(config->commonPath(), debug_segment);
 
 	auto hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *debug_info, *source_file_resolver);
 
-	auto view = KnowbugView::create(config, g_hInstance, hsp_runtime->objects(), hsp_runtime->object_tree());
+	auto view = KnowbugView::create(*config, g_hInstance, hsp_runtime->objects(), hsp_runtime->object_tree());
 
 	g_dbginfo = std::move(debug_info);
 	g_app = std::make_shared<KnowbugAppImpl>(
+		std::move(config),
 		std::move(step_controller),
 		std::move(source_file_resolver),
 		std::move(hsp_runtime),
