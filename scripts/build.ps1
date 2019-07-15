@@ -21,6 +21,9 @@ try {
     cd "$knowbugRoot/src"
 
     & $msBuild knowbug.vcxproj $args
+    if (!$?) {
+        exit 1
+    }
 } finally {
     cd $knowbugRoot
 }

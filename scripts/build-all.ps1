@@ -12,6 +12,15 @@ $configs = @(
     "/p:Configuration=Release2;Platform=x64"
 )
 
+$success = $true
+
 foreach ($config in $configs) {
     ./scripts/build /t:build $config
+    if (!$?) {
+        $success = $false
+    }
+}
+
+if (!$success) {
+    exit 1
 }
