@@ -1,0 +1,33 @@
+# AppVeyor <https://ci.appveyor.com>
+
+version: 2.0.{build}
+
+image: Visual Studio 2019
+
+build_script:
+- ps: |
+    ./scripts/build-all.ps1
+    if (!$?) {
+        exit 1
+    }
+
+after_test:
+- ps: |
+    ./scripts/pack.ps1
+    if (!$?) {
+        exit 1
+    }
+
+artifacts:
+- path: knowbug-*.zip
+  name: knowbug-zip
+
+deploy:
+- provider: GitHub
+  auth_token:
+    # <https://ci.appveyor.com/tools/encrypt> で暗号化された GitHub アクセストークン
+    secure: UPvfs/H6O/PP0V+a0zA1qvQuHYxlqr0nw9Mn+fUdoZWtR2XITfP4hoelCR4CY65O
+  artifact: /knowbug-([\d.]+)\.zip/
+  prerelease: true
+  on:
+    branch: /master|release/

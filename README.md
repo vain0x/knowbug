@@ -1,4 +1,7 @@
 ﻿# knowbug
+
+[![Build status](https://ci.appveyor.com/api/projects/status/67ue70udoicrb98v?svg=true)](https://ci.appveyor.com/project/vain0x/knowbug)
+
 * version: 1.22.2
 
 ## 概要
