@@ -2,7 +2,7 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/67ue70udoicrb98v?svg=true)](https://ci.appveyor.com/project/vain0x/knowbug)
 
-* version: 1.22.2
+[最新版はこちら](https://github.com/vain0x/knowbug/releases/latest)
 
 ## 概要
 
@@ -23,7 +23,7 @@
 
 #### knowbug 本体
 
-0. [最新版のパッケージ](https://github.com/vain0/knowbug/releases/latest) の `knowbug-package.zip` をダウンロードします。
+0. [最新版のパッケージ](https://github.com/vain0x/knowbug/releases/latest) の `knowbug-package.zip` をダウンロードします。
 0. HSPのフォルダ(※)にある ``hsp3debug.dll`` と ``hsp3debug_64.dll`` の名前を変更します。
   * 例:``hsp3debug.dll`` → ``hsp3debug__default.dll``
 0. `package` フォルダにある ``hsp3debug_knowbug.dll`` の名前を ``hsp3debug.dll`` に変えて、HSPのフォルダに移動します。
@@ -56,28 +56,22 @@ WrapCall プラグインを追加すると、ユーザー定義コマンドに�
 0. knowbug (``hsp3debug.dll`` と ``hsp3debug_64.dll``) を削除し、バックアップしておいた、元々の ``hsp3debug.dll`` を、元に戻します。
 0. 設定ファイル (``knowbug.ini``) とヘッダーファイル (``WrapCall.as``) は不要なので削除します。``userdef.as`` を元に戻します。
 
-## 動作環境
+## 推奨環境
 
-* HSP 3.5
-* Windows 7
+- HSP 3.5.1
+- Windows 10
 
-これら以外では、動作を確認していません。サポートできない可能性も高いのでご了承ください。
+## 不具合報告など
 
-## ライセンス
+既知の不具合や要望などは以下にまとまっています。不具合の報告やご意見などは、ここに書いてもらえると嬉しいです。
 
-knowbug は、公式のデバッグウィンドウに、 @vain0 が手を加えたものです。
+- [Issues](https://github.com/vain0x/knowbug/issues)
 
-本ソフトの一部として、[OpenHSP にあるコード、およびリソース](http://dev.onionsoft.net/trac/openhsp/browser/trunk/tools/win32/hsp3debug)を使用しています。[ライセンス](./package/License/License_j.txt)も参照してください。
+knowbug のリリースの一覧は以下を参照してください。(pre-release は動作が安定していない可能性があります。)
 
-@vain0 が権利を有する部分はパブリックドメイン扱いとします。
+- [Releases](https://github.com/vain0x/knowbug/releases)
 
-## 関連URL
+## 関連リンク
 
-バグ報告、意見、要望などは、[GitHub の Issue 表](https://github.com/vain0/knowbug/issues) または [プログラ広場の掲示板](http://uedai-kami.bbs.fc2.com/) までお願いします。
-
-* knowbug のソースコード <https://github.com/vain0/knowbug/>:
-  * [既知の不具合の一覧](https://github.com/vain0/knowbug/labels/bug)
-  * [リリース一覧](https://github.com/vain0/knowbug/releases)
-* OpenHSP <http://dev.onionsoft.net/trac/>:
-  * プロジェクト OpenHSP の公式サイトです。HSP本体やスクリプトエディター、デバッグウィンドウなどのソースコードがあります。
-  * knowbug のソースコードの一部をこちらから流用しています。
+- OpenHSP <http://dev.onionsoft.net/trac>
+- GINGER <https://github.com/vain0x/hsp3-debug-ginger>

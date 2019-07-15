@@ -33,6 +33,7 @@ try {
     copy -recurse package $package
     copy changes.md $package/changes.md
     copy README.md $package/README.md
+    copy LICENSE $package/LICENSE
 
     foreach ($name in $exclusions) {
         remove-item -recurse -force "$package/**/$name"
