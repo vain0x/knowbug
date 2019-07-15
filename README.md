@@ -63,14 +63,6 @@ WrapCall プラグインを追加すると、ユーザー定義コマンドに�
 
 これら以外では、動作を確認していません。サポートできない可能性も高いのでご了承ください。
 
-## ライセンス
-
-knowbug は、公式のデバッグウィンドウに、 @vain0 が手を加えたものです。
-
-本ソフトの一部として、[OpenHSP にあるコード、およびリソース](http://dev.onionsoft.net/trac/openhsp/browser/trunk/tools/win32/hsp3debug)を使用しています。[ライセンス](./package/License/License_j.txt)も参照してください。
-
-@vain0 が権利を有する部分はパブリックドメイン扱いとします。
-
 ## 関連URL
 
 バグ報告、意見、要望などは、[GitHub の Issue 表](https://github.com/vain0/knowbug/issues) または [プログラ広場の掲示板](http://uedai-kami.bbs.fc2.com/) までお願いします。
