@@ -11,15 +11,28 @@
 #   cd knowbug
 #   ./scripts/install-dev.ps1
 
-$H = $env:HSP3_ROOT
-$K = (get-item .).FullName
+if (!$env:HSP3_ROOT) {
+    write-error "環境変数 HSP3_ROOT を設定してください"
+    exit 1
+}
 
-# HSP のデバッガを改名する。
-move-item -force "$H/hsp3debug.dll" "$H/hsp3debug__default.dll"
-move-item -force "$H/hsp3debug_u8.dll" "$H/hsp3debug__u8_default.dll"
-move-item -force "$H/hsp3debug_64.dll" "$H/hsp3debug__64_default.dll"
+$table = @(
+    @("hsp3debug.dll", "$pwd/src/Debug/hsp3debug.dll"),
+    @("hsp3debug_u8.dll", "$pwd/src/Debug/u8/hsp3debug_u8.dll"),
+    @("hsp3debug_64.dll", "$pwd/src/x64/Debug/hsp3debug_64.dll")
+)
 
-# knowbug のデバッグビルドへのシンボリックリンクを張る。
-new-item -itemType symbolicLink -path "$H/hsp3debug.dll" -value "$K/src/Debug/hsp3debug.dll"
-new-item -itemType symbolicLink -path "$H/hsp3debug_u8.dll" -value "$K/src/Debug/u8/hsp3debug_u8.dll"
-new-item -itemType symbolicLink -path "$H/hsp3debug_64.dll" -value "$K/src/x64/Debug/hsp3debug_64.dll"
+foreach ($row in $table) {
+    $name = $row[0]
+    $targetPath = $row[1]
+    $sourcePath = "$env:HSP3_ROOT/$name"
+    $backup = "$env:HSP3_ROOT/$name.orig"
+
+    # ファイルを移動する。
+    echo "move $sourcePath -> $backup"
+    move-item -force -path $sourcePath -destination $backup
+
+    # シンボリックリンクを張る。
+    echo "link $sourcePath -> $backup"
+    new-item -itemType symbolicLink -path $sourcePath -value $targetPath
+}
