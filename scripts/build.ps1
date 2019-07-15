@@ -8,12 +8,7 @@
 
 # MSBuild を探す。
 # Visual Studio 2019
-$msBuild2019="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
-
-$msBuild="$(which msbuild)"
-if (!(test-path $msBuild)) {
-    $msBuild=$msBuild2019
-}
+$msBuild="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
 
 $knowbugRoot = (get-item .).FullName
 
