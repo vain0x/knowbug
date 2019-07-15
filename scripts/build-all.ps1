@@ -9,9 +9,18 @@ $configs = @(
     "/p:Configuration=Debug;Platform=x64",
     "/p:Configuration=Release2;Platform=x86",
     "/p:Configuration=ReleaseUtf8;Platform=x86",
-    "/p:Configuration=Release2;Platform=x64",
+    "/p:Configuration=Release2;Platform=x64"
 )
 
+$success = $true
+
 foreach ($config in $configs) {
-    ./build /t:build $config
+    ./scripts/build /t:build $config
+    if (!$?) {
+        $success = $false
+    }
+}
+
+if (!$success) {
+    exit 1
 }
