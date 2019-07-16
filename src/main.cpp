@@ -7,7 +7,7 @@
 #include "main.h"
 #include "module/strf.h"
 #include "DebugInfo.h"
-#include "config_mng.h"
+#include "knowbug_config.h"
 #include "dialog.h"
 #include "StepController.h"
 #include "SourceFileResolver.h"

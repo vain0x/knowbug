@@ -14,7 +14,7 @@
 
 #include "dialog.h"
 #include "vartree.h"
-#include "config_mng.h"
+#include "knowbug_config.h"
 #include "HspObjectPath.h"
 
 #ifdef _M_X64

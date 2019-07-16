@@ -39,9 +39,6 @@
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="config_mng.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="dialog.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -117,13 +114,13 @@
     <ClCompile Include="hsp_wrap_call.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="knowbug_config.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="config_mng.h">
-      <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="dialog.h">
       <Filter>ソース ファイル</Filter>
@@ -237,6 +234,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="hsp_wrap_call.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="knowbug_config.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,6 @@
 ﻿
 #include "module/CIni.h"
-#include "config_mng.h"
+#include "knowbug_config.h"
 #include "encoding.h"
 
 static auto get_hsp_dir() -> OsString {

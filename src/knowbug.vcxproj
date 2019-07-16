@@ -540,7 +540,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="config_mng.cpp" />
+    <ClCompile Include="knowbug_config.cpp" />
     <ClCompile Include="cppformat\cppformat\format.cc" />
     <ClCompile Include="encoding.cpp" />
     <ClCompile Include="hpiutil\DInfo.cpp" />
@@ -569,7 +569,7 @@
     <ClCompile Include="vartree.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="config_mng.h" />
+    <ClInclude Include="knowbug_config.h" />
     <ClInclude Include="cppformat\cppformat\format.h" />
     <ClInclude Include="encoding.h" />
     <ClInclude Include="hpiutil\dinfo.hpp" />
