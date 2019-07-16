@@ -81,9 +81,6 @@ public:
 
 	bool static_var_path_is_array(HspObjectPath::StaticVar const& path);
 
-	// FIXME: 一時的に存在する。knowbug は PVal* を直接触るべきでない
-	auto static_var_path_to_pval(HspObjectPath::StaticVar const& path)->PVal*;
-
 	auto static_var_path_to_type(HspObjectPath::StaticVar const& path)->HspType;
 
 	auto static_var_path_to_child_count(HspObjectPath::StaticVar const& path) const->std::size_t;

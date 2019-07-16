@@ -404,10 +404,6 @@ bool HspObjects::static_var_path_is_array(HspObjectPath::StaticVar const& path) 
 	return api_.var_is_array(api_.static_var_to_pval(path.static_var_id()));
 }
 
-auto HspObjects::static_var_path_to_pval(HspObjectPath::StaticVar const& path)->PVal* {
-	return api_.static_var_to_pval(path.static_var_id());
-}
-
 auto HspObjects::static_var_path_to_type(HspObjectPath::StaticVar const& path)->HspType {
 	return api_.var_to_type(api_.static_var_to_pval(path.static_var_id()));
 }
@@ -421,7 +417,7 @@ auto HspObjects::static_var_path_to_child_at(HspObjectPath::StaticVar const& pat
 }
 
 auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata {
-	auto pval = static_var_path_to_pval(path);
+	auto pval = api_.static_var_to_pval(path.static_var_id());
 	auto block_memory = api_.var_to_block_memory(pval);
 
 	auto metadata = HspVarMetadata{};
