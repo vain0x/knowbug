@@ -1,6 +1,7 @@
 hsptmp
 obj
 package/sample/*.ax
+src/knowbug_tests/DebugUtf8/
 
 
 
