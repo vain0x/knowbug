@@ -1,4 +1,4 @@
-﻿
+
 #include "module/CIni.h"
 #include "knowbug_config.h"
 #include "encoding.h"

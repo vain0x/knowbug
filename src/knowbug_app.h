@@ -1,4 +1,4 @@
-﻿//! Knowbug の本体
+//! Knowbug の本体
 
 #pragma once
 

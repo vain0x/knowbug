@@ -1,4 +1,4 @@
-﻿// INIファイル読み書きクラス
+// INIファイル読み書きクラス
 
 #ifndef IG_CLASS_INI_H
 #define IG_CLASS_INI_H

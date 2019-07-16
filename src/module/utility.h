@@ -1,4 +1,4 @@
-﻿#ifndef IG_MODULE_UTILITY_H
+#ifndef IG_MODULE_UTILITY_H
 #define IG_MODULE_UTILITY_H
 
 #include <cassert>

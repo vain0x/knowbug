@@ -1,4 +1,4 @@
-﻿
+
 #include <array>
 #include <vector>
 #include "GuiUtility.h"

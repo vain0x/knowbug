@@ -1,4 +1,4 @@
-﻿#include <vector>
+#include <vector>
 #include "hpiutil/hpiutil.hpp"
 #include "hsp_wrap_call.h"
 #include "DebugInfo.h"

@@ -1,4 +1,4 @@
-﻿//formatted string
+//formatted string
 
 #pragma once
 #include <string>

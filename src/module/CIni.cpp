@@ -1,4 +1,4 @@
-﻿// INIファイル読み書きクラス
+// INIファイル読み書きクラス
 
 #include <cstdio>
 #include <cstring>

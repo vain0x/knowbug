@@ -1,4 +1,4 @@
-﻿//! 変数ツリービュー関連
+//! 変数ツリービュー関連
 
 #include <unordered_map>
 #include <unordered_set>

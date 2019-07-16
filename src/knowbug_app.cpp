@@ -1,4 +1,4 @@
-﻿
+
 #include <fstream>
 #include "hpiutil/dinfo.hpp"
 #include "module/CStrBuf.h"

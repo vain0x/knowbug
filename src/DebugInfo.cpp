@@ -1,4 +1,4 @@
-﻿#include <array>
+#include <array>
 #include <memory>
 #include <vector>
 #include <utility>

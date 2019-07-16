@@ -1,4 +1,4 @@
-﻿// SysvarData を使用する関数
+// SysvarData を使用する関数
 
 #include <cassert>
 #include <cstring>

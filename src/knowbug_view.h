@@ -1,4 +1,4 @@
-﻿//! knowbug の UI 関連
+//! knowbug の UI 関連
 
 #pragma once
 
