@@ -1,10 +1,10 @@
-﻿//! knowbug の UI 関連
+//! knowbug の UI 関連
 
 #pragma once
 
 #include <optional>
-#include <Windows.h>
 #include "encoding.h"
+#include "platform.h"
 
 class HspObjects;
 class HspObjectTree;

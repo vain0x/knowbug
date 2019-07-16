@@ -1,4 +1,4 @@
-﻿// 文字列への整形書き込み
+// 文字列への整形書き込み
 
 #ifndef IG_CLASS_STRING_WRITER_H
 #define IG_CLASS_STRING_WRITER_H

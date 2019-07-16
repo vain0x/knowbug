@@ -1,4 +1,4 @@
-﻿
+
 #pragma once
 
 #include "hpiutil_fwd.hpp"

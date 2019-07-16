@@ -16,9 +16,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
     </Filter>
-    <Filter Include="WrapCall">
-      <UniqueIdentifier>{8edddfd0-21dc-4014-a397-d3b7bd1f0ef4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="module\hspsdk">
       <UniqueIdentifier>{17c74d29-3bdd-4bf7-9dc7-6b32e63b3d22}</UniqueIdentifier>
     </Filter>
@@ -39,21 +36,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="config_mng.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="dialog.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="vartree.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="WrapCall\WrapCall.cpp">
-      <Filter>WrapCall</Filter>
-    </ClCompile>
     <ClCompile Include="module\CIni.cpp">
       <Filter>module</Filter>
     </ClCompile>
@@ -120,31 +102,28 @@
     <ClCompile Include="HspObjectTree.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="hsp_wrap_call.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="knowbug_config.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="knowbug_view.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="knowbug_view_tree.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="knowbug_app.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="config_mng.h">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="dialog.h">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="vartree.h">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="WrapCall\WrapCall.h">
-      <Filter>WrapCall</Filter>
-    </ClInclude>
-    <ClInclude Include="module\ptr_cast.h">
-      <Filter>module</Filter>
-    </ClInclude>
     <ClInclude Include="module\CIni.h">
       <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="main.h">
-      <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="DebugInfo.h">
       <Filter>ソース ファイル</Filter>
@@ -161,16 +140,7 @@
     <ClInclude Include="module\GuiUtility.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="module\Singleton.h">
-      <Filter>module</Filter>
-    </ClInclude>
     <ClInclude Include="module\strf.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="module\pair_range.hpp">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="module\range_all.hpp">
       <Filter>module</Filter>
     </ClInclude>
     <ClInclude Include="module\handle_deleter.hpp">
@@ -252,6 +222,24 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="HspObjectTree.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hsp_wrap_call.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="knowbug_config.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="knowbug_view.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="knowbug_view_tree.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="knowbug_app.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="platform.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

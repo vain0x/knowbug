@@ -1,20 +1,18 @@
-﻿//! knowbug の UI 関連
+//! knowbug の UI 関連
 
 #pragma comment(lib, "comctl32.lib")
 
-#include <windows.h>
-#include <windowsx.h>
-#include <commctrl.h>
-
-#include "main.h"
 #include "resource.h"
 #include "hpiutil/hspsdk/hspwnd.h"
 #include "module/GuiUtility.h"
-
-#include "dialog.h"
-#include "vartree.h"
-#include "config_mng.h"
+#include "module/handle_deleter.hpp"
+#include "knowbug_app.h"
+#include "knowbug_view.h"
+#include "knowbug_view_tree.h"
+#include "knowbug_config.h"
 #include "HspObjectPath.h"
+#include "platform.h"
+#include "StepController.h"
 
 #ifdef _M_X64
 # define KNOWBUG_CPU_SUFFIX TEXT("(x64)")

@@ -1,4 +1,4 @@
-﻿
+
 #include <cassert>
 #include <cstring>
 #include "strf.h"

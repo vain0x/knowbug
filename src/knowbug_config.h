@@ -1,11 +1,10 @@
-﻿// 設定の読み込みと管理
+// 設定の読み込みと管理
 
 #pragma once
 
+#include <memory>
 #include "encoding.h"
-#include "main.h"
-#include "module/Singleton.h"
-#include "module/handle_deleter.hpp"
+#include "platform.h"
 
 struct KnowbugConfig;
 

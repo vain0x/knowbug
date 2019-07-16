@@ -6,8 +6,7 @@
 #include <cstring>
 #include <string>
 #include <string_view>
-#include <Windows.h>
-#include <tchar.h>
+#include "platform.h"
 
 // HSP のランタイムが使うエンコーディングの文字列の要素 (バイト)
 enum class HspChar

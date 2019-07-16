@@ -1,20 +1,20 @@
-﻿
+
 #include <fstream>
-#include <winapifamily.h>
+#include "hpiutil/dinfo.hpp"
 #include "module/CStrBuf.h"
 #include "module/CStrWriter.h"
-#include "encoding.h"
-#include "main.h"
 #include "module/strf.h"
+#include "encoding.h"
 #include "DebugInfo.h"
-#include "config_mng.h"
-#include "dialog.h"
-#include "StepController.h"
-#include "SourceFileResolver.h"
-#include "HspRuntime.h"
 #include "HspDebugApi.h"
-#include "hpiutil/dinfo.hpp"
 #include "HspObjectWriter.h"
+#include "HspRuntime.h"
+#include "knowbug_app.h"
+#include "knowbug_config.h"
+#include "knowbug_view.h"
+#include "platform.h"
+#include "SourceFileResolver.h"
+#include "StepController.h"
 
 static auto g_dll_instance = HINSTANCE{};
 
@@ -70,7 +70,7 @@ public:
 		view().did_log_change();
 	}
 
-	void step_run(StepControl step_control) override {
+	void step_run(StepControl const& step_control) override {
 		step_controller_->update(step_control);
 	}
 

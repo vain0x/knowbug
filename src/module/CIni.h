@@ -1,4 +1,4 @@
-﻿// INIファイル読み書きクラス
+// INIファイル読み書きクラス
 
 #ifndef IG_CLASS_INI_H
 #define IG_CLASS_INI_H
@@ -6,7 +6,6 @@
 #include <vector>
 #include <string>
 #include "../encoding.h"
-#include "supio/supio.h"
 
 class CIni {
 	OsString const file_name_;

@@ -1,4 +1,4 @@
-﻿#ifndef IG_MAP_ITERATOR_H
+#ifndef IG_MAP_ITERATOR_H
 #define IG_MAP_ITERATOR_H
 
 #include <iterator>

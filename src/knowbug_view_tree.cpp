@@ -1,10 +1,7 @@
-﻿//! 変数ツリービュー関連
+//! 変数ツリービュー関連
 
 #include <unordered_map>
 #include <unordered_set>
-#include <Windows.h>
-#include <CommCtrl.h>
-
 #include "module/CStrBuf.h"
 #include "module/CStrWriter.h"
 #include "module/GuiUtility.h"
@@ -12,7 +9,8 @@
 #include "HspObjects.h"
 #include "HspObjectTree.h"
 #include "HspObjectWriter.h"
-#include "vartree.h"
+#include "knowbug_view_tree.h"
+#include "platform.h"
 
 #undef min
 

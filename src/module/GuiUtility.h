@@ -1,12 +1,10 @@
-﻿
+
 #pragma once
 
-#include <Windows.h>
-#include <windowsx.h>
-#include <CommCtrl.h>
 #include <string>
 #include <memory>
 #include "../encoding.h"
+#include "../platform.h"
 
 using std::string;
 
