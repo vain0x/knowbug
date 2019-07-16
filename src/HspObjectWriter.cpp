@@ -119,7 +119,7 @@ public:
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
 
-	void on_system_var_list(HspObjectPath::SystemVarList const& path) override;
+	void on_call_frame(HspObjectPath::CallFrame const& path) override;
 
 	void on_general(HspObjectPath::General const& path) override;
 
@@ -127,9 +127,10 @@ public:
 
 	void on_script(HspObjectPath::Script const& path) override;
 
-	// FIXME: unavailable に対応
+	void on_unavailable(HspObjectPath::Unavailable const& path) override;
 
-	// FIXME: CallFrame ならシグネチャと呼び出し位置とダンプを表示する
+private:
+	void write_name(HspObjectPath const& path);
 };
 
 // ブロックフォーム。
@@ -224,13 +225,17 @@ HspObjectWriterImpl::TableForm::TableForm(HspObjects& objects, CStrWriter& write
 {
 }
 
-void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
+void HspObjectWriterImpl::TableForm::write_name(HspObjectPath const& path) {
 	auto&& o = objects();
 	auto&& w = writer();
 
 	w.cat("[");
 	w.cat(path.name(o));
 	w.catln("]");
+}
+
+void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
+	write_name(path);
 
 	to_block_form().accept_children(path);
 }
@@ -255,14 +260,12 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	auto&& o = objects();
 	auto&& w = writer();
 
-	auto&& name = path.name(o);
 	auto type = path.type(o);
 	auto&& type_name = o.type_to_name(type);
 	auto&& metadata = path.metadata(o);
 
 	// 変数に関する情報
-	w.cat(u8"変数名: ");
-	w.catln(name);
+	write_name(path);
 
 	w.cat(u8"変数型: ");
 	write_array_type(w, type_name, metadata.lengths());
@@ -290,14 +293,40 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	w.catDump(metadata.block_ptr(), metadata.block_size());
 }
 
-void HspObjectWriterImpl::TableForm::on_system_var_list(HspObjectPath::SystemVarList const& path) {
-	writer().catln(u8"[システム変数]");
+void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame const& path) {
+	auto&& o = objects();
+	auto&& w = writer();
+
+	auto&& file_ref_name_opt = path.file_ref_name(o);
+	auto&& line_index_opt = path.line_index(o);
+
+	write_name(path);
+
+	// FIXME: シグネチャ
+
+	w.cat(u8"呼び出し位置: ");
+	// 例: #12 hoge.hsp
+	if (line_index_opt) {
+		w.cat(u8"#");
+		w.catSize(*line_index_opt);
+		w.cat(u8" ");
+	}
+	if (file_ref_name_opt) {
+		w.catln(*file_ref_name_opt);
+	} else {
+		w.catln(u8"???");
+	}
+	w.catCrlf();
+
 	to_block_form().accept_children(path);
+
+	// FIXME: 引数スタックのダンプ
 }
 
 void HspObjectWriterImpl::TableForm::on_general(HspObjectPath::General const& path) {
 	auto&& content = path.content(objects());
 
+	write_name(path);
 	writer().cat(content);
 }
 
@@ -305,13 +334,26 @@ void HspObjectWriterImpl::TableForm::on_log(HspObjectPath::Log const& path) {
 	auto&& content = path.content(objects());
 	assert((content.empty() || (char)content.back() == '\n') && u8"Log must be end with line break");
 
+	write_name(path);
 	writer().cat(content);
 }
 
 void HspObjectWriterImpl::TableForm::on_script(HspObjectPath::Script const& path) {
 	auto&& content = path.content(objects());
 
+	// NOTE: 行番号がズレないようにスクリプト以外を描画しない。
+	// write_name(path);
+
 	writer().catln(content);
+}
+
+void HspObjectWriterImpl::TableForm::on_unavailable(HspObjectPath::Unavailable const& path) {
+	auto&& w = writer();
+	auto&& reason = path.reason();
+
+	write_name(path);
+	w.cat(u8"理由: ");
+	w.catln(reason);
 }
 
 // -----------------------------------------------
