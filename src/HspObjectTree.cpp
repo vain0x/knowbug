@@ -6,6 +6,7 @@
 #include "HspObjectTree.h"
 
 static auto const MAX_CHILD_COUNT = std::size_t{ 3000 };
+static auto const UPDATE_DEPTH = std::size_t{ 2 };
 
 class Node {
 	std::size_t parent_;
@@ -102,7 +103,7 @@ public:
 			return focus(parent, observer);
 		}
 
-		update_children(node_id, observer);
+		update_children(node_id, 0, observer);
 
 		return node_id;
 	}
@@ -178,9 +179,13 @@ private:
 	// 指定したノードに対応するパスの子要素のうち、
 	// 無効なパスに対応する子ノードがあれば削除し、
 	// 有効なパスに対応する子ノードがなければ挿入する。
-	void update_children(std::size_t node_id, HspObjectTreeObserver& observer) {
+	void update_children(std::size_t node_id, std::size_t depth, HspObjectTreeObserver& observer) {
 		if (!nodes_.count(node_id)) {
 			assert(false && u8"存在しないノードの子ノード更新をしようとしています");
+			return;
+		}
+
+		if (depth > UPDATE_DEPTH) {
 			return;
 		}
 
@@ -226,6 +231,11 @@ private:
 			auto child_node_id = do_create_node(node_id, child_path);
 			children.push_back(child_node_id);
 			observer.did_create(child_node_id);
+		}
+
+		// 更新
+		for (auto i = std::size_t{}; i < children.size(); i++) {
+			update_children(children.at(i), depth + 1, observer);
 		}
 	}
 

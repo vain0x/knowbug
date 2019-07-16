@@ -309,6 +309,10 @@ public:
 
 	auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, KnowbugApp& app) -> LRESULT override {
 		switch (msg) {
+		case WM_USER:
+			update_view_edit();
+			return TRUE;
+
 		case WM_COMMAND:
 			switch (LOWORD(wp)) {
 			case IDC_BTN1:
@@ -374,12 +378,15 @@ public:
 			{
 				auto nmhdr = (LPNMHDR)lp;
 				if (nmhdr->hwndFrom == var_tree_view()) {
-					// FIXME: フォーカスした要素の周囲を更新する
 					switch (nmhdr->code) {
-					case NM_DBLCLK:
+					case NM_CLICK:
 					case NM_RETURN:
 					case TVN_SELCHANGED:
-						update_view_edit();
+						// 現時点ではまだツリービューがメッセージを処理していないので、
+						// クリックされた要素に選択が移動していない。
+						// ここで更新用のメッセージをキューに post することにより、
+						// メッセージがツリービューに処理された後に更新を起こす。
+						PostMessage(hwnd, WM_USER, 0, 0);
 						break;
 					}
 				}
