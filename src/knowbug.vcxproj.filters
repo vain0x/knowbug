@@ -36,9 +36,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="module\CIni.cpp">
       <Filter>module</Filter>
     </ClCompile>
@@ -117,6 +114,9 @@
     <ClCompile Include="knowbug_view_tree.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="knowbug_app.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -124,9 +124,6 @@
     </ClInclude>
     <ClInclude Include="module\CIni.h">
       <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="main.h">
-      <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="DebugInfo.h">
       <Filter>ソース ファイル</Filter>
@@ -237,6 +234,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="knowbug_view_tree.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="knowbug_app.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

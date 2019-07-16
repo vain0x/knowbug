@@ -560,7 +560,7 @@
     <ClCompile Include="StepController.cpp" />
     <ClCompile Include="DebugInfo.cpp" />
     <ClCompile Include="knowbug_view.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="knowbug_app.cpp" />
     <ClCompile Include="module\CIni.cpp" />
     <ClCompile Include="module\CStrBuf.cpp" />
     <ClCompile Include="module\CStrWriter.cpp" />
@@ -597,7 +597,7 @@
     <ClInclude Include="module\utility.h" />
     <ClInclude Include="DebugInfo.h" />
     <ClInclude Include="knowbug_view.h" />
-    <ClInclude Include="main.h" />
+    <ClInclude Include="knowbug_app.h" />
     <ClInclude Include="module\CIni.h" />
     <ClInclude Include="module\CStrBuf.h" />
     <ClInclude Include="module\CStrWriter.h" />

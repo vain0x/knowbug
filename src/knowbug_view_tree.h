@@ -9,6 +9,7 @@
 #include <CommCtrl.h>
 #include "encoding.h"
 
+class HspObjectPath;
 class HspObjects;
 class HspObjectTree;
 
