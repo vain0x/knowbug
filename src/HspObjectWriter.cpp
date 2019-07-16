@@ -127,7 +127,7 @@ public:
 
 	void on_script(HspObjectPath::Script const& path) override;
 
-	// FIXME: unavailable に対応
+	void on_unavailable(HspObjectPath::Unavailable const& path) override;
 
 	// FIXME: CallFrame ならシグネチャと呼び出し位置とダンプを表示する
 };
@@ -312,6 +312,15 @@ void HspObjectWriterImpl::TableForm::on_script(HspObjectPath::Script const& path
 	auto&& content = path.content(objects());
 
 	writer().catln(content);
+}
+
+void HspObjectWriterImpl::TableForm::on_unavailable(HspObjectPath::Unavailable const& path) {
+	auto&& w = writer();
+	auto&& reason = path.reason();
+
+	w.catln(u8"[利用不能]");
+	w.cat(u8"理由: ");
+	w.catln(reason);
 }
 
 // -----------------------------------------------

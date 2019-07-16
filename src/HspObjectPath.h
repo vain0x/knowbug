@@ -64,8 +64,6 @@ class HspObjectPath
 	: public std::enable_shared_from_this<HspObjectPath>
 {
 public:
-	// FIXME: 「全般」を追加
-
 	class Visitor;
 	class Root;
 	class Module;
