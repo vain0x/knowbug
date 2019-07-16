@@ -1,7 +1,7 @@
 #include <sstream>
 #include "hpiutil/hpiutil.hpp"
 #include "hpiutil/DInfo.hpp"
-#include "WrapCall/WrapCall.h"
+#include "hsp_wrap_call.h"
 #include "DebugInfo.h"
 #include "HspDebugApi.h"
 #include "HspObjects.h"

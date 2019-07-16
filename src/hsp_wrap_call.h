@@ -3,8 +3,8 @@
 #pragma once
 
 #include <optional>
-#include "../hpiutil/hspsdk/hsp3struct.h"
-#include "../HspTypes.h"
+#include "hpiutil/hspsdk/hsp3struct.h"
+#include "HspTypes.h"
 
 class HspParamStack;
 class WcCallFrame;

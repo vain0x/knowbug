@@ -554,6 +554,7 @@
     <ClCompile Include="HspObjectWriter.cpp" />
     <ClCompile Include="HspRuntime.cpp" />
     <ClCompile Include="HspStaticVars.cpp" />
+    <ClCompile Include="hsp_wrap_call.cpp" />
     <ClCompile Include="SourceFile.cpp" />
     <ClCompile Include="SourceFileResolver.cpp" />
     <ClCompile Include="StepController.cpp" />
@@ -566,7 +567,6 @@
     <ClCompile Include="module\GuiUtility.cpp" />
     <ClCompile Include="module\supio\supio.cpp" />
     <ClCompile Include="vartree.cpp" />
-    <ClCompile Include="WrapCall\WrapCall.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config_mng.h" />
@@ -592,6 +592,7 @@
     <ClInclude Include="HspRuntime.h" />
     <ClInclude Include="HspStaticVars.h" />
     <ClInclude Include="HspTypes.h" />
+    <ClInclude Include="hsp_wrap_call.h" />
     <ClInclude Include="module\handle_deleter.hpp" />
     <ClInclude Include="module\utility.h" />
     <ClInclude Include="DebugInfo.h" />
@@ -608,7 +609,6 @@
     <ClInclude Include="SourceFileResolver.h" />
     <ClInclude Include="StepController.h" />
     <ClInclude Include="vartree.h" />
-    <ClInclude Include="WrapCall\WrapCall.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc" />

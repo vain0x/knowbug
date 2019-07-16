@@ -1,7 +1,7 @@
 ﻿#include <vector>
-#include "../hpiutil/hpiutil.hpp"
-#include "../DebugInfo.h"
-#include "WrapCall.h"
+#include "hpiutil/hpiutil.hpp"
+#include "hsp_wrap_call.h"
+#include "DebugInfo.h"
 
 static auto s_last_id = std::size_t{};
 
