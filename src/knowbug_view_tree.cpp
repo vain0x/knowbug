@@ -12,7 +12,7 @@
 #include "HspObjects.h"
 #include "HspObjectTree.h"
 #include "HspObjectWriter.h"
-#include "vartree.h"
+#include "knowbug_view_tree.h"
 
 #undef min
 

@@ -566,7 +566,7 @@
     <ClCompile Include="module\CStrWriter.cpp" />
     <ClCompile Include="module\GuiUtility.cpp" />
     <ClCompile Include="module\supio\supio.cpp" />
-    <ClCompile Include="vartree.cpp" />
+    <ClCompile Include="knowbug_view_tree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="knowbug_config.h" />
@@ -608,7 +608,7 @@
     <ClInclude Include="SourceFile.h" />
     <ClInclude Include="SourceFileResolver.h" />
     <ClInclude Include="StepController.h" />
-    <ClInclude Include="vartree.h" />
+    <ClInclude Include="knowbug_view_tree.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc" />

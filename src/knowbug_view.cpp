@@ -13,7 +13,7 @@
 #include "module/handle_deleter.hpp"
 
 #include "knowbug_view.h"
-#include "vartree.h"
+#include "knowbug_view_tree.h"
 #include "knowbug_config.h"
 #include "HspObjectPath.h"
 
