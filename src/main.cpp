@@ -8,7 +8,7 @@
 #include "module/strf.h"
 #include "DebugInfo.h"
 #include "knowbug_config.h"
-#include "dialog.h"
+#include "knowbug_view.h"
 #include "StepController.h"
 #include "SourceFileResolver.h"
 #include "HspRuntime.h"

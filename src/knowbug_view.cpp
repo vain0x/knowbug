@@ -12,7 +12,7 @@
 #include "module/GuiUtility.h"
 #include "module/handle_deleter.hpp"
 
-#include "dialog.h"
+#include "knowbug_view.h"
 #include "vartree.h"
 #include "knowbug_config.h"
 #include "HspObjectPath.h"

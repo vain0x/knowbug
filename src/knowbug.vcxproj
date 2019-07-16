@@ -559,7 +559,7 @@
     <ClCompile Include="SourceFileResolver.cpp" />
     <ClCompile Include="StepController.cpp" />
     <ClCompile Include="DebugInfo.cpp" />
-    <ClCompile Include="dialog.cpp" />
+    <ClCompile Include="knowbug_view.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="module\CIni.cpp" />
     <ClCompile Include="module\CStrBuf.cpp" />
@@ -596,7 +596,7 @@
     <ClInclude Include="module\handle_deleter.hpp" />
     <ClInclude Include="module\utility.h" />
     <ClInclude Include="DebugInfo.h" />
-    <ClInclude Include="dialog.h" />
+    <ClInclude Include="knowbug_view.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="module\CIni.h" />
     <ClInclude Include="module\CStrBuf.h" />
