@@ -6,7 +6,6 @@
 #include <vector>
 #include <string>
 #include "../encoding.h"
-#include "supio/supio.h"
 
 class CIni {
 	OsString const file_name_;

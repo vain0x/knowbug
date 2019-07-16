@@ -1,10 +1,7 @@
 ﻿
 #include "module/CIni.h"
-#include "module/strf.h"
-
 #include "config_mng.h"
 #include "encoding.h"
-#include "module\/supio\/supio.h"
 
 static auto get_hsp_dir() -> OsString {
 	// knowbug の DLL の絶対パスを取得する。

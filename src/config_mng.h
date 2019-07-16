@@ -2,8 +2,9 @@
 
 #pragma once
 
+#include <Windows.h>
+#include <memory>
 #include "encoding.h"
-#include "main.h"
 
 struct KnowbugConfig;
 
