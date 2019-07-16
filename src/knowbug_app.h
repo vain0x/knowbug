@@ -2,11 +2,10 @@
 
 #pragma once
 
-#include "StepController.h"
-
 class HspObjectPath;
 class HspRuntime;
 class KnowbugView;
+class StepControl;
 
 class KnowbugApp {
 public:
@@ -17,7 +16,7 @@ public:
 
 	virtual auto view() -> KnowbugView& = 0;
 
-	virtual void step_run(StepControl step_control) = 0;
+	virtual void step_run(StepControl const& step_control) = 0;
 
 	virtual void add_object_text_to_log(HspObjectPath const& path) = 0;
 

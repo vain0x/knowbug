@@ -70,7 +70,7 @@ public:
 		view().did_log_change();
 	}
 
-	void step_run(StepControl step_control) override {
+	void step_run(StepControl const& step_control) override {
 		step_controller_->update(step_control);
 	}
 

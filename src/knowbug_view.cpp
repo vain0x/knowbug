@@ -16,6 +16,7 @@
 #include "knowbug_view_tree.h"
 #include "knowbug_config.h"
 #include "HspObjectPath.h"
+#include "StepController.h"
 
 #ifdef _M_X64
 # define KNOWBUG_CPU_SUFFIX TEXT("(x64)")

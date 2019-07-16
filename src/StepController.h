@@ -35,7 +35,7 @@ enum class StepControlKind {
 };
 
 // ステップ実行の操作を表す。
-struct StepControl {
+class StepControl {
 	StepControlKind kind_;
 	int sublev_;
 
