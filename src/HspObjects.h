@@ -137,6 +137,10 @@ public:
 
 	auto call_frame_path_to_child_at(HspObjectPath::CallFrame const& path, std::size_t child_index) const -> std::optional<std::shared_ptr<HspObjectPath const>>;
 
+	auto call_frame_path_to_file_ref_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String>;
+
+	auto call_frame_path_to_line_index(HspObjectPath::CallFrame const& path) const -> std::optional<std::size_t>;
+
 	auto general_to_content() const -> Utf8StringView;
 
 	auto log_to_content() const -> Utf8StringView;

@@ -575,6 +575,14 @@ auto HspObjectPath::CallFrame::name(HspObjects& objects) const -> Utf8String {
 	return *std::move(name_opt);
 }
 
+auto HspObjectPath::CallFrame::file_ref_name(HspObjects& objects) const -> std::optional<Utf8String> {
+	return objects.call_frame_path_to_file_ref_name(*this);
+}
+
+auto HspObjectPath::CallFrame::line_index(HspObjects& objects) const -> std::optional<std::size_t> {
+	return objects.call_frame_path_to_line_index(*this);
+}
+
 // -----------------------------------------------
 // 全般
 // -----------------------------------------------

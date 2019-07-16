@@ -829,6 +829,10 @@ public:
 	auto call_frame_id() const -> std::size_t {
 		return call_frame_id_;
 	}
+
+	auto file_ref_name(HspObjects& objects) const -> std::optional<Utf8String>;
+
+	auto line_index(HspObjects& objects) const -> std::optional<std::size_t>;
 };
 
 // -----------------------------------------------
