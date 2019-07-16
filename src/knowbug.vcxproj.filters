@@ -137,9 +137,6 @@
     <ClInclude Include="WrapCall\WrapCall.h">
       <Filter>WrapCall</Filter>
     </ClInclude>
-    <ClInclude Include="module\ptr_cast.h">
-      <Filter>module</Filter>
-    </ClInclude>
     <ClInclude Include="module\CIni.h">
       <Filter>module</Filter>
     </ClInclude>
@@ -161,16 +158,7 @@
     <ClInclude Include="module\GuiUtility.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="module\Singleton.h">
-      <Filter>module</Filter>
-    </ClInclude>
     <ClInclude Include="module\strf.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="module\pair_range.hpp">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="module\range_all.hpp">
       <Filter>module</Filter>
     </ClInclude>
     <ClInclude Include="module\handle_deleter.hpp">

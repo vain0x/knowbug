@@ -10,6 +10,7 @@
 #include "resource.h"
 #include "hpiutil/hspsdk/hspwnd.h"
 #include "module/GuiUtility.h"
+#include "module/handle_deleter.hpp"
 
 #include "dialog.h"
 #include "vartree.h"

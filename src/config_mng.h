@@ -4,8 +4,6 @@
 
 #include "encoding.h"
 #include "main.h"
-#include "module/Singleton.h"
-#include "module/handle_deleter.hpp"
 
 struct KnowbugConfig;
 
