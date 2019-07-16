@@ -209,7 +209,7 @@ auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) -> std::o
 
 	case HspSystemVarKind::Err:
 		{
-			static_assert(sizeof(context()->err) == sizeof(HspInt), "HSPERROR は int のはず");
+			static_assert(sizeof(context()->err) == sizeof(HspInt), u8"HSPERROR は int のはず");
 			auto ptr = UNSAFE((HspInt*)(&context()->err));
 			return std::make_optional(int_ptr_to_data(ptr));
 		}

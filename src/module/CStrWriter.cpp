@@ -115,7 +115,7 @@ void CStrWriter::catDump(void const* data, size_t bufsize)
 	auto size = bufsize;
 
 	if ( size > stc_maxsize ) {
-		catln(strf("全%d[byte]の内、%d[byte]のみダンプします。", bufsize, stc_maxsize));
+		catln(strf(u8"全%d[byte]の内、%d[byte]のみダンプします。", bufsize, stc_maxsize));
 		size = stc_maxsize;
 	}
 
