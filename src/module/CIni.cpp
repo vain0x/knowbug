@@ -1,13 +1,12 @@
 ﻿// INIファイル読み書きクラス
 
-#include <windows.h>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include <cassert>
 #include <array>
-#include <tchar.h>
 #include "../encoding.h"
+#include "../platform.h"
 #include "CIni.h"
 
 static auto const DEFAULT_BUFFER_SIZE = std::size_t{ 1024 };

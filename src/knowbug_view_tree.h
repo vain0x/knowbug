@@ -5,9 +5,8 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
-#include <Windows.h>
-#include <CommCtrl.h>
 #include "encoding.h"
+#include "platform.h"
 
 class HspObjectPath;
 class HspObjects;

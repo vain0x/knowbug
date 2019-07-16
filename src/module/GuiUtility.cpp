@@ -1,9 +1,9 @@
 ﻿
-#include <vector>
 #include <array>
-#include <tchar.h>
-#include "../encoding.h"
+#include <vector>
 #include "GuiUtility.h"
+#include "../encoding.h"
+#include "../platform.h"
 #include "supio/supio.h"
 
 #define ARRAY_LENGTH(A) ((sizeof (A)) / (sizeof ((A)[0])))

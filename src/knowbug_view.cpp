@@ -2,20 +2,16 @@
 
 #pragma comment(lib, "comctl32.lib")
 
-#include <windows.h>
-#include <windowsx.h>
-#include <commctrl.h>
-
 #include "resource.h"
 #include "hpiutil/hspsdk/hspwnd.h"
 #include "module/GuiUtility.h"
 #include "module/handle_deleter.hpp"
-
 #include "knowbug_app.h"
 #include "knowbug_view.h"
 #include "knowbug_view_tree.h"
 #include "knowbug_config.h"
 #include "HspObjectPath.h"
+#include "platform.h"
 #include "StepController.h"
 
 #ifdef _M_X64

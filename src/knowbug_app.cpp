@@ -1,20 +1,20 @@
 ﻿
 #include <fstream>
-#include <winapifamily.h>
+#include "hpiutil/dinfo.hpp"
 #include "module/CStrBuf.h"
 #include "module/CStrWriter.h"
-#include "encoding.h"
 #include "module/strf.h"
+#include "encoding.h"
 #include "DebugInfo.h"
+#include "HspDebugApi.h"
+#include "HspObjectWriter.h"
+#include "HspRuntime.h"
 #include "knowbug_app.h"
 #include "knowbug_config.h"
 #include "knowbug_view.h"
-#include "StepController.h"
+#include "platform.h"
 #include "SourceFileResolver.h"
-#include "HspRuntime.h"
-#include "HspDebugApi.h"
-#include "hpiutil/dinfo.hpp"
-#include "HspObjectWriter.h"
+#include "StepController.h"
 
 static auto g_dll_instance = HINSTANCE{};
 

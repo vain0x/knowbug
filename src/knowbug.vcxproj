@@ -604,6 +604,7 @@
     <ClInclude Include="module\GuiUtility.h" />
     <ClInclude Include="module\strf.h" />
     <ClInclude Include="module\supio\supio.h" />
+    <ClInclude Include="platform.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SourceFile.h" />
     <ClInclude Include="SourceFileResolver.h" />

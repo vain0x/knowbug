@@ -3,8 +3,8 @@
 #pragma once
 
 #include <optional>
-#include <Windows.h>
 #include "encoding.h"
+#include "platform.h"
 
 class HspObjects;
 class HspObjectTree;

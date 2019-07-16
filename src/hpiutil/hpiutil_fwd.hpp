@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 #include <unordered_set>
-
-#include <Windows.h>
 #include "hspsdk/hsp3plugin.h"
 #undef stat
 
@@ -30,7 +28,6 @@ using stprm_t = STRUCTPRM const*;
 using operator_t = void(*)(PDAT*, void const*);
 
 // デバッグウィンドウのコールバック関数
-using debug_callback_t = BOOL(CALLBACK*)(HSP3DEBUG*, int, int, int);
 
 // デバッグウィンドウへの通知ID
 enum DebugNotice
