@@ -27,7 +27,8 @@ static void hello_tests(TestFramework& framework) {
 	suite.test(
 		u8"pass",
 		[&](TestCaseContext& t) {
-			return false;
+			t.eq(0, 0);
+			return true;
 		});
 }
 

@@ -25,8 +25,8 @@ void TestSuite::run(TestFramework& framework) {
 	}
 }
 
-TestSuiteContext::~TestSuiteContext() {
-	framework_.add_suite(TestSuite{ std::move(title_), std::move(cases_) });
+void TestSuiteContext::test(char const* title, std::function<bool(TestCaseContext&)> body) {
+	framework_.add_case(suite_id_, TestCase{ std::string{ title }, std::move(body) });
 }
 
 bool TestFramework::run() {

@@ -45,9 +45,9 @@ class TestSuite {
 	std::vector<TestCase> cases_;
 
 public:
-	TestSuite(std::string&& title, std::vector<TestCase>&& cases)
+	TestSuite(std::string&& title)
 		: title_(std::move(title))
-		, cases_(std::move(cases))
+		, cases_()
 	{
 	}
 
@@ -59,27 +59,25 @@ public:
 		return title().find(filter) != std::string::npos;
 	}
 
+	auto add_case(TestCase&& test_case) {
+		cases_.emplace_back(std::move(test_case));
+	}
+
 	void run(TestFramework& framework);
 };
 
 class TestSuiteContext {
-	std::string title_;
-	std::vector<TestCase> cases_;
-
+	std::size_t suite_id_;
 	TestFramework& framework_;
 
 public:
-	TestSuiteContext(std::string&& title, TestFramework& framework)
-		: title_(std::move(title))
+	TestSuiteContext(std::size_t suite_id, TestFramework& framework)
+		: suite_id_(suite_id)
 		, framework_(framework)
 	{
 	}
 
-	~TestSuiteContext();
-
-	void test(char const* title, std::function<bool(TestCaseContext&)> body) {
-		cases_.emplace_back(std::string{ title }, std::move(body));
-	}
+	void test(char const* title, std::function<bool(TestCaseContext&)> body);
 };
 
 class TestFramework {
@@ -104,11 +102,13 @@ public:
 	}
 
 	auto new_suite(char const* title) -> TestSuiteContext {
-		return TestSuiteContext{ std::string{ title }, *this };
+		auto suite_id = suites_.size();
+		suites_.emplace_back(std::string{ title });
+		return TestSuiteContext{ suite_id, *this };
 	}
 
-	void add_suite(TestSuite&& suite) {
-		suites_.emplace_back(std::move(suite));
+	auto add_case(std::size_t suite_id, TestCase&& test_case) {
+		suites_.at(suite_id).add_case(std::move(test_case));
 	}
 
 	bool may_run(TestSuite const& suite, TestCase const& test_case) const {
