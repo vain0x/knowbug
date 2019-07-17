@@ -30,6 +30,11 @@ void str_writer_tests(TestFramework& framework) {
 				return false;
 			}
 
+			// 追記ができないことが判定できる。
+			if (!t.eq(w.is_full(), true)) {
+				return false;
+			}
+
 			return true;
 		});
 };
