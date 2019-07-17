@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <iostream>
 #include <string>
 #include <string_view>
 #include "platform.h"
@@ -123,3 +124,11 @@ extern auto as_native(HspString&& source) -> std::string;
 extern auto as_native(SjisString&& source) -> std::string;
 
 extern auto as_native(Utf8String&& source) -> std::string;
+
+inline static std::ostream& operator <<(std::ostream& out, Utf8StringView const& source) {
+	return out << as_native(source);
+}
+
+inline static std::ostream& operator <<(std::ostream& out, Utf8String const& source) {
+	return out << as_native(source);
+}
