@@ -11,8 +11,13 @@ build_script:
         exit 1
     }
 
-after_test:
-- ps: |
+test_script:
+- ps1: |
+    ./scripts/test-all.ps1
+    if (!$?) {
+        exit 1
+    }
+
     ./scripts/pack.ps1
     if (!$?) {
         exit 1
