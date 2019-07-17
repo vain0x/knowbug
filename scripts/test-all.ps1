@@ -1,3 +1,4 @@
+#!/bin/pwsh
 # すべてのテストを実行する。
 
 $msBuild = $env:KNOWBUG_MSBUILD
