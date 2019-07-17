@@ -65,4 +65,28 @@ void str_writer_tests(TestFramework& framework) {
 			);
 			return t.eq(as_view(w), expected);
 		});
+
+	suite.test(
+		u8"ポインタを文字列化できる",
+		[&](TestCaseContext& t) {
+			{
+				auto w = str_writer_new();
+				auto dead_beef = (void const*)0xdeadbeef;
+				w.catPtr(dead_beef);
+				if (!t.eq(as_view(w), as_utf8(u8"0xdeadbeef"))) {
+					return false;
+				}
+			}
+
+			{
+				auto w = str_writer_new();
+				w.catPtr(nullptr);
+				// <nullptr> とか 0x0000 とかでも可
+				if (!t.eq(as_view(w), as_utf8(u8"(nil)"))) {
+					return false;
+				}
+			}
+
+			return true;
+		});
 };
