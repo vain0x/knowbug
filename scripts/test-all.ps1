@@ -23,7 +23,8 @@ try {
         $config = $row[0]
         $exe = $row[1]
 
-        & $msBuild knowbug_tests /t:build $config
+        # -t:build,run を指定するとビルド後に実行されるが、なぜか文字化けするので使わない。
+        & $msBuild knowbug_tests -t:build $config
         if (!$?) {
             $success = $false
             continue
