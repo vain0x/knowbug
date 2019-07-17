@@ -37,4 +37,32 @@ void str_writer_tests(TestFramework& framework) {
 
 			return true;
 		});
+
+	suite.test(
+		u8"適切に字下げできる",
+		[&](TestCaseContext& t) {
+			auto w = str_writer_new();
+			w.catln(as_utf8(u8"親"));
+			w.indent();
+
+			w.catln(as_utf8(u8"兄"));
+			w.indent();
+			w.catln(as_utf8(u8"甥"));
+			w.unindent();
+
+			w.catln(as_utf8(u8"本人"));
+			w.indent();
+			// 途中に改行があっても字下げされる。(LF は CRLF に置き換わる。)
+			w.catln(as_utf8(u8"長男\n長女"));
+
+			auto expected = as_utf8(
+				u8"親\r\n"
+				u8"\t兄\r\n"
+				u8"\t\t甥\r\n"
+				u8"\t本人\r\n"
+				u8"\t\t長男\r\n"
+				u8"\t\t長女\r\n"
+			);
+			return t.eq(as_view(w), expected);
+		});
 };
