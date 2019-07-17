@@ -15,4 +15,7 @@
 #include <ShellApi.h>
 #include <tchar.h>
 
+#undef min
+#undef max
+
 #endif
