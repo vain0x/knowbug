@@ -164,10 +164,10 @@ public:
 		assert_count_++;
 
 		if (actual != expected) {
-			std::cerr << u8"  Assertion violated:" << std::endl;
-			std::cerr << u8"    ✘ Actual: " << actual << std::endl;
-			std::cerr << u8"    ✔ Expected: " << expected << std::endl;
-			assert(false && u8"Assertion failed");
+			std::cerr << u8"  実際の値が期待される値と異なります:" << std::endl;
+			std::cerr << u8"    ✔ 期待される値: " << expected << std::endl;
+			std::cerr << u8"    ✘ 実際の値: " << actual << std::endl;
+			assert(false && u8"表明違反");
 			return false;
 		}
 
@@ -176,7 +176,7 @@ public:
 
 	bool finish() const {
 		if (assert_count_ == 0) {
-			std::cerr << u8"    No assertion found." << std::endl;
+			std::cerr << u8"    表明が実行されなかったため、テストは失敗とみなされます。" << std::endl;
 			return false;
 		}
 

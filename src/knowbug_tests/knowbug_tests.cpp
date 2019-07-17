@@ -35,8 +35,9 @@ auto main() -> int {
 	enable_utf_8();
 	auto framework = TestFramework{};
 
-	// framework.only("");
+	// HINT: ここで framework.only("foo") とすると foo という名前を含むテストだけ実行されます。
 
+	// ここにテストスイートを列挙します。
 	hello_tests(framework);
 
 	auto success = framework.run();
