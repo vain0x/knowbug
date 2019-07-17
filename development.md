@@ -6,6 +6,14 @@
 - Visual Studio 2019
     - C++ 開発用の機能をインストールしておく。
 
+## 環境変数
+
+`scripts` にあるスクリプトは以下の環境変数を要求する。
+
+- KNOWBUG_MSBUILD:
+    - `MSBuild.exe` へのパスを指定しておく
+    - `appveyor.yml`.environment.KNOWBUG_MSBUILD を参照
+
 ## ビルド
 
 ソリューション (knowbug.sln) を Visual Studio で開いて「ビルド」(Ctrl+B)する。

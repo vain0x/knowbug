@@ -6,8 +6,11 @@
 # 引数:
 #   MSBuild のオプション
 
-# Visual Studio 2019
-$msBuild="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
+$msBuild = $env:KNOWBUG_MSBUILD
+if (!$msBuild) {
+    write-error "環境変数 KNOWBUG_MSBUILD を設定してください"
+    exit 1
+}
 
 $knowbugRoot = (get-item .).FullName
 
