@@ -78,4 +78,6 @@ private:
 	bool head_;
 };
 
+extern auto as_view(CStrWriter const& writer)->Utf8StringView;
+
 #endif

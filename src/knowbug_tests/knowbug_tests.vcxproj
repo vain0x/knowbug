@@ -219,7 +219,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\cppformat\cppformat\format.cc" />
+    <ClCompile Include="..\encoding.cpp" />
+    <ClCompile Include="..\hpiutil\hspsdk\hsp3plugin.cpp" />
+    <ClCompile Include="..\module\CStrBuf.cpp" />
+    <ClCompile Include="..\module\CStrWriter.cpp" />
     <ClCompile Include="knowbug_tests.cpp" />
+    <ClCompile Include="knowbug_tests_framework.cpp" />
+    <ClCompile Include="str_writer_tests.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\cppformat\cppformat\format.h" />
+    <ClInclude Include="..\encoding.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\hsp3debug.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\hsp3plugin.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\hsp3struct.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\hspvar_core.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\hspwnd.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\win32gui\hspwnd_win.h" />
+    <ClInclude Include="..\module\CStrBuf.h" />
+    <ClInclude Include="..\module\CStrWriter.h" />
+    <ClInclude Include="..\module\strf.h" />
+    <ClInclude Include="..\platform.h" />
+    <ClInclude Include="knowbug_tests_framework.h" />
+    <ClInclude Include="knowbug_tests.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

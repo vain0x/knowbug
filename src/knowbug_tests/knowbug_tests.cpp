@@ -1,20 +1,49 @@
-﻿// knowbug_tests.cpp : このファイルには 'main' 関数が含まれています。プログラム実行の開始と終了がそこで行われます。
-//
+//! テストアプリのエントリーポイント
 
 #include <iostream>
+#include "knowbug_tests.h"
+#include "knowbug_tests_framework.h"
 
-int main()
-{
-    std::cout << "Hello World!\n";
+static void enable_utf_8() {
+	SetConsoleOutputCP(CP_UTF8);
+	std::setvbuf(stdout, nullptr, _IOFBF, 1024);
 }
 
-// プログラムの実行: Ctrl + F5 または [デバッグ] > [デバッグなしで開始] メニュー
-// プログラムのデバッグ: F5 または [デバッグ] > [デバッグの開始] メニュー
+// テストの書き方のサンプル
+static void hello_tests(TestFramework& framework) {
+	auto suite = framework.new_suite(u8"hello");
 
-// 作業を開始するためのヒント: 
-//    1. ソリューション エクスプローラー ウィンドウを使用してファイルを追加/管理します 
-//   2. チーム エクスプローラー ウィンドウを使用してソース管理に接続します
-//   3. 出力ウィンドウを使用して、ビルド出力とその他のメッセージを表示します
-//   4. エラー一覧ウィンドウを使用してエラーを表示します
-//   5. [プロジェクト] > [新しい項目の追加] と移動して新しいコード ファイルを作成するか、[プロジェクト] > [既存の項目の追加] と移動して既存のコード ファイルをプロジェクトに追加します
-//   6. 後ほどこのプロジェクトを再び開く場合、[ファイル] > [開く] > [プロジェクト] と移動して .sln ファイルを選択します
+	suite.test(
+		u8"add",
+		[&](TestCaseContext& t) {
+			if (!t.eq(2 + 3, 5)) {
+				return false;
+			}
+
+			if (!t.eq(3 + 7, 10)) {
+				return false;
+			}
+
+			return true;
+		});
+
+	suite.test(
+		u8"ok",
+		[&](TestCaseContext& t) {
+			return t.eq(0, 0);
+		});
+}
+
+auto main() -> int {
+	enable_utf_8();
+	auto framework = TestFramework{};
+
+	// HINT: ここで framework.only("foo") とすると foo という名前を含むテストだけ実行される。
+
+	// ここにテストスイートを列挙する。
+	hello_tests(framework);
+	str_writer_tests(framework);
+
+	auto success = framework.run();
+	return success ? EXIT_SUCCESS : EXIT_FAILURE;
+}

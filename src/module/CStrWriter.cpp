@@ -6,6 +6,10 @@
 #include "CStrWriter.h"
 #include "CStrBuf.h"
 
+auto as_view(CStrWriter const& writer) -> Utf8StringView {
+	return as_utf8(writer.get().data());
+}
+
 auto CStrWriter::get() const -> std::string const& { return buf_->get(); }
 
 auto CStrWriter::is_full() const -> bool {

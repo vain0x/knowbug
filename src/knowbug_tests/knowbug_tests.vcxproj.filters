@@ -16,10 +16,84 @@
     <Filter Include="knowbug">
       <UniqueIdentifier>{fe24e1b5-a566-4823-bb9d-5a02b14460a7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="hspsdk">
+      <UniqueIdentifier>{0f08743a-a1e4-49c5-bb6f-99eda34aa639}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="knowbug\module">
+      <UniqueIdentifier>{17545367-e77d-4096-a9c4-cec69bcdf043}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cppformat">
+      <UniqueIdentifier>{7bacf12a-8486-4cdc-a61a-9e7f74fd9d35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="knowbug_tests.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="..\hpiutil\hspsdk\hsp3plugin.cpp">
+      <Filter>hspsdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\encoding.cpp">
+      <Filter>knowbug</Filter>
+    </ClCompile>
+    <ClCompile Include="knowbug_tests_framework.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\CStrBuf.cpp">
+      <Filter>knowbug\module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\CStrWriter.cpp">
+      <Filter>knowbug\module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cppformat\cppformat\format.cc">
+      <Filter>cppformat</Filter>
+    </ClCompile>
+    <ClCompile Include="str_writer_tests.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\hpiutil\hspsdk\hsp3debug.h">
+      <Filter>hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpiutil\hspsdk\hsp3plugin.h">
+      <Filter>hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpiutil\hspsdk\hsp3struct.h">
+      <Filter>hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpiutil\hspsdk\hspvar_core.h">
+      <Filter>hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpiutil\hspsdk\hspwnd.h">
+      <Filter>hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hpiutil\hspsdk\win32gui\hspwnd_win.h">
+      <Filter>hspsdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\encoding.h">
+      <Filter>knowbug</Filter>
+    </ClInclude>
+    <ClInclude Include="knowbug_tests_framework.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\module\CStrBuf.h">
+      <Filter>knowbug\module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\module\CStrWriter.h">
+      <Filter>knowbug\module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\platform.h">
+      <Filter>knowbug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\module\strf.h">
+      <Filter>knowbug\module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cppformat\cppformat\format.h">
+      <Filter>cppformat</Filter>
+    </ClInclude>
+    <ClInclude Include="knowbug_tests.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
