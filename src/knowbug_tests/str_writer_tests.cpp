@@ -20,7 +20,7 @@ void str_writer_tests(TestFramework& framework) {
 			auto w = str_writer_new(20);
 
 			w.cat(as_utf8(u8"0123456789<trimmed>"));
-			if (!t.eq(w.get(), std::string_view{ u8"0123456789(too long)" })) {
+			if (!t.eq(as_view(w), as_utf8(u8"0123456789(too long)"))) {
 				return false;
 			}
 
