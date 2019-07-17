@@ -19,9 +19,9 @@ $exclusions = @(
 
 # パッケージに含められるファイル (package/ 以外)
 $inclusions = @(
-    @("$package/hsp3debug.dll", "$pwd/src/Debug/hsp3debug.dll"),
-    @("$package/hsp3debug_u8.dll", "$pwd/src/Debug/u8/hsp3debug_u8.dll"),
-    @("$package/hsp3debug_64.dll", "$pwd/src/x64/Debug/hsp3debug_64.dll")
+    @("$package/hsp3debug.dll", "$pwd/src/Release/hsp3debug.dll"),
+    @("$package/hsp3debug_u8.dll", "$pwd/src/Release/u8/hsp3debug_u8.dll"),
+    @("$package/hsp3debug_64.dll", "$pwd/src/x64/Release2/hsp3debug_64.dll")
 )
 
 if (test-path "$package.zip") {
@@ -47,8 +47,8 @@ try {
 
     compress-archive "$package/*" "$package.zip"
 
-    echo "Use 'expand-archive $package.zip' to expand."
-    echo "Completed."
+    echo "HINT: 'expand-archive $package.zip' で zip を展開できます。"
+    echo "完了しました。"
 } finally {
     rm -recurse -force $package
 }

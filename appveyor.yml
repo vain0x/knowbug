@@ -4,6 +4,9 @@ version: 2.0.{build}
 
 image: Visual Studio 2019
 
+environment:
+  KNOWBUG_MSBUILD: "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
+
 build_script:
 - ps: |
     ./scripts/build-all.ps1
@@ -11,8 +14,13 @@ build_script:
         exit 1
     }
 
-after_test:
-- ps: |
+test_script:
+- ps1: |
+    ./scripts/test-all.ps1
+    if (!$?) {
+        exit 1
+    }
+
     ./scripts/pack.ps1
     if (!$?) {
         exit 1
