@@ -219,7 +219,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\encoding.cpp" />
+    <ClCompile Include="..\hpiutil\hspsdk\hsp3plugin.cpp" />
     <ClCompile Include="knowbug_tests.cpp" />
+    <ClCompile Include="knowbug_tests_framework.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\encoding.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\hsp3debug.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\hsp3plugin.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\hsp3struct.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\hspvar_core.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\hspwnd.h" />
+    <ClInclude Include="..\hpiutil\hspsdk\win32gui\hspwnd_win.h" />
+    <ClInclude Include="knowbug_tests_framework.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
