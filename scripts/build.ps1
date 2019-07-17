@@ -19,8 +19,13 @@ try {
         exit 1
     }
 
-    # テストを実行する。
-    & $msBuild knowbug_tests "-t:Build,Run" "-p:Configuration=DebugUtf8;Platform=x86"
+    # テストを実行する。 (-t:Build,Run を使うと実行できるが、なぜか文字化けする。)
+    & $msBuild knowbug_tests "-t:Build" "-p:Configuration=DebugUtf8;Platform=x86"
+    if (!$?) {
+        exit 1
+    }
+
+    & "knowbug_tests/DebugUtf8/knowbug_tests"
     if (!$?) {
         exit 1
     }
