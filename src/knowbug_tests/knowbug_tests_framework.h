@@ -8,14 +8,17 @@
 #include <functional>
 #include <vector>
 
-class TestClass;
+class TestCase;
 class TestCaseContext;
 class TestFramework;
 class TestSuite;
 class TestSuiteContext;
 
+// テストケースの本体となる、表明を行うために実行される関数の型。
+// ラムダ式から暗黙に変換できる。
 using TestBodyFun = std::function<bool(TestCaseContext& t)>;
 
+// テストケース。表明を行うために実行される関数に名前をつけたもの。
 class TestCase {
 	std::string title_;
 	TestBodyFun body_;
@@ -40,6 +43,7 @@ public:
 	}
 };
 
+// テストスイート。テストケースをグループ化するも。
 class TestSuite {
 	std::string title_;
 	std::vector<TestCase> cases_;
@@ -66,6 +70,7 @@ public:
 	void run(TestFramework& framework);
 };
 
+// テストスイートを構築するもの
 class TestSuiteContext {
 	std::size_t suite_id_;
 	TestFramework& framework_;
@@ -77,15 +82,22 @@ public:
 	{
 	}
 
+	// テストケースを宣言する。
+	// 使い方: `suite.test(u8"タイトル", [&](TestCaseContext& t) { ..; return true; })`
 	void test(char const* title, std::function<bool(TestCaseContext&)> body);
 };
 
+// テストフレームワーク。テストを実行するもの。
 class TestFramework {
 	std::size_t pass_count_;
+
 	std::size_t fail_count_;
+
 	std::size_t skip_count_;
 
+	// 実行するテストを絞り込むための文字列
 	std::string filter_;
+
 	std::vector<TestSuite> suites_;
 
 public:
@@ -97,20 +109,25 @@ public:
 	{
 	}
 
+	// 指定された名前を含むテストスイートやテストケースだけ実行するように設定する。
 	void only(std::string&& filter) {
 		filter_ = std::move(filter);
 	}
 
+	// 新しいテストスイートを生成する。
+	// 使い方: `auto suite = framework.new_suite(u8"タイトル"); suite.test(..); ..`
 	auto new_suite(char const* title) -> TestSuiteContext {
 		auto suite_id = suites_.size();
 		suites_.emplace_back(std::string{ title });
 		return TestSuiteContext{ suite_id, *this };
 	}
 
+	// 宣言されたテストケースを記録する。(まだ実行しない。)
 	auto add_case(std::size_t suite_id, TestCase&& test_case) {
 		suites_.at(suite_id).add_case(std::move(test_case));
 	}
 
+	// テストケースを実行するか？
 	bool may_run(TestSuite const& suite, TestCase const& test_case) const {
 		return suite.title_contains(filter_) || test_case.title_contains(filter_);
 	}
@@ -159,6 +176,9 @@ public:
 	{
 	}
 
+	// 2つの値が等しいことを表明する。
+	// 注意: 2つの値が `operator ==` で比較可能で、
+	// `operator <<` でストリームに出力できるものでなければコンパイルエラーになる。
 	template<typename T, typename U>
 	bool eq(T&& actual, U&& expected) {
 		assert_count_++;
@@ -174,6 +194,7 @@ public:
 		return true;
 	}
 
+	// テストケースの実行が完了したときに、フレームワークから呼ばれる。
 	bool finish() const {
 		if (assert_count_ == 0) {
 			std::cerr << u8"    表明が実行されなかったため、テストは失敗とみなされます。" << std::endl;
