@@ -159,8 +159,8 @@ public:
 	{
 	}
 
-	template<typename T>
-	bool eq(T&& actual, T&& expected) {
+	template<typename T, typename U>
+	bool eq(T&& actual, U&& expected) {
 		assert_count_++;
 
 		if (actual != expected) {
