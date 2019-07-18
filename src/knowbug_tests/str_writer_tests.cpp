@@ -91,7 +91,7 @@ void str_writer_tests(TestFramework& framework) {
 		});
 
 	suite.test(
-		u8"",
+		u8"メモリダンプを出力できる",
 		[&](TestCaseContext& t) {
 			auto w = str_writer_new();
 
