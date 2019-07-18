@@ -7,9 +7,18 @@ image: Visual Studio 2019
 environment:
   KNOWBUG_MSBUILD: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe"
 
+# ビルドキャッシュをとる。ビルド時間の改善がみられないので、不十分かもしれない。
+cache:
+- src/Debug
+- src/Release
+- src/x64
+- src/knowbug_tests/Debug
+- src/knowbug_tests/DebugUtf8
+- src/knowbug_tests/x64
+
 build_script:
 - ps: |
-    ./scripts/build-all.ps1
+    ./scripts/build-default.ps1
     if (!$?) {
         exit 1
     }
