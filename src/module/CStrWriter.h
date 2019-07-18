@@ -27,7 +27,8 @@ protected:
 	using buf_t = std::shared_ptr<CStrBuf>;
 
 public:
-	CStrWriter() = delete;
+	CStrWriter();
+
 	explicit CStrWriter(buf_t buf)
 		: buf_ { buf }
 		, depth_(0)
