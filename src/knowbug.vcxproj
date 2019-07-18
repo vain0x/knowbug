@@ -540,6 +540,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="hsp_objects_module_tree.cpp" />
     <ClCompile Include="knowbug_config.cpp" />
     <ClCompile Include="cppformat\cppformat\format.cc" />
     <ClCompile Include="encoding.cpp" />
@@ -569,6 +570,7 @@
     <ClCompile Include="knowbug_view_tree.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="hsp_objects_module_tree.h" />
     <ClInclude Include="knowbug_config.h" />
     <ClInclude Include="cppformat\cppformat\format.h" />
     <ClInclude Include="encoding.h" />
