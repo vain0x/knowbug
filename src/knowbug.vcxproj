@@ -610,6 +610,7 @@
     <ClInclude Include="SourceFileResolver.h" />
     <ClInclude Include="StepController.h" />
     <ClInclude Include="knowbug_view_tree.h" />
+    <ClInclude Include="test_suite.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="knowbug.rc" />

@@ -1,5 +1,5 @@
 #pragma once
 
-#include "knowbug_tests_framework.h"
+#include "../test_suite.h"
 
-extern void str_writer_tests(TestFramework& framework);
+extern void str_writer_tests(Tests& tests);

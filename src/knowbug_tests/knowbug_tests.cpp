@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "knowbug_tests.h"
-#include "knowbug_tests_framework.h"
+#include "test_runner.h"
 
 static void enable_utf_8() {
 	SetConsoleOutputCP(CP_UTF8);
@@ -10,8 +10,8 @@ static void enable_utf_8() {
 }
 
 // テストの書き方のサンプル
-static void hello_tests(TestFramework& framework) {
-	auto suite = framework.new_suite(u8"hello");
+static void hello_tests(Tests& tests) {
+	auto& suite = tests.suite(u8"hello");
 
 	suite.test(
 		u8"add",
@@ -36,14 +36,15 @@ static void hello_tests(TestFramework& framework) {
 
 auto main() -> int {
 	enable_utf_8();
-	auto framework = TestFramework{};
+	auto runner = TestRunner{};
+	auto& tests = runner.tests();
 
 	// HINT: ここで framework.only("foo") とすると foo という名前を含むテストだけ実行される。
 
 	// ここにテストスイートを列挙する。
-	hello_tests(framework);
-	str_writer_tests(framework);
+	hello_tests(tests);
+	str_writer_tests(tests);
 
-	auto success = framework.run();
+	auto success = runner.run();
 	return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

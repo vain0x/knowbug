@@ -36,9 +36,6 @@
     <ClCompile Include="..\encoding.cpp">
       <Filter>knowbug</Filter>
     </ClCompile>
-    <ClCompile Include="knowbug_tests_framework.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="..\module\CStrBuf.cpp">
       <Filter>knowbug\module</Filter>
     </ClCompile>
@@ -49,6 +46,9 @@
       <Filter>cppformat</Filter>
     </ClCompile>
     <ClCompile Include="str_writer_tests.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="test_runner.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -74,9 +74,6 @@
     <ClInclude Include="..\encoding.h">
       <Filter>knowbug</Filter>
     </ClInclude>
-    <ClInclude Include="knowbug_tests_framework.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\module\CStrBuf.h">
       <Filter>knowbug\module</Filter>
     </ClInclude>
@@ -93,6 +90,9 @@
       <Filter>cppformat</Filter>
     </ClInclude>
     <ClInclude Include="knowbug_tests.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="test_runner.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
