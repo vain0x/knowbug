@@ -11,8 +11,8 @@ static auto str_writer_new(std::size_t limit = 0x8000) -> CStrWriter {
 	return CStrWriter{ std::move(buf) };
 }
 
-void str_writer_tests(TestFramework& framework) {
-	auto suite = framework.new_suite(u8"str_writer_tests");
+void str_writer_tests(Tests& tests) {
+	auto& suite = tests.suite(u8"str_writer_tests");
 
 	suite.test(
 		u8"上限を超えると打ち切られる",

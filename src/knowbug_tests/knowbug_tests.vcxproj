@@ -231,7 +231,7 @@
     <ClCompile Include="..\module\CStrBuf.cpp" />
     <ClCompile Include="..\module\CStrWriter.cpp" />
     <ClCompile Include="knowbug_tests.cpp" />
-    <ClCompile Include="knowbug_tests_framework.cpp" />
+    <ClCompile Include="test_runner.cpp" />
     <ClCompile Include="str_writer_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -247,7 +247,7 @@
     <ClInclude Include="..\module\CStrWriter.h" />
     <ClInclude Include="..\module\strf.h" />
     <ClInclude Include="..\platform.h" />
-    <ClInclude Include="knowbug_tests_framework.h" />
+    <ClInclude Include="test_runner.h" />
     <ClInclude Include="knowbug_tests.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
