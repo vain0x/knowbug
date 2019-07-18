@@ -2,6 +2,10 @@
 
 version: 2.0.{build}
 
+# Git タグのプッシュ時に CI を開始しないようにする。
+# master へプッシュ → 自動デプロイ → CI 開始、の流れを避けるため。
+skip_tags: true
+
 image: Visual Studio 2019
 
 environment:
