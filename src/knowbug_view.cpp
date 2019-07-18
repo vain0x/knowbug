@@ -359,14 +359,6 @@ public:
 			case IDC_OPEN_KNOWBUG_REPOS:
 				app.open_knowbug_repository();
 				break;
-
-			case IDC_GOTO_LOG:
-				// FIXME: ログノードを選択する。
-				break;
-
-			case IDC_GOTO_SCRIPT:
-				// FIXME: スクリプトノードを選択する。
-				break;
 			}
 			break;
 

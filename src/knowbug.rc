@@ -34,11 +34,6 @@
 LANGUAGE LANG_JAPANESE, SUBLANG_JAPANESE_JAPAN
 IDR_MAIN_MENU MENUEX
 {
-	POPUP "栞(&B)", 0, 0, 0
-	{
-		MENUITEM "ログ(&L)", IDC_GOTO_LOG, 0, 0
-		MENUITEM "スクリプト(&S)", IDC_GOTO_SCRIPT, 0, 0
-	}
 	MENUITEM "更新(&U)", IDC_UPDATE, 0, 0
     POPUP "設定(&S)", 0, 0, 0
     {
@@ -65,8 +60,6 @@ IDR_NODE_MENU MENUEX
     {
         MENUITEM "更新(&U)", IDC_NODE_UPDATE, 0, 0
         MENUITEM "ログ出力(&L)", IDC_NODE_LOG, 0, 0
-        MENUITEM "", 0, MFT_SEPARATOR, 0
-        MENUITEM "脱出(&X)", IDC_NODE_STEP_OUT, 0, 0
     }
     POPUP "(forLogNode)", 0, 0, 0
     {
@@ -124,8 +117,8 @@ VS_VERSION_INFO VERSIONINFO
     {
         BLOCK "041104B0"
         {
-            VALUE "CompanyName", "uedai"
-            VALUE "FileDescription", "debugger for hsp3"
+            VALUE "CompanyName", "vain0x"
+            VALUE "FileDescription", "HSP3 Debugger"
             VALUE "InternalName", "knowbug.dll"
             VALUE "OriginalFilename", "hsp3debug.dll"
             VALUE "ProductName", "knowbug"
