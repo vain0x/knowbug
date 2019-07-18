@@ -51,6 +51,9 @@
     <ClCompile Include="test_runner.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="..\hsp_objects_module_tree.cpp">
+      <Filter>knowbug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\hpiutil\hspsdk\hsp3debug.h">
@@ -94,6 +97,9 @@
     </ClInclude>
     <ClInclude Include="test_runner.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hsp_objects_module_tree.h">
+      <Filter>knowbug</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

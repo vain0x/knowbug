@@ -10,6 +10,12 @@ auto as_view(CStrWriter const& writer) -> Utf8StringView {
 	return as_utf8(writer.get().data());
 }
 
+CStrWriter::CStrWriter()
+	: buf_(std::make_shared<CStrBuf>())
+{
+	buf_->limit(0x8000);
+}
+
 auto CStrWriter::get() const -> std::string const& { return buf_->get(); }
 
 auto CStrWriter::is_full() const -> bool {

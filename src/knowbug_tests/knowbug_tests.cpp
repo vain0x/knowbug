@@ -1,6 +1,7 @@
 //! テストアプリのエントリーポイント
 
 #include <iostream>
+#include "../hsp_objects_module_tree.h"
 #include "knowbug_tests.h"
 #include "test_runner.h"
 
@@ -44,6 +45,7 @@ auto main() -> int {
 	// ここにテストスイートを列挙する。
 	hello_tests(tests);
 	str_writer_tests(tests);
+	module_tree_tests(tests);
 
 	auto success = runner.run();
 	return success ? EXIT_SUCCESS : EXIT_FAILURE;

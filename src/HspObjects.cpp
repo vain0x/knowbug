@@ -3,6 +3,7 @@
 #include "hpiutil/DInfo.hpp"
 #include "hsp_wrap_call.h"
 #include "DebugInfo.h"
+#include "hsp_objects_module_tree.h"
 #include "HspDebugApi.h"
 #include "HspObjects.h"
 #include "HspStaticVars.h"
@@ -19,63 +20,37 @@ static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugA
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
 
-static auto const GLOBAL_MODULE_NAME = as_utf8(u8"@");
-
-static auto var_name_to_scope_resolution(Utf8StringView const& var_name) -> std::optional<Utf8StringView> {
-	auto ptr = std::strchr(as_native(var_name).data(), '@');
-	if (!ptr) {
-		return std::nullopt;
-	}
-
-	return std::make_optional(as_utf8(ptr));
-}
-
 // 変数をモジュールごとに分類する。
 static auto group_vars_by_module(std::vector<Utf8String> const& var_names) -> std::vector<HspObjects::Module> {
+	class ModuleTreeBuilder
+		: public ModuleTreeListener
+	{
+		std::vector<HspObjects::Module>& modules_;
+
+	public:
+		ModuleTreeBuilder(std::vector<HspObjects::Module>& modules)
+			: modules_(modules)
+		{
+		}
+
+		void begin_module(Utf8StringView const& module_name) override {
+			modules_.emplace_back(HspObjects::Module{ to_owned(module_name) });
+		}
+
+		void end_module() override {
+		}
+
+		void add_var(std::size_t var_id, Utf8StringView const& var_name) override {
+			modules_.back().add_var(var_id);
+		}
+	};
+
 	auto modules = std::vector<HspObjects::Module>{};
+	auto builder = ModuleTreeBuilder{ modules };
 
-	// モジュール名、変数名、変数IDの組
-	auto tuples = std::vector<std::tuple<Utf8StringView, Utf8StringView, std::size_t>>{};
+	traverse_module_tree(var_names, builder);
 
-	{
-		for (auto vi = std::size_t{}; vi < var_names.size(); vi++) {
-			auto&& var_name = var_names[vi];
-
-			auto resolution_opt = var_name_to_scope_resolution(as_view(var_name));
-			auto module_name = resolution_opt ? *resolution_opt : GLOBAL_MODULE_NAME;
-
-			tuples.emplace_back(module_name, as_view(var_name), vi);
-		}
-	}
-
-	std::sort(std::begin(tuples), std::end(tuples));
-
-	// モジュールと変数の関係を構築する。
-	{
-		modules.emplace_back(to_owned(GLOBAL_MODULE_NAME));
-
-		for (auto&& t : tuples) {
-			auto module_name_ref = std::get<0>(t);
-			auto var_name_ref = std::get<1>(t);
-			auto vi = std::get<2>(t);
-
-			{
-				auto module_id = modules.size() - 1;
-				if (!(modules[module_id].name() == module_name_ref)) {
-					modules.emplace_back(to_owned(module_name_ref));
-				}
-			}
-
-			{
-				auto module_id = modules.size() - 1;
-				assert(modules[module_id].name() == module_name_ref);
-				modules[module_id].add_var(vi);
-			}
-		}
-	}
-
-	// 事後条件
-	assert(modules[GLOBAL_MODULE_ID].name() == GLOBAL_MODULE_NAME);
+	assert(!modules.empty());
 	return modules;
 }
 
