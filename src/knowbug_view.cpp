@@ -15,12 +15,19 @@
 #include "StepController.h"
 
 #ifdef _M_X64
-# define KNOWBUG_CPU_SUFFIX TEXT("(x64)")
+# define KNOWBUG_CPU_SUFFIX TEXT(" (x64)")
 #else //defined(_M_X64)
-# define KNOWBUG_CPU_SUFFIX TEXT("(x86)")
+# define KNOWBUG_CPU_SUFFIX TEXT(" (x86)")
 #endif //defined(_M_X64)
+
+#ifdef HSP3_UTF8
+# define KNOWBUG_ENCODING_SUFFIX TEXT(" (UTF-8)")
+#else
+# define KNOWBUG_ENCODING_SUFFIX TEXT("")
+#endif
+
 #define KNOWBUG_TITLE TEXT("Knowbug")
-#define KNOWBUG_VERSION TEXT("1.22.2 ") KNOWBUG_CPU_SUFFIX
+#define KNOWBUG_VERSION TEXT("1.22.2") KNOWBUG_ENCODING_SUFFIX KNOWBUG_CPU_SUFFIX
 
 static auto const KNOWBUG_MAIN_WINDOW_TITLE = KNOWBUG_TITLE TEXT(" ") KNOWBUG_VERSION;
 
