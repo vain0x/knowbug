@@ -184,9 +184,9 @@ public:
 		assert_count_++;
 
 		if (actual != expected) {
-			std::cerr << u8"  実際の値が期待される値と異なります:" << std::endl;
-			std::cerr << u8"    ✔ 期待される値: " << expected << std::endl;
-			std::cerr << u8"    ✘ 実際の値: " << actual << std::endl;
+			std::cout << u8"  実際の値が期待される値と異なります:" << std::endl;
+			std::cout << u8"    ✔ 期待される値: " << expected << std::endl;
+			std::cout << u8"    ✘ 実際の値: " << actual << std::endl;
 			assert(false && u8"表明違反");
 			return false;
 		}
@@ -197,7 +197,7 @@ public:
 	// テストケースの実行が完了したときに、フレームワークから呼ばれる。
 	bool finish() const {
 		if (assert_count_ == 0) {
-			std::cerr << u8"    表明が実行されなかったため、テストは失敗とみなされます。" << std::endl;
+			std::cout << u8"    表明が実行されなかったため、テストは失敗とみなされます。" << std::endl;
 			return false;
 		}
 

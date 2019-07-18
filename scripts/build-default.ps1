@@ -5,7 +5,8 @@
 
 $msBuild = $env:KNOWBUG_MSBUILD
 if (!$msBuild) {
-    write-error "環境変数 KNOWBUG_MSBUILD を設定してください"
+    # NOTE: 文字列中に非 ASCII 文字があると構文エラーになることがある
+    write-error "Environmnet variable KNOWBUG_MSBUILD is missing"
     exit 1
 }
 

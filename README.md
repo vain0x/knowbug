@@ -1,6 +1,6 @@
 ﻿# knowbug
 
-[![Build status](https://ci.appveyor.com/api/projects/status/67ue70udoicrb98v?svg=true)](https://ci.appveyor.com/project/vain0x/knowbug)
+[![Build status](https://ci.appveyor.com/api/projects/status/67ue70udoicrb98v/branch/master?svg=true)](https://ci.appveyor.com/project/vain0x/knowbug/branch/master)
 
 [最新版はこちら](https://github.com/vain0x/knowbug/releases/latest)
 
