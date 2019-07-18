@@ -3,7 +3,8 @@
 
 $msBuild = $env:KNOWBUG_MSBUILD
 if (!$msBuild) {
-    write-error "環境変数 KNOWBUG_MSBUILD を設定してください"
+    # NOTE: 文字列中に非 ASCII 文字があると構文エラーになることがある
+    write-error "Environmnet variable KNOWBUG_MSBUILD is missing"
     exit 1
 }
 
@@ -12,7 +13,7 @@ $knowbugRoot = (get-item .).FullName
 $table = @(
     @("/p:Configuration=Debug;Platform=x86", "knowbug_tests/Debug/knowbug_tests.exe"),
     @("/p:Configuration=DebugUtf8;Platform=x86", "knowbug_tests/DebugUtf8/knowbug_tests.exe"),
-    @("/p:Configuration=Debug;Platform=x64", "x64/Debug/knowbug_tests.exe")
+    @("/p:Configuration=Debug;Platform=x64", "knowbug_tests/x64/Debug/knowbug_tests.exe")
 )
 
 $success = $true

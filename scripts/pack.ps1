@@ -47,8 +47,8 @@ try {
 
     compress-archive "$package/*" "$package.zip"
 
-    echo "HINT: 'expand-archive $package.zip' で zip を展開できます。"
-    echo "完了しました。"
+    echo "HINT: 'expand-archive $package.zip' to expand"
+    echo "Completed."
 } finally {
     rm -recurse -force $package
 }
