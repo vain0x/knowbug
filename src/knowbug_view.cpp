@@ -15,12 +15,19 @@
 #include "StepController.h"
 
 #ifdef _M_X64
-# define KNOWBUG_CPU_SUFFIX TEXT("(x64)")
+# define KNOWBUG_CPU_SUFFIX TEXT(" (x64)")
 #else //defined(_M_X64)
-# define KNOWBUG_CPU_SUFFIX TEXT("(x86)")
+# define KNOWBUG_CPU_SUFFIX TEXT(" (x86)")
 #endif //defined(_M_X64)
+
+#ifdef HSP3_UTF8
+# define KNOWBUG_ENCODING_SUFFIX TEXT(" (UTF-8)")
+#else
+# define KNOWBUG_ENCODING_SUFFIX TEXT("")
+#endif
+
 #define KNOWBUG_TITLE TEXT("Knowbug")
-#define KNOWBUG_VERSION TEXT("1.22.2 ") KNOWBUG_CPU_SUFFIX
+#define KNOWBUG_VERSION TEXT("2.0.0 beta") KNOWBUG_ENCODING_SUFFIX KNOWBUG_CPU_SUFFIX
 
 static auto const KNOWBUG_MAIN_WINDOW_TITLE = KNOWBUG_TITLE TEXT(" ") KNOWBUG_VERSION;
 
@@ -352,14 +359,6 @@ public:
 			case IDC_OPEN_KNOWBUG_REPOS:
 				app.open_knowbug_repository();
 				break;
-
-			case IDC_GOTO_LOG:
-				// FIXME: ログノードを選択する。
-				break;
-
-			case IDC_GOTO_SCRIPT:
-				// FIXME: スクリプトノードを選択する。
-				break;
 			}
 			break;
 
@@ -548,7 +547,7 @@ private:
 // メインウィンドウのコールバック関数
 LRESULT CALLBACK process_main_window(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 	if (auto&& app = KnowbugApp::instance()) {
-		app->view().process_main_window(hDlg, msg, wp, lp, *app);
+		return app->view().process_main_window(hDlg, msg, wp, lp, *app);
 	}
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
