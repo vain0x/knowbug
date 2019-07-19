@@ -13,23 +13,13 @@ environment:
 
 # ビルドキャッシュをとる。ビルド時間の改善がみられないので、不十分かもしれない。
 cache:
-- src/Debug
-- src/DebugUtf8
-- src/Release
-- src/ReleaseUtf8
+- src/Win32
 - src/x64
-- src/knowbug_core/Debug
-- src/knowbug_core/DebugUtf8
-- src/knowbug_core/Release
-- src/knowbug_core/ReleaseUtf8
+- src/knowbug_core/Win32
 - src/knowbug_core/x64
-- src/knowbug_dll/Debug
-- src/knowbug_dll/DebugUtf8
-- src/knowbug_dll/Release
-- src/knowbug_dll/ReleaseUtf8
+- src/knowbug_dll/Win32
 - src/knowbug_dll/x64
-- src/knowbug_tests/Debug
-- src/knowbug_tests/DebugUtf8
+- src/knowbug_tests/Win32
 - src/knowbug_tests/x64
 
 build_script:

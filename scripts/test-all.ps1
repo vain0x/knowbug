@@ -11,8 +11,8 @@ if (!$msBuild) {
 $knowbugRoot = (get-item .).FullName
 
 $table = @(
-    @("/p:Configuration=Debug;Platform=x86", "Debug/knowbug_tests.exe"),
-    @("/p:Configuration=DebugUtf8;Platform=x86", "DebugUtf8/knowbug_tests.exe"),
+    @("/p:Configuration=Debug;Platform=x86", "Win32/Debug/knowbug_tests.exe"),
+    @("/p:Configuration=DebugUtf8;Platform=x86", "Win32/DebugUtf8/knowbug_tests.exe"),
     @("/p:Configuration=Debug;Platform=x64", "x64/Debug/knowbug_tests.exe")
 )
 

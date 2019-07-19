@@ -20,7 +20,7 @@ try {
         exit 1
     }
 
-    & "DebugUtf8/knowbug_tests"
+    & "Win32/DebugUtf8/knowbug_tests"
     if (!$?) {
         exit 1
     }
