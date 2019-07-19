@@ -1,5 +1,5 @@
-#include "hpiutil/hpiutil.hpp"
-#include "hpiutil/dinfo.hpp"
+#include "../hpiutil/hpiutil.hpp"
+#include "../hpiutil/dinfo.hpp"
 #include "HspDebugApi.h"
 
 #undef max

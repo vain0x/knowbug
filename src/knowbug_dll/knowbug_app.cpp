@@ -1,20 +1,20 @@
 
 #include <fstream>
-#include "hpiutil/dinfo.hpp"
-#include "module/CStrBuf.h"
-#include "module/CStrWriter.h"
-#include "module/strf.h"
-#include "encoding.h"
-#include "DebugInfo.h"
-#include "HspDebugApi.h"
-#include "HspObjectWriter.h"
-#include "HspRuntime.h"
+#include "../hpiutil/dinfo.hpp"
+#include "../knowbug_core/module/CStrBuf.h"
+#include "../knowbug_core/module/CStrWriter.h"
+#include "../knowbug_core/module/strf.h"
+#include "../knowbug_core/encoding.h"
+#include "../knowbug_core/DebugInfo.h"
+#include "../knowbug_core/HspDebugApi.h"
+#include "../knowbug_core/HspObjectWriter.h"
+#include "../knowbug_core/HspRuntime.h"
+#include "../knowbug_core/platform.h"
+#include "../knowbug_core/SourceFileResolver.h"
+#include "../knowbug_core/StepController.h"
 #include "knowbug_app.h"
 #include "knowbug_config.h"
 #include "knowbug_view.h"
-#include "platform.h"
-#include "SourceFileResolver.h"
-#include "StepController.h"
 
 static auto g_dll_instance = HINSTANCE{};
 

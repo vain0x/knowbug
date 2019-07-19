@@ -2,15 +2,15 @@
 
 #include <unordered_map>
 #include <unordered_set>
-#include "module/CStrBuf.h"
-#include "module/CStrWriter.h"
-#include "module/GuiUtility.h"
-#include "HspObjectPath.h"
-#include "HspObjects.h"
-#include "HspObjectTree.h"
-#include "HspObjectWriter.h"
+#include "../knowbug_core/module/CStrBuf.h"
+#include "../knowbug_core/module/CStrWriter.h"
+#include "../knowbug_core/module/GuiUtility.h"
+#include "../knowbug_core/HspObjectPath.h"
+#include "../knowbug_core/HspObjects.h"
+#include "../knowbug_core/HspObjectTree.h"
+#include "../knowbug_core/HspObjectWriter.h"
+#include "../knowbug_core/platform.h"
 #include "knowbug_view_tree.h"
-#include "platform.h"
 
 #undef min
 

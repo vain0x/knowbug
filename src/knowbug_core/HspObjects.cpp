@@ -1,6 +1,6 @@
 #include <sstream>
-#include "hpiutil/hpiutil.hpp"
-#include "hpiutil/DInfo.hpp"
+#include "../hpiutil/hpiutil.hpp"
+#include "../hpiutil/DInfo.hpp"
 #include "hsp_wrap_call.h"
 #include "DebugInfo.h"
 #include "hsp_objects_module_tree.h"

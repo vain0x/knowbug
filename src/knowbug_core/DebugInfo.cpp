@@ -2,7 +2,7 @@
 #include <memory>
 #include <vector>
 #include <utility>
-#include "hpiutil/hspsdk/hspwnd.h"
+#include "../hspsdk/hspwnd.h"
 #include "DebugInfo.h"
 #include "module/supio/supio.h"
 #include "module/strf.h"

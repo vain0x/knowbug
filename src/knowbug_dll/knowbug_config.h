@@ -3,8 +3,8 @@
 #pragma once
 
 #include <memory>
-#include "encoding.h"
-#include "platform.h"
+#include "../knowbug_core/encoding.h"
+#include "../knowbug_core/platform.h"
 
 struct KnowbugConfig;
 

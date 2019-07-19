@@ -2,7 +2,7 @@
 
 #include <optional>
 #include <string>
-#include "hpiutil/hpiutil_fwd.hpp"
+#include "../hpiutil/hpiutil_fwd.hpp"
 #include "HspTypes.h"
 
 namespace hpiutil {

@@ -28,6 +28,9 @@
     <Filter Include="module\supio">
       <UniqueIdentifier>{3a94cc26-ab4f-4c9e-b631-b8a12996a239}</UniqueIdentifier>
     </Filter>
+    <Filter Include="hspsdk\win32gui">
+      <UniqueIdentifier>{a52c5b5e-7dcd-4c75-8181-631970be012f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -35,24 +38,6 @@
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\hspsdk\hsp3debug.h">
-      <Filter>hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\hspsdk\hsp3plugin.h">
-      <Filter>hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\hspsdk\hsp3struct.h">
-      <Filter>hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\hspsdk\hspvar_core.h">
-      <Filter>hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\hspsdk\hspwnd.h">
-      <Filter>hspsdk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\hspsdk\win32gui\hspwnd_win.h">
-      <Filter>hspsdk</Filter>
     </ClInclude>
     <ClInclude Include="..\hpiutil\DInfo.hpp">
       <Filter>hpiutil</Filter>
@@ -78,91 +63,103 @@
     <ClInclude Include="..\cppformat\cppformat\format.h">
       <Filter>cppformat</Filter>
     </ClInclude>
-    <ClInclude Include="..\afxres.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\hspsdk\hsp3debug.h">
+      <Filter>hspsdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\DebugInfo.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\hspsdk\hsp3plugin.h">
+      <Filter>hspsdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\encoding.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\hspsdk\hsp3struct.h">
+      <Filter>hspsdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\hsp_objects_module_tree.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\hspsdk\hspvar_core.h">
+      <Filter>hspsdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\hsp_wrap_call.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\hspsdk\hspwnd.h">
+      <Filter>hspsdk</Filter>
     </ClInclude>
-    <ClInclude Include="..\HspDebugApi.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\hspsdk\win32gui\hspwnd_win.h">
+      <Filter>hspsdk\win32gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\HspObjectPath.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\HspObjects.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\HspObjectTree.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\HspObjectWriter.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\HspRuntime.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\HspStaticVars.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\HspTypes.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\platform.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\SourceFile.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\SourceFileResolver.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\StepController.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\test_suite.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\module\CIni.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="..\module\CStrBuf.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="..\module\CStrWriter.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="..\module\GuiUtility.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="..\module\handle_deleter.hpp">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="..\module\strf.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="..\module\utility.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="..\module\supio\supio.h">
+    <ClInclude Include="module\supio\supio.h">
       <Filter>module\supio</Filter>
+    </ClInclude>
+    <ClInclude Include="module\CIni.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="module\CStrBuf.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="module\CStrWriter.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="module\GuiUtility.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="module\handle_deleter.hpp">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="module\strf.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="module\utility.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugInfo.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="encoding.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hsp_objects_module_tree.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hsp_wrap_call.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="HspDebugApi.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="HspObjectPath.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="HspObjects.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="HspObjectTree.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="HspObjectWriter.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="HspRuntime.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="HspStaticVars.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="HspTypes.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="platform.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceFile.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceFileResolver.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="StepController.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="test_suite.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
       <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hpiutil\hspsdk\hsp3plugin.cpp">
-      <Filter>hspsdk</Filter>
     </ClCompile>
     <ClCompile Include="..\hpiutil\DInfo.cpp">
       <Filter>hpiutil</Filter>
@@ -176,62 +173,65 @@
     <ClCompile Include="..\cppformat\cppformat\format.cc">
       <Filter>cppformat</Filter>
     </ClCompile>
-    <ClCompile Include="..\DebugInfo.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\hspsdk\hsp3plugin.cpp">
+      <Filter>hspsdk</Filter>
     </ClCompile>
-    <ClCompile Include="..\encoding.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hsp_objects_module_tree.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hsp_wrap_call.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HspDebugApi.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HspObjectPath.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HspObjects.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HspObjectTree.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HspObjectWriter.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HspRuntime.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\HspStaticVars.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\SourceFile.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\SourceFileResolver.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\StepController.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\module\CIni.cpp">
-      <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\module\CStrBuf.cpp">
-      <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\module\CStrWriter.cpp">
-      <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\module\GuiUtility.cpp">
-      <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\module\supio\supio.cpp">
+    <ClCompile Include="module\supio\supio.cpp">
       <Filter>module\supio</Filter>
+    </ClCompile>
+    <ClCompile Include="module\CIni.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="module\CStrBuf.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="module\CStrWriter.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="module\GuiUtility.cpp">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugInfo.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="encoding.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hsp_objects_module_tree.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hsp_wrap_call.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="HspDebugApi.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="HspObjectPath.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="HspObjects.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="HspObjectTree.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="HspObjectWriter.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="HspRuntime.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="HspStaticVars.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="SourceFile.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="SourceFileResolver.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="StepController.cpp">
+      <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

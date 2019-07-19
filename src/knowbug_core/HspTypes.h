@@ -3,7 +3,7 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
-#include "hpiutil/hpiutil_fwd.hpp"
+#include "../hpiutil/hpiutil_fwd.hpp"
 
 #undef min
 

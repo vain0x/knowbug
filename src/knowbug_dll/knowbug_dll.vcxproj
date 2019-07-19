@@ -315,19 +315,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\knowbug_app.h" />
-    <ClInclude Include="..\knowbug_config.h" />
-    <ClInclude Include="..\knowbug_view.h" />
-    <ClInclude Include="..\knowbug_view_tree.h" />
-    <ClInclude Include="..\resource.h" />
-    <ClInclude Include="framework.h" />
+    <ClInclude Include="knowbug_app.h" />
+    <ClInclude Include="knowbug_config.h" />
+    <ClInclude Include="knowbug_view.h" />
+    <ClInclude Include="knowbug_view_tree.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\knowbug_app.cpp" />
-    <ClCompile Include="..\knowbug_config.cpp" />
-    <ClCompile Include="..\knowbug_view.cpp" />
-    <ClCompile Include="..\knowbug_view_tree.cpp" />
+    <ClCompile Include="knowbug_app.cpp" />
+    <ClCompile Include="knowbug_config.cpp" />
+    <ClCompile Include="knowbug_view.cpp" />
+    <ClCompile Include="knowbug_view_tree.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugUtf8|Win32'">Create</PrecompiledHeader>
@@ -340,12 +339,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\knowbug.rc" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\knowbug_core\knowbug_core.vcxproj">
       <Project>{d6416da8-ecd1-45b6-a914-8f08b1eda1ca}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="knowbug.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

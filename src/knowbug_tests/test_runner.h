@@ -4,7 +4,7 @@
 
 #include <cassert>
 #include <sstream>
-#include "../test_suite.h"
+#include "../knowbug_core/test_suite.h"
 
 class TestRunner;
 class TestCaseRunnerImpl;

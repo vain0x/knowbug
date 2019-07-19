@@ -1,5 +1,5 @@
 #include <cassert>
-#include "hpiutil/hpiutil.hpp"
+#include "../hpiutil/hpiutil.hpp"
 #include "DebugInfo.h"
 #include "StepController.h"
 

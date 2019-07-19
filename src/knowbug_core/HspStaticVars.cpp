@@ -3,7 +3,7 @@
 #include <array>
 #include <memory>
 #include <vector>
-#include "hpiutil/hpiutil.hpp"
+#include "../hpiutil/hpiutil.hpp"
 #include "module/supio/supio.h"
 #include "encoding.h"
 #include "HspDebugApi.h"

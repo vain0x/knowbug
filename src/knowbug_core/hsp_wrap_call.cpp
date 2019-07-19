@@ -1,5 +1,5 @@
 #include <vector>
-#include "hpiutil/hpiutil.hpp"
+#include "../hpiutil/hpiutil.hpp"
 #include "hsp_wrap_call.h"
 #include "DebugInfo.h"
 #include "platform.h"

@@ -2,8 +2,8 @@
 #include <array>
 #include <fstream>
 #include <iterator>
-#include "hpiutil/hpiutil.hpp"
-#include "hpiutil/DInfo.hpp"
+#include "../hpiutil/hpiutil.hpp"
+#include "../hpiutil/DInfo.hpp"
 #include "SourceFileResolver.h"
 
 // 指定したディレクトリを基準として、指定した名前または相対パスのファイルを検索する。

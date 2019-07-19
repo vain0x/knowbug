@@ -2,7 +2,7 @@
 #pragma once
 
 #include <string>
-#include "hpiutil/SourcePos.hpp"
+#include "../hpiutil/SourcePos.hpp"
 
 #undef max
 

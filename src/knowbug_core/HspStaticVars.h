@@ -3,7 +3,7 @@
 #pragma once
 
 #include <optional>
-#include "hpiutil/hpiutil_fwd.hpp"
+#include "../hpiutil/hpiutil_fwd.hpp"
 #include "encoding.h"
 
 class HspDebugApi;
