@@ -18,7 +18,7 @@ if (!$env:HSP3_ROOT) {
 
 $table = @(
     @("hsp3debug.dll", "$pwd/src/Debug/hsp3debug.dll"),
-    @("hsp3debug_u8.dll", "$pwd/src/Debug/u8/hsp3debug_u8.dll"),
+    @("hsp3debug_u8.dll", "$pwd/src/DebugUtf8/hsp3debug_u8.dll"),
     @("hsp3debug_64.dll", "$pwd/src/x64/Debug/hsp3debug_64.dll")
 )
 

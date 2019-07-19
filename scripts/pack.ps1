@@ -20,8 +20,8 @@ $exclusions = @(
 # パッケージに含められるファイル (package/ 以外)
 $inclusions = @(
     @("$package/hsp3debug.dll", "$pwd/src/Release/hsp3debug.dll"),
-    @("$package/hsp3debug_u8.dll", "$pwd/src/Release/u8/hsp3debug_u8.dll"),
-    @("$package/hsp3debug_64.dll", "$pwd/src/x64/Release2/hsp3debug_64.dll")
+    @("$package/hsp3debug_u8.dll", "$pwd/src/ReleaseUtf8/hsp3debug_u8.dll"),
+    @("$package/hsp3debug_64.dll", "$pwd/src/x64/Release/hsp3debug_64.dll")
 )
 
 if (test-path "$package.zip") {

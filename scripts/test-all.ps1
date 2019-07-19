@@ -11,9 +11,9 @@ if (!$msBuild) {
 $knowbugRoot = (get-item .).FullName
 
 $table = @(
-    @("/p:Configuration=Debug;Platform=x86", "knowbug_tests/Debug/knowbug_tests.exe"),
-    @("/p:Configuration=DebugUtf8;Platform=x86", "knowbug_tests/DebugUtf8/knowbug_tests.exe"),
-    @("/p:Configuration=Debug;Platform=x64", "knowbug_tests/x64/Debug/knowbug_tests.exe")
+    @("/p:Configuration=Debug;Platform=x86", "Debug/knowbug_tests.exe"),
+    @("/p:Configuration=DebugUtf8;Platform=x86", "DebugUtf8/knowbug_tests.exe"),
+    @("/p:Configuration=Debug;Platform=x64", "x64/Debug/knowbug_tests.exe")
 )
 
 $success = $true
@@ -26,7 +26,7 @@ try {
         $exe = $row[1]
 
         # -t:build,run を指定するとビルド後に実行されるが、なぜか文字化けするので使わない。
-        & $msBuild knowbug_tests -t:build $config
+        & $msBuild knowbug.sln -t:build $config
         if (!$?) {
             $success = $false
             continue
