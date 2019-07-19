@@ -6,7 +6,6 @@
                 "${workspaceFolder}/**"
             ],
             "defines": [
-                "with_WrapCall",
                 "HSP3_UTF8",
                 "HSPWIN",
                 "_DEBUG",
