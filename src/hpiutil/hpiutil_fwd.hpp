@@ -5,6 +5,8 @@
 #include <vector>
 #include <unordered_set>
 #include "hspsdk/hsp3plugin.h"
+#undef min
+#undef max
 #undef stat
 
 namespace hpiutil {

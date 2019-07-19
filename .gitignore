@@ -1,7 +1,8 @@
 hsptmp
 obj
 package/sample/*.ax
-src/knowbug_tests/DebugUtf8/
+DebugUtf8
+ReleaseUtf8
 
 
 
