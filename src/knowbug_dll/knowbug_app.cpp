@@ -1,4 +1,5 @@
 
+#include "pch.h"
 #include <fstream>
 #include "../hpiutil/dinfo.hpp"
 #include "../knowbug_core/module/CStrBuf.h"

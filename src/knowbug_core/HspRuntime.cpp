@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "../hpiutil/dinfo.hpp"
 #include "HspDebugApi.h"
 #include "HspRuntime.h"

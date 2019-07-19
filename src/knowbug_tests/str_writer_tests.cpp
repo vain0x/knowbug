@@ -1,3 +1,4 @@
+#include "pch.h"
 #include <memory>
 #include "../knowbug_core/module/CStrBuf.h"
 #include "../knowbug_core/module/CStrWriter.h"

@@ -1,5 +1,6 @@
 //! 変数ツリービュー関連
 
+#include "pch.h"
 #include <unordered_map>
 #include <unordered_set>
 #include "../knowbug_core/module/CStrBuf.h"

@@ -2,6 +2,7 @@
 
 #pragma comment(lib, "comctl32.lib")
 
+#include "pch.h"
 #include "resource.h"
 #include "../hspsdk/hspwnd.h"
 #include "../knowbug_core/module/GuiUtility.h"

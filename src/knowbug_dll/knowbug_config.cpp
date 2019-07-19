@@ -1,4 +1,5 @@
 
+#include "pch.h"
 #include "../knowbug_core/module/CIni.h"
 #include "../knowbug_core/encoding.h"
 #include "knowbug_config.h"

@@ -1,5 +1,6 @@
 // INIファイル読み書きクラス
 
+#include "pch.h"
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>

@@ -1,5 +1,6 @@
 //! テストアプリのエントリーポイント
 
+#include "pch.h"
 #include <iostream>
 #include "../knowbug_core/hsp_objects_module_tree.h"
 #include "knowbug_tests.h"

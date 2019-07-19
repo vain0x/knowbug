@@ -1,5 +1,6 @@
 //! HSP の静的変数
 
+#include "pch.h"
 #include <array>
 #include <memory>
 #include <vector>

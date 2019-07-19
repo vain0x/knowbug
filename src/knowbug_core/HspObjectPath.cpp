@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "HspObjects.h"
 #include "HspObjectPath.h"
 

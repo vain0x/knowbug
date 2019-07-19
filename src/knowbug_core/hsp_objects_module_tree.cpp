@@ -1,3 +1,4 @@
+#include "pch.h"
 #include <memory>
 #include <optional>
 #include "module/CStrWriter.h"

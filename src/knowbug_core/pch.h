@@ -7,7 +7,27 @@
 #ifndef PCH_H
 #define PCH_H
 
-// プリコンパイルするヘッダーをここに追加します
-#include "framework.h"
+#include <algorithm>
+#include <array>
+#include <cassert>
+#include <functional>
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <optional>
+#include <set>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "platform.h"
+
+#include "../cppformat/cppformat/format.h"
+#include "../hspsdk/hsp3plugin.h"
 
 #endif //PCH_H

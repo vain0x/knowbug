@@ -1,6 +1,7 @@
 // FIXME: 無限のネストに対処
 // FIXME: 文字コードの混在に対処
 
+#include "pch.h"
 #include "encoding.h"
 #include "module/CStrWriter.h"
 #include "HspObjects.h"

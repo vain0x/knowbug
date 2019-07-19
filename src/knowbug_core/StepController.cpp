@@ -1,3 +1,4 @@
+#include "pch.h"
 #include <cassert>
 #include "../hpiutil/hpiutil.hpp"
 #include "DebugInfo.h"
