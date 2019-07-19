@@ -24,7 +24,7 @@ cache:
 
 build_script:
 - ps: |
-    ./scripts/build-default.ps1
+    ./scripts/build-all.ps1
     if (!$?) {
         exit 1
     }
