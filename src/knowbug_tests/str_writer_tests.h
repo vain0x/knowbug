@@ -1,5 +1,5 @@
 #pragma once
 
-#include "../test_suite.h"
+#include "../knowbug_core/test_suite.h"
 
 extern void str_writer_tests(Tests& tests);

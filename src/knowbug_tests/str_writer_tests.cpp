@@ -1,7 +1,8 @@
+#include "pch.h"
 #include <memory>
-#include "../module/CStrBuf.h"
-#include "../module/CStrWriter.h"
-#include "../encoding.h"
+#include "../knowbug_core/module/CStrBuf.h"
+#include "../knowbug_core/module/CStrWriter.h"
+#include "../knowbug_core/encoding.h"
 #include "str_writer_tests.h"
 
 static auto str_writer_new(std::size_t limit = 0x8000) -> CStrWriter {

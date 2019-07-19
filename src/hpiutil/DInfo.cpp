@@ -1,4 +1,5 @@
 
+#include "hpiutil.hpp"
 #include "DInfo.hpp"
 
 static auto wpeek(unsigned char const* p) -> unsigned short

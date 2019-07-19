@@ -6,7 +6,6 @@
                 "${workspaceFolder}/**"
             ],
             "defines": [
-                "with_WrapCall",
                 "HSP3_UTF8",
                 "HSPWIN",
                 "_DEBUG",
@@ -15,7 +14,7 @@
                 "_WINDOWS"
             ],
             "windowsSdkVersion": "10.0.17763.0",
-            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.20.27508/bin/Hostx64/x64/cl.exe",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.21.27702/bin/Hostx64/x64/cl.exe",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "msvc-x64"

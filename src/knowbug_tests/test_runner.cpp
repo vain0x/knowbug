@@ -1,5 +1,6 @@
 //! テストフレームワーク
 
+#include "pch.h"
 #include "test_runner.h"
 
 static void run_suite(TestSuite const& suite, TestRunner& runner) {

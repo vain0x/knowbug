@@ -3,11 +3,11 @@
 
 #include <unordered_map>
 #include <unordered_set>
-#include "hpiutil.hpp"
+#include "../hpiutil/hpiutil_fwd.hpp"
 #include "SourcePos.hpp"
 
 namespace hpiutil {
-	
+
 class DInfo
 {
 	DInfo()

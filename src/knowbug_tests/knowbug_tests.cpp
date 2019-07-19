@@ -1,7 +1,8 @@
 //! テストアプリのエントリーポイント
 
+#include "pch.h"
 #include <iostream>
-#include "../hsp_objects_module_tree.h"
+#include "../knowbug_core/hsp_objects_module_tree.h"
 #include "knowbug_tests.h"
 #include "test_runner.h"
 

@@ -13,16 +13,18 @@ environment:
 
 # ビルドキャッシュをとる。ビルド時間の改善がみられないので、不十分かもしれない。
 cache:
-- src/Debug
-- src/Release
+- src/Win32
 - src/x64
-- src/knowbug_tests/Debug
-- src/knowbug_tests/DebugUtf8
+- src/knowbug_core/Win32
+- src/knowbug_core/x64
+- src/knowbug_dll/Win32
+- src/knowbug_dll/x64
+- src/knowbug_tests/Win32
 - src/knowbug_tests/x64
 
 build_script:
 - ps: |
-    ./scripts/build-default.ps1
+    ./scripts/build-all.ps1
     if (!$?) {
         exit 1
     }
