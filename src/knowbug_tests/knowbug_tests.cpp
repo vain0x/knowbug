@@ -48,7 +48,7 @@ auto main() -> int {
 	hello_tests(tests);
 	str_writer_tests(tests);
 	module_tree_tests(tests);
-	string_to_lines_tests(tests);
+	string_lines_tests(tests);
 
 	auto success = runner.run();
 	return success ? EXIT_SUCCESS : EXIT_FAILURE;

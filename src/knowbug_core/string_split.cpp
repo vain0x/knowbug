@@ -2,26 +2,28 @@
 #include "encoding.h"
 #include "string_split.h"
 
-void string_to_lines_tests(Tests& tests) {
+void string_lines_tests(Tests& tests) {
 	auto& suite = tests.suite(u8"string_to_lines");
 
 	suite.test(
 		u8"改行ごとに分割する",
 		[&](TestCaseContext& t) {
-			auto source =
+			auto source = as_utf8(
 				u8"いろはにほへと\r\n"
-				u8"ちりぬるを\n";
-			auto lines = string_to_lines(std::string{ source });
+				u8"ちりぬるを\n"
+			);
+
+			auto lines = StringLines{ source }.to_vector();
 
 			if (!t.eq(lines.size(), 3)) {
 				return false;
 			}
 
-			if (!t.eq(lines.at(0), u8"いろはにほへと")) {
+			if (!t.eq(lines.at(0), as_utf8(u8"いろはにほへと"))) {
 				return false;
 			}
 
-			if (!t.eq(lines.at(1), u8"ちりぬるを")) {
+			if (!t.eq(lines.at(1), as_utf8(u8"ちりぬるを"))) {
 				return false;
 			}
 
@@ -35,7 +37,7 @@ void string_to_lines_tests(Tests& tests) {
 	suite.test(
 		u8"改行で終わらない文字列を分割する",
 		[&](TestCaseContext& t) {
-			auto lines = string_to_lines(to_owned(as_utf8(u8"いろはにほへと")));
+			auto lines = StringLines{ as_utf8(u8"いろはにほへと") }.to_vector();
 			return t.eq(lines.size(), 1)
 				&& t.eq(lines.at(0), as_utf8("いろはにほへと"));
 		});
@@ -43,7 +45,7 @@ void string_to_lines_tests(Tests& tests) {
 	suite.test(
 		u8"空文字列を分割する",
 		[&](TestCaseContext& t) {
-			auto lines = string_to_lines(Utf8String{});
+			auto lines = StringLines{ as_utf8(u8"") }.to_vector();
 			return t.eq(lines.size(), 1)
 				&& t.eq(lines.at(0).size(), 0);
 		});

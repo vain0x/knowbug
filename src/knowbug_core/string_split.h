@@ -7,72 +7,136 @@
 #include <vector>
 #include "test_suite.h"
 
-extern void string_to_lines_tests(Tests& tests);
+extern void string_lines_tests(Tests& tests);
 
-// NULL 文字によって分割された文字列
+// 文字列を行ごとに分割するイテレータ
 template<typename TChar>
-class SplitString {
-	std::basic_string<TChar> buffer_;
+class StringLineIterator {
+	using Self = StringLineIterator<TChar>;
+	using Str = std::basic_string_view<TChar>;
 
-	// NULL 文字によって分割された文字列の各部分の範囲
-	std::vector<std::pair<std::size_t, std::size_t>> ranges_;
+	Str str_;
+
+	// 次の行の開始位置。`str_.size() + 1` (終端文字の後ろ) で停止。
+	std::size_t head_;
+
+	// 最後に取得した行。
+	std::optional<Str> last_;
+
+	// イテレータが停止したら true。
+	bool end_;
 
 public:
-	SplitString(std::basic_string<TChar>&& buffer, std::vector<std::pair<std::size_t, std::size_t>>&& ranges)
-		: buffer_(std::move(buffer))
-		, ranges_(ranges)
+	StringLineIterator(Str str)
+		: str_(std::move(str))
+		, head_()
+		, last_()
+		, end_()
 	{
+		assert(head_ <= str_.size() + 1);
 	}
 
-	// 分割された部分の個数
-	auto size() const -> std::size_t {
-		return ranges_.size();
+	auto operator ==(Self const& other) const -> bool {
+		// 「停止したイテレータ」同士は等しいとみなす。
+		if (end_ || other.end_) {
+			return end_ == other.end_;
+		}
+
+		return str_ == other.str_
+			&& head_ == other.head_;
 	}
 
-	auto at(std::size_t index) const -> std::basic_string_view<TChar> {
-		auto range = ranges_.at(index);
+	auto operator !=(Self const& other) const -> bool {
+		return !(*this == other);
+	}
 
-		assert(range.first <= range.second);
-		auto count = range.second - range.first;
+	// イテレータを停止する。
+	auto stop() -> Self& {
+		end_ = true;
+		last_ = std::nullopt;
+		return *this;
+	}
 
-		return std::basic_string_view<TChar>{ buffer_.data() + range.first, count };
+	// イテレータを前進させる。
+	auto operator ++() -> Self& {
+		last_ = next();
+		if (!last_) {
+			end_ = true;
+		}
+		return *this;
+	}
+
+	// イテレータがいま指している値を取得する。
+	auto operator *() -> Str {
+		return *last_;
+	}
+
+	// イテレータから次の値を取り出す。
+	auto next() -> std::optional<Str> {
+		if (end_ || head_ > str_.size()) {
+			return std::nullopt;
+		}
+
+		auto l = head_;
+		auto r = advance();
+
+		assert(l <= r);
+		auto count = r - l;
+
+		return std::make_optional<Str>(str_.data() + l, count);
+	}
+
+private:
+	// 次の行の終端位置を返し、head を進める。
+	auto advance() -> std::size_t {
+		assert(head_ <= str_.size() + 1);
+
+		auto i = head_;
+
+		// EOF か LF を探す。
+		while (i < str_.size() && str_[i] != TChar{ '\n' }) {
+			i++;
+		}
+
+		// 行末の位置を調整する。
+		auto r = i;
+		if (r >= 1 && str_[r - 1] == TChar{ '\r' }) {
+			r--;
+		}
+
+		// LF を飛ばす。
+		head_ = i + 1;
+		return r;
 	}
 };
 
-// 文字列を行ごとに分割する。
 template<typename TChar>
-auto string_to_lines(std::basic_string<TChar>&& str) -> SplitString<TChar> {
-	auto ranges = std::vector<std::pair<std::size_t, std::size_t>>{};
+class StringLines {
+	using Iter = StringLineIterator<TChar>;
 
-	// いま見ている位置
-	auto i = std::size_t{};
+	std::basic_string_view<TChar> str_;
 
-	// いま見ている位置が含まれる行の開始位置
-	auto head = std::size_t{};
-
-	while (i <= str.size()) {
-		// EOF または行末
-		if (i == str.size() || str[i] == TChar{ '\n' }) {
-			// 行末の位置
-			auto r = i;
-			if (r >= 1 && str[r - 1] == TChar{ '\r' }) {
-				r--;
-			}
-
-			// 行頭の位置 (字下げを除く)
-			auto l = head;
-
-			// l..r が1行の範囲
-			ranges.emplace_back(l, r);
-
-			// LF を飛ばす。
-			i++;
-			head = i;
-			continue;
-		}
-
-		i++;
+public:
+	StringLines(std::basic_string_view<TChar> str)
+		: str_(std::move(str))
+	{
 	}
 
-	return SplitString{ std::move(str), std::move(ranges) };
-}
+	auto begin() const -> Iter {
+		return ++Iter{ str_ };
+	}
+
+	auto end() const -> Iter {
+		return Iter{ str_ }.stop();
+	}
+
+	auto to_vector() const -> std::vector<std::basic_string_view<TChar>> {
+		auto lines = std::vector<std::basic_string_view<TChar>>{};
+
+		for (auto&& line : *this) {
+			lines.emplace_back(std::move(line));
+		}
+
+		return lines;
+	}
+};
