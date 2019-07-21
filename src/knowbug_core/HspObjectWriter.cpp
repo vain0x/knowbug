@@ -18,9 +18,6 @@ static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name
 	writer.cat(as_native(type_name));
 
 	switch (lengths.dim()) {
-	case 0:
-		writer.cat("(empty)");
-		return;
 	case 1:
 		// (%d)
 		writer.cat("(");
@@ -635,4 +632,40 @@ void HspObjectWriter::write_block_form(HspObjectPath const& path) {
 
 void HspObjectWriter::write_flow_form(HspObjectPath const& path) {
 	HspObjectWriterImpl::FlowForm{ objects_, writer_ }.accept(path);
+}
+
+// -----------------------------------------------
+// テスト
+// -----------------------------------------------
+
+static void write_array_type_tests(Tests& tests) {
+	auto&& suite = tests.suite(u8"write_array_type");
+
+	auto write = [&](auto&& type_name, auto&& lengths) {
+		auto w = CStrWriter{};
+		write_array_type(w, type_name, lengths);
+		return as_utf8(w.finish());
+	};
+
+	suite.test(
+		u8"1次元配列",
+		[&](TestCaseContext& t) {
+			return t.eq(
+				write(as_utf8(u8"int"), HspDimIndex{ 1, { 3 } }),
+				as_utf8(u8"int(3)")
+			);
+		});
+
+	suite.test(
+		u8"2次元配列",
+		[&](TestCaseContext& t) {
+			return t.eq(
+				write(as_utf8(u8"str"), HspDimIndex{ 2, { 2, 3 } }),
+				as_utf8(u8"str(2, 3) (6 in total)")
+			);
+		});
+}
+
+void hsp_object_writer_tests(Tests& tests) {
+	write_array_type_tests(tests);
 }

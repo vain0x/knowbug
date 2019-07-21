@@ -1,5 +1,7 @@
 #pragma once
 
+#include "test_suite.h"
+
 class HspObjectPath;
 class HspObjects;
 class CStrWriter;
@@ -18,3 +20,5 @@ public:
 
 	void write_flow_form(HspObjectPath const& path);
 };
+
+extern void hsp_object_writer_tests(Tests& tests);
