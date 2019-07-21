@@ -2,8 +2,8 @@
 #include "pch.h"
 #include <cassert>
 #include <cstring>
+#include "../string_split.h"
 #include "strf.h"
-
 #include "CStrWriter.h"
 #include "CStrBuf.h"
 
@@ -40,35 +40,19 @@ void CStrWriter::unindent() {
 // 行ごとに分割して適切に字下げを挿入する。
 void CStrWriter::cat(char const* s)
 {
-	// 現在の行頭の位置
-	auto l = std::size_t{};
+	auto first = true;
 
-	// 現在の位置 (l..r の間には改行がない)
-	auto r = l;
-
-	while (true) {
-		if (s[r] == '\0') {
-			buf_->append(s + l, r - l);
-			break;
-		}
-
-		if (s[r] == '\r' || s[r] == '\n') {
-			// いま見ている行と改行を挿入する。改行は常に CRLF を使う。
-			buf_->append(s + l, r - l);
+	for (auto&& line : StringLines{ std::string_view{ s } }) {
+		if (!first) {
 			buf_->append("\r\n");
-
-			if (s[r] == '\r' && s[r + 1] == '\n') {
-				r += 2;
-			} else {
-				r++;
-			}
-
-			l = r;
 			head_ = true;
+		}
+		first = false;
+
+		if (line.empty()) {
 			continue;
 		}
 
-		// 行の最初の文字の前に字下げを挿入する。
 		if (head_) {
 			for (auto i = std::size_t{}; i < depth_; i++) {
 				// FIXME: 字下げをスペースで行う？
@@ -76,8 +60,7 @@ void CStrWriter::cat(char const* s)
 			}
 			head_ = false;
 		}
-
-		r++;
+		buf_->append(line.data(), line.size());
 	}
 }
 
