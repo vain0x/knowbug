@@ -561,12 +561,6 @@ void HspObjectWriterImpl::FlowForm::on_label(HspObjectPath::Label const& path) {
 		return;
 	}
 
-	if (auto&& id_opt = path.static_label_id(o)) {
-		w.cat(u8"*#");
-		w.catSize(*id_opt);
-		return;
-	}
-
 	w.cat(u8"<label>");
 }
 
