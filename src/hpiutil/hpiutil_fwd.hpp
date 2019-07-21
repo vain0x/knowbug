@@ -54,12 +54,6 @@ DInfo からみつからなければ "(i)" が返る。
 //*/
 extern auto nameFromStPrm(stprm_t stprm, int index, DInfo const& debug_segment) -> std::string;
 
-/**
-ラベル名を得る
-DInfo からみつからなければ "label(%p)" が返る
-//*/
-extern auto nameFromLabel(label_t lb, DInfo const& debug_segment) -> std::string;
-
 //文字列リテラル
 extern auto literalFormString(char const* s) -> std::string;
 
