@@ -17,14 +17,14 @@ void str_writer_tests(Tests& tests) {
 			auto w = str_writer_new();
 			w.set_limit(20);
 
-			w.cat(as_utf8(u8"0123456789<trimmed>"));
+			w.cat(as_utf8(u8"0123456789<長すぎる部分は省略されます>"));
 			if (!t.eq(as_view(w), as_utf8(u8"0123456789(too long)"))) {
 				return false;
 			}
 
 			// これ以上の追記は無意味。
 			w.cat(as_utf8(u8"add"));
-			if (!t.eq(w.get().length(), 20)) {
+			if (!t.eq(as_view(w).size(), 20)) {
 				return false;
 			}
 

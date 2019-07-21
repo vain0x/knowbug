@@ -78,9 +78,6 @@
     <ClInclude Include="module\CIni.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="module\CStrBuf.h">
-      <Filter>module</Filter>
-    </ClInclude>
     <ClInclude Include="module\CStrWriter.h">
       <Filter>module</Filter>
     </ClInclude>
@@ -174,9 +171,6 @@
       <Filter>hspsdk</Filter>
     </ClCompile>
     <ClCompile Include="module\CIni.cpp">
-      <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="module\CStrBuf.cpp">
       <Filter>module</Filter>
     </ClCompile>
     <ClCompile Include="module\CStrWriter.cpp">
