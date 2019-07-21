@@ -13,6 +13,14 @@ static auto const MAX_CHILD_COUNT = std::size_t{ 3000 };
 // ヘルパー
 // -----------------------------------------------
 
+static bool string_is_multiline(Utf8StringView const& str) {
+	return str.find(Utf8Char{ '\n' }) != Utf8StringView::npos;
+}
+
+static bool string_is_compact(Utf8StringView const& str) {
+	return str.size() < 64 && !string_is_multiline(str);
+}
+
 // FIXME: クローン変数なら & をつける
 static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, HspDimIndex const& lengths) {
 	writer.cat(as_native(type_name));
@@ -38,18 +46,6 @@ static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name
 		writer.cat(u8" in total)");
 		return;
 	}
-}
-
-static bool string_is_compact(Utf8StringView const& str) {
-	if (str.size() >= 64) {
-		return false;
-	}
-
-	if (str.find((Utf8Char)'\n') != Utf8StringView::npos) {
-		return false;
-	}
-
-	return true;
 }
 
 static bool object_path_is_compact(HspObjectPath const& path, HspObjects& objects) {
