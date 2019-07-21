@@ -3,7 +3,6 @@
 #include "pch.h"
 #include <unordered_map>
 #include <unordered_set>
-#include "../knowbug_core/module/CStrBuf.h"
 #include "../knowbug_core/module/CStrWriter.h"
 #include "../knowbug_core/module/GuiUtility.h"
 #include "../knowbug_core/HspObjectPath.h"
@@ -17,12 +16,11 @@
 
 static auto object_path_to_text(HspObjectPath const& path, HspObjects& objects) -> OsString {
 	// FIXME: 共通化
-	static auto const MAX_TEXT_LENGTH = std::size_t{ 0x8000 };
-	auto buffer = std::make_shared<CStrBuf>();
-	buffer->limit(MAX_TEXT_LENGTH);
-	auto writer = CStrWriter{ buffer };
+	auto writer = CStrWriter{};
 	HspObjectWriter{ objects, writer }.write_table_form(path);
-	return to_os(as_utf8(buffer->getMove()));
+	auto text = as_utf8(writer.finish());
+
+	return to_os(std::move(text));
 }
 
 // ビューのスクロール位置を計算するもの

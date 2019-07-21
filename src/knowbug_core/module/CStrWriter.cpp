@@ -5,22 +5,30 @@
 #include "../string_split.h"
 #include "strf.h"
 #include "CStrWriter.h"
-#include "CStrBuf.h"
 
-auto as_view(CStrWriter const& writer) -> Utf8StringView {
-	return as_utf8(writer.get().data());
-}
+static auto const TRIMMED_SUFFIX = std::string_view{ u8"(too long)" };
+
+static auto const DEFAULT_LIMIT = 0x8000;
 
 CStrWriter::CStrWriter()
-	: buf_(std::make_shared<CStrBuf>())
+	: buf_()
+	, depth_()
+	, head_(true)
+	, limit_()
 {
-	buf_->limit(0x8000);
+	set_limit(DEFAULT_LIMIT);
 }
 
-auto CStrWriter::get() const -> std::string const& { return buf_->get(); }
-
 auto CStrWriter::is_full() const -> bool {
-	return buf_->is_full();
+	return limit_ == 0;
+}
+
+auto CStrWriter::as_view() const -> Utf8StringView {
+	return as_utf8(buf_);
+}
+
+auto CStrWriter::finish() -> std::string&& {
+	return std::move(buf_);
 }
 
 void CStrWriter::indent() {
@@ -36,15 +44,48 @@ void CStrWriter::unindent() {
 	depth_--;
 }
 
-// バッファの末尾に文字列を足す。
+void CStrWriter::set_limit(std::size_t limit) {
+	limit_ = limit;
+
+	buf_.reserve(buf_.size() + limit_);
+}
+
+// バッファの末尾に文字列を追加する。
+// 文字列制限が上限に達したら打ち切る。
+void CStrWriter::cat_limited(std::string_view const& str) {
+	if (is_full()) {
+		return;
+	}
+
+	if (str.size() > limit_) {
+		if (limit_ < TRIMMED_SUFFIX.size()) {
+			buf_ += str.substr(0, limit_);
+			limit_ = 0;
+			return;
+		}
+
+		buf_ += str.substr(0, limit_ - TRIMMED_SUFFIX.size());
+		buf_ += TRIMMED_SUFFIX;
+		limit_ = 0;
+		return;
+	}
+
+	buf_ += str;
+	limit_ -= str.size();
+}
+
+// バッファの末尾に文字列を追加する。
 // 行ごとに分割して適切に字下げを挿入する。
-void CStrWriter::cat(char const* s)
-{
+void CStrWriter::cat_by_lines(std::string_view const& str) {
 	auto first = true;
 
-	for (auto&& line : StringLines{ std::string_view{ s } }) {
+	for (auto&& line : StringLines{ str }) {
+		if (is_full()) {
+			return;
+		}
+
 		if (!first) {
-			buf_->append("\r\n");
+			cat_limited(u8"\r\n");
 			head_ = true;
 		}
 		first = false;
@@ -56,17 +97,12 @@ void CStrWriter::cat(char const* s)
 		if (head_) {
 			for (auto i = std::size_t{}; i < depth_; i++) {
 				// FIXME: 字下げをスペースで行う？
-				buf_->append("\t");
+				cat_limited(u8"\t");
 			}
 			head_ = false;
 		}
-		buf_->append(line.data(), line.size());
+		cat_limited(line);
 	}
-}
-
-void CStrWriter::catCrlf()
-{
-	cat("\r\n");
 }
 
 //------------------------------------------------

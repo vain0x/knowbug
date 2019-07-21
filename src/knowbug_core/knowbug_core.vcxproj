@@ -352,7 +352,6 @@
     <ClInclude Include="hsp_objects_module_tree.h" />
     <ClInclude Include="hsp_wrap_call.h" />
     <ClInclude Include="module\CIni.h" />
-    <ClInclude Include="module\CStrBuf.h" />
     <ClInclude Include="module\CStrWriter.h" />
     <ClInclude Include="module\GuiUtility.h" />
     <ClInclude Include="module\handle_deleter.hpp" />
@@ -430,7 +429,6 @@
     <ClCompile Include="hsp_objects_module_tree.cpp" />
     <ClCompile Include="hsp_wrap_call.cpp" />
     <ClCompile Include="module\CIni.cpp" />
-    <ClCompile Include="module\CStrBuf.cpp" />
     <ClCompile Include="module\CStrWriter.cpp" />
     <ClCompile Include="module\GuiUtility.cpp" />
     <ClCompile Include="pch.cpp">

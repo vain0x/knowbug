@@ -1,15 +1,11 @@
 #include "pch.h"
 #include <memory>
-#include "../knowbug_core/module/CStrBuf.h"
 #include "../knowbug_core/module/CStrWriter.h"
 #include "../knowbug_core/encoding.h"
 #include "str_writer_tests.h"
 
-static auto str_writer_new(std::size_t limit = 0x8000) -> CStrWriter {
-	auto buf = std::make_shared<CStrBuf>();
-	buf->limit(limit);
-
-	return CStrWriter{ std::move(buf) };
+static auto str_writer_new() -> CStrWriter {
+	return CStrWriter{};
 }
 
 void str_writer_tests(Tests& tests) {
@@ -18,16 +14,17 @@ void str_writer_tests(Tests& tests) {
 	suite.test(
 		u8"上限を超えると打ち切られる",
 		[&](TestCaseContext& t) {
-			auto w = str_writer_new(20);
+			auto w = str_writer_new();
+			w.set_limit(20);
 
-			w.cat(as_utf8(u8"0123456789<trimmed>"));
+			w.cat(as_utf8(u8"0123456789<長すぎる部分は省略されます>"));
 			if (!t.eq(as_view(w), as_utf8(u8"0123456789(too long)"))) {
 				return false;
 			}
 
 			// これ以上の追記は無意味。
 			w.cat(as_utf8(u8"add"));
-			if (!t.eq(w.get().length(), 20)) {
+			if (!t.eq(as_view(w).size(), 20)) {
 				return false;
 			}
 
