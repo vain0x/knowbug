@@ -407,15 +407,26 @@ void HspObjectWriterImpl::BlockForm::on_module(HspObjectPath::Module const& path
 }
 
 void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar const& path) {
-	auto name = as_native(path.name(objects()));
+	auto&& o = objects();
+	auto&& w = writer();
+
+	auto name = as_native(path.name(o));
 	auto short_name = hpiutil::nameExcludingScopeResolution(name);
 
-	writer().cat(short_name);
-	writer().cat(u8"\t= ");
+	auto type = path.type(o);
+	auto&& type_name = o.type_to_name(type);
+	auto&& metadata = path.metadata(o);
+
+	w.cat(short_name);
+	w.cat(u8"\t= ");
+
+	w.cat(u8".type = ");
+	write_array_type(w, type_name, metadata.lengths());
+	w.catCrlf();
 
 	to_flow_form().accept(path);
 
-	writer().catCrlf();
+	w.catCrlf();
 }
 
 void HspObjectWriterImpl::BlockForm::on_label(HspObjectPath::Label const& path) {
