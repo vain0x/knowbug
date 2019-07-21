@@ -2,7 +2,6 @@
 #include "pch.h"
 #include <fstream>
 #include "../hpiutil/dinfo.hpp"
-#include "../knowbug_core/module/CStrBuf.h"
 #include "../knowbug_core/module/CStrWriter.h"
 #include "../knowbug_core/module/strf.h"
 #include "../knowbug_core/encoding.h"
@@ -79,11 +78,9 @@ public:
 		auto&& objects = hsp_runtime_->objects();
 
 		// FIXME: 共通化
-		auto buffer = std::make_shared<CStrBuf>();
-		buffer->limit(8000); // FIXME: 定数を共通化
-		auto writer = CStrWriter{ buffer };
+		auto writer = CStrWriter{};
 		HspObjectWriter{ objects, writer }.write_table_form(path);
-		auto text = as_utf8(buffer->getMove());
+		auto text = as_utf8(writer.finish());
 
 		hsp_runtime_->logger().append(text);
 	}
