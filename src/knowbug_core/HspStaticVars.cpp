@@ -5,10 +5,10 @@
 #include <memory>
 #include <vector>
 #include "../hpiutil/hpiutil.hpp"
-#include "module/supio/supio.h"
 #include "encoding.h"
 #include "HspDebugApi.h"
 #include "HspStaticVars.h"
+#include "string_split.h"
 
 static void fetch_static_var_names(HSP3DEBUG* debug_, std::size_t static_var_count, std::vector<Utf8String>& names) {
 	names.reserve(static_var_count);
@@ -18,12 +18,13 @@ static void fetch_static_var_names(HSP3DEBUG* debug_, std::size_t static_var_cou
 		{ debug_->get_varinf(nullptr, 0xFF)
 		, debug_->dbg_close
 		};
-	strsp_ini();
-	for ( ;; ) {
-		auto name = std::array<char, 0x100> {};
-		auto const chk = strsp_get(p.get(), name.data(), '\0', name.size() - 1);
-		if ( chk == 0 ) break;
-		names.emplace_back(to_utf8(as_hsp(name.data())));
+
+	for (auto&& var_name : StringLines{ std::string_view{ p.get() } }) {
+		if (var_name.empty()) {
+			continue;
+		}
+
+		names.emplace_back(to_utf8(as_hsp(var_name)));
 	}
 }
 
