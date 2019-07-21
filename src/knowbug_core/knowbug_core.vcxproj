@@ -357,6 +357,7 @@
     <ClInclude Include="SourceFile.h" />
     <ClInclude Include="SourceFileResolver.h" />
     <ClInclude Include="StepController.h" />
+    <ClInclude Include="string_split.h" />
     <ClInclude Include="test_suite.h" />
   </ItemGroup>
   <ItemGroup>
@@ -448,6 +449,7 @@
     <ClCompile Include="SourceFile.cpp" />
     <ClCompile Include="SourceFileResolver.cpp" />
     <ClCompile Include="StepController.cpp" />
+    <ClCompile Include="string_split.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

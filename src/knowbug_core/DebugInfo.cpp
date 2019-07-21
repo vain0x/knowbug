@@ -5,8 +5,8 @@
 #include <utility>
 #include "../hspsdk/hspwnd.h"
 #include "DebugInfo.h"
-#include "module/supio/supio.h"
 #include "module/strf.h"
+#include "string_split.h"
 
 DebugInfo::DebugInfo(HSP3DEBUG* debug)
 	: debug_(debug)
@@ -26,19 +26,19 @@ auto DebugInfo::fetchGeneralInfo() const -> std::vector<std::pair<string, string
 		, debug_->dbg_close
 		};
 
-	strsp_ini();
-	for ( ;; ) {
-		auto name = std::array<char, 0x100> {};
-		auto val  = std::array<char, 0x200> {};
-		{
-			auto const chk = strsp_get(p.get(), name.data(), 0, name.size() - 1);
-			if ( chk == 0 ) break;
+	auto lines = StringLines{ std::string_view{ p.get() } }.iter();
+	while (true) {
+		auto&& key_opt = lines.next();
+		if (!key_opt) {
+			break;
 		}
-		{
-			auto const chk = strsp_get(p.get(), val.data(), 0, val.size() - 1);
-			if ( chk == 0 ) break;
+
+		auto&& value_opt = lines.next();
+		if (!value_opt) {
+			break;
 		}
-		info.emplace_back(name.data(), val.data());
+
+		info.emplace_back(*key_opt, *value_opt);
 	}
 
 	// 拡張内容の追加

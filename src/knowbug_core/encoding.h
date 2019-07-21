@@ -61,6 +61,8 @@ extern auto ascii_to_utf8(std::string const& source) -> Utf8String;
 
 extern auto as_hsp(char const* str) -> HspStringView;
 
+extern auto as_hsp(std::string_view const& str) -> HspStringView;
+
 extern auto as_hsp(std::string&& str) -> HspString;
 
 extern auto to_hsp(OsStringView const& source) -> HspString;
@@ -79,6 +81,8 @@ extern auto to_os(Utf8StringView const& source) -> OsString;
 
 extern auto as_sjis(char const* str) -> SjisStringView;
 
+extern auto as_sjis(std::string_view const& str) -> SjisStringView;
+
 extern auto as_sjis(std::string&& source) -> SjisString;
 
 extern auto to_sjis(HspStringView const& source) -> SjisString;
@@ -88,6 +92,8 @@ extern auto to_sjis(OsStringView const& source) -> SjisString;
 extern auto to_sjis(Utf8StringView const& source) -> SjisString;
 
 extern auto as_utf8(char const* str) -> Utf8StringView;
+
+extern auto as_utf8(std::string_view const& str) -> Utf8StringView;
 
 extern auto as_utf8(std::string&& source) -> Utf8String;
 
