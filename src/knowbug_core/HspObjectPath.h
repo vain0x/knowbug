@@ -338,6 +338,8 @@ public:
 
 	auto type_name(HspObjects& objects) const -> Utf8StringView;
 
+	auto lengths(HspObjects& objects) const -> HspDimIndex;
+
 	auto metadata(HspObjects& objects) const -> HspVarMetadata;
 };
 

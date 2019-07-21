@@ -413,13 +413,13 @@ void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar cons
 	auto short_name = hpiutil::nameExcludingScopeResolution(name);
 
 	auto&& type_name = path.type_name(o);
-	auto&& metadata = path.metadata(o);
+	auto&& lengths = path.lengths(o);
 
 	w.cat(short_name);
 	w.cat(u8"\t= ");
 
 	w.cat(u8".type = ");
-	write_array_type(w, type_name, metadata.lengths());
+	write_array_type(w, type_name, lengths);
 	w.catCrlf();
 
 	to_flow_form().accept(path);
