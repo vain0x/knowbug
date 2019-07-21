@@ -39,6 +39,8 @@ public:
 	auto get() const -> string const&;
 	auto getBuf() const -> buf_t { return buf_; }
 
+	auto finish() -> std::string&&;
+
 	auto is_full() const -> bool;
 
 	// 出力メソッド

@@ -19,6 +19,10 @@ CStrWriter::CStrWriter()
 
 auto CStrWriter::get() const -> std::string const& { return buf_->get(); }
 
+auto CStrWriter::finish() -> std::string&& {
+	return buf_->getMove();
+}
+
 auto CStrWriter::is_full() const -> bool {
 	return buf_->is_full();
 }
