@@ -273,8 +273,7 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	auto&& o = objects();
 	auto&& w = writer();
 
-	auto type = path.type(o);
-	auto&& type_name = o.type_to_name(type);
+	auto&& type_name = path.type_name(o);
 	auto&& metadata = path.metadata(o);
 
 	// 変数に関する情報
@@ -413,8 +412,7 @@ void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar cons
 	auto name = as_native(path.name(o));
 	auto short_name = hpiutil::nameExcludingScopeResolution(name);
 
-	auto type = path.type(o);
-	auto&& type_name = o.type_to_name(type);
+	auto&& type_name = path.type_name(o);
 	auto&& metadata = path.metadata(o);
 
 	w.cat(short_name);

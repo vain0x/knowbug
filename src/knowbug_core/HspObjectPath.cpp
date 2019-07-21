@@ -155,6 +155,10 @@ auto HspObjectPath::StaticVar::type(HspObjects& objects) const -> HspType {
 	return objects.static_var_path_to_type(*this);
 }
 
+auto HspObjectPath::StaticVar::type_name(HspObjects& objects) const -> Utf8StringView {
+	return objects.type_to_name(type(objects));
+}
+
 auto HspObjectPath::StaticVar::metadata(HspObjects& objects) const -> HspVarMetadata {
 	return objects.static_var_path_to_metadata(*this);
 }

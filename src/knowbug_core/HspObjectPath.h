@@ -336,6 +336,8 @@ public:
 
 	auto type(HspObjects& objects) const -> HspType;
 
+	auto type_name(HspObjects& objects) const -> Utf8StringView;
+
 	auto metadata(HspObjects& objects) const -> HspVarMetadata;
 };
 
