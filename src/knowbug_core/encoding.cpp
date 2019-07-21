@@ -147,6 +147,14 @@ auto as_hsp(char const* str) -> HspStringView {
 #endif
 }
 
+auto as_hsp(std::string_view const& str) -> HspStringView {
+#ifdef HSP3_UTF8
+	return cast_to_hsp(as_utf8(str));
+#else
+	return cast_to_hsp(as_sjis(str));
+#endif
+}
+
 auto as_hsp(std::string&& str) -> HspString {
 	return HspString{ (HspString&&)str };
 }
@@ -177,6 +185,10 @@ auto to_hsp(Utf8StringView const& source) -> HspString {
 
 auto as_sjis(char const* str) -> SjisStringView {
 	return SjisStringView{ (SjisChar const*)str };
+}
+
+auto as_sjis(std::string_view const& str) -> SjisStringView {
+	return SjisStringView{ (SjisChar const*)str.data(), str.size() };
 }
 
 auto as_sjis(std::string&& source) -> SjisString {
@@ -217,6 +229,10 @@ auto to_os(Utf8StringView const& source) -> OsString {
 
 auto as_utf8(char const* str) -> Utf8StringView {
 	return Utf8StringView{ (Utf8Char const*)str };
+}
+
+auto as_utf8(std::string_view const& str) -> Utf8StringView {
+	return Utf8StringView{ (Utf8Char const*)str.data(), str.size() };
 }
 
 auto as_utf8(std::string&& source) -> Utf8String {
