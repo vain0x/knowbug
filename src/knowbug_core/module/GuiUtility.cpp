@@ -5,9 +5,6 @@
 #include "GuiUtility.h"
 #include "../encoding.h"
 #include "../platform.h"
-#include "supio/supio.h"
-
-#define ARRAY_LENGTH(A) ((sizeof (A)) / (sizeof ((A)[0])))
 
 //------------------------------------------------
 // 簡易ウィンドウ生成
@@ -86,62 +83,6 @@ void Edit_SetTabLength(HWND hEdit, const int tabwidth)
 }
 
 //------------------------------------------------
-// EditControl の文字列の置き換え
-//------------------------------------------------
-void Edit_UpdateText(HWND hwnd, char const* s)
-{
-	auto const vscrollBak = Edit_GetFirstVisibleLine(hwnd);
-	HSPAPICHAR *hactmp1;
-	SetWindowText(hwnd, chartoapichar(s,&hactmp1));
-	freehac(&hactmp1);
-	Edit_Scroll(hwnd, vscrollBak, 0);
-}
-
-void Edit_SetSelLast(HWND hwnd)
-{
-	Edit_SetSel(hwnd, 0, -1);
-	Edit_SetSel(hwnd, -1, -1);
-}
-
-//------------------------------------------------
-// ツリービューの項目ラベルを取得する
-//------------------------------------------------
-auto TreeView_GetItemString(HWND hwndTree, HTREEITEM hItem) -> string
-{
-	auto textBuf = std::array<HSPAPICHAR, 0x100>{};
-	auto text8Buf = std::array<char,0x600>{};
-	BOOL ret;
-	HSPCHAR *hctmp1;
-	size_t len;
-	auto ti = TVITEM {};
-	ti.hItem = hItem;
-	ti.mask = TVIF_TEXT;
-	ti.pszText = textBuf.data();
-	ti.cchTextMax = textBuf.size() - 1;
-	ret = TreeView_GetItem(hwndTree, &ti);
-	apichartohspchar(textBuf.data(),&hctmp1);
-	len = strlen(hctmp1);
-	memcpy(text8Buf.data(), hctmp1, len);
-	text8Buf[len] = 0;
-	return ret
-		? string { text8Buf.data() }
-		: "";
-}
-
-//------------------------------------------------
-// ツリービューのノードに関連する lparam 値を取得する
-//------------------------------------------------
-auto TreeView_GetItemLParam(HWND hwndTree, HTREEITEM hItem) -> LPARAM
-{
-	auto ti = TVITEM {};
-	ti.hItem = hItem;
-	ti.mask = TVIF_PARAM;
-
-	TreeView_GetItem(hwndTree, &ti);
-	return ti.lParam;
-}
-
-//------------------------------------------------
 // ツリービューのフォーカスを回避する
 //
 // @ 対象のノードが選択状態なら、その兄ノードか親ノードを選択する。
@@ -154,23 +95,6 @@ void TreeView_EscapeFocus(HWND hwndTree, HTREEITEM hItem)
 
 		TreeView_SelectItem(hwndTree, hUpper);
 	}
-}
-
-//------------------------------------------------
-// 末子ノードを取得する (failure: nullptr)
-//------------------------------------------------
-auto TreeView_GetChildLast(HWND hwndTree, HTREEITEM hItem) -> HTREEITEM
-{
-	auto hLast = TreeView_GetChild(hwndTree, hItem);
-	if ( ! hLast ) return nullptr;	// error
-
-	for ( auto hNext = hLast
-		; hNext != nullptr
-		; hNext = TreeView_GetNextSibling(hwndTree, hLast)
-		) {
-		hLast = hNext;
-	}
-	return hLast;
 }
 
 //------------------------------------------------

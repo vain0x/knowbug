@@ -25,9 +25,6 @@
     <Filter Include="module">
       <UniqueIdentifier>{2161ea97-d6a3-4c0d-b65a-67fe2fb36a5b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="module\supio">
-      <UniqueIdentifier>{3a94cc26-ab4f-4c9e-b631-b8a12996a239}</UniqueIdentifier>
-    </Filter>
     <Filter Include="hspsdk\win32gui">
       <UniqueIdentifier>{a52c5b5e-7dcd-4c75-8181-631970be012f}</UniqueIdentifier>
     </Filter>
@@ -77,9 +74,6 @@
     </ClInclude>
     <ClInclude Include="..\hspsdk\win32gui\hspwnd_win.h">
       <Filter>hspsdk\win32gui</Filter>
-    </ClInclude>
-    <ClInclude Include="module\supio\supio.h">
-      <Filter>module\supio</Filter>
     </ClInclude>
     <ClInclude Include="module\CIni.h">
       <Filter>module</Filter>
@@ -178,9 +172,6 @@
     </ClCompile>
     <ClCompile Include="..\hspsdk\hsp3plugin.cpp">
       <Filter>hspsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="module\supio\supio.cpp">
-      <Filter>module\supio</Filter>
     </ClCompile>
     <ClCompile Include="module\CIni.cpp">
       <Filter>module</Filter>
