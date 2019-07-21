@@ -20,22 +20,22 @@ static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name
 	switch (lengths.dim()) {
 	case 1:
 		// (%d)
-		writer.cat("(");
+		writer.cat(u8"(");
 		writer.catSize(lengths.at(0));
-		writer.cat(")");
+		writer.cat(u8")");
 		return;
 	default:
 		// (%d, %d, ..) (%d in total)
-		writer.cat("(");
+		writer.cat(u8"(");
 		for (auto i = std::size_t{}; i < lengths.dim(); i++) {
 			if (i != 0) {
-				writer.cat(", ");
+				writer.cat(u8", ");
 			}
 			writer.catSize(lengths.at(i));
 		}
-		writer.cat(") (");
+		writer.cat(u8") (");
 		writer.catSize(lengths.size());
-		writer.cat(" in total)");
+		writer.cat(u8" in total)");
 		return;
 	}
 }
@@ -246,9 +246,9 @@ void HspObjectWriterImpl::TableForm::write_name(HspObjectPath const& path) {
 	auto&& o = objects();
 	auto&& w = writer();
 
-	w.cat("[");
+	w.cat(u8"[");
 	w.cat(path.name(o));
-	w.catln("]");
+	w.catln(u8"]");
 }
 
 void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
@@ -290,15 +290,15 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 
 	w.cat(u8"アドレス: ");
 	w.catPtr(metadata.data_ptr());
-	w.cat(", ");
+	w.cat(u8", ");
 	w.catPtr(metadata.master_ptr());
 	w.catCrlf();
 
 	w.cat(u8"サイズ: ");
 	w.catSize(metadata.data_size());
-	w.cat(" / ");
+	w.cat(u8" / ");
 	w.catSize(metadata.block_size());
-	w.cat(" [byte]");
+	w.cat(u8" [byte]");
 	w.catCrlf();
 	w.catCrlf();
 
@@ -415,7 +415,7 @@ void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar cons
 	auto short_name = hpiutil::nameExcludingScopeResolution(name);
 
 	writer().cat(short_name);
-	writer().cat("\t= ");
+	writer().cat(u8"\t= ");
 
 	to_flow_form().accept(path);
 
@@ -454,19 +454,19 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 
 	auto&& is_nullmod_opt = path.is_nullmod(o);
 	if (!is_nullmod_opt) {
-		w.cat("<unavailable>");
+		w.cat(u8"<unavailable>");
 		return;
 	}
 
 	if (*is_nullmod_opt) {
-		w.catln("<null>");
+		w.catln(u8"<null>");
 		return;
 	}
 
 	// FIXME: クローンなら & をつける
 	auto&& module_name = path.module_name(o);
 
-	w.cat(".module = ");
+	w.cat(u8".module = ");
 	w.cat(module_name);
 	w.catCrlf();
 
@@ -492,13 +492,13 @@ void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path
 	auto&& first_child = path.child_at(0, o);
 	if (child_count == 1 && object_path_is_compact(*first_child, o)) {
 		w.cat(name.data());
-		w.cat("\t= ");
+		w.cat(u8"\t= ");
 		to_block_form().accept(*first_child);
 		return;
 	}
 
 	w.cat(name.data());
-	w.catln(":");
+	w.catln(u8":");
 	w.indent();
 	to_block_form().accept_children(path);
 	w.unindent();
@@ -520,7 +520,7 @@ void HspObjectWriterImpl::FlowForm::accept_children(HspObjectPath const& path) {
 	auto child_count = path.child_count(o);
 	for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, child_count); i++) {
 		if (i != 0) {
-			w.cat(", ");
+			w.cat(u8", ");
 		}
 
 		accept(*path.child_at(i, o));
@@ -539,11 +539,11 @@ void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const
 
 	// FIXME: 多次元配列の表示を改善する
 
-	w.cat("<");
+	w.cat(u8"<");
 	w.cat(as_native(type_name));
-	w.cat(">[");
+	w.cat(u8">[");
 	accept_children(path);
-	w.cat("]");
+	w.cat(u8"]");
 }
 
 void HspObjectWriterImpl::FlowForm::on_label(HspObjectPath::Label const& path) {
@@ -551,23 +551,23 @@ void HspObjectWriterImpl::FlowForm::on_label(HspObjectPath::Label const& path) {
 	auto&& w = writer();
 
 	if (path.is_null(o)) {
-		w.cat("<null-label>");
+		w.cat(u8"<null-label>");
 		return;
 	}
 
 	if (auto&& name_opt = path.static_label_name(o)) {
-		w.cat("*");
+		w.cat(u8"*");
 		w.cat(*name_opt);
 		return;
 	}
 
 	if (auto&& id_opt = path.static_label_id(o)) {
-		w.cat("*#");
+		w.cat(u8"*#");
 		w.catSize(*id_opt);
 		return;
 	}
 
-	w.cat("<label>");
+	w.cat(u8"<label>");
 }
 
 void HspObjectWriterImpl::FlowForm::on_str(HspObjectPath::Str const& path) {
@@ -591,30 +591,30 @@ void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
 
 	auto&& is_nullmod_opt = path.is_nullmod(o);
 	if (!is_nullmod_opt) {
-		w.cat("<unavailable>");
+		w.cat(u8"<unavailable>");
 		return;
 	}
 
 	if (*is_nullmod_opt) {
-		w.cat("null");
+		w.cat(u8"null");
 		return;
 	}
 
 	// FIXME: クローンなら & をつける
 	auto&& module_name = path.module_name(o);
 	w.cat(module_name);
-	w.cat("{");
+	w.cat(u8"{");
 
 	for (auto i = std::size_t{}; i < path.child_count(o); i++) {
 		auto&& child_path = path.child_at(i, o);
 
 		if (i != 0) {
-			w.cat(", ");
+			w.cat(u8", ");
 		}
 		accept(*child_path);
 	}
 
-	w.cat("}");
+	w.cat(u8"}");
 }
 
 void HspObjectWriterImpl::FlowForm::on_unknown(HspObjectPath::Unknown const& path) {
