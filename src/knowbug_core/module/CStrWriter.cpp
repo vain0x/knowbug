@@ -36,6 +36,10 @@ void CStrWriter::unindent() {
 	depth_--;
 }
 
+void CStrWriter::set_limit(std::size_t limit) {
+	buf_->limit(limit);
+}
+
 // バッファの末尾に文字列を足す。
 // 行ごとに分割して適切に字下げを挿入する。
 void CStrWriter::cat(char const* s)

@@ -70,6 +70,10 @@ public:
 	// 字下げを1段階浅くする。
 	void unindent();
 
+	// 残りの書き込み文字数の制限を変更する。
+	// すでに書き込まれた文字列には影響しない。
+	void set_limit(std::size_t limit);
+
 private:
 	void catDumpImpl(void const* data, size_t size);
 
