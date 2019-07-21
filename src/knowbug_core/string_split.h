@@ -122,8 +122,12 @@ public:
 	{
 	}
 
+	auto iter() const -> Iter {
+		return Iter{ str_ };
+	}
+
 	auto begin() const -> Iter {
-		return ++Iter{ str_ };
+		return ++iter();
 	}
 
 	auto end() const -> Iter {
