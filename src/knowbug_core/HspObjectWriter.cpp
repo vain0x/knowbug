@@ -74,6 +74,25 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 	}
 }
 
+static void write_source_location(
+	CStrWriter& w,
+	std::optional<Utf8StringView> const& file_ref_name_opt,
+	std::optional<std::size_t> const& line_index_opt
+) {
+	// 例: #12 hoge.hsp
+	if (line_index_opt) {
+		// 1-indexed
+		w.cat(u8"#");
+		w.catSize(*line_index_opt + 1);
+		w.cat(u8" ");
+	}
+	if (file_ref_name_opt) {
+		w.cat(*file_ref_name_opt);
+	} else {
+		w.cat(u8"???");
+	}
+}
+
 // -----------------------------------------------
 // 実装クラス
 // -----------------------------------------------
@@ -303,17 +322,8 @@ void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame cons
 	// FIXME: シグネチャ
 
 	w.cat(u8"呼び出し位置: ");
-	// 例: #12 hoge.hsp
-	if (line_index_opt) {
-		w.cat(u8"#");
-		w.catSize(*line_index_opt);
-		w.cat(u8" ");
-	}
-	if (file_ref_name_opt) {
-		w.catln(*file_ref_name_opt);
-	} else {
-		w.catln(u8"???");
-	}
+	write_source_location(w, file_ref_name_opt, line_index_opt);
+	w.catCrlf();
 	w.catCrlf();
 
 	to_block_form().accept_children(path);
@@ -666,6 +676,57 @@ static void write_array_type_tests(Tests& tests) {
 		});
 }
 
+static void write_source_location_tests(Tests& tests) {
+	auto&& suite = tests.suite(u8"write_source_location");
+
+	auto write = [&](auto&& ...args) {
+		auto w = CStrWriter{};
+		write_source_location(w, args...);
+		return as_utf8(w.finish());
+	};
+
+	suite.test(
+		u8"ファイル参照名と行番号があるケース",
+		[&](TestCaseContext& t) {
+			auto actual = write(
+				std::make_optional(as_utf8(u8"foo.hsp")),
+				std::make_optional(std::size_t{ 42 })
+			);
+			return t.eq(actual, as_utf8(u8"#43 foo.hsp"));
+		});
+
+	suite.test(
+		u8"行番号がないケース",
+		[&](TestCaseContext& t) {
+			auto actual = write(
+				std::make_optional(as_utf8(u8"foo.hsp")),
+				std::nullopt
+			);
+			return t.eq(actual, as_utf8(u8"foo.hsp"));
+		});
+
+	suite.test(
+		u8"ファイル参照名がないケース",
+		[&](TestCaseContext& t) {
+			auto actual = write(
+				std::nullopt,
+				std::make_optional(std::size_t{ 42 })
+			);
+			return t.eq(actual, as_utf8(u8"#43 ???"));
+		});
+
+	suite.test(
+		u8"ファイル参照名も行番号もないケース",
+		[&](TestCaseContext& t) {
+			auto actual = write(
+				std::nullopt,
+				std::nullopt
+			);
+			return t.eq(actual, as_utf8(u8"???"));
+		});
+}
+
 void hsp_object_writer_tests(Tests& tests) {
 	write_array_type_tests(tests);
+	write_source_location_tests(tests);
 }
