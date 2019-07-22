@@ -28,6 +28,7 @@ using HspParamType = short;
 enum class HspType
 	: short
 {
+	None = HSPVAR_FLAG_NONE,
 	Label = HSPVAR_FLAG_LABEL,
 	Str = HSPVAR_FLAG_STR,
 	Double = HSPVAR_FLAG_DOUBLE,
@@ -68,6 +69,10 @@ public:
 		, indexes_(indexes)
 	{
 		assert(1 <= dim && dim <= MAX_DIM);
+	}
+
+	static auto one() -> HspDimIndex {
+		return HspDimIndex{ 1, { 1, 0, 0, 0 } };
 	}
 
 	bool operator ==(HspDimIndex const& other) const {
@@ -247,6 +252,20 @@ public:
 
 	auto block_ptr() const -> void const* {
 		return block_ptr_;
+	}
+
+	static auto none() -> HspVarMetadata {
+		return HspVarMetadata{
+			HspType::None,
+			HspVarMode::None,
+			HspDimIndex::one(),
+			0,
+			0,
+			0,
+			nullptr,
+			nullptr,
+			nullptr,
+		};
 	}
 };
 

@@ -434,6 +434,8 @@ public:
 	auto param_index() const -> std::size_t {
 		return param_index_;
 	}
+
+	auto var_metadata(HspObjects& objects) const->std::optional<HspVarMetadata>;
 };
 
 // -----------------------------------------------

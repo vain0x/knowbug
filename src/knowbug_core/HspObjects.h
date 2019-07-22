@@ -101,6 +101,8 @@ public:
 
 	auto param_path_to_name(HspObjectPath::Param const& path) const -> Utf8String;
 
+	auto param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<HspVarMetadata>;
+
 	bool label_path_is_null(HspObjectPath::Label const& path) const;
 
 	auto label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<Utf8String>;

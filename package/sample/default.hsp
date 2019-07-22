@@ -60,7 +60,8 @@
 
 #module hoge
 
-#deffunc check_params label l, str s, double d, int i, var v, array a
+#deffunc check_params label l, str s, double d, int i, var v, array a, local z
+	z = 1, 2, 3
 	assert
 	floats@ = "vanish!"
 	return

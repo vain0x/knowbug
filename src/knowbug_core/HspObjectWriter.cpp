@@ -64,6 +64,25 @@ static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name
 	write_var_mode(writer, var_mode);
 }
 
+static auto write_var_metadata_on_table(CStrWriter& w, Utf8StringView const& type_name, HspVarMetadata const& metadata) {
+	w.cat(u8"変数型: ");
+	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
+	w.catCrlf();
+
+	w.cat(u8"アドレス: ");
+	w.catPtr(metadata.data_ptr());
+	w.cat(u8", ");
+	w.catPtr(metadata.master_ptr());
+	w.catCrlf();
+
+	w.cat(u8"サイズ: ");
+	w.catSize(metadata.data_size());
+	w.cat(u8" / ");
+	w.catSize(metadata.block_size());
+	w.cat(u8" [byte]");
+	w.catCrlf();
+}
+
 static bool object_path_is_compact(HspObjectPath const& path, HspObjects& objects) {
 	switch (path.kind()) {
 	case HspObjectKind::Label:
@@ -158,6 +177,8 @@ public:
 	void accept_children(HspObjectPath const& path) override;
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
+
+	void on_param(HspObjectPath::Param const& path) override;
 
 	void on_call_frame(HspObjectPath::CallFrame const& path) override;
 
@@ -308,22 +329,7 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	// 変数に関する情報
 	write_name(path);
 
-	w.cat(u8"変数型: ");
-	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
-	w.catCrlf();
-
-	w.cat(u8"アドレス: ");
-	w.catPtr(metadata.data_ptr());
-	w.cat(u8", ");
-	w.catPtr(metadata.master_ptr());
-	w.catCrlf();
-
-	w.cat(u8"サイズ: ");
-	w.catSize(metadata.data_size());
-	w.cat(u8" / ");
-	w.catSize(metadata.block_size());
-	w.cat(u8" [byte]");
-	w.catCrlf();
+	write_var_metadata_on_table(w, type_name, metadata);
 	w.catCrlf();
 
 	// 変数の内容に関する情報
@@ -332,6 +338,29 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 
 	// メモリダンプ
 	w.catDump(metadata.block_ptr(), metadata.block_size());
+}
+
+void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) {
+	auto&& o = objects();
+	auto&& w = writer();
+
+	if (auto && metadata_opt = path.var_metadata(o)) {
+		auto&& metadata = *metadata_opt;
+		auto&& type_name = o.type_to_name(metadata.type());
+		auto&& name = path.name(o);
+
+		write_name(path);
+		write_var_metadata_on_table(w, type_name, metadata);
+		w.catCrlf();
+
+		to_block_form().accept_children(path);
+		w.catCrlf();
+
+		w.catDump(metadata.block_ptr(), metadata.block_size());
+		return;
+	}
+
+	accept_default(path);
 }
 
 void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame const& path) {

@@ -188,6 +188,28 @@ static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_in
 	return path.new_element(indexes);
 }
 
+static auto var_path_to_metadata(HspObjectPath const& path, HspDebugApi& api) -> std::optional<HspVarMetadata> {
+	auto&& pval_opt = path_to_pval(path, MIN_DEPTH, api);
+	if (!pval_opt) {
+		return std::nullopt;
+	}
+	auto&& pval = *pval_opt;
+
+	auto block_memory = api.var_to_block_memory(pval);
+
+	auto metadata = HspVarMetadata{};
+	metadata.type_ = api.var_to_type(pval);
+	metadata.mode_ = api.var_to_mode(pval);
+	metadata.lengths_ = api.var_to_lengths(pval);
+	metadata.element_size_ = api.var_to_element_count(pval);
+	metadata.data_size_ = pval->size;
+	metadata.block_size_ = block_memory.size();
+	metadata.data_ptr_ = pval->pt;
+	metadata.master_ptr_ = pval->master;
+	metadata.block_ptr_ = block_memory.data();
+	return metadata;
+}
+
 static auto label_path_to_value(HspObjectPath::Label const& path, HspDebugApi& api) -> std::optional<HspLabel> {
 	auto&& data_opt = path_to_data(path.parent(), MIN_DEPTH, api);
 	if (!data_opt) {
@@ -393,20 +415,7 @@ auto HspObjects::static_var_path_to_child_at(HspObjectPath::StaticVar const& pat
 }
 
 auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata {
-	auto pval = api_.static_var_to_pval(path.static_var_id());
-	auto block_memory = api_.var_to_block_memory(pval);
-
-	auto metadata = HspVarMetadata{};
-	metadata.type_ = api_.var_to_type(pval);
-	metadata.mode_ = api_.var_to_mode(pval);
-	metadata.lengths_ = api_.var_to_lengths(pval);
-	metadata.element_size_ = api_.var_to_element_count(pval);
-	metadata.data_size_ = pval->size;
-	metadata.block_size_ = block_memory.size();
-	metadata.data_ptr_ = pval->pt;
-	metadata.master_ptr_ = pval->master;
-	metadata.block_ptr_ = block_memory.data();
-	return metadata;
+	return var_path_to_metadata(path, api_).value_or(HspVarMetadata::none());
 }
 
 auto HspObjects::element_path_to_child_count(HspObjectPath::Element const& path) const -> std::size_t {
@@ -527,6 +536,11 @@ auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> U
 
 	auto&& name = api_.param_to_name(param_data_opt->param(), param_data_opt->param_index(), debug_segment_);
 	return to_utf8(as_hsp(std::move(name)));
+}
+
+auto HspObjects::param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<HspVarMetadata> {
+	// FIXME: var/modvar 引数なら指定された要素に関するメモリダンプを表示したい (要素数 1、メモリダンプはその要素の範囲のみ)
+	return var_path_to_metadata(path, api_);
 }
 
 bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {

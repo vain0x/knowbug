@@ -248,6 +248,10 @@ auto HspObjectPath::Param::name(HspObjects& objects) const -> Utf8String {
 	return objects.param_path_to_name(*this);
 }
 
+auto HspObjectPath::Param::var_metadata(HspObjects& objects) const -> std::optional<HspVarMetadata> {
+	return objects.param_path_to_var_metadata(*this);
+}
+
 // -----------------------------------------------
 // ラベル
 // -----------------------------------------------
