@@ -641,6 +641,8 @@ public:
 
 	auto is_nullmod(HspObjects& objects) const -> std::optional<bool>;
 
+	auto is_clone(HspObjects& objects) const->std::optional<bool>;
+
 	auto module_name(HspObjects& objects) const -> Utf8String;
 };
 

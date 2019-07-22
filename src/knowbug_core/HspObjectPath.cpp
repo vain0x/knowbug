@@ -394,6 +394,10 @@ auto HspObjectPath::Flex::is_nullmod(HspObjects& objects) const -> std::optional
 	return objects.flex_path_is_nullmod(*this);
 }
 
+auto HspObjectPath::Flex::is_clone(HspObjects& objects) const -> std::optional<bool> {
+	return objects.flex_path_is_clone(*this);
+}
+
 auto HspObjectPath::Flex::module_name(HspObjects& objects) const -> Utf8String {
 	return objects.flex_path_to_module_name(*this);
 }

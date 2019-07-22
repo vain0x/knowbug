@@ -86,6 +86,17 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 	}
 }
 
+static void write_flex_module_name(CStrWriter& w, Utf8StringView const& module_name, std::optional<bool> is_clone_opt) {
+	w.cat(module_name);
+
+	// クローンなら印をつける。
+	// NOTE: この関数が呼ばれているということは、flex が nullmod か否か判定できたということなので、
+	//		 クローン変数か分からない (is_clone_opt == nullopt) ということは考えづらい。
+	if (is_clone_opt && *is_clone_opt) {
+		w.cat("&");
+	}
+}
+
 static void write_source_location(
 	CStrWriter& w,
 	std::optional<Utf8StringView> const& file_ref_name_opt,
@@ -484,11 +495,11 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 		return;
 	}
 
-	// FIXME: クローンなら & をつける
 	auto&& module_name = path.module_name(o);
-
+	auto&& is_clone_opt = path.is_clone(o);
+	
 	w.cat(u8".module = ");
-	w.cat(module_name);
+	write_flex_module_name(w, module_name, is_clone_opt);
 	w.catCrlf();
 
 	accept_children(path);
@@ -615,9 +626,9 @@ void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
 		return;
 	}
 
-	// FIXME: クローンなら & をつける
 	auto&& module_name = path.module_name(o);
-	w.cat(module_name);
+	auto&& is_clone_opt = path.is_clone(o);
+	write_flex_module_name(w, module_name, is_clone_opt);
 	w.cat(u8"{");
 
 	for (auto i = std::size_t{}; i < path.child_count(o); i++) {

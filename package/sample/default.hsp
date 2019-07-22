@@ -12,6 +12,11 @@
 
 #global
 
+	x = 1
+	newmod counter_ref, m_ref
+	ref_set counter_ref, x
+	counter_ref_clone = counter_ref
+
 	newmod infinite_ref, m_ref
 	ref_set infinite_ref, infinite_ref
 

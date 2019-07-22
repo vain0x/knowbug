@@ -620,6 +620,15 @@ auto HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) -> std::o
 	return std::make_optional(api_.flex_is_nullmod(*flex_opt));
 }
 
+auto HspObjects::flex_path_is_clone(HspObjectPath::Flex const& path) -> std::optional<bool> {
+	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, api_);
+	if (!flex_opt) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(api_.flex_is_clone(*flex_opt));
+}
+
 auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String {
 	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, api_);
 	if (!flex_opt || api_.flex_is_nullmod(*flex_opt)) {
