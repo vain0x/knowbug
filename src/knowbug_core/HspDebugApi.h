@@ -59,6 +59,8 @@ public:
 
 	auto var_to_lengths(PVal* pval) const -> HspDimIndex;
 
+	auto var_to_mode(PVal* pval) const -> HspVarMode;
+
 	bool var_is_array(PVal* pval) const;
 
 	auto var_to_element_count(PVal* pval) -> std::size_t;

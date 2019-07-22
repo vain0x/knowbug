@@ -21,18 +21,33 @@ static bool string_is_compact(Utf8StringView const& str) {
 	return str.size() < 64 && !string_is_multiline(str);
 }
 
-// FIXME: クローン変数なら & をつける
-static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, HspDimIndex const& lengths) {
+static void write_var_mode(CStrWriter& writer, HspVarMode var_mode) {
+	switch (var_mode) {
+	case HspVarMode::None:
+		writer.cat(u8" (empty)");
+		break;
+	case HspVarMode::Alloc:
+		break;
+	case HspVarMode::Clone:
+		writer.cat(u8" (dup)");
+		break;
+	default:
+		assert(false && u8"Unknown VarMode");
+		break;
+	}
+}
+
+static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, HspVarMode var_mode, HspDimIndex const& lengths) {
+	// 例: int(2, 3) (6 in total) (dup)
+
 	writer.cat(as_native(type_name));
 
-	switch (lengths.dim()) {
-	case 1:
+	if (lengths.dim() == 1) {
 		// (%d)
 		writer.cat(u8"(");
 		writer.catSize(lengths.at(0));
 		writer.cat(u8")");
-		return;
-	default:
+	} else {
 		// (%d, %d, ..) (%d in total)
 		writer.cat(u8"(");
 		for (auto i = std::size_t{}; i < lengths.dim(); i++) {
@@ -44,8 +59,9 @@ static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name
 		writer.cat(u8") (");
 		writer.catSize(lengths.size());
 		writer.cat(u8" in total)");
-		return;
 	}
+
+	write_var_mode(writer, var_mode);
 }
 
 static bool object_path_is_compact(HspObjectPath const& path, HspObjects& objects) {
@@ -280,7 +296,7 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	write_name(path);
 
 	w.cat(u8"変数型: ");
-	write_array_type(w, type_name, metadata.lengths());
+	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
 	w.catCrlf();
 
 	w.cat(u8"アドレス: ");
@@ -413,13 +429,13 @@ void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar cons
 	auto short_name = hpiutil::nameExcludingScopeResolution(name);
 
 	auto&& type_name = path.type_name(o);
-	auto&& lengths = path.lengths(o);
+	auto&& metadata = path.metadata(o);
 
 	w.cat(short_name);
 	w.cat(u8"\t= ");
 
 	w.cat(u8".type = ");
-	write_array_type(w, type_name, lengths);
+	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
 	w.catCrlf();
 
 	to_flow_form().accept(path);
@@ -650,9 +666,9 @@ void HspObjectWriter::write_flow_form(HspObjectPath const& path) {
 static void write_array_type_tests(Tests& tests) {
 	auto&& suite = tests.suite(u8"write_array_type");
 
-	auto write = [&](auto&& type_name, auto&& lengths) {
+	auto write = [&](auto&& type_name, auto&& var_mode, auto&& lengths) {
 		auto w = CStrWriter{};
-		write_array_type(w, type_name, lengths);
+		write_array_type(w, type_name, var_mode, lengths);
 		return as_utf8(w.finish());
 	};
 
@@ -660,7 +676,7 @@ static void write_array_type_tests(Tests& tests) {
 		u8"1次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"int"), HspDimIndex{ 1, { 3 } }),
+				write(as_utf8(u8"int"), HspVarMode::Alloc, HspDimIndex{ 1, { 3 } }),
 				as_utf8(u8"int(3)")
 			);
 		});
@@ -669,8 +685,17 @@ static void write_array_type_tests(Tests& tests) {
 		u8"2次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"str"), HspDimIndex{ 2, { 2, 3 } }),
+				write(as_utf8(u8"str"), HspVarMode::Alloc, HspDimIndex{ 2, { 2, 3 } }),
 				as_utf8(u8"str(2, 3) (6 in total)")
+			);
+		});
+
+	suite.test(
+		u8"クローン変数",
+		[&](TestCaseContext& t) {
+			return t.eq(
+				write(as_utf8(u8"int"), HspVarMode::Clone, HspDimIndex{ 1, { 4 } }),
+				as_utf8(u8"int(4) (dup)")
 			);
 		});
 }

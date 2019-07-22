@@ -120,6 +120,10 @@ auto HspDebugApi::var_to_lengths(PVal* pval) const -> HspDimIndex {
 	return HspDimIndex{ i, lengths };
 }
 
+auto HspDebugApi::var_to_mode(PVal* pval) const -> HspVarMode {
+	return (HspVarMode)pval->mode;
+}
+
 bool HspDebugApi::var_is_array(PVal* pval) const {
 	return hpiutil::PVal_isStandardArray(pval);
 }

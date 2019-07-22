@@ -397,6 +397,8 @@ auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& pat
 	auto block_memory = api_.var_to_block_memory(pval);
 
 	auto metadata = HspVarMetadata{};
+	metadata.type_ = api_.var_to_type(pval);
+	metadata.mode_ = api_.var_to_mode(pval);
 	metadata.lengths_ = api_.var_to_lengths(pval);
 	metadata.element_size_ = api_.var_to_element_count(pval);
 	metadata.data_size_ = pval->size;

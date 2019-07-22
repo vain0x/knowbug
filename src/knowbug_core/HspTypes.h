@@ -36,6 +36,14 @@ enum class HspType
 	Comstruct = HSPVAR_FLAG_COMSTRUCT,
 };
 
+enum class HspVarMode
+	: short
+{
+	None = HSPVAR_MODE_NONE,
+	Alloc = HSPVAR_MODE_MALLOC,
+	Clone = HSPVAR_MODE_CLONE,
+};
+
 // 多次元配列へのインデックス。(最大4次元)
 // 多次元配列の要素の位置を表す。あるいは、次元数と要素数を表す。
 class HspDimIndex {
@@ -194,6 +202,8 @@ public:
 
 class HspVarMetadata {
 public:
+	HspType type_;
+	HspVarMode mode_;
 	HspDimIndex lengths_;
 	std::size_t element_size_;
 	std::size_t data_size_;
@@ -203,6 +213,14 @@ public:
 	void const* block_ptr_;
 
 public:
+	auto type() const -> HspType {
+		return type_;
+	}
+
+	auto mode() const -> HspVarMode {
+		return mode_;
+	}
+
 	auto lengths() const -> HspDimIndex const& {
 		return lengths_;
 	}
