@@ -296,8 +296,13 @@ void HspObjectWriterImpl::TableForm::write_name(HspObjectPath const& path) {
 }
 
 void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
-	write_name(path);
+	if (path.child_count(objects()) == 0) {
+		write_name(path);
+		to_block_form().accept(path);
+		return;
+	}
 
+	write_name(path);
 	to_block_form().accept_children(path);
 
 	// FIXME: システム変数や引数リストならメモリダンプを出力できる
