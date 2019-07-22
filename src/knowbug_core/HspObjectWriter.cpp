@@ -278,6 +278,8 @@ void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
 	write_name(path);
 
 	to_block_form().accept_children(path);
+
+	// FIXME: システム変数や引数リストならメモリダンプを出力できる
 }
 
 void HspObjectWriterImpl::TableForm::accept_children(HspObjectPath const& path) {
@@ -405,8 +407,6 @@ void HspObjectWriterImpl::BlockForm::accept(HspObjectPath const& path) {
 
 void HspObjectWriterImpl::BlockForm::accept_default(HspObjectPath const& path) {
 	add_name_children(path);
-
-	// FIXME: システム変数や引数リストならメモリダンプを出力できる
 }
 
 void HspObjectWriterImpl::BlockForm::accept_children(HspObjectPath const& path) {
@@ -486,7 +486,7 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 
 	auto&& is_nullmod_opt = path.is_nullmod(o);
 	if (!is_nullmod_opt) {
-		w.cat(u8"<unavailable>");
+		w.catln(u8"<unavailable>");
 		return;
 	}
 
