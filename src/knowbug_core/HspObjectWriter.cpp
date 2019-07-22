@@ -112,8 +112,24 @@ static void write_flex_module_name(CStrWriter& w, Utf8StringView const& module_n
 	// NOTE: この関数が呼ばれているということは、flex が nullmod か否か判定できたということなので、
 	//		 クローン変数か分からない (is_clone_opt == nullopt) ということは考えづらい。
 	if (is_clone_opt && *is_clone_opt) {
-		w.cat("&");
+		w.cat(u8"&");
 	}
+}
+
+static void write_signature(CStrWriter& w, std::vector<Utf8StringView> const& param_type_names) {
+	// FIXME: 命令ならカッコなし、関数ならカッコあり？
+
+	w.cat(u8"(");
+
+	for (auto i = std::size_t{}; i < param_type_names.size(); i++) {
+		if (i != 0) {
+			w.cat(u8", ");
+		}
+
+		w.cat(param_type_names.at(i));
+	}
+
+	w.cat(u8")");
 }
 
 static void write_source_location(
@@ -372,16 +388,22 @@ void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame cons
 	auto&& o = objects();
 	auto&& w = writer();
 
+	auto&& signature_opt = path.signature(o);
 	auto&& file_ref_name_opt = path.file_ref_name(o);
 	auto&& line_index_opt = path.line_index(o);
 
 	write_name(path);
 
-	// FIXME: シグネチャ
-
 	w.cat(u8"呼び出し位置: ");
 	write_source_location(w, file_ref_name_opt, line_index_opt);
 	w.catCrlf();
+
+	if (signature_opt) {
+		w.cat(u8"シグネチャ: ");
+		write_signature(w, *signature_opt);
+		w.catCrlf();
+	}
+
 	w.catCrlf();
 
 	to_block_form().accept_children(path);

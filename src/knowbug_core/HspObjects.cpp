@@ -781,6 +781,23 @@ auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& pat
 	return std::make_optional(path.new_param(param_type, param_data.param_index()));
 }
 
+auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<Utf8StringView>> {
+	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
+	if (!call_frame_opt) {
+		return std::nullopt;
+	}
+
+	// FIXME: debug api から取得する
+	auto&& params = hpiutil::STRUCTDAT_params(call_frame_opt->get().struct_dat());
+
+	auto names = std::vector<Utf8StringView>{};
+	for (auto&& param : params) {
+		names.emplace_back(as_utf8(api_.param_type_to_name(param.mptype)));
+	}
+
+	return std::make_optional(std::move(names));
+}
+
 auto HspObjects::call_frame_path_to_file_ref_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {
 	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
 	if (!call_frame_opt) {
