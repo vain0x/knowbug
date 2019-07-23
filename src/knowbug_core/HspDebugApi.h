@@ -123,6 +123,8 @@ public:
 
 	auto struct_to_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> STRUCTPRM const*;
 
+	auto struct_to_param_stack_size(STRUCTDAT const* struct_dat) const->std::size_t;
+
 	auto params() const -> STRUCTPRM const*;
 
 	auto param_count() const -> std::size_t;

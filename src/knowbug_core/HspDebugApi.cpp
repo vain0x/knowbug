@@ -367,8 +367,9 @@ auto HspDebugApi::flex_to_member_at(FlexValue* flex, std::size_t member_index) c
 
 auto HspDebugApi::flex_to_param_stack(FlexValue* flex) const -> HspParamStack {
 	auto struct_dat = flex_to_module_struct(flex);
+	auto size = struct_to_param_stack_size(struct_dat);
 	auto safety = true;
-	return HspParamStack{ struct_dat, flex->ptr, safety };
+	return HspParamStack{ struct_dat, flex->ptr, size, safety };
 }
 
 auto HspDebugApi::structs() const -> STRUCTDAT const* {
@@ -389,6 +390,11 @@ auto HspDebugApi::struct_to_param_count(STRUCTDAT const* struct_dat) const -> st
 
 auto HspDebugApi::struct_to_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> STRUCTPRM const* {
 	return hpiutil::STRUCTDAT_params(struct_dat).begin() + param_index;
+}
+
+auto HspDebugApi::struct_to_param_stack_size(STRUCTDAT const* struct_dat) const -> std::size_t {
+	assert(struct_dat != nullptr);
+	return struct_dat->size;
 }
 
 auto HspDebugApi::params() const -> STRUCTPRM const* {
