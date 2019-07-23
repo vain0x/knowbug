@@ -16,6 +16,10 @@ auto HspObjectPath::self() const -> std::shared_ptr<HspObjectPath const> {
 	return shared_from_this();
 }
 
+auto HspObjectPath::memory_view(HspObjects& objects) const -> std::optional<MemoryView> {
+	return objects.path_to_memory_view(*this);
+}
+
 // -----------------------------------------------
 // ルートパス
 // -----------------------------------------------

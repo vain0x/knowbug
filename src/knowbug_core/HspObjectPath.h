@@ -141,6 +141,8 @@ public:
 		return false;
 	}
 
+	auto memory_view(HspObjects& objects) const -> std::optional<MemoryView>;
+
 	auto self() const -> std::shared_ptr<HspObjectPath const>;
 
 	auto as_root() const->HspObjectPath::Root const&;

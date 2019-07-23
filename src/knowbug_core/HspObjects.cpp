@@ -343,6 +343,52 @@ static auto param_stack_to_memory_view(HspParamStack const& param_stack) -> Memo
 	return MemoryView{ param_stack.ptr(), param_stack.size() };
 }
 
+static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, HspDebugApi& api) -> std::optional<MemoryView> {
+	if (depth >= MAX_DEPTH) {
+		return std::nullopt;
+	}
+	depth++;
+
+	switch (path.kind()) {
+	case HspObjectKind::StaticVar:
+	case HspObjectKind::Param:
+	{
+		auto&& pval_opt = path_to_pval(path, depth, api);
+		if (!pval_opt) {
+			return std::nullopt;
+		}
+		auto&& pval = *pval_opt;
+
+		auto block_memory = api.var_to_block_memory(pval);
+		auto memory_view = MemoryView{ block_memory.data(), block_memory.size() };
+		return std::make_optional(memory_view);
+	}
+	case HspObjectKind::Element:
+	{
+		auto&& pval_opt = path_to_pval(path.parent(), depth, api);
+		if (!pval_opt) {
+			return std::nullopt;
+		}
+
+		auto aptr = api.var_element_to_aptr(*pval_opt, path.as_element().indexes());
+		auto block_memory = api.var_element_to_block_memory(*pval_opt, aptr);
+		auto memory_view = MemoryView{ block_memory.data(), block_memory.size() };
+		return std::make_optional(memory_view);
+	}
+	case HspObjectKind::CallFrame:
+	{
+		auto&& param_stack_opt = path_to_param_stack(path, MIN_DEPTH, api);
+		if (!param_stack_opt || !param_stack_opt->safety()) {
+			return std::nullopt;
+		}
+
+		return std::make_optional(param_stack_to_memory_view(*param_stack_opt));
+	}
+	default:
+		return std::nullopt;
+	}
+}
+
 // -----------------------------------------------
 // HspObjects
 // -----------------------------------------------
@@ -362,6 +408,10 @@ HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts,
 
 auto HspObjects::root_path() const->HspObjectPath::Root const& {
 	return root_path_->as_root();
+}
+
+auto HspObjects::path_to_memory_view(HspObjectPath const& path) const->std::optional<MemoryView> {
+	return (::path_to_memory_view(path, MIN_DEPTH, api_));
 }
 
 auto HspObjects::type_to_name(HspType type) const->Utf8StringView {

@@ -65,6 +65,8 @@ public:
 
 	auto root_path() const->HspObjectPath::Root const&;
 
+	auto path_to_memory_view(HspObjectPath const& path) const->std::optional<MemoryView>;
+
 	auto type_to_name(HspType type) const->Utf8StringView;
 
 	auto module_global_id() const->std::size_t;

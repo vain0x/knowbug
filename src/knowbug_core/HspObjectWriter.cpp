@@ -312,7 +312,10 @@ void HspObjectWriterImpl::TableForm::write_name(HspObjectPath const& path) {
 }
 
 void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
-	if (path.child_count(objects()) == 0) {
+	auto&& o = objects();
+	auto&& w = writer();
+
+	if (path.child_count(o) == 0) {
 		write_name(path);
 		to_block_form().accept(path);
 		return;
@@ -321,7 +324,12 @@ void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
 	write_name(path);
 	to_block_form().accept_children(path);
 
-	// FIXME: システム変数や引数リストならメモリダンプを出力できる
+	auto&& memory_view_opt = path.memory_view(o);
+	if (memory_view_opt) {
+		w.catCrlf();
+		w.catDump(memory_view_opt->data(), memory_view_opt->size());
+		w.catCrlf();
+	}
 }
 
 void HspObjectWriterImpl::TableForm::accept_children(HspObjectPath const& path) {
@@ -378,6 +386,7 @@ void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) 
 		w.catCrlf();
 
 		w.catDump(metadata.block_ptr(), metadata.block_size());
+		w.catCrlf();
 		return;
 	}
 
@@ -551,7 +560,7 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 
 	auto&& module_name = path.module_name(o);
 	auto&& is_clone_opt = path.is_clone(o);
-	
+
 	w.cat(u8".module = ");
 	write_flex_module_name(w, module_name, is_clone_opt);
 	w.catCrlf();
