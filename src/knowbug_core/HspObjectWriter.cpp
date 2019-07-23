@@ -391,6 +391,7 @@ void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame cons
 	auto&& signature_opt = path.signature(o);
 	auto&& file_ref_name_opt = path.file_ref_name(o);
 	auto&& line_index_opt = path.line_index(o);
+	auto&& memory_view_opt = path.memory_view(o);
 
 	write_name(path);
 
@@ -407,8 +408,12 @@ void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame cons
 	w.catCrlf();
 
 	to_block_form().accept_children(path);
+	w.catCrlf();
 
-	// FIXME: 引数スタックのダンプ
+	if (memory_view_opt) {
+		w.catDump(memory_view_opt->data(), memory_view_opt->size());
+		w.catCrlf();
+	}
 }
 
 void HspObjectWriterImpl::TableForm::on_general(HspObjectPath::General const& path) {

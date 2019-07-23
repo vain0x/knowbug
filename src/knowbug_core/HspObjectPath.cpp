@@ -604,6 +604,10 @@ auto HspObjectPath::CallFrame::line_index(HspObjects& objects) const -> std::opt
 	return objects.call_frame_path_to_line_index(*this);
 }
 
+auto HspObjectPath::CallFrame::memory_view(HspObjects& objects) const -> std::optional<MemoryView> {
+	return objects.call_frame_path_to_memory_view(*this);
+}
+
 // -----------------------------------------------
 // 全般
 // -----------------------------------------------

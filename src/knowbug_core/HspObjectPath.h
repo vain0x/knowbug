@@ -3,6 +3,7 @@
 #include <string>
 #include "encoding.h"
 #include "HspDebugApi.h"
+#include "memory_view.h"
 
 class HspObjects;
 
@@ -843,6 +844,8 @@ public:
 	auto file_ref_name(HspObjects& objects) const -> std::optional<Utf8String>;
 
 	auto line_index(HspObjects& objects) const -> std::optional<std::size_t>;
+
+	auto memory_view(HspObjects& objects) const->std::optional<MemoryView>;
 };
 
 // -----------------------------------------------

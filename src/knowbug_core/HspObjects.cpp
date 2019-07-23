@@ -339,6 +339,10 @@ static auto param_path_to_param_type(HspObjectPath::Param const& path, std::size
 	return std::make_optional(api.param_data_to_type(*param_data_opt));
 }
 
+static auto param_stack_to_memory_view(HspParamStack const& param_stack) -> MemoryView {
+	return MemoryView{ param_stack.ptr(), param_stack.size() };
+}
+
 // -----------------------------------------------
 // HspObjects
 // -----------------------------------------------
@@ -814,6 +818,15 @@ auto HspObjects::call_frame_path_to_line_index(HspObjectPath::CallFrame const& p
 	}
 
 	return std::make_optional(call_frame_opt->get().line_index());
+}
+
+auto HspObjects::call_frame_path_to_memory_view(HspObjectPath::CallFrame const& path) const->std::optional<MemoryView> {
+	auto&& param_stack_opt = path_to_param_stack(path, MIN_DEPTH, api_);
+	if (!param_stack_opt) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(param_stack_to_memory_view(*param_stack_opt));
 }
 
 auto HspObjects::general_to_content() const -> Utf8StringView {
