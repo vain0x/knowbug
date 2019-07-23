@@ -353,6 +353,8 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, Hs
 	case HspObjectKind::StaticVar:
 	case HspObjectKind::Param:
 	{
+		// FIXME: str 引数のメモリビューに対応
+
 		auto&& pval_opt = path_to_pval(path, depth, api);
 		if (!pval_opt) {
 			return std::nullopt;
@@ -868,15 +870,6 @@ auto HspObjects::call_frame_path_to_line_index(HspObjectPath::CallFrame const& p
 	}
 
 	return std::make_optional(call_frame_opt->get().line_index());
-}
-
-auto HspObjects::call_frame_path_to_memory_view(HspObjectPath::CallFrame const& path) const->std::optional<MemoryView> {
-	auto&& param_stack_opt = path_to_param_stack(path, MIN_DEPTH, api_);
-	if (!param_stack_opt) {
-		return std::nullopt;
-	}
-
-	return std::make_optional(param_stack_to_memory_view(*param_stack_opt));
 }
 
 auto HspObjects::general_to_content() const -> Utf8StringView {

@@ -417,9 +417,10 @@ void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame cons
 	w.catCrlf();
 
 	to_block_form().accept_children(path);
-	w.catCrlf();
 
 	if (memory_view_opt) {
+		w.catCrlf();
+
 		w.catDump(memory_view_opt->data(), memory_view_opt->size());
 		w.catCrlf();
 	}

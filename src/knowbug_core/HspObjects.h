@@ -149,8 +149,6 @@ public:
 
 	auto call_frame_path_to_line_index(HspObjectPath::CallFrame const& path) const -> std::optional<std::size_t>;
 
-	auto call_frame_path_to_memory_view(HspObjectPath::CallFrame const& path) const->std::optional<MemoryView>;
-
 	auto general_to_content() const -> Utf8StringView;
 
 	auto log_to_content() const -> Utf8StringView;
