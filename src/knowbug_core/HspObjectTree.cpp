@@ -186,7 +186,7 @@ private:
 			return;
 		}
 
-		if (depth > UPDATE_DEPTH) {
+		if (depth >= UPDATE_DEPTH) {
 			return;
 		}
 
