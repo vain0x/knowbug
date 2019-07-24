@@ -189,6 +189,7 @@ private:
 		if (depth >= UPDATE_DEPTH) {
 			return;
 		}
+		depth++;
 
 		auto&& children = nodes_.at(node_id).children();
 		auto&& path = nodes_.at(node_id).path();
@@ -236,7 +237,7 @@ private:
 
 		// 更新
 		for (auto i = std::size_t{}; i < children.size(); i++) {
-			update_children(children.at(i), depth + 1, observer);
+			update_children(children.at(i), depth, observer);
 		}
 	}
 
