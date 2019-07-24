@@ -723,6 +723,7 @@ auto HspObjects::system_var_path_to_child_count(HspObjectPath::SystemVar const& 
 	case HspSystemVarKind::Refdval:
 	case HspSystemVarKind::Stat:
 	case HspSystemVarKind::StrSize:
+	case HspSystemVarKind::Thismod:
 		return 1;
 	default:
 		assert(false && u8"Unknown HspSystemVarKind");
@@ -750,6 +751,9 @@ auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& pat
 
 	case HspSystemVarKind::Refdval:
 		return path.new_double();
+
+	case HspSystemVarKind::Thismod:
+		return path.new_flex();
 
 	default:
 		assert(false && u8"Unknown HspSystemVarKind");
@@ -791,6 +795,9 @@ auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) c
 
 	case HspSystemVarKind::StrSize:
 		return to_owned(as_utf8(u8"strsize"));
+
+	case HspSystemVarKind::Thismod:
+		return to_owned(as_utf8(u8"thismod"));
 
 	default:
 		assert(false && u8"Invalid HspSystemVarKind");

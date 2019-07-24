@@ -196,6 +196,8 @@ static auto PVal_getPtr(PVal* pval) -> PDAT*
 
 static auto PVal_getPtr(PVal* pval, APTR aptr) -> PDAT*
 {
+	// FIXME: range check
+
 	if ( aptr == 0 ) return pval->pt;
 
 	auto bak = pval->offset;

@@ -114,19 +114,23 @@ public:
 };
 
 // HSP の変数が持つデータへのポインタ
+// FIXME: size?
 class HspData {
 	HspType type_;
 	PDAT* ptr_;
 
 public:
+	HspData()
+		: type_(HspType::None)
+		, ptr_()
+	{
+	}
+
 	HspData(HspType type, PDAT* ptr)
 		: type_(type)
 		, ptr_(ptr)
 	{
-		if (ptr == nullptr) {
-			assert(false && u8"HspData can't be null.");
-			throw new std::invalid_argument{ u8"ptr" };
-		}
+		assert(type == HspType::None || ptr != nullptr);
 	}
 
 	auto type() const -> HspType {
@@ -278,7 +282,6 @@ public:
 
 // システム変数の種類。
 // 順番は名前順、ただし類似したものは近くに集める。
-// FIXME: thismod を追加
 enum HspSystemVarKind {
 	Cnt = 1,
 	Err,
@@ -291,4 +294,5 @@ enum HspSystemVarKind {
 	Refdval,
 	Stat,
 	StrSize,
+	Thismod,
 };

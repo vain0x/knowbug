@@ -436,7 +436,7 @@ auto HspObjectPath::as_unknown() const -> HspObjectPath::Unknown const& {
 // システム変数リスト
 // -----------------------------------------------
 
-static auto const s_system_var_list = std::array<HspSystemVarKind, 11>{{
+static auto const s_system_var_list = std::array<HspSystemVarKind, 12>{{
 	HspSystemVarKind::Cnt,
 	HspSystemVarKind::Err,
 	HspSystemVarKind::IParam,
@@ -448,6 +448,7 @@ static auto const s_system_var_list = std::array<HspSystemVarKind, 11>{{
 	HspSystemVarKind::Refdval,
 	HspSystemVarKind::Stat,
 	HspSystemVarKind::StrSize,
+	HspSystemVarKind::Thismod,
 }};
 
 HspObjectPath::SystemVarList::SystemVarList(std::shared_ptr<HspObjectPath const> parent)
@@ -468,7 +469,7 @@ auto HspObjectPath::as_system_var_list() const -> HspObjectPath::SystemVarList c
 }
 
 auto HspObjectPath::SystemVarList::child_count(HspObjects& objects) const -> std::size_t {
-	assert(s_system_var_list.back() == HspSystemVarKind::StrSize);
+	assert(s_system_var_list.back() == HspSystemVarKind::Thismod);
 	return s_system_var_list.size();
 }
 

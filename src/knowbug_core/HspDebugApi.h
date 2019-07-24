@@ -81,6 +81,10 @@ public:
 
 	auto mp_var_data_to_aptr(MPVarData* var_data) -> std::size_t;
 
+	auto mp_mod_var_data_to_pval(MPModVarData* mod_var_data)->PVal*;
+
+	auto mp_mod_var_data_to_aptr(MPModVarData* mod_var_data)->std::size_t;
+
 	auto system_var_to_data(HspSystemVarKind system_var_kind) -> std::optional<HspData>;
 
 	auto data_to_label(HspData const& data) const -> HspLabel;
