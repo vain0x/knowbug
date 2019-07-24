@@ -4,7 +4,27 @@
 #include "HspRuntime.h"
 #include "HspObjects.h"
 #include "HspObjectTree.h"
+#include "hsp_wrap_call.h"
 #include "SourceFileResolver.h"
+
+class WcDebuggerImpl
+	: public WcDebugger
+{
+	HspDebugApi& api_;
+
+public:
+	WcDebuggerImpl(HspDebugApi& api)
+		: api_(api)
+	{
+	}
+
+	void get_current_location(std::string& file_ref_name, std::size_t& line_index) override {
+		api_.debug()->dbg_curinf();
+
+		file_ref_name = api_.current_file_ref_name().value_or(u8"???");
+		line_index = api_.current_line();
+	}
+};
 
 class HspLoggerImpl
 	: public HspLogger
@@ -81,5 +101,6 @@ HspRuntime::HspRuntime(HspDebugApi&& api, DebugInfo const& debug_info, SourceFil
 	, static_vars_(api_)
 	, objects_(api_, *logger_, *scripts_, static_vars_, debug_info, hpiutil::DInfo::instance())
 	, object_tree_(HspObjectTree::create(objects_))
+	, wc_debugger_(std::make_shared<WcDebuggerImpl>(api_))
 {
 }

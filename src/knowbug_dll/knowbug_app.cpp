@@ -9,6 +9,7 @@
 #include "../knowbug_core/HspDebugApi.h"
 #include "../knowbug_core/HspObjectWriter.h"
 #include "../knowbug_core/HspRuntime.h"
+#include "../knowbug_core/hsp_wrap_call.h"
 #include "../knowbug_core/platform.h"
 #include "../knowbug_core/SourceFileResolver.h"
 #include "../knowbug_core/StepController.h"
@@ -53,6 +54,12 @@ public:
 
 	auto view() -> KnowbugView& override {
 		return *view_;
+	}
+
+	void initialize() {
+		wc_initialize(hsp_runtime_->wc_debugger());
+
+		view().initialize();
 	}
 
 	void did_hsp_pause() {
@@ -198,7 +205,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	// 起動処理:
 
 	if (auto&& app = g_app) {
-		app->view().initialize();
+		app->initialize();
 	}
 	return 0;
 }

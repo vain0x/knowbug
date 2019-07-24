@@ -8,6 +8,10 @@
 
 class HspParamStack;
 class WcCallFrame;
+class WcDebugger;
+
+// WrapCall を初期化する。デバッガーの起動時に必ず呼び出すこと。
+extern void wc_initialize(std::shared_ptr<WcDebugger> const& debugger);
 
 extern auto wc_call_frame_count() -> std::size_t;
 
@@ -83,4 +87,13 @@ public:
 	auto line_index() const -> std::size_t {
 		return line_index_;
 	}
+};
+
+// WrapCall からデバッガーにアクセスするためのもの
+class WcDebugger {
+public:
+	virtual ~WcDebugger() {
+	}
+
+	virtual void get_current_location(std::string& file_ref_name, std::size_t& line_index) = 0;
 };
