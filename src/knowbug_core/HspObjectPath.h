@@ -738,6 +738,7 @@ public:
 	using HspObjectPath::new_str;
 	using HspObjectPath::new_double;
 	using HspObjectPath::new_int;
+	using HspObjectPath::new_flex;
 
 	SystemVar(std::shared_ptr<HspObjectPath const> parent, HspSystemVarKind system_var_kind);
 
