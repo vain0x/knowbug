@@ -16,6 +16,10 @@ auto HspObjectPath::self() const -> std::shared_ptr<HspObjectPath const> {
 	return shared_from_this();
 }
 
+auto HspObjectPath::memory_view(HspObjects& objects) const -> std::optional<MemoryView> {
+	return objects.path_to_memory_view(*this);
+}
+
 // -----------------------------------------------
 // ルートパス
 // -----------------------------------------------
@@ -155,6 +159,14 @@ auto HspObjectPath::StaticVar::type(HspObjects& objects) const -> HspType {
 	return objects.static_var_path_to_type(*this);
 }
 
+auto HspObjectPath::StaticVar::type_name(HspObjects& objects) const -> Utf8StringView {
+	return objects.type_to_name(type(objects));
+}
+
+auto HspObjectPath::StaticVar::lengths(HspObjects& objects) const -> HspDimIndex {
+	return metadata(objects).lengths();
+}
+
 auto HspObjectPath::StaticVar::metadata(HspObjects& objects) const -> HspVarMetadata {
 	return objects.static_var_path_to_metadata(*this);
 }
@@ -238,6 +250,10 @@ auto HspObjectPath::Param::child_at(std::size_t index, HspObjects& objects) cons
 
 auto HspObjectPath::Param::name(HspObjects& objects) const -> Utf8String {
 	return objects.param_path_to_name(*this);
+}
+
+auto HspObjectPath::Param::var_metadata(HspObjects& objects) const -> std::optional<HspVarMetadata> {
+	return objects.param_path_to_var_metadata(*this);
 }
 
 // -----------------------------------------------
@@ -384,6 +400,10 @@ auto HspObjectPath::Flex::child_at(std::size_t child_index, HspObjects& objects)
 
 auto HspObjectPath::Flex::is_nullmod(HspObjects& objects) const -> std::optional<bool> {
 	return objects.flex_path_is_nullmod(*this);
+}
+
+auto HspObjectPath::Flex::is_clone(HspObjects& objects) const -> std::optional<bool> {
+	return objects.flex_path_is_clone(*this);
 }
 
 auto HspObjectPath::Flex::module_name(HspObjects& objects) const -> Utf8String {
@@ -574,6 +594,10 @@ auto HspObjectPath::CallFrame::name(HspObjects& objects) const -> Utf8String {
 		return to_owned(as_utf8(u8"???"));
 	}
 	return *std::move(name_opt);
+}
+
+auto HspObjectPath::CallFrame::signature(HspObjects& objects) const->std::optional<std::vector<Utf8StringView>> {
+	return objects.call_frame_path_to_signature(*this);
 }
 
 auto HspObjectPath::CallFrame::file_ref_name(HspObjects& objects) const -> std::optional<Utf8String> {

@@ -59,6 +59,8 @@ public:
 
 	auto var_to_lengths(PVal* pval) const -> HspDimIndex;
 
+	auto var_to_mode(PVal* pval) const -> HspVarMode;
+
 	bool var_is_array(PVal* pval) const;
 
 	auto var_to_element_count(PVal* pval) -> std::size_t;
@@ -121,6 +123,8 @@ public:
 
 	auto struct_to_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> STRUCTPRM const*;
 
+	auto struct_to_param_stack_size(STRUCTDAT const* struct_dat) const->std::size_t;
+
 	auto params() const -> STRUCTPRM const*;
 
 	auto param_count() const -> std::size_t;
@@ -132,6 +136,8 @@ public:
 	auto param_stack_to_data_count(HspParamStack const& param_stack) const -> std::size_t;
 
 	auto param_stack_to_data_at(HspParamStack const& param_stack, std::size_t param_index) const -> HspParamData;
+
+	auto param_type_to_name(HspParamType param_type) const -> char const*;
 
 	auto param_data_to_type(HspParamData const& param_data) const -> HspParamType;
 

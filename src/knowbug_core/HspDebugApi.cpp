@@ -120,6 +120,10 @@ auto HspDebugApi::var_to_lengths(PVal* pval) const -> HspDimIndex {
 	return HspDimIndex{ i, lengths };
 }
 
+auto HspDebugApi::var_to_mode(PVal* pval) const -> HspVarMode {
+	return (HspVarMode)pval->mode;
+}
+
 bool HspDebugApi::var_is_array(PVal* pval) const {
 	return hpiutil::PVal_isStandardArray(pval);
 }
@@ -363,8 +367,9 @@ auto HspDebugApi::flex_to_member_at(FlexValue* flex, std::size_t member_index) c
 
 auto HspDebugApi::flex_to_param_stack(FlexValue* flex) const -> HspParamStack {
 	auto struct_dat = flex_to_module_struct(flex);
+	auto size = struct_to_param_stack_size(struct_dat);
 	auto safety = true;
-	return HspParamStack{ struct_dat, flex->ptr, safety };
+	return HspParamStack{ struct_dat, flex->ptr, size, safety };
 }
 
 auto HspDebugApi::structs() const -> STRUCTDAT const* {
@@ -385,6 +390,11 @@ auto HspDebugApi::struct_to_param_count(STRUCTDAT const* struct_dat) const -> st
 
 auto HspDebugApi::struct_to_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> STRUCTPRM const* {
 	return hpiutil::STRUCTDAT_params(struct_dat).begin() + param_index;
+}
+
+auto HspDebugApi::struct_to_param_stack_size(STRUCTDAT const* struct_dat) const -> std::size_t {
+	assert(struct_dat != nullptr);
+	return struct_dat->size;
 }
 
 auto HspDebugApi::params() const -> STRUCTPRM const* {
@@ -423,6 +433,39 @@ auto HspDebugApi::param_stack_to_data_at(HspParamStack const& param_stack, std::
 	auto param = hpiutil::STRUCTDAT_params(param_stack.struct_dat()).begin() + param_index;
 	auto ptr = (void*)((char const*)param_stack.ptr() + param->offset);
 	return HspParamData{ param, param_index, ptr, param_stack.safety() };
+}
+
+auto HspDebugApi::param_type_to_name(HspParamType param_type) const -> char const* {
+	switch (param_type) {
+	case MPTYPE_LABEL:
+		return u8"label";
+
+	case MPTYPE_DNUM:
+		return u8"double";
+
+	case MPTYPE_LOCALSTRING:
+		return u8"str";
+
+	case MPTYPE_INUM:
+		return u8"int";
+
+	case MPTYPE_SINGLEVAR:
+		return u8"var";
+
+	case MPTYPE_ARRAYVAR:
+		return u8"array";
+
+	case MPTYPE_LOCALVAR:
+		return u8"local";
+
+	case MPTYPE_MODULEVAR:
+	case MPTYPE_IMODULEVAR:
+	case MPTYPE_TMODULEVAR:
+		return u8"modvar";
+
+	default:
+		return u8"???";
+	}
 }
 
 auto HspDebugApi::param_data_to_type(HspParamData const& param_data) const -> HspParamType {

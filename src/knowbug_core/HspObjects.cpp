@@ -188,6 +188,28 @@ static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_in
 	return path.new_element(indexes);
 }
 
+static auto var_path_to_metadata(HspObjectPath const& path, HspDebugApi& api) -> std::optional<HspVarMetadata> {
+	auto&& pval_opt = path_to_pval(path, MIN_DEPTH, api);
+	if (!pval_opt) {
+		return std::nullopt;
+	}
+	auto&& pval = *pval_opt;
+
+	auto block_memory = api.var_to_block_memory(pval);
+
+	auto metadata = HspVarMetadata{};
+	metadata.type_ = api.var_to_type(pval);
+	metadata.mode_ = api.var_to_mode(pval);
+	metadata.lengths_ = api.var_to_lengths(pval);
+	metadata.element_size_ = api.var_to_element_count(pval);
+	metadata.data_size_ = pval->size;
+	metadata.block_size_ = block_memory.size();
+	metadata.data_ptr_ = pval->pt;
+	metadata.master_ptr_ = pval->master;
+	metadata.block_ptr_ = block_memory.data();
+	return metadata;
+}
+
 static auto label_path_to_value(HspObjectPath::Label const& path, HspDebugApi& api) -> std::optional<HspLabel> {
 	auto&& data_opt = path_to_data(path.parent(), MIN_DEPTH, api);
 	if (!data_opt) {
@@ -317,6 +339,58 @@ static auto param_path_to_param_type(HspObjectPath::Param const& path, std::size
 	return std::make_optional(api.param_data_to_type(*param_data_opt));
 }
 
+static auto param_stack_to_memory_view(HspParamStack const& param_stack) -> MemoryView {
+	return MemoryView{ param_stack.ptr(), param_stack.size() };
+}
+
+static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, HspDebugApi& api) -> std::optional<MemoryView> {
+	if (depth >= MAX_DEPTH) {
+		return std::nullopt;
+	}
+	depth++;
+
+	switch (path.kind()) {
+	case HspObjectKind::StaticVar:
+	case HspObjectKind::Param:
+	{
+		// FIXME: str 引数のメモリビューに対応
+
+		auto&& pval_opt = path_to_pval(path, depth, api);
+		if (!pval_opt) {
+			return std::nullopt;
+		}
+		auto&& pval = *pval_opt;
+
+		auto block_memory = api.var_to_block_memory(pval);
+		auto memory_view = MemoryView{ block_memory.data(), block_memory.size() };
+		return std::make_optional(memory_view);
+	}
+	case HspObjectKind::Element:
+	{
+		auto&& pval_opt = path_to_pval(path.parent(), depth, api);
+		if (!pval_opt) {
+			return std::nullopt;
+		}
+
+		auto aptr = api.var_element_to_aptr(*pval_opt, path.as_element().indexes());
+		auto block_memory = api.var_element_to_block_memory(*pval_opt, aptr);
+		auto memory_view = MemoryView{ block_memory.data(), block_memory.size() };
+		return std::make_optional(memory_view);
+	}
+	case HspObjectKind::CallFrame:
+	{
+		auto&& param_stack_opt = path_to_param_stack(path, MIN_DEPTH, api);
+		if (!param_stack_opt || !param_stack_opt->safety()) {
+			return std::nullopt;
+		}
+
+		return std::make_optional(param_stack_to_memory_view(*param_stack_opt));
+	}
+	default:
+		return std::nullopt;
+	}
+}
+
 // -----------------------------------------------
 // HspObjects
 // -----------------------------------------------
@@ -336,6 +410,10 @@ HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts,
 
 auto HspObjects::root_path() const->HspObjectPath::Root const& {
 	return root_path_->as_root();
+}
+
+auto HspObjects::path_to_memory_view(HspObjectPath const& path) const->std::optional<MemoryView> {
+	return (::path_to_memory_view(path, MIN_DEPTH, api_));
 }
 
 auto HspObjects::type_to_name(HspType type) const->Utf8StringView {
@@ -393,18 +471,7 @@ auto HspObjects::static_var_path_to_child_at(HspObjectPath::StaticVar const& pat
 }
 
 auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata {
-	auto pval = api_.static_var_to_pval(path.static_var_id());
-	auto block_memory = api_.var_to_block_memory(pval);
-
-	auto metadata = HspVarMetadata{};
-	metadata.lengths_ = api_.var_to_lengths(pval);
-	metadata.element_size_ = api_.var_to_element_count(pval);
-	metadata.data_size_ = pval->size;
-	metadata.block_size_ = block_memory.size();
-	metadata.data_ptr_ = pval->pt;
-	metadata.master_ptr_ = pval->master;
-	metadata.block_ptr_ = block_memory.data();
-	return metadata;
+	return var_path_to_metadata(path, api_).value_or(HspVarMetadata::none());
 }
 
 auto HspObjects::element_path_to_child_count(HspObjectPath::Element const& path) const -> std::size_t {
@@ -527,6 +594,11 @@ auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> U
 	return to_utf8(as_hsp(std::move(name)));
 }
 
+auto HspObjects::param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<HspVarMetadata> {
+	// FIXME: var/modvar 引数なら指定された要素に関するメモリダンプを表示したい (要素数 1、メモリダンプはその要素の範囲のみ)
+	return var_path_to_metadata(path, api_);
+}
+
 bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {
 	auto&& label_opt = label_path_to_value(path, api_);
 	if (!label_opt) {
@@ -616,6 +688,15 @@ auto HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) -> std::o
 	}
 
 	return std::make_optional(api_.flex_is_nullmod(*flex_opt));
+}
+
+auto HspObjects::flex_path_is_clone(HspObjectPath::Flex const& path) -> std::optional<bool> {
+	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, api_);
+	if (!flex_opt) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(api_.flex_is_clone(*flex_opt));
 }
 
 auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String {
@@ -754,6 +835,23 @@ auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& pat
 	auto&& param_data = api_.param_stack_to_data_at(*param_stack_opt, child_index);
 	auto param_type = api_.param_data_to_type(param_data);
 	return std::make_optional(path.new_param(param_type, param_data.param_index()));
+}
+
+auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<Utf8StringView>> {
+	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
+	if (!call_frame_opt) {
+		return std::nullopt;
+	}
+
+	// FIXME: debug api から取得する
+	auto&& params = hpiutil::STRUCTDAT_params(call_frame_opt->get().struct_dat());
+
+	auto names = std::vector<Utf8StringView>{};
+	for (auto&& param : params) {
+		names.emplace_back(as_utf8(api_.param_type_to_name(param.mptype)));
+	}
+
+	return std::make_optional(std::move(names));
 }
 
 auto HspObjects::call_frame_path_to_file_ref_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {

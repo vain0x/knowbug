@@ -28,12 +28,21 @@ using HspParamType = short;
 enum class HspType
 	: short
 {
+	None = HSPVAR_FLAG_NONE,
 	Label = HSPVAR_FLAG_LABEL,
 	Str = HSPVAR_FLAG_STR,
 	Double = HSPVAR_FLAG_DOUBLE,
 	Int = HSPVAR_FLAG_INT,
 	Struct = HSPVAR_FLAG_STRUCT,
 	Comstruct = HSPVAR_FLAG_COMSTRUCT,
+};
+
+enum class HspVarMode
+	: short
+{
+	None = HSPVAR_MODE_NONE,
+	Alloc = HSPVAR_MODE_MALLOC,
+	Clone = HSPVAR_MODE_CLONE,
 };
 
 // 多次元配列へのインデックス。(最大4次元)
@@ -60,6 +69,10 @@ public:
 		, indexes_(indexes)
 	{
 		assert(1 <= dim && dim <= MAX_DIM);
+	}
+
+	static auto one() -> HspDimIndex {
+		return HspDimIndex{ 1, { 1, 0, 0, 0 } };
 	}
 
 	bool operator ==(HspDimIndex const& other) const {
@@ -131,12 +144,15 @@ class HspParamStack {
 
 	void* ptr_;
 
+	std::size_t size_;
+
 	bool safety_;
 
 public:
-	HspParamStack(STRUCTDAT const* struct_dat, void* ptr, bool safety)
+	HspParamStack(STRUCTDAT const* struct_dat, void* ptr, std::size_t size, bool safety)
 		: struct_dat_(struct_dat)
 		, ptr_(ptr)
+		, size_(size)
 		, safety_(safety)
 	{
 		assert(struct_dat != nullptr);
@@ -149,6 +165,10 @@ public:
 
 	auto ptr() const -> void* {
 		return ptr_;
+	}
+
+	auto size() const -> std::size_t {
+		return size_;
 	}
 
 	// 引数のデータの読み取りが安全か
@@ -194,6 +214,8 @@ public:
 
 class HspVarMetadata {
 public:
+	HspType type_;
+	HspVarMode mode_;
 	HspDimIndex lengths_;
 	std::size_t element_size_;
 	std::size_t data_size_;
@@ -203,6 +225,14 @@ public:
 	void const* block_ptr_;
 
 public:
+	auto type() const -> HspType {
+		return type_;
+	}
+
+	auto mode() const -> HspVarMode {
+		return mode_;
+	}
+
 	auto lengths() const -> HspDimIndex const& {
 		return lengths_;
 	}
@@ -229,6 +259,20 @@ public:
 
 	auto block_ptr() const -> void const* {
 		return block_ptr_;
+	}
+
+	static auto none() -> HspVarMetadata {
+		return HspVarMetadata{
+			HspType::None,
+			HspVarMode::None,
+			HspDimIndex::one(),
+			0,
+			0,
+			0,
+			nullptr,
+			nullptr,
+			nullptr,
+		};
 	}
 };
 

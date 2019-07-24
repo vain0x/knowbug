@@ -2,10 +2,15 @@
 
 #include "pch.h"
 #include <iostream>
+#include "../knowbug_core/DebugInfo.h"
 #include "../knowbug_core/hsp_objects_module_tree.h"
+#include "../knowbug_core/HspObjectWriter.h"
 #include "../knowbug_core/string_split.h"
 #include "knowbug_tests.h"
 #include "test_runner.h"
+
+// FIXME: hsp_wrap_call で宣言されているので実体が必要。
+std::unique_ptr<DebugInfo> g_dbginfo{};
 
 static void enable_utf_8() {
 	SetConsoleOutputCP(CP_UTF8);
@@ -48,6 +53,7 @@ auto main() -> int {
 	hello_tests(tests);
 	str_writer_tests(tests);
 	module_tree_tests(tests);
+	hsp_object_writer_tests(tests);
 	string_lines_tests(tests);
 
 	auto success = runner.run();

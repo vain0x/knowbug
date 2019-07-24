@@ -3,6 +3,7 @@
 #include <string>
 #include "encoding.h"
 #include "HspDebugApi.h"
+#include "memory_view.h"
 
 class HspObjects;
 
@@ -139,6 +140,8 @@ public:
 		}
 		return false;
 	}
+
+	auto memory_view(HspObjects& objects) const -> std::optional<MemoryView>;
 
 	auto self() const -> std::shared_ptr<HspObjectPath const>;
 
@@ -336,6 +339,10 @@ public:
 
 	auto type(HspObjects& objects) const -> HspType;
 
+	auto type_name(HspObjects& objects) const -> Utf8StringView;
+
+	auto lengths(HspObjects& objects) const -> HspDimIndex;
+
 	auto metadata(HspObjects& objects) const -> HspVarMetadata;
 };
 
@@ -430,6 +437,8 @@ public:
 	auto param_index() const -> std::size_t {
 		return param_index_;
 	}
+
+	auto var_metadata(HspObjects& objects) const->std::optional<HspVarMetadata>;
 };
 
 // -----------------------------------------------
@@ -637,6 +646,8 @@ public:
 
 	auto is_nullmod(HspObjects& objects) const -> std::optional<bool>;
 
+	auto is_clone(HspObjects& objects) const->std::optional<bool>;
+
 	auto module_name(HspObjects& objects) const -> Utf8String;
 };
 
@@ -829,6 +840,8 @@ public:
 	auto call_frame_id() const -> std::size_t {
 		return call_frame_id_;
 	}
+
+	auto signature(HspObjects& objects) const->std::optional<std::vector<Utf8StringView>>;
 
 	auto file_ref_name(HspObjects& objects) const -> std::optional<Utf8String>;
 

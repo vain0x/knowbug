@@ -13,46 +13,74 @@ static auto const MAX_CHILD_COUNT = std::size_t{ 3000 };
 // ヘルパー
 // -----------------------------------------------
 
-// FIXME: クローン変数なら & をつける
-static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, HspDimIndex const& lengths) {
-	writer.cat(as_native(type_name));
-
-	switch (lengths.dim()) {
-	case 0:
-		writer.cat("(empty)");
-		return;
-	case 1:
-		// (%d)
-		writer.cat("(");
-		writer.catSize(lengths.at(0));
-		writer.cat(")");
-		return;
-	default:
-		// (%d, %d, ..) (%d in total)
-		writer.cat("(");
-		for (auto i = std::size_t{}; i < lengths.dim(); i++) {
-			if (i != 0) {
-				writer.cat(", ");
-			}
-			writer.catSize(lengths.at(i));
-		}
-		writer.cat(") (");
-		writer.catSize(lengths.size());
-		writer.cat(" in total)");
-		return;
-	}
+static bool string_is_multiline(Utf8StringView const& str) {
+	return str.find(Utf8Char{ '\n' }) != Utf8StringView::npos;
 }
 
 static bool string_is_compact(Utf8StringView const& str) {
-	if (str.size() >= 64) {
-		return false;
+	return str.size() < 64 && !string_is_multiline(str);
+}
+
+static void write_var_mode(CStrWriter& writer, HspVarMode var_mode) {
+	switch (var_mode) {
+	case HspVarMode::None:
+		writer.cat(u8" (empty)");
+		break;
+	case HspVarMode::Alloc:
+		break;
+	case HspVarMode::Clone:
+		writer.cat(u8" (dup)");
+		break;
+	default:
+		assert(false && u8"Unknown VarMode");
+		break;
+	}
+}
+
+static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, HspVarMode var_mode, HspDimIndex const& lengths) {
+	// 例: int(2, 3) (6 in total) (dup)
+
+	writer.cat(as_native(type_name));
+
+	if (lengths.dim() == 1) {
+		// (%d)
+		writer.cat(u8"(");
+		writer.catSize(lengths.at(0));
+		writer.cat(u8")");
+	} else {
+		// (%d, %d, ..) (%d in total)
+		writer.cat(u8"(");
+		for (auto i = std::size_t{}; i < lengths.dim(); i++) {
+			if (i != 0) {
+				writer.cat(u8", ");
+			}
+			writer.catSize(lengths.at(i));
+		}
+		writer.cat(u8") (");
+		writer.catSize(lengths.size());
+		writer.cat(u8" in total)");
 	}
 
-	if (str.find((Utf8Char)'\n') != Utf8StringView::npos) {
-		return false;
-	}
+	write_var_mode(writer, var_mode);
+}
 
-	return true;
+static auto write_var_metadata_on_table(CStrWriter& w, Utf8StringView const& type_name, HspVarMetadata const& metadata) {
+	w.cat(u8"変数型: ");
+	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
+	w.catCrlf();
+
+	w.cat(u8"アドレス: ");
+	w.catPtr(metadata.data_ptr());
+	w.cat(u8", ");
+	w.catPtr(metadata.master_ptr());
+	w.catCrlf();
+
+	w.cat(u8"サイズ: ");
+	w.catSize(metadata.data_size());
+	w.cat(u8" / ");
+	w.catSize(metadata.block_size());
+	w.cat(u8" [byte]");
+	w.catCrlf();
 }
 
 static bool object_path_is_compact(HspObjectPath const& path, HspObjects& objects) {
@@ -74,6 +102,52 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 
 	default:
 		return false;
+	}
+}
+
+static void write_flex_module_name(CStrWriter& w, Utf8StringView const& module_name, std::optional<bool> is_clone_opt) {
+	w.cat(module_name);
+
+	// クローンなら印をつける。
+	// NOTE: この関数が呼ばれているということは、flex が nullmod か否か判定できたということなので、
+	//		 クローン変数か分からない (is_clone_opt == nullopt) ということは考えづらい。
+	if (is_clone_opt && *is_clone_opt) {
+		w.cat(u8"&");
+	}
+}
+
+static void write_signature(CStrWriter& w, std::vector<Utf8StringView> const& param_type_names) {
+	// FIXME: 命令ならカッコなし、関数ならカッコあり？
+
+	w.cat(u8"(");
+
+	for (auto i = std::size_t{}; i < param_type_names.size(); i++) {
+		if (i != 0) {
+			w.cat(u8", ");
+		}
+
+		w.cat(param_type_names.at(i));
+	}
+
+	w.cat(u8")");
+}
+
+static void write_source_location(
+	CStrWriter& w,
+	std::optional<Utf8StringView> const& file_ref_name_opt,
+	std::optional<std::size_t> const& line_index_opt
+) {
+	// 例: #12 hoge.hsp
+	if (line_index_opt) {
+		// 1-indexed
+		w.cat(u8"#");
+		w.catSize(*line_index_opt + 1);
+		w.cat(u8" ");
+	}
+	if (file_ref_name_opt) {
+		w.cat(*file_ref_name_opt);
+	} else {
+		w.cat(u8"???");
 	}
 }
 
@@ -119,6 +193,8 @@ public:
 	void accept_children(HspObjectPath const& path) override;
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
+
+	void on_param(HspObjectPath::Param const& path) override;
 
 	void on_call_frame(HspObjectPath::CallFrame const& path) override;
 
@@ -230,15 +306,30 @@ void HspObjectWriterImpl::TableForm::write_name(HspObjectPath const& path) {
 	auto&& o = objects();
 	auto&& w = writer();
 
-	w.cat("[");
+	w.cat(u8"[");
 	w.cat(path.name(o));
-	w.catln("]");
+	w.catln(u8"]");
 }
 
 void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
-	write_name(path);
+	auto&& o = objects();
+	auto&& w = writer();
 
+	if (path.child_count(o) == 0) {
+		write_name(path);
+		to_block_form().accept(path);
+		return;
+	}
+
+	write_name(path);
 	to_block_form().accept_children(path);
+
+	auto&& memory_view_opt = path.memory_view(o);
+	if (memory_view_opt) {
+		w.catCrlf();
+		w.catDump(memory_view_opt->data(), memory_view_opt->size());
+		w.catCrlf();
+	}
 }
 
 void HspObjectWriterImpl::TableForm::accept_children(HspObjectPath const& path) {
@@ -261,29 +352,13 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	auto&& o = objects();
 	auto&& w = writer();
 
-	auto type = path.type(o);
-	auto&& type_name = o.type_to_name(type);
+	auto&& type_name = path.type_name(o);
 	auto&& metadata = path.metadata(o);
 
 	// 変数に関する情報
 	write_name(path);
 
-	w.cat(u8"変数型: ");
-	write_array_type(w, type_name, metadata.lengths());
-	w.catCrlf();
-
-	w.cat(u8"アドレス: ");
-	w.catPtr(metadata.data_ptr());
-	w.cat(", ");
-	w.catPtr(metadata.master_ptr());
-	w.catCrlf();
-
-	w.cat(u8"サイズ: ");
-	w.catSize(metadata.data_size());
-	w.cat(" / ");
-	w.catSize(metadata.block_size());
-	w.cat(" [byte]");
-	w.catCrlf();
+	write_var_metadata_on_table(w, type_name, metadata);
 	w.catCrlf();
 
 	// 変数の内容に関する情報
@@ -294,34 +369,61 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	w.catDump(metadata.block_ptr(), metadata.block_size());
 }
 
+void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) {
+	auto&& o = objects();
+	auto&& w = writer();
+
+	if (auto && metadata_opt = path.var_metadata(o)) {
+		auto&& metadata = *metadata_opt;
+		auto&& type_name = o.type_to_name(metadata.type());
+		auto&& name = path.name(o);
+
+		write_name(path);
+		write_var_metadata_on_table(w, type_name, metadata);
+		w.catCrlf();
+
+		to_block_form().accept_children(path);
+		w.catCrlf();
+
+		w.catDump(metadata.block_ptr(), metadata.block_size());
+		w.catCrlf();
+		return;
+	}
+
+	accept_default(path);
+}
+
 void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame const& path) {
 	auto&& o = objects();
 	auto&& w = writer();
 
+	auto&& signature_opt = path.signature(o);
 	auto&& file_ref_name_opt = path.file_ref_name(o);
 	auto&& line_index_opt = path.line_index(o);
+	auto&& memory_view_opt = path.memory_view(o);
 
 	write_name(path);
 
-	// FIXME: シグネチャ
-
 	w.cat(u8"呼び出し位置: ");
-	// 例: #12 hoge.hsp
-	if (line_index_opt) {
-		w.cat(u8"#");
-		w.catSize(*line_index_opt);
-		w.cat(u8" ");
+	write_source_location(w, file_ref_name_opt, line_index_opt);
+	w.catCrlf();
+
+	if (signature_opt) {
+		w.cat(u8"シグネチャ: ");
+		write_signature(w, *signature_opt);
+		w.catCrlf();
 	}
-	if (file_ref_name_opt) {
-		w.catln(*file_ref_name_opt);
-	} else {
-		w.catln(u8"???");
-	}
+
 	w.catCrlf();
 
 	to_block_form().accept_children(path);
 
-	// FIXME: 引数スタックのダンプ
+	if (memory_view_opt) {
+		w.catCrlf();
+
+		w.catDump(memory_view_opt->data(), memory_view_opt->size());
+		w.catCrlf();
+	}
 }
 
 void HspObjectWriterImpl::TableForm::on_general(HspObjectPath::General const& path) {
@@ -376,8 +478,6 @@ void HspObjectWriterImpl::BlockForm::accept(HspObjectPath const& path) {
 
 void HspObjectWriterImpl::BlockForm::accept_default(HspObjectPath const& path) {
 	add_name_children(path);
-
-	// FIXME: システム変数や引数リストならメモリダンプを出力できる
 }
 
 void HspObjectWriterImpl::BlockForm::accept_children(HspObjectPath const& path) {
@@ -404,15 +504,18 @@ void HspObjectWriterImpl::BlockForm::on_module(HspObjectPath::Module const& path
 }
 
 void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar const& path) {
-	auto name = as_native(path.name(objects()));
+	auto&& o = objects();
+	auto&& w = writer();
+
+	auto name = as_native(path.name(o));
 	auto short_name = hpiutil::nameExcludingScopeResolution(name);
 
-	writer().cat(short_name);
-	writer().cat("\t= ");
+	w.cat(short_name);
+	w.cat(u8"\t= ");
 
 	to_flow_form().accept(path);
 
-	writer().catCrlf();
+	w.catCrlf();
 }
 
 void HspObjectWriterImpl::BlockForm::on_label(HspObjectPath::Label const& path) {
@@ -447,20 +550,20 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 
 	auto&& is_nullmod_opt = path.is_nullmod(o);
 	if (!is_nullmod_opt) {
-		w.cat("<unavailable>");
+		w.catln(u8"<unavailable>");
 		return;
 	}
 
 	if (*is_nullmod_opt) {
-		w.catln("<null>");
+		w.catln(u8"<null>");
 		return;
 	}
 
-	// FIXME: クローンなら & をつける
 	auto&& module_name = path.module_name(o);
+	auto&& is_clone_opt = path.is_clone(o);
 
-	w.cat(".module = ");
-	w.cat(module_name);
+	w.cat(u8".module = ");
+	write_flex_module_name(w, module_name, is_clone_opt);
 	w.catCrlf();
 
 	accept_children(path);
@@ -485,13 +588,13 @@ void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path
 	auto&& first_child = path.child_at(0, o);
 	if (child_count == 1 && object_path_is_compact(*first_child, o)) {
 		w.cat(name.data());
-		w.cat("\t= ");
+		w.cat(u8"\t= ");
 		to_block_form().accept(*first_child);
 		return;
 	}
 
 	w.cat(name.data());
-	w.catln(":");
+	w.catln(u8":");
 	w.indent();
 	to_block_form().accept_children(path);
 	w.unindent();
@@ -513,7 +616,7 @@ void HspObjectWriterImpl::FlowForm::accept_children(HspObjectPath const& path) {
 	auto child_count = path.child_count(o);
 	for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, child_count); i++) {
 		if (i != 0) {
-			w.cat(", ");
+			w.cat(u8", ");
 		}
 
 		accept(*path.child_at(i, o));
@@ -532,11 +635,11 @@ void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const
 
 	// FIXME: 多次元配列の表示を改善する
 
-	w.cat("<");
+	w.cat(u8"<");
 	w.cat(as_native(type_name));
-	w.cat(">[");
+	w.cat(u8">[");
 	accept_children(path);
-	w.cat("]");
+	w.cat(u8"]");
 }
 
 void HspObjectWriterImpl::FlowForm::on_label(HspObjectPath::Label const& path) {
@@ -544,23 +647,17 @@ void HspObjectWriterImpl::FlowForm::on_label(HspObjectPath::Label const& path) {
 	auto&& w = writer();
 
 	if (path.is_null(o)) {
-		w.cat("<null-label>");
+		w.cat(u8"<null-label>");
 		return;
 	}
 
 	if (auto&& name_opt = path.static_label_name(o)) {
-		w.cat("*");
+		w.cat(u8"*");
 		w.cat(*name_opt);
 		return;
 	}
 
-	if (auto&& id_opt = path.static_label_id(o)) {
-		w.cat("*#");
-		w.catSize(*id_opt);
-		return;
-	}
-
-	w.cat("<label>");
+	w.cat(u8"<label>");
 }
 
 void HspObjectWriterImpl::FlowForm::on_str(HspObjectPath::Str const& path) {
@@ -584,30 +681,30 @@ void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
 
 	auto&& is_nullmod_opt = path.is_nullmod(o);
 	if (!is_nullmod_opt) {
-		w.cat("<unavailable>");
+		w.cat(u8"<unavailable>");
 		return;
 	}
 
 	if (*is_nullmod_opt) {
-		w.cat("null");
+		w.cat(u8"null");
 		return;
 	}
 
-	// FIXME: クローンなら & をつける
 	auto&& module_name = path.module_name(o);
-	w.cat(module_name);
-	w.cat("{");
+	auto&& is_clone_opt = path.is_clone(o);
+	write_flex_module_name(w, module_name, is_clone_opt);
+	w.cat(u8"{");
 
 	for (auto i = std::size_t{}; i < path.child_count(o); i++) {
 		auto&& child_path = path.child_at(i, o);
 
 		if (i != 0) {
-			w.cat(", ");
+			w.cat(u8", ");
 		}
 		accept(*child_path);
 	}
 
-	w.cat("}");
+	w.cat(u8"}");
 }
 
 void HspObjectWriterImpl::FlowForm::on_unknown(HspObjectPath::Unknown const& path) {
@@ -635,4 +732,100 @@ void HspObjectWriter::write_block_form(HspObjectPath const& path) {
 
 void HspObjectWriter::write_flow_form(HspObjectPath const& path) {
 	HspObjectWriterImpl::FlowForm{ objects_, writer_ }.accept(path);
+}
+
+// -----------------------------------------------
+// テスト
+// -----------------------------------------------
+
+static void write_array_type_tests(Tests& tests) {
+	auto&& suite = tests.suite(u8"write_array_type");
+
+	auto write = [&](auto&& type_name, auto&& var_mode, auto&& lengths) {
+		auto w = CStrWriter{};
+		write_array_type(w, type_name, var_mode, lengths);
+		return as_utf8(w.finish());
+	};
+
+	suite.test(
+		u8"1次元配列",
+		[&](TestCaseContext& t) {
+			return t.eq(
+				write(as_utf8(u8"int"), HspVarMode::Alloc, HspDimIndex{ 1, { 3 } }),
+				as_utf8(u8"int(3)")
+			);
+		});
+
+	suite.test(
+		u8"2次元配列",
+		[&](TestCaseContext& t) {
+			return t.eq(
+				write(as_utf8(u8"str"), HspVarMode::Alloc, HspDimIndex{ 2, { 2, 3 } }),
+				as_utf8(u8"str(2, 3) (6 in total)")
+			);
+		});
+
+	suite.test(
+		u8"クローン変数",
+		[&](TestCaseContext& t) {
+			return t.eq(
+				write(as_utf8(u8"int"), HspVarMode::Clone, HspDimIndex{ 1, { 4 } }),
+				as_utf8(u8"int(4) (dup)")
+			);
+		});
+}
+
+static void write_source_location_tests(Tests& tests) {
+	auto&& suite = tests.suite(u8"write_source_location");
+
+	auto write = [&](auto&& ...args) {
+		auto w = CStrWriter{};
+		write_source_location(w, args...);
+		return as_utf8(w.finish());
+	};
+
+	suite.test(
+		u8"ファイル参照名と行番号があるケース",
+		[&](TestCaseContext& t) {
+			auto actual = write(
+				std::make_optional(as_utf8(u8"foo.hsp")),
+				std::make_optional(std::size_t{ 42 })
+			);
+			return t.eq(actual, as_utf8(u8"#43 foo.hsp"));
+		});
+
+	suite.test(
+		u8"行番号がないケース",
+		[&](TestCaseContext& t) {
+			auto actual = write(
+				std::make_optional(as_utf8(u8"foo.hsp")),
+				std::nullopt
+			);
+			return t.eq(actual, as_utf8(u8"foo.hsp"));
+		});
+
+	suite.test(
+		u8"ファイル参照名がないケース",
+		[&](TestCaseContext& t) {
+			auto actual = write(
+				std::nullopt,
+				std::make_optional(std::size_t{ 42 })
+			);
+			return t.eq(actual, as_utf8(u8"#43 ???"));
+		});
+
+	suite.test(
+		u8"ファイル参照名も行番号もないケース",
+		[&](TestCaseContext& t) {
+			auto actual = write(
+				std::nullopt,
+				std::nullopt
+			);
+			return t.eq(actual, as_utf8(u8"???"));
+		});
+}
+
+void hsp_object_writer_tests(Tests& tests) {
+	write_array_type_tests(tests);
+	write_source_location_tests(tests);
 }

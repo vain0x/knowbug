@@ -125,7 +125,11 @@ auto wc_call_frame_to_param_stack(std::size_t call_frame_id) -> std::optional<Hs
 	auto is_safe = next_sublev == prev_sublev + 1;
 
 	auto param_stack = exists ? next_param_stack : nullptr;
-	return std::make_optional<HspParamStack>(struct_dat, (void*)param_stack, is_safe);
+
+	// FIXME: DebugApi を使う?
+	auto param_stack_size = struct_dat->size;
+
+	return std::make_optional<HspParamStack>(struct_dat, (void*)param_stack, param_stack_size, is_safe);
 }
 
 // ユーザ定義コマンドの処理をラッパーで置き換える

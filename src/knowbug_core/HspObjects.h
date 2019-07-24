@@ -65,6 +65,8 @@ public:
 
 	auto root_path() const->HspObjectPath::Root const&;
 
+	auto path_to_memory_view(HspObjectPath const& path) const->std::optional<MemoryView>;
+
 	auto type_to_name(HspType type) const->Utf8StringView;
 
 	auto module_global_id() const->std::size_t;
@@ -101,6 +103,8 @@ public:
 
 	auto param_path_to_name(HspObjectPath::Param const& path) const -> Utf8String;
 
+	auto param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<HspVarMetadata>;
+
 	bool label_path_is_null(HspObjectPath::Label const& path) const;
 
 	auto label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<Utf8String>;
@@ -117,7 +121,9 @@ public:
 
 	auto flex_path_to_child_at(HspObjectPath::Flex const& path, std::size_t index)->std::shared_ptr<HspObjectPath const>;
 
-	auto flex_path_is_nullmod(HspObjectPath::Flex const& path) -> std::optional<bool>;
+	auto flex_path_is_nullmod(HspObjectPath::Flex const& path)->std::optional<bool>;
+
+	auto flex_path_is_clone(HspObjectPath::Flex const& path)->std::optional<bool>;
 
 	auto flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String;
 
@@ -136,6 +142,8 @@ public:
 	auto call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t;
 
 	auto call_frame_path_to_child_at(HspObjectPath::CallFrame const& path, std::size_t child_index) const -> std::optional<std::shared_ptr<HspObjectPath const>>;
+
+	auto call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<Utf8StringView>>;
 
 	auto call_frame_path_to_file_ref_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String>;
 
