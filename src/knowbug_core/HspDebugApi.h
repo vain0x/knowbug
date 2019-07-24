@@ -151,6 +151,8 @@ public:
 
 	auto param_data_to_array_var(HspParamData const& param_data) const -> MPVarData*;
 
+	auto param_data_to_mod_var(HspParamData const& param_data) const->std::optional<MPModVarData*>;
+
 	auto param_data_to_data(HspParamData const& param_data) const->std::optional<HspData>;
 };
 

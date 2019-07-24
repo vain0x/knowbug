@@ -117,6 +117,15 @@ static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HspDebugA
 					auto pval = api.mp_var_data_to_pval(mp_var_data);
 					return std::make_optional(pval);
 				}
+			case MPTYPE_MODULEVAR:
+			case MPTYPE_IMODULEVAR:
+			case MPTYPE_TMODULEVAR: {
+				auto&& mod_var_data_opt = api.param_data_to_mod_var(param_data);
+				if (!mod_var_data_opt) {
+					return std::nullopt;
+				}
+				return std::make_optional(api.mp_mod_var_data_to_pval(*mod_var_data_opt));
+			}
 			default:
 				return std::nullopt;
 			}
@@ -526,8 +535,9 @@ auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) con
 		return var_path_to_child_count(path, api_);
 
 	case MPTYPE_SINGLEVAR:
-		return 1;
-
+	case MPTYPE_MODULEVAR:
+	case MPTYPE_IMODULEVAR:
+	case MPTYPE_TMODULEVAR:
 	case MPTYPE_LABEL:
 	case MPTYPE_LOCALSTRING:
 	case MPTYPE_DNUM:
@@ -535,7 +545,6 @@ auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) con
 		return 1;
 
 	default:
-		// FIXME: 他の種類の引数に対応する (label, var, array, modvar)
 		return 0;
 	}
 }
@@ -565,7 +574,30 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 			auto indexes = api_.var_element_to_indexes(pval, aptr);
 			return path.new_element(indexes);
 		}
+	case MPTYPE_MODULEVAR:
+	case MPTYPE_IMODULEVAR:
+	case MPTYPE_TMODULEVAR: {
+		auto param_data_opt = param_path_to_param_data(path, MIN_DEPTH, api_);
+		if (!param_data_opt) {
+			return path.new_unavailable(to_owned(as_utf8(u8"引数データを取得できません")));
+		}
 
+		auto&& mod_var_data_opt = api_.param_data_to_mod_var(*param_data_opt);
+		if (!mod_var_data_opt) {
+			return path.new_unavailable(to_owned(as_utf8(u8"引数データを取得できません")));
+		}
+
+		auto pval = api_.mp_mod_var_data_to_pval(*mod_var_data_opt);
+		auto aptr = api_.mp_mod_var_data_to_aptr(*mod_var_data_opt);
+
+		// FIXME: 要素パスが値を取得する段階で範囲検査が行われるので、この検査は不要なはず。
+		if (aptr >= api_.var_to_element_count(pval)) {
+			return path.new_unavailable(to_owned(as_utf8(u8"引数に渡された要素が存在しません")));
+		}
+
+		auto indexes = api_.var_element_to_indexes(pval, aptr);
+		return path.new_element(indexes);
+	}
 	case MPTYPE_LABEL:
 		return path.new_label();
 

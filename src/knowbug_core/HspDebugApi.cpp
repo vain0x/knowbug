@@ -27,6 +27,19 @@ static auto int_ptr_to_data(HspInt* ptr) -> HspData {
 	return HspData{ HspType::Int, (PDAT*)ptr };
 }
 
+static auto param_data_to_mod_var_data(HspParamType type, void const* data) -> std::optional<MPModVarData*> {
+	if (type != MPTYPE_MODULEVAR && type != MPTYPE_IMODULEVAR && type != MPTYPE_TMODULEVAR) {
+		return std::nullopt;
+	}
+
+	auto mod_var_data = UNSAFE((MPModVarData*)data);
+	if (!mod_var_data || mod_var_data->magic != MODVAR_MAGICCODE || !mod_var_data->pval || mod_var_data->aptr < 0) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(mod_var_data);
+}
+
 HspDebugApi::HspDebugApi(HSP3DEBUG* debug)
 	: debug_(debug)
 	, context_(debug->hspctx)
@@ -267,14 +280,13 @@ auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) -> std::o
 	case HspSystemVarKind::StrSize:
 		return std::make_optional(int_ptr_to_data(&context()->strsize));
 
-	case HspSystemVarKind::Thismod:
-	{
-		auto mod_var_data = UNSAFE((MPModVarData*)ctx->prmstack);
-		if (!mod_var_data || mod_var_data->magic != MODVAR_MAGICCODE || !mod_var_data->pval || mod_var_data->aptr < 0) {
+	case HspSystemVarKind::Thismod: {
+		auto mod_var_data_opt = param_data_to_mod_var_data(MPTYPE_MODULEVAR, ctx->prmstack);
+		if (!mod_var_data_opt) {
 			return std::nullopt;
 		}
 
-		auto&& data = var_element_to_data(mod_var_data->pval, (std::size_t)mod_var_data->aptr);
+		auto&& data = var_element_to_data((**mod_var_data_opt).pval, (std::size_t)(**mod_var_data_opt).aptr);
 		if (data.type() != HspType::Struct) {
 			return std::nullopt;
 		}
@@ -526,6 +538,15 @@ auto HspDebugApi::param_data_to_single_var(HspParamData const& param_data) const
 
 auto HspDebugApi::param_data_to_array_var(HspParamData const& param_data) const -> MPVarData* {
 	return param_data_to_single_var(param_data);
+}
+
+auto HspDebugApi::param_data_to_mod_var(HspParamData const& param_data) const -> std::optional<MPModVarData*> {
+	auto type = param_data_to_type(param_data);
+	auto&& mod_var_data_opt = param_data_to_mod_var_data(type, param_data.ptr());
+	if (!mod_var_data_opt) {
+		return std::nullopt;
+	}
+	return *mod_var_data_opt;
 }
 
 auto HspDebugApi::param_data_to_data(HspParamData const& param_data) const -> std::optional<HspData> {
