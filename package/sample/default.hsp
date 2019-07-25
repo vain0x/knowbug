@@ -1,6 +1,20 @@
 #include "hsp3utf.as"
 #include "WrapCall.as"
 
+#module
+
+#deffunc f2
+	return
+
+#deffunc f1
+	f2
+	return
+
+#global
+
+	assert
+	f1
+
 	dim mat, 2, 3
 	dup mat_dup, mat
 

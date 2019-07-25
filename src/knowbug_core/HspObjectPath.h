@@ -474,9 +474,9 @@ public:
 		throw new std::exception{};
 	}
 
+	// NOTE: ラベル名ではなくパス自体の名前
 	auto name(HspObjects& objects) const -> Utf8String override {
-		// FIXME: パス自体には名前がない (ラベル名は使わない)
-		return to_owned(as_utf8(u8"<anonymous>"));
+		return to_owned(as_utf8(u8"label"));
 	}
 
 	bool is_null(HspObjects& objects) const;
@@ -520,8 +520,7 @@ public:
 	}
 
 	auto name(HspObjects& objects) const -> Utf8String override {
-		// FIXME: 名前自体がない
-		return to_owned(as_utf8(u8"<anonymous>"));
+		return to_owned(as_utf8(u8"str"));
 	}
 
 	auto value(HspObjects& objects) const -> Utf8String;
@@ -561,8 +560,7 @@ public:
 	}
 
 	auto name(HspObjects& objects) const -> Utf8String override {
-		// FIXME: 名前自体がない
-		return to_owned(as_utf8(u8"<anonymous>"));
+		return to_owned(as_utf8(u8"double"));
 	}
 
 	auto value(HspObjects& objects) const -> HspDouble;
@@ -602,8 +600,7 @@ public:
 	}
 
 	auto name(HspObjects& objects) const -> Utf8String override {
-		// FIXME: 名前自体がない
-		return to_owned(as_utf8(u8"<anonymous>"));
+		return to_owned(as_utf8(u8"int"));
 	}
 
 	auto value(HspObjects& objects) const -> HspInt;
@@ -640,8 +637,8 @@ public:
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
 	auto name(HspObjects& objects) const -> Utf8String override {
-		// FIXME: 名前自体がない
-		return to_owned(as_utf8(u8"<anonymous>"));
+		// NOTE: HSP 的には struct や flex ではなく「モジュール変数」なため
+		return to_owned(as_utf8(u8"module"));
 	}
 
 	auto is_nullmod(HspObjects& objects) const -> std::optional<bool>;
@@ -685,8 +682,7 @@ public:
 	}
 
 	auto name(HspObjects& objects) const -> Utf8String override {
-		// FIXME: 名前自体がない
-		return to_owned(as_utf8(u8"<anonymous>"));
+		return to_owned(as_utf8(u8"unknown"));
 	}
 };
 
@@ -796,12 +792,8 @@ public:
 	auto child_at(std::size_t index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override;
 
 	auto name(HspObjects& objects) const -> Utf8String override {
-		return to_owned(as_utf8(u8"コールスタック"));
+		return to_owned(as_utf8(u8"呼び出し"));
 	}
-
-	auto frame_count(HspObjects& objects) const -> std::size_t;
-
-	auto frame_at(std::size_t frame_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const>;
 };
 
 // -----------------------------------------------
@@ -1011,7 +1003,7 @@ public:
 	}
 
 	auto name(HspObjects& objects) const -> Utf8String override {
-		return to_owned(as_utf8(u8"<unavailable>"));
+		return to_owned(as_utf8(u8"(利用不能)"));
 	}
 
 	auto reason() const->Utf8StringView;
