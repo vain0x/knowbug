@@ -22,9 +22,8 @@ public:
 
 	auto content() -> Utf8StringView;
 
-	// 指定した行の文字列を取得する。
-	// 編集中で保存されていないスクリプトを実行しているときは、行番号が行数を超える可能性があるので注意。
-	auto line_at(std::size_t line_index) -> Utf8StringView;
+	// 指定した行の文字列 (字下げを除く) を取得する。
+	auto line_at(std::size_t line_index) -> std::optional<Utf8StringView>;
 
 private:
 	void load();

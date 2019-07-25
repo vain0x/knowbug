@@ -66,111 +66,170 @@ static auto search_file_from_dirs(
 	);
 }
 
-SourceFileResolver::SourceFileResolver(OsString&& common_path, hpiutil::DInfo const& debug_segment)
-	: resolution_done_(false)
-	, debug_segment_(debug_segment)
-{
-	dirs_.emplace(std::move(common_path));
+// -----------------------------------------------
+// SourceFileResolver
+// -----------------------------------------------
+
+void SourceFileResolver::add_known_dir(OsString&& dir) {
+	dirs_.emplace(std::move(dir));
 }
 
-auto SourceFileResolver::resolve_file_ref_names()->void {
-	if (resolution_done_) {
-		return;
+void SourceFileResolver::add_file_ref_name(std::string&& file_ref_name) {
+	file_ref_names_.emplace(std::move(file_ref_name));
+}
+
+auto SourceFileResolver::resolve() -> SourceFileRepository {
+	auto done = false;
+
+	// 未解決のファイル参照名の集合
+	auto file_ref_names = std::vector<std::pair<std::string, OsString>>{};
+	auto next = file_ref_names;
+
+	for (auto&& file_ref_name : std::move(file_ref_names_)) {
+		auto os_str = to_os(as_hsp(file_ref_name));
+		file_ref_names.emplace_back(std::move(file_ref_name), std::move(os_str));
 	}
 
-	auto file_ref_names = std::vector<OsString>{};
-	for (auto&& file_ref_name : debug_segment_.fileRefNames()) {
-		file_ref_names.push_back(to_os(as_hsp(file_ref_name.data())));
-	}
+	// 絶対パス → ファイルID
+	auto full_path_map = std::unordered_map<OsString, SourceFileId>{};
 
-	while (!resolution_done_) {
+	// ファイルID → ソースファイル
+	auto source_files = std::vector<SourceFile>{};
+
+	// ファイル参照名 → 絶対パス
+	auto full_paths = std::unordered_map<std::string, OsString>{};
+
+	auto add = [&](std::string const& file_ref_name, OsString const& full_path) {
+		assert(!full_paths.count(file_ref_name));
+		full_paths.emplace(file_ref_name, full_path);
+
+		// 対応するソースファイルがなければ追加する。
+		auto&& iter = full_path_map.find(full_path);
+		if (iter == full_path_map.end()) {
+			auto file_id = SourceFileId{ source_files.size() };
+			full_path_map.emplace(full_path, file_id);
+			source_files.emplace_back(to_owned(full_path));
+		}
+	};
+
+	auto find = [&](std::string const& original, OsString const& file_ref_name) -> bool {
+		assert(!full_path_map.count(file_ref_name) && u8"解決済みのファイルには呼ばれないはず");
+
+		// ファイルシステムから探す。
+		OsString dir_name;
+		OsString full_path;
+		auto ok = search_file_from_dirs(file_ref_name, dirs_, dir_name, full_path);
+		if (!ok) {
+			return false;
+		}
+
+		// 見つかったディレクトリを検索対象に加える。
+		dirs_.emplace(std::move(dir_name));
+
+		// メモ化する。
+		add(original, full_path);
+		return true;
+	};
+
+	while (!done) {
 		auto stuck = true;
 
-		for (auto&& file_ref_name : file_ref_names) {
-			// 絶対パス発見済みならOK。
-			if (full_paths_.count(file_ref_name) != 0) {
+		auto i = file_ref_names.size();
+		while (i > 0) {
+			i--;
+
+			auto ok = find(file_ref_names[i].first, file_ref_names[i].second);
+			if (!ok) {
 				continue;
 			}
 
-			// 絶対パスを探す。
-			auto&& full_path_opt = find_full_path_core(as_view(file_ref_name));
-			if (!full_path_opt) {
-				continue;
-			}
+			// i 番目の要素を削除
+			std::iter_swap(&file_ref_names[i], &file_ref_names.back());
+			file_ref_names.pop_back();
 
 			stuck = false;
 		}
 
 		// ループを回して何も起こらなくなったら (不動点に達したら) 終わり。
 		if (stuck) {
-			resolution_done_ = true;
+			done = true;
 		}
 	}
-}
 
-auto SourceFileResolver::find_full_path(OsStringView const& file_ref_name) -> std::optional<OsStringView> {
-	// 依存関係の解決をする。
-	resolve_file_ref_names();
+	// ファイル参照名 → ファイルID
+	auto file_map = std::unordered_map<std::string, SourceFileId>{};
+	for (auto&& pair : full_paths) {
+		auto&& iter = full_path_map.find(pair.second);
+		if (iter == full_path_map.end()) {
+			assert(false);
+			continue;
+		}
 
-	// 探す。
-	return find_full_path_core(file_ref_name);
-}
-
-auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name) -> std::optional<OsStringView> {
-	auto file_ref_name_str = to_owned(file_ref_name); // FIXME: 無駄なコピー
-
-	// キャッシュから探す。
-	auto iter = full_paths_.find(file_ref_name_str);
-	if (iter != std::end(full_paths_)) {
-		return std::make_optional(as_view(iter->second));
+		file_map.emplace(pair.first, iter->second);
 	}
 
-	// ファイルシステムから探す。
-	OsString dir_name;
-	OsString full_path;
-	auto ok = search_file_from_dirs(file_ref_name, dirs_, dir_name, full_path);
-	if (ok) {
-		// 見つかったディレクトリを検索対象に加える。
-		dirs_.emplace(std::move(dir_name));
-
-		// メモ化する。
-		full_paths_.emplace(to_owned(file_ref_name), std::move(full_path));
-
-		// メモ内の絶対パスへの参照を返す。
-		return std::make_optional(as_view(full_paths_[file_ref_name_str]));
-	}
-
-	return std::nullopt;
+	return SourceFileRepository{ std::move(source_files), std::move(file_map) };
 }
 
-auto SourceFileResolver::find_script_content(OsStringView const& file_ref_name) -> std::optional<Utf8StringView> {
-	auto&& source_file_opt = find_source_file(file_ref_name);
-	if (!source_file_opt) {
+// -----------------------------------------------
+// SourceFileRepository
+// -----------------------------------------------
+
+auto SourceFileRepository::file_ref_name_to_file_id(char const* file_ref_name) const->std::optional<SourceFileId> {
+	auto&& iter = file_map_.find(file_ref_name);
+	return std::make_optional(iter->second);
+}
+
+auto SourceFileRepository::file_ref_name_to_full_path(char const* file_ref_name) const->std::optional<OsStringView> {
+	auto file_id_opt = file_ref_name_to_file_id(file_ref_name);
+	if (!file_id_opt) {
 		return std::nullopt;
 	}
 
-	auto&& content = (*source_file_opt)->content();
-	return std::make_optional(content);
+	return file_to_full_path(*file_id_opt);
 }
 
-auto SourceFileResolver::find_script_line(OsStringView const& file_ref_name, std::size_t line_index)->std::optional<Utf8StringView> {
-	auto&& source_file_opt = find_source_file(file_ref_name);
-	if (!source_file_opt) {
+auto SourceFileRepository::file_ref_name_to_content(char const* file_ref_name)->std::optional<Utf8StringView> {
+	auto file_id_opt = file_ref_name_to_file_id(file_ref_name);
+	if (!file_id_opt) {
 		return std::nullopt;
 	}
 
-	auto&& content  = (*source_file_opt)->line_at(line_index);
-	return std::make_optional(content);
+	return file_to_content(*file_id_opt);
 }
 
-auto SourceFileResolver::find_source_file(OsStringView const& file_ref_name) -> std::optional<std::shared_ptr<SourceFile>> {
-	auto&& full_path_opt = find_full_path(file_ref_name);
-	if (!full_path_opt) {
+auto SourceFileRepository::file_ref_name_to_line_at(char const* file_ref_name, std::size_t line_index)->std::optional<Utf8StringView> {
+	auto file_id_opt = file_ref_name_to_file_id(file_ref_name);
+	if (!file_id_opt) {
 		return std::nullopt;
 	}
 
-	auto source_file = std::make_shared<SourceFile>(to_owned(*full_path_opt));
-	source_files_.emplace(to_owned(*full_path_opt), std::move(source_file));
+	return file_to_line_at(*file_id_opt, line_index);
+}
 
-	return std::make_optional(source_files_[to_owned(*full_path_opt)]); // FIXME: 無駄なコピー
+auto SourceFileRepository::file_to_full_path(SourceFileId const& file_id) const->std::optional<OsStringView> {
+	if (file_id.id() >= source_files_.size()) {
+		assert(false && u8"unknown source file id");
+		return std::nullopt;
+	}
+
+	return std::make_optional(source_files_[file_id.id()].full_path());
+}
+
+auto SourceFileRepository::file_to_content(SourceFileId const& file_id) -> std::optional<Utf8StringView> {
+	if (file_id.id() >= source_files_.size()) {
+		assert(false && u8"unknown source file id");
+		return std::nullopt;
+	}
+
+	return std::make_optional(source_files_[file_id.id()].content());
+}
+
+auto SourceFileRepository::file_to_line_at(SourceFileId const& file_id, std::size_t line_index) -> std::optional<Utf8StringView> {
+	if (file_id.id() >= source_files_.size()) {
+		assert(false && u8"unknown source file id");
+		return std::nullopt;
+	}
+
+	return source_files_[file_id.id()].line_at(line_index);
 }

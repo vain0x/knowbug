@@ -45,14 +45,14 @@ auto SourceFile::content() -> Utf8StringView {
 	return content_;
 }
 
-auto SourceFile::line_at(std::size_t line_index) -> Utf8StringView {
+auto SourceFile::line_at(std::size_t line_index) -> std::optional<Utf8StringView> {
 	load();
 
 	if (line_index >= lines_.size()) {
-		return as_utf8(u8"");
+		return std::nullopt;
 	}
 
-	return lines_[line_index];
+	return std::make_optional(lines_[line_index]);
 }
 
 void SourceFile::load() {

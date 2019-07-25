@@ -27,12 +27,25 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
 EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4);
 static void debugbye();
 
+auto create_source_file_repository(OsString&& common_path, hpiutil::DInfo const& debug_segment)
+->std::unique_ptr<SourceFileRepository> {
+	auto resolver = SourceFileResolver{};
+
+	resolver.add_known_dir(std::move(common_path));
+
+	for (auto file_ref_name : debug_segment.fileRefNames()) {
+		resolver.add_file_ref_name(std::move(file_ref_name));
+	}
+
+	return std::make_unique<SourceFileRepository>(resolver.resolve());
+}
+
 class KnowbugAppImpl
 	: public KnowbugApp
 {
 	std::unique_ptr<KnowbugConfig> config_;
 	std::unique_ptr<KnowbugStepController> step_controller_;
-	std::unique_ptr<SourceFileResolver> source_file_resolver_;
+	std::unique_ptr<SourceFileRepository> source_file_repository_;
 	std::unique_ptr<HspRuntime> hsp_runtime_;
 	std::unique_ptr<KnowbugView> view_;
 
@@ -40,13 +53,13 @@ public:
 	KnowbugAppImpl(
 		std::unique_ptr<KnowbugConfig> config,
 		std::unique_ptr<KnowbugStepController> step_controller,
-		std::unique_ptr<SourceFileResolver> source_file_resolver,
+		std::unique_ptr<SourceFileRepository> source_file_repository,
 		std::unique_ptr<HspRuntime> hsp_runtime,
 		std::unique_ptr<KnowbugView> view
 	)
 		: config_(std::move(config))
 		, step_controller_(std::move(step_controller))
-		, source_file_resolver_(std::move(source_file_resolver))
+		, source_file_repository_(std::move(source_file_repository))
 		, hsp_runtime_(std::move(hsp_runtime))
 		, view_(std::move(view))
 	{
@@ -129,8 +142,8 @@ public:
 	}
 
 	void open_current_script_file() override {
-		auto file_ref_name = to_os(as_hsp(g_dbginfo->curPos().fileRefName()));
-		auto&& full_path_opt = source_file_resolver_->find_full_path(as_view(file_ref_name));
+		auto file_ref_name = g_dbginfo->curPos().fileRefName();
+		auto&& full_path_opt = source_file_repository_->file_ref_name_to_full_path(file_ref_name);
 		if (full_path_opt) {
 			ShellExecute(nullptr, TEXT("open"), full_path_opt->data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
 		}
@@ -187,9 +200,9 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 	auto const& debug_segment = hpiutil::DInfo::instance();
 
-	auto source_file_resolver = std::make_unique<SourceFileResolver>(config->commonPath(), debug_segment);
+	auto source_file_repository = create_source_file_repository(config->commonPath(), debug_segment);
 
-	auto hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *debug_info, *source_file_resolver);
+	auto hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *debug_info, *source_file_repository);
 
 	auto view = KnowbugView::create(*config, g_dll_instance, hsp_runtime->objects(), hsp_runtime->object_tree());
 
@@ -197,7 +210,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	g_app = std::make_shared<KnowbugAppImpl>(
 		std::move(config),
 		std::move(step_controller),
-		std::move(source_file_resolver),
+		std::move(source_file_repository),
 		std::move(hsp_runtime),
 		std::move(view)
 	);
