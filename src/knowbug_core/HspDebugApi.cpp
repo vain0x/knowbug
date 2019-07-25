@@ -145,7 +145,12 @@ auto HspDebugApi::var_to_element_count(PVal* pval) -> std::size_t {
 	return hpiutil::PVal_cntElems((PVal*)pval);
 }
 
-auto HspDebugApi::var_element_to_indexes(PVal* pval, std::size_t aptr) -> HspDimIndex {
+auto HspDebugApi::var_element_to_indexes(PVal* pval, std::size_t aptr) -> std::optional<HspDimIndex> {
+	auto count = var_to_element_count(pval);
+	if (aptr >= count) {
+		return std::nullopt;
+	}
+
 	auto lengths = var_to_lengths(pval);
 
 	// E.g. lengths=(2, 3), aptr=5, indexes=(1, 2)
@@ -155,20 +160,24 @@ auto HspDebugApi::var_element_to_indexes(PVal* pval, std::size_t aptr) -> HspDim
 		aptr /= lengths[i];
 	}
 
-	return HspDimIndex{ lengths.dim(), indexes };
+	return std::make_optional(HspDimIndex{ lengths.dim(), indexes });
 }
 
-auto HspDebugApi::var_element_to_aptr(PVal* pval, HspDimIndex const& indexes) -> std::size_t {
+auto HspDebugApi::var_element_to_aptr(PVal* pval, HspDimIndex const& indexes) -> std::optional<std::size_t> {
 	auto lengths = var_to_lengths(pval);
 
 	auto unit = std::size_t{ 1 };
 	auto aptr = std::size_t{};
 	for (auto i = std::size_t{}; i < lengths.dim(); i++) {
+		if (indexes[i] >= lengths[i]) {
+			return std::nullopt;
+		}
+
 		aptr += indexes[i] * unit;
 		unit *= lengths[i];
 	}
 
-	return aptr;
+	return std::make_optional(aptr);
 }
 
 auto HspDebugApi::var_element_to_data(PVal* pval, std::size_t aptr) -> HspData {
