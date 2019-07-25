@@ -30,9 +30,9 @@ static void wc_will_call(STRUCTDAT const* struct_dat) {
 		return;
 	}
 
-	std::string file_ref_name;
+	std::optional<std::size_t> file_id_opt;
 	std::size_t line_index;
-	debugger->get_current_location(file_ref_name, line_index);
+	debugger->get_current_location(file_id_opt, line_index);
 
 	s_call_stack.emplace_back(
 		++s_last_id,
@@ -40,7 +40,7 @@ static void wc_will_call(STRUCTDAT const* struct_dat) {
 		ctx->prmstack,
 		ctx->sublev,
 		ctx->looplev,
-		std::move(file_ref_name),
+		std::move(file_id_opt),
 		line_index
 	);
 }

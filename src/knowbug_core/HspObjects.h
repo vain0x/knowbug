@@ -13,6 +13,7 @@ namespace hpiutil {
 class DebugInfo;
 class HspDebugApi;
 class HspStaticVars;
+class SourceFileRepository;
 
 // FIXME: ログが更新されるたびにビューを更新する
 class HspLogger {
@@ -52,6 +53,7 @@ private:
 	HspScripts& scripts_;
 	HspStaticVars& static_vars_;
 	hpiutil::DInfo const& debug_segment_;
+	SourceFileRepository& source_file_repository_;
 
 	std::shared_ptr<HspObjectPath const> root_path_;
 
@@ -61,7 +63,7 @@ private:
 	Utf8String general_content_;
 
 public:
-	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info_, hpiutil::DInfo const& debug_segment);
+	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info_, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository);
 
 	auto root_path() const->HspObjectPath::Root const&;
 

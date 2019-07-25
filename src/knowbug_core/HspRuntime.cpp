@@ -12,16 +12,33 @@ class WcDebuggerImpl
 {
 	HspDebugApi& api_;
 
+	SourceFileRepository& source_file_repository_;
+
 public:
-	WcDebuggerImpl(HspDebugApi& api)
+	WcDebuggerImpl(HspDebugApi& api, SourceFileRepository& source_file_repository)
 		: api_(api)
+		, source_file_repository_(source_file_repository)
 	{
 	}
 
-	void get_current_location(std::string& file_ref_name, std::size_t& line_index) override {
+	auto current_file_id_opt() const -> std::optional<std::size_t> {
+		auto&& file_ref_name_opt = api_.current_file_ref_name();
+		if (!file_ref_name_opt) {
+			return std::nullopt;
+		}
+
+		auto&& id_opt = source_file_repository_.file_ref_name_to_file_id(*file_ref_name_opt);
+		if (!id_opt) {
+			return std::nullopt;
+		}
+
+		return id_opt->id();
+	}
+
+	void get_current_location(std::optional<std::size_t>& file_id_opt, std::size_t& line_index) override {
 		api_.debug()->dbg_curinf();
 
-		file_ref_name = api_.current_file_ref_name().value_or(u8"???");
+		file_id_opt = current_file_id_opt();
 		line_index = api_.current_line();
 	}
 };
@@ -73,8 +90,8 @@ HspRuntime::HspRuntime(HspDebugApi&& api, DebugInfo const& debug_info, SourceFil
 	, logger_(std::make_unique<HspLoggerImpl>())
 	, scripts_(std::make_unique<HspScriptsImpl>(source_file_repository))
 	, static_vars_(api_)
-	, objects_(api_, *logger_, *scripts_, static_vars_, debug_info, hpiutil::DInfo::instance())
+	, objects_(api_, *logger_, *scripts_, static_vars_, debug_info, hpiutil::DInfo::instance(), source_file_repository)
 	, object_tree_(HspObjectTree::create(objects_))
-	, wc_debugger_(std::make_shared<WcDebuggerImpl>(api_))
+	, wc_debugger_(std::make_shared<WcDebuggerImpl>(api_, source_file_repository))
 {
 }

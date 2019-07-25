@@ -8,6 +8,7 @@
 #include "HspDebugApi.h"
 #include "HspObjects.h"
 #include "HspStaticVars.h"
+#include "SourceFileResolver.h"
 
 // 再帰深度の初期値
 static auto const MIN_DEPTH = std::size_t{};
@@ -416,12 +417,13 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, Hs
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info, hpiutil::DInfo const& debug_segment)
+HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository)
 	: api_(api)
 	, logger_(logger)
 	, scripts_(scripts)
 	, static_vars_(static_vars)
 	, debug_segment_(debug_segment)
+	, source_file_repository_(source_file_repository)
 	, root_path_(std::make_shared<HspObjectPath::Root>())
 	, modules_(group_vars_by_module(static_vars.get_all_names()))
 	, types_(create_type_datas())
@@ -911,7 +913,19 @@ auto HspObjects::call_frame_path_to_file_ref_name(HspObjectPath::CallFrame const
 		return std::nullopt;
 	}
 
-	return std::make_optional(as_utf8(call_frame_opt->get().file_ref_name()));
+	auto&& file_id_opt = call_frame_opt->get().file_id_opt();
+	if (!file_id_opt) {
+		return std::nullopt;
+	}
+	auto file_id = SourceFileId{ *file_id_opt };
+
+	// FIXME: 参照名を使うかファイル名をキャッシュする
+	auto&& full_path_opt = source_file_repository_.file_to_full_path(file_id);
+	if (!full_path_opt) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(to_utf8(*full_path_opt));
 }
 
 auto HspObjects::call_frame_path_to_line_index(HspObjectPath::CallFrame const& path) const -> std::optional<std::size_t> {
