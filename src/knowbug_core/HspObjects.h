@@ -32,7 +32,7 @@ public:
 
 	virtual auto content(char const* file_ref_name) -> Utf8StringView = 0;
 
-	virtual auto line(char const* file_ref_name, std::size_t line_index)->std::optional<Utf8String> = 0;
+	virtual auto line(char const* file_ref_name, std::size_t line_index)->std::optional<Utf8StringView> = 0;
 };
 
 // FIXME: インターフェイスを抽出する

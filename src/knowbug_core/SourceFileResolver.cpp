@@ -72,7 +72,7 @@ static auto open_source_file(OsStringView const& full_path) -> std::shared_ptr<S
 
 	// FIXME: ソースコードの文字コードが HSP ランタイムの文字コードと同じとは限らない。
 	auto content = std::string{ std::istreambuf_iterator<char>{ifs}, {} };
-	auto content_str = to_os(as_hsp(std::move(content)));
+	auto content_str = to_utf8(as_hsp(std::move(content)));
 
 	return std::make_shared<SourceFile>(to_owned(full_path), std::move(content_str));
 }
@@ -154,7 +154,7 @@ auto SourceFileResolver::find_full_path_core(OsStringView const& file_ref_name) 
 	return std::nullopt;
 }
 
-auto SourceFileResolver::find_script_content(OsStringView const& file_ref_name) -> std::optional<OsStringView> {
+auto SourceFileResolver::find_script_content(OsStringView const& file_ref_name) -> std::optional<Utf8StringView> {
 	auto&& source_file_opt = find_source_file(file_ref_name);
 	if (!source_file_opt) {
 		return std::nullopt;
@@ -164,7 +164,7 @@ auto SourceFileResolver::find_script_content(OsStringView const& file_ref_name) 
 	return std::make_optional(content);
 }
 
-auto SourceFileResolver::find_script_line(OsStringView const& file_ref_name, std::size_t line_index)->std::optional<OsStringView> {
+auto SourceFileResolver::find_script_line(OsStringView const& file_ref_name, std::size_t line_index)->std::optional<Utf8StringView> {
 	auto&& source_file_opt = find_source_file(file_ref_name);
 	if (!source_file_opt) {
 		return std::nullopt;

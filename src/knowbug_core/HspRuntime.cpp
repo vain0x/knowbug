@@ -73,11 +73,10 @@ public:
 			return empty_;
 		}
 
-		scripts_.emplace(std::string{ file_ref_name }, std::make_shared<Utf8String>(to_utf8(*content_opt)));
-		return *scripts_.at(file_ref_name);
+		return *content_opt;
 	}
 
-	auto line(char const* file_ref_name, std::size_t line_index) -> std::optional<Utf8String> override {
+	auto line(char const* file_ref_name, std::size_t line_index) -> std::optional<Utf8StringView> override {
 		auto&& iter = scripts_.find(file_ref_name);
 		if (iter != scripts_.end()) {
 			return *iter->second;
@@ -90,7 +89,7 @@ public:
 			return std::nullopt;
 		}
 
-		return std::make_optional(to_utf8(*line_opt));
+		return *line_opt;
 	}
 };
 

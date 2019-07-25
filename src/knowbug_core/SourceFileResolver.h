@@ -33,9 +33,9 @@ public:
 	// ファイル参照名の絶対パスを検索する。
 	auto find_full_path(OsStringView const& file_ref_name)->std::optional<OsStringView>;
 
-	auto find_script_content(OsStringView const& file_ref_name)->std::optional<OsStringView>;
+	auto find_script_content(OsStringView const& file_ref_name)->std::optional<Utf8StringView>;
 
-	auto find_script_line(OsStringView const& file_ref_name, std::size_t line_index)->std::optional<OsStringView>;
+	auto find_script_line(OsStringView const& file_ref_name, std::size_t line_index)->std::optional<Utf8StringView>;
 
 private:
 	auto resolve_file_ref_names()->void;
