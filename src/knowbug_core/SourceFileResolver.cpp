@@ -66,17 +66,6 @@ static auto search_file_from_dirs(
 	);
 }
 
-static auto open_source_file(OsStringView const& full_path) -> std::shared_ptr<SourceFile> {
-	auto ifs = std::ifstream{ full_path.data() };
-	assert(ifs.is_open());
-
-	// FIXME: ソースコードの文字コードが HSP ランタイムの文字コードと同じとは限らない。
-	auto content = std::string{ std::istreambuf_iterator<char>{ifs}, {} };
-	auto content_str = to_utf8(as_hsp(std::move(content)));
-
-	return std::make_shared<SourceFile>(to_owned(full_path), std::move(content_str));
-}
-
 SourceFileResolver::SourceFileResolver(OsString&& common_path, hpiutil::DInfo const& debug_segment)
 	: resolution_done_(false)
 	, debug_segment_(debug_segment)
@@ -180,7 +169,7 @@ auto SourceFileResolver::find_source_file(OsStringView const& file_ref_name) -> 
 		return std::nullopt;
 	}
 
-	auto source_file = open_source_file(*full_path_opt);
+	auto source_file = std::make_shared<SourceFile>(to_owned(*full_path_opt));
 	source_files_.emplace(to_owned(*full_path_opt), std::move(source_file));
 
 	return std::make_optional(source_files_[to_owned(*full_path_opt)]); // FIXME: 無駄なコピー
