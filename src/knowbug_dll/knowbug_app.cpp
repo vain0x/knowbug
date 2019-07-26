@@ -11,7 +11,7 @@
 #include "../knowbug_core/HspRuntime.h"
 #include "../knowbug_core/hsp_wrap_call.h"
 #include "../knowbug_core/platform.h"
-#include "../knowbug_core/SourceFileResolver.h"
+#include "../knowbug_core/source_files.h"
 #include "../knowbug_core/StepController.h"
 #include "knowbug_app.h"
 #include "knowbug_config.h"

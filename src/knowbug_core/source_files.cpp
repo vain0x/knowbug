@@ -1,8 +1,10 @@
 #include "pch.h"
 #include <algorithm>
 #include <array>
+#include <fstream>
 #include <iterator>
-#include "SourceFileResolver.h"
+#include "source_files.h"
+#include "string_split.h"
 
 // 指定したディレクトリを基準として、指定した名前または相対パスのファイルを検索する。
 // 結果として、フルパスと、パス中のディレクトリの部分を返す。
@@ -239,4 +241,77 @@ auto SourceFileRepository::file_to_line_at(SourceFileId const& file_id, std::siz
 	}
 
 	return source_files_[file_id.id()].line_at(line_index);
+}
+
+
+// NOTE: ifstream がファイル名に basic_string_view を受け取らないので、OsString への参照をもらう。
+static auto load_text_file(OsString const& file_path) -> Utf8String {
+	auto ifs = std::ifstream{ file_path };
+	if (!ifs.is_open()) {
+		// デバッグログなどに出力する？
+		return to_owned(as_utf8(u8""));
+	}
+
+	// NOTE: ソースコードの文字コードが HSP ランタイムの文字コードと同じとは限らない。
+	auto content = as_hsp(std::string{ std::istreambuf_iterator<char>{ ifs }, {} });
+	return to_utf8(content);
+}
+
+static auto char_is_whitespace(Utf8Char c) -> bool {
+	return c == Utf8Char{ ' ' } || c == Utf8Char{ '\t' };
+}
+
+// 行ごとに分割する。ただし各行の字下げは除外する。
+static auto split_by_lines(Utf8StringView const& str) -> std::vector<Utf8StringView> {
+	auto lines = std::vector<Utf8StringView>{};
+
+	for (auto&& line : StringLines{ str }) {
+		auto i = std::size_t{};
+		while (i < line.size() && char_is_whitespace(line[i])) {
+			i++;
+		}
+
+		lines.emplace_back(line.substr(i));
+	}
+
+	return lines;
+}
+
+// -----------------------------------------------
+// SourceFile
+// -----------------------------------------------
+
+SourceFile::SourceFile(OsString&& full_path)
+	: full_path_(std::move(full_path))
+	, full_path_as_utf8_(to_utf8(full_path_))
+	, loaded_(false)
+	, content_()
+	, lines_()
+{
+}
+
+auto SourceFile::content() -> Utf8StringView {
+	load();
+
+	return content_;
+}
+
+auto SourceFile::line_at(std::size_t line_index) -> std::optional<Utf8StringView> {
+	load();
+
+	if (line_index >= lines_.size()) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(lines_[line_index]);
+}
+
+void SourceFile::load() {
+	if (loaded_) {
+		return;
+	}
+
+	content_ = load_text_file(full_path_);
+	lines_ = split_by_lines(as_view(content_));
+	loaded_ = true;
 }

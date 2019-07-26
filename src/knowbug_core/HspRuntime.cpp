@@ -5,7 +5,7 @@
 #include "HspObjects.h"
 #include "HspObjectTree.h"
 #include "hsp_wrap_call.h"
-#include "SourceFileResolver.h"
+#include "source_files.h"
 
 class WcDebuggerImpl
 	: public WcDebugger

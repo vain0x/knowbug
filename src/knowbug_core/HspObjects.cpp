@@ -8,7 +8,7 @@
 #include "HspDebugApi.h"
 #include "HspObjects.h"
 #include "HspStaticVars.h"
-#include "SourceFileResolver.h"
+#include "source_files.h"
 
 // 再帰深度の初期値
 static auto const MIN_DEPTH = std::size_t{};
