@@ -7,24 +7,10 @@
 
 #define UNSAFE(E) (E)
 
+namespace hsx = hsp_sdk_ext;
+
 static auto pval_to_type(PVal const* pval) -> HspType {
 	return (HspType)pval->flag;
-}
-
-static auto label_ptr_to_data(HspLabel* ptr) -> HspData {
-	return HspData{ HspType::Label, (PDAT*)ptr };
-}
-
-static auto str_ptr_to_data(HspStr value) -> HspData {
-	return HspData{ HspType::Str, (PDAT*)value };
-}
-
-static auto double_ptr_to_data(HspDouble* ptr) -> HspData {
-	return HspData{ HspType::Double, (PDAT*)ptr };
-}
-
-static auto int_ptr_to_data(HspInt* ptr) -> HspData {
-	return HspData{ HspType::Int, (PDAT*)ptr };
 }
 
 static auto param_data_to_mod_var_data(HspParamType type, void const* data) -> std::optional<MPModVarData*> {
@@ -252,42 +238,42 @@ auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) -> std::o
 	case HspSystemVarKind::Cnt:
 		{
 			// FIXME: looplev == 0 のとき？
-			return std::make_optional(int_ptr_to_data(&context()->mem_loop[context()->looplev].cnt));
+			return std::make_optional(hsx::data_from_int(&context()->mem_loop[context()->looplev].cnt));
 		}
 
 	case HspSystemVarKind::Err:
 		{
 			static_assert(sizeof(context()->err) == sizeof(HspInt), u8"HSPERROR は int のはず");
 			auto ptr = UNSAFE((HspInt*)(&context()->err));
-			return std::make_optional(int_ptr_to_data(ptr));
+			return std::make_optional(hsx::data_from_int(ptr));
 		}
 
 	case HspSystemVarKind::IParam:
-		return std::make_optional(int_ptr_to_data(&context()->iparam));
+		return std::make_optional(hsx::data_from_int(&context()->iparam));
 
 	case HspSystemVarKind::WParam:
-		return std::make_optional(int_ptr_to_data(&context()->wparam));
+		return std::make_optional(hsx::data_from_int(&context()->wparam));
 
 	case HspSystemVarKind::LParam:
-		return std::make_optional(int_ptr_to_data(&context()->lparam));
+		return std::make_optional(hsx::data_from_int(&context()->lparam));
 
 	case HspSystemVarKind::LoopLev:
-		return std::make_optional(int_ptr_to_data(&context()->looplev));
+		return std::make_optional(hsx::data_from_int(&context()->looplev));
 
 	case HspSystemVarKind::SubLev:
-		return std::make_optional(int_ptr_to_data(&context()->sublev));
+		return std::make_optional(hsx::data_from_int(&context()->sublev));
 
 	case HspSystemVarKind::Refstr:
-		return std::make_optional(str_ptr_to_data(context()->refstr));
+		return std::make_optional(hsx::data_from_str(context()->refstr));
 
 	case HspSystemVarKind::Refdval:
-		return std::make_optional(double_ptr_to_data(&context()->refdval));
+		return std::make_optional(hsx::data_from_double(&context()->refdval));
 
 	case HspSystemVarKind::Stat:
-		return std::make_optional(int_ptr_to_data(&context()->stat));
+		return std::make_optional(hsx::data_from_int(&context()->stat));
 
 	case HspSystemVarKind::StrSize:
-		return std::make_optional(int_ptr_to_data(&context()->strsize));
+		return std::make_optional(hsx::data_from_int(&context()->strsize));
 
 	case HspSystemVarKind::Thismod: {
 		auto mod_var_data_opt = param_data_to_mod_var_data(MPTYPE_MODULEVAR, ctx->prmstack);
@@ -567,7 +553,7 @@ auto HspDebugApi::param_data_to_data(HspParamData const& param_data) const -> st
 	case MPTYPE_LABEL:
 		{
 			auto ptr = UNSAFE((HspLabel*)param_data.ptr());
-			return std::make_optional(label_ptr_to_data(ptr));
+			return std::make_optional(hsx::data_from_label(ptr));
 		}
 	case MPTYPE_LOCALSTRING:
 		{
@@ -576,17 +562,17 @@ auto HspDebugApi::param_data_to_data(HspParamData const& param_data) const -> st
 				assert(false && u8"str param must not be null");
 				return std::nullopt;
 			}
-			return std::make_optional(str_ptr_to_data(str));
+			return std::make_optional(hsx::data_from_str(str));
 		}
 	case MPTYPE_DNUM:
 		{
 			auto ptr = UNSAFE((HspDouble*)param_data.ptr());
-			return std::make_optional(double_ptr_to_data(ptr));
+			return std::make_optional(hsx::data_from_double(ptr));
 		}
 	case MPTYPE_INUM:
 		{
 			auto ptr = UNSAFE((HspInt*)param_data.ptr());
-			return std::make_optional(int_ptr_to_data(ptr));
+			return std::make_optional(hsx::data_from_int(ptr));
 		}
 	default:
 		return std::nullopt;
