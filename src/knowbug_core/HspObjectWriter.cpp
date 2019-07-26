@@ -134,7 +134,7 @@ static void write_signature(CStrWriter& w, std::vector<Utf8StringView> const& pa
 
 static void write_source_location(
 	CStrWriter& w,
-	std::optional<Utf8StringView> const& file_ref_name_opt,
+	std::optional<Utf8StringView> const& file_name_opt,
 	std::optional<std::size_t> const& line_index_opt
 ) {
 	// 例: #12 hoge.hsp
@@ -144,8 +144,8 @@ static void write_source_location(
 		w.catSize(*line_index_opt + 1);
 		w.cat(u8" ");
 	}
-	if (file_ref_name_opt) {
-		w.cat(*file_ref_name_opt);
+	if (file_name_opt) {
+		w.cat(*file_name_opt);
 	} else {
 		w.cat(u8"???");
 	}
@@ -398,14 +398,14 @@ void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame cons
 	auto&& w = writer();
 
 	auto&& signature_opt = path.signature(o);
-	auto&& file_ref_name_opt = path.file_ref_name(o);
+	auto&& full_path_opt = path.full_path(o);
 	auto&& line_index_opt = path.line_index(o);
 	auto&& memory_view_opt = path.memory_view(o);
 
 	write_name(path);
 
 	w.cat(u8"呼び出し位置: ");
-	write_source_location(w, file_ref_name_opt, line_index_opt);
+	write_source_location(w, full_path_opt, line_index_opt);
 	w.catCrlf();
 
 	if (signature_opt) {
@@ -785,7 +785,7 @@ static void write_source_location_tests(Tests& tests) {
 	};
 
 	suite.test(
-		u8"ファイル参照名と行番号があるケース",
+		u8"ファイル名と行番号があるケース",
 		[&](TestCaseContext& t) {
 			auto actual = write(
 				std::make_optional(as_utf8(u8"foo.hsp")),
@@ -805,7 +805,7 @@ static void write_source_location_tests(Tests& tests) {
 		});
 
 	suite.test(
-		u8"ファイル参照名がないケース",
+		u8"ファイル名がないケース",
 		[&](TestCaseContext& t) {
 			auto actual = write(
 				std::nullopt,
@@ -815,7 +815,7 @@ static void write_source_location_tests(Tests& tests) {
 		});
 
 	suite.test(
-		u8"ファイル参照名も行番号もないケース",
+		u8"ファイル名も行番号もないケース",
 		[&](TestCaseContext& t) {
 			auto actual = write(
 				std::nullopt,

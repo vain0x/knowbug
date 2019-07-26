@@ -216,6 +216,15 @@ auto SourceFileRepository::file_to_full_path(SourceFileId const& file_id) const-
 	return std::make_optional(source_files_[file_id.id()].full_path());
 }
 
+auto SourceFileRepository::file_to_full_path_as_utf8(SourceFileId const& file_id) const->std::optional<Utf8StringView> {
+	if (file_id.id() >= source_files_.size()) {
+		assert(false && u8"unknown source file id");
+		return std::nullopt;
+	}
+
+	return std::make_optional(source_files_[file_id.id()].full_path_as_utf8());
+}
+
 auto SourceFileRepository::file_to_content(SourceFileId const& file_id) -> std::optional<Utf8StringView> {
 	if (file_id.id() >= source_files_.size()) {
 		assert(false && u8"unknown source file id");

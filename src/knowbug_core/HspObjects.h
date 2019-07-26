@@ -147,7 +147,7 @@ public:
 
 	auto call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<Utf8StringView>>;
 
-	auto call_frame_path_to_file_ref_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String>;
+	auto call_frame_path_to_full_path(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8StringView>;
 
 	auto call_frame_path_to_line_index(HspObjectPath::CallFrame const& path) const -> std::optional<std::size_t>;
 

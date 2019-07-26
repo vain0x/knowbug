@@ -907,7 +907,7 @@ auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& pa
 	return std::make_optional(std::move(names));
 }
 
-auto HspObjects::call_frame_path_to_file_ref_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {
+auto HspObjects::call_frame_path_to_full_path(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8StringView> {
 	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
 	if (!call_frame_opt) {
 		return std::nullopt;
@@ -919,13 +919,12 @@ auto HspObjects::call_frame_path_to_file_ref_name(HspObjectPath::CallFrame const
 	}
 	auto file_id = SourceFileId{ *file_id_opt };
 
-	// FIXME: 参照名を使うかファイル名をキャッシュする
-	auto&& full_path_opt = source_file_repository_.file_to_full_path(file_id);
+	auto&& full_path_opt = source_file_repository_.file_to_full_path_as_utf8(file_id);
 	if (!full_path_opt) {
 		return std::nullopt;
 	}
 
-	return std::make_optional(to_utf8(*full_path_opt));
+	return std::make_optional(*full_path_opt);
 }
 
 auto HspObjects::call_frame_path_to_line_index(HspObjectPath::CallFrame const& path) const -> std::optional<std::size_t> {

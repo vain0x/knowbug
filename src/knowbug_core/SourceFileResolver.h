@@ -54,6 +54,8 @@ public:
 
 	auto file_to_full_path(SourceFileId const& file_id) const->std::optional<OsStringView>;
 
+	auto file_to_full_path_as_utf8(SourceFileId const& file_id) const->std::optional<Utf8StringView>;
+
 	auto file_to_content(SourceFileId const& file_id) -> std::optional<Utf8StringView>;
 
 	auto file_to_line_at(SourceFileId const& file_id, std::size_t line_index) -> std::optional<Utf8StringView>;

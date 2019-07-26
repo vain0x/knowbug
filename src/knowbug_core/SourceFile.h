@@ -7,6 +7,8 @@
 class SourceFile {
 	OsString full_path_;
 
+	Utf8String full_path_as_utf8_;
+
 	bool loaded_;
 
 	Utf8String content_;
@@ -18,6 +20,10 @@ public:
 
 	auto full_path() const -> OsStringView {
 		return as_view(full_path_);
+	}
+
+	auto full_path_as_utf8() const -> Utf8StringView {
+		return as_view(full_path_as_utf8_);
 	}
 
 	auto content() -> Utf8StringView;

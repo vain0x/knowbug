@@ -33,6 +33,7 @@ static auto split_by_lines(Utf8StringView const& str) -> std::vector<Utf8StringV
 
 SourceFile::SourceFile(OsString&& full_path)
 	: full_path_(std::move(full_path))
+	, full_path_as_utf8_(to_utf8(full_path_))
 	, loaded_(false)
 	, content_()
 	, lines_()
