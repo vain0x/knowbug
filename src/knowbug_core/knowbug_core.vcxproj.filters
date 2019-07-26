@@ -177,6 +177,9 @@
     <ClInclude Include="hsx_internals.h">
       <Filter>hsp-sdk-ext</Filter>
     </ClInclude>
+    <ClInclude Include="hsx_element.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

@@ -45,18 +45,18 @@ namespace hsp_sdk_ext {
 		return varproc_does_support(varproc, HSPVAR_SUPPORT_FIXEDARRAY | HSPVAR_SUPPORT_FLEXARRAY);
 	}
 
-	// FIXME: HspData const を返す
-	auto pval_to_data(PVal const* pval, HSPCTX const* ctx) -> HspData {
-		auto vartype = pval_to_type(pval);
-		auto aptr = 0;
+	auto pval_to_data(PVal const* pval, HSPCTX const* ctx) -> std::optional<HspData> {
+		return element_to_data(pval, 0, ctx);
+	}
 
-		// FIXME: 関数に切り出す
-		auto pval_mut = const_cast<PVal*>(pval);
-		auto offset = pval->offset;
-		pval_mut->offset = (APTR)aptr;
-		auto pdat = pval_to_varproc(pval, ctx)->GetPtr(pval_mut);
-		pval_mut->offset = offset;
+	auto pval_to_memory_block(PVal const* pval, HSPCTX const* ctx) -> MemoryView {
+		assert(pval != nullptr);
 
-		return HspData{ vartype, pdat };
+		auto&& data_opt = pval_to_data(pval, ctx);
+		if (!data_opt) {
+			return MemoryView{};
+		}
+
+		return element_data_to_memory_block(pval, data_opt->ptr(), ctx);
 	}
 }

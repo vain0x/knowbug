@@ -91,7 +91,7 @@ auto HspDebugApi::var_to_type(PVal* pval) -> HspType {
 }
 
 auto HspDebugApi::var_to_data(PVal* pval) -> HspData {
-	return hsx::pval_to_data(pval, context());
+	return hsx::pval_to_data(pval, context()).value_or(HspData{});
 }
 
 auto HspDebugApi::var_to_lengths(PVal* pval) const -> HspDimIndex {
@@ -111,78 +111,23 @@ auto HspDebugApi::var_to_element_count(PVal* pval) -> std::size_t {
 }
 
 auto HspDebugApi::var_element_to_indexes(PVal* pval, std::size_t aptr) -> std::optional<HspDimIndex> {
-	auto count = var_to_element_count(pval);
-	if (aptr >= count) {
-		return std::nullopt;
-	}
-
-	auto lengths = var_to_lengths(pval);
-
-	// E.g. lengths=(2, 3), aptr=5, indexes=(1, 2)
-	auto indexes = std::array<std::size_t, HspDimIndex::MAX_DIM>{};
-	for (auto i = std::size_t{}; i < lengths.dim(); i++) {
-		indexes[i] = aptr % lengths[i];
-		aptr /= lengths[i];
-	}
-
-	return std::make_optional(HspDimIndex{ lengths.dim(), indexes });
+	return hsx::element_to_indexes(pval, aptr);
 }
 
 auto HspDebugApi::var_element_to_aptr(PVal* pval, HspDimIndex const& indexes) -> std::optional<std::size_t> {
-	auto lengths = var_to_lengths(pval);
-
-	auto unit = std::size_t{ 1 };
-	auto aptr = std::size_t{};
-	for (auto i = std::size_t{}; i < lengths.dim(); i++) {
-		if (indexes[i] >= lengths[i]) {
-			return std::nullopt;
-		}
-
-		aptr += indexes[i] * unit;
-		unit *= lengths[i];
-	}
-
-	return std::make_optional(aptr);
+	return hsx::element_to_aptr(pval, indexes);
 }
 
 auto HspDebugApi::var_element_to_data(PVal* pval, std::size_t aptr) -> HspData {
-	auto type = pval_to_type(pval);
-
-	auto count = var_to_element_count(pval);
-	if (aptr >= count) {
-		return HspData{};
-	}
-
-	auto ptr = hpiutil::PVal_getPtr(pval, aptr);
-	return HspData{ type, ptr };
+	return hsx::element_to_data(pval, aptr, context()).value_or(HspData{});
 }
 
-auto HspDebugApi::var_data_to_block_memory(PVal* pval, PDAT* pdat) -> HspDebugApi::BlockMemory {
-	assert(pval != nullptr && pdat != nullptr);
-
-	auto varproc = hpiutil::varproc(pval->flag);
-
-	int buffer_size;
-	auto data = varproc->GetBlockSize(pval, pdat, &buffer_size);
-
-	if (buffer_size <= 0 || data == nullptr) {
-		return BlockMemory{ 0, nullptr };
-	}
-
-	return BlockMemory{ (std::size_t)buffer_size, data };
+auto HspDebugApi::var_to_block_memory(PVal* pval) -> MemoryView {
+	return hsx::pval_to_memory_block(pval, context());
 }
 
-auto HspDebugApi::var_to_block_memory(PVal* pval) -> HspDebugApi::BlockMemory {
-	assert(pval != nullptr);
-
-	return var_data_to_block_memory(pval, pval->pt);
-}
-
-auto HspDebugApi::var_element_to_block_memory(PVal* pval, std::size_t aptr) -> HspDebugApi::BlockMemory {
-	assert(pval != nullptr);
-
-	auto pdat = hpiutil::PVal_getPtr(pval, aptr);
-	return var_data_to_block_memory(pval, pdat);
+auto HspDebugApi::var_element_to_block_memory(PVal* pval, std::size_t aptr) -> MemoryView {
+	return hsx::element_to_memory_block(pval, aptr, context());
 }
 
 auto HspDebugApi::mp_var_data_to_pval(MPVarData* var_data) -> PVal* {

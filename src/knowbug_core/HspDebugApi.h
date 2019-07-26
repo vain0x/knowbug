@@ -13,7 +13,6 @@ namespace hpiutil {
 // 配列アクセスの範囲検査、null 検査、整数と enum の変換など、小さい仕事をする。
 class HspDebugApi {
 public:
-	class BlockMemory;
 	class ModuleStruct;
 	class SourceLocation;
 
@@ -75,11 +74,9 @@ public:
 
 	auto var_element_to_data(PVal* pval, std::size_t aptr) -> HspData;
 
-	auto var_data_to_block_memory(PVal* pval, PDAT* pdat) -> BlockMemory;
+	auto var_to_block_memory(PVal* pval) -> MemoryView;
 
-	auto var_to_block_memory(PVal* pval) -> BlockMemory;
-
-	auto var_element_to_block_memory(PVal* pval, std::size_t aptr) -> BlockMemory;
+	auto var_element_to_block_memory(PVal* pval, std::size_t aptr) -> MemoryView;
 
 	auto mp_var_data_to_pval(MPVarData* var_data) -> PVal*;
 
@@ -158,24 +155,4 @@ public:
 	auto param_data_to_mod_var(HspParamData const& param_data) const->std::optional<MPModVarData*>;
 
 	auto param_data_to_data(HspParamData const& param_data) const->std::optional<HspData>;
-};
-
-class HspDebugApi::BlockMemory {
-	std::size_t size_;
-	void const* data_;
-
-public:
-	BlockMemory(std::size_t size, void const* data)
-		: size_(size)
-		, data_(data)
-	{
-	}
-
-	auto size() const -> std::size_t {
-		return size_;
-	}
-
-	auto data() const -> void const* {
-		return data_;
-	}
 };
