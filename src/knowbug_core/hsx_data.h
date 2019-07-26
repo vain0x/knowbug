@@ -6,6 +6,7 @@ namespace hsp_sdk_ext {
 	// HSP の変数が持つデータへのポインタ
 	// FIXME: size を持たせる？
 	// FIXME: HspValue に改名
+	// FIXME: const?
 	class HspData {
 		HspType type_;
 

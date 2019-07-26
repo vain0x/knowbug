@@ -251,5 +251,8 @@
     <ClCompile Include="hsx_data.cpp">
       <Filter>hsp-sdk-ext</Filter>
     </ClCompile>
+    <ClCompile Include="hsx_pval.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

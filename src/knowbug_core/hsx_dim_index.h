@@ -41,6 +41,7 @@ namespace hsp_sdk_ext {
 			return dim() == other.dim() && indexes_ == other.indexes_;
 		}
 
+		// 次元数
 		auto dim() const -> std::size_t {
 			return dim_;
 		}
@@ -67,6 +68,7 @@ namespace hsp_sdk_ext {
 			return indexes_.data() + dim();
 		}
 
+		// 要素数
 		auto size() const -> std::size_t {
 			auto count = std::size_t{ 1 };
 			for (auto i : *this) {

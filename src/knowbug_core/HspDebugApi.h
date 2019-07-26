@@ -31,6 +31,10 @@ public:
 		return context_;
 	}
 
+	auto context() const -> HSPCTX const* {
+		return context_;
+	}
+
 	auto debug() -> HSP3DEBUG* {
 		return debug_;
 	}

@@ -9,10 +9,6 @@
 
 namespace hsx = hsp_sdk_ext;
 
-static auto pval_to_type(PVal const* pval) -> HspType {
-	return (HspType)pval->flag;
-}
-
 static auto param_data_to_mod_var_data(HspParamType type, void const* data) -> std::optional<MPModVarData*> {
 	if (type != MPTYPE_MODULEVAR && type != MPTYPE_IMODULEVAR && type != MPTYPE_TMODULEVAR) {
 		return std::nullopt;
@@ -91,44 +87,27 @@ auto HspDebugApi::static_var_to_pval(std::size_t static_var_id) -> PVal* {
 }
 
 auto HspDebugApi::var_to_type(PVal* pval) -> HspType {
-	return pval_to_type(pval);
+	return hsx::pval_to_type(pval);
 }
 
 auto HspDebugApi::var_to_data(PVal* pval) -> HspData {
-	auto type = pval_to_type(pval);
-	auto pdat = hpiutil::PVal_getPtr(pval);
-	return HspData{ type, pdat };
+	return hsx::pval_to_data(pval, context());
 }
 
 auto HspDebugApi::var_to_lengths(PVal* pval) const -> HspDimIndex {
-	assert(pval != nullptr);
-
-	auto lengths = std::array<std::size_t, HspDimIndex::MAX_DIM>{};
-	auto i = std::size_t{};
-
-	while (i < HspDimIndex::MAX_DIM) {
-		lengths[i] = pval->len[i + 1];
-
-		if (i >= 1 && lengths[i] == 0) {
-			break;
-		}
-
-		i++;
-	}
-
-	return HspDimIndex{ i, lengths };
+	return hsx::pval_to_lengths(pval);
 }
 
 auto HspDebugApi::var_to_mode(PVal* pval) const -> HspVarMode {
-	return (HspVarMode)pval->mode;
+	return hsx::pval_to_varmode(pval);
 }
 
 bool HspDebugApi::var_is_array(PVal* pval) const {
-	return hpiutil::PVal_isStandardArray(pval);
+	return hsx::pval_is_standard_array(pval, context());
 }
 
 auto HspDebugApi::var_to_element_count(PVal* pval) -> std::size_t {
-	return hpiutil::PVal_cntElems((PVal*)pval);
+	return hsx::pval_to_element_count(pval);
 }
 
 auto HspDebugApi::var_element_to_indexes(PVal* pval, std::size_t aptr) -> std::optional<HspDimIndex> {
