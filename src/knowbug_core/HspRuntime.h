@@ -7,7 +7,8 @@
 #include "HspStaticVars.h"
 
 class DebugInfo;
-class SourceFileResolver;
+class SourceFileRepository;
+class WcDebugger;
 
 // FIXME: 名前がよくないので変える
 
@@ -20,9 +21,10 @@ class HspRuntime {
 	HspStaticVars static_vars_;
 	HspObjects objects_;
 	std::unique_ptr<HspObjectTree> object_tree_;
+	std::shared_ptr<WcDebugger> wc_debugger_;
 
 public:
-	HspRuntime(HspDebugApi&& api_, DebugInfo const& debug_info, SourceFileResolver& source_file_resolver);
+	HspRuntime(HspDebugApi&& api_, DebugInfo const& debug_info, SourceFileRepository& source_file_repository);
 
 	auto logger() -> HspLogger& {
 		return *logger_;
@@ -38,6 +40,10 @@ public:
 
 	auto static_vars() -> HspStaticVars& {
 		return static_vars_;
+	}
+
+	auto wc_debugger() -> std::shared_ptr<WcDebugger> {
+		return wc_debugger_;
 	}
 
 private:

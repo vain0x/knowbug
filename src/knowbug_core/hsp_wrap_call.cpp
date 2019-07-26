@@ -5,6 +5,8 @@
 #include "DebugInfo.h"
 #include "platform.h"
 
+static auto s_debugger = std::weak_ptr<WcDebugger>{};
+
 static auto s_last_id = std::size_t{};
 
 static auto s_call_stack = std::vector<WcCallFrame>{};
@@ -17,14 +19,20 @@ static auto modcmd_cmdfunc(int cmdid) -> int;
 
 static auto modcmd_reffunc(int* type_res, int cmdid) -> void*;
 
+void wc_initialize(std::shared_ptr<WcDebugger> const& debugger) {
+	s_debugger = debugger;
+}
+
 // ユーザ定義コマンドの呼び出し直前に呼ばれる
 static void wc_will_call(STRUCTDAT const* struct_dat) {
-	auto debug_info = g_dbginfo.get();
-	if (!debug_info) {
+	auto debugger = s_debugger.lock();
+	if (!debugger) {
 		return;
 	}
 
-	g_dbginfo->updateCurInf();
+	std::optional<std::size_t> file_id_opt;
+	std::size_t line_index;
+	debugger->get_current_location(file_id_opt, line_index);
 
 	s_call_stack.emplace_back(
 		++s_last_id,
@@ -32,8 +40,8 @@ static void wc_will_call(STRUCTDAT const* struct_dat) {
 		ctx->prmstack,
 		ctx->sublev,
 		ctx->looplev,
-		debug_info->file_ref_name(), // FIXME: 文字列のメモリを確保しない
-		debug_info->line_index()
+		std::move(file_id_opt),
+		line_index
 	);
 }
 

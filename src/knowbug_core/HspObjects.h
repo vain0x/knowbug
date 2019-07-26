@@ -13,6 +13,7 @@ namespace hpiutil {
 class DebugInfo;
 class HspDebugApi;
 class HspStaticVars;
+class SourceFileRepository;
 
 // FIXME: ログが更新されるたびにビューを更新する
 class HspLogger {
@@ -32,7 +33,7 @@ public:
 
 	virtual auto content(char const* file_ref_name) -> Utf8StringView = 0;
 
-	virtual auto line(char const* file_ref_name, std::size_t line_index)->std::optional<Utf8String> = 0;
+	virtual auto line(char const* file_ref_name, std::size_t line_index)->std::optional<Utf8StringView> = 0;
 };
 
 // FIXME: インターフェイスを抽出する
@@ -52,6 +53,7 @@ private:
 	HspScripts& scripts_;
 	HspStaticVars& static_vars_;
 	hpiutil::DInfo const& debug_segment_;
+	SourceFileRepository& source_file_repository_;
 
 	std::shared_ptr<HspObjectPath const> root_path_;
 
@@ -61,7 +63,7 @@ private:
 	Utf8String general_content_;
 
 public:
-	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info_, hpiutil::DInfo const& debug_segment);
+	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info_, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository);
 
 	auto root_path() const->HspObjectPath::Root const&;
 
@@ -145,7 +147,7 @@ public:
 
 	auto call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<Utf8StringView>>;
 
-	auto call_frame_path_to_file_ref_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String>;
+	auto call_frame_path_to_full_path(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8StringView>;
 
 	auto call_frame_path_to_line_index(HspObjectPath::CallFrame const& path) const -> std::optional<std::size_t>;
 

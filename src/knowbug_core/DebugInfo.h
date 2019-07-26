@@ -45,5 +45,3 @@ public:
 		return std::max(0, debug_->line - 1);
 	}
 };
-
-extern std::unique_ptr<DebugInfo> g_dbginfo;

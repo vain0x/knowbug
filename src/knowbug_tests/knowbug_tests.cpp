@@ -9,9 +9,6 @@
 #include "knowbug_tests.h"
 #include "test_runner.h"
 
-// FIXME: hsp_wrap_call で宣言されているので実体が必要。
-std::unique_ptr<DebugInfo> g_dbginfo{};
-
 static void enable_utf_8() {
 	SetConsoleOutputCP(CP_UTF8);
 	std::setvbuf(stdout, nullptr, _IOFBF, 1024);

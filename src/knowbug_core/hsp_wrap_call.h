@@ -8,6 +8,10 @@
 
 class HspParamStack;
 class WcCallFrame;
+class WcDebugger;
+
+// WrapCall を初期化する。デバッガーの起動時に必ず呼び出すこと。
+extern void wc_initialize(std::shared_ptr<WcDebugger> const& debugger);
 
 extern auto wc_call_frame_count() -> std::size_t;
 
@@ -32,8 +36,8 @@ class WcCallFrame {
 	int prev_looplev_;
 
 	// 呼び出し側の位置
-	// FIXME: 番号化
-	std::string file_ref_name_;
+	std::optional<std::size_t> file_id_opt_;
+
 	std::size_t line_index_;
 
 public:
@@ -43,7 +47,7 @@ public:
 		void const* prev_param_stack,
 		int prev_sublev,
 		int prev_looplev,
-		std::string file_ref_name,
+		std::optional<std::size_t>&& file_id_opt,
 		std::size_t line_index
 	)
 		: call_frame_id_(call_frame_id)
@@ -51,7 +55,7 @@ public:
 		, prev_param_stack_(prev_param_stack)
 		, prev_sublev_(prev_sublev)
 		, prev_looplev_(prev_looplev)
-		, file_ref_name_(file_ref_name)
+		, file_id_opt_(std::move(file_id_opt))
 		, line_index_(line_index)
 	{
 	}
@@ -76,11 +80,20 @@ public:
 		return prev_looplev_;
 	}
 
-	auto file_ref_name() const -> std::string {
-		return file_ref_name_;
+	auto file_id_opt() const -> std::optional<std::size_t> {
+		return file_id_opt_;
 	}
 
 	auto line_index() const -> std::size_t {
 		return line_index_;
 	}
+};
+
+// WrapCall からデバッガーにアクセスするためのもの
+class WcDebugger {
+public:
+	virtual ~WcDebugger() {
+	}
+
+	virtual void get_current_location(std::optional<std::size_t>& file_id_opt, std::size_t& line_index) = 0;
 };

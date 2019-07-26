@@ -8,6 +8,7 @@
 #include "HspDebugApi.h"
 #include "HspObjects.h"
 #include "HspStaticVars.h"
+#include "source_files.h"
 
 // 再帰深度の初期値
 static auto const MIN_DEPTH = std::size_t{};
@@ -151,8 +152,12 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HspDebugA
 				return std::nullopt;
 			}
 
-			auto aptr = api.var_element_to_aptr(*pval_opt, path.as_element().indexes());
-			return std::make_optional(api.var_element_to_data(*pval_opt, aptr));
+			auto aptr_opt = api.var_element_to_aptr(*pval_opt, path.as_element().indexes());
+			if (!aptr_opt) {
+				return std::nullopt;
+			}
+
+			return std::make_optional(api.var_element_to_data(*pval_opt, *aptr_opt));
 		}
 	case HspObjectKind::Param:
 	{
@@ -193,8 +198,12 @@ static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_in
 
 	auto pval = *pval_opt;
 	auto aptr = (APTR)child_index;
-	auto&& indexes = api.var_element_to_indexes(pval, aptr);
-	return path.new_element(indexes);
+	auto&& indexes_opt = api.var_element_to_indexes(pval, aptr);
+	if (!indexes_opt) {
+		return path.new_unavailable(to_owned(as_utf8(u8"この要素は配列に含まれていません。")));
+	}
+
+	return path.new_element(*indexes_opt);
 }
 
 static auto var_path_to_metadata(HspObjectPath const& path, HspDebugApi& api) -> std::optional<HspVarMetadata> {
@@ -381,8 +390,12 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, Hs
 			return std::nullopt;
 		}
 
-		auto aptr = api.var_element_to_aptr(*pval_opt, path.as_element().indexes());
-		auto block_memory = api.var_element_to_block_memory(*pval_opt, aptr);
+		auto aptr_opt = api.var_element_to_aptr(*pval_opt, path.as_element().indexes());
+		if (!aptr_opt) {
+			return std::nullopt;
+		}
+
+		auto block_memory = api.var_element_to_block_memory(*pval_opt, *aptr_opt);
 		auto memory_view = MemoryView{ block_memory.data(), block_memory.size() };
 		return std::make_optional(memory_view);
 	}
@@ -404,12 +417,13 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, Hs
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info, hpiutil::DInfo const& debug_segment)
+HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository)
 	: api_(api)
 	, logger_(logger)
 	, scripts_(scripts)
 	, static_vars_(static_vars)
 	, debug_segment_(debug_segment)
+	, source_file_repository_(source_file_repository)
 	, root_path_(std::make_shared<HspObjectPath::Root>())
 	, modules_(group_vars_by_module(static_vars.get_all_names()))
 	, types_(create_type_datas())
@@ -567,12 +581,13 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 			auto var_data = api_.param_data_to_single_var(*param_data_opt);
 			auto pval = api_.mp_var_data_to_pval(var_data);
 			auto aptr = api_.mp_var_data_to_aptr(var_data);
-			if (aptr >= api_.var_to_element_count(pval)) {
+
+			auto&& indexes_opt = api_.var_element_to_indexes(pval, aptr);
+			if (!indexes_opt) {
 				return path.new_unavailable(to_owned(as_utf8(u8"引数に渡された要素が存在しません")));
 			}
 
-			auto indexes = api_.var_element_to_indexes(pval, aptr);
-			return path.new_element(indexes);
+			return path.new_element(*indexes_opt);
 		}
 	case MPTYPE_MODULEVAR:
 	case MPTYPE_IMODULEVAR:
@@ -590,13 +605,12 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 		auto pval = api_.mp_mod_var_data_to_pval(*mod_var_data_opt);
 		auto aptr = api_.mp_mod_var_data_to_aptr(*mod_var_data_opt);
 
-		// FIXME: 要素パスが値を取得する段階で範囲検査が行われるので、この検査は不要なはず。
-		if (aptr >= api_.var_to_element_count(pval)) {
+		auto&& indexes_opt = api_.var_element_to_indexes(pval, aptr);
+		if (!indexes_opt) {
 			return path.new_unavailable(to_owned(as_utf8(u8"引数に渡された要素が存在しません")));
 		}
 
-		auto indexes = api_.var_element_to_indexes(pval, aptr);
-		return path.new_element(indexes);
+		return path.new_element(*indexes_opt);
 	}
 	case MPTYPE_LABEL:
 		return path.new_label();
@@ -893,13 +907,24 @@ auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& pa
 	return std::make_optional(std::move(names));
 }
 
-auto HspObjects::call_frame_path_to_file_ref_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {
+auto HspObjects::call_frame_path_to_full_path(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8StringView> {
 	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
 	if (!call_frame_opt) {
 		return std::nullopt;
 	}
 
-	return std::make_optional(as_utf8(call_frame_opt->get().file_ref_name()));
+	auto&& file_id_opt = call_frame_opt->get().file_id_opt();
+	if (!file_id_opt) {
+		return std::nullopt;
+	}
+	auto file_id = SourceFileId{ *file_id_opt };
+
+	auto&& full_path_opt = source_file_repository_.file_to_full_path_as_utf8(file_id);
+	if (!full_path_opt) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(*full_path_opt);
 }
 
 auto HspObjects::call_frame_path_to_line_index(HspObjectPath::CallFrame const& path) const -> std::optional<std::size_t> {

@@ -601,8 +601,8 @@ auto HspObjectPath::CallFrame::signature(HspObjects& objects) const->std::option
 	return objects.call_frame_path_to_signature(*this);
 }
 
-auto HspObjectPath::CallFrame::file_ref_name(HspObjects& objects) const -> std::optional<Utf8String> {
-	return objects.call_frame_path_to_file_ref_name(*this);
+auto HspObjectPath::CallFrame::full_path(HspObjects& objects) const -> std::optional<Utf8StringView> {
+	return objects.call_frame_path_to_full_path(*this);
 }
 
 auto HspObjectPath::CallFrame::line_index(HspObjects& objects) const -> std::optional<std::size_t> {

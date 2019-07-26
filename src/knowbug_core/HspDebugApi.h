@@ -65,9 +65,9 @@ public:
 
 	auto var_to_element_count(PVal* pval) -> std::size_t;
 
-	auto var_element_to_indexes(PVal* pval, std::size_t aptr) -> HspDimIndex;
+	auto var_element_to_indexes(PVal* pval, std::size_t aptr) -> std::optional<HspDimIndex>;
 
-	auto var_element_to_aptr(PVal* pval, HspDimIndex const& indexes) -> std::size_t;
+	auto var_element_to_aptr(PVal* pval, HspDimIndex const& indexes) -> std::optional<std::size_t>;
 
 	auto var_element_to_data(PVal* pval, std::size_t aptr) -> HspData;
 
