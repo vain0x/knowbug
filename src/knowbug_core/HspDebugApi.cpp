@@ -47,43 +47,29 @@ auto HspDebugApi::current_line() const -> std::size_t {
 }
 
 auto HspDebugApi::static_vars() -> PVal* {
-	return context()->mem_var;
+	return const_cast<PVal*>(hsx::static_vars(context()).data());
 }
 
 auto HspDebugApi::static_var_count() -> std::size_t {
-	return context()->hsphed->max_val;
+	return hsx::static_var_count(context());
 }
 
 auto HspDebugApi::static_var_find_by_name(char const* var_name) -> std::optional<std::size_t> {
-	assert(var_name != nullptr);
-
-	auto index = exinfo()->HspFunc_seekvar(var_name);
-
-	if (index < 0 || (std::size_t)index >= static_var_count()) {
-		return std::nullopt;
-	}
-
-	return std::make_optional((std::size_t)index);
+	return hsx::static_var_from_name(var_name, context());
 }
 
 auto HspDebugApi::static_var_find_name(std::size_t static_var_id) -> std::optional<std::string> {
-	assert(static_var_id < static_var_count());
-
-	auto var_name = exinfo()->HspFunc_varname((int)static_var_id);
-	if (!var_name) {
-		return std::nullopt;
-	}
-
-	return std::make_optional<std::string>(var_name);
+	return hsx::static_var_to_name(static_var_id, context());
 }
 
 auto HspDebugApi::static_var_to_pval(std::size_t static_var_id) -> PVal* {
-	if (static_var_id >= static_var_count()) {
-		assert(false && u8"Unknown static_var_id");
+	auto&& pval_opt = hsx::static_var_to_pval(static_var_id, context());
+	if (!pval_opt) {
+		assert(false && u8"invalid static_var_id");
 		throw new std::exception{};
 	}
 
-	return static_vars() + static_var_id;
+	return const_cast<PVal*>(*pval_opt);
 }
 
 auto HspDebugApi::var_to_type(PVal* pval) -> HspType {

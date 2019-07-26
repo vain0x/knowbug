@@ -360,6 +360,7 @@
     <ClInclude Include="hsx_param_stack.h" />
     <ClInclude Include="hsx_types_fwd.h" />
     <ClInclude Include="hsx_var_metadata.h" />
+    <ClInclude Include="hsx_slice.h" />
     <ClInclude Include="memory_view.h" />
     <ClInclude Include="module\CIni.h" />
     <ClInclude Include="module\CStrWriter.h" />
@@ -439,6 +440,7 @@
     <ClCompile Include="hsp_wrap_call.cpp" />
     <ClCompile Include="hsx_data.cpp" />
     <ClCompile Include="hsx_pval.cpp" />
+    <ClCompile Include="hsx_static_vars.cpp" />
     <ClCompile Include="module\CIni.cpp" />
     <ClCompile Include="module\CStrWriter.cpp" />
     <ClCompile Include="module\GuiUtility.cpp" />

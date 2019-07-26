@@ -4,6 +4,7 @@
 #include "hsx_dim_index.h"
 #include "hsx_param_data.h"
 #include "hsx_param_stack.h"
+#include "hsx_slice.h"
 #include "hsx_types_fwd.h"
 #include "hsx_var_metadata.h"
 #include "memory_view.h"
@@ -38,4 +39,14 @@ namespace hsp_sdk_ext {
 	extern auto pval_to_data(PVal const* pval, HSPCTX const* ctx)->std::optional<HspData>;
 
 	extern auto pval_to_memory_block(PVal const* pval, HSPCTX const* ctx)->MemoryView;
+
+	extern auto static_vars(HSPCTX const* ctx)->Slice<PVal>;
+
+	extern auto static_var_count(HSPCTX const* ctx)->std::size_t;
+
+	extern auto static_var_to_pval(std::size_t static_var_index, HSPCTX const* ctx)->std::optional<PVal const*>;
+
+	extern auto static_var_from_name(char const* var_name, HSPCTX const* ctx)->std::optional<std::size_t>;
+
+	extern auto static_var_to_name(std::size_t static_var_index, HSPCTX const* ctx)->std::optional<char const*>;
 }
