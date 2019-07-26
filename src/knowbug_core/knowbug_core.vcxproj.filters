@@ -28,6 +28,9 @@
     <Filter Include="hspsdk\win32gui">
       <UniqueIdentifier>{a52c5b5e-7dcd-4c75-8181-631970be012f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="hsp-sdk-ext">
+      <UniqueIdentifier>{537145cd-4a9d-455b-ba8b-407560776c46}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -149,6 +152,27 @@
     </ClInclude>
     <ClInclude Include="source_files.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_data.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_dim_index.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_param_data.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_param_stack.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_types_fwd.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_var_metadata.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx.h">
+      <Filter>hsp-sdk-ext</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
