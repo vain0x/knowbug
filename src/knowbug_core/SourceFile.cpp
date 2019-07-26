@@ -1,12 +1,12 @@
 #include "pch.h"
-#include <array>
 #include "string_split.h"
 #include "SourceFile.h"
 
-// NOTE: ifstream が string_view を受け付けないので OsString への参照を取っている。
+// NOTE: ifstream がファイル名に basic_string_view を受け取らないので、OsString への参照をもらう。
 static auto load_text_file(OsString const& file_path) -> Utf8String {
 	auto ifs = std::ifstream{ file_path };
 	if (!ifs.is_open()) {
+		// デバッグログなどに出力する？
 		return to_owned(as_utf8(u8""));
 	}
 
@@ -15,13 +15,17 @@ static auto load_text_file(OsString const& file_path) -> Utf8String {
 	return to_utf8(content);
 }
 
-// 行ごとに分割する。ただし各行の字下げは無視する。
+static auto char_is_whitespace(Utf8Char c) -> bool {
+	return c == Utf8Char{ ' ' } || c == Utf8Char{ '\t' };
+}
+
+// 行ごとに分割する。ただし各行の字下げは除外する。
 static auto split_by_lines(Utf8StringView const& str) -> std::vector<Utf8StringView> {
 	auto lines = std::vector<Utf8StringView>{};
 
 	for (auto&& line : StringLines{ str }) {
 		auto i = std::size_t{};
-		while (i < line.size() && (line[i] == (Utf8Char)' ' || line[i] == (Utf8Char)'\t')) {
+		while (i < line.size() && char_is_whitespace(line[i])) {
 			i++;
 		}
 
@@ -30,6 +34,10 @@ static auto split_by_lines(Utf8StringView const& str) -> std::vector<Utf8StringV
 
 	return lines;
 }
+
+// -----------------------------------------------
+// SourceFile
+// -----------------------------------------------
 
 SourceFile::SourceFile(OsString&& full_path)
 	: full_path_(std::move(full_path))

@@ -1,10 +1,7 @@
 #include "pch.h"
 #include <algorithm>
 #include <array>
-#include <fstream>
 #include <iterator>
-#include "../hpiutil/hpiutil.hpp"
-#include "../hpiutil/DInfo.hpp"
 #include "SourceFileResolver.h"
 
 // 指定したディレクトリを基準として、指定した名前または相対パスのファイルを検索する。
@@ -79,11 +76,8 @@ void SourceFileResolver::add_file_ref_name(std::string&& file_ref_name) {
 }
 
 auto SourceFileResolver::resolve() -> SourceFileRepository {
-	auto done = false;
-
 	// 未解決のファイル参照名の集合
 	auto file_ref_names = std::vector<std::pair<std::string, OsString>>{};
-	auto next = file_ref_names;
 
 	for (auto&& file_ref_name : std::move(file_ref_names_)) {
 		auto os_str = to_os(as_hsp(file_ref_name));
@@ -99,6 +93,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 	// ファイル参照名 → 絶対パス
 	auto full_paths = std::unordered_map<std::string, OsString>{};
 
+	// ファイル参照名と絶対パスのペアを登録する。
 	auto add = [&](std::string const& file_ref_name, OsString const& full_path) {
 		assert(!full_paths.count(file_ref_name));
 		full_paths.emplace(file_ref_name, full_path);
@@ -112,6 +107,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		}
 	};
 
+	// ファイル参照名の解決を試みる。
 	auto find = [&](std::string const& original, OsString const& file_ref_name) -> bool {
 		assert(!full_path_map.count(file_ref_name) && u8"解決済みのファイルには呼ばれないはず");
 
@@ -131,9 +127,12 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		return true;
 	};
 
-	while (!done) {
+	while (true) {
+		// ループ中に何か変化が起こったら false。
+		// ループの最後まで true なら、もう何も起きないのでループ終了。
 		auto stuck = true;
 
+		// 要素を削除する必要があるので後ろから前にループを回す。
 		auto i = file_ref_names.size();
 		while (i > 0) {
 			i--;
@@ -150,9 +149,8 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 			stuck = false;
 		}
 
-		// ループを回して何も起こらなくなったら (不動点に達したら) 終わり。
 		if (stuck) {
-			done = true;
+			break;
 		}
 	}
 

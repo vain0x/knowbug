@@ -10,12 +10,12 @@ class SourceFileId;
 class SourceFileRepository;
 class SourceFileResolver;
 
-// ファイル参照名と絶対パスの対応、および各ソースコードのキャッシュを持つ。
+// ファイル参照名を絶対パスに対応付ける処理を担当する。
 class SourceFileResolver {
-	// ファイルを探す基準となるディレクトリの集合
+	// ファイルを探す基準となるディレクトリの集合。
 	std::unordered_set<OsString> dirs_;
 
-	// 解決すべきファイル参照名の集合
+	// 解決すべきファイル参照名の集合。
 	std::unordered_set<std::string> file_ref_names_;
 
 public:
@@ -26,7 +26,7 @@ public:
 	auto resolve()->SourceFileRepository;
 };
 
-// ファイルID、ファイル参照名、絶対パス、ソースコードのキャッシュを持つものを表す。
+// ファイルID、ファイル参照名、絶対パス、ソースファイルを持つ。
 class SourceFileRepository {
 	std::vector<SourceFile> source_files_;
 
@@ -56,11 +56,12 @@ public:
 
 	auto file_to_full_path_as_utf8(SourceFileId const& file_id) const->std::optional<Utf8StringView>;
 
-	auto file_to_content(SourceFileId const& file_id) -> std::optional<Utf8StringView>;
+	auto file_to_content(SourceFileId const& file_id)->std::optional<Utf8StringView>;
 
-	auto file_to_line_at(SourceFileId const& file_id, std::size_t line_index) -> std::optional<Utf8StringView>;
+	auto file_to_line_at(SourceFileId const& file_id, std::size_t line_index)->std::optional<Utf8StringView>;
 };
 
+// ソースファイルの管理番号
 class SourceFileId {
 	std::size_t id_;
 
@@ -82,7 +83,7 @@ public:
 		return files.file_to_content(*this);
 	}
 
-	auto line_at(std::size_t line_index, SourceFileRepository& files) -> std::optional<Utf8StringView> {
+	auto line_at(std::size_t line_index, SourceFileRepository& files) const -> std::optional<Utf8StringView> {
 		return files.file_to_line_at(*this, line_index);
 	}
 };
