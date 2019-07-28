@@ -965,6 +965,15 @@ auto HspObjects::script_to_content() const -> Utf8StringView {
 	return scripts_.content(file_ref_name);
 }
 
+auto HspObjects::script_to_file_id() const -> std::optional<SourceFileId> {
+	auto&& file_ref_name_opt = hsx::debug_to_file_ref_name(api_.debug());
+	if (!file_ref_name_opt) {
+		return std::nullopt;
+	}
+
+	return source_file_repository_.file_ref_name_to_file_id(*file_ref_name_opt);
+}
+
 auto HspObjects::script_to_current_line() const -> std::size_t {
 	return api_.current_line();
 }

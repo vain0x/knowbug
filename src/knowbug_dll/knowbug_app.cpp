@@ -142,11 +142,19 @@ public:
 	}
 
 	void open_current_script_file() override {
-		auto file_ref_name = g_dbginfo->curPos().fileRefName();
-		auto&& full_path_opt = source_file_repository_->file_ref_name_to_full_path(file_ref_name);
-		if (full_path_opt) {
-			ShellExecute(nullptr, TEXT("open"), full_path_opt->data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
+		auto file_opt = hsp_runtime_->objects().script_to_file_id();
+		if (!file_opt) {
+			// FIXME: 何らかの警告を出す
+			return;
 		}
+
+		auto&& full_path_opt = source_file_repository_->file_to_full_path(*file_opt);
+		if (!full_path_opt) {
+			// FIXME: 何らかの警告を出す
+			return;
+		}
+
+		ShellExecute(nullptr, TEXT("open"), full_path_opt->data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
 	}
 
 	void open_config_file() override {
