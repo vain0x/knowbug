@@ -105,4 +105,30 @@ namespace hsp_sdk_ext {
 	extern auto struct_to_params(STRUCTDAT const* struct_dat, HSPCTX const* ctx)->Slice<STRUCTPRM>;
 
 	extern auto struct_to_param_stack_size(STRUCTDAT const* struct_dat)->std::size_t;
+
+	extern auto system_var_cnt(HSPCTX const* ctx)->std::optional<HspInt const*>;
+
+	extern auto system_var_err(HSPCTX const* ctx)->HspInt const*;
+
+	extern auto system_var_iparam(HSPCTX const* ctx)->HspInt const*;
+
+	extern auto system_var_wparam(HSPCTX const* ctx)->HspInt const*;
+
+	extern auto system_var_lparam(HSPCTX const* ctx)->HspInt const*;
+
+	extern auto system_var_looplev(HSPCTX const* ctx)->HspInt const*;
+
+	extern auto system_var_sublev(HSPCTX const* ctx)->HspInt const*;
+
+	extern auto system_var_refstr(HSPCTX const* ctx)->Slice<char>;
+
+	extern auto system_var_refdval(HSPCTX const* ctx)->HspDouble const*;
+
+	extern auto system_var_stat(HSPCTX const* ctx)->HspInt const*;
+
+	extern auto system_var_strsize(HSPCTX const* ctx)->HspInt const*;
+
+	extern auto system_var_thismod(HSPCTX const* ctx)->std::optional<MPModVarData const*>;
+
+	extern auto system_var_to_data(HspSystemVarKind system_var_kind, HSPCTX const* ctx)->std::optional<HspData>;
 }

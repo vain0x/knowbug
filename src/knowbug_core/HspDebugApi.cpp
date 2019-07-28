@@ -104,64 +104,7 @@ auto HspDebugApi::var_element_to_block_memory(PVal const* pval, std::size_t aptr
 }
 
 auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) const -> std::optional<HspData> {
-	switch (system_var_kind) {
-	case HspSystemVarKind::Cnt:
-		{
-			// FIXME: looplev == 0 のとき？
-			return std::make_optional(hsx::data_from_int(&context()->mem_loop[context()->looplev].cnt));
-		}
-
-	case HspSystemVarKind::Err:
-		{
-			static_assert(sizeof(context()->err) == sizeof(HspInt), u8"HSPERROR は int のはず");
-			auto ptr = UNSAFE((HspInt*)(&context()->err));
-			return std::make_optional(hsx::data_from_int(ptr));
-		}
-
-	case HspSystemVarKind::IParam:
-		return std::make_optional(hsx::data_from_int(&context()->iparam));
-
-	case HspSystemVarKind::WParam:
-		return std::make_optional(hsx::data_from_int(&context()->wparam));
-
-	case HspSystemVarKind::LParam:
-		return std::make_optional(hsx::data_from_int(&context()->lparam));
-
-	case HspSystemVarKind::LoopLev:
-		return std::make_optional(hsx::data_from_int(&context()->looplev));
-
-	case HspSystemVarKind::SubLev:
-		return std::make_optional(hsx::data_from_int(&context()->sublev));
-
-	case HspSystemVarKind::Refstr:
-		return std::make_optional(hsx::data_from_str(context()->refstr));
-
-	case HspSystemVarKind::Refdval:
-		return std::make_optional(hsx::data_from_double(&context()->refdval));
-
-	case HspSystemVarKind::Stat:
-		return std::make_optional(hsx::data_from_int(&context()->stat));
-
-	case HspSystemVarKind::StrSize:
-		return std::make_optional(hsx::data_from_int(&context()->strsize));
-
-	case HspSystemVarKind::Thismod: {
-		auto mod_var_data_opt = hsx::param_data_to_mp_mod_var(MPTYPE_MODULEVAR, ctx->prmstack);
-		if (!mod_var_data_opt) {
-			return std::nullopt;
-		}
-
-		auto&& data = var_element_to_data((**mod_var_data_opt).pval, (std::size_t)(**mod_var_data_opt).aptr);
-		if (data.type() != HspType::Struct) {
-			return std::nullopt;
-		}
-
-		return std::make_optional(data);
-	}
-	default:
-		assert(false && u8"Invalid HspSystemVarKind");
-		throw std::exception{};
-	}
+	return hsx::system_var_to_data(system_var_kind, context());
 }
 
 auto HspDebugApi::data_to_label(HspData const& data) const -> HspLabel {

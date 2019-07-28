@@ -446,6 +446,7 @@
     <ClCompile Include="hsx_object_temps.cpp" />
     <ClCompile Include="hsx_static_vars.cpp" />
     <ClCompile Include="hsx_struct.cpp" />
+    <ClCompile Include="hsx_system_var.cpp" />
     <ClCompile Include="module\CIni.cpp" />
     <ClCompile Include="module\CStrWriter.cpp" />
     <ClCompile Include="module\GuiUtility.cpp" />
