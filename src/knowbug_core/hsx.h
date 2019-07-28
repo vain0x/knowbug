@@ -70,6 +70,8 @@ namespace hsp_sdk_ext {
 
 	extern auto param_stack_to_param_data(HspParamStack const& param_stack, std::size_t param_index, HSPCTX const* ctx)->std::optional<HspParamData>;
 
+	extern auto param_type_to_name(HspParamType param_type)->std::optional<char const*>;
+
 	extern auto pval_to_type(PVal const* pval)->HspType;
 
 	extern auto pval_to_varmode(PVal const* pval)->HspVarMode;
