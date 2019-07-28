@@ -3,23 +3,23 @@
 #include "hsx_internals.h"
 
 namespace hsp_sdk_ext {
-	auto data_from_label(HspLabel* ptr) -> HspData {
+	auto data_from_label(HspLabel const* ptr) -> HspData {
 		return HspData{ HspType::Label, (PDAT*)ptr };
 	}
 
-	auto data_from_str(HspStr value) -> HspData {
+	auto data_from_str(char const* value) -> HspData {
 		return HspData{ HspType::Str, (PDAT*)value };
 	}
 
-	auto data_from_double(HspDouble* ptr) -> HspData {
+	auto data_from_double(HspDouble const* ptr) -> HspData {
 		return HspData{ HspType::Double, (PDAT*)ptr };
 	}
 
-	auto data_from_int(HspInt* ptr) -> HspData {
+	auto data_from_int(HspInt const* ptr) -> HspData {
 		return HspData{ HspType::Int, (PDAT*)ptr };
 	}
 
-	auto data_from_flex(FlexValue* flex) -> HspData {
+	auto data_from_flex(FlexValue const* flex) -> HspData {
 		return HspData{ HspType::Struct, (PDAT*)flex };
 	}
 

@@ -9,19 +9,6 @@
 
 namespace hsx = hsp_sdk_ext;
 
-static auto param_data_to_mod_var_data(HspParamType type, void const* data) -> std::optional<MPModVarData*> {
-	if (type != MPTYPE_MODULEVAR && type != MPTYPE_IMODULEVAR && type != MPTYPE_TMODULEVAR) {
-		return std::nullopt;
-	}
-
-	auto mod_var_data = UNSAFE((MPModVarData*)data);
-	if (!mod_var_data || mod_var_data->magic != MODVAR_MAGICCODE || !mod_var_data->pval || mod_var_data->aptr < 0) {
-		return std::nullopt;
-	}
-
-	return std::make_optional(mod_var_data);
-}
-
 HspDebugApi::HspDebugApi(HSP3DEBUG* debug)
 	: debug_(debug)
 	, context_(debug->hspctx)
@@ -46,104 +33,104 @@ auto HspDebugApi::current_line() const -> std::size_t {
 	return (std::size_t)std::max(0, line_number - 1);
 }
 
-auto HspDebugApi::static_vars() -> PVal* {
-	return const_cast<PVal*>(hsx::static_vars(context()).data());
+auto HspDebugApi::static_vars() const -> PVal const* {
+	return hsx::static_vars(context()).data();
 }
 
-auto HspDebugApi::static_var_count() -> std::size_t {
+auto HspDebugApi::static_var_count() const -> std::size_t {
 	return hsx::static_var_count(context());
 }
 
-auto HspDebugApi::static_var_find_by_name(char const* var_name) -> std::optional<std::size_t> {
+auto HspDebugApi::static_var_find_by_name(char const* var_name) const -> std::optional<std::size_t> {
 	return hsx::static_var_from_name(var_name, context());
 }
 
-auto HspDebugApi::static_var_find_name(std::size_t static_var_id) -> std::optional<std::string> {
+auto HspDebugApi::static_var_find_name(std::size_t static_var_id) const -> std::optional<std::string> {
 	return hsx::static_var_to_name(static_var_id, context());
 }
 
-auto HspDebugApi::static_var_to_pval(std::size_t static_var_id) -> PVal* {
+auto HspDebugApi::static_var_to_pval(std::size_t static_var_id) const -> PVal const* {
 	auto&& pval_opt = hsx::static_var_to_pval(static_var_id, context());
 	if (!pval_opt) {
 		assert(false && u8"invalid static_var_id");
 		throw new std::exception{};
 	}
 
-	return const_cast<PVal*>(*pval_opt);
+	return *pval_opt;
 }
 
-auto HspDebugApi::var_to_type(PVal* pval) -> HspType {
+auto HspDebugApi::var_to_type(PVal const* pval) const -> HspType {
 	return hsx::pval_to_type(pval);
 }
 
-auto HspDebugApi::var_to_data(PVal* pval) -> HspData {
+auto HspDebugApi::var_to_data(PVal const* pval) const -> HspData {
 	return hsx::pval_to_data(pval, context()).value_or(HspData{});
 }
 
-auto HspDebugApi::var_to_lengths(PVal* pval) const -> HspDimIndex {
+auto HspDebugApi::var_to_lengths(PVal const* pval) const -> HspDimIndex {
 	return hsx::pval_to_lengths(pval);
 }
 
-auto HspDebugApi::var_to_mode(PVal* pval) const -> HspVarMode {
+auto HspDebugApi::var_to_mode(PVal const* pval) const -> HspVarMode {
 	return hsx::pval_to_varmode(pval);
 }
 
-bool HspDebugApi::var_is_array(PVal* pval) const {
+bool HspDebugApi::var_is_array(PVal const* pval) const {
 	return hsx::pval_is_standard_array(pval, context());
 }
 
-auto HspDebugApi::var_to_element_count(PVal* pval) -> std::size_t {
+auto HspDebugApi::var_to_element_count(PVal const* pval) const -> std::size_t {
 	return hsx::pval_to_element_count(pval);
 }
 
-auto HspDebugApi::var_element_to_indexes(PVal* pval, std::size_t aptr) -> std::optional<HspDimIndex> {
+auto HspDebugApi::var_element_to_indexes(PVal const* pval, std::size_t aptr) const -> std::optional<HspDimIndex> {
 	return hsx::element_to_indexes(pval, aptr);
 }
 
-auto HspDebugApi::var_element_to_aptr(PVal* pval, HspDimIndex const& indexes) -> std::optional<std::size_t> {
+auto HspDebugApi::var_element_to_aptr(PVal const* pval, HspDimIndex const& indexes) const -> std::optional<std::size_t> {
 	return hsx::element_to_aptr(pval, indexes);
 }
 
-auto HspDebugApi::var_element_to_data(PVal* pval, std::size_t aptr) -> HspData {
+auto HspDebugApi::var_element_to_data(PVal const* pval, std::size_t aptr) const -> HspData {
 	return hsx::element_to_data(pval, aptr, context()).value_or(HspData{});
 }
 
-auto HspDebugApi::var_to_block_memory(PVal* pval) -> MemoryView {
+auto HspDebugApi::var_to_block_memory(PVal const* pval) const -> MemoryView {
 	return hsx::pval_to_memory_block(pval, context());
 }
 
-auto HspDebugApi::var_element_to_block_memory(PVal* pval, std::size_t aptr) -> MemoryView {
+auto HspDebugApi::var_element_to_block_memory(PVal const* pval, std::size_t aptr) const -> MemoryView {
 	return hsx::element_to_memory_block(pval, aptr, context());
 }
 
-auto HspDebugApi::mp_var_data_to_pval(MPVarData* var_data) -> PVal* {
+auto HspDebugApi::mp_var_data_to_pval(MPVarData const* var_data) const -> PVal const* {
 	assert(var_data != nullptr);
 	assert(var_data->pval != nullptr);
 	return var_data->pval;
 }
 
-auto HspDebugApi::mp_var_data_to_aptr(MPVarData* var_data) -> std::size_t {
+auto HspDebugApi::mp_var_data_to_aptr(MPVarData const* var_data) const -> std::size_t {
 	assert(var_data != nullptr);
 	assert(var_data->pval != nullptr);
 	assert(var_data->aptr >= 0);
 	return (std::size_t)var_data->aptr;
 }
 
-auto HspDebugApi::mp_mod_var_data_to_pval(MPModVarData* mod_var_data) -> PVal* {
+auto HspDebugApi::mp_mod_var_data_to_pval(MPModVarData const* mod_var_data) const -> PVal const* {
 	assert(mod_var_data != nullptr);
 	assert(mod_var_data->magic == MODVAR_MAGICCODE);
 	assert(mod_var_data->pval != nullptr);
 	return mod_var_data->pval;
 }
 
-auto HspDebugApi::mp_mod_var_data_to_aptr(MPModVarData* mod_var_data) -> std::size_t {
+auto HspDebugApi::mp_mod_var_data_to_aptr(MPModVarData const* mod_var_data) const -> std::size_t {
 	assert(mod_var_data != nullptr);
 	assert(mod_var_data->magic == MODVAR_MAGICCODE);
 	assert(mod_var_data->aptr >= 0);
 	return (std::size_t)mod_var_data->aptr;
 }
 
-auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) -> std::optional<HspData> {
+auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) const -> std::optional<HspData> {
 	switch (system_var_kind) {
 	case HspSystemVarKind::Cnt:
 		{
@@ -186,7 +173,7 @@ auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) -> std::o
 		return std::make_optional(hsx::data_from_int(&context()->strsize));
 
 	case HspSystemVarKind::Thismod: {
-		auto mod_var_data_opt = param_data_to_mod_var_data(MPTYPE_MODULEVAR, ctx->prmstack);
+		auto mod_var_data_opt = hsx::param_data_to_mp_mod_var(MPTYPE_MODULEVAR, ctx->prmstack);
 		if (!mod_var_data_opt) {
 			return std::nullopt;
 		}
@@ -240,7 +227,7 @@ auto HspDebugApi::data_to_int(HspData const& data) const -> HspInt {
 	return *opt;
 }
 
-auto HspDebugApi::data_to_flex(HspData const& data) const -> FlexValue* {
+auto HspDebugApi::data_to_flex(HspData const& data) const -> FlexValue const* {
 	auto&& opt = hsx::data_to_flex(data);
 	if (!opt) {
 		assert(false && u8"Invalid cast to struct");
@@ -249,33 +236,33 @@ auto HspDebugApi::data_to_flex(HspData const& data) const -> FlexValue* {
 	return *opt;
 }
 
-auto HspDebugApi::static_label_count() -> std::size_t {
+auto HspDebugApi::static_label_count() const -> std::size_t {
 	return hsx::object_temp_count(context());
 }
 
-auto HspDebugApi::static_label_to_label(std::size_t static_label_id) -> std::optional<HspLabel> {
+auto HspDebugApi::static_label_to_label(std::size_t static_label_id) const -> std::optional<HspLabel> {
 	return hsx::object_temp_to_label(static_label_id, context());
 }
 
-bool HspDebugApi::flex_is_nullmod(FlexValue* flex) const {
+bool HspDebugApi::flex_is_nullmod(FlexValue const* flex) const {
 	assert(flex != nullptr);
 	return !flex->ptr || flex->type == FLEXVAL_TYPE_NONE;
 }
 
-bool HspDebugApi::flex_is_clone(FlexValue* flex) const {
+bool HspDebugApi::flex_is_clone(FlexValue const* flex) const {
 	assert(flex != nullptr);
 	return flex->type == FLEXVAL_TYPE_CLONE;
 }
 
-auto HspDebugApi::flex_to_module_struct(FlexValue* flex) const -> STRUCTDAT const* {
+auto HspDebugApi::flex_to_module_struct(FlexValue const* flex) const -> STRUCTDAT const* {
 	return hpiutil::FlexValue_module(flex);
 }
 
-auto HspDebugApi::flex_to_module_tag(FlexValue* flex) const -> STRUCTPRM const* {
+auto HspDebugApi::flex_to_module_tag(FlexValue const* flex) const -> STRUCTPRM const* {
 	return hpiutil::FlexValue_structTag(flex);
 }
 
-auto HspDebugApi::flex_to_member_count(FlexValue* flex) const -> std::size_t {
+auto HspDebugApi::flex_to_member_count(FlexValue const* flex) const -> std::size_t {
 	assert(flex != nullptr);
 
 	auto struct_dat = flex_to_module_struct(flex);
@@ -290,7 +277,7 @@ auto HspDebugApi::flex_to_member_count(FlexValue* flex) const -> std::size_t {
 	return param_count - 1;
 }
 
-auto HspDebugApi::flex_to_member_at(FlexValue* flex, std::size_t member_index) const -> HspParamData {
+auto HspDebugApi::flex_to_member_at(FlexValue const* flex, std::size_t member_index) const -> HspParamData {
 	auto member_count = flex_to_member_count(flex);
 	if (member_index >= member_count) {
 		assert(false && u8"Invalid member_index in flex");
@@ -304,7 +291,7 @@ auto HspDebugApi::flex_to_member_at(FlexValue* flex, std::size_t member_index) c
 	return param_stack_to_data_at(param_stack, param_index);
 }
 
-auto HspDebugApi::flex_to_param_stack(FlexValue* flex) const -> HspParamStack {
+auto HspDebugApi::flex_to_param_stack(FlexValue const* flex) const -> HspParamStack {
 	auto struct_dat = flex_to_module_struct(flex);
 	auto size = hsx::struct_to_param_stack_size(struct_dat);
 	auto safety = true;
@@ -403,70 +390,35 @@ auto HspDebugApi::param_type_to_name(HspParamType param_type) const -> char cons
 }
 
 auto HspDebugApi::param_data_to_type(HspParamData const& param_data) const -> HspParamType {
-	return param_data.param()->mptype;
+	return hsx::param_data_to_type(param_data);
 }
 
-auto HspDebugApi::param_data_as_local_var(HspParamData const& param_data) const -> PVal* {
-	if (param_data_to_type(param_data) != MPTYPE_LOCALVAR) {
+auto HspDebugApi::param_data_as_local_var(HspParamData const& param_data) const -> PVal const* {
+	auto&& opt = hsx::param_data_to_pval(param_data);
+	if (!opt) {
 		assert(false && u8"Casting to local var");
 		throw new std::bad_cast{};
 	}
-	return UNSAFE((PVal*)param_data.ptr());
+	return *opt;
 }
 
-auto HspDebugApi::param_data_to_single_var(HspParamData const& param_data) const -> MPVarData* {
-	auto type = param_data_to_type(param_data);
-	if (type != MPTYPE_SINGLEVAR && type != MPTYPE_ARRAYVAR) {
+auto HspDebugApi::param_data_to_single_var(HspParamData const& param_data) const -> MPVarData const* {
+	auto&& opt = hsx::param_data_to_mp_var(param_data);
+	if (!opt) {
 		assert(false && u8"Casting to local var");
 		throw new std::bad_cast{};
 	}
-	return UNSAFE((MPVarData*)param_data.ptr());
+	return *opt;
 }
 
-auto HspDebugApi::param_data_to_array_var(HspParamData const& param_data) const -> MPVarData* {
+auto HspDebugApi::param_data_to_array_var(HspParamData const& param_data) const -> MPVarData const* {
 	return param_data_to_single_var(param_data);
 }
 
-auto HspDebugApi::param_data_to_mod_var(HspParamData const& param_data) const -> std::optional<MPModVarData*> {
-	auto type = param_data_to_type(param_data);
-	auto&& mod_var_data_opt = param_data_to_mod_var_data(type, param_data.ptr());
-	if (!mod_var_data_opt) {
-		return std::nullopt;
-	}
-	return *mod_var_data_opt;
+auto HspDebugApi::param_data_to_mod_var(HspParamData const& param_data) const -> std::optional<MPModVarData const*> {
+	return hsx::param_data_to_mp_mod_var(param_data);
 }
 
 auto HspDebugApi::param_data_to_data(HspParamData const& param_data) const -> std::optional<HspData> {
-	if (!param_data.safety()) {
-		return std::nullopt;
-	}
-
-	switch (param_data_to_type(param_data)) {
-	case MPTYPE_LABEL:
-		{
-			auto ptr = UNSAFE((HspLabel*)param_data.ptr());
-			return std::make_optional(hsx::data_from_label(ptr));
-		}
-	case MPTYPE_LOCALSTRING:
-		{
-			auto str = UNSAFE(*(char**)param_data.ptr());
-			if (!str) {
-				assert(false && u8"str param must not be null");
-				return std::nullopt;
-			}
-			return std::make_optional(hsx::data_from_str(str));
-		}
-	case MPTYPE_DNUM:
-		{
-			auto ptr = UNSAFE((HspDouble*)param_data.ptr());
-			return std::make_optional(hsx::data_from_double(ptr));
-		}
-	case MPTYPE_INUM:
-		{
-			auto ptr = UNSAFE((HspInt*)param_data.ptr());
-			return std::make_optional(hsx::data_from_int(ptr));
-		}
-	default:
-		return std::nullopt;
-	}
+	return hsx::param_data_to_data(param_data);
 }

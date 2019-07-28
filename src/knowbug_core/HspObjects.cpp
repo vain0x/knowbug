@@ -81,7 +81,7 @@ static auto create_general_content(DebugInfo const& debug_info) -> Utf8String {
 	return buffer;
 }
 
-static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HspDebugApi& api) -> std::optional<PVal*> {
+static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HspDebugApi& api) -> std::optional<PVal const*> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -285,7 +285,7 @@ static auto int_path_to_value(HspObjectPath::Int const& path, HspDebugApi& api) 
 	return std::make_optional(api.data_to_int(*data));
 }
 
-static auto flex_path_to_value(HspObjectPath::Flex const& path, std::size_t depth, HspDebugApi& api) -> std::optional<FlexValue*> {
+static auto flex_path_to_value(HspObjectPath::Flex const& path, std::size_t depth, HspDebugApi& api) -> std::optional<FlexValue const*> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}

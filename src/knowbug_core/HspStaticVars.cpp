@@ -28,7 +28,7 @@ static void fetch_static_var_names(HSP3DEBUG* debug_, std::size_t static_var_cou
 	}
 }
 
-static auto seekSttVar(char const* name, HSPCTX* ctx, HSPEXINFO* exinfo) -> PVal*
+static auto seekSttVar(char const* name, HSPCTX const* ctx, HSPEXINFO const* exinfo) -> PVal*
 {
 	auto const index = int { exinfo->HspFunc_seekvar(name) };
 	return (index >= 0) ? &ctx->mem_var[index] : nullptr;

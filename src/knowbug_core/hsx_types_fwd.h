@@ -35,7 +35,7 @@ namespace hsp_sdk_ext {
 
 	// 引数の種類
 	// MPTYPE_*
-	using HspParamType = short;
+	using HspParamType = int;
 
 	// HSP の変数が持つデータの型
 	// FIXME: HspVarType に改名

@@ -12,6 +12,7 @@ namespace hsp_sdk_ext {
 		std::size_t param_index_;
 
 		// FIXME: data_ に改名
+		// FIXME: void const*
 		void* ptr_;
 
 		bool safety_;

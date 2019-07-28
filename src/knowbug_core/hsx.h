@@ -10,15 +10,15 @@
 #include "memory_view.h"
 
 namespace hsp_sdk_ext {
-	extern auto data_from_label(HspLabel* ptr)->HspData;
+	extern auto data_from_label(HspLabel const* ptr)->HspData;
 
-	extern auto data_from_str(HspStr value)->HspData;
+	extern auto data_from_str(char const* value)->HspData;
 
-	extern auto data_from_double(HspDouble* ptr)->HspData;
+	extern auto data_from_double(HspDouble const* ptr)->HspData;
 
-	extern auto data_from_int(HspInt* ptr)->HspData;
+	extern auto data_from_int(HspInt const* ptr)->HspData;
 
-	extern auto data_from_flex(FlexValue* ptr)->HspData;
+	extern auto data_from_flex(FlexValue const* ptr)->HspData;
 
 	extern auto data_to_label(HspData const& data)->std::optional<HspLabel>;
 
@@ -45,6 +45,18 @@ namespace hsp_sdk_ext {
 	extern auto object_temp_to_label(std::size_t ot_index, HSPCTX const* ctx)->std::optional<HspLabel>;
 
 	extern auto params(HSPCTX const* ctx)->Slice<STRUCTPRM>;
+
+	extern auto param_data_to_type(HspParamData const& param_data)->HspParamType;
+
+	extern auto param_data_to_pval(HspParamData const& param_data)->std::optional<PVal const*>;
+
+	extern auto param_data_to_mp_var(HspParamData const& param_data)->std::optional<MPVarData const*>;
+
+	extern auto param_data_to_mp_mod_var(HspParamData const& param_data)->std::optional<MPModVarData const*>;
+
+	extern auto param_data_to_mp_mod_var(HspParamType param_type, void const* data)->std::optional<MPModVarData const*>;
+
+	extern auto param_data_to_data(HspParamData const& param_data)->std::optional<HspData>;
 
 	extern auto pval_to_type(PVal const* pval)->HspType;
 
