@@ -266,5 +266,11 @@
     <ClCompile Include="hsx_object_temps.cpp">
       <Filter>hsp-sdk-ext</Filter>
     </ClCompile>
+    <ClCompile Include="hsx_param.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_struct.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

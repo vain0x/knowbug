@@ -47,5 +47,11 @@ namespace hsp_sdk_ext {
 
 			return std::make_optional(begin() + index);
 		}
+
+		auto slice(std::size_t offset, std::size_t count) const->Slice<T> {
+			offset = std::min(offset, size());
+			count = std::min(count, size() - offset);
+			return Slice<T>{ begin() + offset, count };
+		}
 	};
 }

@@ -6,6 +6,19 @@
 #define UNSAFE(E) (E)
 
 namespace hsp_sdk_ext {
+	static auto data(HSPCTX const* ctx)->Slice<char> {
+		auto size = (std::size_t)std::max(0, ctx->hsphed->max_ds) / sizeof(char);
+		return Slice<char>{ ctx->mem_mds, size };
+	}
+
+	static auto data_as_str(std::size_t ds_index, HSPCTX const* ctx)->std::optional<char const*> {
+		if (ds_index >= data(ctx).size()) {
+			return std::nullopt;
+		}
+
+		return data(ctx).begin() + ds_index;
+	}
+
 	static auto exinfo(HSPCTX* ctx)->HSPEXINFO* {
 		assert(ctx != nullptr);
 		return ctx->exinfo2;

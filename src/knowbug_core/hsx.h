@@ -44,6 +44,8 @@ namespace hsp_sdk_ext {
 
 	extern auto object_temp_to_label(std::size_t ot_index, HSPCTX const* ctx)->std::optional<HspLabel>;
 
+	extern auto params(HSPCTX const* ctx)->Slice<STRUCTPRM>;
+
 	extern auto pval_to_type(PVal const* pval)->HspType;
 
 	extern auto pval_to_varmode(PVal const* pval)->HspVarMode;
@@ -67,4 +69,14 @@ namespace hsp_sdk_ext {
 	extern auto static_var_from_name(char const* var_name, HSPCTX const* ctx)->std::optional<std::size_t>;
 
 	extern auto static_var_to_name(std::size_t static_var_index, HSPCTX const* ctx)->std::optional<char const*>;
+
+	extern auto structs(HSPCTX const* ctx)->Slice<STRUCTDAT>;
+
+	extern auto struct_to_name(STRUCTDAT const* struct_dat, HSPCTX const* ctx)->std::optional<char const*>;
+
+	extern auto struct_to_param_count(STRUCTDAT const* struct_dat)->std::size_t;
+
+	extern auto struct_to_params(STRUCTDAT const* struct_dat, HSPCTX const* ctx)->Slice<STRUCTPRM>;
+
+	extern auto struct_to_param_stack_size(STRUCTDAT const* struct_dat)->std::size_t;
 }

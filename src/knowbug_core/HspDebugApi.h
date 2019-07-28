@@ -116,15 +116,11 @@ public:
 
 	auto flex_to_param_stack(FlexValue* flex) const -> HspParamStack;
 
-	auto structs() const -> STRUCTDAT const*;
-
-	auto struct_count() const -> std::size_t;
-
 	auto struct_to_name(STRUCTDAT const* struct_dat) const -> char const*;
 
 	auto struct_to_param_count(STRUCTDAT const* struct_dat) const -> std::size_t;
 
-	auto struct_to_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> STRUCTPRM const*;
+	auto struct_to_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> std::optional<STRUCTPRM const*>;
 
 	auto struct_to_param_stack_size(STRUCTDAT const* struct_dat) const->std::size_t;
 

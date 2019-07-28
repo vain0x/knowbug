@@ -279,7 +279,7 @@ auto HspDebugApi::flex_to_member_count(FlexValue* flex) const -> std::size_t {
 	assert(flex != nullptr);
 
 	auto struct_dat = flex_to_module_struct(flex);
-	auto param_count = struct_to_param_count(struct_dat);
+	auto param_count = hsx::struct_to_param_count(struct_dat);
 
 	// NOTE: STRUCT_TAG というダミーのパラメータがあるため、メンバ変数の個数は1つ少ない。
 	if (param_count == 0) {
@@ -306,34 +306,25 @@ auto HspDebugApi::flex_to_member_at(FlexValue* flex, std::size_t member_index) c
 
 auto HspDebugApi::flex_to_param_stack(FlexValue* flex) const -> HspParamStack {
 	auto struct_dat = flex_to_module_struct(flex);
-	auto size = struct_to_param_stack_size(struct_dat);
+	auto size = hsx::struct_to_param_stack_size(struct_dat);
 	auto safety = true;
 	return HspParamStack{ struct_dat, flex->ptr, size, safety };
 }
 
-auto HspDebugApi::structs() const -> STRUCTDAT const* {
-	return hpiutil::finfo().begin();
-}
-
-auto HspDebugApi::struct_count() const -> std::size_t {
-	return hpiutil::finfo().size();
-}
-
 auto HspDebugApi::struct_to_name(STRUCTDAT const* struct_dat) const -> char const* {
-	return hpiutil::STRUCTDAT_name(struct_dat);
+	return hsx::struct_to_name(struct_dat, context()).value_or(u8"");
 }
 
 auto HspDebugApi::struct_to_param_count(STRUCTDAT const* struct_dat) const -> std::size_t {
-	return hpiutil::STRUCTDAT_params(struct_dat).size();
+	return hsx::struct_to_param_count(struct_dat);
 }
 
-auto HspDebugApi::struct_to_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> STRUCTPRM const* {
-	return hpiutil::STRUCTDAT_params(struct_dat).begin() + param_index;
+auto HspDebugApi::struct_to_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const -> std::optional<STRUCTPRM const*> {
+	return hsx::struct_to_params(struct_dat, context()).get(param_index);
 }
 
 auto HspDebugApi::struct_to_param_stack_size(STRUCTDAT const* struct_dat) const -> std::size_t {
-	assert(struct_dat != nullptr);
-	return struct_dat->size;
+	return hsx::struct_to_param_stack_size(struct_dat);
 }
 
 auto HspDebugApi::params() const -> STRUCTPRM const* {
@@ -355,12 +346,11 @@ auto HspDebugApi::param_to_param_id(STRUCTPRM const* param) const -> std::size_t
 }
 
 auto HspDebugApi::param_to_name(STRUCTPRM const* param, std::size_t param_index, hpiutil::DInfo const& debug_segment) const -> std::string {
-	auto struct_dat = hpiutil::STRUCTPRM_stdat(param);
 	return hpiutil::nameFromStPrm(param, (int)param_index, debug_segment);
 }
 
 auto HspDebugApi::param_stack_to_data_count(HspParamStack const& param_stack) const -> std::size_t {
-	return hpiutil::STRUCTDAT_params(param_stack.struct_dat()).size();
+	return hsx::struct_to_param_count(param_stack.struct_dat());
 }
 
 auto HspDebugApi::param_stack_to_data_at(HspParamStack const& param_stack, std::size_t param_index) const -> HspParamData {
@@ -369,9 +359,14 @@ auto HspDebugApi::param_stack_to_data_at(HspParamStack const& param_stack, std::
 		throw new std::exception{};
 	}
 
-	auto param = hpiutil::STRUCTDAT_params(param_stack.struct_dat()).begin() + param_index;
-	auto ptr = (void*)((char const*)param_stack.ptr() + param->offset);
-	return HspParamData{ param, param_index, ptr, param_stack.safety() };
+	auto param_opt = hsx::struct_to_params(param_stack.struct_dat(), context()).get(param_index);
+	if (!param_opt) {
+		assert(false && u8"Invalid param_index");
+		throw new std::exception{};
+	}
+
+	auto ptr = (void*)((char const*)param_stack.ptr() + (**param_opt).offset);
+	return HspParamData{ *param_opt, param_index, ptr, param_stack.safety() };
 }
 
 auto HspDebugApi::param_type_to_name(HspParamType param_type) const -> char const* {
