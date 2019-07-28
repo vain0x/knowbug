@@ -86,14 +86,6 @@ public:
 
 	auto var_element_to_block_memory(PVal const* pval, std::size_t aptr) const->MemoryView;
 
-	auto mp_var_data_to_pval(MPVarData const* var_data) const->PVal const*;
-
-	auto mp_var_data_to_aptr(MPVarData const* var_data) const->std::size_t;
-
-	auto mp_mod_var_data_to_pval(MPModVarData const* mod_var_data) const->PVal const*;
-
-	auto mp_mod_var_data_to_aptr(MPModVarData const* mod_var_data) const->std::size_t;
-
 	auto system_var_to_data(HspSystemVarKind system_var_kind) const->std::optional<HspData>;
 
 	auto data_to_label(HspData const& data) const->HspLabel;

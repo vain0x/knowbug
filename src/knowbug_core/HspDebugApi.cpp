@@ -103,33 +103,6 @@ auto HspDebugApi::var_element_to_block_memory(PVal const* pval, std::size_t aptr
 	return hsx::element_to_memory_block(pval, aptr, context());
 }
 
-auto HspDebugApi::mp_var_data_to_pval(MPVarData const* var_data) const -> PVal const* {
-	assert(var_data != nullptr);
-	assert(var_data->pval != nullptr);
-	return var_data->pval;
-}
-
-auto HspDebugApi::mp_var_data_to_aptr(MPVarData const* var_data) const -> std::size_t {
-	assert(var_data != nullptr);
-	assert(var_data->pval != nullptr);
-	assert(var_data->aptr >= 0);
-	return (std::size_t)var_data->aptr;
-}
-
-auto HspDebugApi::mp_mod_var_data_to_pval(MPModVarData const* mod_var_data) const -> PVal const* {
-	assert(mod_var_data != nullptr);
-	assert(mod_var_data->magic == MODVAR_MAGICCODE);
-	assert(mod_var_data->pval != nullptr);
-	return mod_var_data->pval;
-}
-
-auto HspDebugApi::mp_mod_var_data_to_aptr(MPModVarData const* mod_var_data) const -> std::size_t {
-	assert(mod_var_data != nullptr);
-	assert(mod_var_data->magic == MODVAR_MAGICCODE);
-	assert(mod_var_data->aptr >= 0);
-	return (std::size_t)mod_var_data->aptr;
-}
-
 auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) const -> std::optional<HspData> {
 	switch (system_var_kind) {
 	case HspSystemVarKind::Cnt:

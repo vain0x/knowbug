@@ -2,6 +2,33 @@
 #include "hsx_internals.h"
 
 namespace hsp_sdk_ext {
+	auto mp_var_to_pval(MPVarData const* mp_var) -> PVal const* {
+		assert(mp_var != nullptr);
+		assert(mp_var->pval != nullptr);
+		return mp_var->pval;
+	}
+
+	auto mp_var_to_aptr(MPVarData const* mp_var) -> std::size_t {
+		assert(mp_var != nullptr);
+		assert(mp_var->pval != nullptr);
+		assert(mp_var->aptr >= 0);
+		return (std::size_t)mp_var->aptr;
+	}
+
+	auto mp_mod_var_to_pval(MPModVarData const* mp_mod_var) -> PVal const* {
+		assert(mp_mod_var != nullptr);
+		assert(mp_mod_var->magic == MODVAR_MAGICCODE);
+		assert(mp_mod_var->pval != nullptr);
+		return mp_mod_var->pval;
+	}
+
+	auto mp_mod_var_to_aptr(MPModVarData const* mp_mod_var) -> std::size_t {
+		assert(mp_mod_var != nullptr);
+		assert(mp_mod_var->magic == MODVAR_MAGICCODE);
+		assert(mp_mod_var->aptr >= 0);
+		return (std::size_t)mp_mod_var->aptr;
+	}
+
 	auto param_data_to_type(HspParamData const& param_data) -> HspParamType {
 		return (HspParamType)param_data.param()->mptype;
 	}

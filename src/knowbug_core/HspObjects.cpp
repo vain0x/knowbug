@@ -10,6 +10,8 @@
 #include "HspStaticVars.h"
 #include "source_files.h"
 
+namespace hsx = hsp_sdk_ext;
+
 // 再帰深度の初期値
 static auto const MIN_DEPTH = std::size_t{};
 
@@ -114,18 +116,18 @@ static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HspDebugA
 			case MPTYPE_SINGLEVAR:
 			case MPTYPE_ARRAYVAR:
 				{
-					auto mp_var_data = api.param_data_to_single_var(param_data);
-					auto pval = api.mp_var_data_to_pval(mp_var_data);
+					auto mp_var = api.param_data_to_single_var(param_data);
+					auto pval = hsx::mp_var_to_pval(mp_var);
 					return std::make_optional(pval);
 				}
 			case MPTYPE_MODULEVAR:
 			case MPTYPE_IMODULEVAR:
 			case MPTYPE_TMODULEVAR: {
-				auto&& mod_var_data_opt = api.param_data_to_mod_var(param_data);
-				if (!mod_var_data_opt) {
+				auto&& mod_var_opt = api.param_data_to_mod_var(param_data);
+				if (!mod_var_opt) {
 					return std::nullopt;
 				}
-				return std::make_optional(api.mp_mod_var_data_to_pval(*mod_var_data_opt));
+				return std::make_optional(hsx::mp_mod_var_to_pval(*mod_var_opt));
 			}
 			default:
 				return std::nullopt;
@@ -579,8 +581,8 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 			}
 
 			auto var_data = api_.param_data_to_single_var(*param_data_opt);
-			auto pval = api_.mp_var_data_to_pval(var_data);
-			auto aptr = api_.mp_var_data_to_aptr(var_data);
+			auto pval = hsx::mp_var_to_pval(var_data);
+			auto aptr = hsx::mp_var_to_aptr(var_data);
 
 			auto&& indexes_opt = api_.var_element_to_indexes(pval, aptr);
 			if (!indexes_opt) {
@@ -602,8 +604,8 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 			return path.new_unavailable(to_owned(as_utf8(u8"引数データを取得できません")));
 		}
 
-		auto pval = api_.mp_mod_var_data_to_pval(*mod_var_data_opt);
-		auto aptr = api_.mp_mod_var_data_to_aptr(*mod_var_data_opt);
+		auto pval = hsx::mp_mod_var_to_pval(*mod_var_data_opt);
+		auto aptr = hsx::mp_mod_var_to_aptr(*mod_var_data_opt);
 
 		auto&& indexes_opt = api_.var_element_to_indexes(pval, aptr);
 		if (!indexes_opt) {
