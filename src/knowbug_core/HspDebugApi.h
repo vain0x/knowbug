@@ -142,7 +142,7 @@ public:
 
 	auto param_stack_to_data_count(HspParamStack const& param_stack) const->std::size_t;
 
-	auto param_stack_to_data_at(HspParamStack const& param_stack, std::size_t param_index) const->HspParamData;
+	auto param_stack_to_data_at(HspParamStack const& param_stack, std::size_t param_index) const->std::optional<HspParamData>;
 
 	auto param_type_to_name(HspParamType param_type) const -> char const*;
 

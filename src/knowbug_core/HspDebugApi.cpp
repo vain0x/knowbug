@@ -288,7 +288,13 @@ auto HspDebugApi::flex_to_member_at(FlexValue const* flex, std::size_t member_in
 	auto param_index = member_index + 1;
 
 	auto&& param_stack = flex_to_param_stack(flex);
-	return param_stack_to_data_at(param_stack, param_index);
+	auto&& param_data_opt = param_stack_to_data_at(param_stack, param_index);
+	if (!param_data_opt) {
+		assert(false && u8"Invalid member_index in flex");
+		throw new std::exception{};
+	}
+
+	return *param_data_opt;
 }
 
 auto HspDebugApi::flex_to_param_stack(FlexValue const* flex) const -> HspParamStack {
@@ -340,20 +346,8 @@ auto HspDebugApi::param_stack_to_data_count(HspParamStack const& param_stack) co
 	return hsx::struct_to_param_count(param_stack.struct_dat());
 }
 
-auto HspDebugApi::param_stack_to_data_at(HspParamStack const& param_stack, std::size_t param_index) const -> HspParamData {
-	if (param_index >= param_stack_to_data_count(param_stack)) {
-		assert(false && u8"Invalid param_index");
-		throw new std::exception{};
-	}
-
-	auto param_opt = hsx::struct_to_params(param_stack.struct_dat(), context()).get(param_index);
-	if (!param_opt) {
-		assert(false && u8"Invalid param_index");
-		throw new std::exception{};
-	}
-
-	auto ptr = (void*)((char const*)param_stack.ptr() + (**param_opt).offset);
-	return HspParamData{ *param_opt, param_index, ptr, param_stack.safety() };
+auto HspDebugApi::param_stack_to_data_at(HspParamStack const& param_stack, std::size_t param_index) const -> std::optional<HspParamData> {
+	return hsx::param_stack_to_param_data(param_stack, param_index, context());
 }
 
 auto HspDebugApi::param_type_to_name(HspParamType param_type) const -> char const* {

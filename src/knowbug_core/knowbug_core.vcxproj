@@ -441,6 +441,7 @@
     <ClCompile Include="hsx_data.cpp" />
     <ClCompile Include="hsx_param.cpp" />
     <ClCompile Include="hsx_param_data.cpp" />
+    <ClCompile Include="hsx_param_stack.cpp" />
     <ClCompile Include="hsx_pval.cpp" />
     <ClCompile Include="hsx_object_temps.cpp" />
     <ClCompile Include="hsx_static_vars.cpp" />

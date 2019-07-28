@@ -885,9 +885,13 @@ auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& pat
 		return std::nullopt;
 	}
 
-	auto&& param_data = api_.param_stack_to_data_at(*param_stack_opt, child_index);
-	auto param_type = api_.param_data_to_type(param_data);
-	return std::make_optional(path.new_param(param_type, param_data.param_index()));
+	auto&& param_data_opt = api_.param_stack_to_data_at(*param_stack_opt, child_index);
+	if (!param_data_opt) {
+		return std::nullopt;
+	}
+
+	auto param_type = api_.param_data_to_type(*param_data_opt);
+	return std::make_optional(path.new_param(param_type, param_data_opt->param_index()));
 }
 
 auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<Utf8StringView>> {
