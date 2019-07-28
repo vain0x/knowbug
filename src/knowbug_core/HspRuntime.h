@@ -46,6 +46,8 @@ public:
 		return wc_debugger_;
 	}
 
+	void update_location();
+
 private:
 	auto ctx() -> HSPCTX*;
 

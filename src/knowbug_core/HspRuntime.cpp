@@ -97,3 +97,7 @@ HspRuntime::HspRuntime(HspDebugApi&& api, DebugInfo const& debug_info, SourceFil
 	, wc_debugger_(std::make_shared<WcDebuggerImpl>(api_, source_file_repository))
 {
 }
+
+void HspRuntime::update_location() {
+	hsx::debug_do_update_location(api_.debug());
+}

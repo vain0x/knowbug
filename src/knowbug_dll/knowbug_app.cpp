@@ -78,7 +78,7 @@ public:
 	void did_hsp_pause() {
 		if (step_controller_->continue_step_running()) return;
 
-		g_dbginfo->updateCurInf();
+		hsp_runtime_->update_location();
 		view().update_source_edit(to_os(hsp_runtime_->objects().script_to_current_location_summary()));
 		view().update();
 	}
