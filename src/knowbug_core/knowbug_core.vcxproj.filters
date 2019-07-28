@@ -281,5 +281,8 @@
     <ClCompile Include="hsx_system_var.cpp">
       <Filter>hsp-sdk-ext</Filter>
     </ClCompile>
+    <ClCompile Include="hsx_flex.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

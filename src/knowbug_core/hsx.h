@@ -38,6 +38,18 @@ namespace hsp_sdk_ext {
 
 	extern auto element_to_memory_block(PVal const* pval, std::size_t aptr, HSPCTX const* ctx)->MemoryView;
 
+	extern auto flex_is_nullmod(FlexValue const* flex) -> bool;
+
+	extern auto flex_is_clone(FlexValue const* flex) -> bool;
+
+	extern auto flex_to_struct(FlexValue const* flex, HSPCTX const* ctx)->std::optional<STRUCTDAT const*>;
+
+	extern auto flex_to_member_count(FlexValue const* flex, HSPCTX const* ctx)->std::size_t;
+
+	extern auto flex_to_member(FlexValue const* flex, std::size_t member_index, HSPCTX const* ctx)->std::optional<HspParamData>;
+
+	extern auto flex_to_param_stack(FlexValue const* flex, HSPCTX const* ctx)->std::optional<HspParamStack>;
+
 	extern auto mp_var_to_pval(MPVarData const* mp_var)->PVal const*;
 
 	extern auto mp_var_to_aptr(MPVarData const* mp_var)->std::size_t;
@@ -53,6 +65,8 @@ namespace hsp_sdk_ext {
 	extern auto object_temp_to_label(std::size_t ot_index, HSPCTX const* ctx)->std::optional<HspLabel>;
 
 	extern auto params(HSPCTX const* ctx)->Slice<STRUCTPRM>;
+
+	extern auto param_to_struct(STRUCTPRM const* param, HSPCTX const* ctx)->std::optional<STRUCTDAT const*>;
 
 	extern auto param_data_to_type(HspParamData const& param_data)->HspParamType;
 

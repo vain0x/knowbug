@@ -161,63 +161,27 @@ auto HspDebugApi::static_label_to_label(std::size_t static_label_id) const -> st
 }
 
 bool HspDebugApi::flex_is_nullmod(FlexValue const* flex) const {
-	assert(flex != nullptr);
-	return !flex->ptr || flex->type == FLEXVAL_TYPE_NONE;
+	return hsx::flex_is_clone(flex);
 }
 
 bool HspDebugApi::flex_is_clone(FlexValue const* flex) const {
-	assert(flex != nullptr);
-	return flex->type == FLEXVAL_TYPE_CLONE;
+	return hsx::flex_is_clone(flex);
 }
 
 auto HspDebugApi::flex_to_module_struct(FlexValue const* flex) const -> STRUCTDAT const* {
-	return hpiutil::FlexValue_module(flex);
-}
-
-auto HspDebugApi::flex_to_module_tag(FlexValue const* flex) const -> STRUCTPRM const* {
-	return hpiutil::FlexValue_structTag(flex);
+	return *hsx::flex_to_struct(flex, context());
 }
 
 auto HspDebugApi::flex_to_member_count(FlexValue const* flex) const -> std::size_t {
-	assert(flex != nullptr);
-
-	auto struct_dat = flex_to_module_struct(flex);
-	auto param_count = hsx::struct_to_param_count(struct_dat);
-
-	// NOTE: STRUCT_TAG というダミーのパラメータがあるため、メンバ変数の個数は1つ少ない。
-	if (param_count == 0) {
-		assert(false && u8"STRUCT_TAG を持たないモジュールはモジュール変数のインスタンスを作れないはず");
-		return 0;
-	}
-
-	return param_count - 1;
+	return hsx::flex_to_member_count(flex, context());
 }
 
 auto HspDebugApi::flex_to_member_at(FlexValue const* flex, std::size_t member_index) const -> HspParamData {
-	auto member_count = flex_to_member_count(flex);
-	if (member_index >= member_count) {
-		assert(false && u8"Invalid member_index in flex");
-		throw new std::exception{};
-	}
-
-	// 先頭の STRUCT_TAG を除いて数える。
-	auto param_index = member_index + 1;
-
-	auto&& param_stack = flex_to_param_stack(flex);
-	auto&& param_data_opt = param_stack_to_data_at(param_stack, param_index);
-	if (!param_data_opt) {
-		assert(false && u8"Invalid member_index in flex");
-		throw new std::exception{};
-	}
-
-	return *param_data_opt;
+	return *hsx::flex_to_member(flex, member_index, context());
 }
 
 auto HspDebugApi::flex_to_param_stack(FlexValue const* flex) const -> HspParamStack {
-	auto struct_dat = flex_to_module_struct(flex);
-	auto size = hsx::struct_to_param_stack_size(struct_dat);
-	auto safety = true;
-	return HspParamStack{ struct_dat, flex->ptr, size, safety };
+	return *hsx::flex_to_param_stack(flex, context());
 }
 
 auto HspDebugApi::struct_to_name(STRUCTDAT const* struct_dat) const -> char const* {
