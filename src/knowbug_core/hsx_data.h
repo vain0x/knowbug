@@ -10,6 +10,8 @@ namespace hsp_sdk_ext {
 	class HspData {
 		HspType type_;
 
+		// label, double, int, struct: 変数が持つバッファの一部へのポインタ
+		// str: 文字列自身へのポインタ
 		// FIXME: data_ に改名
 		PDAT* ptr_;
 

@@ -18,6 +18,18 @@ namespace hsp_sdk_ext {
 
 	extern auto data_from_int(HspInt* ptr)->HspData;
 
+	extern auto data_from_flex(FlexValue* ptr)->HspData;
+
+	extern auto data_to_label(HspData const& data)->std::optional<HspLabel>;
+
+	extern auto data_to_str(HspData const& data)->std::optional<HspStr>;
+
+	extern auto data_to_double(HspData const& data)->std::optional<HspDouble>;
+
+	extern auto data_to_int(HspData const& data)->std::optional<HspInt>;
+
+	extern auto data_to_flex(HspData const& data)->std::optional<FlexValue*>;
+
 	extern auto element_to_indexes(PVal const* pval, std::size_t aptr)->std::optional<HspDimIndex>;
 
 	extern auto element_to_aptr(PVal const* pval, HspDimIndex const& indexes)->std::optional<std::size_t>;

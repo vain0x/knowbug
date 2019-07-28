@@ -205,48 +205,48 @@ auto HspDebugApi::system_var_to_data(HspSystemVarKind system_var_kind) -> std::o
 }
 
 auto HspDebugApi::data_to_label(HspData const& data) const -> HspLabel {
-	if (data.type() != HspType::Label) {
+	auto&& opt = hsx::data_to_label(data);
+	if (!opt) {
 		assert(false && u8"Invalid cast to label");
 		throw new std::bad_cast{};
 	}
-
-	return UNSAFE(*(HspLabel const*)data.ptr());
+	return *opt;
 }
 
 auto HspDebugApi::data_to_str(HspData const& data) const -> HspStr {
-	if (data.type() != HspType::Str) {
+	auto&& opt = hsx::data_to_str(data);
+	if (!opt) {
 		assert(false && u8"Invalid cast to string");
 		throw new std::bad_cast{};
 	}
-
-	return UNSAFE((HspStr)data.ptr());
+	return *opt;
 }
 
 auto HspDebugApi::data_to_double(HspData const& data) const -> HspDouble {
-	if (data.type() != HspType::Double) {
+	auto&& opt = hsx::data_to_double(data);
+	if (!opt) {
 		assert(false && u8"Invalid cast to double");
 		throw new std::bad_cast{};
 	}
-
-	return UNSAFE(*(HspDouble const*)data.ptr());
+	return *opt;
 }
 
 auto HspDebugApi::data_to_int(HspData const& data) const -> HspInt {
-	if (data.type() != HspType::Int) {
+	auto&& opt = hsx::data_to_int(data);
+	if (!opt) {
 		assert(false && u8"Invalid cast to int");
 		throw new std::bad_cast{};
 	}
-
-	return UNSAFE(*(HspInt const*)data.ptr());
+	return *opt;
 }
 
 auto HspDebugApi::data_to_flex(HspData const& data) const -> FlexValue* {
-	if (data.type() != HspType::Struct) {
+	auto&& opt = hsx::data_to_flex(data);
+	if (!opt) {
 		assert(false && u8"Invalid cast to struct");
 		throw new std::bad_cast{};
 	}
-
-	return UNSAFE((FlexValue*)data.ptr());
+	return *opt;
 }
 
 auto HspDebugApi::static_labels() -> HspCodeOffset const* {
