@@ -2,7 +2,6 @@
 #pragma once
 
 #include <string>
-#include "../hpiutil/SourcePos.hpp"
 
 #undef max
 
@@ -21,27 +20,4 @@ public:
 	bool setStepMode(int mode) { return (debug_->dbg_set(mode) >= 0); }
 
 	auto fetchGeneralInfo() const -> std::vector<std::pair<string, string>>;
-
-	auto curPos() const -> hpiutil::SourcePos const
-	{
-		return { debug_->fname, debug_->line - 1 };
-	}
-
-	auto getCurInfString() const -> string
-	{
-		return curPos().toString();
-	}
-
-	void updateCurInf()
-	{
-		debug_->dbg_curinf();
-	}
-
-	auto file_ref_name() const -> std::string {
-		return debug_->fname;
-	}
-
-	auto line_index() const -> std::size_t {
-		return std::max(0, debug_->line - 1);
-	}
 };

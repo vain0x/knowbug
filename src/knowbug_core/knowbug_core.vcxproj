@@ -329,7 +329,6 @@
     <ClInclude Include="..\hpiutil\DInfo.hpp" />
     <ClInclude Include="..\hpiutil\hpiutil.hpp" />
     <ClInclude Include="..\hpiutil\hpiutil_fwd.hpp" />
-    <ClInclude Include="..\hpiutil\SourcePos.hpp" />
     <ClInclude Include="..\hpiutil\Sysvar.hpp" />
     <ClInclude Include="..\hpiutil\vartype_traits.hpp" />
     <ClInclude Include="..\hpiutil\vector_view.hpp" />

@@ -45,9 +45,6 @@
     <ClInclude Include="..\hpiutil\hpiutil_fwd.hpp">
       <Filter>hpiutil</Filter>
     </ClInclude>
-    <ClInclude Include="..\hpiutil\SourcePos.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
     <ClInclude Include="..\hpiutil\Sysvar.hpp">
       <Filter>hpiutil</Filter>
     </ClInclude>

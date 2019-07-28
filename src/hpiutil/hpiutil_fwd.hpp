@@ -39,7 +39,6 @@ enum DebugNotice
 };
 
 class DInfo;
-class SourcePos;
 
 // 定数 /MPTYPE_(\w+)/ の値に対応する適当な名前を得る
 extern auto nameFromMPType(int mptype) -> char const*;
