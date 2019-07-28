@@ -38,6 +38,12 @@ namespace hsp_sdk_ext {
 
 	extern auto element_to_memory_block(PVal const* pval, std::size_t aptr, HSPCTX const* ctx)->MemoryView;
 
+	extern auto object_temps(HSPCTX const* ctx)->Slice<HspObjectTemp>;
+
+	extern auto object_temp_count(HSPCTX const* ctx)->std::size_t;
+
+	extern auto object_temp_to_label(std::size_t ot_index, HSPCTX const* ctx)->std::optional<HspLabel>;
+
 	extern auto pval_to_type(PVal const* pval)->HspType;
 
 	extern auto pval_to_varmode(PVal const* pval)->HspVarMode;

@@ -440,6 +440,7 @@
     <ClCompile Include="hsp_wrap_call.cpp" />
     <ClCompile Include="hsx_data.cpp" />
     <ClCompile Include="hsx_pval.cpp" />
+    <ClCompile Include="hsx_object_temps.cpp" />
     <ClCompile Include="hsx_static_vars.cpp" />
     <ClCompile Include="module\CIni.cpp" />
     <ClCompile Include="module\CStrWriter.cpp" />

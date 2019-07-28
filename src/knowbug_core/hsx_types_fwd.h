@@ -19,11 +19,12 @@ namespace hsp_sdk_ext {
 	class HspParamStack;
 	class HspVarMetadata;
 
-	// code segment の先頭からのオフセット。
-	using HspCodeOffset = std::int32_t;
+	// オブジェクトテンポラリ (ラベルのこと)
+	// code segment (CS) 領域のオフセットという形で、コードの位置を表す。
+	using HspObjectTemp = std::int32_t;
 
-	// code segment 内へのポインタ (有効) または nullptr (無効)
-	// このラベルの位置にラベルが書かれているとは限らない (newlab 命令で生成された可能性がある)。
+	// ラベル (ランタイムにおけるラベルの表現)。
+	// code segment 内へのポインタ (有効) または nullptr (無効)。
 	using HspLabel = unsigned short const*;
 
 	using HspStr = char*;

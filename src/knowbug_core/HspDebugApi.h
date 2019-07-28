@@ -98,8 +98,6 @@ public:
 
 	auto data_to_flex(HspData const& data) const -> FlexValue*;
 
-	auto static_labels() -> HspCodeOffset const*;
-
 	auto static_label_count() -> std::size_t;
 
 	auto static_label_to_label(std::size_t static_label_id) -> std::optional<HspLabel>;

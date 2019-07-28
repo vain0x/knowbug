@@ -249,25 +249,12 @@ auto HspDebugApi::data_to_flex(HspData const& data) const -> FlexValue* {
 	return *opt;
 }
 
-auto HspDebugApi::static_labels() -> HspCodeOffset const* {
-	return context()->mem_ot;
-}
-
 auto HspDebugApi::static_label_count() -> std::size_t {
-	if (context()->hsphed->max_ot < 0) {
-		assert(false && u8"max_ot must be positive.");
-		throw std::exception{};
-	}
-
-	return (std::size_t)context()->hsphed->max_ot;
+	return hsx::object_temp_count(context());
 }
 
 auto HspDebugApi::static_label_to_label(std::size_t static_label_id) -> std::optional<HspLabel> {
-	if (static_label_id >= static_label_count()) {
-		return std::nullopt;
-	}
-
-	return std::make_optional(context()->mem_mcs + context()->mem_ot[static_label_id]);
+	return hsx::object_temp_to_label(static_label_id, context());
 }
 
 bool HspDebugApi::flex_is_nullmod(FlexValue* flex) const {
