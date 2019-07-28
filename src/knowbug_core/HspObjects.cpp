@@ -861,6 +861,8 @@ auto HspObjects::call_stack_path_to_call_frame_id_at(HspObjectPath::CallStack co
 	return wc_call_frame_id_at(call_frame_index);
 }
 
+namespace hsx = hsp_sdk_ext;
+
 auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {
 	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
 	if (!call_frame_opt) {
@@ -868,8 +870,8 @@ auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) c
 	}
 
 	auto struct_dat = call_frame_opt->get().struct_dat();
-	auto name = hpiutil::STRUCTDAT_name(struct_dat);
-	return to_utf8(as_hsp(name));
+	auto name = hsx::struct_to_name(struct_dat, api_.context());
+	return to_utf8(as_hsp(name.value_or(u8"???")));
 }
 
 auto HspObjects::call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t {
@@ -902,12 +904,12 @@ auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& pa
 		return std::nullopt;
 	}
 
-	// FIXME: debug api から取得する
-	auto&& params = hpiutil::STRUCTDAT_params(call_frame_opt->get().struct_dat());
+	auto&& params = hsx::struct_to_params(call_frame_opt->get().struct_dat(), api_.context());
 
 	auto names = std::vector<Utf8StringView>{};
 	for (auto&& param : params) {
-		names.emplace_back(as_utf8(api_.param_type_to_name(param.mptype)));
+		auto name = api_.param_type_to_name(hsx::param_to_type(&param));
+		names.emplace_back(to_utf8(as_hsp(name)));
 	}
 
 	return std::make_optional(std::move(names));

@@ -7,6 +7,10 @@ namespace hsp_sdk_ext {
 		return Slice<STRUCTPRM>{ ctx->mem_minfo, size };
 	}
 
+	auto param_to_type(STRUCTPRM const* param)->HspParamType {
+		return (HspParamType)param->mptype;
+	}
+
 	auto param_to_struct(STRUCTPRM const* param, HSPCTX const* ctx)->std::optional<STRUCTDAT const*> {
 		auto struct_index = (std::size_t)std::max(0, (int)param->subid);
 		return structs(ctx).get(struct_index);

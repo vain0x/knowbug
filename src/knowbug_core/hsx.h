@@ -66,6 +66,8 @@ namespace hsp_sdk_ext {
 
 	extern auto params(HSPCTX const* ctx)->Slice<STRUCTPRM>;
 
+	extern auto param_to_type(STRUCTPRM const* param)->HspParamType;
+
 	extern auto param_to_struct(STRUCTPRM const* param, HSPCTX const* ctx)->std::optional<STRUCTDAT const*>;
 
 	extern auto param_data_to_type(HspParamData const& param_data)->HspParamType;
