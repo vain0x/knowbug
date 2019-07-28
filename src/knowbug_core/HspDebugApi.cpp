@@ -17,20 +17,11 @@ HspDebugApi::HspDebugApi(HSP3DEBUG* debug)
 }
 
 auto HspDebugApi::current_file_ref_name() const -> std::optional<char const*> {
-	auto file_ref_name = debug_->fname;
-
-	if (file_ref_name == nullptr || std::strcmp(file_ref_name, u8"???") == 0) {
-		return std::nullopt;
-	}
-
-	return std::make_optional(file_ref_name);
+	return hsx::debug_to_file_ref_name(debug());
 }
 
 auto HspDebugApi::current_line() const -> std::size_t {
-	// 1-indexed。ただしファイルがないときは 0。
-	auto line_number = debug_->line;
-
-	return (std::size_t)std::max(0, line_number - 1);
+	return hsx::debug_to_line_index(debug());
 }
 
 auto HspDebugApi::static_vars() const -> PVal const* {

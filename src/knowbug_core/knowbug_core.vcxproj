@@ -354,6 +354,7 @@
     <ClInclude Include="hsx_data.h" />
     <ClInclude Include="hsx_dim_index.h" />
     <ClInclude Include="hsx.h" />
+    <ClCompile Include="hsx_debug.cpp" />
     <ClCompile Include="hsx_element.cpp" />
     <ClInclude Include="hsx_internals.h" />
     <ClInclude Include="hsx_param_data.h" />

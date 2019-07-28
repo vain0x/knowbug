@@ -7,6 +7,8 @@
 #include "hsp_wrap_call.h"
 #include "source_files.h"
 
+namespace hsx = hsp_sdk_ext;
+
 class WcDebuggerImpl
 	: public WcDebugger
 {
@@ -36,7 +38,7 @@ public:
 	}
 
 	void get_current_location(std::optional<std::size_t>& file_id_opt, std::size_t& line_index) override {
-		api_.debug()->dbg_curinf();
+		hsx::debug_do_update_location(api_.debug());
 
 		file_id_opt = current_file_id_opt();
 		line_index = api_.current_line();

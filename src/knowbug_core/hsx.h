@@ -145,4 +145,13 @@ namespace hsp_sdk_ext {
 	extern auto system_var_thismod(HSPCTX const* ctx)->std::optional<MPModVarData const*>;
 
 	extern auto system_var_to_data(HspSystemVarKind system_var_kind, HSPCTX const* ctx)->std::optional<HspData>;
+
+	// 実行位置を更新する。
+	extern void debug_do_update_location(HSP3DEBUG* debug);
+
+	// 実行位置のファイル参照名 (`#include` に指定されたパス)
+	extern auto debug_to_file_ref_name(HSP3DEBUG const* debug)->std::optional<char const*>;
+
+	// 実行位置の行番号 (0-indexed) を取得する。
+	extern auto debug_to_line_index(HSP3DEBUG const* debug)->std::size_t;
 }
