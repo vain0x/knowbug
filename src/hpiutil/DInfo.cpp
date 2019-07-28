@@ -38,10 +38,6 @@ void DInfo::parse()
 	auto cur_fname = static_cast<char const*>(nullptr);
 	auto cur_line = 0;
 
-	auto pushPoint = [&]() {
-		csMap_.emplace(SourcePos { cur_fname, cur_line }, cur_cs);
-	};
-
 	auto dictx = 0; // Default context
 
 	for ( auto i = 0; i < ctx->hsphed->max_dinfo; ) {
@@ -77,12 +73,10 @@ void DInfo::parse()
 
 			case 0xFC: // 次の命令までのCSオフセット値
 				cur_cs += *reinterpret_cast<csptr_t>(&ctx->mem_di[i + 1]);
-				pushPoint();
 				i += 3;
 				break;
 			default:
 				cur_cs += ctx->mem_di[i];
-				pushPoint();
 				i++;
 				break;
 		}

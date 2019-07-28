@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "../hpiutil/hpiutil_fwd.hpp"
-#include "SourcePos.hpp"
 
 namespace hpiutil {
 
@@ -20,12 +19,10 @@ public:
 
 private:
 	using ident_table_t = std::unordered_map<int, char const*>;
-	using cs_map_t = std::unordered_map<SourcePos, csptr_t>;
 
 	std::unordered_set<std::string> fileRefNames_;
 	ident_table_t labelNames_;
 	ident_table_t paramNames_;
-	cs_map_t csMap_;
 
 public:
 	auto tryFindIdent(ident_table_t const& table, int iparam) const -> char const*
