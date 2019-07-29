@@ -6,7 +6,10 @@
 #include "../hspsdk/hspwnd.h"
 #include "DebugInfo.h"
 #include "module/strf.h"
+#include "hsx.h"
 #include "string_split.h"
+
+namespace hsx = hsp_sdk_ext;
 
 DebugInfo::DebugInfo(HSP3DEBUG* debug)
 	: debug_(debug)
@@ -20,11 +23,7 @@ auto DebugInfo::fetchGeneralInfo() const -> std::vector<std::pair<string, string
 	auto info = std::vector<std::pair<string, string>> {};
 	info.reserve(20);
 
-	auto p =
-		std::unique_ptr<char, void(*)(char*)>
-		{ debug_->get_value(DEBUGINFO_GENERAL)
-		, debug_->dbg_close
-		};
+	auto p = hsx::debug_to_general_info(debug_);
 
 	auto lines = StringLines{ std::string_view{ p.get() } }.iter();
 	while (true) {

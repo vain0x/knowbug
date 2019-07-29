@@ -10,14 +10,12 @@
 #include "HspStaticVars.h"
 #include "string_split.h"
 
+namespace hsx = hsp_sdk_ext;
+
 static void fetch_static_var_names(HSP3DEBUG* debug_, std::size_t static_var_count, std::vector<Utf8String>& names) {
 	names.reserve(static_var_count);
 
-	auto p =
-		std::unique_ptr<char, void(*)(char*)>
-		{ debug_->get_varinf(nullptr, 0xFF)
-		, debug_->dbg_close
-		};
+	auto p = hsx::debug_to_static_var_names(debug_);
 
 	for (auto&& var_name : StringLines{ std::string_view{ p.get() } }) {
 		if (var_name.empty()) {

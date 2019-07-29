@@ -156,4 +156,11 @@ namespace hsp_sdk_ext {
 
 	// 実行位置の行番号 (0-indexed) を取得する。
 	extern auto debug_to_line_index(HSP3DEBUG const* debug)->std::size_t;
+
+	// 全般の情報。
+	// フォーマット: `key1\nvalue1\nkey2\nvalue2\n..`
+	extern auto debug_to_general_info(HSP3DEBUG const* debug)->std::unique_ptr<char, void(*)(char*)>;
+
+	// 静的変数の名前のリスト (改行区切り)
+	extern auto debug_to_static_var_names(HSP3DEBUG const* debug)->std::unique_ptr<char, void(*)(char*)>;
 }
