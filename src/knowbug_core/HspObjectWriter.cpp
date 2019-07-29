@@ -13,12 +13,92 @@ static auto const MAX_CHILD_COUNT = std::size_t{ 3000 };
 // ヘルパー
 // -----------------------------------------------
 
+// 文字が印字可能か雑に検査する。
+static auto char_can_print(char b) -> bool {
+	return b != 0x7f && (b == '\t' || b == '\n' || b == '\r' || (unsigned char)b >= 32);
+}
+
+static auto char_need_escape(char b) -> bool {
+	return b == '\t' || b == '\r' || b == '\n' || b == '\\' || b == '"';
+}
+
+static auto string_can_print(Utf8StringView const& str) -> bool {
+	return std::all_of(str.begin(), str.end(), [](Utf8Char c) {
+		return char_can_print((char)c);
+	});
+}
+
+static auto string_need_escape(Utf8StringView const& str) -> bool {
+	return std::any_of(str.begin(), str.end(), [](Utf8Char c) {
+		return char_need_escape((char)c);
+	});
+}
+
 static bool string_is_multiline(Utf8StringView const& str) {
 	return str.find(Utf8Char{ '\n' }) != Utf8StringView::npos;
 }
 
 static bool string_is_compact(Utf8StringView const& str) {
 	return str.size() < 64 && !string_is_multiline(str);
+}
+
+static auto var_name_to_bare_ident(Utf8StringView const& str) {
+	auto atmark = str.find(Utf8Char{ '@' });
+	return atmark != Utf8String::npos
+		? str.substr(0, atmark)
+		: str;
+}
+
+// 文字列をリテラル形式で書く。
+static void write_string_as_literal(CStrWriter& w, Utf8StringView const& str) {
+	if (!string_can_print(str)) {
+		w.cat(u8"<バイナリ>");
+		return;
+	}
+
+	if (!string_need_escape(str)) {
+		w.cat(u8"\"");
+		w.cat(str);
+		w.cat(u8"\"");
+		return;
+	}
+
+	w.cat(u8"\"");
+
+	auto i = std::size_t{};
+	while (i < str.size()) {
+		auto c = (char)str[i];
+
+		if (c == '\t') {
+			w.cat(u8"\\t");
+			i++;
+			continue;
+		}
+
+		if (c == '\r') {
+			i++;
+			continue;
+		}
+
+		if (c == '\n') {
+			w.cat(u8"\\n");
+			i++;
+			continue;
+		}
+
+		if (c == '\\' || c == '"') {
+			w.cat(u8"\\");
+			w.cat(str.substr(i, 1));
+
+			i++;
+			continue;
+		}
+
+		w.cat(str.substr(i, 1));
+		i++;
+	}
+
+	w.cat(u8"\"");
 }
 
 static void write_var_mode(CStrWriter& writer, HspVarMode var_mode) {
@@ -507,8 +587,8 @@ void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar cons
 	auto&& o = objects();
 	auto&& w = writer();
 
-	auto name = as_native(path.name(o));
-	auto short_name = hpiutil::nameExcludingScopeResolution(name);
+	auto&& name = path.name(o);
+	auto short_name = var_name_to_bare_ident(name);
 
 	w.cat(short_name);
 	w.cat(u8"\t= ");
@@ -662,9 +742,8 @@ void HspObjectWriterImpl::FlowForm::on_label(HspObjectPath::Label const& path) {
 
 void HspObjectWriterImpl::FlowForm::on_str(HspObjectPath::Str const& path) {
 	auto&& value = path.value(objects());
-	auto&& literal = hpiutil::literalFormString(as_native(value).data());
 
-	writer().cat(literal);
+	write_string_as_literal(writer(), value);
 }
 
 void HspObjectWriterImpl::FlowForm::on_double(HspObjectPath::Double const& path) {
@@ -737,6 +816,37 @@ void HspObjectWriter::write_flow_form(HspObjectPath const& path) {
 // -----------------------------------------------
 // テスト
 // -----------------------------------------------
+
+static void write_string_as_literal_tests(Tests& tests) {
+	auto&& suite = tests.suite(u8"write_string_as_literal");
+
+	auto write = [&](auto&& str) {
+		auto w = CStrWriter{};
+		write_string_as_literal(w, str);
+		return as_utf8(w.finish());
+	};
+
+	suite.test(
+		u8"エスケープなし",
+		[&](TestCaseContext& t) {
+			return t.eq(write(as_utf8(u8"你好")), as_utf8(u8"\"你好\""));
+		});
+
+	suite.test(
+		u8"エスケープあり",
+		[&](TestCaseContext& t) {
+			return t.eq(
+				write(as_utf8(u8"\\1221:\r\n\tThe \"🐕🐈🐈🐕\" festival.")),
+				as_utf8(u8"\"\\\\1221:\\n\\tThe \\\"🐕🐈🐈🐕\\\" festival.\"")
+			);
+		});
+
+	suite.test(
+		u8"バイナリ",
+		[&](TestCaseContext& t) {
+			return t.eq(write(as_utf8("\x01\x02\x03")), as_utf8(u8"<バイナリ>"));
+		});
+}
 
 static void write_array_type_tests(Tests& tests) {
 	auto&& suite = tests.suite(u8"write_array_type");
@@ -826,6 +936,7 @@ static void write_source_location_tests(Tests& tests) {
 }
 
 void hsp_object_writer_tests(Tests& tests) {
+	write_string_as_literal_tests(tests);
 	write_array_type_tests(tests);
 	write_source_location_tests(tests);
 }
