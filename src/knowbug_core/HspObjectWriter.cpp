@@ -42,13 +42,6 @@ static bool string_is_compact(Utf8StringView const& str) {
 	return str.size() < 64 && !string_is_multiline(str);
 }
 
-static auto var_name_to_bare_ident(Utf8StringView const& str) {
-	auto atmark = str.find(Utf8Char{ '@' });
-	return atmark != Utf8String::npos
-		? str.substr(0, atmark)
-		: str;
-}
-
 // 文字列をリテラル形式で書く。
 static void write_string_as_literal(CStrWriter& w, Utf8StringView const& str) {
 	if (!string_can_print(str)) {

@@ -24,6 +24,26 @@ static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugA
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
 
+auto indexes_to_string(HspDimIndex const& indexes) -> Utf8String {
+	auto ss = std::stringstream{};
+	ss << '(';
+	for (auto i = std::size_t{}; i < indexes.dim(); ++i) {
+		if (i != 0) {
+			ss << u8", ";
+		}
+		ss << indexes[i];
+	}
+	ss << ')';
+	return as_utf8(ss.str());
+}
+
+auto var_name_to_bare_ident(Utf8StringView const& str) -> Utf8StringView {
+	auto atmark = str.find(Utf8Char{ '@' });
+	return atmark != Utf8String::npos
+		? str.substr(0, atmark)
+		: str;
+}
+
 // 変数をモジュールごとに分類する。
 static auto group_vars_by_module(std::vector<Utf8String> const& var_names) -> std::vector<HspObjects::Module> {
 	class ModuleTreeBuilder

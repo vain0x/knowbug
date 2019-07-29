@@ -199,3 +199,9 @@ public:
 		return as_view(name_);
 	}
 };
+
+// 迷子
+
+extern auto indexes_to_string(HspDimIndex const& indexes)->Utf8String;
+
+extern auto var_name_to_bare_ident(Utf8StringView const& name)->Utf8StringView;
