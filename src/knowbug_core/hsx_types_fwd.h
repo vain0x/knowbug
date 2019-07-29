@@ -19,13 +19,16 @@ namespace hsp_sdk_ext {
 	class HspParamStack;
 	class HspVarMetadata;
 
+	// code segment (CS) 領域のデータ単位。
+	using HspCodeUnit = unsigned short;
+
 	// オブジェクトテンポラリ (ラベルのこと)
 	// code segment (CS) 領域のオフセットという形で、コードの位置を表す。
 	using HspObjectTemp = std::int32_t;
 
 	// ラベル (ランタイムにおけるラベルの表現)。
 	// code segment 内へのポインタ (有効) または nullptr (無効)。
-	using HspLabel = unsigned short const*;
+	using HspLabel = HspCodeUnit const*;
 
 	using HspStr = char*;
 

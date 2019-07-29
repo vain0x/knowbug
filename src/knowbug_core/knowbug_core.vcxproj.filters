@@ -177,6 +177,9 @@
     <ClInclude Include="hsx_slice.h">
       <Filter>hsp-sdk-ext</Filter>
     </ClInclude>
+    <ClInclude Include="hsx_debug_segment.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -282,6 +285,9 @@
       <Filter>hsp-sdk-ext</Filter>
     </ClCompile>
     <ClCompile Include="hsx_debug.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_debug_segment.cpp">
       <Filter>hsp-sdk-ext</Filter>
     </ClCompile>
   </ItemGroup>

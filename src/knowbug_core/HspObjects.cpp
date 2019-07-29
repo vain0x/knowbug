@@ -909,7 +909,7 @@ auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& pa
 	auto names = std::vector<Utf8StringView>{};
 	for (auto&& param : params) {
 		auto name = api_.param_type_to_name(hsx::param_to_type(&param));
-		names.emplace_back(to_utf8(as_hsp(name)));
+		names.emplace_back(as_utf8(name));
 	}
 
 	return std::make_optional(std::move(names));
