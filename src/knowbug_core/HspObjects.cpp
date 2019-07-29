@@ -3,12 +3,12 @@
 #include "../hpiutil/hpiutil.hpp"
 #include "../hpiutil/DInfo.hpp"
 #include "hsp_wrap_call.h"
-#include "DebugInfo.h"
 #include "hsp_objects_module_tree.h"
 #include "HspDebugApi.h"
 #include "HspObjects.h"
 #include "HspStaticVars.h"
 #include "source_files.h"
+#include "string_split.h"
 
 namespace hsx = hsp_sdk_ext;
 
@@ -70,17 +70,48 @@ static auto create_type_datas() -> std::vector<HspObjects::TypeData> {
 	return types;
 }
 
-static auto create_general_content(DebugInfo const& debug_info) -> Utf8String {
-	auto kvs = debug_info.fetchGeneralInfo();
+static auto create_general_content(HSP3DEBUG const* debug) -> Utf8String {
+	auto buffer = std::stringstream{};
 
-	auto buffer = Utf8String{};
-	for (auto&& kv : kvs) {
-		buffer += to_utf8(as_hsp(std::move(kv.first)));
-		buffer += as_utf8(u8" = ");
-		buffer += to_utf8(as_hsp(std::move(kv.second)));
-		buffer += as_utf8(u8"\r\n");
+	auto str = hsx::debug_to_general_info(debug);
+	auto lines = StringLines{ std::string_view{ str.get() } }.iter();
+
+	while (true) {
+		auto&& key_opt = lines.next();
+		if (!key_opt) {
+			break;
+		}
+
+		auto&& value_opt = lines.next();
+		if (!value_opt) {
+			break;
+		}
+
+		buffer << *key_opt << u8" = ";
+		buffer << *value_opt << u8"\r\n";
 	}
-	return buffer;
+
+	// 拡張内容の追加
+	// FIXME: hsx 経由でアクセスする
+	auto exinfo = debug->hspctx->exinfo2;
+	if (exinfo->actscr) {
+		auto bmscr = reinterpret_cast<BMSCR*>(exinfo->HspFunc_getbmscr(*exinfo->actscr));
+		if (bmscr) {
+			// color
+			auto color_ref = COLORREF{ bmscr->color };
+			buffer
+				<< u8"color = ("
+				<< (int)GetRValue(color_ref) << u8", "
+				<< (int)GetGValue(color_ref) << u8", "
+				<< (int)GetBValue(color_ref) << u8")\r\n";
+
+			// pos
+			auto point = POINT{ bmscr->cx, bmscr->cy };
+			buffer << u8"pos = (" << point.x << u8", " << point.y << u8")\r\n";
+		}
+	}
+
+	return to_utf8(as_hsp(buffer.str()));
 }
 
 static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HspDebugApi& api) -> std::optional<PVal const*> {
@@ -419,7 +450,7 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, Hs
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository)
+HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository)
 	: api_(api)
 	, logger_(logger)
 	, scripts_(scripts)
@@ -429,7 +460,7 @@ HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts,
 	, root_path_(std::make_shared<HspObjectPath::Root>())
 	, modules_(group_vars_by_module(static_vars.get_all_names()))
 	, types_(create_type_datas())
-	, general_content_(create_general_content(debug_info))
+	, general_content_(create_general_content(api_.debug()))
 {
 }
 

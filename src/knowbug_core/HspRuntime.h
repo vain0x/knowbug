@@ -6,7 +6,6 @@
 #include "HspObjectTree.h"
 #include "HspStaticVars.h"
 
-class DebugInfo;
 class SourceFileRepository;
 class WcDebugger;
 
@@ -24,7 +23,7 @@ class HspRuntime {
 	std::shared_ptr<WcDebugger> wc_debugger_;
 
 public:
-	HspRuntime(HspDebugApi&& api_, DebugInfo const& debug_info, SourceFileRepository& source_file_repository);
+	HspRuntime(HspDebugApi&& api_, SourceFileRepository& source_file_repository);
 
 	auto logger() -> HspLogger& {
 		return *logger_;

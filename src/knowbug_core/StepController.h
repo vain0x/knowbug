@@ -3,7 +3,6 @@
 #pragma once
 
 struct HSP3DEBUG;
-class DebugInfo;
 class KnowbugStepController;
 
 // 実行モードを表す。HSPDEBUG_RUN_* と同じ。

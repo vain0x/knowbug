@@ -87,12 +87,12 @@ public:
 	}
 };
 
-HspRuntime::HspRuntime(HspDebugApi&& api, DebugInfo const& debug_info, SourceFileRepository& source_file_repository)
+HspRuntime::HspRuntime(HspDebugApi&& api, SourceFileRepository& source_file_repository)
 	: api_(std::move(api))
 	, logger_(std::make_unique<HspLoggerImpl>())
 	, scripts_(std::make_unique<HspScriptsImpl>(source_file_repository))
 	, static_vars_(api_)
-	, objects_(api_, *logger_, *scripts_, static_vars_, debug_info, hpiutil::DInfo::instance(), source_file_repository)
+	, objects_(api_, *logger_, *scripts_, static_vars_, hpiutil::DInfo::instance(), source_file_repository)
 	, object_tree_(HspObjectTree::create(objects_))
 	, wc_debugger_(std::make_shared<WcDebuggerImpl>(api_, source_file_repository))
 {

@@ -5,7 +5,6 @@
 #include "../knowbug_core/module/CStrWriter.h"
 #include "../knowbug_core/module/strf.h"
 #include "../knowbug_core/encoding.h"
-#include "../knowbug_core/DebugInfo.h"
 #include "../knowbug_core/HspDebugApi.h"
 #include "../knowbug_core/HspObjectWriter.h"
 #include "../knowbug_core/HspRuntime.h"
@@ -18,9 +17,6 @@
 #include "knowbug_view.h"
 
 static auto g_dll_instance = HINSTANCE{};
-
-// FIXME: KnowbugApp に置く
-std::unique_ptr<DebugInfo> g_dbginfo {};
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
@@ -200,8 +196,6 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	ctx    = api.context();
 	exinfo = api.exinfo();
 
-	auto debug_info = std::make_unique<DebugInfo>(p1);
-
 	auto config = KnowbugConfig::create();
 
 	auto step_controller = std::make_unique<KnowbugStepController>(api.debug());
@@ -210,11 +204,10 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 	auto source_file_repository = create_source_file_repository(config->commonPath(), debug_segment);
 
-	auto hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *debug_info, *source_file_repository);
+	auto hsp_runtime = std::make_unique<HspRuntime>(std::move(api), *source_file_repository);
 
 	auto view = KnowbugView::create(*config, g_dll_instance, hsp_runtime->objects(), hsp_runtime->object_tree());
 
-	g_dbginfo = std::move(debug_info);
 	g_app = std::make_shared<KnowbugAppImpl>(
 		std::move(config),
 		std::move(step_controller),

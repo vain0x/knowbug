@@ -2,7 +2,6 @@
 #include <vector>
 #include "hsp_wrap_call.h"
 #include "hsx.h"
-#include "DebugInfo.h"
 #include "platform.h"
 
 namespace hsx = hsp_sdk_ext;

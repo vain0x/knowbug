@@ -10,7 +10,6 @@ namespace hpiutil {
 	class DInfo;
 }
 
-class DebugInfo;
 class HspDebugApi;
 class HspStaticVars;
 class SourceFileId;
@@ -64,7 +63,7 @@ private:
 	Utf8String general_content_;
 
 public:
-	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info_, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository);
+	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository);
 
 	auto root_path() const->HspObjectPath::Root const&;
 

@@ -93,9 +93,6 @@
     <ClInclude Include="module\utility.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="DebugInfo.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="encoding.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -208,9 +205,6 @@
     </ClCompile>
     <ClCompile Include="module\GuiUtility.cpp">
       <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugInfo.cpp">
-      <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="encoding.cpp">
       <Filter>ソース ファイル</Filter>
