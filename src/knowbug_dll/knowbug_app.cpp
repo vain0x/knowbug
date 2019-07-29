@@ -204,7 +204,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 	auto config = KnowbugConfig::create();
 
-	auto step_controller = std::make_unique<KnowbugStepController>(api.context(), *debug_info);
+	auto step_controller = std::make_unique<KnowbugStepController>(api.debug());
 
 	auto const& debug_segment = hpiutil::DInfo::instance();
 

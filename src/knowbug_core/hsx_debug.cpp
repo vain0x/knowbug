@@ -6,6 +6,11 @@ namespace hsp_sdk_ext {
 		debug->dbg_curinf();
 	}
 
+	auto debug_do_set_mode(int mode, HSP3DEBUG* debug) -> bool {
+		assert(mode < HSPDEBUG_MAX);
+		return debug->dbg_set(mode) == 0;
+	}
+
 	auto debug_to_file_ref_name(HSP3DEBUG const* debug) -> std::optional<char const*> {
 		auto file_ref_name = debug->fname;
 		if (file_ref_name == nullptr || std::strcmp(file_ref_name, u8"???") == 0) {

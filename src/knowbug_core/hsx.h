@@ -151,6 +151,9 @@ namespace hsp_sdk_ext {
 	// 実行位置を更新する。
 	extern void debug_do_update_location(HSP3DEBUG* debug);
 
+	// デバッグモード (HSPDEBUG_*) を設定する。
+	extern auto debug_do_set_mode(int mode, HSP3DEBUG* debug) -> bool;
+
 	// 実行位置のファイル参照名 (`#include` に指定されたパス)
 	extern auto debug_to_file_ref_name(HSP3DEBUG const* debug)->std::optional<char const*>;
 

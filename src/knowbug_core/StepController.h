@@ -2,7 +2,7 @@
 
 #pragma once
 
-struct HSPCTX;
+struct HSP3DEBUG;
 class DebugInfo;
 class KnowbugStepController;
 
@@ -178,12 +178,12 @@ private:
 };
 
 class KnowbugStepController {
-	HSPCTX const* hspctx_;
-	DebugInfo& debug_info_;
+	HSP3DEBUG* debug_;
+
 	StepController step_controller_;
 
 public:
-	KnowbugStepController(HSPCTX const* hspctx, DebugInfo& debug_info);
+	explicit KnowbugStepController(HSP3DEBUG* debug);
 
 	bool continue_step_running();
 
