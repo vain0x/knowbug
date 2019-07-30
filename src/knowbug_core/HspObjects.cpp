@@ -1011,18 +1011,18 @@ void HspObjects::log_do_clear() {
 	logger_.clear();
 }
 
-auto HspObjects::script_to_content() const -> Utf8StringView {
-	auto file_ref_name = api_.current_file_ref_name().value_or("");
-	return scripts_.content(file_ref_name);
-}
-
-auto HspObjects::script_to_file_id() const -> std::optional<SourceFileId> {
+auto HspObjects::script_to_full_path() const -> std::optional<OsStringView> {
 	auto&& file_ref_name_opt = hsx::debug_to_file_ref_name(api_.debug());
 	if (!file_ref_name_opt) {
 		return std::nullopt;
 	}
 
-	return source_file_repository_.file_ref_name_to_file_id(*file_ref_name_opt);
+	return source_file_repository_.file_ref_name_to_full_path(*file_ref_name_opt);
+}
+
+auto HspObjects::script_to_content() const -> Utf8StringView {
+	auto file_ref_name = api_.current_file_ref_name().value_or("");
+	return scripts_.content(file_ref_name);
 }
 
 auto HspObjects::script_to_current_line() const -> std::size_t {

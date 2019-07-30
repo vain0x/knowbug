@@ -138,13 +138,7 @@ public:
 	}
 
 	void open_current_script_file() override {
-		auto file_opt = hsp_runtime_->objects().script_to_file_id();
-		if (!file_opt) {
-			// FIXME: 何らかの警告を出す
-			return;
-		}
-
-		auto&& full_path_opt = source_file_repository_->file_to_full_path(*file_opt);
+		auto full_path_opt = hsp_runtime_->objects().script_to_full_path();
 		if (!full_path_opt) {
 			// FIXME: 何らかの警告を出す
 			return;

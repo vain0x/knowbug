@@ -159,9 +159,9 @@ public:
 
 	void log_do_clear();
 
-	auto script_to_content() const -> Utf8StringView;
+	auto script_to_full_path() const -> std::optional<OsStringView>;
 
-	auto script_to_file_id() const -> std::optional<SourceFileId>;
+	auto script_to_content() const -> Utf8StringView;
 
 	auto script_to_current_line() const -> std::size_t;
 
