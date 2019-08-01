@@ -152,7 +152,7 @@ auto HspDebugApi::static_label_to_label(std::size_t static_label_id) const -> st
 }
 
 bool HspDebugApi::flex_is_nullmod(FlexValue const* flex) const {
-	return hsx::flex_is_clone(flex);
+	return hsx::flex_is_nullmod(flex);
 }
 
 bool HspDebugApi::flex_is_clone(FlexValue const* flex) const {
