@@ -6,10 +6,6 @@
 #include "HspTypes.h"
 #include "HspObjectPath.h"
 
-namespace hpiutil {
-	class DInfo;
-}
-
 class HspDebugApi;
 class HspStaticVars;
 class SourceFileId;
@@ -52,18 +48,19 @@ private:
 	HspLogger& logger_;
 	HspScripts& scripts_;
 	HspStaticVars& static_vars_;
-	hpiutil::DInfo const& debug_segment_;
 	SourceFileRepository& source_file_repository_;
 
 	std::shared_ptr<HspObjectPath const> root_path_;
 
 	std::vector<Module> modules_;
 	std::vector<TypeData> types_;
+	std::unordered_map<HspLabel, Utf8String> label_names_;
+	std::unordered_map<STRUCTPRM const*, Utf8String> param_names_;
 
 	Utf8String general_content_;
 
 public:
-	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository);
+	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository);
 
 	auto root_path() const->HspObjectPath::Root const&;
 
@@ -198,6 +195,19 @@ public:
 	auto name() const -> Utf8StringView {
 		return as_view(name_);
 	}
+};
+
+class HspObjectsBuilder {
+	std::unordered_map<HspLabel, Utf8String> label_names_;
+
+	std::unordered_map<STRUCTPRM const*, Utf8String> param_names_;
+
+public:
+	void add_label_name(int ot_index, char const* label_name, HSPCTX const* ctx);
+
+	void add_param_name(int param_index, char const* param_name, HSPCTX const* ctx);
+
+	auto finish(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, SourceFileRepository& source_file_repository)->HspObjects;
 };
 
 // 迷子

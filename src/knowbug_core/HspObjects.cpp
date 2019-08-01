@@ -7,6 +7,7 @@
 #include "HspDebugApi.h"
 #include "HspObjects.h"
 #include "HspStaticVars.h"
+#include "hsx_debug_segment.h"
 #include "source_files.h"
 #include "string_split.h"
 
@@ -470,16 +471,17 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, Hs
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository)
+HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository)
 	: api_(api)
 	, logger_(logger)
 	, scripts_(scripts)
 	, static_vars_(static_vars)
-	, debug_segment_(debug_segment)
 	, source_file_repository_(source_file_repository)
 	, root_path_(std::make_shared<HspObjectPath::Root>())
 	, modules_(group_vars_by_module(static_vars.get_all_names()))
 	, types_(create_type_datas())
+	, label_names_(std::move(label_names))
+	, param_names_(std::move(param_names))
 	, general_content_(create_general_content(api_.debug()))
 {
 }
@@ -689,8 +691,17 @@ auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> U
 		return to_owned(as_utf8(u8"<unavailable>"));
 	}
 
-	auto&& name = api_.param_to_name(param_data_opt->param(), param_data_opt->param_index(), debug_segment_);
-	return to_utf8(as_hsp(std::move(name)));
+	auto&& iter = param_names_.find(param_data_opt->param());
+	if (iter != param_names_.end()) {
+		return iter->second;
+	}
+
+	auto type = hsx::param_to_type(param_data_opt->param());
+	if (type == MPTYPE_MODULEVAR || type == MPTYPE_IMODULEVAR || type == MPTYPE_TMODULEVAR) {
+		return to_owned(as_utf8(u8"thismod"));
+	}
+
+	return indexes_to_string(HspDimIndex{ 1, { param_data_opt->param_index() } });
 }
 
 auto HspObjects::param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<HspVarMetadata> {
@@ -708,18 +719,17 @@ bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {
 }
 
 auto HspObjects::label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<Utf8String> {
-	auto&& static_label_id_opt = label_path_to_static_label_id(path);
-	if (!static_label_id_opt) {
+	auto&& label_opt = label_path_to_value(path, api_);
+	if (!label_opt) {
 		return std::nullopt;
 	}
 
-	auto&& name = debug_segment_.tryFindLabelName((int)*static_label_id_opt);
-	if (!name) {
+	auto&& iter = label_names_.find(*label_opt);
+	if (iter == label_names_.end()) {
 		return std::nullopt;
 	}
 
-	// FIXME: 効率化 (文字列の参照かビューを返す)
-	return std::make_optional(to_utf8(as_hsp(name)));
+	return iter->second;
 }
 
 auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path) const -> std::optional<std::size_t> {
@@ -1062,4 +1072,38 @@ void HspObjects::Module::add_var(std::size_t static_var_id) {
 HspObjects::TypeData::TypeData(Utf8String&& name)
 	: name_(std::move(name))
 {
+}
+
+// -----------------------------------------------
+// HspObjectsBuilder
+// -----------------------------------------------
+
+void HspObjectsBuilder::add_label_name(int ot_index, char const* label_name, HSPCTX const* ctx) {
+	auto&& label_opt = hsx::object_temp_to_label((std::size_t)ot_index, ctx);
+	if (!label_opt) {
+		assert(false && u8"invalid ot_index");
+		return;
+	}
+
+	auto name = to_utf8(as_hsp(label_name));
+	name.insert(0, as_utf8(u8"*"));
+
+	label_names_.emplace(*label_opt, std::move(name));
+}
+
+void HspObjectsBuilder::add_param_name(int param_index, char const* param_name, HSPCTX const* ctx) {
+	auto&& param_opt = hsx::params(ctx).get((std::size_t)param_index);
+	if (!param_opt) {
+		assert(false && u8"invalid param_index");
+		return;
+	}
+
+	auto name = to_utf8(as_hsp(param_name));
+	name = to_owned(var_name_to_bare_ident(name));
+
+	param_names_.emplace(*param_opt, std::move(name));
+}
+
+auto HspObjectsBuilder::finish(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, SourceFileRepository& source_file_repository)->HspObjects {
+	return HspObjects{ api, logger, scripts, static_vars, std::move(label_names_), std::move(param_names_), source_file_repository };
 }
