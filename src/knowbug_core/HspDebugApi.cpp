@@ -1,6 +1,4 @@
 #include "pch.h"
-#include "../hpiutil/hpiutil.hpp"
-#include "../hpiutil/dinfo.hpp"
 #include "HspDebugApi.h"
 
 #undef max
@@ -189,28 +187,6 @@ auto HspDebugApi::struct_to_param_at(STRUCTDAT const* struct_dat, std::size_t pa
 
 auto HspDebugApi::struct_to_param_stack_size(STRUCTDAT const* struct_dat) const -> std::size_t {
 	return hsx::struct_to_param_stack_size(struct_dat);
-}
-
-auto HspDebugApi::params() const -> STRUCTPRM const* {
-	return hpiutil::minfo().begin();
-}
-
-auto HspDebugApi::param_count() const -> std::size_t {
-	return hpiutil::minfo().size();
-}
-
-auto HspDebugApi::param_to_param_id(STRUCTPRM const* param) const -> std::size_t {
-	auto id = hpiutil::STRUCTPRM_miIndex(param);
-	if (id < 0) {
-		assert(false && u8"Invalid STRUCTPRM");
-		throw new std::exception{};
-	}
-
-	return (std::size_t)id;
-}
-
-auto HspDebugApi::param_to_name(STRUCTPRM const* param, std::size_t param_index, hpiutil::DInfo const& debug_segment) const -> std::string {
-	return hpiutil::nameFromStPrm(param, (int)param_index, debug_segment);
 }
 
 auto HspDebugApi::param_stack_to_data_count(HspParamStack const& param_stack) const -> std::size_t {

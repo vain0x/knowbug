@@ -16,6 +16,8 @@
 #include "knowbug_config.h"
 #include "knowbug_view.h"
 
+namespace hsx = hsp_sdk_ext;
+
 static auto g_dll_instance = HINSTANCE{};
 
 // ランタイムとの通信
@@ -198,14 +200,15 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 }
 
 EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4) {
+	auto kind = (hsx::DebugNoticeKind)p2;
+
 	if (auto&& app_opt = g_app) {
-		switch (p2) {
-		// 実行が停止した (assert、ステップ実行の完了時など)
-		case hpiutil::DebugNotice_Stop: {
+		switch (kind) {
+		case hsx::DebugNoticeKind::Stop:
 			app_opt->did_hsp_pause();
 			break;
-		}
-		case hpiutil::DebugNotice_Logmes:
+
+		case hsx::DebugNoticeKind::Logmes:
 			app_opt->did_hsp_logmes(as_hsp(ctx->stmp));
 			break;
 		}

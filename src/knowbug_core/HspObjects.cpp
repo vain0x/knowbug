@@ -1,7 +1,5 @@
 #include "pch.h"
 #include <sstream>
-#include "../hpiutil/hpiutil.hpp"
-#include "../hpiutil/DInfo.hpp"
 #include "hsp_wrap_call.h"
 #include "hsp_objects_module_tree.h"
 #include "HspDebugApi.h"
@@ -20,8 +18,6 @@ static auto const MIN_DEPTH = std::size_t{};
 static auto const MAX_DEPTH = std::size_t{ 32 };
 
 static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HspDebugApi& api) -> std::optional<HspParamData>;
-
-static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugApi& api) -> std::optional<HspParamType>;
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
 
@@ -588,13 +584,7 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 }
 
 auto HspObjects::element_path_to_name(HspObjectPath::Element const& path) const -> Utf8String {
-	auto v = std::vector<int>{};
-	for (auto i : path.indexes()) {
-		v.push_back((int)i);
-	}
-	auto name = hpiutil::stringifyArrayIndex(v);
-
-	return ascii_as_utf8(std::move(name));
+	return indexes_to_string(path.indexes());
 }
 
 auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t {

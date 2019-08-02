@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../hpiutil/hpiutil_fwd.hpp"
 #include "HspDebugApi.h"
 #include "HspObjects.h"
 #include "HspObjectTree.h"

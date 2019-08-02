@@ -2,12 +2,7 @@
 
 #include <optional>
 #include <string>
-#include "../hpiutil/hpiutil_fwd.hpp"
 #include "HspTypes.h"
-
-namespace hpiutil {
-	class DInfo;
-}
 
 // HSP SDK のラッパー
 // 配列アクセスの範囲検査、null 検査、整数と enum の変換など、小さい仕事をする。
@@ -108,8 +103,6 @@ public:
 
 	auto flex_to_module_struct(FlexValue const* flex) const->STRUCTDAT const*;
 
-	auto flex_to_module_tag(FlexValue const* flex) const->STRUCTPRM const*;
-
 	auto flex_to_member_count(FlexValue const* flex) const->std::size_t;
 
 	auto flex_to_member_at(FlexValue const* flex, std::size_t index) const->HspParamData;
@@ -123,14 +116,6 @@ public:
 	auto struct_to_param_at(STRUCTDAT const* struct_dat, std::size_t param_index) const->std::optional<STRUCTPRM const*>;
 
 	auto struct_to_param_stack_size(STRUCTDAT const* struct_dat) const->std::size_t;
-
-	auto params() const->STRUCTPRM const*;
-
-	auto param_count() const->std::size_t;
-
-	auto param_to_param_id(STRUCTPRM const* param) const->std::size_t;
-
-	auto param_to_name(STRUCTPRM const* param, std::size_t param_index, hpiutil::DInfo const& debug_segment) const->std::string;
 
 	auto param_stack_to_data_count(HspParamStack const& param_stack) const->std::size_t;
 
