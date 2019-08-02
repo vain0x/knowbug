@@ -6,6 +6,7 @@
 #include "hsp_wrap_call.h"
 #include "hsx_debug_segment.h"
 #include "source_files.h"
+#include "string_split.h"
 
 namespace hsx = hsp_sdk_ext;
 
@@ -100,6 +101,10 @@ static void read_debug_segment(HspObjectsBuilder& builder, SourceFileResolver& r
 			resolver.add_file_ref_name(std::string{ item_opt->str() });
 			continue;
 
+		case hsx::DebugSegmentItemKind::VarName:
+			builder.add_var_name(item_opt->str());
+			continue;
+
 		case hsx::DebugSegmentItemKind::LabelName:
 			builder.add_label_name(item_opt->num(), item_opt->str(), ctx);
 			continue;
@@ -126,9 +131,8 @@ auto HspRuntime::create(HspDebugApi&& api, OsString&& common_path)->std::unique_
 	auto api_ptr = std::make_unique<HspDebugApi>(std::move(api));
 	auto logger = std::unique_ptr<HspLogger>{ std::make_unique<HspLoggerImpl>() };
 	auto scripts = std::unique_ptr<HspScripts>{ std::make_unique<HspScriptsImpl>(*source_file_repository) };
-	auto static_vars = std::make_unique<HspStaticVars>(*api_ptr);
 
-	auto objects = std::make_unique<HspObjects>(builder.finish(*api_ptr, *logger, *scripts, *static_vars, *source_file_repository));
+	auto objects = std::make_unique<HspObjects>(builder.finish(*api_ptr, *logger, *scripts, *source_file_repository));
 
 	auto object_tree = HspObjectTree::create(*objects);
 	auto wc_debugger = std::shared_ptr<WcDebugger>{ std::make_shared<WcDebuggerImpl>(*api_ptr, *source_file_repository) };
@@ -139,7 +143,6 @@ auto HspRuntime::create(HspDebugApi&& api, OsString&& common_path)->std::unique_
 			std::move(source_file_repository),
 			std::move(logger),
 			std::move(scripts),
-			std::move(static_vars),
 			std::move(objects),
 			std::move(object_tree),
 			std::move(wc_debugger)

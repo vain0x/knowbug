@@ -4,7 +4,6 @@
 #include "hsp_objects_module_tree.h"
 #include "HspDebugApi.h"
 #include "HspObjects.h"
-#include "HspStaticVars.h"
 #include "hsx_debug_segment.h"
 #include "source_files.h"
 #include "string_split.h"
@@ -467,14 +466,13 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, Hs
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository)
+HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, std::vector<HspObjects::Module>&& modules, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository)
 	: api_(api)
 	, logger_(logger)
 	, scripts_(scripts)
-	, static_vars_(static_vars)
 	, source_file_repository_(source_file_repository)
 	, root_path_(std::make_shared<HspObjectPath::Root>())
-	, modules_(group_vars_by_module(static_vars.get_all_names()))
+	, modules_(std::move(modules))
 	, types_(create_type_datas())
 	, label_names_(std::move(label_names))
 	, param_names_(std::move(param_names))
@@ -1068,6 +1066,10 @@ HspObjects::TypeData::TypeData(Utf8String&& name)
 // HspObjectsBuilder
 // -----------------------------------------------
 
+void HspObjectsBuilder::add_var_name(char const* var_name) {
+	var_names_.emplace_back(to_utf8(as_hsp(var_name)));
+}
+
 void HspObjectsBuilder::add_label_name(int ot_index, char const* label_name, HSPCTX const* ctx) {
 	auto&& label_opt = hsx::object_temp_to_label((std::size_t)ot_index, ctx);
 	if (!label_opt) {
@@ -1094,6 +1096,7 @@ void HspObjectsBuilder::add_param_name(int param_index, char const* param_name, 
 	param_names_.emplace(*param_opt, std::move(name));
 }
 
-auto HspObjectsBuilder::finish(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, SourceFileRepository& source_file_repository)->HspObjects {
-	return HspObjects{ api, logger, scripts, static_vars, std::move(label_names_), std::move(param_names_), source_file_repository };
+auto HspObjectsBuilder::finish(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, SourceFileRepository& source_file_repository)->HspObjects {
+	auto modules = group_vars_by_module(var_names_);
+	return HspObjects{ api, logger, scripts, std::move(modules), std::move(label_names_), std::move(param_names_), source_file_repository };
 }

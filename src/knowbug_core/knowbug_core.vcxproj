@@ -339,7 +339,6 @@
     <ClInclude Include="HspObjectTree.h" />
     <ClInclude Include="HspObjectWriter.h" />
     <ClInclude Include="HspRuntime.h" />
-    <ClInclude Include="HspStaticVars.h" />
     <ClInclude Include="HspTypes.h" />
     <ClInclude Include="hsp_objects_module_tree.h" />
     <ClInclude Include="hsp_wrap_call.h" />
@@ -399,7 +398,6 @@
     <ClCompile Include="HspObjectTree.cpp" />
     <ClCompile Include="HspObjectWriter.cpp" />
     <ClCompile Include="HspRuntime.cpp" />
-    <ClCompile Include="HspStaticVars.cpp" />
     <ClCompile Include="hsp_objects_module_tree.cpp" />
     <ClCompile Include="hsp_wrap_call.cpp" />
     <ClCompile Include="hsx_data.cpp" />
