@@ -16,9 +16,6 @@
     <Filter Include="hspsdk">
       <UniqueIdentifier>{6c970a63-f2d2-4bd1-8719-24ce1c35b494}</UniqueIdentifier>
     </Filter>
-    <Filter Include="hpiutil">
-      <UniqueIdentifier>{0a78f6ba-2692-4577-9f69-3331d768df4b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="cppformat">
       <UniqueIdentifier>{40c096fd-f36c-4948-abb7-8e10ea98b2a4}</UniqueIdentifier>
     </Filter>
@@ -35,24 +32,6 @@
   <ItemGroup>
     <ClInclude Include="pch.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\DInfo.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\hpiutil.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\hpiutil_fwd.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\Sysvar.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\vartype_traits.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\vector_view.hpp">
-      <Filter>hpiutil</Filter>
     </ClInclude>
     <ClInclude Include="..\cppformat\cppformat\format.h">
       <Filter>cppformat</Filter>
@@ -181,15 +160,6 @@
   <ItemGroup>
     <ClCompile Include="pch.cpp">
       <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hpiutil\DInfo.cpp">
-      <Filter>hpiutil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hpiutil\stringify.cpp">
-      <Filter>hpiutil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hpiutil\Sysvar.cpp">
-      <Filter>hpiutil</Filter>
     </ClCompile>
     <ClCompile Include="..\cppformat\cppformat\format.cc">
       <Filter>cppformat</Filter>

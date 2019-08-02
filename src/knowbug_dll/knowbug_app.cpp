@@ -1,7 +1,7 @@
 
 #include "pch.h"
 #include <fstream>
-#include "../hpiutil/dinfo.hpp"
+#include "../hspsdk/hsp3plugin.h"
 #include "../knowbug_core/module/CStrWriter.h"
 #include "../knowbug_core/module/strf.h"
 #include "../knowbug_core/encoding.h"
