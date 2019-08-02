@@ -81,9 +81,6 @@
     <ClInclude Include="hsp_wrap_call.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="HspDebugApi.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="HspObjectPath.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -180,9 +177,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="hsp_wrap_call.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="HspDebugApi.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="HspObjectPath.cpp">

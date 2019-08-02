@@ -2,6 +2,10 @@
 #include "hsx_internals.h"
 
 namespace hsp_sdk_ext {
+	auto debug_to_context(HSP3DEBUG const* debug)->HSPCTX const* {
+		return debug->hspctx;
+	}
+
 	void debug_do_update_location(HSP3DEBUG* debug) {
 		debug->dbg_curinf();
 	}

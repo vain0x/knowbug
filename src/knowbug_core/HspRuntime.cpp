@@ -1,9 +1,9 @@
 #include "pch.h"
-#include "HspDebugApi.h"
 #include "HspRuntime.h"
 #include "HspObjects.h"
 #include "HspObjectTree.h"
 #include "hsp_wrap_call.h"
+#include "hsx.h"
 #include "hsx_debug_segment.h"
 #include "source_files.h"
 #include "string_split.h"
@@ -13,19 +13,19 @@ namespace hsx = hsp_sdk_ext;
 class WcDebuggerImpl
 	: public WcDebugger
 {
-	HspDebugApi& api_;
+	HSP3DEBUG* debug_;
 
 	SourceFileRepository& source_file_repository_;
 
 public:
-	WcDebuggerImpl(HspDebugApi& api, SourceFileRepository& source_file_repository)
-		: api_(api)
+	WcDebuggerImpl(HSP3DEBUG* debug, SourceFileRepository& source_file_repository)
+		: debug_(debug)
 		, source_file_repository_(source_file_repository)
 	{
 	}
 
 	auto current_file_id_opt() const -> std::optional<std::size_t> {
-		auto&& file_ref_name_opt = api_.current_file_ref_name();
+		auto&& file_ref_name_opt = hsx::debug_to_file_ref_name(debug_);
 		if (!file_ref_name_opt) {
 			return std::nullopt;
 		}
@@ -39,10 +39,10 @@ public:
 	}
 
 	void get_current_location(std::optional<std::size_t>& file_id_opt, std::size_t& line_index) override {
-		hsx::debug_do_update_location(api_.debug());
+		hsx::debug_do_update_location(debug_);
 
 		file_id_opt = current_file_id_opt();
-		line_index = api_.current_line();
+		line_index = hsx::debug_to_line_index(debug_);
 	}
 };
 
@@ -119,27 +119,26 @@ static void read_debug_segment(HspObjectsBuilder& builder, SourceFileResolver& r
 	}
 }
 
-auto HspRuntime::create(HspDebugApi&& api, OsString&& common_path)->std::unique_ptr<HspRuntime> {
+auto HspRuntime::create(HSP3DEBUG* debug, OsString&& common_path)->std::unique_ptr<HspRuntime> {
 	auto builder = HspObjectsBuilder{};
 	auto resolver = SourceFileResolver{};
 
 	resolver.add_known_dir(std::move(common_path));
-	read_debug_segment(builder, resolver, api.context());
+	read_debug_segment(builder, resolver, hsx::debug_to_context(debug));
 
 	auto source_file_repository = std::make_unique<SourceFileRepository>(resolver.resolve());
 
-	auto api_ptr = std::make_unique<HspDebugApi>(std::move(api));
 	auto logger = std::unique_ptr<HspLogger>{ std::make_unique<HspLoggerImpl>() };
 	auto scripts = std::unique_ptr<HspScripts>{ std::make_unique<HspScriptsImpl>(*source_file_repository) };
 
-	auto objects = std::make_unique<HspObjects>(builder.finish(*api_ptr, *logger, *scripts, *source_file_repository));
+	auto objects = std::make_unique<HspObjects>(builder.finish(debug, *logger, *scripts, *source_file_repository));
 
 	auto object_tree = HspObjectTree::create(*objects);
-	auto wc_debugger = std::shared_ptr<WcDebugger>{ std::make_shared<WcDebuggerImpl>(*api_ptr, *source_file_repository) };
+	auto wc_debugger = std::shared_ptr<WcDebugger>{ std::make_shared<WcDebuggerImpl>(debug, *source_file_repository) };
 
 	return std::make_unique<HspRuntime>(
 		HspRuntime{
-			std::move(api_ptr),
+			std::move(debug),
 			std::move(source_file_repository),
 			std::move(logger),
 			std::move(scripts),
@@ -150,5 +149,5 @@ auto HspRuntime::create(HspDebugApi&& api, OsString&& common_path)->std::unique_
 }
 
 void HspRuntime::update_location() {
-	hsx::debug_do_update_location(api_->debug());
+	hsx::debug_do_update_location(debug_);
 }

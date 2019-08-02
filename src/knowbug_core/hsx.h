@@ -148,6 +148,8 @@ namespace hsp_sdk_ext {
 
 	extern auto system_var_to_data(HspSystemVarKind system_var_kind, HSPCTX const* ctx)->std::optional<HspData>;
 
+	extern auto debug_to_context(HSP3DEBUG const* debug)->HSPCTX const*;
+
 	// 実行位置を更新する。
 	extern void debug_do_update_location(HSP3DEBUG* debug);
 

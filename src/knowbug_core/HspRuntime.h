@@ -1,6 +1,5 @@
 #pragma once
 
-#include "HspDebugApi.h"
 #include "HspObjects.h"
 #include "HspObjectTree.h"
 
@@ -12,7 +11,7 @@ class WcDebugger;
 // HSP 関連の操作をまとめるもの。
 // HSP 側から取得できる情報を knowbug 用に加工したりキャッシュしたりする機能を持つ (予定)
 class HspRuntime {
-	std::unique_ptr<HspDebugApi> api_;
+	HSP3DEBUG* debug_;
 	std::unique_ptr<SourceFileRepository> source_file_repository_;
 	std::unique_ptr<HspLogger> logger_;
 	std::unique_ptr<HspScripts> scripts_;
@@ -21,10 +20,10 @@ class HspRuntime {
 	std::shared_ptr<WcDebugger> wc_debugger_;
 
 public:
-	static auto create(HspDebugApi&& api, OsString&& common_path)->std::unique_ptr<HspRuntime>;
+	static auto create(HSP3DEBUG* debug, OsString&& common_path)->std::unique_ptr<HspRuntime>;
 
 	HspRuntime(
-		std::unique_ptr<HspDebugApi> api,
+		HSP3DEBUG* debug,
 		std::unique_ptr<SourceFileRepository> source_file_repository,
 		std::unique_ptr<HspLogger> logger,
 		std::unique_ptr<HspScripts> scripts,
@@ -32,7 +31,7 @@ public:
 		std::unique_ptr<HspObjectTree> object_tree,
 		std::shared_ptr<WcDebugger> wc_debugger
 	)
-		: api_(std::move(api))
+		: debug_(debug)
 		, source_file_repository_(std::move(source_file_repository))
 		, logger_(std::move(logger))
 		, scripts_(std::move(scripts))

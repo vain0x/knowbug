@@ -333,7 +333,6 @@
     <ClInclude Include="..\hspsdk\hspwnd.h" />
     <ClInclude Include="..\hspsdk\win32gui\hspwnd_win.h" />
     <ClInclude Include="encoding.h" />
-    <ClInclude Include="HspDebugApi.h" />
     <ClInclude Include="HspObjectPath.h" />
     <ClInclude Include="HspObjects.h" />
     <ClInclude Include="HspObjectTree.h" />
@@ -392,7 +391,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="encoding.cpp" />
-    <ClCompile Include="HspDebugApi.cpp" />
     <ClCompile Include="HspObjectPath.cpp" />
     <ClCompile Include="HspObjects.cpp" />
     <ClCompile Include="HspObjectTree.cpp" />

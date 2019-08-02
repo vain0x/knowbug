@@ -44,7 +44,8 @@ public:
 	class TypeData;
 
 private:
-	HspDebugApi& api_;
+	HSP3DEBUG* debug_;
+
 	HspLogger& logger_;
 	HspScripts& scripts_;
 	SourceFileRepository& source_file_repository_;
@@ -59,7 +60,7 @@ private:
 	Utf8String general_content_;
 
 public:
-	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, std::vector<Module>&& modules, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository);
+	HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Module>&& modules, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository);
 
 	auto root_path() const->HspObjectPath::Root const&;
 
@@ -163,6 +164,17 @@ public:
 
 	auto script_to_current_location_summary() const->Utf8String;
 
+private:
+	auto debug() -> HSP3DEBUG* {
+		return debug_;
+	}
+
+	auto debug() const -> HSP3DEBUG const* {
+		return debug_;
+	}
+
+	auto context() const->HSPCTX const*;
+
 public:
 	class Module {
 		Utf8String name_;
@@ -210,7 +222,7 @@ public:
 
 	void add_param_name(int param_index, char const* param_name, HSPCTX const* ctx);
 
-	auto finish(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, SourceFileRepository& source_file_repository)->HspObjects;
+	auto finish(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, SourceFileRepository& source_file_repository)->HspObjects;
 };
 
 // 迷子

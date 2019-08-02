@@ -5,7 +5,6 @@
 #include "../knowbug_core/module/CStrWriter.h"
 #include "../knowbug_core/module/strf.h"
 #include "../knowbug_core/encoding.h"
-#include "../knowbug_core/HspDebugApi.h"
 #include "../knowbug_core/HspObjectWriter.h"
 #include "../knowbug_core/HspRuntime.h"
 #include "../knowbug_core/hsp_wrap_call.h"
@@ -169,18 +168,18 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) {
 }
 
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
-	auto api = HspDebugApi{ p1 };
+	auto debug = p1;
 
 	// グローバル変数の初期化:
 
-	ctx    = api.context();
-	exinfo = api.exinfo();
+	ctx = p1->hspctx;
+	exinfo = ctx->exinfo2;
 
 	auto config = KnowbugConfig::create();
 
-	auto step_controller = std::make_unique<KnowbugStepController>(api.debug());
+	auto step_controller = std::make_unique<KnowbugStepController>(debug);
 
-	auto hsp_runtime = HspRuntime::create(std::move(api), config->commonPath());
+	auto hsp_runtime = HspRuntime::create(debug, config->commonPath());
 
 	auto view = KnowbugView::create(*config, g_dll_instance, hsp_runtime->objects(), hsp_runtime->object_tree());
 
