@@ -228,6 +228,46 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX co
 	}
 }
 
+static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<Slice<char>> {
+	if (depth >= MAX_DEPTH) {
+		return std::nullopt;
+	}
+	depth++;
+
+	switch (path.kind()) {
+	case HspObjectKind::Element: {
+		auto&& pval_opt = path_to_pval(path.parent(), depth, ctx);
+		if (!pval_opt) {
+			return std::nullopt;
+		}
+
+		auto aptr_opt = hsx::element_to_aptr(*pval_opt, path.as_element().indexes());
+		if (!aptr_opt) {
+			return std::nullopt;
+		}
+
+		return hsx::element_to_str(*pval_opt, *aptr_opt, ctx);
+	}
+	case HspObjectKind::Param: {
+		auto&& param_data_opt = param_path_to_param_data(path.as_param(), depth, ctx);
+		if (!param_data_opt) {
+			return std::nullopt;
+		}
+
+		return hsx::param_data_to_str(*param_data_opt);
+	}
+	case HspObjectKind::SystemVar: {
+		if (path.as_system_var().system_var_kind() != HspSystemVarKind::Refstr) {
+			return std::nullopt;
+		}
+		return hsx::system_var_refstr(ctx);
+	}
+	default:
+		assert(false && u8"str を取得できるべき");
+		return std::nullopt;
+	}
+}
+
 static auto var_path_to_child_count(HspObjectPath const& path, HSPCTX const* ctx) -> std::size_t {
 	auto&& pval_opt = path_to_pval(path, MIN_DEPTH, ctx);
 	if (!pval_opt) {
@@ -288,20 +328,8 @@ static auto label_path_to_value(HspObjectPath::Label const& path, HSPCTX const* 
 	return hsx::data_to_label(*data_opt);
 }
 
-static auto str_path_to_value(HspObjectPath::Str const& path, HSPCTX const* ctx) -> std::optional<Utf8String> {
-	auto&& data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
-	if (!data_opt) {
-		assert(false && u8"str の親は data を生成できるはず");
-		return std::nullopt;
-	}
-
-	auto&& str_opt = hsx::data_to_str(*data_opt);
-	if (!str_opt) {
-		return std::nullopt;
-	}
-
-	// FIXME: 明らかにバイナリなら変換しなくていい。ゼロ終端されていないケースはチェックすべき
-	return std::make_optional(to_utf8(as_hsp(*str_opt)));
+static auto str_path_to_value(HspObjectPath::Str const& path, HSPCTX const* ctx) -> std::optional<HspStr> {
+	return path_to_str(path.parent(), MIN_DEPTH, ctx);
 }
 
 static auto double_path_to_value(HspObjectPath::Double const& path, HSPCTX const* ctx) -> std::optional<HspDouble> {
@@ -728,10 +756,8 @@ auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path)
 	return std::nullopt;
 }
 
-auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> Utf8String {
-	static auto empty = ascii_to_utf8(u8"");
-
-	return (::str_path_to_value(path, context())).value_or(empty);
+auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> HspStr {
+	return (::str_path_to_value(path, context())).value_or(Slice<char>{});
 }
 
 auto HspObjects::double_path_to_value(HspObjectPath::Double const& path) const->HspDouble {

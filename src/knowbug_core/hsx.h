@@ -10,9 +10,17 @@
 #include "memory_view.h"
 
 namespace hsp_sdk_ext {
+	// HSP の文字列データ。
+	// 1. str 型はランタイムエンコーディング (shift_jis/utf-8) の文字列だけでなく、
+	// 他のエンコーディングの文字列や任意のバイナリを格納するのにも使われることがたまにある。
+	// 特に、null 終端とは限らない点に注意。std::strlen などの null 終端を前提とする関数に渡してはいけない。
+	// 2. 変数や refstr に由来する文字列データはバッファサイズが容易に取得できる。
+	// str 引数の文字列データはバッファサイズを取得できないが、null 終端が保証されている。
+	using HspStr = Slice<char>;
+
 	extern auto data_from_label(HspLabel const* ptr)->HspData;
 
-	extern auto data_from_str(char const* value)->HspData;
+	extern auto data_from_str(char const* ptr)->HspData;
 
 	extern auto data_from_double(HspDouble const* ptr)->HspData;
 
@@ -37,6 +45,8 @@ namespace hsp_sdk_ext {
 	extern auto element_to_data(PVal const* pval, std::size_t aptr, HSPCTX const* ctx)->std::optional<HspData>;
 
 	extern auto element_to_memory_block(PVal const* pval, std::size_t aptr, HSPCTX const* ctx)->MemoryView;
+
+	extern auto element_to_str(PVal const* pval, std::size_t aptr, HSPCTX const* ctx)->std::optional<HspStr>;
 
 	extern auto flex_is_nullmod(FlexValue const* flex) -> bool;
 
@@ -81,6 +91,8 @@ namespace hsp_sdk_ext {
 	extern auto param_data_to_mp_mod_var(HspParamType param_type, void const* data)->std::optional<MPModVarData const*>;
 
 	extern auto param_data_to_data(HspParamData const& param_data)->std::optional<HspData>;
+
+	extern auto param_data_to_str(HspParamData const& param_data)->std::optional<HspStr>;
 
 	extern auto param_stack_to_param_data_count(HspParamStack const& param_stack)->std::size_t;
 
@@ -136,7 +148,7 @@ namespace hsp_sdk_ext {
 
 	extern auto system_var_sublev(HSPCTX const* ctx)->HspInt const*;
 
-	extern auto system_var_refstr(HSPCTX const* ctx)->Slice<char>;
+	extern auto system_var_refstr(HSPCTX const* ctx)->HspStr;
 
 	extern auto system_var_refdval(HSPCTX const* ctx)->HspDouble const*;
 

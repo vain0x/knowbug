@@ -524,7 +524,7 @@ public:
 		return to_owned(as_utf8(u8"str"));
 	}
 
-	auto value(HspObjects& objects) const -> Utf8String;
+	auto value(HspObjects& objects) const -> HspStr;
 };
 
 // -----------------------------------------------

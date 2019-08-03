@@ -22,36 +22,60 @@ static auto char_need_escape(char b) -> bool {
 	return b == '\t' || b == '\r' || b == '\n' || b == '\\' || b == '"';
 }
 
-static auto string_can_print(Utf8StringView const& str) -> bool {
-	return std::all_of(str.begin(), str.end(), [](Utf8Char c) {
-		return char_can_print((char)c);
-	});
-}
-
 static auto string_need_escape(Utf8StringView const& str) -> bool {
-	return std::any_of(str.begin(), str.end(), [](Utf8Char c) {
-		return char_need_escape((char)c);
-	});
+	return std::any_of(
+		str.begin(),
+		str.end(),
+		[](Utf8Char c) {
+			return char_need_escape((char)c);
+		});
 }
 
-static bool string_is_multiline(Utf8StringView const& str) {
-	return str.find(Utf8Char{ '\n' }) != Utf8StringView::npos;
+static auto str_to_string(HspStr const& str) -> std::optional<std::string_view> {
+	auto end = std::find(str.begin(), str.end(), '\0');
+	if (end != str.end()) {
+		return std::nullopt;
+	}
+
+	if (!std::all_of(str.begin(), end, char_can_print)) {
+		return std::nullopt;
+	}
+
+	auto count = (std::size_t)(end - str.begin());
+	return std::string_view{ str.begin(), count };
 }
 
-static bool string_is_compact(Utf8StringView const& str) {
-	return str.size() < 64 && !string_is_multiline(str);
+static auto str_to_utf8(HspStr const& str) -> std::optional<Utf8String> {
+	auto&& string_opt = str_to_string(str);
+	if (!string_opt) {
+		return std::nullopt;
+	}
+
+	return to_utf8(as_hsp(*string_opt));
+}
+
+static bool string_is_multiline(std::string_view const& str) {
+	return std::find(str.begin(), str.end(), '\n') != str.end();
+}
+
+static bool str_is_compact(HspStr const& str) {
+	auto&& string_opt = str_to_string(str);
+	return string_opt && string_opt->size() < 64 && !string_is_multiline(*string_opt);
 }
 
 // 文字列をリテラル形式で書く。
-static void write_string_as_literal(CStrWriter& w, Utf8StringView const& str) {
-	if (!string_can_print(str)) {
+static void write_string_as_literal(CStrWriter& w, HspStr const& str) {
+	auto&& string_opt = str_to_string(str);
+	if (!string_opt) {
 		w.cat(u8"<バイナリ>");
 		return;
 	}
 
-	if (!string_need_escape(str)) {
+	auto text = to_utf8(as_hsp(*string_opt));
+
+	if (!string_need_escape(text)) {
 		w.cat(u8"\"");
-		w.cat(str);
+		w.cat(text);
 		w.cat(u8"\"");
 		return;
 	}
@@ -59,8 +83,8 @@ static void write_string_as_literal(CStrWriter& w, Utf8StringView const& str) {
 	w.cat(u8"\"");
 
 	auto i = std::size_t{};
-	while (i < str.size()) {
-		auto c = (char)str[i];
+	while (i < text.size()) {
+		auto c = (char)text[i];
 
 		if (c == '\t') {
 			w.cat(u8"\\t");
@@ -81,13 +105,13 @@ static void write_string_as_literal(CStrWriter& w, Utf8StringView const& str) {
 
 		if (c == '\\' || c == '"') {
 			w.cat(u8"\\");
-			w.cat(str.substr(i, 1));
+			w.cat(text.substr(i, 1));
 
 			i++;
 			continue;
 		}
 
-		w.cat(str.substr(i, 1));
+		w.cat(text.substr(i, 1));
 		i++;
 	}
 
@@ -165,7 +189,7 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 		return true;
 
 	case HspObjectKind::Str:
-		return string_is_compact(path.as_str().value(objects));
+		return str_is_compact(path.as_str().value(objects));
 
 	case HspObjectKind::Flex:
 		{
@@ -598,9 +622,16 @@ void HspObjectWriterImpl::BlockForm::on_label(HspObjectPath::Label const& path) 
 
 void HspObjectWriterImpl::BlockForm::on_str(HspObjectPath::Str const& path) {
 	auto&& w = writer();
-	auto&& value = path.value(objects());
+	auto&& str = path.value(objects());
+	auto&& text_opt = str_to_string(str);
 
-	w.catln(value);
+	if (!text_opt) {
+		w.catln(u8"<バイナリ>");
+		return;
+	}
+
+	auto text = to_utf8(as_hsp(*text_opt));
+	w.catln(text);
 }
 
 void HspObjectWriterImpl::BlockForm::on_double(HspObjectPath::Double const& path) {
@@ -815,7 +846,7 @@ static void write_string_as_literal_tests(Tests& tests) {
 
 	auto write = [&](auto&& str) {
 		auto w = CStrWriter{};
-		write_string_as_literal(w, str);
+		write_string_as_literal(w, Slice<char>{ (char const*)str.data(), str.size() });
 		return as_utf8(w.finish());
 	};
 

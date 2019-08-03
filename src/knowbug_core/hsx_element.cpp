@@ -66,4 +66,11 @@ namespace hsp_sdk_ext {
 
 		return element_data_to_memory_block(pval, data_opt->ptr(), ctx);
 	}
+
+	auto element_to_str(PVal const* pval, std::size_t aptr, HSPCTX const* ctx) -> std::optional<HspStr> {
+		assert(pval != nullptr);
+
+		auto&& memory = element_to_memory_block(pval, aptr, ctx);
+		return Slice<char>{ (char const*)memory.data(), memory.size() };
+	}
 }

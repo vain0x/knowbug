@@ -212,9 +212,6 @@
     <ClCompile Include="hsx_static_vars.cpp">
       <Filter>hsp-sdk-ext</Filter>
     </ClCompile>
-    <ClCompile Include="hsx_element.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="hsx_object_temps.cpp">
       <Filter>hsp-sdk-ext</Filter>
     </ClCompile>
@@ -240,6 +237,9 @@
       <Filter>hsp-sdk-ext</Filter>
     </ClCompile>
     <ClCompile Include="hsx_debug_segment.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_element.cpp">
       <Filter>hsp-sdk-ext</Filter>
     </ClCompile>
   </ItemGroup>

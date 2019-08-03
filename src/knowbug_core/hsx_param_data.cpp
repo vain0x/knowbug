@@ -98,4 +98,28 @@ namespace hsp_sdk_ext {
 			return std::nullopt;
 		}
 	}
+
+	auto param_data_to_str(HspParamData const& param_data) -> std::optional<HspStr> {
+		if (!param_data.safety()) {
+			return std::nullopt;
+		}
+
+		switch (param_data_to_type(param_data)) {
+		case MPTYPE_LOCALSTRING: {
+			auto str = UNSAFE(*(char const**)param_data.ptr());
+			if (!str) {
+				assert(false && u8"str param must not be null");
+				return std::nullopt;
+			}
+
+			// NOTE: str 引数の値は必ず NULL 終端されている。hsp3_code.cpp/code_expandstruct を参照。
+			// FIXME: 値は不変なので、文字数はキャッシュできる。キャッシュを削除するタイミングが微妙。
+			auto size = std::strlen(str) + 1;
+
+			return std::make_optional(Slice<char>{ str, size });
+		}
+		default:
+			return std::nullopt;
+		}
+	}
 }

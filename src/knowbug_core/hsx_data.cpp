@@ -6,8 +6,8 @@ namespace hsp_sdk_ext {
 		return HspData{ HspType::Label, (PDAT const*)ptr };
 	}
 
-	auto data_from_str(char const* value) -> HspData {
-		return HspData{ HspType::Str, (PDAT const*)value };
+	auto data_from_str(char const* ptr) -> HspData {
+		return HspData{ HspType::Str, (PDAT const*)ptr };
 	}
 
 	auto data_from_double(HspDouble const* ptr) -> HspData {

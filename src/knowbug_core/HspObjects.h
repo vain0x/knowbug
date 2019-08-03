@@ -110,7 +110,7 @@ public:
 
 	auto label_path_to_static_label_id(HspObjectPath::Label const& path) const -> std::optional<std::size_t>;
 
-	auto str_path_to_value(HspObjectPath::Str const& path) const->Utf8String;
+	auto str_path_to_value(HspObjectPath::Str const& path) const->HspStr;
 
 	auto double_path_to_value(HspObjectPath::Double const& path) const->HspDouble;
 
