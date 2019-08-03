@@ -30,11 +30,11 @@ namespace hsp_sdk_ext {
 		return (std::size_t)std::max(0, line_number - 1);
 	}
 
-	auto debug_to_general_info(HSP3DEBUG const* debug) -> std::unique_ptr<char, void(*)(char*)> {
+	auto debug_to_general_info(HSP3DEBUG* debug) -> std::unique_ptr<char, void(*)(char*)> {
 		return std::unique_ptr<char, void(*)(char*)>{ debug->get_value(DEBUGINFO_GENERAL), debug->dbg_close };
 	}
 
-	auto debug_to_static_var_names(HSP3DEBUG const* debug) -> std::unique_ptr<char, void(*)(char*)> {
+	auto debug_to_static_var_names(HSP3DEBUG* debug) -> std::unique_ptr<char, void(*)(char*)> {
 		return std::unique_ptr<char, void(*)(char*)>{ debug->get_varinf(nullptr, 0xFF), debug->dbg_close };
 	}
 }

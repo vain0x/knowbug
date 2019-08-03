@@ -5,15 +5,12 @@
 namespace hsp_sdk_ext {
 	// HSP の変数が持つデータへのポインタ
 	// FIXME: size を持たせる？
-	// FIXME: HspValue に改名
-	// FIXME: const?
 	class HspData {
 		HspType type_;
 
 		// label, double, int, struct: 変数が持つバッファの一部へのポインタ
 		// str: 文字列自身へのポインタ
-		// FIXME: data_ に改名
-		PDAT* ptr_;
+		PDAT const* ptr_;
 
 	public:
 		HspData()
@@ -22,7 +19,7 @@ namespace hsp_sdk_ext {
 		{
 		}
 
-		HspData(HspType type, PDAT* ptr)
+		HspData(HspType type, PDAT const* ptr)
 			: type_(type)
 			, ptr_(ptr)
 		{
@@ -33,7 +30,7 @@ namespace hsp_sdk_ext {
 			return type_;
 		}
 
-		auto ptr() const -> PDAT* {
+		auto ptr() const -> PDAT const* {
 			return ptr_;
 		}
 	};

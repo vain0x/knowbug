@@ -30,8 +30,6 @@ namespace hsp_sdk_ext {
 	// code segment 内へのポインタ (有効) または nullptr (無効)。
 	using HspLabel = HspCodeUnit const*;
 
-	using HspStr = char*;
-
 	using HspDouble = double;
 
 	using HspInt = std::int32_t;

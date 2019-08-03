@@ -8,8 +8,7 @@ namespace hsp_sdk_ext {
 	class HspParamStack {
 		STRUCTDAT const* struct_dat_;
 
-		// FIXME: data_ に改名
-		void* ptr_;
+		void const* ptr_;
 
 		std::size_t size_;
 
@@ -17,7 +16,7 @@ namespace hsp_sdk_ext {
 		bool safety_;
 
 	public:
-		HspParamStack(STRUCTDAT const* struct_dat, void* ptr, std::size_t size, bool safety)
+		HspParamStack(STRUCTDAT const* struct_dat, void const* ptr, std::size_t size, bool safety)
 			: struct_dat_(struct_dat)
 			, ptr_(ptr)
 			, size_(size)
@@ -31,7 +30,7 @@ namespace hsp_sdk_ext {
 			return struct_dat_;
 		}
 
-		auto ptr() const -> void* {
+		auto ptr() const -> void const* {
 			return ptr_;
 		}
 

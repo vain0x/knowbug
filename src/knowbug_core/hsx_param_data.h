@@ -4,21 +4,18 @@
 
 namespace hsp_sdk_ext {
 	// HSP の引数 (パラメータスタックの1要素) への参照。
-	// FIXME: ParamValue に改名
 	// FIXME: size を持たせる
 	class HspParamData {
 		STRUCTPRM const* param_;
 
 		std::size_t param_index_;
 
-		// FIXME: data_ に改名
-		// FIXME: void const*
-		void* ptr_;
+		void const* ptr_;
 
 		bool safety_;
 
 	public:
-		HspParamData(STRUCTPRM const* param, std::size_t param_index, void* ptr, bool safety)
+		HspParamData(STRUCTPRM const* param, std::size_t param_index, void const* ptr, bool safety)
 			: param_(param)
 			, param_index_(param_index)
 			, ptr_(ptr)
@@ -36,7 +33,7 @@ namespace hsp_sdk_ext {
 			return param_index_;
 		}
 
-		auto ptr() const -> void* {
+		auto ptr() const -> void const* {
 			return ptr_;
 		}
 

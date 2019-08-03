@@ -22,13 +22,13 @@ namespace hsp_sdk_ext {
 
 	extern auto data_to_label(HspData const& data)->std::optional<HspLabel>;
 
-	extern auto data_to_str(HspData const& data)->std::optional<HspStr>;
+	extern auto data_to_str(HspData const& data)->std::optional<char const*>;
 
 	extern auto data_to_double(HspData const& data)->std::optional<HspDouble>;
 
 	extern auto data_to_int(HspData const& data)->std::optional<HspInt>;
 
-	extern auto data_to_flex(HspData const& data)->std::optional<FlexValue*>;
+	extern auto data_to_flex(HspData const& data)->std::optional<FlexValue const*>;
 
 	extern auto element_to_indexes(PVal const* pval, std::size_t aptr)->std::optional<HspDimIndex>;
 
@@ -164,8 +164,8 @@ namespace hsp_sdk_ext {
 
 	// 全般の情報。
 	// フォーマット: `key1\nvalue1\nkey2\nvalue2\n..`
-	extern auto debug_to_general_info(HSP3DEBUG const* debug)->std::unique_ptr<char, void(*)(char*)>;
+	extern auto debug_to_general_info(HSP3DEBUG* debug)->std::unique_ptr<char, void(*)(char*)>;
 
 	// 静的変数の名前のリスト (改行区切り)
-	extern auto debug_to_static_var_names(HSP3DEBUG const* debug)->std::unique_ptr<char, void(*)(char*)>;
+	extern auto debug_to_static_var_names(HSP3DEBUG* debug)->std::unique_ptr<char, void(*)(char*)>;
 }

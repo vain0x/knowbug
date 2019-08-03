@@ -3,23 +3,23 @@
 
 namespace hsp_sdk_ext {
 	auto data_from_label(HspLabel const* ptr) -> HspData {
-		return HspData{ HspType::Label, (PDAT*)ptr };
+		return HspData{ HspType::Label, (PDAT const*)ptr };
 	}
 
 	auto data_from_str(char const* value) -> HspData {
-		return HspData{ HspType::Str, (PDAT*)value };
+		return HspData{ HspType::Str, (PDAT const*)value };
 	}
 
 	auto data_from_double(HspDouble const* ptr) -> HspData {
-		return HspData{ HspType::Double, (PDAT*)ptr };
+		return HspData{ HspType::Double, (PDAT const*)ptr };
 	}
 
 	auto data_from_int(HspInt const* ptr) -> HspData {
-		return HspData{ HspType::Int, (PDAT*)ptr };
+		return HspData{ HspType::Int, (PDAT const*)ptr };
 	}
 
 	auto data_from_flex(FlexValue const* flex) -> HspData {
-		return HspData{ HspType::Struct, (PDAT*)flex };
+		return HspData{ HspType::Struct, (PDAT const*)flex };
 	}
 
 	auto data_to_label(HspData const& data)->std::optional<HspLabel> {
@@ -29,11 +29,11 @@ namespace hsp_sdk_ext {
 		return std::make_optional(UNSAFE(*(HspLabel const*)data.ptr()));
 	}
 
-	auto data_to_str(HspData const& data)->std::optional<HspStr> {
+	auto data_to_str(HspData const& data)->std::optional<char const*> {
 		if (data.type() != HspType::Str) {
 			return std::nullopt;
 		}
-		return std::make_optional(UNSAFE((HspStr)data.ptr()));
+		return std::make_optional(UNSAFE((char const*)data.ptr()));
 	}
 
 	auto data_to_double(HspData const& data)->std::optional<HspDouble> {
@@ -50,10 +50,10 @@ namespace hsp_sdk_ext {
 		return std::make_optional(UNSAFE(*(HspInt const*)data.ptr()));
 	}
 
-	auto data_to_flex(HspData const& data)->std::optional<FlexValue*> {
+	auto data_to_flex(HspData const& data)->std::optional<FlexValue const*> {
 		if (data.type() != HspType::Struct) {
 			return std::nullopt;
 		}
-		return std::make_optional(UNSAFE((FlexValue*)data.ptr()));
+		return std::make_optional(UNSAFE((FlexValue const*)data.ptr()));
 	}
 }

@@ -86,7 +86,7 @@ static auto create_type_datas() -> std::vector<HspObjects::TypeData> {
 	return types;
 }
 
-static auto create_general_content(HSP3DEBUG const* debug) -> Utf8String {
+static auto create_general_content(HSP3DEBUG* debug) -> Utf8String {
 	auto buffer = std::stringstream{};
 
 	auto str = hsx::debug_to_general_info(debug);
