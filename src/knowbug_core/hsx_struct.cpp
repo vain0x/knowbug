@@ -9,7 +9,7 @@ namespace hsp_sdk_ext {
 	}
 
 	auto struct_to_name(STRUCTDAT const* struct_dat, HSPCTX const* ctx)->std::optional<char const*> {
-		return data_as_str((std::size_t)std::max(0, struct_dat->nameidx), ctx);
+		return data_segment_to_str((std::size_t)std::max(0, struct_dat->nameidx), ctx);
 	}
 
 	auto struct_to_param_count(STRUCTDAT const* struct_dat)->std::size_t {

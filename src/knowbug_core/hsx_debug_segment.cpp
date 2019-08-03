@@ -100,13 +100,13 @@ namespace hsp_sdk_ext {
 
 				di_++;
 
-				auto data_index = (int)read_int24(d + di_);
+				auto ds_index = (int)read_int24(d + di_);
 				di_ += 3;
 
 				auto line_number = (int)read_int16(d + di_);
 				di_ += 2;
 
-				auto&& file_ref_name_opt = data_as_str(data_index, ctx_);
+				auto&& file_ref_name_opt = data_segment_to_str(ds_index, ctx_);
 				if (!file_ref_name_opt) {
 					continue;
 				}
@@ -122,14 +122,14 @@ namespace hsp_sdk_ext {
 
 				di_++;
 
-				auto data_index = (int)read_int24(d + di_);
+				auto ds_index = (int)read_int24(d + di_);
 				di_ += 3;
 
 				auto index = (int)read_int16(d + di_);
 				di_ += 2;
 
 				auto&& kind_opt = ident_kind_to_item_kind(ident_kind_);
-				auto&& name_opt = data_as_str(data_index, ctx_);
+				auto&& name_opt = data_segment_to_str(ds_index, ctx_);
 				if (!kind_opt || !name_opt) {
 					continue;
 				}
