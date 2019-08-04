@@ -13,12 +13,6 @@ namespace hsp_sdk_ext {
 		PDAT const* ptr_;
 
 	public:
-		HspData()
-			: type_(HspType::None)
-			, ptr_()
-		{
-		}
-
 		HspData(HspType type, PDAT const* ptr)
 			: type_(type)
 			, ptr_(ptr)
