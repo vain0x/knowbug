@@ -1,0 +1,339 @@
+//! knowbug installer
+
+#packopt name "knowbug_install"
+#packopt hide 1
+
+#define false 0
+#define true 1
+#define dirlist_dir 5
+#define objmode_font 2
+#define window_main 0
+#define gsel_hide (-1)
+#define gsel_show 1
+#define app_title "Knowbug Installer"
+#define syscolor_surface 15
+#define dialog_open_file 16
+#define getpath_dir 32
+
+*l_main
+
+	gosub *l_elevate
+	gosub *l_initialize_vars
+	gosub *l_initialize_window
+	gosub *l_start
+
+	repeat
+		gosub *l_update
+		await 16
+	loop
+	stop
+
+*l_elevate
+
+#ifndef _debug
+	// Run as administrator.
+
+	lock_file_name = ".lock"
+	lock_file_content = 0
+
+	exist lock_file_name
+	if strsize < 0 {
+		bsave lock_file_name, lock_file_content, 0
+
+		self_path = "\"" + dir_exe + "/knowbug_install.exe\""
+		exec self_path, , "runas"
+		end
+	}
+
+	delete lock_file_name
+#endif
+	return
+
+*l_initialize_vars
+
+	program_files_dir = "C:/Program Files (x86)"
+	knowbug_dir = dir_cur
+
+	asset_targets = "hsp3debug.dll", "hsp3debug_u8.dll", "hsp3debug_64.dll", "common/WrapCall.as"
+	asset_sources = "hsp3debug.dll", "hsp3debug_u8.dll", "hsp3debug_64.dll", "package/WrapCall.as"
+	asset_backups = true, true, true, false
+	asset_count = length(asset_sources)
+
+	// states
+
+	hsp_dir_found = false
+	hsp_dir = ""
+
+	sdim candidate_list
+	candidate_count = 0
+	candidate_index = -1
+	candidate_index_prev = candidate_index
+
+	force_update = true
+
+	// result of dirlist
+	sdim dir_name_list
+	dir_name_count = 0
+
+	return
+
+*l_initialize_window
+
+	gsel window_main, gsel_hide
+
+	title app_title
+
+	window_width = 640
+	margin = 10
+	object_height = 25
+	dot_button_width = 40
+	combo_width = window_width - margin * 3 - dot_button_width
+	combo_dropdown_height = 120
+	install_button_width = (window_width - margin * 3) / 2
+	window_height = margin * 3 + object_height * 2
+
+	// background
+
+	syscolor syscolor_surface
+	boxf
+
+	// font
+
+	font "Yu Gothic UI", 12
+	objmode objmode_font
+
+	// combobox (candidate selector)
+
+	pos margin, margin
+	objsize combo_width, object_height
+	combox candidate_index, combo_dropdown_height, candidate_list
+	combox_id = stat
+
+	// `...` button (add candidate)
+
+	pos margin + combo_width + margin, margin
+	objsize dot_button_width, object_height
+	button gosub "...", *l_add_candidate
+
+	// install buttons
+
+	objsize install_button_width, object_height
+
+	pos margin, margin + object_height + margin
+	button gosub "install", *l_install
+	install_button_id = stat
+
+	pos margin + install_button_width + margin, margin + object_height + margin
+	button gosub "uninstall", *l_uninstall
+	uninstall_button_id = stat
+
+	// window
+
+	width window_width, window_height
+
+	return
+
+*l_start
+
+	gsel window_main, gsel_show
+	gosub *l_find_candidates
+	return
+
+*l_update
+
+	if force_update == false && candidate_index_prev == candidate_index {
+		return
+	}
+
+	force_update = false
+	candidate_index_prev = candidate_index
+
+	// hsp dir
+
+	if candidate_index >= 0 {
+		notesel candidate_list
+		noteget hsp_dir, candidate_index
+		noteunsel
+		hsp_dir_found = true
+	} else {
+		hsp_dir_found = false
+	}
+
+	// installed?
+
+	if hsp_dir_found {
+		exist hsp_dir + "/hsp3debug.dll.orig"
+		installed = strsize > 0
+	} else {
+		installed = false
+	}
+
+	// can install?
+
+	if hsp_dir_found && installed == false {
+		exist hsp_dir + "/hsp3debug.dll"
+		can_install = strsize >= 0
+	} else {
+		can_install = false
+	}
+
+	// update install button status
+
+	objenable install_button_id, can_install
+	objenable uninstall_button_id, installed
+	return
+
+*l_update_candidate_combox
+
+	objprm combox_id, candidate_list
+	objprm combox_id, candidate_index
+	return
+
+*l_find_candidates
+
+	chdir program_files_dir
+	dirlist dir_name_list, "hsp*", dirlist_dir
+	dir_name_count = stat
+
+	if dir_name_count == 0 {
+		gosub *l_add_candidate
+		return
+	}
+
+	sdim dir_names, , dir_name_count
+	sdim candidates, , dir_name_count
+	notesel dir_name_list
+	repeat dir_name_count
+		noteget dir_name, cnt
+		candidates(cnt) = program_files_dir + "/" + dir_name
+	loop
+	noteunsel
+
+	notesel candidate_list
+	repeat dir_name_count
+		noteadd candidates(cnt)
+	loop
+	noteunsel
+
+	candidate_count = dir_name_count
+	candidate_index = candidate_count - 1
+	gosub *l_update_candidate_combox
+	return
+
+*l_add_candidate
+
+	dialog "exe", dialog_open_file, "hsp3.exe"
+	if stat == 0 {
+		return
+	}
+	dir_name = getpath(refstr, getpath_dir)
+
+	notesel candidate_list
+	noteadd dir_name
+	noteunsel
+
+	candidate_count++
+	candidate_index = candidate_count - 1
+	gosub *l_update_candidate_combox
+	return
+
+*l_install
+
+	force_update = true
+
+	if hsp_dir_found == false || can_install == false {
+		assert
+		return
+	}
+
+	// backup
+
+	repeat asset_count
+		if asset_backups(cnt) == false {
+			continue
+		}
+
+		source_path = hsp_dir + "/" + asset_targets(cnt)
+		target_path = source_path + ".orig"
+
+		exist source_path
+		if strsize >= 0 {
+			bcopy source_path, target_path
+		}
+	loop
+
+	// delete
+
+	repeat asset_count
+		target_path = hsp_dir + "/" + asset_targets(cnt)
+
+		exist target_path
+		if strsize >= 0 {
+			delete target_path
+		}
+	loop
+
+	// copy
+
+	repeat asset_count
+		source_path = knowbug_dir + "/" + asset_sources(cnt)
+		target_path = hsp_dir + "/" + asset_targets(cnt)
+		bcopy source_path, target_path
+	loop
+
+	dialog "OK"
+	return
+
+*l_uninstall
+
+	force_update = true
+
+	if hsp_dir_found == false || installed == false {
+		assert
+		return
+	}
+
+	// delete
+
+	repeat asset_count
+		target_path = hsp_dir + "/" + asset_targets(cnt)
+
+		exist target_path
+		if strsize >= 0 {
+			delete target_path
+		}
+	loop
+
+	// restore
+
+	repeat asset_count
+		if asset_backups(cnt) == false {
+			continue
+		}
+
+		target_path = hsp_dir + "/" + asset_targets(cnt)
+		source_path = target_path + ".orig"
+
+		exist source_path
+		if strsize >= 0 {
+			bcopy source_path, target_path
+		}
+	loop
+
+	// delete (backup)
+
+	repeat asset_count
+		if asset_backups(cnt) == false {
+			continue
+		}
+
+		target_path = hsp_dir + "/" + asset_targets(cnt) + ".orig"
+
+		exist target_path
+		if strsize >= 0 {
+			delete target_path
+		}
+	loop
+
+	dialog "OK"
+	return
