@@ -1081,10 +1081,7 @@ void HspObjectsBuilder::add_label_name(int ot_index, char const* label_name, HSP
 		return;
 	}
 
-	auto name = to_utf8(as_hsp(label_name));
-	name.insert(0, as_utf8(u8"*"));
-
-	label_names_.emplace(*label_opt, std::move(name));
+	label_names_.emplace(*label_opt, to_utf8(as_hsp(label_name)));
 }
 
 void HspObjectsBuilder::add_param_name(int param_index, char const* param_name, HSPCTX const* ctx) {
