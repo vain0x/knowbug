@@ -1,9 +1,10 @@
 #include "pch.h"
 #include <vector>
-#include "../hpiutil/hpiutil.hpp"
 #include "hsp_wrap_call.h"
-#include "DebugInfo.h"
+#include "hsx.h"
 #include "platform.h"
+
+namespace hsx = hsp_sdk_ext;
 
 static auto s_debugger = std::weak_ptr<WcDebugger>{};
 
@@ -155,7 +156,7 @@ static void modcmd_init(HSP3TYPEINFO* info) {
 
 // ユーザ定義命令の呼び出し処理のラッパー
 static auto modcmd_cmdfunc(int cmdid) -> int {
-	auto struct_dat = &hpiutil::finfo()[cmdid];
+	auto struct_dat = hsx::structs(ctx).get_unchecked((std::size_t)cmdid);
 
 	wc_will_call(struct_dat);
 	auto runmode = s_modcmd_cmdfunc_impl(cmdid);
@@ -165,7 +166,7 @@ static auto modcmd_cmdfunc(int cmdid) -> int {
 
 // ユーザ定義関数の呼び出し処理のラッパー
 static auto modcmd_reffunc(int* type_res, int cmdid) -> void* {
-	auto struct_dat = &hpiutil::finfo()[cmdid];
+	auto struct_dat = hsx::structs(ctx).get_unchecked((std::size_t)cmdid);
 
 	wc_will_call(struct_dat);
 	auto result = s_modcmd_reffunc_impl(type_res, cmdid);

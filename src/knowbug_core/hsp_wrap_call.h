@@ -6,7 +6,6 @@
 #include "../hspsdk/hsp3struct.h"
 #include "HspTypes.h"
 
-class HspParamStack;
 class WcCallFrame;
 class WcDebugger;
 

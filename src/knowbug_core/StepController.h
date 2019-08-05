@@ -2,8 +2,7 @@
 
 #pragma once
 
-struct HSPCTX;
-class DebugInfo;
+struct HSP3DEBUG;
 class KnowbugStepController;
 
 // 実行モードを表す。HSPDEBUG_RUN_* と同じ。
@@ -178,12 +177,12 @@ private:
 };
 
 class KnowbugStepController {
-	HSPCTX const* hspctx_;
-	DebugInfo& debug_info_;
+	HSP3DEBUG* debug_;
+
 	StepController step_controller_;
 
 public:
-	KnowbugStepController(HSPCTX const* hspctx, DebugInfo& debug_info);
+	explicit KnowbugStepController(HSP3DEBUG* debug);
 
 	bool continue_step_running();
 

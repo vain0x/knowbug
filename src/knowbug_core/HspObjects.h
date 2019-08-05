@@ -6,13 +6,9 @@
 #include "HspTypes.h"
 #include "HspObjectPath.h"
 
-namespace hpiutil {
-	class DInfo;
-}
-
-class DebugInfo;
 class HspDebugApi;
 class HspStaticVars;
+class SourceFileId;
 class SourceFileRepository;
 
 // FIXME: ログが更新されるたびにビューを更新する
@@ -48,22 +44,23 @@ public:
 	class TypeData;
 
 private:
-	HspDebugApi& api_;
+	HSP3DEBUG* debug_;
+
 	HspLogger& logger_;
 	HspScripts& scripts_;
-	HspStaticVars& static_vars_;
-	hpiutil::DInfo const& debug_segment_;
 	SourceFileRepository& source_file_repository_;
 
 	std::shared_ptr<HspObjectPath const> root_path_;
 
 	std::vector<Module> modules_;
 	std::vector<TypeData> types_;
+	std::unordered_map<HspLabel, Utf8String> label_names_;
+	std::unordered_map<STRUCTPRM const*, Utf8String> param_names_;
 
 	Utf8String general_content_;
 
 public:
-	HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info_, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository);
+	HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Module>&& modules, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository);
 
 	auto root_path() const->HspObjectPath::Root const&;
 
@@ -159,11 +156,24 @@ public:
 
 	void log_do_clear();
 
+	auto script_to_full_path() const -> std::optional<OsStringView>;
+
 	auto script_to_content() const -> Utf8StringView;
 
 	auto script_to_current_line() const -> std::size_t;
 
 	auto script_to_current_location_summary() const->Utf8String;
+
+private:
+	auto debug() -> HSP3DEBUG* {
+		return debug_;
+	}
+
+	auto debug() const -> HSP3DEBUG const* {
+		return debug_;
+	}
+
+	auto context() const->HSPCTX const*;
 
 public:
 	class Module {
@@ -197,3 +207,26 @@ public:
 		return as_view(name_);
 	}
 };
+
+class HspObjectsBuilder {
+	std::vector<Utf8String> var_names_;
+
+	std::unordered_map<HspLabel, Utf8String> label_names_;
+
+	std::unordered_map<STRUCTPRM const*, Utf8String> param_names_;
+
+public:
+	void add_var_name(char const* var_name);
+
+	void add_label_name(int ot_index, char const* label_name, HSPCTX const* ctx);
+
+	void add_param_name(int param_index, char const* param_name, HSPCTX const* ctx);
+
+	auto finish(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, SourceFileRepository& source_file_repository)->HspObjects;
+};
+
+// 迷子
+
+extern auto indexes_to_string(HspDimIndex const& indexes)->Utf8String;
+
+extern auto var_name_to_bare_ident(Utf8StringView const& name)->Utf8StringView;

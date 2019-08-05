@@ -1,14 +1,14 @@
 #include "pch.h"
 #include <sstream>
-#include "../hpiutil/hpiutil.hpp"
-#include "../hpiutil/DInfo.hpp"
 #include "hsp_wrap_call.h"
-#include "DebugInfo.h"
 #include "hsp_objects_module_tree.h"
-#include "HspDebugApi.h"
 #include "HspObjects.h"
-#include "HspStaticVars.h"
+#include "hsx.h"
+#include "hsx_debug_segment.h"
 #include "source_files.h"
+#include "string_split.h"
+
+namespace hsx = hsp_sdk_ext;
 
 // 再帰深度の初期値
 static auto const MIN_DEPTH = std::size_t{};
@@ -16,11 +16,29 @@ static auto const MIN_DEPTH = std::size_t{};
 // 再帰深度の最大値 (スタックオーバーフローを防ぐため)
 static auto const MAX_DEPTH = std::size_t{ 32 };
 
-static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HspDebugApi& api) -> std::optional<HspParamData>;
-
-static auto param_path_to_param_type(HspObjectPath::Param const& path, HspDebugApi& api) -> std::optional<HspParamType>;
+static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HspParamData>;
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
+
+auto indexes_to_string(HspDimIndex const& indexes) -> Utf8String {
+	auto ss = std::stringstream{};
+	ss << '(';
+	for (auto i = std::size_t{}; i < indexes.dim(); ++i) {
+		if (i != 0) {
+			ss << u8", ";
+		}
+		ss << indexes[i];
+	}
+	ss << ')';
+	return as_utf8(ss.str());
+}
+
+auto var_name_to_bare_ident(Utf8StringView const& str) -> Utf8StringView {
+	auto atmark = str.find(Utf8Char{ '@' });
+	return atmark != Utf8String::npos
+		? str.substr(0, atmark)
+		: str;
+}
 
 // 変数をモジュールごとに分類する。
 static auto group_vars_by_module(std::vector<Utf8String> const& var_names) -> std::vector<HspObjects::Module> {
@@ -68,20 +86,51 @@ static auto create_type_datas() -> std::vector<HspObjects::TypeData> {
 	return types;
 }
 
-static auto create_general_content(DebugInfo const& debug_info) -> Utf8String {
-	auto kvs = debug_info.fetchGeneralInfo();
+static auto create_general_content(HSP3DEBUG* debug) -> Utf8String {
+	auto buffer = std::stringstream{};
 
-	auto buffer = Utf8String{};
-	for (auto&& kv : kvs) {
-		buffer += to_utf8(as_hsp(std::move(kv.first)));
-		buffer += as_utf8(u8" = ");
-		buffer += to_utf8(as_hsp(std::move(kv.second)));
-		buffer += as_utf8(u8"\r\n");
+	auto str = hsx::debug_to_general_info(debug);
+	auto lines = StringLines{ std::string_view{ str.get() } }.iter();
+
+	while (true) {
+		auto&& key_opt = lines.next();
+		if (!key_opt) {
+			break;
+		}
+
+		auto&& value_opt = lines.next();
+		if (!value_opt) {
+			break;
+		}
+
+		buffer << *key_opt << u8" = ";
+		buffer << *value_opt << u8"\r\n";
 	}
-	return buffer;
+
+	// 拡張内容の追加
+	// FIXME: hsx 経由でアクセスする
+	auto exinfo = debug->hspctx->exinfo2;
+	if (exinfo->actscr) {
+		auto bmscr = reinterpret_cast<BMSCR*>(exinfo->HspFunc_getbmscr(*exinfo->actscr));
+		if (bmscr) {
+			// color
+			auto color_ref = COLORREF{ bmscr->color };
+			buffer
+				<< u8"color = ("
+				<< (int)GetRValue(color_ref) << u8", "
+				<< (int)GetGValue(color_ref) << u8", "
+				<< (int)GetBValue(color_ref) << u8")\r\n";
+
+			// pos
+			auto point = POINT{ bmscr->cx, bmscr->cy };
+			buffer << u8"pos = (" << point.x << u8", " << point.y << u8")\r\n";
+		}
+	}
+
+	return to_utf8(as_hsp(buffer.str()));
 }
 
-static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HspDebugApi& api) -> std::optional<PVal*> {
+static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<PVal const*> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -91,41 +140,42 @@ static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HspDebugA
 	case HspObjectKind::StaticVar:
 		{
 			auto static_var_id = path.as_static_var().static_var_id();
-			return std::make_optional(api.static_var_to_pval(static_var_id));
+			return hsx::static_var_to_pval(static_var_id, ctx);
 		}
 
 	case HspObjectKind::Element:
-		return path_to_pval(path.parent(), depth, api);
+		return path_to_pval(path.parent(), depth, ctx);
 
 	case HspObjectKind::Param:
 		{
-			auto&& param_data_opt = param_path_to_param_data(path.as_param(), depth, api);
+			auto&& param_data_opt = param_path_to_param_data(path.as_param(), depth, ctx);
 			if (!param_data_opt) {
 				return std::nullopt;
 			}
 			auto&& param_data = *param_data_opt;
 
-			switch (api.param_data_to_type(param_data)) {
+			switch (hsx::param_data_to_type(param_data)) {
 			case MPTYPE_LOCALVAR:
-				{
-					auto pval = api.param_data_as_local_var(param_data);
-					return std::make_optional(pval);
-				}
+				return hsx::param_data_to_pval(param_data);
+
 			case MPTYPE_SINGLEVAR:
 			case MPTYPE_ARRAYVAR:
 				{
-					auto mp_var_data = api.param_data_to_single_var(param_data);
-					auto pval = api.mp_var_data_to_pval(mp_var_data);
-					return std::make_optional(pval);
+					auto mp_var_opt = hsx::param_data_to_mp_var(param_data);
+					if (!mp_var_opt) {
+						return std::nullopt;
+					}
+
+					return hsx::mp_var_to_pval(*mp_var_opt);
 				}
 			case MPTYPE_MODULEVAR:
 			case MPTYPE_IMODULEVAR:
 			case MPTYPE_TMODULEVAR: {
-				auto&& mod_var_data_opt = api.param_data_to_mod_var(param_data);
-				if (!mod_var_data_opt) {
+				auto&& mod_var_opt = hsx::param_data_to_mp_mod_var(param_data);
+				if (!mod_var_opt) {
 					return std::nullopt;
 				}
-				return std::make_optional(api.mp_mod_var_data_to_pval(*mod_var_data_opt));
+				return std::make_optional(hsx::mp_mod_var_to_pval(*mod_var_opt));
 			}
 			default:
 				return std::nullopt;
@@ -136,7 +186,7 @@ static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HspDebugA
 	}
 }
 
-static auto path_to_data(HspObjectPath const& path, std::size_t depth, HspDebugApi& api) -> std::optional<HspData> {
+static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HspData> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -147,30 +197,30 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HspDebugA
 	switch (path.kind()) {
 	case HspObjectKind::Element:
 		{
-			auto&& pval_opt = path_to_pval(path.parent(), depth, api);
+			auto&& pval_opt = path_to_pval(path.parent(), depth, ctx);
 			if (!pval_opt) {
 				return std::nullopt;
 			}
 
-			auto aptr_opt = api.var_element_to_aptr(*pval_opt, path.as_element().indexes());
+			auto aptr_opt = hsx::element_to_aptr(*pval_opt, path.as_element().indexes());
 			if (!aptr_opt) {
 				return std::nullopt;
 			}
 
-			return std::make_optional(api.var_element_to_data(*pval_opt, *aptr_opt));
+			return hsx::element_to_data(*pval_opt, *aptr_opt, ctx);
 		}
 	case HspObjectKind::Param:
 	{
-		auto&& param_data_opt = param_path_to_param_data(path.as_param(), depth, api);
+		auto&& param_data_opt = param_path_to_param_data(path.as_param(), depth, ctx);
 		if (!param_data_opt) {
 			return std::nullopt;
 		}
 
-		return api.param_data_to_data(*param_data_opt);
+		return hsx::param_data_to_data(*param_data_opt);
 	}
 	case HspObjectKind::SystemVar:
 	{
-		return api.system_var_to_data(path.as_system_var().system_var_kind());
+		return hsx::system_var_to_data(path.as_system_var().system_var_kind(), ctx);
 	}
 	default:
 		assert(false && u8"data を取得できるべき");
@@ -178,27 +228,27 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HspDebugA
 	}
 }
 
-static auto var_path_to_child_count(HspObjectPath const& path, HspDebugApi& api) -> std::size_t {
-	auto&& pval_opt = path_to_pval(path, MIN_DEPTH, api);
+static auto var_path_to_child_count(HspObjectPath const& path, HSPCTX const* ctx) -> std::size_t {
+	auto&& pval_opt = path_to_pval(path, MIN_DEPTH, ctx);
 	if (!pval_opt) {
 		return 0;
 	}
 
 	// FIXME: 要素数が多すぎると動作が遅くなりすぎるので適度に打ち切るかグループ化する
 	auto pval = *pval_opt;
-	return api.var_to_element_count(pval);
+	return hsx::pval_to_element_count(pval);
 }
 
-static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_index, HspDebugApi& api) -> std::shared_ptr<HspObjectPath const> {
-	auto pval_opt = path_to_pval(path, MIN_DEPTH, api);
-	if (!pval_opt || child_index >= var_path_to_child_count(path, api)) {
+static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_index, HSPCTX const* ctx) -> std::shared_ptr<HspObjectPath const> {
+	auto pval_opt = path_to_pval(path, MIN_DEPTH, ctx);
+	if (!pval_opt || child_index >= var_path_to_child_count(path, ctx)) {
 		assert(false && u8"Invalid var path child index");
 		throw new std::out_of_range{ u8"child_index" };
 	}
 
 	auto pval = *pval_opt;
 	auto aptr = (APTR)child_index;
-	auto&& indexes_opt = api.var_element_to_indexes(pval, aptr);
+	auto&& indexes_opt = hsx::element_to_indexes(pval, aptr);
 	if (!indexes_opt) {
 		return path.new_unavailable(to_owned(as_utf8(u8"この要素は配列に含まれていません。")));
 	}
@@ -206,21 +256,21 @@ static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_in
 	return path.new_element(*indexes_opt);
 }
 
-static auto var_path_to_metadata(HspObjectPath const& path, HspDebugApi& api) -> std::optional<HspVarMetadata> {
-	auto&& pval_opt = path_to_pval(path, MIN_DEPTH, api);
+static auto var_path_to_metadata(HspObjectPath const& path, HSPCTX const* ctx) -> std::optional<HspVarMetadata> {
+	auto&& pval_opt = path_to_pval(path, MIN_DEPTH, ctx);
 	if (!pval_opt) {
 		return std::nullopt;
 	}
 	auto&& pval = *pval_opt;
 
-	auto block_memory = api.var_to_block_memory(pval);
+	auto block_memory = hsx::pval_to_memory_block(pval, ctx);
 
 	auto metadata = HspVarMetadata{};
-	metadata.type_ = api.var_to_type(pval);
-	metadata.mode_ = api.var_to_mode(pval);
-	metadata.lengths_ = api.var_to_lengths(pval);
-	metadata.element_size_ = api.var_to_element_count(pval);
-	metadata.data_size_ = pval->size;
+	metadata.type_ = hsx::pval_to_type(pval);
+	metadata.mode_ = hsx::pval_to_varmode(pval);
+	metadata.lengths_ = hsx::pval_to_lengths(pval);
+	metadata.element_size_ = hsx::pval_to_element_count(pval);
+	metadata.data_size_ = pval->size; // FIXME: hsx を使う
 	metadata.block_size_ = block_memory.size();
 	metadata.data_ptr_ = pval->pt;
 	metadata.master_ptr_ = pval->master;
@@ -228,82 +278,67 @@ static auto var_path_to_metadata(HspObjectPath const& path, HspDebugApi& api) ->
 	return metadata;
 }
 
-static auto label_path_to_value(HspObjectPath::Label const& path, HspDebugApi& api) -> std::optional<HspLabel> {
-	auto&& data_opt = path_to_data(path.parent(), MIN_DEPTH, api);
+static auto label_path_to_value(HspObjectPath::Label const& path, HSPCTX const* ctx) -> std::optional<HspLabel> {
+	auto&& data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
 	if (!data_opt) {
 		assert(false && u8"label の親は data を生成できるはず");
 		return std::nullopt;
 	}
 
-	if (data_opt->type() != HspType::Label) {
-		return std::nullopt;
-	}
-
-	return std::make_optional(api.data_to_label(*data_opt));
+	return hsx::data_to_label(*data_opt);
 }
 
-static auto str_path_to_value(HspObjectPath::Str const& path, HspDebugApi& api) -> std::optional<Utf8String> {
-	auto&& data = path_to_data(path.parent(), MIN_DEPTH, api);
-	if (!data) {
+static auto str_path_to_value(HspObjectPath::Str const& path, HSPCTX const* ctx) -> std::optional<Utf8String> {
+	auto&& data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
+	if (!data_opt) {
 		assert(false && u8"str の親は data を生成できるはず");
 		return std::nullopt;
 	}
 
-	if (data->type() != HspType::Str) {
+	auto&& str_opt = hsx::data_to_str(*data_opt);
+	if (!str_opt) {
 		return std::nullopt;
 	}
 
-	auto&& str = api.data_to_str(*data);
-	return std::make_optional(to_utf8(as_hsp(str)));
+	// FIXME: 明らかにバイナリなら変換しなくていい。ゼロ終端されていないケースはチェックすべき
+	return std::make_optional(to_utf8(as_hsp(*str_opt)));
 }
 
-static auto double_path_to_value(HspObjectPath::Double const& path, HspDebugApi& api) -> std::optional<HspDouble> {
-	auto&& data = path_to_data(path.parent(), MIN_DEPTH, api);
-	if (!data) {
+static auto double_path_to_value(HspObjectPath::Double const& path, HSPCTX const* ctx) -> std::optional<HspDouble> {
+	auto&& data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
+	if (!data_opt) {
 		assert(false && u8"double の親は data を生成できるはず");
 		return std::nullopt;
 	}
 
-	if (data->type() != HspType::Double) {
-		return std::nullopt;
-	}
-
-	return std::make_optional(api.data_to_double(*data));
+	return hsx::data_to_double(*data_opt);
 }
 
-static auto int_path_to_value(HspObjectPath::Int const& path, HspDebugApi& api) -> std::optional<HspInt> {
-	auto&& data = path_to_data(path.parent(), MIN_DEPTH, api);
-	if (!data) {
+static auto int_path_to_value(HspObjectPath::Int const& path, HSPCTX const* ctx) -> std::optional<HspInt> {
+	auto&& data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
+	if (!data_opt) {
 		assert(false && u8"int の親は data を生成できるはず");
 		return std::nullopt;
 	}
 
-	if (data->type() != HspType::Int) {
-		return std::nullopt;
-	}
-
-	return std::make_optional(api.data_to_int(*data));
+	return hsx::data_to_int(*data_opt);
 }
 
-static auto flex_path_to_value(HspObjectPath::Flex const& path, std::size_t depth, HspDebugApi& api) -> std::optional<FlexValue*> {
+static auto flex_path_to_value(HspObjectPath::Flex const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<FlexValue const*> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
 	depth++;
 
-	auto&& data = path_to_data(path.parent(), depth, api);
-	if (!data) {
+	auto&& data_opt = path_to_data(path.parent(), depth, ctx);
+	if (!data_opt) {
 		return std::nullopt;
 	}
 
-	if (data->type() != HspType::Struct) {
-		return std::nullopt;
-	}
-
-	return std::make_optional(api.data_to_flex(*data));
+	return hsx::data_to_flex(*data_opt);
 }
 
-static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, HspDebugApi& api) -> std::optional<HspParamStack> {
+static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HspParamStack> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -312,11 +347,11 @@ static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, Hs
 	switch (path.kind()) {
 	case HspObjectKind::Flex:
 		{
-			auto&& flex_opt = flex_path_to_value(path.as_flex(), depth, api);
+			auto&& flex_opt = flex_path_to_value(path.as_flex(), depth, ctx);
 			if (!flex_opt) {
 				return std::nullopt;
 			}
-			return std::make_optional<HspParamStack>(api.flex_to_param_stack(*flex_opt));
+			return hsx::flex_to_param_stack(*flex_opt, ctx);
 		}
 	case HspObjectKind::CallFrame:
 		return wc_call_frame_to_param_stack(path.as_call_frame().call_frame_id());
@@ -327,7 +362,7 @@ static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, Hs
 	}
 }
 
-static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HspDebugApi& api) -> std::optional<HspParamData> {
+static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HspParamData> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -335,33 +370,19 @@ static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size
 
 	auto&& parent = path.parent();
 
-	auto&& param_stack = path_to_param_stack(parent, depth, api);
-	if (!param_stack) {
+	auto&& param_stack_opt = path_to_param_stack(parent, depth, ctx);
+	if (!param_stack_opt) {
 		return std::nullopt;
 	}
 
-	return api.param_stack_to_data_at(*param_stack, path.param_index());
-}
-
-static auto param_path_to_param_type(HspObjectPath::Param const& path, std::size_t depth, HspDebugApi& api) -> std::optional<HspParamType> {
-	if (depth >= MAX_DEPTH) {
-		return std::nullopt;
-	}
-	depth++;
-
-	auto&& param_data_opt = param_path_to_param_data(path, depth, api);
-	if (!param_data_opt) {
-		return std::nullopt;
-	}
-
-	return std::make_optional(api.param_data_to_type(*param_data_opt));
+	return hsx::param_stack_to_param_data(*param_stack_opt, path.param_index(), ctx);
 }
 
 static auto param_stack_to_memory_view(HspParamStack const& param_stack) -> MemoryView {
 	return MemoryView{ param_stack.ptr(), param_stack.size() };
 }
 
-static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, HspDebugApi& api) -> std::optional<MemoryView> {
+static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<MemoryView> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -373,35 +394,35 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, Hs
 	{
 		// FIXME: str 引数のメモリビューに対応
 
-		auto&& pval_opt = path_to_pval(path, depth, api);
+		auto&& pval_opt = path_to_pval(path, depth, ctx);
 		if (!pval_opt) {
 			return std::nullopt;
 		}
 		auto&& pval = *pval_opt;
 
-		auto block_memory = api.var_to_block_memory(pval);
+		auto block_memory = hsx::pval_to_memory_block(pval, ctx);
 		auto memory_view = MemoryView{ block_memory.data(), block_memory.size() };
 		return std::make_optional(memory_view);
 	}
 	case HspObjectKind::Element:
 	{
-		auto&& pval_opt = path_to_pval(path.parent(), depth, api);
+		auto&& pval_opt = path_to_pval(path.parent(), depth, ctx);
 		if (!pval_opt) {
 			return std::nullopt;
 		}
 
-		auto aptr_opt = api.var_element_to_aptr(*pval_opt, path.as_element().indexes());
+		auto aptr_opt = hsx::element_to_aptr(*pval_opt, path.as_element().indexes());
 		if (!aptr_opt) {
 			return std::nullopt;
 		}
 
-		auto block_memory = api.var_element_to_block_memory(*pval_opt, *aptr_opt);
+		auto block_memory = hsx::element_to_memory_block(*pval_opt, *aptr_opt, ctx);
 		auto memory_view = MemoryView{ block_memory.data(), block_memory.size() };
 		return std::make_optional(memory_view);
 	}
 	case HspObjectKind::CallFrame:
 	{
-		auto&& param_stack_opt = path_to_param_stack(path, MIN_DEPTH, api);
+		auto&& param_stack_opt = path_to_param_stack(path, MIN_DEPTH, ctx);
 		if (!param_stack_opt || !param_stack_opt->safety()) {
 			return std::nullopt;
 		}
@@ -417,17 +438,17 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, Hs
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HspDebugApi& api, HspLogger& logger, HspScripts& scripts, HspStaticVars& static_vars, DebugInfo const& debug_info, hpiutil::DInfo const& debug_segment, SourceFileRepository& source_file_repository)
-	: api_(api)
+HspObjects::HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<HspObjects::Module>&& modules, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository)
+	: debug_(debug)
 	, logger_(logger)
 	, scripts_(scripts)
-	, static_vars_(static_vars)
-	, debug_segment_(debug_segment)
 	, source_file_repository_(source_file_repository)
 	, root_path_(std::make_shared<HspObjectPath::Root>())
-	, modules_(group_vars_by_module(static_vars.get_all_names()))
+	, modules_(std::move(modules))
 	, types_(create_type_datas())
-	, general_content_(create_general_content(debug_info))
+	, label_names_(std::move(label_names))
+	, param_names_(std::move(param_names))
+	, general_content_(create_general_content(debug))
 {
 }
 
@@ -436,7 +457,7 @@ auto HspObjects::root_path() const->HspObjectPath::Root const& {
 }
 
 auto HspObjects::path_to_memory_view(HspObjectPath const& path) const->std::optional<MemoryView> {
-	return (::path_to_memory_view(path, MIN_DEPTH, api_));
+	return (::path_to_memory_view(path, MIN_DEPTH, context()));
 }
 
 auto HspObjects::type_to_name(HspType type) const->Utf8StringView {
@@ -468,7 +489,9 @@ auto HspObjects::module_to_var_at(std::size_t module_id, std::size_t index) cons
 }
 
 auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->Utf8String {
-	auto&& name_opt = api_.static_var_find_name(path.static_var_id());
+	// FIXME: 起動時に作った変数リストを再利用する
+
+	auto&& name_opt = hsx::static_var_to_name(path.static_var_id(), context());
 	if (!name_opt) {
 		assert(false && u8"静的変数の名前が見つかるはず");
 		return to_owned(as_utf8(u8"?"));
@@ -478,75 +501,81 @@ auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->
 }
 
 bool HspObjects::static_var_path_is_array(HspObjectPath::StaticVar const& path) {
-	return api_.var_is_array(api_.static_var_to_pval(path.static_var_id()));
+	auto&& pval_opt = hsx::static_var_to_pval(path.static_var_id(), context());
+	if (!pval_opt) {
+		assert(false && u8"静的変数の pval はとれるべき");
+		return false;
+	}
+
+	return hsx::pval_is_standard_array(*pval_opt, context());
 }
 
 auto HspObjects::static_var_path_to_type(HspObjectPath::StaticVar const& path)->HspType {
-	return api_.var_to_type(api_.static_var_to_pval(path.static_var_id()));
+	auto&& pval_opt = hsx::static_var_to_pval(path.static_var_id(), context());
+	if (!pval_opt) {
+		assert(false && u8"静的変数の pval はとれるべき");
+		return HspType::None;
+	}
+
+	return hsx::pval_to_type(*pval_opt);
 }
 
 auto HspObjects::static_var_path_to_child_count(HspObjectPath::StaticVar const& path) const->std::size_t {
-	return var_path_to_child_count(path, api_);
+	return var_path_to_child_count(path, context());
 }
 
 auto HspObjects::static_var_path_to_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index) const->std::shared_ptr<HspObjectPath const> {
-	return var_path_to_child_at(path, child_index, api_);
+	return var_path_to_child_at(path, child_index, context());
 }
 
 auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata {
-	return var_path_to_metadata(path, api_).value_or(HspVarMetadata::none());
+	return var_path_to_metadata(path, context()).value_or(HspVarMetadata::none());
 }
 
 auto HspObjects::element_path_to_child_count(HspObjectPath::Element const& path) const -> std::size_t {
-	auto&& pval_opt = path_to_pval(path, MIN_DEPTH, api_);
-	if (!pval_opt) {
-		return 0;
-	}
-
 	return 1;
 }
 
 auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const> {
 	assert(child_index < element_path_to_child_count(path));
 
-	auto&& pval_opt = path_to_pval(path, MIN_DEPTH, api_);
+	auto&& pval_opt = path_to_pval(path, MIN_DEPTH, context());
 	if (!pval_opt) {
-		assert(false && u8"Invalid element path child index");
-		throw new std::out_of_range{ u8"child_index" };
+		assert(false && u8"Invalid element path");
+		return path.new_unavailable(to_owned(as_utf8(u8"変数を取得できません")));
 	}
 
-	auto type = api_.var_to_type(*pval_opt);
+	auto type = hsx::pval_to_type(*pval_opt);
 	switch (type) {
 	case HspType::Label:
 		return path.new_label();
+
 	case HspType::Str:
 		return path.new_str();
+
 	case HspType::Double:
 		return path.new_double();
+
 	case HspType::Int:
 		return path.new_int();
+
 	case HspType::Struct:
 		return path.new_flex();
+
 	default:
 		return path.new_unknown();
 	}
 }
 
 auto HspObjects::element_path_to_name(HspObjectPath::Element const& path) const -> Utf8String {
-	auto v = std::vector<int>{};
-	for (auto i : path.indexes()) {
-		v.push_back((int)i);
-	}
-	auto name = hpiutil::stringifyArrayIndex(v);
-
-	return ascii_as_utf8(std::move(name));
+	return indexes_to_string(path.indexes());
 }
 
 auto HspObjects::param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t {
 	switch (path.param_type()) {
 	case MPTYPE_LOCALVAR:
 	case MPTYPE_ARRAYVAR:
-		return var_path_to_child_count(path, api_);
+		return var_path_to_child_count(path, context());
 
 	case MPTYPE_SINGLEVAR:
 	case MPTYPE_MODULEVAR:
@@ -569,20 +598,20 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 	switch (path.param_type()) {
 	case MPTYPE_LOCALVAR:
 	case MPTYPE_ARRAYVAR:
-		return var_path_to_child_at(path, child_index, api_);
+		return var_path_to_child_at(path, child_index, context());
 
 	case MPTYPE_SINGLEVAR:
 		{
-			auto param_data_opt = param_path_to_param_data(path, MIN_DEPTH, api_);
+			auto&& param_data_opt = param_path_to_param_data(path, MIN_DEPTH, context());
 			if (!param_data_opt) {
 				return path.new_unavailable(to_owned(as_utf8(u8"引数データを取得できません")));
 			}
 
-			auto var_data = api_.param_data_to_single_var(*param_data_opt);
-			auto pval = api_.mp_var_data_to_pval(var_data);
-			auto aptr = api_.mp_var_data_to_aptr(var_data);
+			auto&& mp_var_opt = hsx::param_data_to_mp_var(*param_data_opt);
+			auto pval = hsx::mp_var_to_pval(*mp_var_opt);
+			auto aptr = hsx::mp_var_to_aptr(*mp_var_opt);
 
-			auto&& indexes_opt = api_.var_element_to_indexes(pval, aptr);
+			auto&& indexes_opt = hsx::element_to_indexes(pval, aptr);
 			if (!indexes_opt) {
 				return path.new_unavailable(to_owned(as_utf8(u8"引数に渡された要素が存在しません")));
 			}
@@ -592,20 +621,20 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 	case MPTYPE_MODULEVAR:
 	case MPTYPE_IMODULEVAR:
 	case MPTYPE_TMODULEVAR: {
-		auto param_data_opt = param_path_to_param_data(path, MIN_DEPTH, api_);
+		auto&& param_data_opt = param_path_to_param_data(path, MIN_DEPTH, context());
 		if (!param_data_opt) {
 			return path.new_unavailable(to_owned(as_utf8(u8"引数データを取得できません")));
 		}
 
-		auto&& mod_var_data_opt = api_.param_data_to_mod_var(*param_data_opt);
+		auto&& mod_var_data_opt = hsx::param_data_to_mp_mod_var(*param_data_opt);
 		if (!mod_var_data_opt) {
 			return path.new_unavailable(to_owned(as_utf8(u8"引数データを取得できません")));
 		}
 
-		auto pval = api_.mp_mod_var_data_to_pval(*mod_var_data_opt);
-		auto aptr = api_.mp_mod_var_data_to_aptr(*mod_var_data_opt);
+		auto pval = hsx::mp_mod_var_to_pval(*mod_var_data_opt);
+		auto aptr = hsx::mp_mod_var_to_aptr(*mod_var_data_opt);
 
-		auto&& indexes_opt = api_.var_element_to_indexes(pval, aptr);
+		auto&& indexes_opt = hsx::element_to_indexes(pval, aptr);
 		if (!indexes_opt) {
 			return path.new_unavailable(to_owned(as_utf8(u8"引数に渡された要素が存在しません")));
 		}
@@ -631,22 +660,31 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 }
 
 auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> Utf8String {
-	auto&& param_data_opt = param_path_to_param_data(path, MIN_DEPTH, api_);
+	auto&& param_data_opt = param_path_to_param_data(path, MIN_DEPTH, context());
 	if (!param_data_opt) {
 		return to_owned(as_utf8(u8"<unavailable>"));
 	}
 
-	auto&& name = api_.param_to_name(param_data_opt->param(), param_data_opt->param_index(), debug_segment_);
-	return to_utf8(as_hsp(std::move(name)));
+	auto&& iter = param_names_.find(param_data_opt->param());
+	if (iter != param_names_.end()) {
+		return iter->second;
+	}
+
+	auto type = hsx::param_to_type(param_data_opt->param());
+	if (type == MPTYPE_MODULEVAR || type == MPTYPE_IMODULEVAR || type == MPTYPE_TMODULEVAR) {
+		return to_owned(as_utf8(u8"thismod"));
+	}
+
+	return indexes_to_string(HspDimIndex{ 1, { param_data_opt->param_index() } });
 }
 
 auto HspObjects::param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<HspVarMetadata> {
 	// FIXME: var/modvar 引数なら指定された要素に関するメモリダンプを表示したい (要素数 1、メモリダンプはその要素の範囲のみ)
-	return var_path_to_metadata(path, api_);
+	return var_path_to_metadata(path, context());
 }
 
 bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {
-	auto&& label_opt = label_path_to_value(path, api_);
+	auto&& label_opt = label_path_to_value(path, context());
 	if (!label_opt) {
 		return true;
 	}
@@ -655,29 +693,28 @@ bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {
 }
 
 auto HspObjects::label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<Utf8String> {
-	auto&& static_label_id_opt = label_path_to_static_label_id(path);
-	if (!static_label_id_opt) {
+	auto&& label_opt = label_path_to_value(path, context());
+	if (!label_opt) {
 		return std::nullopt;
 	}
 
-	auto&& name = debug_segment_.tryFindLabelName((int)*static_label_id_opt);
-	if (!name) {
+	auto&& iter = label_names_.find(*label_opt);
+	if (iter == label_names_.end()) {
 		return std::nullopt;
 	}
 
-	// FIXME: 効率化 (文字列の参照かビューを返す)
-	return std::make_optional(to_utf8(as_hsp(name)));
+	return iter->second;
 }
 
 auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path) const -> std::optional<std::size_t> {
-	auto&& label_opt = label_path_to_value(path, api_);
+	auto&& label_opt = label_path_to_value(path, context());
 	if (!label_opt) {
 		return std::nullopt;
 	}
 
 	// FIXME: 効率化 (事前にハッシュテーブルをつくる)
-	for (auto id = std::size_t{}; id < api_.static_label_count(); id++) {
-		auto&& opt = api_.static_label_to_label(id);
+	for (auto id = std::size_t{}; id < hsx::object_temp_count(context()); id++) {
+		auto&& opt = hsx::object_temp_to_label(id, context());
 		if (!opt) {
 			assert(false && u8"id must be valid");
 			continue;
@@ -694,66 +731,80 @@ auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path)
 auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> Utf8String {
 	static auto empty = ascii_to_utf8(u8"");
 
-	return (::str_path_to_value(path, api_)).value_or(empty);
+	return (::str_path_to_value(path, context())).value_or(empty);
 }
 
 auto HspObjects::double_path_to_value(HspObjectPath::Double const& path) const->HspDouble {
-	return (::double_path_to_value(path, api_)).value_or(HspDouble{});
+	return (::double_path_to_value(path, context())).value_or(HspDouble{});
 }
 
 auto HspObjects::int_path_to_value(HspObjectPath::Int const& path) const -> HspInt {
-	return (::int_path_to_value(path, api_)).value_or(HspInt{});
+	return (::int_path_to_value(path, context())).value_or(HspInt{});
 }
 
 auto HspObjects::flex_path_to_child_count(HspObjectPath::Flex const& path)->std::size_t {
-	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, api_);
-	if (!flex_opt || api_.flex_is_nullmod(*flex_opt)) {
+	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, context());
+	if (!flex_opt || hsx::flex_is_nullmod(*flex_opt)) {
 		return 0;
 	}
 
-	return api_.flex_to_member_count(*flex_opt);
+	return hsx::flex_to_member_count(*flex_opt, context());
 }
 
 auto HspObjects::flex_path_to_child_at(HspObjectPath::Flex const& path, std::size_t index)->std::shared_ptr<HspObjectPath const> {
-	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, api_);
-	if (!flex_opt || api_.flex_is_nullmod(*flex_opt)) {
+	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, context());
+	if (!flex_opt || hsx::flex_is_nullmod(*flex_opt)) {
 		assert(false && u8"Invalid flex path child index");
 		throw new std::out_of_range{ u8"child_index" };
 	}
 
-	auto&& param_data = api_.flex_to_member_at(*flex_opt, index);
-	auto param_type = api_.param_data_to_type(param_data);
-	auto param_index = param_data.param_index();
+	auto&& param_data_opt = hsx::flex_to_member(*flex_opt, index, context());
+	if (!param_data_opt) {
+		return path.new_unavailable(to_owned(as_utf8(u8"引数データを取得できません")));
+	}
+
+	auto param_type = hsx::param_data_to_type(*param_data_opt);
+	auto param_index = param_data_opt->param_index();
 	return path.new_param(param_type, param_index);
 }
 
 auto HspObjects::flex_path_is_nullmod(HspObjectPath::Flex const& path) -> std::optional<bool> {
-	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, api_);
+	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, context());
 	if (!flex_opt) {
 		return std::nullopt;
 	}
 
-	return std::make_optional(api_.flex_is_nullmod(*flex_opt));
+	return std::make_optional(hsx::flex_is_nullmod(*flex_opt));
 }
 
 auto HspObjects::flex_path_is_clone(HspObjectPath::Flex const& path) -> std::optional<bool> {
-	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, api_);
+	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, context());
 	if (!flex_opt) {
 		return std::nullopt;
 	}
 
-	return std::make_optional(api_.flex_is_clone(*flex_opt));
+	return std::make_optional(hsx::flex_is_clone(*flex_opt));
 }
 
 auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String {
-	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, api_);
-	if (!flex_opt || api_.flex_is_nullmod(*flex_opt)) {
+	auto&& flex_opt = flex_path_to_value(path, MIN_DEPTH, context());
+	if (!flex_opt || hsx::flex_is_nullmod(*flex_opt)) {
 		return to_owned(as_utf8(u8"null"));
 	}
 
-	auto struct_dat = api_.flex_to_module_struct(*flex_opt);
-	auto name = api_.struct_to_name(struct_dat);
-	return to_utf8(as_hsp(name));
+	auto&& struct_opt = hsx::flex_to_struct(*flex_opt, context());
+	if (!struct_opt) {
+		assert(false && u8"フレックスのモジュールは取得できるはず");
+		return to_owned(as_utf8(u8"???"));
+	}
+
+	auto&& name_opt = hsx::struct_to_name(*struct_opt, context());
+	if (!name_opt) {
+		assert(false && u8"モジュールの名前を取得できるはず");
+		return to_owned(as_utf8(u8"???"));
+	}
+
+	return to_utf8(as_hsp(*name_opt));
 }
 
 auto HspObjects::system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t {
@@ -859,6 +910,8 @@ auto HspObjects::call_stack_path_to_call_frame_id_at(HspObjectPath::CallStack co
 	return wc_call_frame_id_at(call_frame_index);
 }
 
+namespace hsx = hsp_sdk_ext;
+
 auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {
 	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
 	if (!call_frame_opt) {
@@ -866,28 +919,32 @@ auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) c
 	}
 
 	auto struct_dat = call_frame_opt->get().struct_dat();
-	auto name = hpiutil::STRUCTDAT_name(struct_dat);
-	return to_utf8(as_hsp(name));
+	auto name = hsx::struct_to_name(struct_dat, context());
+	return to_utf8(as_hsp(name.value_or(u8"???")));
 }
 
 auto HspObjects::call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t {
-	auto&& param_stack_opt = path_to_param_stack(path, MIN_DEPTH, api_);
+	auto&& param_stack_opt = path_to_param_stack(path, MIN_DEPTH, context());
 	if (!param_stack_opt) {
 		return 0;
 	}
 
-	return api_.param_stack_to_data_count(*param_stack_opt);
+	return hsx::param_stack_to_param_data_count(*param_stack_opt);
 }
 
 auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& path, std::size_t child_index) const -> std::optional<std::shared_ptr<HspObjectPath const>> {
-	auto&& param_stack_opt = path_to_param_stack(path, MIN_DEPTH, api_);
+	auto&& param_stack_opt = path_to_param_stack(path, MIN_DEPTH, context());
 	if (!param_stack_opt) {
 		return std::nullopt;
 	}
 
-	auto&& param_data = api_.param_stack_to_data_at(*param_stack_opt, child_index);
-	auto param_type = api_.param_data_to_type(param_data);
-	return std::make_optional(path.new_param(param_type, param_data.param_index()));
+	auto&& param_data_opt = hsx::param_stack_to_param_data(*param_stack_opt, child_index, context());
+	if (!param_data_opt) {
+		return std::nullopt;
+	}
+
+	auto param_type = hsx::param_data_to_type(*param_data_opt);
+	return std::make_optional(path.new_param(param_type, param_data_opt->param_index()));
 }
 
 auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<Utf8StringView>> {
@@ -896,12 +953,12 @@ auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& pa
 		return std::nullopt;
 	}
 
-	// FIXME: debug api から取得する
-	auto&& params = hpiutil::STRUCTDAT_params(call_frame_opt->get().struct_dat());
+	auto&& params = hsx::struct_to_params(call_frame_opt->get().struct_dat(), context());
 
 	auto names = std::vector<Utf8StringView>{};
 	for (auto&& param : params) {
-		names.emplace_back(as_utf8(api_.param_type_to_name(param.mptype)));
+		auto name = hsx::param_type_to_name(hsx::param_to_type(&param)).value_or(u8"???");
+		names.emplace_back(as_utf8(name));
 	}
 
 	return std::make_optional(std::move(names));
@@ -952,25 +1009,38 @@ void HspObjects::log_do_clear() {
 	logger_.clear();
 }
 
+auto HspObjects::script_to_full_path() const -> std::optional<OsStringView> {
+	auto&& file_ref_name_opt = hsx::debug_to_file_ref_name(debug());
+	if (!file_ref_name_opt) {
+		return std::nullopt;
+	}
+
+	return source_file_repository_.file_ref_name_to_full_path(*file_ref_name_opt);
+}
+
 auto HspObjects::script_to_content() const -> Utf8StringView {
-	auto file_ref_name = api_.current_file_ref_name().value_or("");
+	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or(u8"");
 	return scripts_.content(file_ref_name);
 }
 
 auto HspObjects::script_to_current_line() const -> std::size_t {
-	return api_.current_line();
+	return hsx::debug_to_line_index(debug());
 }
 
 auto HspObjects::script_to_current_location_summary() const -> Utf8String {
 	// FIXME: 長すぎるときは切る
-	auto file_ref_name = api_.current_file_ref_name().value_or("???");
+	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or(u8"???");
 	auto line_index = script_to_current_line();
-	auto line = scripts_.line(file_ref_name, line_index).value_or(to_owned(as_utf8("???")));
+	auto line = scripts_.line(file_ref_name, line_index).value_or(to_owned(as_utf8(u8"???")));
 
 	auto text = std::stringstream{};
-	text << "#" << (line_index + 1) << " " << file_ref_name << "\r\n";
+	text << u8"#" << (line_index + 1) << u8" " << file_ref_name << u8"\r\n";
 	text << as_native(line);
 	return as_utf8(text.str());
+}
+
+auto HspObjects::context() const -> HSPCTX const* {
+	return hsx::debug_to_context(debug());
 }
 
 // -----------------------------------------------
@@ -994,4 +1064,40 @@ void HspObjects::Module::add_var(std::size_t static_var_id) {
 HspObjects::TypeData::TypeData(Utf8String&& name)
 	: name_(std::move(name))
 {
+}
+
+// -----------------------------------------------
+// HspObjectsBuilder
+// -----------------------------------------------
+
+void HspObjectsBuilder::add_var_name(char const* var_name) {
+	var_names_.emplace_back(to_utf8(as_hsp(var_name)));
+}
+
+void HspObjectsBuilder::add_label_name(int ot_index, char const* label_name, HSPCTX const* ctx) {
+	auto&& label_opt = hsx::object_temp_to_label((std::size_t)ot_index, ctx);
+	if (!label_opt) {
+		assert(false && u8"invalid ot_index");
+		return;
+	}
+
+	label_names_.emplace(*label_opt, to_utf8(as_hsp(label_name)));
+}
+
+void HspObjectsBuilder::add_param_name(int param_index, char const* param_name, HSPCTX const* ctx) {
+	auto&& param_opt = hsx::params(ctx).get((std::size_t)param_index);
+	if (!param_opt) {
+		assert(false && u8"invalid param_index");
+		return;
+	}
+
+	auto name = to_utf8(as_hsp(param_name));
+	name = to_owned(var_name_to_bare_ident(name));
+
+	param_names_.emplace(*param_opt, std::move(name));
+}
+
+auto HspObjectsBuilder::finish(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, SourceFileRepository& source_file_repository)->HspObjects {
+	auto modules = group_vars_by_module(var_names_);
+	return HspObjects{ debug, logger, scripts, std::move(modules), std::move(label_names_), std::move(param_names_), source_file_repository };
 }

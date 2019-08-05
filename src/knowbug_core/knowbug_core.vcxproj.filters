@@ -16,9 +16,6 @@
     <Filter Include="hspsdk">
       <UniqueIdentifier>{6c970a63-f2d2-4bd1-8719-24ce1c35b494}</UniqueIdentifier>
     </Filter>
-    <Filter Include="hpiutil">
-      <UniqueIdentifier>{0a78f6ba-2692-4577-9f69-3331d768df4b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="cppformat">
       <UniqueIdentifier>{40c096fd-f36c-4948-abb7-8e10ea98b2a4}</UniqueIdentifier>
     </Filter>
@@ -28,31 +25,13 @@
     <Filter Include="hspsdk\win32gui">
       <UniqueIdentifier>{a52c5b5e-7dcd-4c75-8181-631970be012f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="hsp-sdk-ext">
+      <UniqueIdentifier>{537145cd-4a9d-455b-ba8b-407560776c46}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\DInfo.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\hpiutil.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\hpiutil_fwd.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\SourcePos.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\Sysvar.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\vartype_traits.hpp">
-      <Filter>hpiutil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hpiutil\vector_view.hpp">
-      <Filter>hpiutil</Filter>
     </ClInclude>
     <ClInclude Include="..\cppformat\cppformat\format.h">
       <Filter>cppformat</Filter>
@@ -93,9 +72,6 @@
     <ClInclude Include="module\utility.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="DebugInfo.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="encoding.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -103,9 +79,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="hsp_wrap_call.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="HspDebugApi.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="HspObjectPath.h">
@@ -121,9 +94,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="HspRuntime.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="HspStaticVars.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="HspTypes.h">
@@ -150,19 +120,40 @@
     <ClInclude Include="source_files.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="hsx_data.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_dim_index.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_param_data.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_param_stack.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_types_fwd.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_var_metadata.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_internals.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_slice.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
+    <ClInclude Include="hsx_debug_segment.h">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
       <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hpiutil\DInfo.cpp">
-      <Filter>hpiutil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hpiutil\stringify.cpp">
-      <Filter>hpiutil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hpiutil\Sysvar.cpp">
-      <Filter>hpiutil</Filter>
     </ClCompile>
     <ClCompile Include="..\cppformat\cppformat\format.cc">
       <Filter>cppformat</Filter>
@@ -179,9 +170,6 @@
     <ClCompile Include="module\GuiUtility.cpp">
       <Filter>module</Filter>
     </ClCompile>
-    <ClCompile Include="DebugInfo.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="encoding.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -189,9 +177,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="hsp_wrap_call.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="HspDebugApi.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="HspObjectPath.cpp">
@@ -209,9 +194,6 @@
     <ClCompile Include="HspRuntime.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="HspStaticVars.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="StepController.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -220,6 +202,45 @@
     </ClCompile>
     <ClCompile Include="source_files.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_data.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_pval.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_static_vars.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_element.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_object_temps.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_param.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_struct.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_param_data.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_param_stack.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_system_var.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_flex.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_debug.cpp">
+      <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="hsx_debug_segment.cpp">
+      <Filter>hsp-sdk-ext</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

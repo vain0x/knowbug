@@ -1,10 +1,11 @@
 #include "pch.h"
 #include <cassert>
-#include "../hpiutil/hpiutil.hpp"
-#include "DebugInfo.h"
+#include "hsx.h"
 #include "StepController.h"
 
-static auto step_mode_to_hsp_run_mode(StepMode mode) -> int {
+namespace hsx = hsp_sdk_ext;
+
+static auto step_mode_to_debug_mode(StepMode mode) -> int {
 	switch (mode) {
 	case StepMode::Run:
 		return HSPDEBUG_RUN;
@@ -21,9 +22,8 @@ static auto step_mode_to_hsp_run_mode(StepMode mode) -> int {
 	}
 }
 
-KnowbugStepController::KnowbugStepController(HSPCTX const* hspctx, DebugInfo& debug_info)
-	: hspctx_(hspctx_)
-	, debug_info_(debug_info)
+KnowbugStepController::KnowbugStepController(HSP3DEBUG* debug)
+	: debug_(debug)
 	, step_controller_()
 {
 }
@@ -78,6 +78,6 @@ void KnowbugStepController::begin_update() {
 
 void KnowbugStepController::end_update() {
 	if (step_controller_.is_mode_changed()) {
-		debug_info_.setStepMode(step_mode_to_hsp_run_mode(step_controller_.mode()));
+		hsx::debug_do_set_mode(step_mode_to_debug_mode(step_controller_.mode()), debug_);
 	}
 }

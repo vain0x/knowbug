@@ -2,7 +2,6 @@
 
 #include "pch.h"
 #include <iostream>
-#include "../knowbug_core/DebugInfo.h"
 #include "../knowbug_core/hsp_objects_module_tree.h"
 #include "../knowbug_core/HspObjectWriter.h"
 #include "../knowbug_core/string_split.h"
