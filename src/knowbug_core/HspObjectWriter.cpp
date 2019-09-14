@@ -853,15 +853,15 @@ static void write_string_as_literal_tests(Tests& tests) {
 	suite.test(
 		u8"エスケープなし",
 		[&](TestCaseContext& t) {
-			return t.eq(write(as_utf8(u8"你好")), as_utf8(u8"\"你好\""));
+			return t.eq(write(as_utf8(u8"Hello, world!")), as_utf8(u8"\"Hello, world!\""));
 		});
 
 	suite.test(
 		u8"エスケープあり",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"\\1221:\r\n\tThe \"🐕🐈🐈🐕\" festival.")),
-				as_utf8(u8"\"\\\\1221:\\n\\tThe \\\"🐕🐈🐈🐕\\\" festival.\"")
+				write(as_utf8(u8"\\1234:\r\n\tThe \"One Two Three Four\" festival.")),
+				as_utf8(u8"\"\\\\1234:\\n\\tThe \\\"One Two Three Four\\\" festival.\"")
 			);
 		});
 
