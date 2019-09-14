@@ -1,3 +1,5 @@
+// hsx が内部的に使用する型や関数を定義する。
+
 #pragma once
 
 #include "hsx.h"
@@ -11,6 +13,8 @@ namespace hsp_sdk_ext {
 		return Slice<char>{ ctx->mem_mds, size };
 	}
 
+	// データ領域の文字列への参照を取得する。
+	// ds_index が領域外を参照していたら nullopt。
 	static auto data_segment_to_str(std::size_t ds_index, HSPCTX const* ctx)->std::optional<char const*> {
 		if (ds_index >= data_segment(ctx).size()) {
 			return std::nullopt;
@@ -41,12 +45,13 @@ namespace hsp_sdk_ext {
 		return exinfo(ctx)->HspFunc_getproc(vartype_to_int(vartype));
 	}
 
-	// support_flag: HSPVAR_SUPPORT_*
+	// support_flag は定数 HSPVAR_SUPPORT_* のいずれか。
 	static auto varproc_does_support(HspVarProc const* varproc, unsigned short support_flag)->bool {
 		assert(varproc != nullptr);
 		return (varproc->support & support_flag) != 0;
 	}
 
+	// 変数の型の HspVarProc を取得する。
 	static auto pval_to_varproc(PVal const* pval, HSPCTX const* ctx)->HspVarProc const* {
 		return vartype_to_varproc(pval_to_type(pval), ctx);
 	}
