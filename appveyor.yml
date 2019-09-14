@@ -2,10 +2,6 @@
 
 version: 2.0.{build}
 
-# Git タグのプッシュ時に CI を開始しないようにする。
-# master へプッシュ → 自動デプロイ → CI 開始、の流れを避けるため。
-skip_tags: true
-
 image: Visual Studio 2019
 
 environment:
@@ -24,22 +20,3 @@ test_script:
     if (!$?) {
         exit 1
     }
-
-    ./scripts/pack.ps1
-    if (!$?) {
-        exit 1
-    }
-
-artifacts:
-- path: knowbug-*.zip
-  name: knowbug-zip
-
-deploy:
-- provider: GitHub
-  auth_token:
-    # <https://ci.appveyor.com/tools/encrypt> で暗号化された GitHub アクセストークン
-    secure: UPvfs/H6O/PP0V+a0zA1qvQuHYxlqr0nw9Mn+fUdoZWtR2XITfP4hoelCR4CY65O
-  artifact: /knowbug-([\d.]+)\.zip/
-  prerelease: true
-  on:
-    branch: /master|release/
