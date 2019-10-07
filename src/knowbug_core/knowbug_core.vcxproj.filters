@@ -63,9 +63,6 @@
     <ClInclude Include="module\GuiUtility.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="module\handle_deleter.hpp">
-      <Filter>module</Filter>
-    </ClInclude>
     <ClInclude Include="module\strf.h">
       <Filter>module</Filter>
     </ClInclude>

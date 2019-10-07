@@ -329,6 +329,7 @@
     <ClInclude Include="knowbug_view_tree.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="win_handles.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="knowbug_app.cpp" />

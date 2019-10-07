@@ -1,8 +1,7 @@
-
 #pragma once
 
 #include <memory>
-#include "../platform.h"
+#include "../knowbug_core/platform.h"
 
 namespace Detail {
 

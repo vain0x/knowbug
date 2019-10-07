@@ -358,7 +358,6 @@
     <ClInclude Include="module\CIni.h" />
     <ClInclude Include="module\CStrWriter.h" />
     <ClInclude Include="module\GuiUtility.h" />
-    <ClInclude Include="module\handle_deleter.hpp" />
     <ClInclude Include="module\pch.h" />
     <ClInclude Include="module\strf.h" />
     <ClInclude Include="module\utility.h" />
