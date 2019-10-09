@@ -5,6 +5,7 @@
 #include <string>
 #include "encoding.h"
 #include "string_format.h"
+#include "test_suite.h"
 
 // 文字列を構築するためのもの。
 // 自動的な字下げと文字数制限の機能を持つ。
@@ -78,3 +79,5 @@ private:
 inline static auto as_view(CStrWriter const& writer) -> Utf8StringView {
 	return writer.as_view();
 }
+
+void str_writer_tests(Tests& tests);

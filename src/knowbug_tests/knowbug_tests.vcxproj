@@ -321,12 +321,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="test_runner.cpp" />
-    <ClCompile Include="str_writer_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="test_runner.h" />
-    <ClInclude Include="knowbug_tests.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\knowbug_core\knowbug_core.vcxproj">
