@@ -54,9 +54,6 @@
     <ClInclude Include="..\hspsdk\win32gui\hspwnd_win.h">
       <Filter>hspsdk\win32gui</Filter>
     </ClInclude>
-    <ClInclude Include="module\CStrWriter.h">
-      <Filter>module</Filter>
-    </ClInclude>
     <ClInclude Include="module\utility.h">
       <Filter>module</Filter>
     </ClInclude>
@@ -141,6 +138,9 @@
     <ClInclude Include="string_format.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="string_writer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -151,9 +151,6 @@
     </ClCompile>
     <ClCompile Include="..\hspsdk\hsp3plugin.cpp">
       <Filter>hspsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="module\CStrWriter.cpp">
-      <Filter>module</Filter>
     </ClCompile>
     <ClCompile Include="encoding.cpp">
       <Filter>ソース ファイル</Filter>
@@ -226,6 +223,9 @@
     </ClCompile>
     <ClCompile Include="hsx_element.cpp">
       <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="string_writer.cpp">
+      <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

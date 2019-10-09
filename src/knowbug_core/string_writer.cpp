@@ -2,8 +2,8 @@
 #include "pch.h"
 #include <cassert>
 #include <cstring>
-#include "../string_split.h"
-#include "CStrWriter.h"
+#include "string_split.h"
+#include "string_writer.h"
 
 static auto const TRIMMED_SUFFIX = std::string_view{ u8"(too long)" };
 

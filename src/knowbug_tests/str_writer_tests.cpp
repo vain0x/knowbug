@@ -1,7 +1,7 @@
 #include "pch.h"
 #include <memory>
-#include "../knowbug_core/module/CStrWriter.h"
 #include "../knowbug_core/encoding.h"
+#include "../knowbug_core/string_writer.h"
 #include "str_writer_tests.h"
 
 static auto str_writer_new() -> CStrWriter {
