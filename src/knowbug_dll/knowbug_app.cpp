@@ -3,7 +3,6 @@
 #include <fstream>
 #include "../hspsdk/hsp3plugin.h"
 #include "../knowbug_core/module/CStrWriter.h"
-#include "../knowbug_core/module/strf.h"
 #include "../knowbug_core/encoding.h"
 #include "../knowbug_core/HspObjectWriter.h"
 #include "../knowbug_core/HspRuntime.h"

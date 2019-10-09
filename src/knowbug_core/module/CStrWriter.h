@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 #include "../encoding.h"
-#include "strf.h"
+#include "../string_format.h"
 
 // 文字列を構築するためのもの。
 // 自動的な字下げと文字数制限の機能を持つ。

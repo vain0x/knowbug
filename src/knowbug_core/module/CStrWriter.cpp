@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstring>
 #include "../string_split.h"
-#include "strf.h"
 #include "CStrWriter.h"
 
 static auto const TRIMMED_SUFFIX = std::string_view{ u8"(too long)" };
