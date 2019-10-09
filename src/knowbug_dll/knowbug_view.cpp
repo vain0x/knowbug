@@ -5,7 +5,6 @@
 #include "pch.h"
 #include "resource.h"
 #include "../hspsdk/hspwnd.h"
-#include "../knowbug_core/module/GuiUtility.h"
 #include "../knowbug_core/HspObjectPath.h"
 #include "../knowbug_core/platform.h"
 #include "../knowbug_core/StepController.h"
@@ -13,6 +12,7 @@
 #include "knowbug_view.h"
 #include "knowbug_view_tree.h"
 #include "knowbug_config.h"
+#include "win_gui.h"
 #include "win_handles.h"
 
 #ifdef _M_X64

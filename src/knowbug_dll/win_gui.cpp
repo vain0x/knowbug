@@ -2,9 +2,7 @@
 #include "pch.h"
 #include <array>
 #include <vector>
-#include "GuiUtility.h"
-#include "../encoding.h"
-#include "../platform.h"
+#include "win_gui.h"
 
 //------------------------------------------------
 // 簡易ウィンドウ生成

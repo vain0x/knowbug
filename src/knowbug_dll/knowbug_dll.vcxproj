@@ -329,6 +329,7 @@
     <ClInclude Include="knowbug_view_tree.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="win_gui.h" />
     <ClInclude Include="win_handles.h" />
     <ClInclude Include="win_ini.h" />
   </ItemGroup>
@@ -347,6 +348,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseUtf8|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="win_gui.cpp" />
     <ClCompile Include="win_ini.cpp" />
   </ItemGroup>
   <ItemGroup>

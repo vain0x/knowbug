@@ -57,9 +57,6 @@
     <ClInclude Include="module\CStrWriter.h">
       <Filter>module</Filter>
     </ClInclude>
-    <ClInclude Include="module\GuiUtility.h">
-      <Filter>module</Filter>
-    </ClInclude>
     <ClInclude Include="module\strf.h">
       <Filter>module</Filter>
     </ClInclude>
@@ -156,9 +153,6 @@
       <Filter>hspsdk</Filter>
     </ClCompile>
     <ClCompile Include="module\CStrWriter.cpp">
-      <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="module\GuiUtility.cpp">
       <Filter>module</Filter>
     </ClCompile>
     <ClCompile Include="encoding.cpp">
