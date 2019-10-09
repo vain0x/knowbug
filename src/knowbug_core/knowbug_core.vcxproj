@@ -356,8 +356,6 @@
     <ClInclude Include="hsx_var_metadata.h" />
     <ClInclude Include="hsx_slice.h" />
     <ClInclude Include="memory_view.h" />
-    <ClInclude Include="module\pch.h" />
-    <ClInclude Include="module\utility.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="source_files.h" />

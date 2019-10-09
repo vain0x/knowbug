@@ -19,9 +19,6 @@
     <Filter Include="cppformat">
       <UniqueIdentifier>{40c096fd-f36c-4948-abb7-8e10ea98b2a4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="module">
-      <UniqueIdentifier>{2161ea97-d6a3-4c0d-b65a-67fe2fb36a5b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="hspsdk\win32gui">
       <UniqueIdentifier>{a52c5b5e-7dcd-4c75-8181-631970be012f}</UniqueIdentifier>
     </Filter>
@@ -53,9 +50,6 @@
     </ClInclude>
     <ClInclude Include="..\hspsdk\win32gui\hspwnd_win.h">
       <Filter>hspsdk\win32gui</Filter>
-    </ClInclude>
-    <ClInclude Include="module\utility.h">
-      <Filter>module</Filter>
     </ClInclude>
     <ClInclude Include="encoding.h">
       <Filter>ヘッダー ファイル</Filter>
@@ -92,9 +86,6 @@
     </ClInclude>
     <ClInclude Include="test_suite.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="module\pch.h">
-      <Filter>module</Filter>
     </ClInclude>
     <ClInclude Include="string_split.h">
       <Filter>ヘッダー ファイル</Filter>
