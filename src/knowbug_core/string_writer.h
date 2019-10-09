@@ -80,4 +80,4 @@ inline static auto as_view(CStrWriter const& writer) -> Utf8StringView {
 	return writer.as_view();
 }
 
-void str_writer_tests(Tests& tests);
+void string_writer_tests(Tests& tests);

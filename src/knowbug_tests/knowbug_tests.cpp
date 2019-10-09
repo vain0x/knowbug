@@ -47,7 +47,7 @@ auto main() -> int {
 
 	// ここにテストスイートを列挙する。
 	hello_tests(tests);
-	str_writer_tests(tests);
+	string_writer_tests(tests);
 	module_tree_tests(tests);
 	hsp_object_writer_tests(tests);
 	string_lines_tests(tests);

@@ -157,17 +157,17 @@ void CStrWriter::catDump(void const* data, size_t bufsize)
 // Tests
 // -----------------------------------------------
 
-static auto str_writer_new() -> CStrWriter {
+static auto string_writer_new() -> CStrWriter {
 	return CStrWriter{};
 }
 
-void str_writer_tests(Tests& tests) {
+void string_writer_tests(Tests& tests) {
 	auto& suite = tests.suite(u8"str_writer_tests");
 
 	suite.test(
 		u8"上限を超えると打ち切られる",
 		[&](TestCaseContext& t) {
-			auto w = str_writer_new();
+			auto w = string_writer_new();
 			w.set_limit(20);
 
 			w.cat(as_utf8(u8"0123456789<長すぎる部分は省略されます>"));
@@ -192,7 +192,7 @@ void str_writer_tests(Tests& tests) {
 	suite.test(
 		u8"適切に字下げできる",
 		[&](TestCaseContext& t) {
-			auto w = str_writer_new();
+			auto w = string_writer_new();
 			w.catln(as_utf8(u8"親"));
 			w.indent();
 
@@ -221,7 +221,7 @@ void str_writer_tests(Tests& tests) {
 		u8"ポインタを文字列化できる",
 		[&](TestCaseContext& t) {
 			{
-				auto w = str_writer_new();
+				auto w = string_writer_new();
 				auto dead_beef = (void const*)0xdeadbeef;
 				w.catPtr(dead_beef);
 				if (!t.eq(as_view(w), as_utf8(u8"0xdeadbeef"))) {
@@ -230,7 +230,7 @@ void str_writer_tests(Tests& tests) {
 			}
 
 			{
-				auto w = str_writer_new();
+				auto w = string_writer_new();
 				w.catPtr(nullptr);
 				// <nullptr> とか 0x0000 とかでも可
 				if (!t.eq(as_view(w), as_utf8(u8"(nil)"))) {
@@ -244,7 +244,7 @@ void str_writer_tests(Tests& tests) {
 	suite.test(
 		u8"メモリダンプを出力できる",
 		[&](TestCaseContext& t) {
-			auto w = str_writer_new();
+			auto w = string_writer_new();
 
 			auto t1 = as_utf8(u8"いろはにほへとちりぬるを");
 			auto t2 = as_utf8(u8"わかよたれそつねならむ");
