@@ -355,7 +355,6 @@
     <ClInclude Include="hsx_var_metadata.h" />
     <ClInclude Include="hsx_slice.h" />
     <ClInclude Include="memory_view.h" />
-    <ClInclude Include="module\CIni.h" />
     <ClInclude Include="module\CStrWriter.h" />
     <ClInclude Include="module\GuiUtility.h" />
     <ClInclude Include="module\pch.h" />
@@ -407,7 +406,6 @@
     <ClCompile Include="hsx_static_vars.cpp" />
     <ClCompile Include="hsx_struct.cpp" />
     <ClCompile Include="hsx_system_var.cpp" />
-    <ClCompile Include="module\CIni.cpp" />
     <ClCompile Include="module\CStrWriter.cpp" />
     <ClCompile Include="module\GuiUtility.cpp" />
     <ClCompile Include="pch.cpp">

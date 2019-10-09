@@ -6,13 +6,13 @@
 #include <cstdlib>
 #include <cassert>
 #include <array>
-#include "../encoding.h"
-#include "../platform.h"
-#include "CIni.h"
+#include "../knowbug_core/encoding.h"
+#include "../knowbug_core/platform.h"
+#include "win_ini.h"
 
 static auto const DEFAULT_BUFFER_SIZE = std::size_t{ 1024 };
 
-static auto const STR_BOOLEAN = std::array<TCHAR const*, 2> {{ TEXT("false"), TEXT("true") }};
+static auto const STR_BOOLEAN = std::array<TCHAR const*, 2> { { TEXT("false"), TEXT("true") }};
 
 CIni::CIni(OsString&& file_name)
 	: file_name_(std::move(file_name))
@@ -64,7 +64,7 @@ auto CIni::getString(char const* sec, char const* key, char const* defval, size_
 	auto key_str = to_os(ascii_to_utf8(key));
 	auto default_str = to_os(ascii_to_utf8(defval));
 
-	if ( size > buf_.size() ) buf_.resize(size);
+	if (size > buf_.size()) buf_.resize(size);
 
 	GetPrivateProfileString(
 		sec_str.data(), key_str.data(), default_str.data(),

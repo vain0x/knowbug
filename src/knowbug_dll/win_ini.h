@@ -5,7 +5,7 @@
 
 #include <vector>
 #include <string>
-#include "../encoding.h"
+#include "../knowbug_core/encoding.h"
 
 class CIni {
 	OsString const file_name_;

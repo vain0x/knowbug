@@ -54,9 +54,6 @@
     <ClInclude Include="..\hspsdk\win32gui\hspwnd_win.h">
       <Filter>hspsdk\win32gui</Filter>
     </ClInclude>
-    <ClInclude Include="module\CIni.h">
-      <Filter>module</Filter>
-    </ClInclude>
     <ClInclude Include="module\CStrWriter.h">
       <Filter>module</Filter>
     </ClInclude>
@@ -157,9 +154,6 @@
     </ClCompile>
     <ClCompile Include="..\hspsdk\hsp3plugin.cpp">
       <Filter>hspsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="module\CIni.cpp">
-      <Filter>module</Filter>
     </ClCompile>
     <ClCompile Include="module\CStrWriter.cpp">
       <Filter>module</Filter>
