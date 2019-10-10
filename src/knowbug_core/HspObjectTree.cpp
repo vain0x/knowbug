@@ -195,7 +195,7 @@ private:
 		auto&& path = nodes_.at(node_id).path();
 		auto child_count = path.child_count(objects());
 
-		// FIXME: 先頭への挿入時の挙動を効率化する
+		// FIXME: 先頭への挿入時の挙動を効率化する (コールスタックのため)
 
 		// 手順:
 		// 挿入・削除はインデックスの計算がとてもめんどうなので、いまのところは避ける。

@@ -279,7 +279,7 @@ private:
 		auto tvis = TVINSERTSTRUCT{};
 		HTREEITEM res;
 		tvis.hParent = hParent;
-		tvis.hInsertAfter = TVI_LAST; // FIXME: 引数で受け取る (コールスタックでは先頭への挿入が起こる)
+		tvis.hInsertAfter = TVI_LAST; // FIXME: 引数で受け取る
 		tvis.item.mask = TVIF_TEXT;
 		tvis.item.pszText = const_cast<LPTSTR>(name.data());
 		res = TreeView_InsertItem(tree_view_, &tvis);
