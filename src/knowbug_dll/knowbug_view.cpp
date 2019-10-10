@@ -310,7 +310,7 @@ public:
 	auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, KnowbugApp& app) -> LRESULT override {
 		switch (msg) {
 		case WM_USER:
-			update_view_edit();
+			app.update_view();
 			return TRUE;
 
 		case WM_COMMAND:

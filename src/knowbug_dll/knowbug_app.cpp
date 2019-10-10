@@ -64,9 +64,7 @@ public:
 			return;
 		}
 
-		hsp_runtime_->update_location();
-		view().update_source_edit(to_os(hsp_runtime_->objects().script_to_current_location_summary()));
-		view().update();
+		update_view();
 	}
 
 	void did_hsp_logmes(HspStringView const& text) {
@@ -74,6 +72,12 @@ public:
 		hsp_runtime_->logger().append(as_utf8(u8"\r\n"));
 
 		view().did_log_change();
+	}
+
+	void update_view() override {
+		hsp_runtime_->update_location();
+		view().update_source_edit(to_os(hsp_runtime_->objects().script_to_current_location_summary()));
+		view().update();
 	}
 
 	void step_run(StepControl const& step_control) override {
