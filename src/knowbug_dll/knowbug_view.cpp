@@ -249,6 +249,13 @@ public:
 		}
 	}
 
+	void will_exit() override {
+		// FIXME: なぜか終了に時間がかかることがあるため、ウィンドウを非表示にする。 <https://github.com/vain0x/knowbug/issues/56>
+		for (auto hwnd : windows()) {
+			ShowWindow(hwnd, SW_HIDE);
+		}
+	}
+
 	// UI 操作:
 
 	auto select_save_log_file() -> std::optional<OsString> override {

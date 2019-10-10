@@ -27,6 +27,8 @@ public:
 
 	virtual void did_log_change() = 0;
 
+	virtual void will_exit() = 0;
+
 	virtual auto select_save_log_file() -> std::optional<OsString> = 0;
 
 	virtual void notify_save_failure() = 0;

@@ -14,6 +14,8 @@ public:
 	virtual ~KnowbugApp() {
 	}
 
+	virtual void will_exit() = 0;
+
 	virtual auto view() -> KnowbugView& = 0;
 
 	virtual void update_view() = 0;

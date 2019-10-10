@@ -55,6 +55,12 @@ public:
 		view().initialize();
 	}
 
+	void will_exit() {
+		auto_save_log();
+
+		view().will_exit();
+	}
+
 	void did_hsp_pause() {
 		if (step_controller_->continue_step_running()) {
 			// HACK: すべてのウィンドウに無意味なメッセージを送信する。
@@ -226,7 +232,7 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 void debugbye() {
 	if (auto&& app_opt = g_app) {
-		app_opt->auto_save_log();
+		app_opt->will_exit();
 	}
 
 	g_app.reset();
