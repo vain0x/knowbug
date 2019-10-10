@@ -466,12 +466,13 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, HS
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<HspObjects::Module>&& modules, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository)
+HspObjects::HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<HspObjects::Module>&& modules, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository)
 	: debug_(debug)
 	, logger_(logger)
 	, scripts_(scripts)
 	, source_file_repository_(source_file_repository)
 	, root_path_(std::make_shared<HspObjectPath::Root>())
+	, var_names_(std::move(var_names))
 	, modules_(std::move(modules))
 	, types_(create_type_datas())
 	, label_names_(std::move(label_names))
@@ -516,15 +517,11 @@ auto HspObjects::module_to_var_at(std::size_t module_id, std::size_t index) cons
 }
 
 auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->Utf8String {
-	// FIXME: 起動時に作った変数リストを再利用する
-
-	auto&& name_opt = hsx::static_var_to_name(path.static_var_id(), context());
-	if (!name_opt) {
-		assert(false && u8"静的変数の名前が見つかるはず");
-		return to_owned(as_utf8(u8"?"));
+	if (path.static_var_id() >= var_names_.size()) {
+		return to_owned(as_utf8(u8"???"));
 	}
 
-	return to_utf8(as_hsp(*std::move(name_opt)));
+	return var_names_[path.static_var_id()];
 }
 
 bool HspObjects::static_var_path_is_array(HspObjectPath::StaticVar const& path) {
@@ -1124,5 +1121,5 @@ void HspObjectsBuilder::add_param_name(int param_index, char const* param_name, 
 
 auto HspObjectsBuilder::finish(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, SourceFileRepository& source_file_repository)->HspObjects {
 	auto modules = group_vars_by_module(var_names_);
-	return HspObjects{ debug, logger, scripts, std::move(modules), std::move(label_names_), std::move(param_names_), source_file_repository };
+	return HspObjects{ debug, logger, scripts, std::move(var_names_), std::move(modules), std::move(label_names_), std::move(param_names_), source_file_repository };
 }
