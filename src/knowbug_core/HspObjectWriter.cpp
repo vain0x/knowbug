@@ -30,9 +30,6 @@ static auto string_need_escape(Utf8StringView const& str) -> bool {
 
 static auto str_to_string(HspStr const& str) -> std::optional<std::string_view> {
 	auto end = std::find(str.begin(), str.end(), '\0');
-	if (end != str.end()) {
-		return std::nullopt;
-	}
 
 	if (!std::all_of(str.begin(), end, char_can_print)) {
 		return std::nullopt;
