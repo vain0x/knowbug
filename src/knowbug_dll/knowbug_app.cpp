@@ -56,7 +56,13 @@ public:
 	}
 
 	void did_hsp_pause() {
-		if (step_controller_->continue_step_running()) return;
+		if (step_controller_->continue_step_running()) {
+			// HACK: すべてのウィンドウに無意味なメッセージを送信する。
+			//       HSP のウィンドウがこれを受信したとき、デバッグモードの変化が再検査されて、
+			//       ステップ実行モードが変化したことに気づいてくれる (実装依存)。
+			PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
+			return;
+		}
 
 		hsp_runtime_->update_location();
 		view().update_source_edit(to_os(hsp_runtime_->objects().script_to_current_location_summary()));
