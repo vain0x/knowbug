@@ -249,6 +249,13 @@ public:
 		}
 	}
 
+	void will_exit() override {
+		// FIXME: なぜか終了に時間がかかることがあるため、ウィンドウを非表示にする。 <https://github.com/vain0x/knowbug/issues/56>
+		for (auto hwnd : windows()) {
+			ShowWindow(hwnd, SW_HIDE);
+		}
+	}
+
 	// UI 操作:
 
 	auto select_save_log_file() -> std::optional<OsString> override {
@@ -258,6 +265,10 @@ public:
 	void notify_save_failure() override {
 		static auto const MESSAGE = TEXT("ログの保存に失敗しました。");
 		MessageBox(main_window(), MESSAGE, KNOWBUG_TITLE, MB_OK);
+	}
+
+	void notify_open_file_failure() override {
+		MessageBox(main_window(), TEXT("ファイルを開けませんでした。"), KNOWBUG_TITLE, MB_OK);
 	}
 
 	// UI イベント:
@@ -310,7 +321,7 @@ public:
 	auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, KnowbugApp& app) -> LRESULT override {
 		switch (msg) {
 		case WM_USER:
-			update_view_edit();
+			app.update_view();
 			return TRUE;
 
 		case WM_COMMAND:

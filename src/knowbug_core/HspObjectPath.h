@@ -212,8 +212,10 @@ protected:
 
 	auto new_system_var(HspSystemVarKind system_var_kind) const -> std::shared_ptr<HspObjectPath const>;
 
+public:
 	auto new_call_stack() const -> std::shared_ptr<HspObjectPath const>;
 
+protected:
 	auto new_call_frame(std::size_t call_frame_id) const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_general() const -> std::shared_ptr<HspObjectPath const>;
@@ -879,7 +881,7 @@ public:
 		return to_owned(as_utf8(u8"全般"));
 	}
 
-	auto content(HspObjects& objects) const -> Utf8StringView;
+	auto content(HspObjects& objects) const -> Utf8String;
 };
 
 // -----------------------------------------------

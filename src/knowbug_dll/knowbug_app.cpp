@@ -55,12 +55,22 @@ public:
 		view().initialize();
 	}
 
-	void did_hsp_pause() {
-		if (step_controller_->continue_step_running()) return;
+	void will_exit() {
+		auto_save_log();
 
-		hsp_runtime_->update_location();
-		view().update_source_edit(to_os(hsp_runtime_->objects().script_to_current_location_summary()));
-		view().update();
+		view().will_exit();
+	}
+
+	void did_hsp_pause() {
+		if (step_controller_->continue_step_running()) {
+			// HACK: すべてのウィンドウに無意味なメッセージを送信する。
+			//       HSP のウィンドウがこれを受信したとき、デバッグモードの変化が再検査されて、
+			//       ステップ実行モードが変化したことに気づいてくれる (実装依存)。
+			PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
+			return;
+		}
+
+		update_view();
 	}
 
 	void did_hsp_logmes(HspStringView const& text) {
@@ -68,6 +78,12 @@ public:
 		hsp_runtime_->logger().append(as_utf8(u8"\r\n"));
 
 		view().did_log_change();
+	}
+
+	void update_view() override {
+		hsp_runtime_->update_location();
+		view().update_source_edit(to_os(hsp_runtime_->objects().script_to_current_location_summary()));
+		view().update();
 	}
 
 	void step_run(StepControl const& step_control) override {
@@ -124,7 +140,7 @@ public:
 	void open_current_script_file() override {
 		auto full_path_opt = hsp_runtime_->objects().script_to_full_path();
 		if (!full_path_opt) {
-			// FIXME: 何らかの警告を出す
+			view().notify_open_file_failure();
 			return;
 		}
 
@@ -216,7 +232,7 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 void debugbye() {
 	if (auto&& app_opt = g_app) {
-		app_opt->auto_save_log();
+		app_opt->will_exit();
 	}
 
 	g_app.reset();

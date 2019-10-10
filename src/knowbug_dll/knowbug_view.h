@@ -27,9 +27,13 @@ public:
 
 	virtual void did_log_change() = 0;
 
+	virtual void will_exit() = 0;
+
 	virtual auto select_save_log_file() -> std::optional<OsString> = 0;
 
 	virtual void notify_save_failure() = 0;
+
+	virtual void notify_open_file_failure() = 0;
 
 	virtual auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, KnowbugApp& app) -> LRESULT = 0;
 

@@ -630,7 +630,7 @@ HspObjectPath::General::General(std::shared_ptr<HspObjectPath const> parent)
 {
 }
 
-auto HspObjectPath::General::content(HspObjects& objects) const -> Utf8StringView {
+auto HspObjectPath::General::content(HspObjects& objects) const -> Utf8String {
 	return objects.general_to_content();
 }
 

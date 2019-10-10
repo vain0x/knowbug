@@ -191,6 +191,9 @@ public:
 	}
 
 	void update_view_window(AbstractViewBox& view_box) override {
+		// コールスタックを自動で更新する。
+		object_tree_.focus_by_path(*objects_.root_path().new_call_stack(), *this);
+
 		auto&& selected_node_id_opt = this->selected_node_id();
 		if (!selected_node_id_opt) {
 			return;
