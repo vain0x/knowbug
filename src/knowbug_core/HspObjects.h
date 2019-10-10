@@ -55,8 +55,6 @@ private:
 	std::unordered_map<HspLabel, Utf8String> label_names_;
 	std::unordered_map<STRUCTPRM const*, Utf8String> param_names_;
 
-	Utf8String general_content_;
-
 public:
 	HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Module>&& modules, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository);
 
@@ -146,7 +144,7 @@ public:
 
 	auto call_frame_path_to_line_index(HspObjectPath::CallFrame const& path) const -> std::optional<std::size_t>;
 
-	auto general_to_content() const -> Utf8StringView;
+	auto general_to_content() -> Utf8String;
 
 	auto log_to_content() const -> Utf8StringView;
 

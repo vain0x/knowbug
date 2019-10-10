@@ -476,7 +476,6 @@ HspObjects::HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts,
 	, types_(create_type_datas())
 	, label_names_(std::move(label_names))
 	, param_names_(std::move(param_names))
-	, general_content_(create_general_content(debug))
 {
 }
 
@@ -1019,8 +1018,8 @@ auto HspObjects::call_frame_path_to_line_index(HspObjectPath::CallFrame const& p
 	return std::make_optional(call_frame_opt->get().line_index());
 }
 
-auto HspObjects::general_to_content() const -> Utf8StringView {
-	return general_content_;
+auto HspObjects::general_to_content() -> Utf8String {
+	return create_general_content(debug());
 }
 
 auto HspObjects::log_to_content() const -> Utf8StringView {

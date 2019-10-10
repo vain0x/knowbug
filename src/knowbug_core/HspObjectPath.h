@@ -879,7 +879,7 @@ public:
 		return to_owned(as_utf8(u8"全般"));
 	}
 
-	auto content(HspObjects& objects) const -> Utf8StringView;
+	auto content(HspObjects& objects) const -> Utf8String;
 };
 
 // -----------------------------------------------
