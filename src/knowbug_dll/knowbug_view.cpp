@@ -267,6 +267,10 @@ public:
 		MessageBox(main_window(), MESSAGE, KNOWBUG_TITLE, MB_OK);
 	}
 
+	void notify_open_file_failure() override {
+		MessageBox(main_window(), TEXT("ファイルを開けませんでした。"), KNOWBUG_TITLE, MB_OK);
+	}
+
 	// UI イベント:
 
 	void resize_main_window(int client_x, int client_y, bool repaint) {

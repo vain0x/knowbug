@@ -140,7 +140,7 @@ public:
 	void open_current_script_file() override {
 		auto full_path_opt = hsp_runtime_->objects().script_to_full_path();
 		if (!full_path_opt) {
-			// FIXME: 何らかの警告を出す
+			view().notify_open_file_failure();
 			return;
 		}
 
