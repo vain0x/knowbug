@@ -135,8 +135,7 @@ auto wc_call_frame_to_param_stack(std::size_t call_frame_id) -> std::optional<Hs
 
 	auto param_stack = exists ? next_param_stack : nullptr;
 
-	// FIXME: DebugApi を使う?
-	auto param_stack_size = struct_dat->size;
+	auto param_stack_size = hsx::struct_to_param_stack_size(struct_dat);
 
 	return std::make_optional<HspParamStack>(struct_dat, (void*)param_stack, param_stack_size, is_safe);
 }
