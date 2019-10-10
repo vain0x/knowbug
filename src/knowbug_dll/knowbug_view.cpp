@@ -5,8 +5,6 @@
 #include "pch.h"
 #include "resource.h"
 #include "../hspsdk/hspwnd.h"
-#include "../knowbug_core/module/GuiUtility.h"
-#include "../knowbug_core/module/handle_deleter.hpp"
 #include "../knowbug_core/HspObjectPath.h"
 #include "../knowbug_core/platform.h"
 #include "../knowbug_core/StepController.h"
@@ -14,6 +12,8 @@
 #include "knowbug_view.h"
 #include "knowbug_view_tree.h"
 #include "knowbug_config.h"
+#include "win_gui.h"
+#include "win_handles.h"
 
 #ifdef _M_X64
 # define KNOWBUG_CPU_SUFFIX TEXT(" (x64)")
@@ -40,20 +40,14 @@ static auto const STEP_BUTTON_COUNT = std::size_t{ 5 };
 
 using StepButtonHandleArray = std::array<HWND, STEP_BUTTON_COUNT>;
 
-using WindowHandle = window_handle_t;
-
-using MenuHandle = menu_handle_t;
-
-using FontHandle = gdi_obj_t;
-
 static auto window_to_client_rect(HWND hwnd) -> RECT {
 	RECT rc;
 	GetClientRect(hwnd, &rc);
 	return rc;
 }
 
-static auto create_main_font(KnowbugConfig const& config) -> gdi_obj_t {
-	return gdi_obj_t{ Font_Create(as_view(config.fontFamily), config.fontSize, config.fontAntialias) };
+static auto create_main_font(KnowbugConfig const& config) -> GdiObjHandlePtr {
+	return GdiObjHandlePtr{ Font_Create(as_view(config.fontFamily), config.fontSize, config.fontAntialias) };
 }
 
 static void resize_main_window(int client_x, int client_y, bool repaints, HWND tree_view, HWND source_edit, StepButtonHandleArray const& step_button_handles) {
@@ -147,15 +141,15 @@ public:
 class KnowbugViewImpl
 	: public KnowbugView
 {
-	WindowHandle main_window_, view_window_;
-	MenuHandle main_menu_, node_menu_, call_frame_menu_, log_menu_;
+	WindowHandlePtr main_window_, view_window_;
+	MenuHandlePtr main_menu_, node_menu_, call_frame_menu_, log_menu_;
 	HWND tree_view_;
 	HWND source_edit_;
 	HWND view_edit_;
 	std::unique_ptr<VarTreeViewControl> var_tree_view_control_;
 
 	StepButtonHandleArray step_buttons_;
-	FontHandle main_font_;
+	GdiObjHandlePtr main_font_;
 
 	KnowbugConfig const& config_;
 	ViewEditControlImpl view_edit_control_;
@@ -163,18 +157,18 @@ class KnowbugViewImpl
 
 public:
 	KnowbugViewImpl(
-		WindowHandle&& main_window,
-		WindowHandle&& view_window,
-		MenuHandle&& main_menu,
-		MenuHandle&& node_menu,
-		MenuHandle&& call_frame_menu,
-		MenuHandle&& log_menu,
+		WindowHandlePtr&& main_window,
+		WindowHandlePtr&& view_window,
+		MenuHandlePtr&& main_menu,
+		MenuHandlePtr&& node_menu,
+		MenuHandlePtr&& call_frame_menu,
+		MenuHandlePtr&& log_menu,
 		HWND var_tree,
 		HWND source_edit,
 		HWND view_edit,
 		std::unique_ptr<VarTreeViewControl>&& var_tree_view_control,
 		StepButtonHandleArray const& step_buttons,
-		FontHandle&& main_font,
+		GdiObjHandlePtr&& main_font,
 		KnowbugConfig const& config
 	)
 		: main_window_(std::move(main_window))
@@ -577,7 +571,7 @@ auto KnowbugView::create(KnowbugConfig const& config, HINSTANCE instance, HspObj
 	auto main_font = create_main_font(config);
 
 	// ビューウィンドウ
-	auto view_window = window_handle_t{
+	auto view_window = WindowHandlePtr{
 		Window_Create(
 			OsStringView{ TEXT("KnowbugViewWindow") },
 			::process_view_window,
@@ -602,7 +596,7 @@ auto KnowbugView::create(KnowbugConfig const& config, HINSTANCE instance, HspObj
 	ShowWindow(view_pane, SW_SHOW);
 
 	// メインウィンドウ
-	auto main_window = window_handle_t{
+	auto main_window = WindowHandlePtr{
 		Window_Create(
 			OsStringView{ TEXT("KnowbugMainWindow") },
 			::process_main_window,
@@ -622,15 +616,15 @@ auto KnowbugView::create(KnowbugConfig const& config, HINSTANCE instance, HspObj
 	ShowWindow(main_pane, SW_SHOW);
 
 	// メニューバー
-	auto main_menu = menu_handle_t{ LoadMenu(instance, (LPCTSTR)IDR_MAIN_MENU) };
+	auto main_menu = MenuHandlePtr{ LoadMenu(instance, (LPCTSTR)IDR_MAIN_MENU) };
 	SetMenu(main_window.get(), main_menu.get());
 
 	// ポップメニュー
 	auto const node_menu_Bar = LoadMenu(instance, (LPCTSTR)IDR_NODE_MENU);
 
-	auto node_menu = menu_handle_t{ GetSubMenu(node_menu_Bar, 0) };
-	auto call_frame_menu = menu_handle_t{ GetSubMenu(node_menu_Bar, 1) };
-	auto log_menu = menu_handle_t{ GetSubMenu(node_menu_Bar, 2) };
+	auto node_menu = MenuHandlePtr{ GetSubMenu(node_menu_Bar, 0) };
+	auto call_frame_menu = MenuHandlePtr{ GetSubMenu(node_menu_Bar, 1) };
+	auto log_menu = MenuHandlePtr{ GetSubMenu(node_menu_Bar, 2) };
 
 	// ツリービュー
 	auto const tree_view = GetDlgItem(main_pane, IDC_VARTREE);

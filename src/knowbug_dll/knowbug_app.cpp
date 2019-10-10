@@ -2,8 +2,6 @@
 #include "pch.h"
 #include <fstream>
 #include "../hspsdk/hsp3plugin.h"
-#include "../knowbug_core/module/CStrWriter.h"
-#include "../knowbug_core/module/strf.h"
 #include "../knowbug_core/encoding.h"
 #include "../knowbug_core/HspObjectWriter.h"
 #include "../knowbug_core/HspRuntime.h"
@@ -11,6 +9,7 @@
 #include "../knowbug_core/platform.h"
 #include "../knowbug_core/source_files.h"
 #include "../knowbug_core/StepController.h"
+#include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
 #include "knowbug_config.h"
 #include "knowbug_view.h"

@@ -19,9 +19,6 @@
     <Filter Include="cppformat">
       <UniqueIdentifier>{40c096fd-f36c-4948-abb7-8e10ea98b2a4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="module">
-      <UniqueIdentifier>{2161ea97-d6a3-4c0d-b65a-67fe2fb36a5b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="hspsdk\win32gui">
       <UniqueIdentifier>{a52c5b5e-7dcd-4c75-8181-631970be012f}</UniqueIdentifier>
     </Filter>
@@ -53,24 +50,6 @@
     </ClInclude>
     <ClInclude Include="..\hspsdk\win32gui\hspwnd_win.h">
       <Filter>hspsdk\win32gui</Filter>
-    </ClInclude>
-    <ClInclude Include="module\CIni.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="module\CStrWriter.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="module\GuiUtility.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="module\handle_deleter.hpp">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="module\strf.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="module\utility.h">
-      <Filter>module</Filter>
     </ClInclude>
     <ClInclude Include="encoding.h">
       <Filter>ヘッダー ファイル</Filter>
@@ -107,9 +86,6 @@
     </ClInclude>
     <ClInclude Include="test_suite.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="module\pch.h">
-      <Filter>module</Filter>
     </ClInclude>
     <ClInclude Include="string_split.h">
       <Filter>ヘッダー ファイル</Filter>
@@ -150,6 +126,12 @@
     <ClInclude Include="hsx_debug_segment.h">
       <Filter>hsp-sdk-ext</Filter>
     </ClInclude>
+    <ClInclude Include="string_format.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="string_writer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -160,15 +142,6 @@
     </ClCompile>
     <ClCompile Include="..\hspsdk\hsp3plugin.cpp">
       <Filter>hspsdk</Filter>
-    </ClCompile>
-    <ClCompile Include="module\CIni.cpp">
-      <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="module\CStrWriter.cpp">
-      <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="module\GuiUtility.cpp">
-      <Filter>module</Filter>
     </ClCompile>
     <ClCompile Include="encoding.cpp">
       <Filter>ソース ファイル</Filter>
@@ -241,6 +214,9 @@
     </ClCompile>
     <ClCompile Include="hsx_element.cpp">
       <Filter>hsp-sdk-ext</Filter>
+    </ClCompile>
+    <ClCompile Include="string_writer.cpp">
+      <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

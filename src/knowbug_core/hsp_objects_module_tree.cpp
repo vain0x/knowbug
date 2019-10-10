@@ -1,8 +1,8 @@
 #include "pch.h"
 #include <memory>
 #include <optional>
-#include "module/CStrWriter.h"
 #include "hsp_objects_module_tree.h"
+#include "string_writer.h"
 
 static auto const GLOBAL_MODULE_NAME = as_utf8(u8"@");
 

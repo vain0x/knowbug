@@ -1,8 +1,8 @@
 
 #include "pch.h"
-#include "../knowbug_core/module/CIni.h"
 #include "../knowbug_core/encoding.h"
 #include "knowbug_config.h"
+#include "win_ini.h"
 
 static auto get_hsp_dir() -> OsString {
 	// knowbug の DLL の絶対パスを取得する。

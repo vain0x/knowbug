@@ -3,14 +3,14 @@
 #include "pch.h"
 #include <unordered_map>
 #include <unordered_set>
-#include "../knowbug_core/module/CStrWriter.h"
-#include "../knowbug_core/module/GuiUtility.h"
 #include "../knowbug_core/HspObjectPath.h"
 #include "../knowbug_core/HspObjects.h"
 #include "../knowbug_core/HspObjectTree.h"
 #include "../knowbug_core/HspObjectWriter.h"
 #include "../knowbug_core/platform.h"
+#include "../knowbug_core/string_writer.h"
 #include "knowbug_view_tree.h"
+#include "win_gui.h"
 
 #undef min
 
@@ -279,7 +279,7 @@ private:
 		auto tvis = TVINSERTSTRUCT{};
 		HTREEITEM res;
 		tvis.hParent = hParent;
-		tvis.hInsertAfter = TVI_LAST; // FIXME: 引数で受け取る (コールスタックでは先頭への挿入が起こる)
+		tvis.hInsertAfter = TVI_LAST; // FIXME: 引数で受け取る
 		tvis.item.mask = TVIF_TEXT;
 		tvis.item.pszText = const_cast<LPTSTR>(name.data());
 		res = TreeView_InsertItem(tree_view_, &tvis);

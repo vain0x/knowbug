@@ -5,7 +5,7 @@
 #include "../knowbug_core/hsp_objects_module_tree.h"
 #include "../knowbug_core/HspObjectWriter.h"
 #include "../knowbug_core/string_split.h"
-#include "knowbug_tests.h"
+#include "../knowbug_core/string_writer.h"
 #include "test_runner.h"
 
 static void enable_utf_8() {
@@ -47,7 +47,7 @@ auto main() -> int {
 
 	// ここにテストスイートを列挙する。
 	hello_tests(tests);
-	str_writer_tests(tests);
+	string_writer_tests(tests);
 	module_tree_tests(tests);
 	hsp_object_writer_tests(tests);
 	string_lines_tests(tests);

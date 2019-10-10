@@ -1,11 +1,8 @@
-// FIXME: 無限のネストに対処
-// FIXME: 文字コードの混在に対処
-
 #include "pch.h"
 #include "encoding.h"
-#include "module/CStrWriter.h"
 #include "HspObjects.h"
 #include "HspObjectWriter.h"
+#include "string_writer.h"
 
 static auto const MAX_CHILD_COUNT = std::size_t{ 3000 };
 

@@ -325,6 +325,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="string_writer.cpp" />
     <ClInclude Include="..\cppformat\cppformat\format.h" />
     <ClInclude Include="..\hspsdk\hsp3debug.h" />
     <ClInclude Include="..\hspsdk\hsp3plugin.h" />
@@ -355,18 +356,13 @@
     <ClInclude Include="hsx_var_metadata.h" />
     <ClInclude Include="hsx_slice.h" />
     <ClInclude Include="memory_view.h" />
-    <ClInclude Include="module\CIni.h" />
-    <ClInclude Include="module\CStrWriter.h" />
-    <ClInclude Include="module\GuiUtility.h" />
-    <ClInclude Include="module\handle_deleter.hpp" />
-    <ClInclude Include="module\pch.h" />
-    <ClInclude Include="module\strf.h" />
-    <ClInclude Include="module\utility.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="source_files.h" />
     <ClInclude Include="StepController.h" />
+    <ClInclude Include="string_format.h" />
     <ClInclude Include="string_split.h" />
+    <ClInclude Include="string_writer.h" />
     <ClInclude Include="test_suite.h" />
   </ItemGroup>
   <ItemGroup>
@@ -408,9 +404,6 @@
     <ClCompile Include="hsx_static_vars.cpp" />
     <ClCompile Include="hsx_struct.cpp" />
     <ClCompile Include="hsx_system_var.cpp" />
-    <ClCompile Include="module\CIni.cpp" />
-    <ClCompile Include="module\CStrWriter.cpp" />
-    <ClCompile Include="module\GuiUtility.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugUtf8|Win32'">Create</PrecompiledHeader>

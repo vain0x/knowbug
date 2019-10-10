@@ -11,7 +11,6 @@ class HspStaticVars;
 class SourceFileId;
 class SourceFileRepository;
 
-// FIXME: ログが更新されるたびにビューを更新する
 class HspLogger {
 public:
 	virtual ~HspLogger() {
@@ -33,7 +32,6 @@ public:
 };
 
 // FIXME: インターフェイスを抽出する
-// FIXME: ファイル参照名をインターン化する
 
 // HSP のオブジェクト (モジュール、変数、値など) に関して
 // knowbug が知りたい情報を最適なインターフェイスで提供する。
