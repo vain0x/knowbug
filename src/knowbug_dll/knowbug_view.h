@@ -12,6 +12,9 @@ class HspStaticVars;
 class KnowbugApp;
 struct KnowbugConfig;
 
+static constexpr auto WM_KNOWBUG_DID_INITIALIZE = WM_USER + 1;
+static constexpr auto WM_KNOWBUG_UPDATE_VIEW = WM_USER + 2;
+
 class KnowbugView {
 public:
 	static auto create(KnowbugConfig const& config, HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView>;

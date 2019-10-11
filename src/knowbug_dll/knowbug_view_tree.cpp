@@ -29,24 +29,6 @@ static auto object_path_is_auto_expand(HspObjectPath const& path, HspObjects& ob
 		|| (path.kind() == HspObjectKind::Module && path.as_module().is_global(objects));
 }
 
-class AutoExpander {
-	std::unordered_set<HTREEITEM> auto_expanded_;
-
-public:
-	auto auto_expand(HspObjectPath const& path, HTREEITEM tv_item, HspObjects& objects) -> bool {
-		auto ok =
-			auto_expanded_.count(tv_item) == 0
-			&& path.child_count(objects) != 0
-			&& object_path_is_auto_expand(path, objects);
-		if (!ok) {
-			return false;
-		}
-
-		auto_expanded_.emplace(tv_item);
-		return true;
-	}
-};
-
 // ビューのスクロール位置を計算するもの
 class ScrollPreserver {
 	HTREEITEM active_item_;
@@ -134,7 +116,7 @@ class VarTreeViewControlImpl
 	std::unordered_map<HTREEITEM, std::size_t> node_ids_;
 	std::unordered_map<std::size_t, HTREEITEM> node_tv_items_;
 
-	AutoExpander auto_expander_;
+	std::unordered_set<HTREEITEM> auto_expand_items_;
 
 	ScrollPreserver scroll_preserver_;
 
@@ -145,13 +127,17 @@ public:
 		, tree_view_(tree_view)
 		, node_ids_()
 		, node_tv_items_()
-		, auto_expander_()
+		, auto_expand_items_()
 		, scroll_preserver_()
 	{
 		node_ids_.emplace(TVI_ROOT, object_tree_.root_id());
 		node_tv_items_.emplace(object_tree_.root_id(), TVI_ROOT);
 
 		object_tree_.focus_root(*this);
+	}
+
+	void did_initialize() override {
+		do_auto_expand();
 	}
 
 	// オブジェクトツリーが更新されたときに呼ばれる。
@@ -172,6 +158,10 @@ public:
 		auto tv_item = do_insert_item(tv_parent, as_view(to_os(name)));
 		node_ids_.emplace(tv_item, node_id);
 		node_tv_items_.emplace(node_id, tv_item);
+
+		if (object_path_is_auto_expand(*path, objects_)) {
+			auto_expand_items_.emplace(tv_item);
+		}
 	}
 
 	// オブジェクトツリーのノードが破棄される前に呼ばれる。
@@ -222,7 +212,7 @@ public:
 
 		scroll_preserver_.did_activate(tv_item, path, objects_, view_box);
 
-		auto_expand_item(path, tv_item);
+		auto_expand(path, tv_item);
 	}
 
 	auto log_is_selected() const -> bool override {
@@ -272,10 +262,17 @@ private:
 		return TreeView_GetSelection(tree_view_);
 	}
 
-	void auto_expand_item(HspObjectPath const& path, HTREEITEM tv_item) {
-		if (auto_expander_.auto_expand(path, tv_item, objects_)) {
+	void auto_expand(HspObjectPath const& path, HTREEITEM tv_item) {
+		if (object_path_is_auto_expand(path, objects_)) {
+			auto_expand_items_.emplace(tv_item);
+		}
+	}
+
+	void do_auto_expand() {
+		for (auto tv_item : auto_expand_items_) {
 			do_expand_item(tv_item);
 		}
+		auto_expand_items_.clear();
 	}
 
 	auto do_insert_item(HTREEITEM hParent, OsStringView const& name) -> HTREEITEM {
