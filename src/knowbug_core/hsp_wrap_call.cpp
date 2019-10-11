@@ -35,8 +35,10 @@ static void wc_will_call(STRUCTDAT const* struct_dat) {
 	std::size_t line_index;
 	debugger->get_current_location(file_id_opt, line_index);
 
+	auto depth = s_call_stack.size();
 	s_call_stack.emplace_back(
 		++s_last_id,
+		depth,
 		struct_dat,
 		ctx->prmstack,
 		ctx->sublev,
@@ -71,35 +73,29 @@ auto wc_call_frame_count() -> std::size_t {
 	return s_call_stack.size();
 }
 
-auto wc_call_frame_id_at(std::size_t index) -> std::optional<std::size_t> {
+auto wc_call_frame_key_at(std::size_t index) -> std::optional<WcCallFrameKey> {
 	if (index >= s_call_stack.size()) {
 		return std::nullopt;
 	}
 
-	return std::make_optional(s_call_stack.at(index).call_frame_id());
+	return std::make_optional(s_call_stack.at(index).key());
 }
 
-static auto wc_call_frame_position(std::size_t call_frame_id) -> std::optional<std::size_t> {
-	for (auto i = std::size_t{}; i < s_call_stack.size(); i++) {
-		if (s_call_stack[i].call_frame_id() == call_frame_id) {
-			return std::make_optional(i);
-		}
-	}
-
-	return std::nullopt;
-}
-
-auto wc_call_frame_get(std::size_t call_frame_id) -> std::optional<std::reference_wrapper<WcCallFrame>> {
-	auto index_opt = wc_call_frame_position(call_frame_id);
-	if (!index_opt) {
+auto wc_call_frame_get(WcCallFrameKey const& key) -> std::optional<std::reference_wrapper<WcCallFrame>> {
+	if (key.depth() >= s_call_stack.size()) {
 		return std::nullopt;
 	}
 
-	return std::make_optional(std::ref(s_call_stack.at(*index_opt)));
+	auto&& call_frame_ref = std::ref(s_call_stack.at(key.depth()));
+	if (call_frame_ref.get().call_frame_id() != key.call_frame_id()) {
+		return std::nullopt;
+	}
+
+	return std::make_optional(call_frame_ref);
 }
 
 // コールフレームの引数スタックを取得する。
-auto wc_call_frame_to_param_stack(std::size_t call_frame_id) -> std::optional<HspParamStack> {
+auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<HspParamStack> {
 	// 注意: 必ずしもすべての呼び出しをフックできているとは限らない点に注意。
 	//
 	// 1. 例えば modinit の呼び出しはコールスタックに乗らない。
@@ -109,13 +105,11 @@ auto wc_call_frame_to_param_stack(std::size_t call_frame_id) -> std::optional<Hs
 	// 2. また、f(g()) のような形の式では、f → g の順でスタックに積まれて、
 	// f の引数スタックは g() が完了するまで参照できない。
 
-	auto index_opt = wc_call_frame_position(call_frame_id);
-	if (!index_opt) {
+	if (!wc_call_frame_get(key)) {
 		return std::nullopt;
 	}
 
-	auto index = *index_opt;
-
+	auto index = key.depth();
 	auto is_last = index + 1 == s_call_stack.size();
 	auto next_param_stack = is_last
 		? ctx->prmstack

@@ -382,7 +382,7 @@ static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, HS
 			return hsx::flex_to_param_stack(*flex_opt, ctx);
 		}
 	case HspObjectKind::CallFrame:
-		return wc_call_frame_to_param_stack(path.as_call_frame().call_frame_id());
+		return wc_call_frame_to_param_stack(path.as_call_frame().key());
 
 	default:
 		assert(false && u8"param_stack が取れるべき");
@@ -554,6 +554,21 @@ auto HspObjects::static_var_path_to_child_at(HspObjectPath::StaticVar const& pat
 
 auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata {
 	return var_path_to_metadata(path, context()).value_or(HspVarMetadata::none());
+}
+
+auto HspObjects::element_path_is_alive(HspObjectPath::Element const& path) const -> bool {
+	auto pval_opt = path_to_pval(path.parent(), MIN_DEPTH, context());
+	if (!pval_opt) {
+		return false;
+	}
+
+	auto aptr_opt = hsx::element_to_aptr(*pval_opt, path.indexes());
+	if (!aptr_opt) {
+		return false;
+	}
+
+	assert(*aptr_opt < hsx::pval_to_element_count(*pval_opt));
+	return true;
 }
 
 auto HspObjects::element_path_to_child_count(HspObjectPath::Element const& path) const -> std::size_t {
@@ -928,14 +943,14 @@ auto HspObjects::call_stack_path_to_call_frame_count(HspObjectPath::CallStack co
 	return wc_call_frame_count();
 }
 
-auto HspObjects::call_stack_path_to_call_frame_id_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<std::size_t> {
-	return wc_call_frame_id_at(call_frame_index);
+auto HspObjects::call_stack_path_to_call_frame_key_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<WcCallFrameKey> {
+	return wc_call_frame_key_at(call_frame_index);
 }
 
 namespace hsx = hsp_sdk_ext;
 
 auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {
-	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
+	auto&& call_frame_opt = wc_call_frame_get(path.key());
 	if (!call_frame_opt) {
 		return std::nullopt;
 	}
@@ -943,6 +958,10 @@ auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) c
 	auto struct_dat = call_frame_opt->get().struct_dat();
 	auto name = hsx::struct_to_name(struct_dat, context());
 	return to_utf8(as_hsp(name.value_or(u8"???")));
+}
+
+auto HspObjects::call_frame_path_is_alive(HspObjectPath::CallFrame const& path) const -> bool {
+	return wc_call_frame_get(path.key()).has_value();
 }
 
 auto HspObjects::call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t {
@@ -970,7 +989,7 @@ auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& pat
 }
 
 auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<Utf8StringView>> {
-	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
+	auto&& call_frame_opt = wc_call_frame_get(path.key());
 	if (!call_frame_opt) {
 		return std::nullopt;
 	}
@@ -987,7 +1006,7 @@ auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& pa
 }
 
 auto HspObjects::call_frame_path_to_full_path(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8StringView> {
-	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
+	auto&& call_frame_opt = wc_call_frame_get(path.key());
 	if (!call_frame_opt) {
 		return std::nullopt;
 	}
@@ -1007,7 +1026,7 @@ auto HspObjects::call_frame_path_to_full_path(HspObjectPath::CallFrame const& pa
 }
 
 auto HspObjects::call_frame_path_to_line_index(HspObjectPath::CallFrame const& path) const -> std::optional<std::size_t> {
-	auto&& call_frame_opt = wc_call_frame_get(path.call_frame_id());
+	auto&& call_frame_opt = wc_call_frame_get(path.key());
 	if (!call_frame_opt) {
 		return std::nullopt;
 	}

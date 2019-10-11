@@ -4,6 +4,7 @@
 #include <vector>
 #include "encoding.h"
 #include "HspTypes.h"
+#include "hsp_wrap_call.h"
 #include "memory_view.h"
 
 class HspObjects;
@@ -126,12 +127,12 @@ public:
 		return kind() == other.kind() && does_equal(other) && parent().equals(other.parent());
 	}
 
-	bool is_alive(HspObjects& objects) const {
-		if (kind() == HspObjectKind::Root || kind() == HspObjectKind::Module) {
-			return true;
+	// パスが生存しているかを判定する。
+	virtual auto is_alive(HspObjects& objects) const -> bool {
+		if (!parent().is_alive(objects)) {
+			return false;
 		}
 
-		// FIXME: 効率化 (is_alive)
 		auto sibling_count = parent().child_count(objects);
 		for (auto i = std::size_t{}; i < sibling_count; i++) {
 			auto&& sibling = parent().child_at(i, objects);
@@ -216,7 +217,7 @@ public:
 	auto new_call_stack() const -> std::shared_ptr<HspObjectPath const>;
 
 protected:
-	auto new_call_frame(std::size_t call_frame_id) const -> std::shared_ptr<HspObjectPath const>;
+	auto new_call_frame(WcCallFrameKey const& key) const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_general() const -> std::shared_ptr<HspObjectPath const>;
 
@@ -246,6 +247,10 @@ public:
 
 	bool equals(HspObjectPath const& other) const override {
 		return kind() == other.kind();
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
 	}
 
 	auto parent() const -> HspObjectPath const& override;
@@ -281,6 +286,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return module_id() == other.as_module().module_id();
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
 	}
 
 	auto parent() const -> HspObjectPath const& override {
@@ -322,6 +331,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return static_var_id() == other.as_static_var().static_var_id();
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
 	}
 
 	auto parent() const -> HspObjectPath const& override {
@@ -377,6 +390,8 @@ public:
 	bool does_equal(HspObjectPath const& other) const override {
 		return indexes() == other.as_element().indexes();
 	}
+
+	auto is_alive(HspObjects& objects) const -> bool override;
 
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
@@ -709,6 +724,10 @@ public:
 		return true;
 	}
 
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -749,6 +768,10 @@ public:
 		return system_var_kind() == other.as_system_var().system_var_kind();
 	}
 
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -786,6 +809,10 @@ public:
 		return true;
 	}
 
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -808,20 +835,22 @@ class HspObjectPath::CallFrame final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	std::size_t call_frame_id_;
+	WcCallFrameKey key_;
 
 public:
 	using HspObjectPath::new_param;
 
-	CallFrame(std::shared_ptr<HspObjectPath const> parent, std::size_t call_frame_id);
+	CallFrame(std::shared_ptr<HspObjectPath const> parent, WcCallFrameKey const& key);
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::CallFrame;
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
-		return call_frame_id() == other.as_call_frame().call_frame_id();
+		return key() == other.as_call_frame().key();
 	}
+
+	auto is_alive(HspObjects& objects) const -> bool override;
 
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
@@ -833,8 +862,8 @@ public:
 
 	auto name(HspObjects& objects) const -> Utf8String override;
 
-	auto call_frame_id() const -> std::size_t {
-		return call_frame_id_;
+	auto key() const -> WcCallFrameKey {
+		return key_;
 	}
 
 	auto signature(HspObjects& objects) const->std::optional<std::vector<Utf8StringView>>;
@@ -861,6 +890,10 @@ public:
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
 		return true;
 	}
 
@@ -901,6 +934,10 @@ public:
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
 		return true;
 	}
 
@@ -945,6 +982,10 @@ public:
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
 		return true;
 	}
 

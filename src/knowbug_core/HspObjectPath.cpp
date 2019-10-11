@@ -193,6 +193,10 @@ HspObjectPath::Element::Element(std::shared_ptr<HspObjectPath const> parent, Hsp
 {
 }
 
+auto HspObjectPath::Element::is_alive(HspObjects& objects) const -> bool {
+	return objects.element_path_is_alive(*this);
+}
+
 auto HspObjectPath::Element::child_count(HspObjects& objects) const -> std::size_t {
 	return objects.element_path_to_child_count(*this);
 }
@@ -545,27 +549,27 @@ auto HspObjectPath::CallStack::child_at(std::size_t child_index, HspObjects& obj
 	// 逆順
 	auto index = child_count(objects) - 1 - child_index;
 
-	auto&& call_frame_id_opt = objects.call_stack_path_to_call_frame_id_at(*this, index);
-	if (!call_frame_id_opt) {
+	auto&& key_opt = objects.call_stack_path_to_call_frame_key_at(*this, index);
+	if (!key_opt) {
 		assert(false && u8"コールフレームを取得できません");
 		return new_unavailable(to_owned(as_utf8(u8"コールフレームを取得できません")));
 	}
 
-	return new_call_frame(*call_frame_id_opt);
+	return new_call_frame(*key_opt);
 }
 
 // -----------------------------------------------
 // コールフレーム
 // -----------------------------------------------
 
-HspObjectPath::CallFrame::CallFrame(std::shared_ptr<HspObjectPath const> parent, std::size_t call_frame_id)
+HspObjectPath::CallFrame::CallFrame(std::shared_ptr<HspObjectPath const> parent, WcCallFrameKey const& key)
 	: parent_(std::move(parent))
-	, call_frame_id_(call_frame_id)
+	, key_(key)
 {
 }
 
-auto HspObjectPath::new_call_frame(std::size_t call_frame_id) const -> std::shared_ptr<HspObjectPath const> {
-	return std::make_shared<HspObjectPath::CallFrame>(self(), call_frame_id);
+auto HspObjectPath::new_call_frame(WcCallFrameKey const& key) const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::CallFrame>(self(), key);
 }
 
 auto HspObjectPath::as_call_frame() const -> HspObjectPath::CallFrame const& {
@@ -574,6 +578,10 @@ auto HspObjectPath::as_call_frame() const -> HspObjectPath::CallFrame const& {
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::CallFrame const*)this;
+}
+
+auto HspObjectPath::CallFrame::is_alive(HspObjects& objects) const -> bool {
+	return objects.call_frame_path_is_alive(*this);
 }
 
 auto HspObjectPath::CallFrame::child_count(HspObjects& objects) const -> std::size_t {
