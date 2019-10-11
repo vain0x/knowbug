@@ -5,6 +5,7 @@
 #include "encoding.h"
 #include "HspTypes.h"
 #include "HspObjectPath.h"
+#include "hsp_wrap_call.h"
 
 class HspDebugApi;
 class HspStaticVars;
@@ -131,7 +132,7 @@ public:
 
 	auto call_stack_path_to_call_frame_count(HspObjectPath::CallStack const& path) const -> std::size_t;
 
-	auto call_stack_path_to_call_frame_id_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<std::size_t>;
+	auto call_stack_path_to_call_frame_key_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<WcCallFrameKey>;
 
 	auto call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String>;
 
