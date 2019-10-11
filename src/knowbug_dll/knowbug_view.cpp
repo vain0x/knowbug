@@ -359,7 +359,7 @@ public:
 				break;
 
 			case IDC_UPDATE:
-				update_view_edit();
+				app.update_view();
 				break;
 
 			case IDC_OPEN_KNOWBUG_REPOS:
