@@ -193,6 +193,10 @@ HspObjectPath::Element::Element(std::shared_ptr<HspObjectPath const> parent, Hsp
 {
 }
 
+auto HspObjectPath::Element::is_alive(HspObjects& objects) const -> bool {
+	return objects.element_path_is_alive(*this);
+}
+
 auto HspObjectPath::Element::child_count(HspObjects& objects) const -> std::size_t {
 	return objects.element_path_to_child_count(*this);
 }
@@ -574,6 +578,10 @@ auto HspObjectPath::as_call_frame() const -> HspObjectPath::CallFrame const& {
 		throw new std::bad_cast{};
 	}
 	return *(HspObjectPath::CallFrame const*)this;
+}
+
+auto HspObjectPath::CallFrame::is_alive(HspObjects& objects) const -> bool {
+	return objects.call_frame_path_is_alive(*this);
 }
 
 auto HspObjectPath::CallFrame::child_count(HspObjects& objects) const -> std::size_t {

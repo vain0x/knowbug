@@ -127,12 +127,12 @@ public:
 		return kind() == other.kind() && does_equal(other) && parent().equals(other.parent());
 	}
 
-	bool is_alive(HspObjects& objects) const {
-		if (kind() == HspObjectKind::Root || kind() == HspObjectKind::Module) {
-			return true;
+	// パスが生存しているかを判定する。
+	virtual auto is_alive(HspObjects& objects) const -> bool {
+		if (!parent().is_alive(objects)) {
+			return false;
 		}
 
-		// FIXME: 効率化 (is_alive)
 		auto sibling_count = parent().child_count(objects);
 		for (auto i = std::size_t{}; i < sibling_count; i++) {
 			auto&& sibling = parent().child_at(i, objects);
@@ -249,6 +249,10 @@ public:
 		return kind() == other.kind();
 	}
 
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
+	}
+
 	auto parent() const -> HspObjectPath const& override;
 
 	auto child_count(HspObjects& objects) const -> std::size_t override;
@@ -282,6 +286,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return module_id() == other.as_module().module_id();
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
 	}
 
 	auto parent() const -> HspObjectPath const& override {
@@ -323,6 +331,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return static_var_id() == other.as_static_var().static_var_id();
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
 	}
 
 	auto parent() const -> HspObjectPath const& override {
@@ -378,6 +390,8 @@ public:
 	bool does_equal(HspObjectPath const& other) const override {
 		return indexes() == other.as_element().indexes();
 	}
+
+	auto is_alive(HspObjects& objects) const -> bool override;
 
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
@@ -710,6 +724,10 @@ public:
 		return true;
 	}
 
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -750,6 +768,10 @@ public:
 		return system_var_kind() == other.as_system_var().system_var_kind();
 	}
 
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -784,6 +806,10 @@ public:
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
 		return true;
 	}
 
@@ -823,6 +849,8 @@ public:
 	bool does_equal(HspObjectPath const& other) const override {
 		return key() == other.as_call_frame().key();
 	}
+
+	auto is_alive(HspObjects& objects) const -> bool override;
 
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
@@ -865,6 +893,10 @@ public:
 		return true;
 	}
 
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return true;
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -902,6 +934,10 @@ public:
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
 		return true;
 	}
 
@@ -946,6 +982,10 @@ public:
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
+		return true;
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
 		return true;
 	}
 

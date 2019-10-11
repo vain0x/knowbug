@@ -556,6 +556,21 @@ auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& pat
 	return var_path_to_metadata(path, context()).value_or(HspVarMetadata::none());
 }
 
+auto HspObjects::element_path_is_alive(HspObjectPath::Element const& path) const -> bool {
+	auto pval_opt = path_to_pval(path.parent(), MIN_DEPTH, context());
+	if (!pval_opt) {
+		return false;
+	}
+
+	auto aptr_opt = hsx::element_to_aptr(*pval_opt, path.indexes());
+	if (!aptr_opt) {
+		return false;
+	}
+
+	assert(*aptr_opt < hsx::pval_to_element_count(*pval_opt));
+	return true;
+}
+
 auto HspObjects::element_path_to_child_count(HspObjectPath::Element const& path) const -> std::size_t {
 	return 1;
 }
@@ -943,6 +958,10 @@ auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) c
 	auto struct_dat = call_frame_opt->get().struct_dat();
 	auto name = hsx::struct_to_name(struct_dat, context());
 	return to_utf8(as_hsp(name.value_or(u8"???")));
+}
+
+auto HspObjects::call_frame_path_is_alive(HspObjectPath::CallFrame const& path) const -> bool {
+	return wc_call_frame_get(path.key()).has_value();
 }
 
 auto HspObjects::call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t {

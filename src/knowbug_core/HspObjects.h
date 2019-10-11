@@ -88,6 +88,8 @@ public:
 
 	auto static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata;
 
+	auto element_path_is_alive(HspObjectPath::Element const& path) const->bool;
+
 	auto element_path_to_child_count(HspObjectPath::Element const& path) const -> std::size_t;
 
 	auto element_path_to_child_at(HspObjectPath::Element const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
@@ -135,6 +137,8 @@ public:
 	auto call_stack_path_to_call_frame_key_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<WcCallFrameKey>;
 
 	auto call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String>;
+
+	auto call_frame_path_is_alive(HspObjectPath::CallFrame const& path) const -> bool;
 
 	auto call_frame_path_to_child_count(HspObjectPath::CallFrame const& path) const -> std::size_t;
 
