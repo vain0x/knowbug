@@ -7,7 +7,31 @@
 #include "HspObjectTree.h"
 
 static auto const MAX_CHILD_COUNT = std::size_t{ 3000 };
-static auto const UPDATE_DEPTH = std::size_t{ 2 };
+
+// FIXME: v1 時代のツリーと挙動を揃えるためのもの。
+static auto object_path_has_children(HspObjectPath const& path) -> bool {
+	switch (path.kind()) {
+	case HspObjectKind::Root:
+	case HspObjectKind::Module:
+	case HspObjectKind::SystemVarList:
+	case HspObjectKind::CallStack:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+static auto object_path_has_dynamic_children(HspObjectPath const& path) -> bool {
+	switch (path.kind()) {
+	case HspObjectKind::Root:
+	case HspObjectKind::CallStack:
+		return true;
+
+	default:
+		return false;
+	}
+}
 
 class Node {
 	std::size_t parent_;
@@ -104,8 +128,7 @@ public:
 			return focus(parent, observer);
 		}
 
-		update_children(node_id, 0, observer);
-
+		update_root(observer);
 		return node_id;
 	}
 
@@ -124,9 +147,10 @@ private:
 
 	auto find_by_path(HspObjectPath const& path) -> std::optional<std::size_t> {
 		if (path.kind() == HspObjectKind::Root) {
-			return std::make_optional(root_node_id_);
+			return std::make_optional(root_id());
 		}
 
+		// FIXME: 効率化？
 		if (auto&& node_id_opt = find_by_path(path.parent())) {
 			auto&& node = nodes_.at(*node_id_opt);
 			for (auto child_id : node.children()) {
@@ -136,6 +160,10 @@ private:
 			}
 		}
 		return std::nullopt;
+	}
+
+	void update_root(HspObjectTreeObserver& observer) {
+		update_children(root_id(), observer);
 	}
 
 	auto do_create_node(std::size_t parent_id, std::shared_ptr<HspObjectPath const> path) -> std::size_t {
@@ -180,20 +208,23 @@ private:
 	// 指定したノードに対応するパスの子要素のうち、
 	// 無効なパスに対応する子ノードがあれば削除し、
 	// 有効なパスに対応する子ノードがなければ挿入する。
-	void update_children(std::size_t node_id, std::size_t depth, HspObjectTreeObserver& observer) {
+	void update_children(std::size_t node_id, HspObjectTreeObserver& observer) {
 		if (!nodes_.count(node_id)) {
 			assert(false && u8"存在しないノードの子ノード更新をしようとしています");
 			return;
 		}
 
-		if (depth >= UPDATE_DEPTH) {
-			return;
-		}
-		depth++;
-
 		auto&& children = nodes_.at(node_id).children();
 		auto&& path = nodes_.at(node_id).path();
+
+		if (!object_path_has_children(path)) {
+			return;
+		}
+
 		auto child_count = path.child_count(objects());
+		if (!children.empty() && !object_path_has_dynamic_children(path)) {
+			return;
+		}
 
 		// FIXME: 先頭への挿入時の挙動を効率化する (コールスタックのため)
 
@@ -237,7 +268,7 @@ private:
 
 		// 更新
 		for (auto i = std::size_t{}; i < children.size(); i++) {
-			update_children(children.at(i), depth, observer);
+			update_children(children.at(i), observer);
 		}
 	}
 
