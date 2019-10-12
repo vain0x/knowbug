@@ -57,8 +57,8 @@ public:
 	{
 	}
 
-	void will_activate(HTREEITEM item, AbstractViewBox& view_box) {
-		auto old_scroll_line = view_box.current_scroll_line();
+	void will_activate(HTREEITEM item, ViewEditControl& view_edit_control) {
+		auto old_scroll_line = view_edit_control.current_scroll_line();
 
 		if (active_item_ == item) {
 			save_scroll_line(item, old_scroll_line);
@@ -66,23 +66,23 @@ public:
 			active_item_ = item;
 		}
 
-		if (view_box.at_bottom()) {
+		if (view_edit_control.at_bottom()) {
 			at_bottom_.emplace(item);
 		} else {
 			at_bottom_.erase(item);
 		}
 	}
 
-	void did_activate(HTREEITEM item, HspObjectPath const& path, HspObjects& objects, AbstractViewBox& view_box) {
+	void did_activate(HTREEITEM item, HspObjectPath const& path, HspObjects& objects, ViewEditControl& view_edit_control) {
 		switch (path.kind()) {
 		case HspObjectKind::Log:
 			{
 				if (at_bottom_.count(item)) {
-					view_box.scroll_to_bottom();
+					view_edit_control.scroll_to_bottom();
 					return;
 				}
 
-				scroll_to_default(item, view_box);
+				scroll_to_default(item, view_edit_control);
 				return;
 			}
 		case HspObjectKind::Script:
@@ -90,19 +90,19 @@ public:
 				auto current_line = path.as_script().current_line(objects);
 				auto scroll_line = current_line - std::min(current_line, std::size_t{ 3 });
 
-				view_box.scroll_to_line(scroll_line);
-				view_box.select_line(current_line);
+				view_edit_control.scroll_to_line(scroll_line);
+				view_edit_control.select_line(current_line);
 				return;
 			}
 		default:
-			scroll_to_default(item, view_box);
+			scroll_to_default(item, view_edit_control);
 			return;
 		}
 	}
 
 private:
-	void scroll_to_default(HTREEITEM item, AbstractViewBox& view_box) {
-		view_box.scroll_to_line(get_scroll_line(item));
+	void scroll_to_default(HTREEITEM item, ViewEditControl& view_edit_control) {
+		view_edit_control.scroll_to_line(get_scroll_line(item));
 	}
 
 	void save_scroll_line(HTREEITEM item, std::size_t scroll_line) {
@@ -194,7 +194,7 @@ public:
 		node_tv_items_.erase(node_id);
 	}
 
-	void update_view_window(AbstractViewBox& view_box) override {
+	void update_view_window(ViewEditControl& view_edit_control) override {
 		// コールスタックを自動で更新する。
 		object_tree_.focus_by_path(*objects_.root_path().new_call_stack(), *this);
 
@@ -220,11 +220,11 @@ public:
 		// スクロール位置を保存して、文字列を交換して、スクロール位置を適切に戻す。
 		auto text = object_path_to_text(path, objects_);
 
-		scroll_preserver_.will_activate(tv_item, view_box);
+		scroll_preserver_.will_activate(tv_item, view_edit_control);
 
-		view_box.set_text(as_view(text));
+		view_edit_control.set_text(as_view(text));
 
-		scroll_preserver_.did_activate(tv_item, path, objects_, view_box);
+		scroll_preserver_.did_activate(tv_item, path, objects_, view_edit_control);
 
 		auto_expand(path, tv_item);
 	}

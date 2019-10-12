@@ -4,11 +4,11 @@
 
 #include "../knowbug_core/encoding.h"
 
-class AbstractViewBox {
+class ViewEditControl {
 public:
-	static auto create(HWND view_edit)->std::unique_ptr<AbstractViewBox>;
+	static auto create(HWND view_edit)->std::unique_ptr<ViewEditControl>;
 
-	virtual ~AbstractViewBox() {
+	virtual ~ViewEditControl() {
 	}
 
 	virtual auto current_scroll_line() const->std::size_t = 0;

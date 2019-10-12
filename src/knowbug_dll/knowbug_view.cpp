@@ -105,7 +105,7 @@ class KnowbugViewImpl
 	HWND source_edit_;
 	HWND view_edit_;
 	std::unique_ptr<VarTreeViewControl> var_tree_view_control_;
-	std::unique_ptr<AbstractViewBox> view_edit_control_;
+	std::unique_ptr<ViewEditControl> view_edit_control_;
 
 	StepButtonHandleArray step_buttons_;
 	GdiObjHandlePtr main_font_;
@@ -125,7 +125,7 @@ public:
 		HWND source_edit,
 		HWND view_edit,
 		std::unique_ptr<VarTreeViewControl>&& var_tree_view_control,
-		std::unique_ptr<AbstractViewBox>&& view_edit_control,
+		std::unique_ptr<ViewEditControl>&& view_edit_control,
 		StepButtonHandleArray const& step_buttons,
 		GdiObjHandlePtr&& main_font,
 		KnowbugConfig const& config
@@ -446,7 +446,7 @@ private:
 		return *var_tree_view_control_;
 	}
 
-	auto view_edit_control() -> AbstractViewBox& {
+	auto view_edit_control() -> ViewEditControl& {
 		return *view_edit_control_;
 	}
 
@@ -612,7 +612,7 @@ auto KnowbugView::create(KnowbugConfig const& config, HINSTANCE instance, HspObj
 
 	auto const source_edit = GetDlgItem(main_pane, IDC_SRC_LINE);
 
-	auto view_edit_control = AbstractViewBox::create(view_edit);
+	auto view_edit_control = ViewEditControl::create(view_edit);
 
 	// ステップボタン
 	auto const step_buttons = StepButtonHandleArray{

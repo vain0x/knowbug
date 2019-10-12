@@ -2,7 +2,7 @@
 #include "knowbug_view_edit.h"
 
 class ViewEditControlImpl
-	: public AbstractViewBox
+	: public ViewEditControl
 {
 	HWND view_edit_;
 
@@ -43,6 +43,6 @@ public:
 	}
 };
 
-auto AbstractViewBox::create(HWND view_edit)->std::unique_ptr<AbstractViewBox> {
+auto ViewEditControl::create(HWND view_edit)->std::unique_ptr<ViewEditControl> {
 	return std::make_unique<ViewEditControlImpl>(view_edit);
 }
