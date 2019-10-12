@@ -13,8 +13,7 @@ $package = "knowbug-$version"
 # パッケージから除外されるファイル (package/ 以下)
 $exclusions = @(
     "hsptmp",
-    "obj",
-    "install"
+    "obj"
 )
 
 # パッケージに含められるファイル (package/ 以外)
