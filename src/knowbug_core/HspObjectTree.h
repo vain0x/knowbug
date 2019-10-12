@@ -6,13 +6,18 @@
 
 class HspObjectPath;
 
+enum class HspObjectTreeInsertMode {
+	Front,
+	Back,
+};
+
 // オブジェクトツリーのノードにイベントが起こったときの処理を持つもの
 class HspObjectTreeObserver {
 public:
 	virtual ~HspObjectTreeObserver() {
 	}
 
-	virtual void did_create(std::size_t node_id) {
+	virtual void did_create(std::size_t node_id, HspObjectTreeInsertMode mode) {
 	}
 
 	virtual void will_destroy(std::size_t node_id) {

@@ -224,6 +224,10 @@ private:
 		}
 	}
 
+	void notify_did_initialize() {
+		PostMessage(main_window(), WM_KNOWBUG_DID_INITIALIZE, WPARAM{}, LPARAM{});
+	}
+
 public:
 	// 更新:
 
@@ -233,6 +237,7 @@ public:
 		initialize_main_window_layout();
 		initialize_view_window_layout();
 		show_windows();
+		notify_did_initialize();
 	}
 
 	void update() override {
@@ -320,7 +325,11 @@ public:
 
 	auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, KnowbugApp& app) -> LRESULT override {
 		switch (msg) {
-		case WM_USER:
+		case WM_KNOWBUG_DID_INITIALIZE:
+			var_tree_view_control().did_initialize();
+			break;
+
+		case WM_KNOWBUG_UPDATE_VIEW:
 			app.update_view();
 			return TRUE;
 
@@ -389,7 +398,7 @@ public:
 						// クリックされた要素に選択が移動していない。
 						// ここで更新用のメッセージをキューに post することにより、
 						// メッセージがツリービューに処理された後に更新を起こす。
-						PostMessage(hwnd, WM_USER, 0, 0);
+						PostMessage(hwnd, WM_KNOWBUG_UPDATE_VIEW, WPARAM{}, LPARAM{});
 						break;
 					}
 				}
