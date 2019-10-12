@@ -221,49 +221,58 @@ private:
 			return;
 		}
 
-		auto child_count = path.child_count(objects());
+		auto child_count = std::min(MAX_CHILD_COUNT, path.child_count(objects()));
 		if (!children.empty() && !object_path_has_dynamic_children(path)) {
 			return;
 		}
 
-		// FIXME: 先頭への挿入時の挙動を効率化する (コールスタックのため)
+		if (children.empty()) {
+			// 初回: ノードを順番通りに挿入する。
 
-		// 手順:
-		// 挿入・削除はインデックスの計算がとてもめんどうなので、いまのところは避ける。
-		// 子パスと子ノードの前から n 個が一致する、という最大の n を探す。
-		// 前から n 個を除く子ノードをすべて削除して、前から n 個を除く子パスを末尾に挿入する。
+			for (auto i = std::size_t{}; i < child_count; i++) {
+				auto&& child_path = path.child_at(i, objects());
 
-		auto n = std::size_t{};
-
-		while (n < children.size() && n < child_count) {
-			auto&& child_path = path.child_at(n, objects());
-			auto&& child_node = nodes_.at(children[n]);
-
-			if (!child_path->equals(child_node.path())) {
-				break;
+				auto child_node_id = do_create_node(node_id, child_path);
+				children.push_back(child_node_id);
+				observer.did_create(child_node_id, HspObjectTreeInsertMode::Back);
 			}
 
-			n++;
-		}
+		} else {
+			// 更新手順:
+			// 中間への挿入・削除はインデックスの計算が大変なので、いまのところは避ける。
+			// 子パスと子ノードの後ろから n 個が一致する、という最大の n を探す。
+			// 後ろから n 個を除く子ノードをすべて削除して、後ろから n 個を除く子パスを先頭に挿入する。
 
-		// 削除
-		for (auto i = children.size(); i >= 1;) {
-			i--;
+			auto n = std::size_t{};
 
-			if (i < n) {
-				break;
+			while (n < std::min(children.size(), child_count)) {
+				auto&& child_path = path.child_at(child_count - n - 1, objects());
+				auto&& child_node = nodes_.at(children[children.size() - n - 1]);
+
+				if (!child_path->equals(child_node.path())) {
+					break;
+				}
+
+				n++;
 			}
 
-			remove_node(children.at(i), observer);
-		}
+			// 削除
+			for (auto i = children.size() - n; i >= 1;) {
+				i--;
 
-		// 挿入
-		for (auto i = n; i < std::min(MAX_CHILD_COUNT, child_count); i++) {
-			auto&& child_path = path.child_at(i, objects());
+				remove_node(children.at(0), observer);
+			}
 
-			auto child_node_id = do_create_node(node_id, child_path);
-			children.push_back(child_node_id);
-			observer.did_create(child_node_id);
+			// 挿入
+			for (auto i = child_count - n; i >= 1;) {
+				i--;
+
+				auto&& child_path = path.child_at(i, objects());
+
+				auto child_node_id = do_create_node(node_id, child_path);
+				children.insert(children.begin(), child_node_id);
+				observer.did_create(child_node_id, HspObjectTreeInsertMode::Front);
+			}
 		}
 
 		// 更新

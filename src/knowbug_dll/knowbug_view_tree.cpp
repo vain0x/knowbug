@@ -29,6 +29,20 @@ static auto object_path_is_auto_expand(HspObjectPath const& path, HspObjects& ob
 		|| (path.kind() == HspObjectKind::Module && path.as_module().is_global(objects));
 }
 
+static auto insert_mode_to_sibling(HspObjectTreeInsertMode mode) {
+	switch (mode) {
+	case HspObjectTreeInsertMode::Front:
+		return TVI_FIRST;
+
+	case HspObjectTreeInsertMode::Back:
+		return TVI_LAST;
+
+	default:
+		assert(false);
+		throw std::exception{};
+	}
+}
+
 // ビューのスクロール位置を計算するもの
 class ScrollPreserver {
 	HTREEITEM active_item_;
@@ -141,7 +155,7 @@ public:
 	}
 
 	// オブジェクトツリーが更新されたときに呼ばれる。
-	void did_create(std::size_t node_id) override {
+	void did_create(std::size_t node_id, HspObjectTreeInsertMode mode) override {
 		auto&& path_opt = object_tree_.path(node_id);
 		if (!path_opt) {
 			return;
@@ -155,7 +169,7 @@ public:
 			? node_tv_items_.at(*parent_id_opt)
 			: TVI_ROOT;
 
-		auto tv_item = do_insert_item(tv_parent, as_view(to_os(name)));
+		auto tv_item = do_insert_item(tv_parent, as_view(to_os(name)), insert_mode_to_sibling(mode));
 		node_ids_.emplace(tv_item, node_id);
 		node_tv_items_.emplace(node_id, tv_item);
 
@@ -275,11 +289,11 @@ private:
 		auto_expand_items_.clear();
 	}
 
-	auto do_insert_item(HTREEITEM hParent, OsStringView const& name) -> HTREEITEM {
+	auto do_insert_item(HTREEITEM hParent, OsStringView const& name, HTREEITEM sibling) -> HTREEITEM {
 		auto tvis = TVINSERTSTRUCT{};
 		HTREEITEM res;
 		tvis.hParent = hParent;
-		tvis.hInsertAfter = TVI_LAST; // FIXME: 引数で受け取る
+		tvis.hInsertAfter = sibling;
 		tvis.item.mask = TVIF_TEXT;
 		tvis.item.pszText = const_cast<LPTSTR>(name.data());
 		res = TreeView_InsertItem(tree_view_, &tvis);
