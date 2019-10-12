@@ -6,7 +6,7 @@
 #include "HspObjects.h"
 #include "HspObjectTree.h"
 
-static auto const MAX_CHILD_COUNT = std::size_t{ 3000 };
+static auto const MAX_CHILD_COUNT = std::size_t{ 300 };
 
 // FIXME: v1 時代のツリーと挙動を揃えるためのもの。
 static auto object_path_has_children(HspObjectPath const& path) -> bool {

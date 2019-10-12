@@ -4,7 +4,7 @@
 #include "HspObjectWriter.h"
 #include "string_writer.h"
 
-static auto const MAX_CHILD_COUNT = std::size_t{ 3000 };
+static auto const MAX_CHILD_COUNT = std::size_t{ 300 };
 
 // -----------------------------------------------
 // ヘルパー
