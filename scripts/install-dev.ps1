@@ -19,7 +19,7 @@ if (!$env:HSP3_ROOT) {
 $table = @(
     @("hsp3debug.dll", "$pwd/src/Win32/Debug/hsp3debug.dll"),
     @("hsp3debug_u8.dll", "$pwd/src/Win32/DebugUtf8/hsp3debug_u8.dll"),
-    @("hsp3debug_64.dll", "$pwd/src/x64/Debug/hsp3debug_64.dll")
+    @("hsp3debug_64.dll", "$pwd/src/x64/DebugUtf8/hsp3debug_64.dll")
 )
 
 foreach ($row in $table) {
