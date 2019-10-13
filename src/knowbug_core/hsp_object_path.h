@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include "encoding.h"
-#include "hsp_types.h"
+#include "hsx.h"
 #include "hsp_wrap_call.h"
 #include "memory_view.h"
 
@@ -191,11 +191,11 @@ protected:
 	auto new_static_var(std::size_t static_var_id) const -> std::shared_ptr<HspObjectPath const>;
 
 public:
-	auto new_element(HspDimIndex const& indexes) const -> std::shared_ptr<HspObjectPath const>;
+	auto new_element(hsx::HspDimIndex const& indexes) const -> std::shared_ptr<HspObjectPath const>;
 
 protected:
 	// param_index: 親要素の何番目の引数か
-	auto new_param(HspParamType param_type, std::size_t param_index) const -> std::shared_ptr<HspObjectPath const>;
+	auto new_param(hsx::HspParamType param_type, std::size_t param_index) const -> std::shared_ptr<HspObjectPath const>;
 
 	auto new_label() const -> std::shared_ptr<HspObjectPath const>;
 
@@ -211,7 +211,7 @@ protected:
 
 	auto new_system_var_list() const -> std::shared_ptr<HspObjectPath const>;
 
-	auto new_system_var(HspSystemVarKind system_var_kind) const -> std::shared_ptr<HspObjectPath const>;
+	auto new_system_var(hsx::HspSystemVarKind system_var_kind) const -> std::shared_ptr<HspObjectPath const>;
 
 public:
 	auto new_call_stack() const -> std::shared_ptr<HspObjectPath const>;
@@ -353,13 +353,13 @@ public:
 		return static_var_id_;
 	}
 
-	auto type(HspObjects& objects) const -> HspType;
+	auto type(HspObjects& objects) const -> hsx::HspType;
 
 	auto type_name(HspObjects& objects) const -> Utf8StringView;
 
-	auto lengths(HspObjects& objects) const -> HspDimIndex;
+	auto lengths(HspObjects& objects) const -> hsx::HspDimIndex;
 
-	auto metadata(HspObjects& objects) const -> HspVarMetadata;
+	auto metadata(HspObjects& objects) const -> hsx::HspVarMetadata;
 };
 
 // -----------------------------------------------
@@ -371,7 +371,7 @@ class HspObjectPath::Element final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	HspDimIndex indexes_;
+	hsx::HspDimIndex indexes_;
 
 public:
 	using HspObjectPath::new_label;
@@ -381,7 +381,7 @@ public:
 	using HspObjectPath::new_flex;
 	using HspObjectPath::new_unknown;
 
-	Element(std::shared_ptr<HspObjectPath const> parent, HspDimIndex const& indexes);
+	Element(std::shared_ptr<HspObjectPath const> parent, hsx::HspDimIndex const& indexes);
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::Element;
@@ -403,7 +403,7 @@ public:
 
 	auto name(HspObjects& objects) const -> Utf8String override;
 
-	auto indexes() const -> HspDimIndex const& {
+	auto indexes() const -> hsx::HspDimIndex const& {
 		return indexes_;
 	}
 };
@@ -417,7 +417,7 @@ class HspObjectPath::Param final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	HspParamType param_type_;
+	hsx::HspParamType param_type_;
 	std::size_t param_index_;
 
 public:
@@ -427,7 +427,7 @@ public:
 	using HspObjectPath::new_double;
 	using HspObjectPath::new_int;
 
-	Param(std::shared_ptr<HspObjectPath const> parent, HspParamType param_type, std::size_t param_index);
+	Param(std::shared_ptr<HspObjectPath const> parent, hsx::HspParamType param_type, std::size_t param_index);
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::Param;
@@ -448,7 +448,7 @@ public:
 
 	auto name(HspObjects& objects) const -> Utf8String override;
 
-	auto param_type() const -> HspParamType {
+	auto param_type() const -> hsx::HspParamType {
 		return param_type_;
 	}
 
@@ -456,7 +456,7 @@ public:
 		return param_index_;
 	}
 
-	auto var_metadata(HspObjects& objects) const->std::optional<HspVarMetadata>;
+	auto var_metadata(HspObjects& objects) const->std::optional<hsx::HspVarMetadata>;
 };
 
 // -----------------------------------------------
@@ -541,7 +541,7 @@ public:
 		return to_owned(as_utf8(u8"str"));
 	}
 
-	auto value(HspObjects& objects) const -> HspStr;
+	auto value(HspObjects& objects) const -> hsx::HspStr;
 };
 
 // -----------------------------------------------
@@ -581,7 +581,7 @@ public:
 		return to_owned(as_utf8(u8"double"));
 	}
 
-	auto value(HspObjects& objects) const -> HspDouble;
+	auto value(HspObjects& objects) const -> hsx::HspDouble;
 };
 
 // -----------------------------------------------
@@ -621,7 +621,7 @@ public:
 		return to_owned(as_utf8(u8"int"));
 	}
 
-	auto value(HspObjects& objects) const -> HspInt;
+	auto value(HspObjects& objects) const -> hsx::HspInt;
 };
 
 // -----------------------------------------------
@@ -750,7 +750,7 @@ class HspObjectPath::SystemVar final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	HspSystemVarKind system_var_kind_;
+	hsx::HspSystemVarKind system_var_kind_;
 
 public:
 	using HspObjectPath::new_str;
@@ -758,7 +758,7 @@ public:
 	using HspObjectPath::new_int;
 	using HspObjectPath::new_flex;
 
-	SystemVar(std::shared_ptr<HspObjectPath const> parent, HspSystemVarKind system_var_kind);
+	SystemVar(std::shared_ptr<HspObjectPath const> parent, hsx::HspSystemVarKind system_var_kind);
 
 	auto kind() const -> HspObjectKind override {
 		return HspObjectKind::SystemVar;
@@ -782,7 +782,7 @@ public:
 
 	auto name(HspObjects& objects) const -> Utf8String override;
 
-	auto system_var_kind() const -> HspSystemVarKind {
+	auto system_var_kind() const -> hsx::HspSystemVarKind {
 		return system_var_kind_;
 	}
 };

@@ -93,7 +93,7 @@ auto wc_call_frame_get(WcCallFrameKey const& key) -> std::optional<std::referenc
 }
 
 // コールフレームの引数スタックを取得する。
-auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<HspParamStack> {
+auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<hsx::HspParamStack> {
 	// 注意: 必ずしもすべての呼び出しをフックできているとは限らない点に注意。
 	//
 	// 1. 例えば modinit の呼び出しはコールスタックに乗らない。
@@ -129,7 +129,7 @@ auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<Hs
 
 	auto param_stack_size = hsx::struct_to_param_stack_size(struct_dat);
 
-	return std::make_optional<HspParamStack>(struct_dat, (void*)param_stack, param_stack_size, is_safe);
+	return std::make_optional<hsx::HspParamStack>(struct_dat, (void*)param_stack, param_stack_size, is_safe);
 }
 
 // ユーザ定義コマンドの処理をラッパーで置き換える

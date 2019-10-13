@@ -155,7 +155,7 @@ bool HspObjectPath::StaticVar::is_array(HspObjects& objects) const {
 	return objects.static_var_path_is_array(*this);
 }
 
-auto HspObjectPath::StaticVar::type(HspObjects& objects) const -> HspType {
+auto HspObjectPath::StaticVar::type(HspObjects& objects) const -> hsx::HspType {
 	return objects.static_var_path_to_type(*this);
 }
 
@@ -163,11 +163,11 @@ auto HspObjectPath::StaticVar::type_name(HspObjects& objects) const -> Utf8Strin
 	return objects.type_to_name(type(objects));
 }
 
-auto HspObjectPath::StaticVar::lengths(HspObjects& objects) const -> HspDimIndex {
+auto HspObjectPath::StaticVar::lengths(HspObjects& objects) const -> hsx::HspDimIndex {
 	return metadata(objects).lengths();
 }
 
-auto HspObjectPath::StaticVar::metadata(HspObjects& objects) const -> HspVarMetadata {
+auto HspObjectPath::StaticVar::metadata(HspObjects& objects) const -> hsx::HspVarMetadata {
 	return objects.static_var_path_to_metadata(*this);
 }
 
@@ -187,7 +187,7 @@ auto HspObjectPath::as_static_var() const -> HspObjectPath::StaticVar const& {
 // 配列要素
 // -----------------------------------------------
 
-HspObjectPath::Element::Element(std::shared_ptr<HspObjectPath const> parent, HspDimIndex const& indexes)
+HspObjectPath::Element::Element(std::shared_ptr<HspObjectPath const> parent, hsx::HspDimIndex const& indexes)
 	: parent_(std::move(parent))
 	, indexes_(indexes)
 {
@@ -209,7 +209,7 @@ auto HspObjectPath::Element::name(HspObjects& objects) const -> Utf8String {
 	return objects.element_path_to_name(*this);
 }
 
-auto HspObjectPath::new_element(HspDimIndex const& indexes) const -> std::shared_ptr<HspObjectPath const> {
+auto HspObjectPath::new_element(hsx::HspDimIndex const& indexes) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::Element>(self(), indexes);
 }
 
@@ -225,14 +225,14 @@ auto HspObjectPath::as_element() const -> HspObjectPath::Element const& {
 // 引数
 // -----------------------------------------------
 
-HspObjectPath::Param::Param(std::shared_ptr<HspObjectPath const> parent, HspParamType param_type, std::size_t param_index)
+HspObjectPath::Param::Param(std::shared_ptr<HspObjectPath const> parent, hsx::HspParamType param_type, std::size_t param_index)
 	: parent_(std::move(parent))
 	, param_type_(param_type)
 	, param_index_(param_index)
 {
 }
 
-auto HspObjectPath::new_param(HspParamType param_type, std::size_t param_index) const -> std::shared_ptr<HspObjectPath const> {
+auto HspObjectPath::new_param(hsx::HspParamType param_type, std::size_t param_index) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::Param>(self(), param_type, param_index);
 }
 
@@ -256,7 +256,7 @@ auto HspObjectPath::Param::name(HspObjects& objects) const -> Utf8String {
 	return objects.param_path_to_name(*this);
 }
 
-auto HspObjectPath::Param::var_metadata(HspObjects& objects) const -> std::optional<HspVarMetadata> {
+auto HspObjectPath::Param::var_metadata(HspObjects& objects) const -> std::optional<hsx::HspVarMetadata> {
 	return objects.param_path_to_var_metadata(*this);
 }
 
@@ -316,7 +316,7 @@ auto HspObjectPath::as_str() const -> HspObjectPath::Str const& {
 	return *(HspObjectPath::Str const*)this;
 }
 
-auto HspObjectPath::Str::value(HspObjects& objects) const -> HspStr {
+auto HspObjectPath::Str::value(HspObjects& objects) const -> hsx::HspStr {
 	return objects.str_path_to_value(*this);
 }
 
@@ -342,7 +342,7 @@ auto HspObjectPath::as_double() const -> HspObjectPath::Double const& {
 	return *(HspObjectPath::Double const*)this;
 }
 
-auto HspObjectPath::Double::value(HspObjects& objects) const -> HspDouble {
+auto HspObjectPath::Double::value(HspObjects& objects) const -> hsx::HspDouble {
 	return objects.double_path_to_value(*this);
 }
 
@@ -368,7 +368,7 @@ auto HspObjectPath::as_int() const -> HspObjectPath::Int const& {
 	return *(HspObjectPath::Int const*)this;
 }
 
-auto HspObjectPath::Int::value(HspObjects& objects) const -> HspInt {
+auto HspObjectPath::Int::value(HspObjects& objects) const -> hsx::HspInt {
 	return objects.int_path_to_value(*this);
 }
 
@@ -440,19 +440,19 @@ auto HspObjectPath::as_unknown() const -> HspObjectPath::Unknown const& {
 // システム変数リスト
 // -----------------------------------------------
 
-static auto const s_system_var_list = std::array<HspSystemVarKind, 12>{{
-	HspSystemVarKind::Cnt,
-	HspSystemVarKind::Err,
-	HspSystemVarKind::IParam,
-	HspSystemVarKind::WParam,
-	HspSystemVarKind::LParam,
-	HspSystemVarKind::LoopLev,
-	HspSystemVarKind::SubLev,
-	HspSystemVarKind::Refstr,
-	HspSystemVarKind::Refdval,
-	HspSystemVarKind::Stat,
-	HspSystemVarKind::StrSize,
-	HspSystemVarKind::Thismod,
+static auto const s_system_var_list = std::array<hsx::HspSystemVarKind, 12>{{
+	hsx::HspSystemVarKind::Cnt,
+	hsx::HspSystemVarKind::Err,
+	hsx::HspSystemVarKind::IParam,
+	hsx::HspSystemVarKind::WParam,
+	hsx::HspSystemVarKind::LParam,
+	hsx::HspSystemVarKind::LoopLev,
+	hsx::HspSystemVarKind::SubLev,
+	hsx::HspSystemVarKind::Refstr,
+	hsx::HspSystemVarKind::Refdval,
+	hsx::HspSystemVarKind::Stat,
+	hsx::HspSystemVarKind::StrSize,
+	hsx::HspSystemVarKind::Thismod,
 }};
 
 HspObjectPath::SystemVarList::SystemVarList(std::shared_ptr<HspObjectPath const> parent)
@@ -473,7 +473,7 @@ auto HspObjectPath::as_system_var_list() const -> HspObjectPath::SystemVarList c
 }
 
 auto HspObjectPath::SystemVarList::child_count(HspObjects& objects) const -> std::size_t {
-	assert(s_system_var_list.back() == HspSystemVarKind::Thismod);
+	assert(s_system_var_list.back() == hsx::HspSystemVarKind::Thismod);
 	return s_system_var_list.size();
 }
 
@@ -488,13 +488,13 @@ auto HspObjectPath::SystemVarList::child_at(std::size_t child_index, HspObjects&
 // システム変数
 // -----------------------------------------------
 
-HspObjectPath::SystemVar::SystemVar(std::shared_ptr<HspObjectPath const> parent, HspSystemVarKind system_var_kind)
+HspObjectPath::SystemVar::SystemVar(std::shared_ptr<HspObjectPath const> parent, hsx::HspSystemVarKind system_var_kind)
 	: parent_(std::move(parent))
 	, system_var_kind_(system_var_kind)
 {
 }
 
-auto HspObjectPath::new_system_var(HspSystemVarKind system_var_kind) const -> std::shared_ptr<HspObjectPath const> {
+auto HspObjectPath::new_system_var(hsx::HspSystemVarKind system_var_kind) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::SystemVar>(self(), system_var_kind);
 }
 

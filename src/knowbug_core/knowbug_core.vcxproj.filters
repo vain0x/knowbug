@@ -126,9 +126,6 @@
     <ClInclude Include="hsp_runtime.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="hsp_types.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="step_controller.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>

@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include "encoding.h"
-#include "hsp_types.h"
+#include "hsx.h"
 #include "hsp_object_path.h"
 #include "hsp_wrap_call.h"
 
@@ -54,17 +54,17 @@ private:
 	std::vector<Utf8String> var_names_;
 	std::vector<Module> modules_;
 	std::vector<TypeData> types_;
-	std::unordered_map<HspLabel, Utf8String> label_names_;
+	std::unordered_map<hsx::HspLabel, Utf8String> label_names_;
 	std::unordered_map<STRUCTPRM const*, Utf8String> param_names_;
 
 public:
-	HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository);
+	HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository);
 
 	auto root_path() const->HspObjectPath::Root const&;
 
 	auto path_to_memory_view(HspObjectPath const& path) const->std::optional<MemoryView>;
 
-	auto type_to_name(HspType type) const->Utf8StringView;
+	auto type_to_name(hsx::HspType type) const->Utf8StringView;
 
 	auto module_global_id() const->std::size_t;
 
@@ -80,13 +80,13 @@ public:
 
 	bool static_var_path_is_array(HspObjectPath::StaticVar const& path);
 
-	auto static_var_path_to_type(HspObjectPath::StaticVar const& path)->HspType;
+	auto static_var_path_to_type(HspObjectPath::StaticVar const& path)->hsx::HspType;
 
 	auto static_var_path_to_child_count(HspObjectPath::StaticVar const& path) const->std::size_t;
 
 	auto static_var_path_to_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index) const->std::shared_ptr<HspObjectPath const>;
 
-	auto static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> HspVarMetadata;
+	auto static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> hsx::HspVarMetadata;
 
 	auto element_path_is_alive(HspObjectPath::Element const& path) const->bool;
 
@@ -102,7 +102,7 @@ public:
 
 	auto param_path_to_name(HspObjectPath::Param const& path) const -> Utf8String;
 
-	auto param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<HspVarMetadata>;
+	auto param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<hsx::HspVarMetadata>;
 
 	bool label_path_is_null(HspObjectPath::Label const& path) const;
 
@@ -110,11 +110,11 @@ public:
 
 	auto label_path_to_static_label_id(HspObjectPath::Label const& path) const -> std::optional<std::size_t>;
 
-	auto str_path_to_value(HspObjectPath::Str const& path) const->HspStr;
+	auto str_path_to_value(HspObjectPath::Str const& path) const->hsx::HspStr;
 
-	auto double_path_to_value(HspObjectPath::Double const& path) const->HspDouble;
+	auto double_path_to_value(HspObjectPath::Double const& path) const->hsx::HspDouble;
 
-	auto int_path_to_value(HspObjectPath::Int const& path) const->HspInt;
+	auto int_path_to_value(HspObjectPath::Int const& path) const->hsx::HspInt;
 
 	auto flex_path_to_child_count(HspObjectPath::Flex const& path)->std::size_t;
 
@@ -213,7 +213,7 @@ public:
 class HspObjectsBuilder {
 	std::vector<Utf8String> var_names_;
 
-	std::unordered_map<HspLabel, Utf8String> label_names_;
+	std::unordered_map<hsx::HspLabel, Utf8String> label_names_;
 
 	std::unordered_map<STRUCTPRM const*, Utf8String> param_names_;
 
@@ -229,6 +229,6 @@ public:
 
 // 迷子
 
-extern auto indexes_to_string(HspDimIndex const& indexes)->Utf8String;
+extern auto indexes_to_string(hsx::HspDimIndex const& indexes)->Utf8String;
 
 extern auto var_name_to_bare_ident(Utf8StringView const& name)->Utf8StringView;
