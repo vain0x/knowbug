@@ -72,8 +72,8 @@ public:
 	}
 
 	void did_hsp_logmes(HspStringView const& text) {
-		hsp_runtime_->logger().append(to_utf8(text));
-		hsp_runtime_->logger().append(as_utf8(u8"\r\n"));
+		hsp_runtime_->objects().log_do_append(to_utf8(text));
+		hsp_runtime_->objects().log_do_append(as_utf8(u8"\r\n"));
 
 		view().did_log_change();
 	}
@@ -96,15 +96,15 @@ public:
 		HspObjectWriter{ objects, writer }.write_table_form(path);
 		auto text = as_utf8(writer.finish());
 
-		hsp_runtime_->logger().append(text);
+		hsp_runtime_->objects().log_do_append(text);
 	}
 
 	void clear_log() override {
-		hsp_runtime_->logger().clear();
+		hsp_runtime_->objects().log_do_clear();
 	}
 
 	auto do_save_log(OsStringView const& file_path) -> bool {
-		auto&& content = hsp_runtime_->logger().content();
+		auto&& content = hsp_runtime_->objects().log_to_content();
 
 		auto file_stream = std::ofstream{ file_path.data() };
 		file_stream.write(as_native(content).data(), content.size());

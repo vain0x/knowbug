@@ -12,7 +12,6 @@ class WcDebugger;
 // HSP 側から取得できる情報を knowbug 用に加工したりキャッシュしたりする機能を持つ (予定)
 class HspRuntime {
 	HSP3DEBUG* debug_;
-	std::unique_ptr<HspLogger> logger_;
 	std::unique_ptr<HspObjects> objects_;
 	std::unique_ptr<HspObjectTree> object_tree_;
 
@@ -21,19 +20,13 @@ public:
 
 	HspRuntime(
 		HSP3DEBUG* debug,
-		std::unique_ptr<HspLogger> logger,
 		std::unique_ptr<HspObjects> objects,
 		std::unique_ptr<HspObjectTree> object_tree
 	)
 		: debug_(debug)
-		, logger_(std::move(logger))
 		, objects_(std::move(objects))
 		, object_tree_(std::move(object_tree))
 	{
-	}
-
-	auto logger() -> HspLogger& {
-		return *logger_;
 	}
 
 	auto objects() -> HspObjects& {

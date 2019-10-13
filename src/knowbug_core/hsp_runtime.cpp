@@ -8,26 +8,6 @@
 #include "source_files.h"
 #include "string_split.h"
 
-
-class HspLoggerImpl
-	: public HspLogger
-{
-	Utf8String content_;
-
-public:
-	auto content() const -> Utf8StringView override {
-		return as_view(content_);
-	}
-
-	void append(Utf8StringView const& text) override {
-		content_ += text;
-	}
-
-	void clear() override {
-		content_.clear();
-	}
-};
-
 static void read_debug_segment(HspObjectsBuilder& builder, SourceFileResolver& resolver, HSPCTX const* ctx) {
 	auto reader = hsx::DebugSegmentReader{ ctx };
 	while (true) {
@@ -68,16 +48,13 @@ auto HspRuntime::create(HSP3DEBUG* debug, OsString&& common_path)->std::unique_p
 
 	auto source_file_repository = std::make_unique<SourceFileRepository>(resolver.resolve());
 
-	auto logger = std::unique_ptr<HspLogger>{ std::make_unique<HspLoggerImpl>() };
-
-	auto objects = std::make_unique<HspObjects>(builder.finish(debug, *logger, std::move(source_file_repository)));
+	auto objects = std::make_unique<HspObjects>(builder.finish(debug, std::move(source_file_repository)));
 
 	auto object_tree = HspObjectTree::create(*objects);
 
 	return std::make_unique<HspRuntime>(
 		HspRuntime{
 			std::move(debug),
-			std::move(logger),
 			std::move(objects),
 			std::move(object_tree)
 		});

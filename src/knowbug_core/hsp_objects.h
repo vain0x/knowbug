@@ -12,16 +12,6 @@ class HspStaticVars;
 class SourceFileId;
 class SourceFileRepository;
 
-class HspLogger {
-public:
-	virtual ~HspLogger() {
-	}
-
-	virtual auto content() const -> Utf8StringView = 0;
-	virtual void append(Utf8StringView const& text) = 0;
-	virtual void clear() = 0;
-};
-
 // FIXME: インターフェイスを抽出する
 
 // HSP のオブジェクト (モジュール、変数、値など) に関して
@@ -35,7 +25,6 @@ public:
 private:
 	HSP3DEBUG* debug_;
 
-	HspLogger& logger_;
 	std::unique_ptr<SourceFileRepository> source_file_repository_;
 
 	std::shared_ptr<HspObjectPath const> root_path_;
@@ -48,8 +37,10 @@ private:
 
 	std::shared_ptr<WcDebugger> wc_debugger_;
 
+	Utf8String log_;
+
 public:
-	HspObjects(HSP3DEBUG* debug, HspLogger& logger, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);
+	HspObjects(HSP3DEBUG* debug, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);
 
 	void initialize();
 
@@ -147,6 +138,7 @@ public:
 
 	auto log_to_content() const -> Utf8StringView;
 
+	// ログに追記する。末尾の改行文字は追加されない。
 	void log_do_append(Utf8StringView const& text);
 
 	void log_do_clear();
@@ -217,7 +209,7 @@ public:
 
 	void add_param_name(int param_index, char const* param_name, HSPCTX const* ctx);
 
-	auto finish(HSP3DEBUG* debug, HspLogger& logger, std::unique_ptr<SourceFileRepository>&& source_file_repository)->HspObjects;
+	auto finish(HSP3DEBUG* debug, std::unique_ptr<SourceFileRepository>&& source_file_repository)->HspObjects;
 };
 
 // 迷子
