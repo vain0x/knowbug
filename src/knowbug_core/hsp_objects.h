@@ -3,8 +3,8 @@
 #include <memory>
 #include <string>
 #include "encoding.h"
-#include "HspTypes.h"
-#include "HspObjectPath.h"
+#include "hsp_types.h"
+#include "hsp_object_path.h"
 #include "hsp_wrap_call.h"
 
 class HspDebugApi;

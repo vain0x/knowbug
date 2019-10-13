@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include "encoding.h"
-#include "HspTypes.h"
+#include "hsp_types.h"
 #include "hsp_wrap_call.h"
 #include "memory_view.h"
 

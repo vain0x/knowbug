@@ -2,9 +2,9 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
-#include "HspObjectPath.h"
-#include "HspObjects.h"
-#include "HspObjectTree.h"
+#include "hsp_object_path.h"
+#include "hsp_objects.h"
+#include "hsp_object_tree.h"
 
 static auto const MAX_CHILD_COUNT = std::size_t{ 300 };
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "HspObjects.h"
-#include "HspObjectTree.h"
+#include "hsp_objects.h"
+#include "hsp_object_tree.h"
 
 class SourceFileRepository;
 class WcDebugger;

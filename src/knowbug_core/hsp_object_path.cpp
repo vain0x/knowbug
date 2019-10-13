@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "HspObjects.h"
-#include "HspObjectPath.h"
+#include "hsp_objects.h"
+#include "hsp_object_path.h"
 
 static bool kind_can_have_value(HspObjectKind kind) {
 	return kind == HspObjectKind::StaticVar

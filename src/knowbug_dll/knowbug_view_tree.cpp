@@ -3,10 +3,10 @@
 #include "pch.h"
 #include <unordered_map>
 #include <unordered_set>
-#include "../knowbug_core/HspObjectPath.h"
-#include "../knowbug_core/HspObjects.h"
-#include "../knowbug_core/HspObjectTree.h"
-#include "../knowbug_core/HspObjectWriter.h"
+#include "../knowbug_core/hsp_object_path.h"
+#include "../knowbug_core/hsp_objects.h"
+#include "../knowbug_core/hsp_object_tree.h"
+#include "../knowbug_core/hsp_object_writer.h"
 #include "../knowbug_core/platform.h"
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_view_tree.h"

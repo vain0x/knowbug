@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "encoding.h"
-#include "HspObjects.h"
-#include "HspObjectWriter.h"
+#include "hsp_objects.h"
+#include "hsp_object_writer.h"
 #include "string_writer.h"
 
 static auto const MAX_CHILD_COUNT = std::size_t{ 300 };

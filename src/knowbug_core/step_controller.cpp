@@ -1,7 +1,7 @@
 #include "pch.h"
 #include <cassert>
 #include "hsx.h"
-#include "StepController.h"
+#include "step_controller.h"
 
 namespace hsx = hsp_sdk_ext;
 

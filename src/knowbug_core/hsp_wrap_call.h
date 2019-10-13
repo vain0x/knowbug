@@ -4,7 +4,7 @@
 
 #include <optional>
 #include "../hspsdk/hsp3struct.h"
-#include "HspTypes.h"
+#include "hsp_types.h"
 
 class WcCallFrameKey;
 class WcCallFrame;

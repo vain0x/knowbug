@@ -2,7 +2,7 @@
 #include <sstream>
 #include "hsp_wrap_call.h"
 #include "hsp_objects_module_tree.h"
-#include "HspObjects.h"
+#include "hsp_objects.h"
 #include "hsx.h"
 #include "hsx_debug_segment.h"
 #include "source_files.h"

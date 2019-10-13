@@ -3,7 +3,7 @@
 #include "pch.h"
 #include <iostream>
 #include "../knowbug_core/hsp_objects_module_tree.h"
-#include "../knowbug_core/HspObjectWriter.h"
+#include "../knowbug_core/hsp_object_writer.h"
 #include "../knowbug_core/string_split.h"
 #include "../knowbug_core/string_writer.h"
 #include "test_runner.h"
