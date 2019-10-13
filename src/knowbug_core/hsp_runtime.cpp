@@ -94,14 +94,13 @@ auto HspRuntime::create(HSP3DEBUG* debug, OsString&& common_path)->std::unique_p
 	auto logger = std::unique_ptr<HspLogger>{ std::make_unique<HspLoggerImpl>() };
 	auto scripts = std::unique_ptr<HspScripts>{ std::make_unique<HspScriptsImpl>(*source_file_repository) };
 
-	auto objects = std::make_unique<HspObjects>(builder.finish(debug, *logger, *scripts, *source_file_repository));
+	auto objects = std::make_unique<HspObjects>(builder.finish(debug, *logger, *scripts, std::move(source_file_repository)));
 
 	auto object_tree = HspObjectTree::create(*objects);
 
 	return std::make_unique<HspRuntime>(
 		HspRuntime{
 			std::move(debug),
-			std::move(source_file_repository),
 			std::move(logger),
 			std::move(scripts),
 			std::move(objects),

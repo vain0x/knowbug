@@ -504,11 +504,11 @@ public:
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<HspObjects::Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger)
+HspObjects::HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<HspObjects::Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger)
 	: debug_(debug)
 	, logger_(logger)
 	, scripts_(scripts)
-	, source_file_repository_(source_file_repository)
+	, source_file_repository_(std::move(source_file_repository))
 	, root_path_(std::make_shared<HspObjectPath::Root>())
 	, var_names_(std::move(var_names))
 	, modules_(std::move(modules))
@@ -1058,7 +1058,7 @@ auto HspObjects::call_frame_path_to_full_path(HspObjectPath::CallFrame const& pa
 	}
 	auto file_id = SourceFileId{ *file_id_opt };
 
-	auto&& full_path_opt = source_file_repository_.file_to_full_path_as_utf8(file_id);
+	auto&& full_path_opt = source_file_repository_->file_to_full_path_as_utf8(file_id);
 	if (!full_path_opt) {
 		return std::nullopt;
 	}
@@ -1097,7 +1097,7 @@ auto HspObjects::script_to_full_path() const -> std::optional<OsStringView> {
 		return std::nullopt;
 	}
 
-	return source_file_repository_.file_ref_name_to_full_path(*file_ref_name_opt);
+	return source_file_repository_->file_ref_name_to_full_path(*file_ref_name_opt);
 }
 
 auto HspObjects::script_to_content() const -> Utf8StringView {
@@ -1179,8 +1179,8 @@ void HspObjectsBuilder::add_param_name(int param_index, char const* param_name, 
 	param_names_.emplace(*param_opt, std::move(name));
 }
 
-auto HspObjectsBuilder::finish(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, SourceFileRepository& source_file_repository)->HspObjects {
+auto HspObjectsBuilder::finish(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::unique_ptr<SourceFileRepository>&& source_file_repository)->HspObjects {
 	auto modules = group_vars_by_module(var_names_);
-	auto wc_debugger = std::shared_ptr<WcDebugger>{ std::make_shared<WcDebuggerImpl>(debug, source_file_repository) };
-	return HspObjects{ debug, logger, scripts, std::move(var_names_), std::move(modules), std::move(label_names_), std::move(param_names_), source_file_repository, std::move(wc_debugger) };
+	auto wc_debugger = std::shared_ptr<WcDebugger>{ std::make_shared<WcDebuggerImpl>(debug, *source_file_repository) };
+	return HspObjects{ debug, logger, scripts, std::move(var_names_), std::move(modules), std::move(label_names_), std::move(param_names_), std::move(source_file_repository), std::move(wc_debugger) };
 }

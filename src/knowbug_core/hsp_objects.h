@@ -47,7 +47,7 @@ private:
 
 	HspLogger& logger_;
 	HspScripts& scripts_;
-	SourceFileRepository& source_file_repository_;
+	std::unique_ptr<SourceFileRepository> source_file_repository_;
 
 	std::shared_ptr<HspObjectPath const> root_path_;
 
@@ -60,7 +60,7 @@ private:
 	std::shared_ptr<WcDebugger> wc_debugger_;
 
 public:
-	HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);
+	HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);
 
 	void initialize();
 
@@ -228,7 +228,7 @@ public:
 
 	void add_param_name(int param_index, char const* param_name, HSPCTX const* ctx);
 
-	auto finish(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, SourceFileRepository& source_file_repository)->HspObjects;
+	auto finish(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::unique_ptr<SourceFileRepository>&& source_file_repository)->HspObjects;
 };
 
 // 迷子
