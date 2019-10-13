@@ -3,8 +3,9 @@
 #include <fstream>
 #include "../hspsdk/hsp3plugin.h"
 #include "../knowbug_core/encoding.h"
+#include "../knowbug_core/hsp_object_tree.h"
 #include "../knowbug_core/hsp_object_writer.h"
-#include "../knowbug_core/hsp_runtime.h"
+#include "../knowbug_core/hsp_objects.h"
 #include "../knowbug_core/hsp_wrap_call.h"
 #include "../knowbug_core/platform.h"
 #include "../knowbug_core/source_files.h"
@@ -26,19 +27,22 @@ class KnowbugAppImpl
 {
 	std::unique_ptr<KnowbugConfig> config_;
 	std::unique_ptr<KnowbugStepController> step_controller_;
-	std::unique_ptr<HspRuntime> hsp_runtime_;
+	std::unique_ptr<HspObjects> objects_;
+	std::unique_ptr<HspObjectTree> object_tree_;
 	std::unique_ptr<KnowbugView> view_;
 
 public:
 	KnowbugAppImpl(
 		std::unique_ptr<KnowbugConfig> config,
 		std::unique_ptr<KnowbugStepController> step_controller,
-		std::unique_ptr<HspRuntime> hsp_runtime,
+		std::unique_ptr<HspObjects> objects,
+		std::unique_ptr<HspObjectTree> object_tree,
 		std::unique_ptr<KnowbugView> view
 	)
 		: config_(std::move(config))
 		, step_controller_(std::move(step_controller))
-		, hsp_runtime_(std::move(hsp_runtime))
+		, objects_(std::move(objects))
+		, object_tree_(std::move(object_tree))
 		, view_(std::move(view))
 	{
 	}
@@ -48,7 +52,7 @@ public:
 	}
 
 	void initialize() {
-		hsp_runtime_->initialize();
+		objects().initialize();
 
 		view().initialize();
 	}
@@ -72,15 +76,15 @@ public:
 	}
 
 	void did_hsp_logmes(HspStringView const& text) {
-		hsp_runtime_->objects().log_do_append(to_utf8(text));
-		hsp_runtime_->objects().log_do_append(as_utf8(u8"\r\n"));
+		objects().log_do_append(to_utf8(text));
+		objects().log_do_append(as_utf8(u8"\r\n"));
 
 		view().did_log_change();
 	}
 
 	void update_view() override {
-		hsp_runtime_->objects().script_do_update_location();
-		view().update_source_edit(to_os(hsp_runtime_->objects().script_to_current_location_summary()));
+		objects().script_do_update_location();
+		view().update_source_edit(to_os(objects().script_to_current_location_summary()));
 		view().update();
 	}
 
@@ -89,22 +93,20 @@ public:
 	}
 
 	void add_object_text_to_log(HspObjectPath const& path) override {
-		auto&& objects = hsp_runtime_->objects();
-
 		// FIXME: 共通化
 		auto writer = CStrWriter{};
-		HspObjectWriter{ objects, writer }.write_table_form(path);
+		HspObjectWriter{ objects(), writer }.write_table_form(path);
 		auto text = as_utf8(writer.finish());
 
-		hsp_runtime_->objects().log_do_append(text);
+		objects().log_do_append(text);
 	}
 
 	void clear_log() override {
-		hsp_runtime_->objects().log_do_clear();
+		objects().log_do_clear();
 	}
 
 	auto do_save_log(OsStringView const& file_path) -> bool {
-		auto&& content = hsp_runtime_->objects().log_to_content();
+		auto&& content = objects().log_to_content();
 
 		auto file_stream = std::ofstream{ file_path.data() };
 		file_stream.write(as_native(content).data(), content.size());
@@ -136,7 +138,7 @@ public:
 	}
 
 	void open_current_script_file() override {
-		auto full_path_opt = hsp_runtime_->objects().script_to_full_path();
+		auto full_path_opt = objects().script_to_full_path();
 		if (!full_path_opt) {
 			view().notify_open_file_failure();
 			return;
@@ -157,6 +159,15 @@ public:
 		auto no_args = LPCTSTR{ nullptr };
 		auto current_directory = LPCTSTR{ nullptr };
 		ShellExecute(nullptr, TEXT("open"), url, no_args, current_directory, SW_SHOWDEFAULT);
+	}
+
+private:
+	auto objects() ->HspObjects& {
+		return *objects_;
+	}
+
+	auto object_tree() ->HspObjectTree& {
+		return *object_tree_;
 	}
 };
 
@@ -192,14 +203,23 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 	auto step_controller = std::make_unique<KnowbugStepController>(debug);
 
-	auto hsp_runtime = HspRuntime::create(debug, config->commonPath());
+	// :thinking_face:
+	auto resolver = SourceFileResolver{};
+	auto objects_builder = HspObjectsBuilder{};
+	resolver.add_known_dir(config->commonPath());
+	objects_builder.read_debug_segment(resolver, ctx);
+	auto source_file_repository = std::make_unique<SourceFileRepository>(resolver.resolve());
+	auto objects = std::make_unique<HspObjects>(objects_builder.finish(debug, std::move(source_file_repository)));
 
-	auto view = KnowbugView::create(*config, g_dll_instance, hsp_runtime->objects(), hsp_runtime->object_tree());
+	auto object_tree = HspObjectTree::create(*objects);
+
+	auto view = KnowbugView::create(*config, g_dll_instance, *objects, *object_tree);
 
 	g_app = std::make_shared<KnowbugAppImpl>(
 		std::move(config),
 		std::move(step_controller),
-		std::move(hsp_runtime),
+		std::move(objects),
+		std::move(object_tree),
 		std::move(view)
 	);
 

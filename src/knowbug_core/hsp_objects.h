@@ -11,6 +11,7 @@ class HspDebugApi;
 class HspStaticVars;
 class SourceFileId;
 class SourceFileRepository;
+class SourceFileResolver;
 
 // FIXME: インターフェイスを抽出する
 
@@ -211,6 +212,8 @@ public:
 	void add_label_name(int ot_index, char const* label_name, HSPCTX const* ctx);
 
 	void add_param_name(int param_index, char const* param_name, HSPCTX const* ctx);
+
+	void read_debug_segment(SourceFileResolver& resolver, HSPCTX const* ctx);
 
 	auto finish(HSP3DEBUG* debug, std::unique_ptr<SourceFileRepository>&& source_file_repository)->HspObjects;
 };

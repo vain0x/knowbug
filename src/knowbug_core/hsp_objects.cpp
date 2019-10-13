@@ -1159,6 +1159,37 @@ HspObjects::TypeData::TypeData(Utf8String&& name)
 // HspObjectsBuilder
 // -----------------------------------------------
 
+static void read_debug_segment(HspObjectsBuilder& builder, SourceFileResolver& resolver, HSPCTX const* ctx) {
+	auto reader = hsx::DebugSegmentReader{ ctx };
+	while (true) {
+		auto&& item_opt = reader.next();
+		if (!item_opt) {
+			break;
+		}
+
+		switch (item_opt->kind()) {
+		case hsx::DebugSegmentItemKind::SourceFile:
+			resolver.add_file_ref_name(std::string{ item_opt->str() });
+			continue;
+
+		case hsx::DebugSegmentItemKind::VarName:
+			builder.add_var_name(item_opt->str());
+			continue;
+
+		case hsx::DebugSegmentItemKind::LabelName:
+			builder.add_label_name(item_opt->num(), item_opt->str(), ctx);
+			continue;
+
+		case hsx::DebugSegmentItemKind::ParamName:
+			builder.add_param_name(item_opt->num(), item_opt->str(), ctx);
+			continue;
+
+		default:
+			continue;
+		}
+	}
+}
+
 void HspObjectsBuilder::add_var_name(char const* var_name) {
 	var_names_.emplace_back(to_utf8(as_hsp(var_name)));
 }
@@ -1184,6 +1215,10 @@ void HspObjectsBuilder::add_param_name(int param_index, char const* param_name, 
 	name = to_owned(var_name_to_bare_ident(name));
 
 	param_names_.emplace(*param_opt, std::move(name));
+}
+
+void HspObjectsBuilder::read_debug_segment(SourceFileResolver& resolver, HSPCTX const* ctx) {
+	(::read_debug_segment)(*this, resolver, ctx);
 }
 
 auto HspObjectsBuilder::finish(HSP3DEBUG* debug, std::unique_ptr<SourceFileRepository>&& source_file_repository)->HspObjects {

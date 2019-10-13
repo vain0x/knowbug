@@ -5,6 +5,7 @@
 #include <optional>
 
 class HspObjectPath;
+class HspObjects;
 
 enum class HspObjectTreeInsertMode {
 	Front,

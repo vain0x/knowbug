@@ -123,9 +123,6 @@
     <ClInclude Include="hsp_object_writer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="hsp_runtime.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="step_controller.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -207,9 +204,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="hsp_object_writer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="hsp_runtime.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="step_controller.cpp">
