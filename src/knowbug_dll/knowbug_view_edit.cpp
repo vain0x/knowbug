@@ -13,11 +13,39 @@ static auto monus(std::size_t first, std::size_t second) -> std::size_t {
 	return first - std::min(first, second);
 }
 
+class TextSpan {
+	std::size_t begin_;
+	std::size_t end_;
+
+public:
+	TextSpan()
+		: begin_()
+		, end_()
+	{
+	}
+
+	TextSpan(std::size_t begin, std::size_t end)
+		: begin_(begin)
+		, end_(std::max(begin, end))
+	{
+	}
+
+	auto begin() const->std::size_t {
+		return begin_;
+	}
+
+	auto end() const->std::size_t {
+		return end_;
+	}
+};
+
 class ViewEditControlImpl
 	: public ViewEditControl
 {
 	class EntityData {
 	public:
+		TextSpan selection_;
+
 		// 一番上に表示されている行番号
 		std::size_t scroll_line_;
 
@@ -25,7 +53,8 @@ class ViewEditControlImpl
 		bool at_bottom_;
 
 		EntityData()
-			: scroll_line_(0)
+			: selection_()
+			, scroll_line_()
 			, at_bottom_(true)
 		{
 		}
@@ -64,6 +93,7 @@ private:
 
 	void save_state(EntityId entity_id) {
 		auto& entity_data = touch_entity(entity_id);
+		entity_data.selection_ = current_selection();
 		entity_data.scroll_line_ = current_scroll_line();
 		entity_data.at_bottom_ = at_bottom();
 	}
@@ -73,10 +103,12 @@ private:
 
 		switch (cursor_policy.kind()) {
 		case CursorPolicy::Kind::Top:
+			select_span(entity_data.selection_);
 			scroll_to_line(entity_data.scroll_line_);
 			break;
 
 		case CursorPolicy::Kind::Bottom:
+			select_span(entity_data.selection_);
 			if (entity_data.at_bottom_) {
 				scroll_to_bottom();
 			} else {
@@ -92,6 +124,13 @@ private:
 		default:
 			assert(false && u8"Unknown CursorPolicy::Kind");
 		}
+	}
+
+	auto current_selection() const->TextSpan {
+		auto begin = DWORD{};
+		auto end = DWORD{};
+		SendMessage(view_edit_, EM_GETSEL, (WPARAM)&begin, (LPARAM)&end);
+		return TextSpan{ begin, end };
 	}
 
 	auto current_scroll_line() const -> std::size_t {
@@ -113,6 +152,10 @@ private:
 	void scroll_to_bottom() {
 		auto line_count = Edit_GetLineCount(view_edit_);
 		scroll_to_line(line_count);
+	}
+
+	void select_span(TextSpan span) {
+		Edit_SetSel(view_edit_, span.begin(), span.end());
 	}
 
 	void select_line(std::size_t line_index) {
