@@ -40,6 +40,4 @@ public:
 	void initialize() {
 		objects().initialize();
 	}
-
-	void update_location();
 };

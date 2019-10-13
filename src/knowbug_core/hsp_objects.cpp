@@ -1124,6 +1124,10 @@ auto HspObjects::script_to_current_location_summary() const -> Utf8String {
 	return as_utf8(text.str());
 }
 
+void HspObjects::script_do_update_location() {
+	hsx::debug_do_update_location(debug());
+}
+
 auto HspObjects::context() const -> HSPCTX const* {
 	return hsx::debug_to_context(debug());
 }

@@ -59,7 +59,3 @@ auto HspRuntime::create(HSP3DEBUG* debug, OsString&& common_path)->std::unique_p
 			std::move(object_tree)
 		});
 }
-
-void HspRuntime::update_location() {
-	hsx::debug_do_update_location(debug_);
-}

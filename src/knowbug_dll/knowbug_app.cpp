@@ -79,7 +79,7 @@ public:
 	}
 
 	void update_view() override {
-		hsp_runtime_->update_location();
+		hsp_runtime_->objects().script_do_update_location();
 		view().update_source_edit(to_os(hsp_runtime_->objects().script_to_current_location_summary()));
 		view().update();
 	}

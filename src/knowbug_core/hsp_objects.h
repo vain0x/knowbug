@@ -151,6 +151,9 @@ public:
 
 	auto script_to_current_location_summary() const->Utf8String;
 
+	// :thinking_face:
+	void script_do_update_location();
+
 private:
 	auto debug() -> HSP3DEBUG* {
 		return debug_;
