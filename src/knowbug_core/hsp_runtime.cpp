@@ -8,41 +8,6 @@
 #include "source_files.h"
 #include "string_split.h"
 
-class WcDebuggerImpl
-	: public WcDebugger
-{
-	HSP3DEBUG* debug_;
-
-	SourceFileRepository& source_file_repository_;
-
-public:
-	WcDebuggerImpl(HSP3DEBUG* debug, SourceFileRepository& source_file_repository)
-		: debug_(debug)
-		, source_file_repository_(source_file_repository)
-	{
-	}
-
-	auto current_file_id_opt() const -> std::optional<std::size_t> {
-		auto&& file_ref_name_opt = hsx::debug_to_file_ref_name(debug_);
-		if (!file_ref_name_opt) {
-			return std::nullopt;
-		}
-
-		auto&& id_opt = source_file_repository_.file_ref_name_to_file_id(*file_ref_name_opt);
-		if (!id_opt) {
-			return std::nullopt;
-		}
-
-		return id_opt->id();
-	}
-
-	void get_current_location(std::optional<std::size_t>& file_id_opt, std::size_t& line_index) override {
-		hsx::debug_do_update_location(debug_);
-
-		file_id_opt = current_file_id_opt();
-		line_index = hsx::debug_to_line_index(debug_);
-	}
-};
 
 class HspLoggerImpl
 	: public HspLogger
@@ -132,7 +97,6 @@ auto HspRuntime::create(HSP3DEBUG* debug, OsString&& common_path)->std::unique_p
 	auto objects = std::make_unique<HspObjects>(builder.finish(debug, *logger, *scripts, *source_file_repository));
 
 	auto object_tree = HspObjectTree::create(*objects);
-	auto wc_debugger = std::shared_ptr<WcDebugger>{ std::make_shared<WcDebuggerImpl>(debug, *source_file_repository) };
 
 	return std::make_unique<HspRuntime>(
 		HspRuntime{
@@ -141,8 +105,7 @@ auto HspRuntime::create(HSP3DEBUG* debug, OsString&& common_path)->std::unique_p
 			std::move(logger),
 			std::move(scripts),
 			std::move(objects),
-			std::move(object_tree),
-			std::move(wc_debugger)
+			std::move(object_tree)
 		});
 }
 

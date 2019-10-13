@@ -48,7 +48,7 @@ public:
 	}
 
 	void initialize() {
-		wc_initialize(hsp_runtime_->wc_debugger());
+		hsp_runtime_->initialize();
 
 		view().initialize();
 	}

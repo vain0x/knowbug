@@ -461,10 +461,50 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, HS
 }
 
 // -----------------------------------------------
+// WcDebugger
+// -----------------------------------------------
+
+class WcDebuggerImpl
+	: public WcDebugger
+{
+	HSP3DEBUG* debug_;
+
+	SourceFileRepository& source_file_repository_;
+
+public:
+	WcDebuggerImpl(HSP3DEBUG* debug, SourceFileRepository& source_file_repository)
+		: debug_(debug)
+		, source_file_repository_(source_file_repository)
+	{
+	}
+
+	auto current_file_id_opt() const -> std::optional<std::size_t> {
+		auto&& file_ref_name_opt = hsx::debug_to_file_ref_name(debug_);
+		if (!file_ref_name_opt) {
+			return std::nullopt;
+		}
+
+		auto&& id_opt = source_file_repository_.file_ref_name_to_file_id(*file_ref_name_opt);
+		if (!id_opt) {
+			return std::nullopt;
+		}
+
+		return id_opt->id();
+	}
+
+	void get_current_location(std::optional<std::size_t>& file_id_opt, std::size_t& line_index) override {
+		hsx::debug_do_update_location(debug_);
+
+		file_id_opt = current_file_id_opt();
+		line_index = hsx::debug_to_line_index(debug_);
+	}
+};
+
+// -----------------------------------------------
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<HspObjects::Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository)
+HspObjects::HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<HspObjects::Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger)
 	: debug_(debug)
 	, logger_(logger)
 	, scripts_(scripts)
@@ -475,7 +515,12 @@ HspObjects::HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts,
 	, types_(create_type_datas())
 	, label_names_(std::move(label_names))
 	, param_names_(std::move(param_names))
+	, wc_debugger_(std::move(wc_debugger))
 {
+}
+
+void HspObjects::initialize() {
+	wc_initialize(wc_debugger_);
 }
 
 auto HspObjects::root_path() const->HspObjectPath::Root const& {
@@ -1136,5 +1181,6 @@ void HspObjectsBuilder::add_param_name(int param_index, char const* param_name, 
 
 auto HspObjectsBuilder::finish(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, SourceFileRepository& source_file_repository)->HspObjects {
 	auto modules = group_vars_by_module(var_names_);
-	return HspObjects{ debug, logger, scripts, std::move(var_names_), std::move(modules), std::move(label_names_), std::move(param_names_), source_file_repository };
+	auto wc_debugger = std::shared_ptr<WcDebugger>{ std::make_shared<WcDebuggerImpl>(debug, source_file_repository) };
+	return HspObjects{ debug, logger, scripts, std::move(var_names_), std::move(modules), std::move(label_names_), std::move(param_names_), source_file_repository, std::move(wc_debugger) };
 }

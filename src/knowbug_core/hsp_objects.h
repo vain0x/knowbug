@@ -57,8 +57,12 @@ private:
 	std::unordered_map<hsx::HspLabel, Utf8String> label_names_;
 	std::unordered_map<STRUCTPRM const*, Utf8String> param_names_;
 
+	std::shared_ptr<WcDebugger> wc_debugger_;
+
 public:
-	HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository);
+	HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, SourceFileRepository& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);
+
+	void initialize();
 
 	auto root_path() const->HspObjectPath::Root const&;
 

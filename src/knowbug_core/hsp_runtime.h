@@ -17,7 +17,6 @@ class HspRuntime {
 	std::unique_ptr<HspScripts> scripts_;
 	std::unique_ptr<HspObjects> objects_;
 	std::unique_ptr<HspObjectTree> object_tree_;
-	std::shared_ptr<WcDebugger> wc_debugger_;
 
 public:
 	static auto create(HSP3DEBUG* debug, OsString&& common_path)->std::unique_ptr<HspRuntime>;
@@ -28,8 +27,7 @@ public:
 		std::unique_ptr<HspLogger> logger,
 		std::unique_ptr<HspScripts> scripts,
 		std::unique_ptr<HspObjects> objects,
-		std::unique_ptr<HspObjectTree> object_tree,
-		std::shared_ptr<WcDebugger> wc_debugger
+		std::unique_ptr<HspObjectTree> object_tree
 	)
 		: debug_(debug)
 		, source_file_repository_(std::move(source_file_repository))
@@ -37,7 +35,6 @@ public:
 		, scripts_(std::move(scripts))
 		, objects_(std::move(objects))
 		, object_tree_(std::move(object_tree))
-		, wc_debugger_(std::move(wc_debugger))
 	{
 	}
 
@@ -53,8 +50,8 @@ public:
 		return *object_tree_;
 	}
 
-	auto wc_debugger() -> std::shared_ptr<WcDebugger> {
-		return wc_debugger_;
+	void initialize() {
+		objects().initialize();
 	}
 
 	void update_location();
