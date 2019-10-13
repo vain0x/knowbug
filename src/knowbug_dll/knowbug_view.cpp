@@ -10,6 +10,7 @@
 #include "../knowbug_core/StepController.h"
 #include "knowbug_app.h"
 #include "knowbug_view.h"
+#include "knowbug_view_edit.h"
 #include "knowbug_view_tree.h"
 #include "knowbug_config.h"
 #include "win_gui.h"
@@ -31,7 +32,6 @@
 #define KNOWBUG_VERSION TEXT("2.0.0 beta") KNOWBUG_ENCODING_SUFFIX KNOWBUG_CPU_SUFFIX
 
 static auto const KNOWBUG_MAIN_WINDOW_TITLE = KNOWBUG_TITLE TEXT(" ") KNOWBUG_VERSION;
-
 static auto const KNOWBUG_VIEW_WINDOW_TITLE = TEXT("Knowbug View");
 
 static auto const REPAINT = true;
@@ -96,48 +96,6 @@ static auto select_save_log_file(HWND window) -> std::optional<OsString> {
 	return std::make_optional(*std::move(path));
 }
 
-class ViewEditControlImpl
-	: public AbstractViewBox
-{
-	HWND view_edit_;
-
-public:
-	ViewEditControlImpl(HWND view_edit)
-		: view_edit_(view_edit)
-	{
-	}
-
-	auto current_scroll_line() const -> std::size_t override {
-		return Edit_GetFirstVisibleLine(view_edit_);
-	}
-
-	bool at_bottom() const override {
-		auto line_count = Edit_GetLineCount(view_edit_);
-
-		// ウィンドウに30行ぐらい表示されていると仮定して、スクロールが一番下にありそうかどうか判定する。
-		return line_count <= (int)current_scroll_line() + 30;
-	}
-
-	void scroll_to_line(std::size_t line_index) override {
-		Edit_Scroll(view_edit_, (int)line_index, 0);
-	}
-
-	void scroll_to_bottom() override {
-		auto line_count = Edit_GetLineCount(view_edit_);
-		scroll_to_line(line_count);
-	}
-
-	void select_line(std::size_t line_index) override {
-		auto start = Edit_LineIndex(view_edit_, (int)line_index);
-		auto end = Edit_LineIndex(view_edit_, (int)line_index + 1);
-		Edit_SetSel(view_edit_, start, end);
-	}
-
-	void set_text(OsStringView const& text) override {
-		SetWindowText(view_edit_, text.data());
-	}
-};
-
 class KnowbugViewImpl
 	: public KnowbugView
 {
@@ -147,12 +105,12 @@ class KnowbugViewImpl
 	HWND source_edit_;
 	HWND view_edit_;
 	std::unique_ptr<VarTreeViewControl> var_tree_view_control_;
+	std::unique_ptr<ViewEditControl> view_edit_control_;
 
 	StepButtonHandleArray step_buttons_;
 	GdiObjHandlePtr main_font_;
 
 	KnowbugConfig const& config_;
-	ViewEditControlImpl view_edit_control_;
 	bool top_most_;
 
 public:
@@ -167,6 +125,7 @@ public:
 		HWND source_edit,
 		HWND view_edit,
 		std::unique_ptr<VarTreeViewControl>&& var_tree_view_control,
+		std::unique_ptr<ViewEditControl>&& view_edit_control,
 		StepButtonHandleArray const& step_buttons,
 		GdiObjHandlePtr&& main_font,
 		KnowbugConfig const& config
@@ -181,10 +140,10 @@ public:
 		, source_edit_(source_edit)
 		, view_edit_(view_edit)
 		, var_tree_view_control_(std::move(var_tree_view_control))
+		, view_edit_control_(std::move(view_edit_control))
 		, step_buttons_(step_buttons)
 		, main_font_(std::move(main_font))
 		, config_(config)
-		, view_edit_control_(view_edit_)
 		, top_most_(false)
 	{
 	}
@@ -487,8 +446,8 @@ private:
 		return *var_tree_view_control_;
 	}
 
-	auto view_edit_control() -> AbstractViewBox& {
-		return view_edit_control_;
+	auto view_edit_control() -> ViewEditControl& {
+		return *view_edit_control_;
 	}
 
 	auto windows() const -> std::vector<HWND> {
@@ -653,6 +612,8 @@ auto KnowbugView::create(KnowbugConfig const& config, HINSTANCE instance, HspObj
 
 	auto const source_edit = GetDlgItem(main_pane, IDC_SRC_LINE);
 
+	auto view_edit_control = ViewEditControl::create(view_edit);
+
 	// ステップボタン
 	auto const step_buttons = StepButtonHandleArray{
 		GetDlgItem(main_pane, IDC_BTN1),
@@ -673,6 +634,7 @@ auto KnowbugView::create(KnowbugConfig const& config, HINSTANCE instance, HspObj
 		source_edit,
 		view_edit,
 		std::move(var_tree_view_control),
+		std::move(view_edit_control),
 		step_buttons,
 		std::move(main_font),
 		config

@@ -23,6 +23,19 @@ static auto object_path_to_text(HspObjectPath const& path, HspObjects& objects) 
 	return to_os(std::move(text));
 }
 
+static auto object_path_to_cursor_policy(HspObjectPath const& path, HspObjects& objects) -> CursorPolicy {
+	switch (path.kind()) {
+	case HspObjectKind::Script:
+		return CursorPolicy::new_select_line(path.as_script().current_line(objects));
+
+	case HspObjectKind::Log:
+		return CursorPolicy::new_bottom();
+
+	default:
+		return CursorPolicy::new_top();
+	}
+}
+
 // ツリービューのノードを自動で開くか否か
 static auto object_path_is_auto_expand(HspObjectPath const& path, HspObjects& objects) -> bool {
 	return path.kind() == HspObjectKind::CallStack
@@ -43,82 +56,6 @@ static auto insert_mode_to_sibling(HspObjectTreeInsertMode mode) {
 	}
 }
 
-// ビューのスクロール位置を計算するもの
-class ScrollPreserver {
-	HTREEITEM active_item_;
-	std::unordered_map<HTREEITEM, std::size_t> scroll_lines_;
-	std::unordered_set<HTREEITEM> at_bottom_;
-
-public:
-	ScrollPreserver()
-		: active_item_(TVI_ROOT)
-		, scroll_lines_()
-		, at_bottom_()
-	{
-	}
-
-	void will_activate(HTREEITEM item, AbstractViewBox& view_box) {
-		auto old_scroll_line = view_box.current_scroll_line();
-
-		if (active_item_ == item) {
-			save_scroll_line(item, old_scroll_line);
-		} else {
-			active_item_ = item;
-		}
-
-		if (view_box.at_bottom()) {
-			at_bottom_.emplace(item);
-		} else {
-			at_bottom_.erase(item);
-		}
-	}
-
-	void did_activate(HTREEITEM item, HspObjectPath const& path, HspObjects& objects, AbstractViewBox& view_box) {
-		switch (path.kind()) {
-		case HspObjectKind::Log:
-			{
-				if (at_bottom_.count(item)) {
-					view_box.scroll_to_bottom();
-					return;
-				}
-
-				scroll_to_default(item, view_box);
-				return;
-			}
-		case HspObjectKind::Script:
-			{
-				auto current_line = path.as_script().current_line(objects);
-				auto scroll_line = current_line - std::min(current_line, std::size_t{ 3 });
-
-				view_box.scroll_to_line(scroll_line);
-				view_box.select_line(current_line);
-				return;
-			}
-		default:
-			scroll_to_default(item, view_box);
-			return;
-		}
-	}
-
-private:
-	void scroll_to_default(HTREEITEM item, AbstractViewBox& view_box) {
-		view_box.scroll_to_line(get_scroll_line(item));
-	}
-
-	void save_scroll_line(HTREEITEM item, std::size_t scroll_line) {
-		scroll_lines_[item] = scroll_line;
-	}
-
-	auto get_scroll_line(HTREEITEM item) -> std::size_t {
-		auto&& iter = scroll_lines_.find(item);
-		if (iter == scroll_lines_.end()) {
-			return 0;
-		}
-
-		return iter->second;
-	}
-};
-
 class VarTreeViewControlImpl
 	: public VarTreeViewControl
 	, public HspObjectTreeObserver
@@ -132,7 +69,9 @@ class VarTreeViewControlImpl
 
 	std::unordered_set<HTREEITEM> auto_expand_items_;
 
-	ScrollPreserver scroll_preserver_;
+	// NOTE: 削除されたノードに関してエディットコントロールが持っている情報を削除するため、
+	//       削除されたノードをここに記録して、次の更新時にまとめて削除依頼を出す。
+	std::vector<HTREEITEM> tv_items_for_view_edit_control_to_forget_;
 
 public:
 	VarTreeViewControlImpl(HspObjects& objects, HspObjectTree& object_tree, HWND tree_view)
@@ -142,7 +81,7 @@ public:
 		, node_ids_()
 		, node_tv_items_()
 		, auto_expand_items_()
-		, scroll_preserver_()
+		, tv_items_for_view_edit_control_to_forget_()
 	{
 		node_ids_.emplace(TVI_ROOT, object_tree_.root_id());
 		node_tv_items_.emplace(object_tree_.root_id(), TVI_ROOT);
@@ -192,9 +131,10 @@ public:
 		do_delete_item(tv_item);
 		node_ids_.erase(tv_item);
 		node_tv_items_.erase(node_id);
+		tv_items_for_view_edit_control_to_forget_.push_back(tv_item);
 	}
 
-	void update_view_window(AbstractViewBox& view_box) override {
+	void update_view_window(ViewEditControl& view_edit_control) override {
 		// コールスタックを自動で更新する。
 		object_tree_.focus_by_path(*objects_.root_path().new_call_stack(), *this);
 
@@ -216,17 +156,24 @@ public:
 		auto&& path = **path_opt;
 		auto&& tv_item = *tv_item_opt;
 
-		// ビューウィンドウを更新する。
-		// スクロール位置を保存して、文字列を交換して、スクロール位置を適切に戻す。
-		auto text = object_path_to_text(path, objects_);
-
-		scroll_preserver_.will_activate(tv_item, view_box);
-
-		view_box.set_text(as_view(text));
-
-		scroll_preserver_.did_activate(tv_item, path, objects_, view_box);
-
 		auto_expand(path, tv_item);
+
+		// ビューウィンドウを更新する。
+		{
+			// 遅延されていたデータの削除を実行する。
+			{
+				auto& tv_items = tv_items_for_view_edit_control_to_forget_;
+				for (auto tv_item : tv_items) {
+					view_edit_control.forget(tv_item);
+				}
+				tv_items.clear();
+			}
+
+			auto text = object_path_to_text(path, objects_);
+			auto cursor_policy = object_path_to_cursor_policy(path, objects_);
+
+			view_edit_control.update(tv_item, text, cursor_policy);
+		}
 	}
 
 	auto log_is_selected() const -> bool override {
