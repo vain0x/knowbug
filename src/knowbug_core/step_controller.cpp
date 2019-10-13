@@ -3,8 +3,6 @@
 #include "hsx.h"
 #include "step_controller.h"
 
-namespace hsx = hsp_sdk_ext;
-
 static auto step_mode_to_debug_mode(StepMode mode) -> int {
 	switch (mode) {
 	case StepMode::Run:

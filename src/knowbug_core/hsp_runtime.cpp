@@ -8,8 +8,6 @@
 #include "source_files.h"
 #include "string_split.h"
 
-namespace hsx = hsp_sdk_ext;
-
 class WcDebuggerImpl
 	: public WcDebugger
 {

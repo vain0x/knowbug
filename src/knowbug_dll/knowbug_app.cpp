@@ -14,8 +14,6 @@
 #include "knowbug_config.h"
 #include "knowbug_view.h"
 
-namespace hsx = hsp_sdk_ext;
-
 static auto g_dll_instance = HINSTANCE{};
 
 // ランタイムとの通信

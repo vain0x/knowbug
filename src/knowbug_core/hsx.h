@@ -242,3 +242,5 @@ namespace hsp_sdk_ext {
 	// フォーマット: `name1\nname2\n...\n` (改行区切り)
 	extern auto debug_to_static_var_names(HSP3DEBUG* debug)->std::unique_ptr<char, void(*)(char*)>;
 }
+
+namespace hsx = hsp_sdk_ext;

@@ -8,8 +8,6 @@
 #include "source_files.h"
 #include "string_split.h"
 
-namespace hsx = hsp_sdk_ext;
-
 // 再帰深度の初期値
 static auto const MIN_DEPTH = std::size_t{};
 
@@ -946,8 +944,6 @@ auto HspObjects::call_stack_path_to_call_frame_count(HspObjectPath::CallStack co
 auto HspObjects::call_stack_path_to_call_frame_key_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<WcCallFrameKey> {
 	return wc_call_frame_key_at(call_frame_index);
 }
-
-namespace hsx = hsp_sdk_ext;
 
 auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {
 	auto&& call_frame_opt = wc_call_frame_get(path.key());

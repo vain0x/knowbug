@@ -4,8 +4,6 @@
 #include "hsx.h"
 #include "platform.h"
 
-namespace hsx = hsp_sdk_ext;
-
 static auto s_debugger = std::weak_ptr<WcDebugger>{};
 
 static auto s_last_id = std::size_t{};
