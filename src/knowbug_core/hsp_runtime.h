@@ -13,7 +13,6 @@ class WcDebugger;
 class HspRuntime {
 	HSP3DEBUG* debug_;
 	std::unique_ptr<HspLogger> logger_;
-	std::unique_ptr<HspScripts> scripts_;
 	std::unique_ptr<HspObjects> objects_;
 	std::unique_ptr<HspObjectTree> object_tree_;
 
@@ -23,13 +22,11 @@ public:
 	HspRuntime(
 		HSP3DEBUG* debug,
 		std::unique_ptr<HspLogger> logger,
-		std::unique_ptr<HspScripts> scripts,
 		std::unique_ptr<HspObjects> objects,
 		std::unique_ptr<HspObjectTree> object_tree
 	)
 		: debug_(debug)
 		, logger_(std::move(logger))
-		, scripts_(std::move(scripts))
 		, objects_(std::move(objects))
 		, object_tree_(std::move(object_tree))
 	{

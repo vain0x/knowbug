@@ -18,6 +18,10 @@ static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
 
+static auto const MISSING_FILE_CONTENT = to_owned(as_utf8(u8"ファイルが見つかりません"));
+
+static auto const MISSING_FILE_LINE = to_owned(as_utf8(u8"???"));
+
 auto indexes_to_string(hsx::HspDimIndex const& indexes) -> Utf8String {
 	auto ss = std::stringstream{};
 	ss << '(';
@@ -504,10 +508,9 @@ public:
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<HspObjects::Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger)
+HspObjects::HspObjects(HSP3DEBUG* debug, HspLogger& logger, std::vector<Utf8String>&& var_names, std::vector<HspObjects::Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger)
 	: debug_(debug)
 	, logger_(logger)
-	, scripts_(scripts)
 	, source_file_repository_(std::move(source_file_repository))
 	, root_path_(std::make_shared<HspObjectPath::Root>())
 	, var_names_(std::move(var_names))
@@ -1102,7 +1105,7 @@ auto HspObjects::script_to_full_path() const -> std::optional<OsStringView> {
 
 auto HspObjects::script_to_content() const -> Utf8StringView {
 	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or(u8"");
-	return scripts_.content(file_ref_name);
+	return source_file_repository_->file_ref_name_to_content(file_ref_name).value_or(MISSING_FILE_CONTENT);
 }
 
 auto HspObjects::script_to_current_line() const -> std::size_t {
@@ -1113,7 +1116,7 @@ auto HspObjects::script_to_current_location_summary() const -> Utf8String {
 	// FIXME: 長すぎるときは切る
 	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or(u8"???");
 	auto line_index = script_to_current_line();
-	auto line = scripts_.line(file_ref_name, line_index).value_or(to_owned(as_utf8(u8"???")));
+	auto line = source_file_repository_->file_ref_name_to_line_at(file_ref_name, line_index).value_or(MISSING_FILE_LINE);
 
 	auto text = std::stringstream{};
 	text << u8"#" << (line_index + 1) << u8" " << file_ref_name << u8"\r\n";
@@ -1179,8 +1182,8 @@ void HspObjectsBuilder::add_param_name(int param_index, char const* param_name, 
 	param_names_.emplace(*param_opt, std::move(name));
 }
 
-auto HspObjectsBuilder::finish(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::unique_ptr<SourceFileRepository>&& source_file_repository)->HspObjects {
+auto HspObjectsBuilder::finish(HSP3DEBUG* debug, HspLogger& logger, std::unique_ptr<SourceFileRepository>&& source_file_repository)->HspObjects {
 	auto modules = group_vars_by_module(var_names_);
 	auto wc_debugger = std::shared_ptr<WcDebugger>{ std::make_shared<WcDebuggerImpl>(debug, *source_file_repository) };
-	return HspObjects{ debug, logger, scripts, std::move(var_names_), std::move(modules), std::move(label_names_), std::move(param_names_), std::move(source_file_repository), std::move(wc_debugger) };
+	return HspObjects{ debug, logger, std::move(var_names_), std::move(modules), std::move(label_names_), std::move(param_names_), std::move(source_file_repository), std::move(wc_debugger) };
 }

@@ -28,29 +28,6 @@ public:
 	}
 };
 
-class HspScriptsImpl
-	: public HspScripts
-{
-	SourceFileRepository& source_file_repository_;
-
-	Utf8String empty_;
-
-public:
-	HspScriptsImpl(SourceFileRepository& source_file_repository)
-		: source_file_repository_(source_file_repository)
-		, empty_(to_owned(as_utf8(u8"ファイルが見つかりません")))
-	{
-	}
-
-	auto content(char const* file_ref_name) -> Utf8StringView override {
-		return source_file_repository_.file_ref_name_to_content(file_ref_name).value_or(empty_);
-	}
-
-	auto line(char const* file_ref_name, std::size_t line_index) -> std::optional<Utf8StringView> override {
-		return source_file_repository_.file_ref_name_to_line_at(file_ref_name, line_index);
-	}
-};
-
 static void read_debug_segment(HspObjectsBuilder& builder, SourceFileResolver& resolver, HSPCTX const* ctx) {
 	auto reader = hsx::DebugSegmentReader{ ctx };
 	while (true) {
@@ -92,9 +69,8 @@ auto HspRuntime::create(HSP3DEBUG* debug, OsString&& common_path)->std::unique_p
 	auto source_file_repository = std::make_unique<SourceFileRepository>(resolver.resolve());
 
 	auto logger = std::unique_ptr<HspLogger>{ std::make_unique<HspLoggerImpl>() };
-	auto scripts = std::unique_ptr<HspScripts>{ std::make_unique<HspScriptsImpl>(*source_file_repository) };
 
-	auto objects = std::make_unique<HspObjects>(builder.finish(debug, *logger, *scripts, std::move(source_file_repository)));
+	auto objects = std::make_unique<HspObjects>(builder.finish(debug, *logger, std::move(source_file_repository)));
 
 	auto object_tree = HspObjectTree::create(*objects);
 
@@ -102,7 +78,6 @@ auto HspRuntime::create(HSP3DEBUG* debug, OsString&& common_path)->std::unique_p
 		HspRuntime{
 			std::move(debug),
 			std::move(logger),
-			std::move(scripts),
 			std::move(objects),
 			std::move(object_tree)
 		});

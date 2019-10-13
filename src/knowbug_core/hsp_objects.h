@@ -22,16 +22,6 @@ public:
 	virtual void clear() = 0;
 };
 
-class HspScripts {
-public:
-	virtual ~HspScripts() {
-	}
-
-	virtual auto content(char const* file_ref_name) -> Utf8StringView = 0;
-
-	virtual auto line(char const* file_ref_name, std::size_t line_index)->std::optional<Utf8StringView> = 0;
-};
-
 // FIXME: インターフェイスを抽出する
 
 // HSP のオブジェクト (モジュール、変数、値など) に関して
@@ -46,7 +36,6 @@ private:
 	HSP3DEBUG* debug_;
 
 	HspLogger& logger_;
-	HspScripts& scripts_;
 	std::unique_ptr<SourceFileRepository> source_file_repository_;
 
 	std::shared_ptr<HspObjectPath const> root_path_;
@@ -60,7 +49,7 @@ private:
 	std::shared_ptr<WcDebugger> wc_debugger_;
 
 public:
-	HspObjects(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);
+	HspObjects(HSP3DEBUG* debug, HspLogger& logger, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);
 
 	void initialize();
 
@@ -228,7 +217,7 @@ public:
 
 	void add_param_name(int param_index, char const* param_name, HSPCTX const* ctx);
 
-	auto finish(HSP3DEBUG* debug, HspLogger& logger, HspScripts& scripts, std::unique_ptr<SourceFileRepository>&& source_file_repository)->HspObjects;
+	auto finish(HSP3DEBUG* debug, HspLogger& logger, std::unique_ptr<SourceFileRepository>&& source_file_repository)->HspObjects;
 };
 
 // 迷子
