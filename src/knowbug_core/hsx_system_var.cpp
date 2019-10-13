@@ -3,7 +3,7 @@
 
 #undef stat
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	auto system_var_cnt(HSPCTX const* ctx) -> std::optional<HspInt const*> {
 		auto looplev = *system_var_looplev(ctx);
 		// FIXME: looplev=0 のとき nullopt?

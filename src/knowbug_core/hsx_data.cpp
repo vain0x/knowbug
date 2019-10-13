@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "hsx_internals.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	auto data_from_label(HspLabel const* ptr) -> HspData {
 		return HspData{ HspType::Label, (PDAT const*)ptr };
 	}

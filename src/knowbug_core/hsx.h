@@ -17,7 +17,7 @@
 #include "hsx_var_metadata.h"
 #include "memory_view.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	// HSP の文字列データ。
 	// 1. str 型はランタイムエンコーディング (shift_jis/utf-8) の文字列だけでなく、
 	// 他のエンコーディングの文字列や任意のバイナリを格納するのにも使われることがたまにある。
@@ -242,5 +242,3 @@ namespace hsp_sdk_ext {
 	// フォーマット: `name1\nname2\n...\n` (改行区切り)
 	extern auto debug_to_static_var_names(HSP3DEBUG* debug)->std::unique_ptr<char, void(*)(char*)>;
 }
-
-namespace hsx = hsp_sdk_ext;

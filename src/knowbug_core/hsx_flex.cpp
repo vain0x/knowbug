@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "hsx_internals.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	static auto flex_to_struct_tag(FlexValue const* flex, HSPCTX const* ctx) -> std::optional<STRUCTPRM const*> {
 		if (flex_is_nullmod(flex)) {
 			return std::nullopt;

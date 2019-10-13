@@ -2,7 +2,7 @@
 
 #include "hsx_types_fwd.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	// HSP の引数 (パラメータスタックの1要素) への参照。
 	// FIXME: size を持たせる
 	class HspParamData {

@@ -2,7 +2,7 @@
 #include "hsx_data.h"
 #include "hsx_internals.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	auto structs(HSPCTX const* ctx)->Slice<STRUCTDAT> {
 		auto size = (std::size_t)std::max(0, ctx->hsphed->max_finfo) / sizeof(STRUCTDAT);
 		return Slice<STRUCTDAT>{ ctx->mem_finfo, size };

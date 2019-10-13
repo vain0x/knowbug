@@ -3,7 +3,7 @@
 #include <optional>
 #include "hsx_types_fwd.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	// 配列や vector のある範囲に対する読み取り専用の参照
 	template<typename T>
 	class Slice {

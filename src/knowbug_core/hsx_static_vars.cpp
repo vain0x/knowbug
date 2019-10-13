@@ -3,7 +3,7 @@
 
 #undef max
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	auto static_vars(HSPCTX const* ctx)->Slice<PVal> {
 		auto size = (std::size_t)std::max(0, ctx->hsphed->max_val);
 		return Slice<PVal>{ ctx->mem_var, size };

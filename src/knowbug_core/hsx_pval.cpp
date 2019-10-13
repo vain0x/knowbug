@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "hsx_internals.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	auto pval_to_type(PVal const* pval) -> HspType {
 		assert(pval != nullptr);
 		return (HspType)pval->flag;
