@@ -7,8 +7,6 @@
 #include "hsp_object_path.h"
 #include "hsp_wrap_call.h"
 
-class HspDebugApi;
-class HspStaticVars;
 class SourceFileId;
 class SourceFileRepository;
 class SourceFileResolver;
