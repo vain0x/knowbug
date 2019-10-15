@@ -17,15 +17,15 @@ public:
 // use_current_dir=true のときは、指定したディレクトリではなく、カレントディレクトリで検索する。
 static auto search_file_from_dir(
 	OsStringView const& file_ref,
-	OsStringView const& base_dir,
-	bool use_current_dir
+	std::optional<OsStringView> base_dir_opt
 ) -> std::optional<SearchPathResult> {
 	static auto const EXTENSION_PTR = LPCTSTR{};
+	static auto const CURRENT_DIR = LPCTSTR{};
 
 	auto file_name_ptr = LPTSTR{};
 	auto full_path_buf = std::array<TCHAR, MAX_PATH>{};
 
-	auto base_dir_ptr = use_current_dir ? nullptr : base_dir.data();
+	auto base_dir_ptr = base_dir_opt ? base_dir_opt->data() : CURRENT_DIR;
 	auto succeeded =
 		SearchPath(
 			base_dir_ptr, file_ref.data(), EXTENSION_PTR,
@@ -48,18 +48,17 @@ static auto search_file_from_dirs(
 	OsStringView const& file_ref,
 	TDirs const& dirs
 ) -> std::optional<SearchPathResult> {
-	static auto const USE_CURRENT_DIR = true;
+	static auto const CURRENT_DIR = (std::optional<OsStringView>)std::nullopt;
 
 	for (auto&& dir : dirs) {
-		auto result_opt = search_file_from_dir(file_ref, as_view(dir), !USE_CURRENT_DIR);
+		auto result_opt = search_file_from_dir(file_ref, as_view(dir));
 		if (result_opt) {
 			return result_opt;
 		}
 	}
 
 	// カレントディレクトリから探す。
-	auto no_dir = as_os(TEXT(""));
-	return search_file_from_dir(file_ref, no_dir, USE_CURRENT_DIR);
+	return search_file_from_dir(file_ref, CURRENT_DIR);
 }
 
 // -----------------------------------------------
