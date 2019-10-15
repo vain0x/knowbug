@@ -6,16 +6,20 @@
 #include "source_files.h"
 #include "string_split.h"
 
+class SearchPathResult {
+public:
+	OsString dir_name_;
+	OsString full_path_;
+};
+
 // 指定したディレクトリを基準として、指定した名前または相対パスのファイルを検索する。
 // 結果として、フルパスと、パス中のディレクトリの部分を返す。
 // use_current_dir=true のときは、指定したディレクトリではなく、カレントディレクトリで検索する。
 static auto search_file_from_dir(
 	OsStringView const& file_ref,
 	OsStringView const& base_dir,
-	bool use_current_dir,
-	OsString& out_dir_name,
-	OsString& out_full_path
-) -> bool {
+	bool use_current_dir
+) -> std::optional<SearchPathResult> {
 	static auto const EXTENSION_PTR = LPCTSTR{};
 
 	auto file_name_ptr = LPTSTR{};
@@ -28,45 +32,34 @@ static auto search_file_from_dir(
 			full_path_buf.size(), full_path_buf.data(), &file_name_ptr
 		) != 0;
 	if (!succeeded) {
-		return false;
+		return std::nullopt;
 	}
 
 	assert(full_path_buf.data() <= file_name_ptr && file_name_ptr <= full_path_buf.data() + full_path_buf.size());
 	auto dir_name = OsString{ full_path_buf.data(), file_name_ptr };
+	auto full_path = OsString{ full_path_buf.data() };
 
-	out_dir_name = std::move(dir_name);
-	out_full_path = OsString{ full_path_buf.data() };
-	return true;
+	return SearchPathResult{ std::move(dir_name), std::move(full_path) };
 }
 
 // 複数のディレクトリを基準としてファイルを探し、カレントディレクトリからも探す。
 template<typename TDirs>
 static auto search_file_from_dirs(
 	OsStringView const& file_ref,
-	TDirs const& dirs,
-	OsString& out_dir_name,
-	OsString& out_full_path
-) -> bool {
+	TDirs const& dirs
+) -> std::optional<SearchPathResult> {
 	static auto const USE_CURRENT_DIR = true;
 
 	for (auto&& dir : dirs) {
-		auto ok = search_file_from_dir(
-			file_ref, as_view(dir), !USE_CURRENT_DIR,
-			out_dir_name, out_full_path
-		);
-		if (!ok) {
-			continue;
+		auto result_opt = search_file_from_dir(file_ref, as_view(dir), !USE_CURRENT_DIR);
+		if (result_opt) {
+			return result_opt;
 		}
-
-		return true;
 	}
 
 	// カレントディレクトリから探す。
 	auto no_dir = as_os(TEXT(""));
-	return search_file_from_dir(
-		file_ref, no_dir, USE_CURRENT_DIR,
-		out_dir_name, out_full_path
-	);
+	return search_file_from_dir(file_ref, no_dir, USE_CURRENT_DIR);
 }
 
 // -----------------------------------------------
@@ -118,18 +111,16 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		assert(!full_path_map.count(file_ref_name) && u8"解決済みのファイルには呼ばれないはず");
 
 		// ファイルシステムから探す。
-		OsString dir_name;
-		OsString full_path;
-		auto ok = search_file_from_dirs(file_ref_name, dirs_, dir_name, full_path);
-		if (!ok) {
+		auto result_opt = search_file_from_dirs(file_ref_name, dirs_);
+		if (!result_opt) {
 			return false;
 		}
 
 		// 見つかったディレクトリを検索対象に加える。
-		dirs_.emplace(std::move(dir_name));
+		dirs_.emplace(std::move(result_opt->dir_name_));
 
 		// メモ化する。
-		add(original, full_path);
+		add(original, result_opt->full_path_);
 		return true;
 	};
 
