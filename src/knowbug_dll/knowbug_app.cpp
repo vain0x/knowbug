@@ -15,6 +15,7 @@
 #include "knowbug_config.h"
 #include "knowbug_view.h"
 
+static auto g_fs = WindowsFileSystemApi{};
 static auto g_dll_instance = HINSTANCE{};
 
 // ランタイムとの通信
@@ -204,7 +205,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	auto step_controller = std::make_unique<KnowbugStepController>(debug);
 
 	// :thinking_face:
-	auto resolver = SourceFileResolver{};
+	auto resolver = SourceFileResolver{ g_fs };
 	auto objects_builder = HspObjectsBuilder{};
 	resolver.add_known_dir(config->commonPath());
 	objects_builder.read_debug_segment(resolver, ctx);

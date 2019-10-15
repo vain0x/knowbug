@@ -10,6 +10,32 @@ class SourceFileId;
 class SourceFileRepository;
 class SourceFileResolver;
 
+class FileSystemApi {
+public:
+	class SearchFileResult {
+	public:
+		OsString dir_name_;
+		OsString full_path_;
+	};
+
+	virtual auto read_all_text(OsString const& file_path)->std::optional<std::string> = 0;
+
+	virtual auto search_file_from_dir(OsStringView file_name, OsStringView base_dir)->std::optional<SearchFileResult> = 0;
+
+	virtual auto search_file_from_current_dir(OsStringView file_name)->std::optional<SearchFileResult> = 0;
+};
+
+class WindowsFileSystemApi
+	: public FileSystemApi
+{
+public:
+	auto read_all_text(OsString const& file_path)->std::optional<std::string> override;
+
+	auto search_file_from_dir(OsStringView file_name, OsStringView base_dir)->std::optional<SearchFileResult> override;
+
+	auto search_file_from_current_dir(OsStringView file_name)->std::optional<SearchFileResult> override;
+};
+
 // ファイル参照名を絶対パスに対応付ける処理を担当する。
 class SourceFileResolver {
 	// ファイルを探す基準となるディレクトリの集合。
@@ -18,7 +44,16 @@ class SourceFileResolver {
 	// 解決すべきファイル参照名の集合。
 	std::unordered_set<std::string> file_ref_names_;
 
+	FileSystemApi& fs_;
+
 public:
+	explicit SourceFileResolver(FileSystemApi& fs)
+		: dirs_()
+		, file_ref_names_()
+		, fs_(fs)
+	{
+	}
+
 	void add_known_dir(OsString&& dir);
 
 	void add_file_ref_name(std::string&& file_ref_name);
@@ -104,8 +139,10 @@ class SourceFile {
 	// ソースファイルの中身を行ごとに分割し、字下げを取り除いたもの。
 	std::vector<Utf8StringView> lines_;
 
+	FileSystemApi& fs_;
+
 public:
-	explicit SourceFile(OsString&& full_path);
+	SourceFile(OsString&& full_path, FileSystemApi& fs);
 
 	// 絶対パス
 	auto full_path() const -> OsStringView {

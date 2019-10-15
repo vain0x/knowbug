@@ -6,11 +6,9 @@
 #include "source_files.h"
 #include "string_split.h"
 
-class SearchPathResult {
-public:
-	OsString dir_name_;
-	OsString full_path_;
-};
+// -----------------------------------------------
+// File System API
+// -----------------------------------------------
 
 static auto read_all_text(OsString const& file_path)->std::optional<std::string> {
 	auto ifs = std::ifstream{ file_path }; // NOTE: OsStringView に対応していない。
@@ -26,7 +24,7 @@ static auto read_all_text(OsString const& file_path)->std::optional<std::string>
 static auto search_file_from_dir(
 	OsStringView const& file_ref,
 	std::optional<OsStringView> base_dir_opt
-) -> std::optional<SearchPathResult> {
+) -> std::optional<FileSystemApi::SearchFileResult> {
 	static auto const EXTENSION_PTR = LPCTSTR{};
 	static auto const CURRENT_DIR = LPCTSTR{};
 
@@ -47,26 +45,37 @@ static auto search_file_from_dir(
 	auto dir_name = OsString{ full_path_buf.data(), file_name_ptr };
 	auto full_path = OsString{ full_path_buf.data() };
 
-	return SearchPathResult{ std::move(dir_name), std::move(full_path) };
+	return FileSystemApi::SearchFileResult{ std::move(dir_name), std::move(full_path) };
 }
 
 // 複数のディレクトリを基準としてファイルを探し、カレントディレクトリからも探す。
 template<typename TDirs>
 static auto search_file_from_dirs(
 	OsStringView const& file_ref,
-	TDirs const& dirs
-) -> std::optional<SearchPathResult> {
-	static auto const CURRENT_DIR = (std::optional<OsStringView>)std::nullopt;
-
+	TDirs const& dirs,
+	FileSystemApi& api
+) -> std::optional<FileSystemApi::SearchFileResult> {
 	for (auto&& dir : dirs) {
-		auto result_opt = search_file_from_dir(file_ref, as_view(dir));
+		auto result_opt = api.search_file_from_dir(file_ref, as_view(dir));
 		if (result_opt) {
 			return result_opt;
 		}
 	}
 
 	// カレントディレクトリから探す。
-	return search_file_from_dir(file_ref, CURRENT_DIR);
+	return api.search_file_from_current_dir(file_ref);
+}
+
+auto WindowsFileSystemApi::read_all_text(OsString const& file_path)->std::optional<std::string> {
+	return ::read_all_text(file_path);
+}
+
+auto WindowsFileSystemApi::search_file_from_dir(OsStringView file_name, OsStringView base_dir)->std::optional<SearchFileResult> {
+	return ::search_file_from_dir(file_name, base_dir);
+}
+
+auto WindowsFileSystemApi::search_file_from_current_dir(OsStringView file_name)->std::optional<SearchFileResult> {
+	return ::search_file_from_dir(file_name, std::nullopt);
 }
 
 // -----------------------------------------------
@@ -109,7 +118,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		if (iter == full_path_map.end()) {
 			auto file_id = SourceFileId{ source_files.size() };
 			full_path_map.emplace(full_path, file_id);
-			source_files.emplace_back(to_owned(full_path));
+			source_files.emplace_back(to_owned(full_path), fs_);
 		}
 	};
 
@@ -118,7 +127,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		assert(!full_path_map.count(file_ref_name) && u8"解決済みのファイルには呼ばれないはず");
 
 		// ファイルシステムから探す。
-		auto result_opt = search_file_from_dirs(file_ref_name, dirs_);
+		auto result_opt = search_file_from_dirs(file_ref_name, dirs_, fs_);
 		if (!result_opt) {
 			return false;
 		}
@@ -245,10 +254,8 @@ auto SourceFileRepository::file_to_line_at(SourceFileId const& file_id, std::siz
 	return source_files_[file_id.id()].line_at(line_index);
 }
 
-
-// NOTE: ifstream がファイル名に basic_string_view を受け取らないので、OsString への参照をもらう。
-static auto load_text_file(OsString const& file_path) -> Utf8String {
-	auto content_opt = read_all_text(file_path);
+static auto load_text_file(OsString const& file_path, FileSystemApi& fs) -> Utf8String {
+	auto content_opt = fs.read_all_text(file_path);
 	if (!content_opt) {
 		// デバッグログなどに出力する？
 		return to_owned(as_utf8(u8""));
@@ -282,12 +289,13 @@ static auto split_by_lines(Utf8StringView const& str) -> std::vector<Utf8StringV
 // SourceFile
 // -----------------------------------------------
 
-SourceFile::SourceFile(OsString&& full_path)
+SourceFile::SourceFile(OsString&& full_path, FileSystemApi& fs)
 	: full_path_(std::move(full_path))
 	, full_path_as_utf8_(to_utf8(full_path_))
 	, loaded_(false)
 	, content_()
 	, lines_()
+	, fs_(fs)
 {
 }
 
@@ -312,7 +320,7 @@ void SourceFile::load() {
 		return;
 	}
 
-	content_ = load_text_file(full_path_);
+	content_ = load_text_file(full_path_, fs_);
 	lines_ = split_by_lines(as_view(content_));
 	loaded_ = true;
 }
