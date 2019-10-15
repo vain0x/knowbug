@@ -16,13 +16,15 @@ static auto search_file_from_dir(
 	OsString& out_dir_name,
 	OsString& out_full_path
 ) -> bool {
+	static auto const EXTENSION_PTR = LPCTSTR{};
+
 	auto file_name_ptr = LPTSTR{};
 	auto full_path_buf = std::array<TCHAR, MAX_PATH>{};
 
 	auto base_dir_ptr = use_current_dir ? nullptr : base_dir.data();
 	auto succeeded =
 		SearchPath(
-			base_dir_ptr, file_ref.data(), /* lpExtenson = */ nullptr,
+			base_dir_ptr, file_ref.data(), EXTENSION_PTR,
 			full_path_buf.size(), full_path_buf.data(), &file_name_ptr
 		) != 0;
 	if (!succeeded) {
@@ -45,9 +47,11 @@ static auto search_file_from_dirs(
 	OsString& out_dir_name,
 	OsString& out_full_path
 ) -> bool {
+	static auto const USE_CURRENT_DIR = true;
+
 	for (auto&& dir : dirs) {
 		auto ok = search_file_from_dir(
-			file_ref, as_view(dir), /* use_current_dir = */ false,
+			file_ref, as_view(dir), !USE_CURRENT_DIR,
 			out_dir_name, out_full_path
 		);
 		if (!ok) {
@@ -60,7 +64,7 @@ static auto search_file_from_dirs(
 	// カレントディレクトリから探す。
 	auto no_dir = as_os(TEXT(""));
 	return search_file_from_dir(
-		file_ref, no_dir, true,
+		file_ref, no_dir, USE_CURRENT_DIR,
 		out_dir_name, out_full_path
 	);
 }
