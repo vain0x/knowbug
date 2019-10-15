@@ -12,6 +12,14 @@ public:
 	OsString full_path_;
 };
 
+static auto read_all_text(OsString const& file_path)->std::optional<std::string> {
+	auto ifs = std::ifstream{ file_path }; // NOTE: OsStringView に対応していない。
+	if (!ifs.is_open()) {
+		return std::nullopt;
+	}
+	return std::string{ std::istreambuf_iterator<char>{ ifs }, {} };
+}
+
 // 指定したディレクトリを基準として、指定した名前または相対パスのファイルを検索する。
 // 結果として、フルパスと、パス中のディレクトリの部分を返す。
 // use_current_dir=true のときは、指定したディレクトリではなく、カレントディレクトリで検索する。
@@ -240,15 +248,14 @@ auto SourceFileRepository::file_to_line_at(SourceFileId const& file_id, std::siz
 
 // NOTE: ifstream がファイル名に basic_string_view を受け取らないので、OsString への参照をもらう。
 static auto load_text_file(OsString const& file_path) -> Utf8String {
-	auto ifs = std::ifstream{ file_path };
-	if (!ifs.is_open()) {
+	auto content_opt = read_all_text(file_path);
+	if (!content_opt) {
 		// デバッグログなどに出力する？
 		return to_owned(as_utf8(u8""));
 	}
 
 	// NOTE: ソースコードの文字コードが HSP ランタイムの文字コードと同じとは限らない。
-	auto content = as_hsp(std::string{ std::istreambuf_iterator<char>{ ifs }, {} });
-	return to_utf8(content);
+	return to_utf8(as_hsp(std::move(*content_opt)));
 }
 
 static auto char_is_whitespace(Utf8Char c) -> bool {
