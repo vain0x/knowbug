@@ -6,35 +6,46 @@
 #include "source_files.h"
 #include "string_split.h"
 
+// -----------------------------------------------
+// File System API
+// -----------------------------------------------
+
+static auto read_all_text(OsString const& file_path)->std::optional<std::string> {
+	auto ifs = std::ifstream{ file_path }; // NOTE: OsStringView に対応していない。
+	if (!ifs.is_open()) {
+		return std::nullopt;
+	}
+	return std::string{ std::istreambuf_iterator<char>{ ifs }, {} };
+}
+
 // 指定したディレクトリを基準として、指定した名前または相対パスのファイルを検索する。
 // 結果として、フルパスと、パス中のディレクトリの部分を返す。
 // use_current_dir=true のときは、指定したディレクトリではなく、カレントディレクトリで検索する。
 static auto search_file_from_dir(
 	OsStringView const& file_ref,
-	OsStringView const& base_dir,
-	bool use_current_dir,
-	OsString& out_dir_name,
-	OsString& out_full_path
-) -> bool {
+	std::optional<OsStringView> base_dir_opt
+) -> std::optional<FileSystemApi::SearchFileResult> {
+	static auto const EXTENSION_PTR = LPCTSTR{};
+	static auto const CURRENT_DIR = LPCTSTR{};
+
 	auto file_name_ptr = LPTSTR{};
 	auto full_path_buf = std::array<TCHAR, MAX_PATH>{};
 
-	auto base_dir_ptr = use_current_dir ? nullptr : base_dir.data();
+	auto base_dir_ptr = base_dir_opt ? base_dir_opt->data() : CURRENT_DIR;
 	auto succeeded =
 		SearchPath(
-			base_dir_ptr, file_ref.data(), /* lpExtenson = */ nullptr,
+			base_dir_ptr, file_ref.data(), EXTENSION_PTR,
 			full_path_buf.size(), full_path_buf.data(), &file_name_ptr
 		) != 0;
 	if (!succeeded) {
-		return false;
+		return std::nullopt;
 	}
 
 	assert(full_path_buf.data() <= file_name_ptr && file_name_ptr <= full_path_buf.data() + full_path_buf.size());
 	auto dir_name = OsString{ full_path_buf.data(), file_name_ptr };
+	auto full_path = OsString{ full_path_buf.data() };
 
-	out_dir_name = std::move(dir_name);
-	out_full_path = OsString{ full_path_buf.data() };
-	return true;
+	return FileSystemApi::SearchFileResult{ std::move(dir_name), std::move(full_path) };
 }
 
 // 複数のディレクトリを基準としてファイルを探し、カレントディレクトリからも探す。
@@ -42,27 +53,29 @@ template<typename TDirs>
 static auto search_file_from_dirs(
 	OsStringView const& file_ref,
 	TDirs const& dirs,
-	OsString& out_dir_name,
-	OsString& out_full_path
-) -> bool {
+	FileSystemApi& api
+) -> std::optional<FileSystemApi::SearchFileResult> {
 	for (auto&& dir : dirs) {
-		auto ok = search_file_from_dir(
-			file_ref, as_view(dir), /* use_current_dir = */ false,
-			out_dir_name, out_full_path
-		);
-		if (!ok) {
-			continue;
+		auto result_opt = api.search_file_from_dir(file_ref, as_view(dir));
+		if (result_opt) {
+			return result_opt;
 		}
-
-		return true;
 	}
 
 	// カレントディレクトリから探す。
-	auto no_dir = as_os(TEXT(""));
-	return search_file_from_dir(
-		file_ref, no_dir, true,
-		out_dir_name, out_full_path
-	);
+	return api.search_file_from_current_dir(file_ref);
+}
+
+auto WindowsFileSystemApi::read_all_text(OsString const& file_path)->std::optional<std::string> {
+	return ::read_all_text(file_path);
+}
+
+auto WindowsFileSystemApi::search_file_from_dir(OsStringView file_name, OsStringView base_dir)->std::optional<SearchFileResult> {
+	return ::search_file_from_dir(file_name, base_dir);
+}
+
+auto WindowsFileSystemApi::search_file_from_current_dir(OsStringView file_name)->std::optional<SearchFileResult> {
+	return ::search_file_from_dir(file_name, std::nullopt);
 }
 
 // -----------------------------------------------
@@ -105,7 +118,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		if (iter == full_path_map.end()) {
 			auto file_id = SourceFileId{ source_files.size() };
 			full_path_map.emplace(full_path, file_id);
-			source_files.emplace_back(to_owned(full_path));
+			source_files.emplace_back(to_owned(full_path), fs_);
 		}
 	};
 
@@ -114,18 +127,16 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		assert(!full_path_map.count(file_ref_name) && u8"解決済みのファイルには呼ばれないはず");
 
 		// ファイルシステムから探す。
-		OsString dir_name;
-		OsString full_path;
-		auto ok = search_file_from_dirs(file_ref_name, dirs_, dir_name, full_path);
-		if (!ok) {
+		auto result_opt = search_file_from_dirs(file_ref_name, dirs_, fs_);
+		if (!result_opt) {
 			return false;
 		}
 
 		// 見つかったディレクトリを検索対象に加える。
-		dirs_.emplace(std::move(dir_name));
+		dirs_.emplace(std::move(result_opt->dir_name_));
 
 		// メモ化する。
-		add(original, full_path);
+		add(original, result_opt->full_path_);
 		return true;
 	};
 
@@ -243,18 +254,15 @@ auto SourceFileRepository::file_to_line_at(SourceFileId const& file_id, std::siz
 	return source_files_[file_id.id()].line_at(line_index);
 }
 
-
-// NOTE: ifstream がファイル名に basic_string_view を受け取らないので、OsString への参照をもらう。
-static auto load_text_file(OsString const& file_path) -> Utf8String {
-	auto ifs = std::ifstream{ file_path };
-	if (!ifs.is_open()) {
+static auto load_text_file(OsString const& file_path, FileSystemApi& fs) -> Utf8String {
+	auto content_opt = fs.read_all_text(file_path);
+	if (!content_opt) {
 		// デバッグログなどに出力する？
 		return to_owned(as_utf8(u8""));
 	}
 
 	// NOTE: ソースコードの文字コードが HSP ランタイムの文字コードと同じとは限らない。
-	auto content = as_hsp(std::string{ std::istreambuf_iterator<char>{ ifs }, {} });
-	return to_utf8(content);
+	return to_utf8(as_hsp(std::move(*content_opt)));
 }
 
 static auto char_is_whitespace(Utf8Char c) -> bool {
@@ -281,12 +289,13 @@ static auto split_by_lines(Utf8StringView const& str) -> std::vector<Utf8StringV
 // SourceFile
 // -----------------------------------------------
 
-SourceFile::SourceFile(OsString&& full_path)
+SourceFile::SourceFile(OsString&& full_path, FileSystemApi& fs)
 	: full_path_(std::move(full_path))
 	, full_path_as_utf8_(to_utf8(full_path_))
 	, loaded_(false)
 	, content_()
 	, lines_()
+	, fs_(fs)
 {
 }
 
@@ -311,7 +320,7 @@ void SourceFile::load() {
 		return;
 	}
 
-	content_ = load_text_file(full_path_);
+	content_ = load_text_file(full_path_, fs_);
 	lines_ = split_by_lines(as_view(content_));
 	loaded_ = true;
 }
