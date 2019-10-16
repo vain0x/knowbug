@@ -61,7 +61,7 @@ static auto string_is_ascii(char const* str) -> bool {
 
 static auto ansi_to_os_str(char const* ansi_str, std::size_t ansi_str_len) -> OsString {
 	assert(ansi_str != nullptr);
-	assert(ansi_str_len == std::strlen(ansi_str));
+	assert(ansi_str_len <= std::strlen(ansi_str));
 
 	ansi_str_len++;
 
@@ -77,7 +77,7 @@ static auto ansi_to_os_str(char const* ansi_str, std::size_t ansi_str_len) -> Os
 
 static auto utf8_to_os_str(char const* utf8_str, std::size_t utf8_str_len) -> OsString {
 	assert(utf8_str != nullptr);
-	assert(utf8_str_len == std::strlen(utf8_str));
+	assert(utf8_str_len <= std::strlen(utf8_str));
 
 	utf8_str_len++;
 
@@ -93,7 +93,7 @@ static auto utf8_to_os_str(char const* utf8_str, std::size_t utf8_str_len) -> Os
 
 static auto os_to_ansi_str(LPCTSTR os_str, std::size_t os_str_len) -> std::string {
 	assert(os_str != nullptr);
-	assert(os_str_len == _tcslen(os_str));
+	assert(os_str_len <= _tcslen(os_str));
 
 	os_str_len++;
 
