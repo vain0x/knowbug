@@ -251,7 +251,7 @@ auto as_sjis(char const* str) -> SjisStringView {
 }
 
 auto as_sjis(std::string_view str) -> SjisStringView {
-	return SjisStringView{ (SjisChar const*)str.data(), str.size() };
+	return SjisStringView{ (SjisStringView const&)str };
 }
 
 auto as_sjis(std::string&& source) -> SjisString {
@@ -291,7 +291,7 @@ auto as_utf8(char const* str) -> Utf8StringView {
 }
 
 auto as_utf8(std::string_view str) -> Utf8StringView {
-	return Utf8StringView{ (Utf8Char const*)str.data(), str.size() };
+	return Utf8StringView{ (Utf8StringView const&)str };
 }
 
 auto as_utf8(std::string&& source) -> Utf8String {
@@ -315,19 +315,19 @@ auto to_utf8(SjisStringView source) -> Utf8String {
 }
 
 auto to_owned(HspStringView source) -> HspString {
-	return HspString{ source.begin(), source.end() };
+	return HspString{ source };
 }
 
 auto to_owned(OsStringView source) -> OsString {
-	return OsString{ source.begin(), source.end() };
+	return OsString{ source };
 }
 
 auto to_owned(SjisStringView source) -> SjisString {
-	return SjisString{ source.begin(), source.end() };
+	return SjisString{ source };
 }
 
 auto to_owned(Utf8StringView source) -> Utf8String {
-	return Utf8String{ source.begin(), source.end() };
+	return Utf8String{ source };
 }
 
 auto as_view(HspString const& source) -> HspStringView {
