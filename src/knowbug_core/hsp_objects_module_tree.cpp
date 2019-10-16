@@ -23,10 +23,10 @@ void traverse_module_tree(std::vector<Utf8String> const& var_names, ModuleTreeLi
 		for (auto vi = std::size_t{}; vi < var_names.size(); vi++) {
 			auto&& var_name = var_names[vi];
 
-			auto resolution_opt = var_name_to_scope_resolution(as_view(var_name));
+			auto resolution_opt = var_name_to_scope_resolution(var_name);
 			auto module_name = resolution_opt ? *resolution_opt : GLOBAL_MODULE_NAME;
 
-			tuples.emplace_back(module_name, as_view(var_name), vi);
+			tuples.emplace_back(module_name, var_name, vi);
 		}
 	}
 

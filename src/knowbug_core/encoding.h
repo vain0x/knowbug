@@ -109,14 +109,6 @@ extern auto to_owned(SjisStringView source) -> SjisString;
 
 extern auto to_owned(Utf8StringView source) -> Utf8String;
 
-extern auto as_view(HspString const& source) -> HspStringView;
-
-extern auto as_view(OsString const& source) -> OsStringView;
-
-extern auto as_view(SjisString const& source) -> SjisStringView;
-
-extern auto as_view(Utf8String const& source) -> Utf8StringView;
-
 extern auto as_native(HspStringView source) -> std::string_view;
 
 extern auto as_native(SjisStringView source) -> std::string_view;

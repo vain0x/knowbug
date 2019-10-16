@@ -108,7 +108,7 @@ public:
 			? node_tv_items_.at(*parent_id_opt)
 			: TVI_ROOT;
 
-		auto tv_item = do_insert_item(tv_parent, as_view(to_os(name)), insert_mode_to_sibling(mode));
+		auto tv_item = do_insert_item(tv_parent, to_os(name), insert_mode_to_sibling(mode));
 		node_ids_.emplace(tv_item, node_id);
 		node_tv_items_.emplace(node_id, tv_item);
 

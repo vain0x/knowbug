@@ -146,12 +146,12 @@ public:
 
 	// 絶対パス
 	auto full_path() const -> OsStringView {
-		return as_view(full_path_);
+		return full_path_;
 	}
 
 	// 絶対パス (UTF-8 エンコーディング)
 	auto full_path_as_utf8() const -> Utf8StringView {
-		return as_view(full_path_as_utf8_);
+		return full_path_as_utf8_;
 	}
 
 	// ソースファイルの中身を取得する。

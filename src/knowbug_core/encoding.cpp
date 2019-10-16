@@ -330,22 +330,6 @@ auto to_owned(Utf8StringView source) -> Utf8String {
 	return Utf8String{ source };
 }
 
-auto as_view(HspString const& source) -> HspStringView {
-	return HspStringView{ source };
-}
-
-auto as_view(OsString const& source) -> OsStringView {
-	return OsStringView{ source };
-}
-
-auto as_view(SjisString const& source) -> SjisStringView {
-	return SjisStringView{ source };
-}
-
-auto as_view(Utf8String const& source) -> Utf8StringView {
-	return Utf8StringView{ source };
-}
-
 auto as_native(HspStringView source) -> std::string_view {
 	return std::string_view{ (std::string_view const&)source };
 }
