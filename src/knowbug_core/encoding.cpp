@@ -59,7 +59,7 @@ static auto string_is_ascii(char const* str) -> bool {
 	return true;
 }
 
-static auto ansi_to_os_str(const char* ansi_str, std::size_t ansi_str_len) -> OsString {
+static auto ansi_to_os_str(char const* ansi_str, std::size_t ansi_str_len) -> OsString {
 	assert(ansi_str != nullptr);
 	assert(ansi_str_len == std::strlen(ansi_str));
 
