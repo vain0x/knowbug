@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "hsx_internals.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	auto element_to_indexes(PVal const* pval, std::size_t aptr) -> std::optional<HspDimIndex> {
 		auto count = pval_to_element_count(pval);
 		if (aptr >= count) {

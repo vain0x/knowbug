@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "encoding.h"
-#include "HspObjects.h"
-#include "HspObjectWriter.h"
+#include "hsp_objects.h"
+#include "hsp_object_writer.h"
 #include "string_writer.h"
 
 static auto const MAX_CHILD_COUNT = std::size_t{ 300 };
@@ -28,7 +28,7 @@ static auto string_need_escape(Utf8StringView const& str) -> bool {
 		});
 }
 
-static auto str_to_string(HspStr const& str) -> std::optional<std::string_view> {
+static auto str_to_string(hsx::HspStr const& str) -> std::optional<std::string_view> {
 	auto end = std::find(str.begin(), str.end(), '\0');
 
 	if (!std::all_of(str.begin(), end, char_can_print)) {
@@ -39,7 +39,7 @@ static auto str_to_string(HspStr const& str) -> std::optional<std::string_view> 
 	return std::string_view{ str.begin(), count };
 }
 
-static auto str_to_utf8(HspStr const& str) -> std::optional<Utf8String> {
+static auto str_to_utf8(hsx::HspStr const& str) -> std::optional<Utf8String> {
 	auto&& string_opt = str_to_string(str);
 	if (!string_opt) {
 		return std::nullopt;
@@ -52,13 +52,13 @@ static bool string_is_multiline(std::string_view const& str) {
 	return std::find(str.begin(), str.end(), '\n') != str.end();
 }
 
-static bool str_is_compact(HspStr const& str) {
+static bool str_is_compact(hsx::HspStr const& str) {
 	auto&& string_opt = str_to_string(str);
 	return string_opt && string_opt->size() < 64 && !string_is_multiline(*string_opt);
 }
 
 // 文字列をリテラル形式で書く。
-static void write_string_as_literal(CStrWriter& w, HspStr const& str) {
+static void write_string_as_literal(CStrWriter& w, hsx::HspStr const& str) {
 	auto&& string_opt = str_to_string(str);
 	if (!string_opt) {
 		w.cat(u8"<バイナリ>");
@@ -112,14 +112,14 @@ static void write_string_as_literal(CStrWriter& w, HspStr const& str) {
 	w.cat(u8"\"");
 }
 
-static void write_var_mode(CStrWriter& writer, HspVarMode var_mode) {
+static void write_var_mode(CStrWriter& writer, hsx::HspVarMode var_mode) {
 	switch (var_mode) {
-	case HspVarMode::None:
+	case hsx::HspVarMode::None:
 		writer.cat(u8" (empty)");
 		break;
-	case HspVarMode::Alloc:
+	case hsx::HspVarMode::Alloc:
 		break;
-	case HspVarMode::Clone:
+	case hsx::HspVarMode::Clone:
 		writer.cat(u8" (dup)");
 		break;
 	default:
@@ -128,7 +128,7 @@ static void write_var_mode(CStrWriter& writer, HspVarMode var_mode) {
 	}
 }
 
-static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, HspVarMode var_mode, HspDimIndex const& lengths) {
+static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
 	// 例: int(2, 3) (6 in total) (dup)
 
 	writer.cat(as_native(type_name));
@@ -155,7 +155,7 @@ static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name
 	write_var_mode(writer, var_mode);
 }
 
-static auto write_var_metadata_on_table(CStrWriter& w, Utf8StringView const& type_name, HspVarMetadata const& metadata) {
+static auto write_var_metadata_on_table(CStrWriter& w, Utf8StringView const& type_name, hsx::HspVarMetadata const& metadata) {
 	w.cat(u8"変数型: ");
 	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
 	w.catCrlf();
@@ -840,7 +840,7 @@ static void write_string_as_literal_tests(Tests& tests) {
 
 	auto write = [&](auto&& str) {
 		auto w = CStrWriter{};
-		write_string_as_literal(w, Slice<char>{ (char const*)str.data(), str.size() });
+		write_string_as_literal(w, hsx::Slice<char>{ (char const*)str.data(), str.size() });
 		return as_utf8(w.finish());
 	};
 
@@ -879,7 +879,7 @@ static void write_array_type_tests(Tests& tests) {
 		u8"1次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"int"), HspVarMode::Alloc, HspDimIndex{ 1, { 3 } }),
+				write(as_utf8(u8"int"), hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 1, { 3 } }),
 				as_utf8(u8"int(3)")
 			);
 		});
@@ -888,7 +888,7 @@ static void write_array_type_tests(Tests& tests) {
 		u8"2次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"str"), HspVarMode::Alloc, HspDimIndex{ 2, { 2, 3 } }),
+				write(as_utf8(u8"str"), hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 2, { 2, 3 } }),
 				as_utf8(u8"str(2, 3) (6 in total)")
 			);
 		});
@@ -897,7 +897,7 @@ static void write_array_type_tests(Tests& tests) {
 		u8"クローン変数",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"int"), HspVarMode::Clone, HspDimIndex{ 1, { 4 } }),
+				write(as_utf8(u8"int"), hsx::HspVarMode::Clone, hsx::HspDimIndex{ 1, { 4 } }),
 				as_utf8(u8"int(4) (dup)")
 			);
 		});

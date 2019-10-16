@@ -4,7 +4,7 @@
 
 #include <optional>
 #include "../hspsdk/hsp3struct.h"
-#include "HspTypes.h"
+#include "hsx.h"
 
 class WcCallFrameKey;
 class WcCallFrame;
@@ -19,7 +19,7 @@ extern auto wc_call_frame_key_at(std::size_t index) -> std::optional<WcCallFrame
 
 extern auto wc_call_frame_get(WcCallFrameKey const& key) -> std::optional<std::reference_wrapper<WcCallFrame>>;
 
-extern auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<HspParamStack>;
+extern auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<hsx::HspParamStack>;
 
 // ユーザー定義コマンドの呼び出し情報の識別子
 class WcCallFrameKey {

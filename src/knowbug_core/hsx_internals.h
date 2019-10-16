@@ -7,7 +7,7 @@
 // 危険な操作に印をつける。
 #define UNSAFE(E) (E)
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	static auto data_segment(HSPCTX const* ctx)->Slice<char> {
 		auto size = (std::size_t)std::max(0, ctx->hsphed->max_ds) / sizeof(char);
 		return Slice<char>{ ctx->mem_mds, size };

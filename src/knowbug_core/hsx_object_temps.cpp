@@ -2,7 +2,7 @@
 #include "hsx_data.h"
 #include "hsx_internals.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	auto object_temps(HSPCTX const* ctx) -> Slice<HspObjectTemp> {
 		auto size = (std::size_t)std::max(0, ctx->hsphed->max_ot) / sizeof(HspObjectTemp);
 		return Slice<HspObjectTemp>{ ctx->mem_ot, size };

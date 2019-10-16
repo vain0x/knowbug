@@ -2,7 +2,7 @@
 
 #include "hsx_types_fwd.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	// HSP の変数が持つデータへのポインタ
 	// FIXME: size を持たせる？
 	class HspData {

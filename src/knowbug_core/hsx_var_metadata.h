@@ -3,7 +3,7 @@
 #include "hsx_types_fwd.h"
 #include "hsx_dim_index.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	// HSP の変数に関連するメタデータの詰め合わせ
 	class HspVarMetadata {
 	public:

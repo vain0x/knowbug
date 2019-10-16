@@ -3,7 +3,7 @@
 #include <array>
 #include "hsx_types_fwd.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	// 多次元配列へのインデックス。(最大4次元)
 	// 多次元配列の要素の位置を表す。あるいは、次元数と要素数を表す。
 	class HspDimIndex {

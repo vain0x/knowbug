@@ -8,7 +8,6 @@
 
 class HspObjects;
 class HspObjectTree;
-class HspStaticVars;
 class KnowbugApp;
 struct KnowbugConfig;
 

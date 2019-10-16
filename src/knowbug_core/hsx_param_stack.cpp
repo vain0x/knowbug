@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "hsx_internals.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	auto param_stack_to_param_data_count(HspParamStack const& param_stack) -> std::size_t {
 		return struct_to_param_count(param_stack.struct_dat());
 	}

@@ -12,7 +12,7 @@
 #include "../hspsdk/hspwnd.h"
 #endif
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	class HspData;
 	class HspDimIndex;
 	class HspParamData;

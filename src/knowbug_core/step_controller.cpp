@@ -1,9 +1,7 @@
 #include "pch.h"
 #include <cassert>
 #include "hsx.h"
-#include "StepController.h"
-
-namespace hsx = hsp_sdk_ext;
+#include "step_controller.h"
 
 static auto step_mode_to_debug_mode(StepMode mode) -> int {
 	switch (mode) {
