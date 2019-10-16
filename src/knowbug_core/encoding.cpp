@@ -107,10 +107,11 @@ static auto os_to_ansi_str(LPCTSTR os_str, std::size_t os_str_len) -> std::strin
 	return std::string{ utf8_str.data() };
 }
 
-static auto os_to_utf8_str(LPCTSTR os_str) -> std::string {
+static auto os_to_utf8_str(LPCTSTR os_str, std::size_t os_str_len) -> std::string {
 	assert(os_str != nullptr);
+	assert(os_str_len <= _tcslen(os_str));
 
-	auto os_str_len = _tcslen(os_str) + 1;
+	os_str_len++;
 
 	auto len = WideCharToMultiByte(CP_UTF8, 0, os_str, (int)os_str_len, nullptr, 0, nullptr, nullptr);
 	assert(len >= 1);
@@ -246,7 +247,7 @@ auto to_utf8(HspStringView const& source) -> Utf8String {
 }
 
 auto to_utf8(OsStringView const& source) -> Utf8String {
-	return Utf8String{ as_utf8(os_to_utf8_str(source.data())) };
+	return Utf8String{ as_utf8(os_to_utf8_str(source.data(), source.size())) };
 }
 
 auto to_utf8(SjisStringView const& source) -> Utf8String {
