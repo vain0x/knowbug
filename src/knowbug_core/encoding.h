@@ -101,25 +101,45 @@ extern auto to_utf8(OsStringView source) -> Utf8String;
 
 extern auto to_utf8(SjisStringView source) -> Utf8String;
 
-extern auto to_owned(HspStringView source) -> HspString;
+static auto to_owned(HspStringView source) -> HspString {
+	return HspString{ source };
+}
 
-extern auto to_owned(OsStringView source) -> OsString;
+static auto to_owned(OsStringView source) -> OsString {
+	return OsString{ source };
+}
 
-extern auto to_owned(SjisStringView source) -> SjisString;
+static auto to_owned(SjisStringView source) -> SjisString {
+	return SjisString{ source };
+}
 
-extern auto to_owned(Utf8StringView source) -> Utf8String;
+static auto to_owned(Utf8StringView source) -> Utf8String {
+	return Utf8String{ source };
+}
 
-extern auto as_native(HspStringView source) -> std::string_view;
+static auto as_native(HspStringView source) -> std::string_view {
+	return std::string_view{ (std::string_view const&)source };
+}
 
-extern auto as_native(SjisStringView source) -> std::string_view;
+static auto as_native(HspString&& source) -> std::string {
+	return std::string{ (std::string&&)source };
+}
 
-extern auto as_native(Utf8StringView source) -> std::string_view;
+static auto as_native(SjisStringView source) -> std::string_view {
+	return std::string_view{ (std::string_view const&)source };
+}
 
-extern auto as_native(HspString&& source) -> std::string;
+static auto as_native(SjisString&& source) -> std::string {
+	return std::string{ (std::string&&)source };
+}
 
-extern auto as_native(SjisString&& source) -> std::string;
+static auto as_native(Utf8StringView source) -> std::string_view {
+	return std::string_view{ (std::string_view const&)source };
+}
 
-extern auto as_native(Utf8String&& source) -> std::string;
+static auto as_native(Utf8String&& source) -> std::string {
+	return std::string{ (std::string&&)source };
+}
 
 static std::ostream& operator <<(std::ostream& out, Utf8StringView source) {
 	return out << as_native(source);
