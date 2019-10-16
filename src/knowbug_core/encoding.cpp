@@ -6,6 +6,8 @@
 #include <vector>
 #include "encoding.h"
 
+static auto const CP_SJIS = 932;
+
 #ifdef HSP3_UTF8
 
 static auto cast_from_hsp(HspStringView const& source) -> Utf8StringView const& {
@@ -65,10 +67,10 @@ static auto fail_convert_to_os_str() -> OsString {
 	return OsString{ TEXT("<文字列を解釈できません>") };
 }
 
-static auto fail_convert_to_ansi_str() -> std::string {
+static auto fail_convert_to_sjis_str() -> SjisString {
 	// FIXME: エラーログ？
 	assert(false && u8"can't convert to ansi");
-	return std::string{ u8"<invalid string>" };
+	return SjisString{ as_sjis(u8"<invalid string>") };
 }
 
 static auto fail_convert_to_utf8_str() -> Utf8String {
@@ -78,16 +80,16 @@ static auto fail_convert_to_utf8_str() -> Utf8String {
 }
 
 // 参考: https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-multibytetowidechar
-static auto ansi_to_os_str(char const* ansi_str, std::size_t ansi_str_len) -> OsString {
-	assert(ansi_str != nullptr);
-	assert(ansi_str_len <= std::strlen(ansi_str));
+static auto sjis_to_os_str(SjisChar const* sjis_str, std::size_t ansi_str_len) -> OsString {
+	assert(sjis_str != nullptr);
+	assert(ansi_str_len <= std::strlen((char const*)sjis_str));
 
 	if (ansi_str_len == 0) {
 		return OsString{};
 	}
 
-	// 変換後の文字列のサイズを計算する。いま ansi_str_len > 0 なので、バッファサイズに NULL 文字分は含まれない。
-	auto len = MultiByteToWideChar(CP_ACP, 0, ansi_str, (int)ansi_str_len, LPTSTR{}, 0);
+	// 変換後の文字列のサイズを計算する。いま sjis_str_len > 0 なので、バッファサイズに NULL 文字分は含まれない。
+	auto len = MultiByteToWideChar(CP_SJIS, 0, (char const*)sjis_str, (int)ansi_str_len, LPTSTR{}, 0);
 	if (len == 0) {
 		return fail_convert_to_os_str();
 	}
@@ -97,7 +99,7 @@ static auto ansi_to_os_str(char const* ansi_str, std::size_t ansi_str_len) -> Os
 	os_str.resize(len);
 
 	// 文字コードの変換を行う。
-	auto result = MultiByteToWideChar(CP_ACP, 0, ansi_str, (int)ansi_str_len, os_str.data(), len);
+	auto result = MultiByteToWideChar(CP_SJIS, 0, (char const*)sjis_str, (int)ansi_str_len, os_str.data(), len);
 	if (result == 0) {
 		return fail_convert_to_os_str();
 	}
@@ -133,30 +135,30 @@ static auto utf8_to_os_str(Utf8Char const* utf8_str, std::size_t utf8_str_len) -
 }
 
 // 参考: https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-widechartomultibyte
-static auto os_to_ansi_str(LPCTSTR os_str, std::size_t os_str_len) -> std::string {
+static auto os_to_sjis_str(LPCTSTR os_str, std::size_t os_str_len) -> SjisString {
 	assert(os_str != nullptr);
 	assert(os_str_len <= _tcslen(os_str));
 
 	if (os_str_len == 0) {
-		return std::string{};
+		return SjisString{};
 	}
 
 	auto len = WideCharToMultiByte(CP_ACP, 0, os_str, (int)os_str_len, nullptr, 0, nullptr, nullptr);
 	if (len == 0) {
-		return fail_convert_to_ansi_str();
+		return fail_convert_to_sjis_str();
 	}
 	assert(len > 0);
 
-	auto ansi_str = std::string{};
-	ansi_str.resize(len);
+	auto sjis_str = SjisString{};
+	sjis_str.resize(len);
 
-	auto result = WideCharToMultiByte(CP_ACP, 0, os_str, (int)os_str_len, ansi_str.data(), len, nullptr, nullptr);
+	auto result = WideCharToMultiByte(CP_ACP, 0, os_str, (int)os_str_len, (char*)sjis_str.data(), len, nullptr, nullptr);
 	if (result == 0) {
-		return fail_convert_to_ansi_str();
+		return fail_convert_to_sjis_str();
 	}
 	assert(result == len);
 
-	return ansi_str;
+	return sjis_str;
 }
 
 static auto os_to_utf8_str(LPCTSTR os_str, std::size_t os_str_len) -> Utf8String {
@@ -265,7 +267,7 @@ auto to_sjis(HspStringView const& source) -> SjisString {
 }
 
 auto to_sjis(OsStringView const& source) -> SjisString {
-	return SjisString{ as_sjis(os_to_ansi_str(source.data(), source.size())) };
+	return os_to_sjis_str(source.data(), source.size());
 }
 
 auto to_sjis(Utf8StringView const& source) -> SjisString {
@@ -281,7 +283,7 @@ auto to_os(HspStringView const& source) -> OsString {
 }
 
 auto to_os(SjisStringView const& source) -> OsString {
-	return ansi_to_os_str((char const*)source.data(), source.size());
+	return sjis_to_os_str(source.data(), source.size());
 }
 
 auto to_os(Utf8StringView const& source) -> OsString {
