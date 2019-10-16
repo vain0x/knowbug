@@ -1083,7 +1083,7 @@ auto HspObjects::general_to_content() -> Utf8String {
 }
 
 auto HspObjects::log_to_content() const -> Utf8StringView {
-	return as_view(log_);
+	return log_;
 }
 
 void HspObjects::log_do_append(Utf8StringView const& text) {

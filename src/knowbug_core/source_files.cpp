@@ -56,7 +56,7 @@ static auto search_file_from_dirs(
 	FileSystemApi& api
 ) -> std::optional<FileSystemApi::SearchFileResult> {
 	for (auto&& dir : dirs) {
-		auto result_opt = api.search_file_from_dir(file_ref, as_view(dir));
+		auto result_opt = api.search_file_from_dir(file_ref, dir);
 		if (result_opt) {
 			return result_opt;
 		}
@@ -321,6 +321,6 @@ void SourceFile::load() {
 	}
 
 	content_ = load_text_file(full_path_, fs_);
-	lines_ = split_by_lines(as_view(content_));
+	lines_ = split_by_lines(content_);
 	loaded_ = true;
 }

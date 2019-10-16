@@ -47,7 +47,7 @@ static auto window_to_client_rect(HWND hwnd) -> RECT {
 }
 
 static auto create_main_font(KnowbugConfig const& config) -> GdiObjHandlePtr {
-	return GdiObjHandlePtr{ Font_Create(as_view(config.fontFamily), config.fontSize, config.fontAntialias) };
+	return GdiObjHandlePtr{ Font_Create(config.fontFamily, config.fontSize, config.fontAntialias) };
 }
 
 static void resize_main_window(int client_x, int client_y, bool repaints, HWND tree_view, HWND source_edit, StepButtonHandleArray const& step_button_handles) {

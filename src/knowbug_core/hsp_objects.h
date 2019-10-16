@@ -175,7 +175,7 @@ public:
 		Module(Utf8String&& name);
 
 		auto name() const->Utf8StringView {
-			return as_view(name_);
+			return name_;
 		}
 
 		auto var_ids() const->std::vector<std::size_t> const& {
@@ -193,7 +193,7 @@ public:
 	explicit TypeData(Utf8String&& name);
 
 	auto name() const -> Utf8StringView {
-		return as_view(name_);
+		return name_;
 	}
 };
 

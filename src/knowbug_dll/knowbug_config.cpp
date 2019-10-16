@@ -28,7 +28,7 @@ static auto ini_file_path(OsStringView const& hsp_dir) -> OsString {
 }
 
 auto load(OsString&& hsp_dir) -> KnowbugConfig {
-	auto&& ini = CIni{ ini_file_path(as_view(hsp_dir)) };
+	auto&& ini = CIni{ ini_file_path(hsp_dir) };
 	auto config = KnowbugConfig{};
 
 	config.hspDir = std::move(hsp_dir);
@@ -50,7 +50,7 @@ auto load(OsString&& hsp_dir) -> KnowbugConfig {
 }
 
 auto KnowbugConfig::selfPath() const -> OsString {
-	return ini_file_path(as_view(hspDir));
+	return ini_file_path(hspDir);
 }
 
 auto KnowbugConfig::create() -> std::unique_ptr<KnowbugConfig> {
