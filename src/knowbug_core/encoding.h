@@ -121,10 +121,18 @@ extern auto as_native(SjisString&& source) -> std::string;
 
 extern auto as_native(Utf8String&& source) -> std::string;
 
-inline static std::ostream& operator <<(std::ostream& out, Utf8StringView const& source) {
+static std::ostream& operator <<(std::ostream& out, Utf8StringView source) {
 	return out << as_native(source);
 }
 
-inline static std::ostream& operator <<(std::ostream& out, Utf8String const& source) {
-	return out << as_native(source);
+static std::ostream& operator <<(std::ostream& out, HspStringView source) {
+	return out << to_utf8(source);
+}
+
+static std::ostream& operator <<(std::ostream& out, OsStringView source) {
+	return out << to_utf8(source);
+}
+
+static std::ostream& operator <<(std::ostream& out, SjisStringView source) {
+	return out << to_utf8(source);
 }
