@@ -71,8 +71,6 @@ extern auto to_hsp(SjisStringView const& source) -> HspString;
 
 extern auto to_hsp(Utf8StringView const& source) -> HspString;
 
-extern auto as_os(LPCTSTR str) -> OsStringView;
-
 extern auto to_os(HspStringView const& source) -> OsString;
 
 extern auto to_os(SjisStringView const& source) -> OsString;

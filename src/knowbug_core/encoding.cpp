@@ -274,10 +274,6 @@ auto to_sjis(Utf8StringView const& source) -> SjisString {
 	return to_sjis(to_os(source));
 }
 
-auto as_os(LPCTSTR str) -> OsStringView {
-	return OsStringView{ str, std::size_t{} };
-}
-
 auto to_os(HspStringView const& source) -> OsString {
 	return to_os(cast_from_hsp(source));
 }
