@@ -59,68 +59,130 @@ static auto string_is_ascii(char const* str) -> bool {
 	return true;
 }
 
+static auto fail_convert_to_os_str() -> OsString {
+	// FIXME: エラーログ？
+	assert(false && u8"can't convert to unicode");
+	return OsString{ TEXT("<文字列を解釈できません>") };
+}
+
+static auto fail_convert_to_ansi_str() -> std::string {
+	// FIXME: エラーログ？
+	assert(false && u8"can't convert to ansi");
+	return std::string{ u8"<invalid string>" };
+}
+
+static auto fail_convert_to_utf8_str() -> Utf8String {
+	// FIXME: エラーログ？
+	assert(false && u8"can't convert to utf-8");
+	return Utf8String{ as_utf8(u8"<文字列を解釈できません>") };
+}
+
+// 参考: https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-multibytetowidechar
 static auto ansi_to_os_str(char const* ansi_str, std::size_t ansi_str_len) -> OsString {
 	assert(ansi_str != nullptr);
 	assert(ansi_str_len <= std::strlen(ansi_str));
 
-	ansi_str_len++;
+	if (ansi_str_len == 0) {
+		return OsString{};
+	}
 
-	auto len = MultiByteToWideChar(CP_ACP, 0, ansi_str, (int)ansi_str_len, nullptr, 0);
-	assert(len >= 1);
+	// 変換後の文字列のサイズを計算する。いま ansi_str_len > 0 なので、バッファサイズに NULL 文字分は含まれない。
+	auto len = MultiByteToWideChar(CP_ACP, 0, ansi_str, (int)ansi_str_len, LPTSTR{}, 0);
+	if (len == 0) {
+		return fail_convert_to_os_str();
+	}
+	assert(len > 0);
 
-	auto os_str = std::vector<TCHAR>(len, TCHAR{});
-	MultiByteToWideChar(CP_ACP, 0, ansi_str, (int)ansi_str_len, os_str.data(), len);
-	assert(os_str[len - 1] == TCHAR{});
+	auto os_str = OsString{};
+	os_str.resize(len);
 
-	return OsString{ os_str.data() };
+	// 文字コードの変換を行う。
+	auto result = MultiByteToWideChar(CP_ACP, 0, ansi_str, (int)ansi_str_len, os_str.data(), len);
+	if (result == 0) {
+		return fail_convert_to_os_str();
+	}
+	assert(result == len);
+
+	return os_str;
 }
 
-static auto utf8_to_os_str(char const* utf8_str, std::size_t utf8_str_len) -> OsString {
+static auto utf8_to_os_str(Utf8Char const* utf8_str, std::size_t utf8_str_len) -> OsString {
 	assert(utf8_str != nullptr);
-	assert(utf8_str_len <= std::strlen(utf8_str));
+	assert(utf8_str_len <= std::strlen((char const*)utf8_str));
 
-	utf8_str_len++;
+	if (utf8_str_len == 0) {
+		return OsString{};
+	}
 
-	auto len = MultiByteToWideChar(CP_UTF8, 0, utf8_str, (int)utf8_str_len, nullptr, 0);
-	assert(len >= 1);
+	auto len = MultiByteToWideChar(CP_UTF8, 0, (char const*)utf8_str, (int)utf8_str_len, LPTSTR{}, 0);
+	if (len == 0) {
+		return fail_convert_to_os_str();
+	}
+	assert(len > 0);
 
-	auto os_str = std::vector<TCHAR>(len, TCHAR{});
-	MultiByteToWideChar(CP_UTF8, 0, utf8_str, (int)utf8_str_len, os_str.data(), len);
-	assert(os_str[len - 1] == TCHAR{});
+	auto os_str = OsString{};
+	os_str.resize(len);
 
-	return OsString{ os_str.data() };
+	auto result = MultiByteToWideChar(CP_UTF8, 0, (char const*)utf8_str, (int)utf8_str_len, os_str.data(), len);
+	if (result == 0) {
+		return fail_convert_to_os_str();
+	}
+	assert(result == len);
+
+	return os_str;
 }
 
+// 参考: https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-widechartomultibyte
 static auto os_to_ansi_str(LPCTSTR os_str, std::size_t os_str_len) -> std::string {
 	assert(os_str != nullptr);
 	assert(os_str_len <= _tcslen(os_str));
 
-	os_str_len++;
+	if (os_str_len == 0) {
+		return std::string{};
+	}
 
 	auto len = WideCharToMultiByte(CP_ACP, 0, os_str, (int)os_str_len, nullptr, 0, nullptr, nullptr);
-	assert(len >= 1);
+	if (len == 0) {
+		return fail_convert_to_ansi_str();
+	}
+	assert(len > 0);
 
-	auto utf8_str = std::vector<char>(len, '\0');
-	WideCharToMultiByte(CP_ACP, 0, os_str, (int)os_str_len, utf8_str.data(), len, nullptr, nullptr);
-	assert(utf8_str[len - 1] == '\0');
+	auto ansi_str = std::string{};
+	ansi_str.resize(len);
 
-	return std::string{ utf8_str.data() };
+	auto result = WideCharToMultiByte(CP_ACP, 0, os_str, (int)os_str_len, ansi_str.data(), len, nullptr, nullptr);
+	if (result == 0) {
+		return fail_convert_to_ansi_str();
+	}
+	assert(result == len);
+
+	return ansi_str;
 }
 
-static auto os_to_utf8_str(LPCTSTR os_str, std::size_t os_str_len) -> std::string {
+static auto os_to_utf8_str(LPCTSTR os_str, std::size_t os_str_len) -> Utf8String {
 	assert(os_str != nullptr);
 	assert(os_str_len <= _tcslen(os_str));
 
-	os_str_len++;
+	if (os_str_len == 0) {
+		return Utf8String{};
+	}
 
 	auto len = WideCharToMultiByte(CP_UTF8, 0, os_str, (int)os_str_len, nullptr, 0, nullptr, nullptr);
-	assert(len >= 1);
+	if (len == 0) {
+		return fail_convert_to_utf8_str();
+	}
+	assert(len > 0);
 
-	auto utf8_str = std::vector<char>(len, '\0');
-	WideCharToMultiByte(CP_UTF8, 0, os_str, (int)os_str_len, utf8_str.data(), len, nullptr, nullptr);
-	assert(utf8_str[len - 1] == '\0');
+	auto utf8_str = Utf8String{};
+	utf8_str.resize(len);
 
-	return std::string{ utf8_str.data() };
+	auto result = WideCharToMultiByte(CP_UTF8, 0, os_str, (int)os_str_len, (char*)utf8_str.data(), len, nullptr, nullptr);
+	if (result == 0) {
+		return fail_convert_to_utf8_str();
+	}
+	assert(result == len);
+
+	return utf8_str;
 }
 
 auto ascii_as_utf8(char const* source) -> Utf8StringView {
@@ -135,7 +197,7 @@ auto ascii_as_utf8(std::string&& source) -> Utf8String {
 
 auto ascii_to_utf8(std::string const& source) -> Utf8String {
 	assert(string_is_ascii(source.data()));
-	return to_owned(ascii_as_utf8(source.data()));
+	return Utf8String{ (Utf8String const&)source };
 }
 
 auto as_hsp(char const* str) -> HspStringView {
@@ -219,11 +281,11 @@ auto to_os(HspStringView const& source) -> OsString {
 }
 
 auto to_os(SjisStringView const& source) -> OsString {
-	return OsString{ ansi_to_os_str((char const*)source.data(), source.size()) };
+	return ansi_to_os_str((char const*)source.data(), source.size());
 }
 
 auto to_os(Utf8StringView const& source) -> OsString {
-	return OsString{ utf8_to_os_str((char const*)source.data(), source.size()) };
+	return utf8_to_os_str(source.data(), source.size());
 }
 
 auto as_utf8(char const* str) -> Utf8StringView {
@@ -247,7 +309,7 @@ auto to_utf8(HspStringView const& source) -> Utf8String {
 }
 
 auto to_utf8(OsStringView const& source) -> Utf8String {
-	return Utf8String{ as_utf8(os_to_utf8_str(source.data(), source.size())) };
+	return os_to_utf8_str(source.data(), source.size());
 }
 
 auto to_utf8(SjisStringView const& source) -> Utf8String {
