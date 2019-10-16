@@ -6,8 +6,6 @@
 #include <vector>
 #include "encoding.h"
 
-using BasicOsString = std::basic_string<TCHAR>;
-
 #ifdef HSP3_UTF8
 
 static auto cast_from_hsp(HspStringView const& source) -> Utf8StringView const& {
@@ -61,7 +59,7 @@ static auto string_is_ascii(char const* str) -> bool {
 	return true;
 }
 
-static auto ansi_to_os_str(const char* ansi_str, std::size_t ansi_str_len) -> BasicOsString {
+static auto ansi_to_os_str(const char* ansi_str, std::size_t ansi_str_len) -> OsString {
 	assert(ansi_str != nullptr);
 	assert(ansi_str_len == std::strlen(ansi_str));
 
@@ -74,10 +72,10 @@ static auto ansi_to_os_str(const char* ansi_str, std::size_t ansi_str_len) -> Ba
 	MultiByteToWideChar(CP_ACP, 0, ansi_str, (int)ansi_str_len, os_str.data(), len);
 	assert(os_str[len - 1] == TCHAR{});
 
-	return BasicOsString{ os_str.data() };
+	return OsString{ os_str.data() };
 }
 
-static auto utf8_to_os_str(char const* utf8_str, std::size_t utf8_str_len) -> BasicOsString {
+static auto utf8_to_os_str(char const* utf8_str, std::size_t utf8_str_len) -> OsString {
 	assert(utf8_str != nullptr);
 	assert(utf8_str_len == std::strlen(utf8_str));
 
@@ -90,7 +88,7 @@ static auto utf8_to_os_str(char const* utf8_str, std::size_t utf8_str_len) -> Ba
 	MultiByteToWideChar(CP_UTF8, 0, utf8_str, (int)utf8_str_len, os_str.data(), len);
 	assert(os_str[len - 1] == TCHAR{});
 
-	return BasicOsString{ os_str.data() };
+	return OsString{ os_str.data() };
 }
 
 static auto os_to_ansi_str(LPCTSTR os_str, std::size_t os_str_len) -> std::string {
