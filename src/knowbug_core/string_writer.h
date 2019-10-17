@@ -33,28 +33,28 @@ public:
 		cat(as_utf8(str));
 	}
 
-	void catln(std::string_view const& str) {
-		catln(as_utf8(str));
+	void cat_line(std::string_view const& str) {
+		cat_line(as_utf8(str));
 	}
 
 	void cat(Utf8StringView str) {
 		cat_by_lines(str);
 	}
 
-	void catln(Utf8StringView str) {
+	void cat_line(Utf8StringView str) {
 		cat(str);
-		catCrlf();
+		cat_crlf();
 	}
 
-	void catCrlf() {
+	void cat_crlf() {
 		cat(u8"\r\n");
 	}
 
-	void catSize(std::size_t size);
+	void cat_size(std::size_t size);
 
-	void catPtr(void const* ptr);
+	void cat_ptr(void const* ptr);
 
-	void catDump(void const* data, size_t size);
+	void cat_memory_dump(void const* data, std::size_t size);
 
 	// 字下げを1段階深くする。
 	void indent();
@@ -73,7 +73,7 @@ private:
 
 	void cat_limited(Utf8StringView str);
 
-	void catDumpImpl(void const* data, std::size_t size);
+	void cat_memory_dump_impl(void const* data, std::size_t size);
 };
 
 inline static auto as_view(StringWriter const& writer) -> Utf8StringView {

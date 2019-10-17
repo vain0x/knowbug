@@ -68,7 +68,7 @@ public:
 	}
 
 	void begin_module(Utf8StringView const& module_name) override {
-		writer_.catln(module_name);
+		writer_.cat_line(module_name);
 		writer_.indent();
 	}
 
@@ -79,8 +79,8 @@ public:
 	void add_var(std::size_t var_id, Utf8StringView const& var_name) override {
 		writer_.cat(var_name);
 		writer_.cat(as_utf8(u8" #"));
-		writer_.catSize(var_id);
-		writer_.catCrlf();
+		writer_.cat_size(var_id);
+		writer_.cat_crlf();
 	}
 };
 
