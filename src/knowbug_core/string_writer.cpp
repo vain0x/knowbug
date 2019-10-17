@@ -9,7 +9,7 @@ static auto const TRIMMED_SUFFIX = as_utf8(u8"(too long)");
 
 static auto const DEFAULT_LIMIT = 0x8000;
 
-CStrWriter::CStrWriter()
+StringWriter::StringWriter()
 	: buf_()
 	, depth_()
 	, head_(true)
@@ -18,23 +18,23 @@ CStrWriter::CStrWriter()
 	set_limit(DEFAULT_LIMIT);
 }
 
-auto CStrWriter::is_full() const -> bool {
+auto StringWriter::is_full() const -> bool {
 	return limit_ == 0;
 }
 
-auto CStrWriter::as_view() const -> Utf8StringView {
+auto StringWriter::as_view() const -> Utf8StringView {
 	return buf_;
 }
 
-auto CStrWriter::finish() -> Utf8String&& {
+auto StringWriter::finish() -> Utf8String&& {
 	return std::move(buf_);
 }
 
-void CStrWriter::indent() {
+void StringWriter::indent() {
 	depth_++;
 }
 
-void CStrWriter::unindent() {
+void StringWriter::unindent() {
 	if (depth_ == 0) {
 		assert(false && u8"indent と unindent が対応していません。");
 		return;
@@ -43,7 +43,7 @@ void CStrWriter::unindent() {
 	depth_--;
 }
 
-void CStrWriter::set_limit(std::size_t limit) {
+void StringWriter::set_limit(std::size_t limit) {
 	limit_ = limit;
 
 	buf_.reserve(buf_.size() + limit_);
@@ -51,7 +51,7 @@ void CStrWriter::set_limit(std::size_t limit) {
 
 // バッファの末尾に文字列を追加する。
 // 文字列制限が上限に達したら打ち切る。
-void CStrWriter::cat_limited(Utf8StringView str) {
+void StringWriter::cat_limited(Utf8StringView str) {
 	if (is_full()) {
 		return;
 	}
@@ -75,7 +75,7 @@ void CStrWriter::cat_limited(Utf8StringView str) {
 
 // バッファの末尾に文字列を追加する。
 // 行ごとに分割して適切に字下げを挿入する。
-void CStrWriter::cat_by_lines(Utf8StringView str) {
+void StringWriter::cat_by_lines(Utf8StringView str) {
 	auto first = true;
 
 	for (auto&& line : StringLines{ str }) {
@@ -109,7 +109,7 @@ void CStrWriter::cat_by_lines(Utf8StringView str) {
 //
 // @ 最後の行に改行を挿入しない。
 //------------------------------------------------
-void CStrWriter::catDumpImpl( void const* data, size_t size )
+void StringWriter::catDumpImpl( void const* data, size_t size )
 {
 	static auto const stc_bytesPerLine = size_t { 0x10 };
 	auto const mem = static_cast<unsigned char const*>(data);
@@ -128,15 +128,15 @@ void CStrWriter::catDumpImpl( void const* data, size_t size )
 	}
 }
 
-void CStrWriter::catSize(std::size_t size) {
+void StringWriter::catSize(std::size_t size) {
 	cat(strf("%d", size));
 }
 
-void CStrWriter::catPtr(void const* ptr) {
+void StringWriter::catPtr(void const* ptr) {
 	cat(strf("%p", ptr));
 }
 
-void CStrWriter::catDump(void const* data, size_t bufsize)
+void StringWriter::catDump(void const* data, size_t bufsize)
 {
 	assert(bufsize == 0 || data);
 
@@ -157,8 +157,8 @@ void CStrWriter::catDump(void const* data, size_t bufsize)
 // Tests
 // -----------------------------------------------
 
-static auto string_writer_new() -> CStrWriter {
-	return CStrWriter{};
+static auto string_writer_new() -> StringWriter {
+	return StringWriter{};
 }
 
 void string_writer_tests(Tests& tests) {

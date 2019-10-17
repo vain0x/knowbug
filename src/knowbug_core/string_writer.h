@@ -9,7 +9,7 @@
 
 // 文字列を構築するためのもの。
 // 自動的な字下げと文字数制限の機能を持つ。
-class CStrWriter {
+class StringWriter {
 	Utf8String buf_;
 
 	// 字下げの深さ
@@ -22,7 +22,7 @@ class CStrWriter {
 	std::size_t limit_;
 
 public:
-	CStrWriter();
+	StringWriter();
 
 public:
 	auto is_full() const -> bool;
@@ -76,7 +76,7 @@ private:
 	void catDumpImpl(void const* data, std::size_t size);
 };
 
-inline static auto as_view(CStrWriter const& writer) -> Utf8StringView {
+inline static auto as_view(StringWriter const& writer) -> Utf8StringView {
 	return writer.as_view();
 }
 

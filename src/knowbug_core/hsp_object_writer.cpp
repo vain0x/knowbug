@@ -58,7 +58,7 @@ static bool str_is_compact(hsx::HspStr const& str) {
 }
 
 // 文字列をリテラル形式で書く。
-static void write_string_as_literal(CStrWriter& w, hsx::HspStr const& str) {
+static void write_string_as_literal(StringWriter& w, hsx::HspStr const& str) {
 	auto&& string_opt = str_to_string(str);
 	if (!string_opt) {
 		w.cat(u8"<バイナリ>");
@@ -112,7 +112,7 @@ static void write_string_as_literal(CStrWriter& w, hsx::HspStr const& str) {
 	w.cat(u8"\"");
 }
 
-static void write_var_mode(CStrWriter& writer, hsx::HspVarMode var_mode) {
+static void write_var_mode(StringWriter& writer, hsx::HspVarMode var_mode) {
 	switch (var_mode) {
 	case hsx::HspVarMode::None:
 		writer.cat(u8" (empty)");
@@ -128,7 +128,7 @@ static void write_var_mode(CStrWriter& writer, hsx::HspVarMode var_mode) {
 	}
 }
 
-static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
+static void write_array_type(StringWriter& writer, Utf8StringView const& type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
 	// 例: int(2, 3) (6 in total) (dup)
 
 	writer.cat(type_name);
@@ -155,7 +155,7 @@ static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name
 	write_var_mode(writer, var_mode);
 }
 
-static auto write_var_metadata_on_table(CStrWriter& w, Utf8StringView const& type_name, hsx::HspVarMetadata const& metadata) {
+static auto write_var_metadata_on_table(StringWriter& w, Utf8StringView const& type_name, hsx::HspVarMetadata const& metadata) {
 	w.cat(u8"変数型: ");
 	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
 	w.catCrlf();
@@ -196,7 +196,7 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 	}
 }
 
-static void write_flex_module_name(CStrWriter& w, Utf8StringView const& module_name, std::optional<bool> is_clone_opt) {
+static void write_flex_module_name(StringWriter& w, Utf8StringView const& module_name, std::optional<bool> is_clone_opt) {
 	w.cat(module_name);
 
 	// クローンなら印をつける。
@@ -207,7 +207,7 @@ static void write_flex_module_name(CStrWriter& w, Utf8StringView const& module_n
 	}
 }
 
-static void write_signature(CStrWriter& w, std::vector<Utf8StringView> const& param_type_names) {
+static void write_signature(StringWriter& w, std::vector<Utf8StringView> const& param_type_names) {
 	// FIXME: 命令ならカッコなし、関数ならカッコあり？
 
 	w.cat(u8"(");
@@ -224,7 +224,7 @@ static void write_signature(CStrWriter& w, std::vector<Utf8StringView> const& pa
 }
 
 static void write_source_location(
-	CStrWriter& w,
+	StringWriter& w,
 	std::optional<Utf8StringView> const& file_name_opt,
 	std::optional<std::size_t> const& line_index_opt
 ) {
@@ -255,12 +255,12 @@ public:
 	class FlowForm;
 
 private:
-	CStrWriter& writer_;
+	StringWriter& writer_;
 
 public:
-	explicit HspObjectWriterImpl(HspObjects& objects, CStrWriter& writer);
+	explicit HspObjectWriterImpl(HspObjects& objects, StringWriter& writer);
 
-	auto writer() -> CStrWriter& {
+	auto writer() -> StringWriter& {
 		return writer_;
 	}
 
@@ -277,7 +277,7 @@ class HspObjectWriterImpl::TableForm
 	: public HspObjectWriterImpl
 {
 public:
-	TableForm(HspObjects& objects, CStrWriter& writer);
+	TableForm(HspObjects& objects, StringWriter& writer);
 
 	void accept_default(HspObjectPath const& path) override;
 
@@ -308,7 +308,7 @@ class HspObjectWriterImpl::BlockForm
 	: public HspObjectWriterImpl
 {
 public:
-	BlockForm(HspObjects& objects, CStrWriter& writer);
+	BlockForm(HspObjects& objects, StringWriter& writer);
 
 	void accept(HspObjectPath const& path) override;
 
@@ -343,7 +343,7 @@ class HspObjectWriterImpl::FlowForm
 	: public HspObjectWriterImpl
 {
 public:
-	FlowForm(HspObjects& objects, CStrWriter& writer);
+	FlowForm(HspObjects& objects, StringWriter& writer);
 
 	void accept_children(HspObjectPath const& path) override;
 
@@ -366,7 +366,7 @@ public:
 // 基底クラスの実装
 // -----------------------------------------------
 
-HspObjectWriterImpl::HspObjectWriterImpl(HspObjects& objects, CStrWriter& writer)
+HspObjectWriterImpl::HspObjectWriterImpl(HspObjects& objects, StringWriter& writer)
 	: Visitor(objects)
 	, writer_(writer)
 {
@@ -388,7 +388,7 @@ auto HspObjectWriterImpl::to_flow_form() -> HspObjectWriterImpl::FlowForm {
 // テーブルフォーム
 // -----------------------------------------------
 
-HspObjectWriterImpl::TableForm::TableForm(HspObjects& objects, CStrWriter& writer)
+HspObjectWriterImpl::TableForm::TableForm(HspObjects& objects, StringWriter& writer)
 	: HspObjectWriterImpl(objects, writer)
 {
 }
@@ -554,7 +554,7 @@ void HspObjectWriterImpl::TableForm::on_unavailable(HspObjectPath::Unavailable c
 // ブロックフォーム
 // -----------------------------------------------
 
-HspObjectWriterImpl::BlockForm::BlockForm(HspObjects& objects, CStrWriter& writer)
+HspObjectWriterImpl::BlockForm::BlockForm(HspObjects& objects, StringWriter& writer)
 	: HspObjectWriterImpl(objects, writer)
 {
 }
@@ -702,7 +702,7 @@ void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path
 // フローフォーム
 // -----------------------------------------------
 
-HspObjectWriterImpl::FlowForm::FlowForm(HspObjects& objects, CStrWriter& writer)
+HspObjectWriterImpl::FlowForm::FlowForm(HspObjects& objects, StringWriter& writer)
 	: HspObjectWriterImpl(objects, writer)
 {
 }
@@ -813,7 +813,7 @@ void HspObjectWriterImpl::FlowForm::on_unknown(HspObjectPath::Unknown const& pat
 // 公開クラス
 // -----------------------------------------------
 
-HspObjectWriter::HspObjectWriter(HspObjects& objects, CStrWriter& writer)
+HspObjectWriter::HspObjectWriter(HspObjects& objects, StringWriter& writer)
 	: objects_(objects)
 	, writer_(writer)
 {
@@ -839,7 +839,7 @@ static void write_string_as_literal_tests(Tests& tests) {
 	auto&& suite = tests.suite(u8"write_string_as_literal");
 
 	auto write = [&](auto&& str) {
-		auto w = CStrWriter{};
+		auto w = StringWriter{};
 		write_string_as_literal(w, hsx::Slice<char>{ (char const*)str.data(), str.size() });
 		return w.finish();
 	};
@@ -870,7 +870,7 @@ static void write_array_type_tests(Tests& tests) {
 	auto&& suite = tests.suite(u8"write_array_type");
 
 	auto write = [&](auto&& type_name, auto&& var_mode, auto&& lengths) {
-		auto w = CStrWriter{};
+		auto w = StringWriter{};
 		write_array_type(w, type_name, var_mode, lengths);
 		return w.finish();
 	};
@@ -907,7 +907,7 @@ static void write_source_location_tests(Tests& tests) {
 	auto&& suite = tests.suite(u8"write_source_location");
 
 	auto write = [&](auto&& ...args) {
-		auto w = CStrWriter{};
+		auto w = StringWriter{};
 		write_source_location(w, args...);
 		return w.finish();
 	};

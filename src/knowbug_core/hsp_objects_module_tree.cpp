@@ -59,10 +59,10 @@ void traverse_module_tree(std::vector<Utf8String> const& var_names, ModuleTreeLi
 class ModuleTreeWriter
 	: public ModuleTreeListener
 {
-	CStrWriter& writer_;
+	StringWriter& writer_;
 
 public:
-	ModuleTreeWriter(CStrWriter& writer)
+	ModuleTreeWriter(StringWriter& writer)
 		: writer_(writer)
 	{
 	}
@@ -108,7 +108,7 @@ void module_tree_tests(Tests& tests) {
 	suite.test(
 		u8"モジュールツリーを構築できる",
 		[&](TestCaseContext& t) {
-			auto w = CStrWriter{};
+			auto w = StringWriter{};
 			auto listener = ModuleTreeWriter{ w };
 			auto var_names = std::vector<Utf8String>{
 				to_owned(as_utf8(u8"s1@m1")),
@@ -138,7 +138,7 @@ void module_tree_tests(Tests& tests) {
 	suite.test(
 		u8"変数がないケース",
 		[&](TestCaseContext& t) {
-			auto w = CStrWriter{};
+			auto w = StringWriter{};
 			auto listener = ModuleTreeWriter{ w };
 
 			traverse_module_tree(std::vector<Utf8String>{}, listener);
