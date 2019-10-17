@@ -82,7 +82,6 @@ static auto fail_convert_to_utf8_str() -> Utf8String {
 // 参考: https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-multibytetowidechar
 static auto sjis_to_os_str(SjisChar const* sjis_str, std::size_t ansi_str_len) -> OsString {
 	assert(sjis_str != nullptr);
-	assert(ansi_str_len <= std::strlen((char const*)sjis_str));
 
 	if (ansi_str_len == 0) {
 		return OsString{};
@@ -110,7 +109,6 @@ static auto sjis_to_os_str(SjisChar const* sjis_str, std::size_t ansi_str_len) -
 
 static auto utf8_to_os_str(Utf8Char const* utf8_str, std::size_t utf8_str_len) -> OsString {
 	assert(utf8_str != nullptr);
-	assert(utf8_str_len <= std::strlen((char const*)utf8_str));
 
 	if (utf8_str_len == 0) {
 		return OsString{};
@@ -137,7 +135,6 @@ static auto utf8_to_os_str(Utf8Char const* utf8_str, std::size_t utf8_str_len) -
 // 参考: https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-widechartomultibyte
 static auto os_to_sjis_str(LPCTSTR os_str, std::size_t os_str_len) -> SjisString {
 	assert(os_str != nullptr);
-	assert(os_str_len <= _tcslen(os_str));
 
 	if (os_str_len == 0) {
 		return SjisString{};
@@ -163,7 +160,6 @@ static auto os_to_sjis_str(LPCTSTR os_str, std::size_t os_str_len) -> SjisString
 
 static auto os_to_utf8_str(LPCTSTR os_str, std::size_t os_str_len) -> Utf8String {
 	assert(os_str != nullptr);
-	assert(os_str_len <= _tcslen(os_str));
 
 	if (os_str_len == 0) {
 		return Utf8String{};
