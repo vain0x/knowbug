@@ -6,26 +6,33 @@
 #include "../knowbug_core/encoding.h"
 #include "../knowbug_core/platform.h"
 
-struct KnowbugConfig;
-
 // knowbug のすべての設定。package/knowbug.ini を参照。
-struct KnowbugConfig {
-	OsString hspDir;
-	bool bTopMost;
-	bool viewPosXIsDefault, viewPosYIsDefault;
-	int viewPosX, viewPosY;
-	int viewSizeX, viewSizeY;
-	int  tabwidth;
-	OsString fontFamily;
-	int fontSize;
-	bool fontAntialias;
-	OsString logPath;
+class KnowbugConfig {
+public:
+	OsString hsp_dir_;
 
-	auto commonPath() const -> OsString {
-		return OsString{ hspDir + TEXT("common") };
+	bool top_most_;
+	int tab_width_;
+
+	bool view_pos_x_is_default_;
+	bool view_pos_y_is_default_;
+	int view_pos_x_;
+	int view_pos_y_;
+	int view_size_x_;
+	int view_size_y_;
+
+	OsString font_family_;
+	int font_size_;
+	bool font_antialias_;
+
+	OsString log_path_;
+
+public:
+	static auto create()->std::unique_ptr<KnowbugConfig>;
+
+	auto common_dir() const -> OsString {
+		return OsString{ hsp_dir_ + TEXT("common") };
 	}
 
-	auto selfPath() const->OsString;
-
-	static auto create()->std::unique_ptr<KnowbugConfig>;
+	auto config_path() const->OsString;
 };
