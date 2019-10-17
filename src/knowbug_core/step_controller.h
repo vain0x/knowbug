@@ -89,10 +89,10 @@ public:
 class StepController {
 	// 条件付き実行の終了条件となる sublev
 	// (条件付き実行ではないときは -1)
-	int sublevOfGoal;
+	int goal_sublev_;
 
 	// 現在のサブルーチンレベル
-	int sublev;
+	int current_sublev_;
 
 	// 現在の実行モード
 	StepMode mode_;
@@ -100,15 +100,15 @@ class StepController {
 
 public:
 	StepController()
-		: sublevOfGoal(-1)
-		, sublev(0)
+		: goal_sublev_(-1)
+		, current_sublev_(0)
 		, mode_(StepMode::Run)
 		, mode_dirty_(false)
 	{
 	}
 
 	void update(int sublev) {
-		this->sublev = sublev;
+		current_sublev_ = sublev;
 		mode_dirty_ = false;
 	}
 
@@ -120,50 +120,50 @@ public:
 		return mode_dirty_;
 	}
 
-	void runStop() {
-		setStepMode(StepMode::Stop);
+	void do_stop() {
+		set_step_mode(StepMode::Stop);
 	}
 
-	void run() {
-		setStepMode(StepMode::Run);
+	void do_run() {
+		set_step_mode(StepMode::Run);
 	}
 
-	void runStepIn() {
-		setStepMode(StepMode::StepIn);
+	void do_step_in() {
+		set_step_mode(StepMode::StepIn);
 	}
 
-	void runStepOver() {
-		return runStepReturn(sublev);
+	void do_step_over() {
+		return do_step_return(current_sublev_);
 	}
 
-	void runStepOut() {
-		return runStepReturn(sublev - 1);
+	void do_step_out() {
+		return do_step_return(current_sublev_ - 1);
 	}
 
 	// ctx->sublev == sublev になるまで step を繰り返す
-	void runStepReturn(int sublev) {
-		if (sublev < 0) return run();
+	void do_step_return(int sublev) {
+		if (sublev < 0) return do_run();
 
-		sublevOfGoal = sublev;
-		setStepMode(StepMode::StepIn);
+		goal_sublev_ = sublev;
+		set_step_mode(StepMode::StepIn);
 	}
 
 	// 条件付き実行が継続されるか？
-	bool continueConditionalRun() {
-		if (sublevOfGoal >= 0) {
-			if (sublev > sublevOfGoal) {
-				setStepMode(StepMode::StepIn); // stepin を繰り返す
+	bool continue_step_running() {
+		if (goal_sublev_ >= 0) {
+			if (current_sublev_ > goal_sublev_) {
+				set_step_mode(StepMode::StepIn); // stepin を繰り返す
 				return true;
 			}
 			else {
-				sublevOfGoal = -1;
+				goal_sublev_ = -1;
 			}
 		}
 		return false;
 	}
 
 private:
-	void setStepMode(StepMode mode) {
+	void set_step_mode(StepMode mode) {
 		mode_ = mode;
 		mode_dirty_ = true;
 	}
