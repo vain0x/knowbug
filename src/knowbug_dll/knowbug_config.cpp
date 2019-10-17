@@ -28,27 +28,27 @@ static auto get_config_path(OsStringView hsp_dir) -> OsString {
 }
 
 static auto load_config(OsString&& hsp_dir) -> KnowbugConfig {
-	auto&& ini = CIni{ get_config_path(hsp_dir) };
+	auto&& ini = IniFile{ get_config_path(hsp_dir) };
 	auto config = KnowbugConfig{};
 
 	config.hsp_dir_ = std::move(hsp_dir);
-	config.log_path_ = to_owned(ini.getString("Log", "autoSavePath", ""));
+	config.log_path_ = ini.get_string("Log", "autoSavePath", "");
 
-	config.top_most_ = ini.getBool("Window", "bTopMost", false);
-	config.tab_width_ = ini.getInt("Interface", "tabwidth", 3);
+	config.top_most_ = ini.get_bool("Window", "bTopMost", false);
+	config.tab_width_ = ini.get_int("Interface", "tabwidth", 3);
 
-	config.view_pos_x_is_default_ = !ini.existsKey("Window", "viewPosX");
-	config.view_pos_x_ = ini.getInt("Window", "viewPosX", 0);
+	config.view_pos_x_is_default_ = !ini.contains_key("Window", "viewPosX");
+	config.view_pos_x_ = ini.get_int("Window", "viewPosX", 0);
 
-	config.view_pos_y_is_default_ = !ini.existsKey("Window", "viewPosY");
-	config.view_pos_y_ = ini.getInt("Window", "viewPosY", 0);
+	config.view_pos_y_is_default_ = !ini.contains_key("Window", "viewPosY");
+	config.view_pos_y_ = ini.get_int("Window", "viewPosY", 0);
 
-	config.view_size_x_ = ini.getInt("Window", "viewSizeX", 412);
-	config.view_size_y_ = ini.getInt("Window", "viewSizeY", 380);
+	config.view_size_x_ = ini.get_int("Window", "viewSizeX", 412);
+	config.view_size_y_ = ini.get_int("Window", "viewSizeY", 380);
 
-	config.font_family_ = to_owned(ini.getString("Interface", "fontFamily", "MS Gothic"));
-	config.font_size_ = ini.getInt("Interface", "fontSize", 13);
-	config.font_antialias_ = ini.getBool("Interface", "fontAntialias", false);
+	config.font_family_ = ini.get_string("Interface", "fontFamily", "MS Gothic");
+	config.font_size_ = ini.get_int("Interface", "fontSize", 13);
+	config.font_antialias_ = ini.get_bool("Interface", "fontAntialias", false);
 	return config;
 }
 

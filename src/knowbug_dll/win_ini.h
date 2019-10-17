@@ -1,34 +1,35 @@
-// INIファイル読み書きクラス
+// INI ファイルの読み込み機能を提供する。
 
-#ifndef IG_CLASS_INI_H
-#define IG_CLASS_INI_H
+#pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 #include "../knowbug_core/encoding.h"
 
-class CIni {
-	OsString const file_name_;
-	std::vector<TCHAR> buf_;
+class IniFile {
+	OsString file_path_;
 
 public:
-	explicit CIni(OsString&& file_name);
+	explicit IniFile(OsString&& file_path)
+		: file_path_(std::move(file_path))
+	{
+	}
 
-	bool getBool(char const* section, char const* key, bool defval_value = false);
+	// 指定したキーに対応する値を論理値として取得する。
+	// 0 と false は偽。
+	auto get_bool(char const* section, char const* key, bool defval_value = false) const -> bool;
 
-	auto getInt(char const* section, char const* key, int default_value = 0) const -> int;
+	auto get_int(char const* section, char const* key, int default_value = 0) const -> int;
 
-	auto getString(
+	auto get_string(
 		char const* section,
 		char const* key,
 		char const* default_value = "",
-		size_t size = 0
-	) -> OsStringView;
+		std::size_t buffer_size = 0
+	) const -> OsString;
 
-	bool existsKey(char const* sec, char const* key);
+	auto contains_key(char const* section, char const* key) const -> bool;
 
 private:
-	CIni(CIni const& obj) = delete;
+	IniFile(IniFile const& other) = delete;
 };
-
-#endif
