@@ -295,23 +295,23 @@ public:
 		case WM_COMMAND:
 			switch (LOWORD(wp)) {
 			case IDC_BTN1:
-				app.step_run(StepControl::run());
+				app.step_run(StepControl::new_run());
 				break;
 
 			case IDC_BTN2:
-				app.step_run(StepControl::step_in());
+				app.step_run(StepControl::new_step_in());
 				break;
 
 			case IDC_BTN3:
-				app.step_run(StepControl::stop());
+				app.step_run(StepControl::new_stop());
 				break;
 
 			case IDC_BTN4:
-				app.step_run(StepControl::step_over());
+				app.step_run(StepControl::new_step_over());
 				break;
 
 			case IDC_BTN5:
-				app.step_run(StepControl::step_out());
+				app.step_run(StepControl::new_step_out());
 				break;
 
 			case IDC_TOPMOST:

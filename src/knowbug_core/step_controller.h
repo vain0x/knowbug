@@ -52,27 +52,27 @@ class StepControl {
 	}
 
 public:
-	static auto run() -> StepControl {
+	static auto new_run() -> StepControl {
 		return StepControl{ StepControlKind::Run, 0 };
 	}
 
-	static auto stop() -> StepControl {
+	static auto new_stop() -> StepControl {
 		return StepControl{ StepControlKind::Stop, 0 };
 	}
 
-	static auto step_in() -> StepControl {
+	static auto new_step_in() -> StepControl {
 		return StepControl{ StepControlKind::StepIn, 0 };
 	}
 
-	static auto step_over() -> StepControl {
+	static auto new_step_over() -> StepControl {
 		return StepControl{ StepControlKind::StepOver, 0 };
 	}
 
-	static auto step_out() -> StepControl {
+	static auto new_step_out() -> StepControl {
 		return StepControl{ StepControlKind::StepOut, 0 };
 	}
 
-	static auto step_return(int sublev) -> StepControl {
+	static auto new_step_return(int sublev) -> StepControl {
 		return StepControl{ StepControlKind::StepReturn, sublev };
 	}
 
