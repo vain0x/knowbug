@@ -87,10 +87,6 @@ public:
 
 // ステップ操作を受け取ってステップ実行モードを制御する機能を担当する。
 class StepController {
-	// ステップ実行中かどうかのフラグ
-	// 「脱出」等の条件付き実行は除く。
-	bool bStepRunning;
-
 	// 条件付き実行の終了条件となる sublev
 	// (条件付き実行ではないときは -1)
 	int sublevOfGoal;
@@ -104,8 +100,7 @@ class StepController {
 
 public:
 	StepController()
-		: bStepRunning(false)
-		, sublevOfGoal(-1)
+		: sublevOfGoal(-1)
 		, sublev(0)
 		, mode_(StepMode::Run)
 		, mode_dirty_(false)
@@ -115,10 +110,6 @@ public:
 	void update(int sublev) {
 		this->sublev = sublev;
 		mode_dirty_ = false;
-	}
-
-	bool isStepRunning() const {
-		return bStepRunning;
 	}
 
 	auto mode() const -> StepMode {
@@ -135,13 +126,9 @@ public:
 
 	void run() {
 		setStepMode(StepMode::Run);
-		bStepRunning = false;
 	}
 
 	void runStepIn() {
-		// 本当のステップ実行でのみフラグが立つ
-		bStepRunning = true;
-
 		setStepMode(StepMode::StepIn);
 	}
 
@@ -158,7 +145,6 @@ public:
 		if (sublev < 0) return run();
 
 		sublevOfGoal = sublev;
-		bStepRunning = false;
 		setStepMode(StepMode::StepIn);
 	}
 
