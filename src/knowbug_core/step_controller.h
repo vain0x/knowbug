@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <optional>
+
 struct HSP3DEBUG;
 class KnowbugStepController;
 
@@ -88,8 +90,7 @@ public:
 // ステップ操作を受け取ってステップ実行モードを制御する機能を担当する。
 class StepController {
 	// 条件付き実行の終了条件となる sublev
-	// (条件付き実行ではないときは -1)
-	int goal_sublev_;
+	std::optional<int> goal_sublev_opt_;
 
 	// 現在のサブルーチンレベル
 	int current_sublev_;
@@ -100,7 +101,7 @@ class StepController {
 
 public:
 	StepController()
-		: goal_sublev_(-1)
+		: goal_sublev_opt_()
 		, current_sublev_(0)
 		, mode_(StepMode::Run)
 		, mode_dirty_(false)
@@ -144,19 +145,19 @@ public:
 	void do_step_return(int sublev) {
 		if (sublev < 0) return do_run();
 
-		goal_sublev_ = sublev;
+		goal_sublev_opt_ = sublev;
 		set_step_mode(StepMode::StepIn);
 	}
 
 	// 条件付き実行が継続されるか？
 	bool continue_step_running() {
-		if (goal_sublev_ >= 0) {
-			if (current_sublev_ > goal_sublev_) {
+		if (goal_sublev_opt_) {
+			if (current_sublev_ > *goal_sublev_opt_) {
 				set_step_mode(StepMode::StepIn); // stepin を繰り返す
 				return true;
 			}
 			else {
-				goal_sublev_ = -1;
+				goal_sublev_opt_ = std::nullopt;
 			}
 		}
 		return false;
