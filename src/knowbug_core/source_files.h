@@ -4,11 +4,14 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "encoding.h"
+#include "test_suite.h"
 
 class SourceFile;
 class SourceFileId;
 class SourceFileRepository;
 class SourceFileResolver;
+
+extern void source_files_tests(Tests& tests);
 
 class FileSystemApi {
 public:

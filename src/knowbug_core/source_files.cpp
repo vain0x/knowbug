@@ -188,7 +188,11 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 
 auto SourceFileRepository::file_ref_name_to_file_id(char const* file_ref_name) const->std::optional<SourceFileId> {
 	auto&& iter = file_map_.find(file_ref_name);
-	return std::make_optional(iter->second);
+	if (iter == file_map_.end()) {
+		return std::nullopt;
+	}
+
+	return iter->second;
 }
 
 auto SourceFileRepository::file_ref_name_to_full_path(char const* file_ref_name) const->std::optional<OsStringView> {
@@ -323,4 +327,140 @@ void SourceFile::load() {
 	content_ = load_text_file(full_path_, fs_);
 	lines_ = split_by_lines(content_);
 	loaded_ = true;
+}
+
+// -----------------------------------------------
+// テスト
+// -----------------------------------------------
+
+template<typename Char>
+static auto char_is_path_sep(Char c) -> bool {
+	return c == (Char)'/' || c == (Char)'\\';
+}
+
+// knowbug_config に同様のコードがあるのでまとめる
+static void path_drop_file_name(OsString& full_path) {
+	while (!full_path.empty()) {
+		auto last = full_path[full_path.length() - 1];
+		if (char_is_path_sep(last)) {
+			full_path.pop_back();
+			break;
+		}
+
+		full_path.pop_back();
+	}
+}
+
+class VirtualFileSystemApi
+	: public FileSystemApi
+{
+	std::unordered_map<OsString, std::string> files_;
+
+	OsString current_dir_;
+
+public:
+	void set_current_dir(OsString current_dir) {
+		current_dir_ = std::move(current_dir);
+	}
+
+	void add_file(OsString file_path, std::string content) {
+		files_[std::move(file_path)] = std::move(content);
+	}
+
+	auto read_all_text(OsString const& file_path)->std::optional<std::string> override {
+		auto iter = files_.find(file_path);
+		return iter != files_.end() ? std::make_optional(iter->second) : std::nullopt;
+	}
+
+	auto search_file_from_dir(OsStringView file_name, OsStringView base_dir)->std::optional<SearchFileResult> override {
+		auto starts_with = [](OsStringView str, OsStringView prefix) -> bool {
+			return str.size() >= prefix.size() && str.substr(0, prefix.size()) == prefix;
+		};
+
+		auto file_path = to_owned(base_dir);
+		file_path += TEXT("/");
+		file_path += file_name;
+
+		for (auto&& pair : files_) {
+			if (pair.first == file_path) {
+				auto dir_name = to_owned(file_path);
+				path_drop_file_name(dir_name);
+
+				return SearchFileResult{ dir_name, file_path };
+			}
+		}
+
+		return std::nullopt;
+	}
+
+	auto search_file_from_current_dir(OsStringView file_name)->std::optional<SearchFileResult> override {
+		return search_file_from_dir(file_name, current_dir_);
+	}
+};
+
+static auto create_file_system_for_testing() -> VirtualFileSystemApi {
+	auto fs = VirtualFileSystemApi{};
+	fs.set_current_dir(TEXT("/src"));
+
+	fs.add_file(TEXT("/hsp/common/hspdef.as"), u8"// hsp_def");
+	fs.add_file(TEXT("/hsp/common/awesome_plugin/awesome_plugin.hsp"), u8"// awesome_plugin");
+
+	fs.add_file(TEXT("/src/main.hsp"), u8"// main");
+	fs.add_file(TEXT("/src/awesome_lib/awesome_lib.hsp"), u8"// awesome_lib");
+
+	fs.add_file(TEXT("/src/not_included.txt"), u8"// not included");
+	return fs;
+}
+
+void source_files_tests(Tests& tests) {
+	auto&& suite = tests.suite(u8"source_files");
+
+	suite.test(
+		u8"ソースファイルを解決できる",
+		[&](TestCaseContext& t) {
+			auto fs = create_file_system_for_testing();
+
+			auto resolver = SourceFileResolver{ fs };
+			resolver.add_known_dir(to_owned(TEXT("/hsp/common")));
+
+			resolver.add_file_ref_name(u8"hspdef.as");
+			resolver.add_file_ref_name(u8"main.hsp");
+			resolver.add_file_ref_name(u8"awesome_plugin/awesome_plugin.hsp");
+			resolver.add_file_ref_name(u8"awesome_lib/awesome_lib.hsp");
+
+			auto repository = resolver.resolve();
+
+			if (!t.eq(repository.file_count(), 4)) {
+				return false;
+			}
+
+			if (!t.eq(repository.file_ref_name_to_file_id(u8"unknown_file_ref_name").has_value(), false)) {
+				return false;
+			}
+
+			return t.eq(to_utf8(*repository.file_ref_name_to_full_path(u8"main.hsp")), as_utf8(u8"/src/main.hsp"));
+		});
+
+	suite.test(
+		u8"ソースファイルの内容を取得できる",
+		[&](TestCaseContext& t) {
+			auto content =
+				u8" \t \t main\r\n"
+				u8"       stop\r\n";
+
+			auto fs = create_file_system_for_testing();
+			fs.add_file(TEXT("/src/main.hsp"), content);
+
+			auto resolver = SourceFileResolver{ fs };
+			resolver.add_file_ref_name(u8"main.hsp");
+
+			auto repository = resolver.resolve();
+
+			auto file_id = *repository.file_ref_name_to_file_id(u8"main.hsp");
+
+			return t.eq(as_native(*repository.file_to_content(file_id)), content)
+				&& t.eq(as_native(*repository.file_to_line_at(file_id, 0)), u8"main")
+				&& t.eq(as_native(*repository.file_to_line_at(file_id, 1)), u8"stop")
+				&& t.eq(as_native(*repository.file_to_line_at(file_id, 9999)), u8"");
+		});
 }
