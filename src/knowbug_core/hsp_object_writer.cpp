@@ -58,7 +58,7 @@ static bool str_is_compact(hsx::HspStr const& str) {
 }
 
 // 文字列をリテラル形式で書く。
-static void write_string_as_literal(CStrWriter& w, hsx::HspStr const& str) {
+static void write_string_as_literal(StringWriter& w, hsx::HspStr const& str) {
 	auto&& string_opt = str_to_string(str);
 	if (!string_opt) {
 		w.cat(u8"<バイナリ>");
@@ -112,7 +112,7 @@ static void write_string_as_literal(CStrWriter& w, hsx::HspStr const& str) {
 	w.cat(u8"\"");
 }
 
-static void write_var_mode(CStrWriter& writer, hsx::HspVarMode var_mode) {
+static void write_var_mode(StringWriter& writer, hsx::HspVarMode var_mode) {
 	switch (var_mode) {
 	case hsx::HspVarMode::None:
 		writer.cat(u8" (empty)");
@@ -128,15 +128,15 @@ static void write_var_mode(CStrWriter& writer, hsx::HspVarMode var_mode) {
 	}
 }
 
-static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
+static void write_array_type(StringWriter& writer, Utf8StringView const& type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
 	// 例: int(2, 3) (6 in total) (dup)
 
-	writer.cat(as_native(type_name));
+	writer.cat(type_name);
 
 	if (lengths.dim() == 1) {
 		// (%d)
 		writer.cat(u8"(");
-		writer.catSize(lengths.at(0));
+		writer.cat_size(lengths.at(0));
 		writer.cat(u8")");
 	} else {
 		// (%d, %d, ..) (%d in total)
@@ -145,33 +145,33 @@ static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name
 			if (i != 0) {
 				writer.cat(u8", ");
 			}
-			writer.catSize(lengths.at(i));
+			writer.cat_size(lengths.at(i));
 		}
 		writer.cat(u8") (");
-		writer.catSize(lengths.size());
+		writer.cat_size(lengths.size());
 		writer.cat(u8" in total)");
 	}
 
 	write_var_mode(writer, var_mode);
 }
 
-static auto write_var_metadata_on_table(CStrWriter& w, Utf8StringView const& type_name, hsx::HspVarMetadata const& metadata) {
+static auto write_var_metadata_on_table(StringWriter& w, Utf8StringView const& type_name, hsx::HspVarMetadata const& metadata) {
 	w.cat(u8"変数型: ");
 	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
-	w.catCrlf();
+	w.cat_crlf();
 
 	w.cat(u8"アドレス: ");
-	w.catPtr(metadata.data_ptr());
+	w.cat_ptr(metadata.data_ptr());
 	w.cat(u8", ");
-	w.catPtr(metadata.master_ptr());
-	w.catCrlf();
+	w.cat_ptr(metadata.master_ptr());
+	w.cat_crlf();
 
 	w.cat(u8"サイズ: ");
-	w.catSize(metadata.data_size());
+	w.cat_size(metadata.data_size());
 	w.cat(u8" / ");
-	w.catSize(metadata.block_size());
+	w.cat_size(metadata.block_size());
 	w.cat(u8" [byte]");
-	w.catCrlf();
+	w.cat_crlf();
 }
 
 static bool object_path_is_compact(HspObjectPath const& path, HspObjects& objects) {
@@ -196,7 +196,7 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 	}
 }
 
-static void write_flex_module_name(CStrWriter& w, Utf8StringView const& module_name, std::optional<bool> is_clone_opt) {
+static void write_flex_module_name(StringWriter& w, Utf8StringView const& module_name, std::optional<bool> is_clone_opt) {
 	w.cat(module_name);
 
 	// クローンなら印をつける。
@@ -207,7 +207,7 @@ static void write_flex_module_name(CStrWriter& w, Utf8StringView const& module_n
 	}
 }
 
-static void write_signature(CStrWriter& w, std::vector<Utf8StringView> const& param_type_names) {
+static void write_signature(StringWriter& w, std::vector<Utf8StringView> const& param_type_names) {
 	// FIXME: 命令ならカッコなし、関数ならカッコあり？
 
 	w.cat(u8"(");
@@ -224,7 +224,7 @@ static void write_signature(CStrWriter& w, std::vector<Utf8StringView> const& pa
 }
 
 static void write_source_location(
-	CStrWriter& w,
+	StringWriter& w,
 	std::optional<Utf8StringView> const& file_name_opt,
 	std::optional<std::size_t> const& line_index_opt
 ) {
@@ -232,7 +232,7 @@ static void write_source_location(
 	if (line_index_opt) {
 		// 1-indexed
 		w.cat(u8"#");
-		w.catSize(*line_index_opt + 1);
+		w.cat_size(*line_index_opt + 1);
 		w.cat(u8" ");
 	}
 	if (file_name_opt) {
@@ -255,12 +255,12 @@ public:
 	class FlowForm;
 
 private:
-	CStrWriter& writer_;
+	StringWriter& writer_;
 
 public:
-	explicit HspObjectWriterImpl(HspObjects& objects, CStrWriter& writer);
+	explicit HspObjectWriterImpl(HspObjects& objects, StringWriter& writer);
 
-	auto writer() -> CStrWriter& {
+	auto writer() -> StringWriter& {
 		return writer_;
 	}
 
@@ -277,7 +277,7 @@ class HspObjectWriterImpl::TableForm
 	: public HspObjectWriterImpl
 {
 public:
-	TableForm(HspObjects& objects, CStrWriter& writer);
+	TableForm(HspObjects& objects, StringWriter& writer);
 
 	void accept_default(HspObjectPath const& path) override;
 
@@ -308,7 +308,7 @@ class HspObjectWriterImpl::BlockForm
 	: public HspObjectWriterImpl
 {
 public:
-	BlockForm(HspObjects& objects, CStrWriter& writer);
+	BlockForm(HspObjects& objects, StringWriter& writer);
 
 	void accept(HspObjectPath const& path) override;
 
@@ -343,7 +343,7 @@ class HspObjectWriterImpl::FlowForm
 	: public HspObjectWriterImpl
 {
 public:
-	FlowForm(HspObjects& objects, CStrWriter& writer);
+	FlowForm(HspObjects& objects, StringWriter& writer);
 
 	void accept_children(HspObjectPath const& path) override;
 
@@ -366,7 +366,7 @@ public:
 // 基底クラスの実装
 // -----------------------------------------------
 
-HspObjectWriterImpl::HspObjectWriterImpl(HspObjects& objects, CStrWriter& writer)
+HspObjectWriterImpl::HspObjectWriterImpl(HspObjects& objects, StringWriter& writer)
 	: Visitor(objects)
 	, writer_(writer)
 {
@@ -388,7 +388,7 @@ auto HspObjectWriterImpl::to_flow_form() -> HspObjectWriterImpl::FlowForm {
 // テーブルフォーム
 // -----------------------------------------------
 
-HspObjectWriterImpl::TableForm::TableForm(HspObjects& objects, CStrWriter& writer)
+HspObjectWriterImpl::TableForm::TableForm(HspObjects& objects, StringWriter& writer)
 	: HspObjectWriterImpl(objects, writer)
 {
 }
@@ -399,7 +399,7 @@ void HspObjectWriterImpl::TableForm::write_name(HspObjectPath const& path) {
 
 	w.cat(u8"[");
 	w.cat(path.name(o));
-	w.catln(u8"]");
+	w.cat_line(u8"]");
 }
 
 void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
@@ -417,9 +417,9 @@ void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
 
 	auto&& memory_view_opt = path.memory_view(o);
 	if (memory_view_opt) {
-		w.catCrlf();
-		w.catDump(memory_view_opt->data(), memory_view_opt->size());
-		w.catCrlf();
+		w.cat_crlf();
+		w.cat_memory_dump(memory_view_opt->data(), memory_view_opt->size());
+		w.cat_crlf();
 	}
 }
 
@@ -434,8 +434,8 @@ void HspObjectWriterImpl::TableForm::accept_children(HspObjectPath const& path) 
 
 	if (child_count >= MAX_CHILD_COUNT) {
 		w.cat(u8".. (合計");
-		w.catSize(child_count);
-		w.catln(u8" 件)");
+		w.cat_size(child_count);
+		w.cat_line(u8" 件)");
 	}
 }
 
@@ -450,14 +450,14 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	write_name(path);
 
 	write_var_metadata_on_table(w, type_name, metadata);
-	w.catCrlf();
+	w.cat_crlf();
 
 	// 変数の内容に関する情報
 	to_block_form().accept_children(path);
-	w.catCrlf();
+	w.cat_crlf();
 
 	// メモリダンプ
-	w.catDump(metadata.block_ptr(), metadata.block_size());
+	w.cat_memory_dump(metadata.block_ptr(), metadata.block_size());
 }
 
 void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) {
@@ -471,13 +471,13 @@ void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) 
 
 		write_name(path);
 		write_var_metadata_on_table(w, type_name, metadata);
-		w.catCrlf();
+		w.cat_crlf();
 
 		to_block_form().accept_children(path);
-		w.catCrlf();
+		w.cat_crlf();
 
-		w.catDump(metadata.block_ptr(), metadata.block_size());
-		w.catCrlf();
+		w.cat_memory_dump(metadata.block_ptr(), metadata.block_size());
+		w.cat_crlf();
 		return;
 	}
 
@@ -497,23 +497,23 @@ void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame cons
 
 	w.cat(u8"呼び出し位置: ");
 	write_source_location(w, full_path_opt, line_index_opt);
-	w.catCrlf();
+	w.cat_crlf();
 
 	if (signature_opt) {
 		w.cat(u8"シグネチャ: ");
 		write_signature(w, *signature_opt);
-		w.catCrlf();
+		w.cat_crlf();
 	}
 
-	w.catCrlf();
+	w.cat_crlf();
 
 	to_block_form().accept_children(path);
 
 	if (memory_view_opt) {
-		w.catCrlf();
+		w.cat_crlf();
 
-		w.catDump(memory_view_opt->data(), memory_view_opt->size());
-		w.catCrlf();
+		w.cat_memory_dump(memory_view_opt->data(), memory_view_opt->size());
+		w.cat_crlf();
 	}
 }
 
@@ -538,7 +538,7 @@ void HspObjectWriterImpl::TableForm::on_script(HspObjectPath::Script const& path
 	// NOTE: 行番号がズレないようにスクリプト以外を描画しない。
 	// write_name(path);
 
-	writer().catln(content);
+	writer().cat_line(content);
 }
 
 void HspObjectWriterImpl::TableForm::on_unavailable(HspObjectPath::Unavailable const& path) {
@@ -547,14 +547,14 @@ void HspObjectWriterImpl::TableForm::on_unavailable(HspObjectPath::Unavailable c
 
 	write_name(path);
 	w.cat(u8"理由: ");
-	w.catln(reason);
+	w.cat_line(reason);
 }
 
 // -----------------------------------------------
 // ブロックフォーム
 // -----------------------------------------------
 
-HspObjectWriterImpl::BlockForm::BlockForm(HspObjects& objects, CStrWriter& writer)
+HspObjectWriterImpl::BlockForm::BlockForm(HspObjects& objects, StringWriter& writer)
 	: HspObjectWriterImpl(objects, writer)
 {
 }
@@ -582,8 +582,8 @@ void HspObjectWriterImpl::BlockForm::accept_children(HspObjectPath const& path) 
 
 	if (child_count >= MAX_CHILD_COUNT) {
 		w.cat(u8".. (合計 ");
-		w.catSize(child_count);
-		w.catln(u8" 件)");
+		w.cat_size(child_count);
+		w.cat_line(u8" 件)");
 	}
 }
 
@@ -591,7 +591,7 @@ void HspObjectWriterImpl::BlockForm::on_module(HspObjectPath::Module const& path
 	auto&& name = path.name(objects());
 
 	// (入れ子の)モジュールは名前だけ表示しておく
-	writer().catln(name.data());
+	writer().cat_line(name.data());
 }
 
 void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar const& path) {
@@ -606,12 +606,12 @@ void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar cons
 
 	to_flow_form().accept(path);
 
-	w.catCrlf();
+	w.cat_crlf();
 }
 
 void HspObjectWriterImpl::BlockForm::on_label(HspObjectPath::Label const& path) {
 	to_flow_form().on_label(path);
-	writer().catCrlf();
+	writer().cat_crlf();
 }
 
 void HspObjectWriterImpl::BlockForm::on_str(HspObjectPath::Str const& path) {
@@ -620,26 +620,26 @@ void HspObjectWriterImpl::BlockForm::on_str(HspObjectPath::Str const& path) {
 	auto&& text_opt = str_to_string(str);
 
 	if (!text_opt) {
-		w.catln(u8"<バイナリ>");
+		w.cat_line(u8"<バイナリ>");
 		return;
 	}
 
 	auto text = to_utf8(as_hsp(*text_opt));
-	w.catln(text);
+	w.cat_line(text);
 }
 
 void HspObjectWriterImpl::BlockForm::on_double(HspObjectPath::Double const& path) {
 	auto&& w = writer();
 	auto value = path.value(objects());
 
-	w.catln(strf("%.16f", value));
+	w.cat_line(strf("%.16f", value));
 }
 
 void HspObjectWriterImpl::BlockForm::on_int(HspObjectPath::Int const& path) {
 	auto&& w = writer();
 	auto value = path.value(objects());
 
-	w.catln(strf("%-10d (0x%08X)", value, value));
+	w.cat_line(strf("%-10d (0x%08X)", value, value));
 }
 
 void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
@@ -648,12 +648,12 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 
 	auto&& is_nullmod_opt = path.is_nullmod(o);
 	if (!is_nullmod_opt) {
-		w.catln(u8"<unavailable>");
+		w.cat_line(u8"<unavailable>");
 		return;
 	}
 
 	if (*is_nullmod_opt) {
-		w.catln(u8"<null>");
+		w.cat_line(u8"<null>");
 		return;
 	}
 
@@ -662,14 +662,14 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 
 	w.cat(u8".module = ");
 	write_flex_module_name(w, module_name, is_clone_opt);
-	w.catCrlf();
+	w.cat_crlf();
 
 	accept_children(path);
 }
 
 void HspObjectWriterImpl::BlockForm::on_unknown(HspObjectPath::Unknown const& path) {
 	to_flow_form().on_unknown(path);
-	writer().catCrlf();
+	writer().cat_crlf();
 }
 
 void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path) {
@@ -679,7 +679,7 @@ void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path
 
 	auto child_count = path.child_count(o);
 	if (child_count == 0) {
-		w.catln(name.data());
+		w.cat_line(name.data());
 		return;
 	}
 
@@ -692,7 +692,7 @@ void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path
 	}
 
 	w.cat(name.data());
-	w.catln(u8":");
+	w.cat_line(u8":");
 	w.indent();
 	to_block_form().accept_children(path);
 	w.unindent();
@@ -702,7 +702,7 @@ void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path
 // フローフォーム
 // -----------------------------------------------
 
-HspObjectWriterImpl::FlowForm::FlowForm(HspObjects& objects, CStrWriter& writer)
+HspObjectWriterImpl::FlowForm::FlowForm(HspObjects& objects, StringWriter& writer)
 	: HspObjectWriterImpl(objects, writer)
 {
 }
@@ -734,7 +734,7 @@ void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const
 	// FIXME: 多次元配列の表示を改善する
 
 	w.cat(u8"<");
-	w.cat(as_native(type_name));
+	w.cat(type_name);
 	w.cat(u8">[");
 	accept_children(path);
 	w.cat(u8"]");
@@ -813,7 +813,7 @@ void HspObjectWriterImpl::FlowForm::on_unknown(HspObjectPath::Unknown const& pat
 // 公開クラス
 // -----------------------------------------------
 
-HspObjectWriter::HspObjectWriter(HspObjects& objects, CStrWriter& writer)
+HspObjectWriter::HspObjectWriter(HspObjects& objects, StringWriter& writer)
 	: objects_(objects)
 	, writer_(writer)
 {
@@ -839,9 +839,9 @@ static void write_string_as_literal_tests(Tests& tests) {
 	auto&& suite = tests.suite(u8"write_string_as_literal");
 
 	auto write = [&](auto&& str) {
-		auto w = CStrWriter{};
+		auto w = StringWriter{};
 		write_string_as_literal(w, hsx::Slice<char>{ (char const*)str.data(), str.size() });
-		return as_utf8(w.finish());
+		return w.finish();
 	};
 
 	suite.test(
@@ -870,9 +870,9 @@ static void write_array_type_tests(Tests& tests) {
 	auto&& suite = tests.suite(u8"write_array_type");
 
 	auto write = [&](auto&& type_name, auto&& var_mode, auto&& lengths) {
-		auto w = CStrWriter{};
+		auto w = StringWriter{};
 		write_array_type(w, type_name, var_mode, lengths);
-		return as_utf8(w.finish());
+		return w.finish();
 	};
 
 	suite.test(
@@ -907,9 +907,9 @@ static void write_source_location_tests(Tests& tests) {
 	auto&& suite = tests.suite(u8"write_source_location");
 
 	auto write = [&](auto&& ...args) {
-		auto w = CStrWriter{};
+		auto w = StringWriter{};
 		write_source_location(w, args...);
-		return as_utf8(w.finish());
+		return w.finish();
 	};
 
 	suite.test(

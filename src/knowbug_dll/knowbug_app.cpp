@@ -95,9 +95,9 @@ public:
 
 	void add_object_text_to_log(HspObjectPath const& path) override {
 		// FIXME: 共通化
-		auto writer = CStrWriter{};
+		auto writer = StringWriter{};
 		HspObjectWriter{ objects(), writer }.write_table_form(path);
-		auto text = as_utf8(writer.finish());
+		auto text = writer.finish();
 
 		objects().log_do_append(text);
 	}

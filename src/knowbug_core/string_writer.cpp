@@ -5,11 +5,11 @@
 #include "string_split.h"
 #include "string_writer.h"
 
-static auto const TRIMMED_SUFFIX = std::string_view{ u8"(too long)" };
+static auto const TRIMMED_SUFFIX = as_utf8(u8"(too long)");
 
 static auto const DEFAULT_LIMIT = 0x8000;
 
-CStrWriter::CStrWriter()
+StringWriter::StringWriter()
 	: buf_()
 	, depth_()
 	, head_(true)
@@ -18,23 +18,23 @@ CStrWriter::CStrWriter()
 	set_limit(DEFAULT_LIMIT);
 }
 
-auto CStrWriter::is_full() const -> bool {
+auto StringWriter::is_full() const -> bool {
 	return limit_ == 0;
 }
 
-auto CStrWriter::as_view() const -> Utf8StringView {
-	return as_utf8(buf_);
+auto StringWriter::as_view() const -> Utf8StringView {
+	return buf_;
 }
 
-auto CStrWriter::finish() -> std::string&& {
+auto StringWriter::finish() -> Utf8String&& {
 	return std::move(buf_);
 }
 
-void CStrWriter::indent() {
+void StringWriter::indent() {
 	depth_++;
 }
 
-void CStrWriter::unindent() {
+void StringWriter::unindent() {
 	if (depth_ == 0) {
 		assert(false && u8"indent と unindent が対応していません。");
 		return;
@@ -43,7 +43,7 @@ void CStrWriter::unindent() {
 	depth_--;
 }
 
-void CStrWriter::set_limit(std::size_t limit) {
+void StringWriter::set_limit(std::size_t limit) {
 	limit_ = limit;
 
 	buf_.reserve(buf_.size() + limit_);
@@ -51,7 +51,7 @@ void CStrWriter::set_limit(std::size_t limit) {
 
 // バッファの末尾に文字列を追加する。
 // 文字列制限が上限に達したら打ち切る。
-void CStrWriter::cat_limited(std::string_view const& str) {
+void StringWriter::cat_limited(Utf8StringView str) {
 	if (is_full()) {
 		return;
 	}
@@ -75,7 +75,7 @@ void CStrWriter::cat_limited(std::string_view const& str) {
 
 // バッファの末尾に文字列を追加する。
 // 行ごとに分割して適切に字下げを挿入する。
-void CStrWriter::cat_by_lines(std::string_view const& str) {
+void StringWriter::cat_by_lines(Utf8StringView str) {
 	auto first = true;
 
 	for (auto&& line : StringLines{ str }) {
@@ -84,7 +84,7 @@ void CStrWriter::cat_by_lines(std::string_view const& str) {
 		}
 
 		if (!first) {
-			cat_limited(u8"\r\n");
+			cat_limited(as_utf8(u8"\r\n"));
 			head_ = true;
 		}
 		first = false;
@@ -96,7 +96,7 @@ void CStrWriter::cat_by_lines(std::string_view const& str) {
 		if (head_) {
 			for (auto i = std::size_t{}; i < depth_; i++) {
 				// FIXME: 字下げをスペースで行う？
-				cat_limited(u8"\t");
+				cat_limited(as_utf8(u8"\t"));
 			}
 			head_ = false;
 		}
@@ -104,61 +104,59 @@ void CStrWriter::cat_by_lines(std::string_view const& str) {
 	}
 }
 
-//------------------------------------------------
-// メモリダンプ文字列の連結
-//
-// @ 最後の行に改行を挿入しない。
-//------------------------------------------------
-void CStrWriter::catDumpImpl( void const* data, size_t size )
-{
-	static auto const stc_bytesPerLine = size_t { 0x10 };
-	auto const mem = static_cast<unsigned char const*>(data);
-	auto idx = size_t { 0 };
-	while ( idx < size ) {
-		if ( idx != 0 ) catCrlf(); //delimiter
+// メモリダンプ文字列を書き込む。
+// 最後の行は改行を挿入しない。
+void StringWriter::cat_memory_dump_impl(void const* data, std::size_t size) {
+	static auto const BYTE_COUNT_PER_LINE = std::size_t{ 0x10 };
 
-		auto row = fmt::MemoryWriter {};
-		row << fmt::pad(fmt::hexu(idx), 4, '0');
-		auto i = size_t { 0 };
-		while ( i < stc_bytesPerLine && idx < size ) {
-			row << ' ' << fmt::pad(fmt::hexu(mem[idx]), 2, '0');
-			i ++; idx ++;
+	auto mem = static_cast<unsigned char const*>(data);
+	auto idx = std::size_t{};
+	while (idx < size) {
+		if (idx != 0) {
+			cat_crlf();
 		}
-		cat(row.c_str());
+
+		auto row = fmt::MemoryWriter{};
+		row << fmt::pad(fmt::hexu(idx), 4, '0');
+		auto i = std::size_t{};
+		while (i < BYTE_COUNT_PER_LINE && idx < size) {
+			row << ' ' << fmt::pad(fmt::hexu(mem[idx]), 2, '0');
+			i++; idx++;
+		}
+		cat(row.data());
 	}
 }
 
-void CStrWriter::catSize(std::size_t size) {
+void StringWriter::cat_size(std::size_t size) {
 	cat(strf("%d", size));
 }
 
-void CStrWriter::catPtr(void const* ptr) {
+void StringWriter::cat_ptr(void const* ptr) {
 	cat(strf("%p", ptr));
 }
 
-void CStrWriter::catDump(void const* data, size_t bufsize)
-{
-	assert(bufsize == 0 || data);
+void StringWriter::cat_memory_dump(void const* data, std::size_t data_size) {
+	assert(data_size == 0 || data != nullptr);
 
-	static auto const stc_maxsize = size_t { 0x10000 };
-	auto size = bufsize;
+	static auto const MAX_SIZE = std::size_t{ 0x10000 };
+	auto dump_size = data_size;
 
-	if ( size > stc_maxsize ) {
-		catln(strf(u8"全%d[byte]の内、%d[byte]のみダンプします。", bufsize, stc_maxsize));
-		size = stc_maxsize;
+	if (dump_size > MAX_SIZE) {
+		cat_line(strf(u8"全%d[byte]の内、%d[byte]のみダンプします。", data_size, MAX_SIZE));
+		dump_size = MAX_SIZE;
 	}
 
-	catln("dump  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F");
-	catln("----------------------------------------------------");
-	catDumpImpl(data, size);
+	cat_line("dump  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F");
+	cat_line("----------------------------------------------------");
+	cat_memory_dump_impl(data, dump_size);
 }
 
 // -----------------------------------------------
 // Tests
 // -----------------------------------------------
 
-static auto string_writer_new() -> CStrWriter {
-	return CStrWriter{};
+static auto string_writer_new() -> StringWriter {
+	return StringWriter{};
 }
 
 void string_writer_tests(Tests& tests) {
@@ -193,18 +191,18 @@ void string_writer_tests(Tests& tests) {
 		u8"適切に字下げできる",
 		[&](TestCaseContext& t) {
 			auto w = string_writer_new();
-			w.catln(as_utf8(u8"親"));
+			w.cat_line(as_utf8(u8"親"));
 			w.indent();
 
-			w.catln(as_utf8(u8"兄"));
+			w.cat_line(as_utf8(u8"兄"));
 			w.indent();
-			w.catln(as_utf8(u8"甥"));
+			w.cat_line(as_utf8(u8"甥"));
 			w.unindent();
 
-			w.catln(as_utf8(u8"本人"));
+			w.cat_line(as_utf8(u8"本人"));
 			w.indent();
 			// 途中に改行があっても字下げされる。(LF は CRLF に置き換わる。)
-			w.catln(as_utf8(u8"長男\n長女"));
+			w.cat_line(as_utf8(u8"長男\n長女"));
 
 			auto expected = as_utf8(
 				u8"親\r\n"
@@ -223,7 +221,7 @@ void string_writer_tests(Tests& tests) {
 			{
 				auto w = string_writer_new();
 				auto dead_beef = (void const*)0xdeadbeef;
-				w.catPtr(dead_beef);
+				w.cat_ptr(dead_beef);
 				if (!t.eq(as_view(w), as_utf8(u8"0xdeadbeef"))) {
 					return false;
 				}
@@ -231,7 +229,7 @@ void string_writer_tests(Tests& tests) {
 
 			{
 				auto w = string_writer_new();
-				w.catPtr(nullptr);
+				w.cat_ptr(nullptr);
 				// <nullptr> とか 0x0000 とかでも可
 				if (!t.eq(as_view(w), as_utf8(u8"(nil)"))) {
 					return false;
@@ -255,8 +253,8 @@ void string_writer_tests(Tests& tests) {
 			std::copy(t1.begin(), t1.end(), &buf[0]);
 			std::copy(t2.begin(), t2.end(), &buf[t1.size() + 1]);
 
-			w.catDump(buf.data(), buf.size());
-			w.catCrlf();
+			w.cat_memory_dump(buf.data(), buf.size());
+			w.cat_crlf();
 
 			auto expected = as_utf8(
 				u8"dump  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\r\n"

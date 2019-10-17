@@ -16,9 +16,9 @@
 
 static auto object_path_to_text(HspObjectPath const& path, HspObjects& objects) -> OsString {
 	// FIXME: 共通化
-	auto writer = CStrWriter{};
+	auto writer = StringWriter{};
 	HspObjectWriter{ objects, writer }.write_table_form(path);
-	auto text = as_utf8(writer.finish());
+	auto text = writer.finish();
 
 	return to_os(std::move(text));
 }

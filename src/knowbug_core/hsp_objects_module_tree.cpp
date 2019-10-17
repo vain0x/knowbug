@@ -59,16 +59,16 @@ void traverse_module_tree(std::vector<Utf8String> const& var_names, ModuleTreeLi
 class ModuleTreeWriter
 	: public ModuleTreeListener
 {
-	CStrWriter& writer_;
+	StringWriter& writer_;
 
 public:
-	ModuleTreeWriter(CStrWriter& writer)
+	ModuleTreeWriter(StringWriter& writer)
 		: writer_(writer)
 	{
 	}
 
 	void begin_module(Utf8StringView const& module_name) override {
-		writer_.catln(module_name);
+		writer_.cat_line(module_name);
 		writer_.indent();
 	}
 
@@ -79,8 +79,8 @@ public:
 	void add_var(std::size_t var_id, Utf8StringView const& var_name) override {
 		writer_.cat(var_name);
 		writer_.cat(as_utf8(u8" #"));
-		writer_.catSize(var_id);
-		writer_.catCrlf();
+		writer_.cat_size(var_id);
+		writer_.cat_crlf();
 	}
 };
 
@@ -108,7 +108,7 @@ void module_tree_tests(Tests& tests) {
 	suite.test(
 		u8"モジュールツリーを構築できる",
 		[&](TestCaseContext& t) {
-			auto w = CStrWriter{};
+			auto w = StringWriter{};
 			auto listener = ModuleTreeWriter{ w };
 			auto var_names = std::vector<Utf8String>{
 				to_owned(as_utf8(u8"s1@m1")),
@@ -138,7 +138,7 @@ void module_tree_tests(Tests& tests) {
 	suite.test(
 		u8"変数がないケース",
 		[&](TestCaseContext& t) {
-			auto w = CStrWriter{};
+			auto w = StringWriter{};
 			auto listener = ModuleTreeWriter{ w };
 
 			traverse_module_tree(std::vector<Utf8String>{}, listener);

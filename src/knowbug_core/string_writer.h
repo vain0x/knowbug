@@ -9,8 +9,8 @@
 
 // 文字列を構築するためのもの。
 // 自動的な字下げと文字数制限の機能を持つ。
-class CStrWriter {
-	std::string buf_;
+class StringWriter {
+	Utf8String buf_;
 
 	// 字下げの深さ
 	std::size_t depth_;
@@ -22,7 +22,7 @@ class CStrWriter {
 	std::size_t limit_;
 
 public:
-	CStrWriter();
+	StringWriter();
 
 public:
 	auto is_full() const -> bool;
@@ -30,31 +30,31 @@ public:
 	auto as_view() const->Utf8StringView;
 
 	void cat(std::string_view const& str) {
+		cat(as_utf8(str));
+	}
+
+	void cat_line(std::string_view const& str) {
+		cat_line(as_utf8(str));
+	}
+
+	void cat(Utf8StringView str) {
 		cat_by_lines(str);
 	}
 
-	void catln(std::string_view const& str) {
+	void cat_line(Utf8StringView str) {
 		cat(str);
-		catCrlf();
+		cat_crlf();
 	}
 
-	void cat(Utf8StringView const& str) {
-		cat(as_native(str));
-	}
-
-	void catln(Utf8StringView const& str) {
-		catln(as_native(str));
-	}
-
-	void catCrlf() {
+	void cat_crlf() {
 		cat(u8"\r\n");
 	}
 
-	void catSize(std::size_t size);
+	void cat_size(std::size_t size);
 
-	void catPtr(void const* ptr);
+	void cat_ptr(void const* ptr);
 
-	void catDump(void const* data, size_t size);
+	void cat_memory_dump(void const* data, std::size_t size);
 
 	// 字下げを1段階深くする。
 	void indent();
@@ -66,17 +66,17 @@ public:
 	// すでに書き込まれた文字列には影響しない。
 	void set_limit(std::size_t limit);
 
-	auto finish() -> std::string&&;
+	auto finish() -> Utf8String&&;
 
 private:
-	void cat_by_lines(std::string_view const& str);
+	void cat_by_lines(Utf8StringView str);
 
-	void cat_limited(std::string_view const& str);
+	void cat_limited(Utf8StringView str);
 
-	void catDumpImpl(void const* data, std::size_t size);
+	void cat_memory_dump_impl(void const* data, std::size_t size);
 };
 
-inline static auto as_view(CStrWriter const& writer) -> Utf8StringView {
+inline static auto as_view(StringWriter const& writer) -> Utf8StringView {
 	return writer.as_view();
 }
 
