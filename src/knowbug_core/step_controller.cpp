@@ -28,7 +28,7 @@ KnowbugStepController::KnowbugStepController(HSP3DEBUG* debug)
 
 bool KnowbugStepController::continue_step_running() {
 	begin_update();
-	auto do_continue = step_controller_.continueConditionalRun();
+	auto do_continue = step_controller_.continue_step_running();
 	end_update();
 
 	return do_continue;
@@ -39,27 +39,27 @@ void KnowbugStepController::update(StepControl step_control) {
 
 	switch (step_control.kind()) {
 	case StepControlKind::Run:
-		step_controller_.run();
+		step_controller_.do_run();
 		break;
 
 	case StepControlKind::Stop:
-		step_controller_.runStop();
+		step_controller_.do_stop();
 		break;
 
 	case StepControlKind::StepIn:
-		step_controller_.runStepIn();
+		step_controller_.do_step_in();
 		break;
 
 	case StepControlKind::StepOver:
-		step_controller_.runStepOver();
+		step_controller_.do_step_over();
 		break;
 
 	case StepControlKind::StepOut:
-		step_controller_.runStepOut();
+		step_controller_.do_step_out();
 		break;
 
 	case StepControlKind::StepReturn:
-		step_controller_.runStepReturn(step_control.sublev());
+		step_controller_.do_step_return(step_control.sublev());
 		break;
 
 	default:
