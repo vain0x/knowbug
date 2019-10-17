@@ -131,7 +131,7 @@ static void write_var_mode(CStrWriter& writer, hsx::HspVarMode var_mode) {
 static void write_array_type(CStrWriter& writer, Utf8StringView const& type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
 	// 例: int(2, 3) (6 in total) (dup)
 
-	writer.cat(as_native(type_name));
+	writer.cat(type_name);
 
 	if (lengths.dim() == 1) {
 		// (%d)
@@ -734,7 +734,7 @@ void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const
 	// FIXME: 多次元配列の表示を改善する
 
 	w.cat(u8"<");
-	w.cat(as_native(type_name));
+	w.cat(type_name);
 	w.cat(u8">[");
 	accept_children(path);
 	w.cat(u8"]");
@@ -841,7 +841,7 @@ static void write_string_as_literal_tests(Tests& tests) {
 	auto write = [&](auto&& str) {
 		auto w = CStrWriter{};
 		write_string_as_literal(w, hsx::Slice<char>{ (char const*)str.data(), str.size() });
-		return as_utf8(w.finish());
+		return w.finish();
 	};
 
 	suite.test(
@@ -872,7 +872,7 @@ static void write_array_type_tests(Tests& tests) {
 	auto write = [&](auto&& type_name, auto&& var_mode, auto&& lengths) {
 		auto w = CStrWriter{};
 		write_array_type(w, type_name, var_mode, lengths);
-		return as_utf8(w.finish());
+		return w.finish();
 	};
 
 	suite.test(
@@ -909,7 +909,7 @@ static void write_source_location_tests(Tests& tests) {
 	auto write = [&](auto&& ...args) {
 		auto w = CStrWriter{};
 		write_source_location(w, args...);
-		return as_utf8(w.finish());
+		return w.finish();
 	};
 
 	suite.test(

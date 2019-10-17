@@ -97,7 +97,7 @@ public:
 		// FIXME: 共通化
 		auto writer = CStrWriter{};
 		HspObjectWriter{ objects(), writer }.write_table_form(path);
-		auto text = as_utf8(writer.finish());
+		auto text = writer.finish();
 
 		objects().log_do_append(text);
 	}

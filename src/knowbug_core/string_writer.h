@@ -10,7 +10,7 @@
 // 文字列を構築するためのもの。
 // 自動的な字下げと文字数制限の機能を持つ。
 class CStrWriter {
-	std::string buf_;
+	Utf8String buf_;
 
 	// 字下げの深さ
 	std::size_t depth_;
@@ -30,20 +30,20 @@ public:
 	auto as_view() const->Utf8StringView;
 
 	void cat(std::string_view const& str) {
-		cat_by_lines(str);
+		cat(as_utf8(str));
 	}
 
 	void catln(std::string_view const& str) {
+		catln(as_utf8(str));
+	}
+
+	void cat(Utf8StringView str) {
+		cat_by_lines(str);
+	}
+
+	void catln(Utf8StringView str) {
 		cat(str);
 		catCrlf();
-	}
-
-	void cat(Utf8StringView const& str) {
-		cat(as_native(str));
-	}
-
-	void catln(Utf8StringView const& str) {
-		catln(as_native(str));
 	}
 
 	void catCrlf() {
@@ -66,12 +66,12 @@ public:
 	// すでに書き込まれた文字列には影響しない。
 	void set_limit(std::size_t limit);
 
-	auto finish() -> std::string&&;
+	auto finish() -> Utf8String&&;
 
 private:
-	void cat_by_lines(std::string_view const& str);
+	void cat_by_lines(Utf8StringView str);
 
-	void cat_limited(std::string_view const& str);
+	void cat_limited(Utf8StringView str);
 
 	void catDumpImpl(void const* data, std::size_t size);
 };

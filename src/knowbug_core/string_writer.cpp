@@ -5,7 +5,7 @@
 #include "string_split.h"
 #include "string_writer.h"
 
-static auto const TRIMMED_SUFFIX = std::string_view{ u8"(too long)" };
+static auto const TRIMMED_SUFFIX = as_utf8(u8"(too long)");
 
 static auto const DEFAULT_LIMIT = 0x8000;
 
@@ -23,10 +23,10 @@ auto CStrWriter::is_full() const -> bool {
 }
 
 auto CStrWriter::as_view() const -> Utf8StringView {
-	return as_utf8(buf_);
+	return buf_;
 }
 
-auto CStrWriter::finish() -> std::string&& {
+auto CStrWriter::finish() -> Utf8String&& {
 	return std::move(buf_);
 }
 
@@ -51,7 +51,7 @@ void CStrWriter::set_limit(std::size_t limit) {
 
 // バッファの末尾に文字列を追加する。
 // 文字列制限が上限に達したら打ち切る。
-void CStrWriter::cat_limited(std::string_view const& str) {
+void CStrWriter::cat_limited(Utf8StringView str) {
 	if (is_full()) {
 		return;
 	}
@@ -75,7 +75,7 @@ void CStrWriter::cat_limited(std::string_view const& str) {
 
 // バッファの末尾に文字列を追加する。
 // 行ごとに分割して適切に字下げを挿入する。
-void CStrWriter::cat_by_lines(std::string_view const& str) {
+void CStrWriter::cat_by_lines(Utf8StringView str) {
 	auto first = true;
 
 	for (auto&& line : StringLines{ str }) {
@@ -84,7 +84,7 @@ void CStrWriter::cat_by_lines(std::string_view const& str) {
 		}
 
 		if (!first) {
-			cat_limited(u8"\r\n");
+			cat_limited(as_utf8(u8"\r\n"));
 			head_ = true;
 		}
 		first = false;
@@ -96,7 +96,7 @@ void CStrWriter::cat_by_lines(std::string_view const& str) {
 		if (head_) {
 			for (auto i = std::size_t{}; i < depth_; i++) {
 				// FIXME: 字下げをスペースで行う？
-				cat_limited(u8"\t");
+				cat_limited(as_utf8(u8"\t"));
 			}
 			head_ = false;
 		}
