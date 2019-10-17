@@ -1,82 +1,88 @@
-// INIファイル読み書きクラス
-
 #include "pch.h"
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
-#include <cassert>
 #include <array>
+#include <vector>
 #include "../knowbug_core/encoding.h"
 #include "../knowbug_core/platform.h"
 #include "win_ini.h"
 
-static auto const DEFAULT_BUFFER_SIZE = std::size_t{ 1024 };
+static auto const MIN_BUFFER_SIZE = std::size_t{ 1024 };
+static auto const BOOL_BUFFER_SIZE = std::size_t{ 16 };
 
-static auto const STR_BOOLEAN = std::array<TCHAR const*, 2> { { TEXT("false"), TEXT("true") }};
-
-CIni::CIni(OsString&& file_name)
-	: file_name_(std::move(file_name))
-{
-	buf_.resize(1024);
+static auto string_to_lower(OsStringView value) -> OsString {
+	auto it = to_owned(value);
+	CharLower(it.data());
+	return it;
 }
 
-//------------------------------------------------
-// [get] 論理値 (false | true; or 0 | non-0)
-//------------------------------------------------
-bool CIni::getBool(char const* sec, char const* key, bool defval)
-{
-	auto sec_str = to_os(ascii_to_utf8(sec));
-	auto key_str = to_os(ascii_to_utf8(key));
+static auto string_means_true(OsStringView value) -> bool {
+	return value != TEXT("0") && string_to_lower(value) != TEXT("false");
+}
 
-	GetPrivateProfileString(
-		sec_str.data(), key_str.data(), STR_BOOLEAN[defval ? 1 : 0],
-		(LPTSTR)buf_.data(), buf_.size(), file_name_.data()
+static auto boolean_to_string(bool value) -> OsStringView {
+	return value ? TEXT("true") : TEXT("false");
+}
+
+static auto ini_get_int(
+	OsStringView section,
+	OsStringView key,
+	int default_value,
+	OsStringView file_path
+) -> int {
+	return GetPrivateProfileInt(section.data(), key.data(), default_value, file_path.data());
+}
+
+static auto ini_get_string(
+	OsStringView section,
+	OsStringView key,
+	OsStringView default_value,
+	std::size_t buffer_size,
+	OsStringView file_path
+) -> OsString {
+	auto buffer = std::vector<TCHAR>{};
+	buffer.resize(buffer_size);
+
+	auto len = GetPrivateProfileString(section.data(), key.data(), default_value.data(), buffer.data(), buffer.size(), file_path.data());
+
+	return OsString{ buffer.data(), len };
+}
+
+auto IniFile::get_bool(char const* section, char const* key, bool default_value) const -> bool {
+	auto value = ini_get_string(
+		to_os(ascii_to_utf8(section)),
+		to_os(ascii_to_utf8(key)),
+		boolean_to_string(default_value),
+		BOOL_BUFFER_SIZE,
+		file_path_
 	);
-	CharLower((LPTSTR)buf_.data());
-
-	auto text = OsStringView{ buf_.data() };
-	auto is_false = text == OsStringView{ TEXT("0") } || text == OsStringView{ TEXT("false") };
-
-	return !is_false;
+	return string_means_true(value);
 }
 
-//------------------------------------------------
-// [get] 整数値
-//------------------------------------------------
-auto CIni::getInt(char const* sec, char const* key, int default_value) const -> int
-{
-	auto sec_str = to_os(ascii_to_utf8(sec));
-	auto key_str = to_os(ascii_to_utf8(key));
-
-	return GetPrivateProfileInt(
-		sec_str.data(), key_str.data(), default_value,
-		file_name_.data()
+auto IniFile::get_int(char const* section, char const* key, int default_value) const -> int {
+	return ini_get_int(
+		to_os(ascii_as_utf8(section)),
+		to_os(ascii_as_utf8(key)),
+		default_value,
+		file_path_
 	);
 }
 
-//------------------------------------------------
-// [get] 文字列
-//------------------------------------------------
-auto CIni::getString(char const* sec, char const* key, char const* defval, size_t size)
--> OsStringView
-{
-	auto sec_str = to_os(ascii_to_utf8(sec));
-	auto key_str = to_os(ascii_to_utf8(key));
-	auto default_str = to_os(ascii_to_utf8(defval));
-
-	if (size > buf_.size()) buf_.resize(size);
-
-	GetPrivateProfileString(
-		sec_str.data(), key_str.data(), default_str.data(),
-		(LPTSTR)buf_.data(), buf_.size(), file_name_.data()
+auto IniFile::get_string(
+	char const* section,
+	char const* key,
+	char const* default_value,
+	std::size_t buffer_size
+) const -> OsString {
+	return ini_get_string(
+		to_os(ascii_to_utf8(section)),
+		to_os(ascii_to_utf8(key)),
+		to_os(ascii_to_utf8(default_value)),
+		std::max(MIN_BUFFER_SIZE, buffer_size),
+		file_path_
 	);
-	return OsStringView{ buf_.data() };
 }
 
-//------------------------------------------------
-// キーの有無
-//------------------------------------------------
-bool CIni::existsKey(char const* sec, char const* key)
-{
-	return (getInt(sec, key, 0) != 0) && (getInt(sec, key, 1) != 1);
+auto IniFile::contains_key(char const* section, char const* key) const -> bool {
+	// 既定値が返ってこないならキーがあるとみなす。
+	return get_int(section, key, 0) != 0
+		&& get_int(section, key, 1) != 1;
 }

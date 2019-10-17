@@ -47,7 +47,7 @@ static auto window_to_client_rect(HWND hwnd) -> RECT {
 }
 
 static auto create_main_font(KnowbugConfig const& config) -> GdiObjHandlePtr {
-	return GdiObjHandlePtr{ Font_Create(config.fontFamily, config.fontSize, config.fontAntialias) };
+	return GdiObjHandlePtr{ Font_Create(config.font_family_, config.font_size_, config.font_antialias_) };
 }
 
 static void resize_main_window(int client_x, int client_y, bool repaints, HWND tree_view, HWND source_edit, StepButtonHandleArray const& step_button_handles) {
@@ -152,7 +152,7 @@ private:
 	// 初期化:
 
 	void set_windows_top_most() {
-		if (config().bTopMost) {
+		if (config().top_most_) {
 			toggle_windows_top_most();
 		}
 	}
@@ -541,12 +541,12 @@ auto KnowbugView::create(KnowbugConfig const& config, HINSTANCE instance, HspObj
 	auto const main_size_y = 380;
 	auto const main_pos_x = display_x - main_size_x;
 	auto const main_pos_y = 0;
-	auto const view_size_x = config.viewSizeX;
-	auto const view_size_y = config.viewSizeY;
-	auto const view_pos_x = !config.viewPosXIsDefault ? config.viewPosX : display_x - main_size_x - view_size_x;
-	auto const view_pos_y = !config.viewPosYIsDefault ? config.viewPosY : 0;
+	auto const view_size_x = config.view_size_x_;
+	auto const view_size_y = config.view_size_y_;
+	auto const view_pos_x = !config.view_pos_x_is_default_ ? config.view_pos_x_ : display_x - main_size_x - view_size_x;
+	auto const view_pos_y = !config.view_pos_y_is_default_ ? config.view_pos_y_ : 0;
 
-	auto const tab_width = config.tabwidth;
+	auto const tab_width = config.tab_width_;
 	auto main_font = create_main_font(config);
 
 	// ビューウィンドウ

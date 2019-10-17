@@ -9,7 +9,7 @@
 class HspObjects;
 class HspObjectTree;
 class KnowbugApp;
-struct KnowbugConfig;
+class KnowbugConfig;
 
 static constexpr auto WM_KNOWBUG_DID_INITIALIZE = WM_USER + 1;
 static constexpr auto WM_KNOWBUG_UPDATE_VIEW = WM_USER + 2;

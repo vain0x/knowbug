@@ -129,7 +129,7 @@ public:
 	}
 
 	void auto_save_log() {
-		auto&& file_path = config_->logPath;
+		auto&& file_path = config_->log_path_;
 		if (file_path.empty()) {
 			return;
 		}
@@ -149,10 +149,12 @@ public:
 	}
 
 	void open_config_file() override {
-		// ファイルが存在しなければ作成される。
-		auto of = std::ofstream{ config_->selfPath(), std::ios::app };
+		auto config_path = config_->config_path();
 
-		ShellExecute(nullptr, TEXT("open"), config_->selfPath().data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
+		// ファイルが存在しなければ作る。
+		auto of = std::ofstream{ config_path, std::ios::app };
+
+		ShellExecute(nullptr, TEXT("open"), config_path.data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
 	}
 
 	void open_knowbug_repository() override {
@@ -207,7 +209,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	// :thinking_face:
 	auto resolver = SourceFileResolver{ g_fs };
 	auto objects_builder = HspObjectsBuilder{};
-	resolver.add_known_dir(config->commonPath());
+	resolver.add_known_dir(config->common_dir());
 	objects_builder.read_debug_segment(resolver, ctx);
 	auto source_file_repository = std::make_unique<SourceFileRepository>(resolver.resolve());
 	auto objects = std::make_unique<HspObjects>(objects_builder.finish(debug, std::move(source_file_repository)));
