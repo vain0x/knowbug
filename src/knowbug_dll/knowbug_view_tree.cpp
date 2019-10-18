@@ -90,6 +90,8 @@ public:
 	}
 
 	void did_initialize() override {
+		select_global();
+
 		do_auto_expand();
 	}
 
@@ -221,6 +223,15 @@ private:
 
 	auto selected_tv_item() const -> HTREEITEM {
 		return TreeView_GetSelection(tree_view_);
+	}
+
+	void select_global() {
+		auto global_path = objects_.root_path().new_global_module(objects_);
+		auto node_id = object_tree_.focus_by_path(*global_path, *this);
+		auto tv_item_opt = node_to_tv_item(node_id);
+		if (tv_item_opt) {
+			do_select_item(*tv_item_opt);
+		}
 	}
 
 	void auto_expand(HspObjectPath const& path, HTREEITEM tv_item) {
