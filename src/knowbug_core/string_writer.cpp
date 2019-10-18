@@ -138,12 +138,13 @@ void StringWriter::cat_ptr(void const* ptr) {
 void StringWriter::cat_memory_dump(void const* data, std::size_t data_size) {
 	assert(data_size == 0 || data != nullptr);
 
-	static auto const MAX_SIZE = std::size_t{ 0x10000 };
-	auto dump_size = data_size;
+	// 1バイトあたり約3バイトの文字列が生成されるので、残り文字数 / 3 で打ち切る。
+	auto max_size = std::min(data_size, std::min(limit_ / 3, std::size_t{ 0x10000 }));
 
-	if (dump_size > MAX_SIZE) {
-		cat_line(strf(u8"全%d[byte]の内、%d[byte]のみダンプします。", data_size, MAX_SIZE));
-		dump_size = MAX_SIZE;
+	auto dump_size = data_size;
+	if (dump_size > max_size) {
+		cat_line(strf(u8"全%d[byte]の内、%d[byte]のみダンプします。", data_size, max_size));
+		dump_size = max_size;
 	}
 
 	cat_line("dump  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F");
