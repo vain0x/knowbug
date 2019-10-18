@@ -7,7 +7,7 @@
 
 static auto const TRIMMED_SUFFIX = as_utf8(u8"(too long)");
 
-static auto const DEFAULT_LIMIT = 0x8000;
+static auto const DEFAULT_LIMIT = std::size_t{ 0x8000 };
 
 StringWriter::StringWriter()
 	: buf_()
