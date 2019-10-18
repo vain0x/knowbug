@@ -731,6 +731,11 @@ void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const
 	auto&& type_name = objects().type_to_name(type);
 	auto child_count = path.child_count(objects());
 
+	if (!path.is_array(objects())) {
+		accept_children(path);
+		return;
+	}
+
 	// FIXME: 多次元配列の表示を改善する
 
 	w.cat(u8"<");
