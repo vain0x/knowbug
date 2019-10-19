@@ -8,7 +8,7 @@
 
 **knowbug** は、HSP3 用デバッグ・ウィンドウの非公式改造版です。
 
-![スクリーンショット](./package/screenshot/static_variables.png)
+![スクリーンショット](./screenshots/static_variables.png)
 
 主に「変数」タブの機能を拡張しており、以下のものの表示に対応しています。
 

@@ -71,7 +71,7 @@
   ...
 ```
 
-![スクリーンショット](./package/screenshot/module_overview.png)
+![スクリーンショット](./screenshots/module_overview.png)
 
 #### システム変数
 
@@ -100,7 +100,7 @@
 
 「+dynamic」ノードの直下には、呼び出されているユーザ定義コマンドを表すノードが実行に合わせて追加されます。
 
-![スクリーンショット](./package/screenshot/arguments.png)
+![スクリーンショット](./screenshots/arguments.png)
 
 呼び出しを表すノードを選択すると、以下の形式で実引数 (関数に渡されたパラメーターの値) を表示します:
 
