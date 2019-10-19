@@ -1,6 +1,6 @@
 hsptmp
 obj
-package/sample/*.ax
+sandbox/*.ax
 DebugUtf8
 ReleaseUtf8
 
