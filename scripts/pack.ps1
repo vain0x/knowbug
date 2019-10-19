@@ -18,6 +18,9 @@ $exclusions = @(
 
 # パッケージに含められるファイル (dist/ 以外)
 $inclusions = @(
+    @("$package/changes.md", "$pwd/changes.md"),
+    @("$package/LICENSE", "$pwd/LICENSE"),
+    @("$package/README.md", "$pwd/README.md"),
     @("$package/knowbug_install.exe", "$pwd/src/knowbug_install/knowbug_install.exe"),
     @("$package/hsp3debug.dll", "$pwd/src/Win32/Release/hsp3debug.dll"),
     @("$package/hsp3debug_u8.dll", "$pwd/src/Win32/ReleaseUtf8/hsp3debug_u8.dll"),
@@ -30,22 +33,23 @@ if (test-path "$package.zip") {
 
 mkdir $package
 try {
-    copy -recurse dist $package
-    copy changes.md $package/changes.md
-    copy README.md $package/README.md
-    copy LICENSE $package/LICENSE
+    # dist の中にある各ファイルをパッケージに含める。(dist/ ディレクトリ自体は含めない。)
+    copy -recurse dist/* $package
 
+    # 配布しないファイルを削除する。(ファイル名が一致するのものをすべて削除する。)
     foreach ($name in $exclusions) {
         remove-item -recurse -force "$package/**/$name"
     }
 
+    # dist の外にあるファイルをパッケージに含めるためにコピーする。
     foreach ($row in $inclusions) {
         $targetPath = $row[0]
         $sourcePath = $row[1]
         copy $sourcePath $targetPath
     }
 
-    compress-archive "$package/*" "$package.zip"
+    # パッケージを圧縮する。
+    compress-archive $package "$package.zip"
 
     echo "HINT: 'expand-archive $package.zip' to expand"
     echo "Completed."
