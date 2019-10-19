@@ -3,61 +3,83 @@
 ## 開発環境
 
 - Windows 10
+- Git for Windows
 - Visual Studio 2019
     - C++ 開発用の機能をインストールしておく。
 
+## ソリューション
+
+ソリューション (src/knowbug.sln) を Visual Studio で開いて「ビルド」(Ctrl+Shift+B)します。
+
+- ビルドプロファイル
+    - Debug/Release
+        - Debug は knowbug 自体のデバッグ用。
+        - Release は配布用。
+        - shift_jis 用
+    - DebugUtf8/ReleseUtf8
+        - hsp3utf (UTF-8) ランタイム用
+- プラットフォーム
+    - Win32/x64
+        - **Win32**: 32 ビット版
+        - **x64**: 64 ビット版 (hsp3debug_64.dll)
+
+## テスト
+
+`knowbug_tests` プロジェクトを起動するとテストが実行され、一定の動作確認を行えます。(ただしテストコードが少ないため信頼はできない。)
+
+## 動作確認
+
+`./sandbox` のサンプルコードなどを使って動作確認を行います。
+
+- スクリプトの実行中に Visual Studio の「プロセスにアタッチ」(Ctrl+Alt+P)で hsp.exe を選ぶと、ブレークポイントや assert で停止したときに knowbug 側のコードをトレース実行できて便利です。
+- knowbug の起動時にシフトキーを押しておくと、knowbug の開始時に停止するようになっていて、アタッチしやすくなります。
+
 ## 環境変数
 
-`scripts` にあるスクリプトは以下の環境変数を要求する。
+`./scripts` にあるビルドスクリプトを使うには、以下の環境変数が必要です。(Win+Break → システムの詳細設定 → 環境変数 → 新規)
 
+- HSP3_ROOT:
+    - HSP のディレクトリへのパスを指定しておく
 - KNOWBUG_MSBUILD:
     - `MSBuild.exe` へのパスを指定しておく
     - `appveyor.yml`.environment.KNOWBUG_MSBUILD を参照
 
-## ビルド
+## デバッグ版のインストール
 
-ソリューション (knowbug.sln) を Visual Studio で開いて「ビルド」(Ctrl+B)する。
+ビルドで生成される DLL を指すシンボリックリンクをインストールしておくと便利です。
 
-- ビルドプロファイル
-    - Debug/Release2
-        - Debug は knowbug 自体のデバッグ用。Release2 は配布用。
-        - どちらも hsp3 (shift_jis) ランタイム対応
-    - DebugUtf/ReleseUtf
-        - hsp3utf ランタイム対応 (hsp3debug_u8.dll)
-    - Win32/x64
-        - **Win32**: 32 bit 版 HSP 用
-        - **x64**: 64 bit 版 HSP 用。hsp3debug_64.dll
+PowerShell を開き、すべてのバージョンをビルドしてから、インストールを行います。(シンボリックリンクの作成には管理者権限が必要なので、PowerShell は管理者権限で実行してください。)
 
-## テスト
-
-./package/sample/ のサンプルコードなどでちまちま動作確認する。
-
-## デバッグ
-
-ビルドで生成される DLL を指すシンボリックリンクを HSP のディレクトリに配置しておくと便利である。(FIXME: 作業手順を書く。 [install-dev](./scripts/install-dev.ps1) 参照)
-
-HSP の起動時、あるいは起動中に Visual Studio の「プロセスにアタッチ」(Ctrl+Alt+P)をすると、ブレークポイントや assert で停止したときに knowbug 側のコードをトレース実行できる。
-
-デバッグ用の knowbug の起動時にシフトキーを押しておくと、knowbug が初期化される前に停止するようになっているので、アタッチしやすい。
+```pwsh
+./scripts/build-all.ps1
+./scripts/install-dev.ps1
+```
 
 ## デプロイ
 
-- 作業を develop ブランチにマージする。
-- バージョン番号を上げる。
-- Visual Studio で Release 版 (x86/x64) をビルドする。
-- 動作確認する。
-- develop を master ブランチにマージしてタグを貼る。
-- `make_deploy_package.bat` を実行する。
-    - 新しいディレクトリー (knowbug) を作ってパッケージに同梱すべきファイル (DLL やサンプルコードなど) を放り込み、zip する。
-    - 7zip のコマンドライン版が必要 (?)
-    - 手動でも可。
-- GitHub releases にアップロードする。
+- 作業を master ブランチにマージする。
+- 変更履歴を更新する。(changes.md)
+- バージョン番号を上げる。(変更箇所は前のバージョン番号で検索して見つける。)
+- バージョン番号のタグを貼る。(例: `git tag v1.0.0`)
+- ビルドとパッケージ作成のスクリプトを実行する。
 
-## コーディング規約
+```pwsh
+./scripts/build-all
+./scripts/pack
+```
 
-名前付けやフォーマットに迷ったときの参考用。ほとんどの部分で守られていないので、守らなくても可。
+- パッケージを GitHub Releases にアップロードする。
 
-### 名前
+## コーディングメモ
+
+コーディング上で迷ったときの参考用です。守らなくても可。
+
+### C++ の資料
+
+- [江添亮のC++入門](https://ezoeryou.github.io/cpp-intro/)
+- [C++日本語リファレンス](https://cpprefjp.github.io/)
+
+### 名前付け
 
 - マクロ: `SCREAMING_CASE`
 - 型、型引数、テンプレート引数: `PascalCase`
@@ -67,11 +89,13 @@ HSP の起動時、あるいは起動中に Visual Studio の「プロセスに�
 ### フォーマット
 
 - `const` や `*` は後置 (例 `char const*`)
-- 関数の結果型は後置 (例 `auto f() -> ResultType {..}`)
+- 関数の結果型は後置 (例 `auto f() -> ResultType {..}`) (void だけ前置)
+- Visual Studio の「ドキュメントのフォーマット」になるべく従う
+    - ただし「else の前に改行する」設定だけ変えて「改行しない」ようにしている
 
-## コミットプレフィックス
+## コミットメッセージ
 
-Git のコミットメッセージについている "feat:" などは、そのコミットの目的を表す。付けなくても可。
+Git のコミットメッセージについている "feat:" などのプレフィックスは、そのコミットの目的を表しています。付けなくても可。
 
 - `feat`: 機能の変化 (追加・変更・削除) のためのコミット
 - `fix`: 過去のコミットの誤りを修正するコミット
