@@ -10,13 +10,13 @@ if (!$version) {
 # パッケージのファイル名
 $package = "knowbug-$version"
 
-# パッケージから除外されるファイル (package/ 以下)
+# パッケージから除外されるファイル (dist/ 以下)
 $exclusions = @(
     "hsptmp",
     "obj"
 )
 
-# パッケージに含められるファイル (package/ 以外)
+# パッケージに含められるファイル (dist/ 以外)
 $inclusions = @(
     @("$package/knowbug_install.exe", "$pwd/src/knowbug_install/knowbug_install.exe"),
     @("$package/hsp3debug.dll", "$pwd/src/Win32/Release/hsp3debug.dll"),
@@ -30,7 +30,7 @@ if (test-path "$package.zip") {
 
 mkdir $package
 try {
-    copy -recurse package $package
+    copy -recurse dist $package
     copy changes.md $package/changes.md
     copy README.md $package/README.md
     copy LICENSE $package/LICENSE
