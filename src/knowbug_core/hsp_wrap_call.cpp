@@ -121,15 +121,16 @@ auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<hs
 
 	// 引数スタックが存在するための条件
 	auto exists = next_sublev > prev_sublev;
+	if (!exists) {
+		return std::nullopt;
+	}
 
 	// 引数スタックが真正であるための条件
 	auto is_safe = next_sublev == prev_sublev + 1;
 
-	auto param_stack = exists ? next_param_stack : nullptr;
-
 	auto param_stack_size = hsx::struct_to_param_stack_size(struct_dat);
 
-	return std::make_optional<hsx::HspParamStack>(struct_dat, (void*)param_stack, param_stack_size, is_safe);
+	return std::make_optional<hsx::HspParamStack>(struct_dat, next_param_stack, param_stack_size, is_safe);
 }
 
 // ユーザ定義コマンドの処理をラッパーで置き換える
