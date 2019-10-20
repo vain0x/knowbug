@@ -17,7 +17,7 @@
 
 ## インストール
 
-配布物に含まれている [knowbug_install.exe](./src/knowbug_install.hsp) を管理者権限で実行してください。HSP のディレクトリを選択し install ボタンを押すと、インストールが行われます。
+配布物に含まれている [knowbug_install.exe](./src/knowbug_install/knowbug_install.hsp) を管理者権限で実行してください。HSP のディレクトリを選択し install ボタンを押すと、インストールが行われます。
 
 ### コールスタック表示機能のインストール
 
