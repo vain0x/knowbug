@@ -1,6 +1,8 @@
 hsptmp
 obj
-package/sample/*.ax
+sandbox/*.ax
+src/knowbug_install/*.ax
+src/knowbug_install/packfile
 DebugUtf8
 ReleaseUtf8
 

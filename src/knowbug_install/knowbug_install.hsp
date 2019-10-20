@@ -55,7 +55,7 @@
 	knowbug_dir = dir_cur
 
 	asset_targets = "hsp3debug.dll", "hsp3debug_u8.dll", "hsp3debug_64.dll", "common/WrapCall.as"
-	asset_sources = "hsp3debug.dll", "hsp3debug_u8.dll", "hsp3debug_64.dll", "package/WrapCall.as"
+	asset_sources = "hsp3debug.dll", "hsp3debug_u8.dll", "hsp3debug_64.dll", "WrapCall.as"
 	asset_backups = true, true, true, false
 	asset_count = length(asset_sources)
 

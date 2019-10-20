@@ -8,57 +8,49 @@
 
 **knowbug** は、HSP3 用デバッグ・ウィンドウの非公式改造版です。
 
-![スクリーンショット](./package/screenshot/static_variables.png)
+![スクリーンショット](./screenshots/static_variables.png)
 
-主に「変数」タブの機能を拡張しており、以下のものの表示に対応しています。
+主な機能としては以下があります。**[機能の詳細はこちらを参照](details.md)** してください。
 
-* int の16進数表現の併記
-* 多次元配列の2次元全要素
-* モジュール変数のメンバ変数
-* 実行中のユーザ定義コマンドの実引数
-
-**[機能の詳細はこちらを参照](details.md)** してください。
+- 多次元配列やモジュール変数の表示
+- ステップオーバーなどの拡張されたステップ実行
 
 ## インストール
 
-#### knowbug 本体
+配布物に含まれている [knowbug_install.exe](./src/knowbug_install.hsp) を管理者権限で実行してください。HSP のディレクトリを選択し install ボタンを押すと、インストールが行われます。
 
-0. [最新版のパッケージ](https://github.com/vain0x/knowbug/releases/latest) の `knowbug-package.zip` をダウンロードします。
-0. HSPのフォルダ(※)にある ``hsp3debug.dll`` と ``hsp3debug_64.dll`` の名前を変更します。
-  * 例:``hsp3debug.dll`` → ``hsp3debug__default.dll``
-0. `package` フォルダにある ``hsp3debug_knowbug.dll`` の名前を ``hsp3debug.dll`` に変えて、HSPのフォルダに移動します。
+### コールスタック表示機能のインストール
 
-※「HSPのフォルダ」の位置は、HSPで ``path = dir_exe : input path, ginfo_winx`` を実行すると分かります。
+**この手順は省略可能です。**
 
-#### WrapCall
+コールスタック (ユーザー定義命令の呼び出し履歴) の表示を行うには、追加のプラグイン (WrapCall) を読み込む必要があります。プラグインを読み込むには、`WrapCall.as` を `#include` してください。(これはデバッグ時にのみ動作します。)
 
-(省略可)
+```hsp
+#include "WrapCall.as"
+```
 
-WrapCall プラグインを追加すると、ユーザー定義コマンドに関する機能が有効になります。
+ただし、UTF-8 版や 64 ビット版の HSP を使う場合は、`hsp3utf.as` や `hsp3_64.as` より **後に** WrapCall.as を include してください。
 
-* 同梱されている ``WrapCall.as`` と ``userdef.as`` をHSPの `common` フォルダに移動します。
-  * 既に ``userdef.as`` がある場合は、上書きではなく追記してください。
+```hsp
+#include "hsp3utf.as"  // こっちが前
+#include "WrapCall.as" // こっちが後
+```
 
-**注意**: 64bit版ランタイムを使う際は、標準のヘッダ ``hsp3_64.as`` を WrapCall より前に \#include しておく必要があります。
+### 設定ファイルのインストール
 
-#### 設定ファイル
+**この手順は省略可能です。**
 
-(省略可)
-
-[設定ファイル](./package/knowbug.ini) を knowbug (hsp3debug.dll) と同じフォルダに置いておくと、起動時に読み込まれます。
-
-* 具体的な設定については、設定ファイル内のコメントを参照してください。
+HSP のディレクトリに [knowbug.ini](./dist/knowbug.ini) を置いておくと、起動時に読み込まれます。具体的な設定は、設定ファイル内のコメントを参照してください。
 
 ## アンインストール
 
-アンインストールするには、インストールとは逆の操作を行います。
+インストール時と同様に `knowbug_install.exe` で knowbug をインストールした HSP のディレクトリを指定し、 uninstall を選択してください。
 
-0. knowbug (``hsp3debug.dll`` と ``hsp3debug_64.dll``) を削除し、バックアップしておいた、元々の ``hsp3debug.dll`` を、元に戻します。
-0. 設定ファイル (``knowbug.ini``) とヘッダーファイル (``WrapCall.as``) は不要なので削除します。``userdef.as`` を元に戻します。
+- 設定ファイルを配置した場合は、手動で削除してください。
 
 ## 推奨環境
 
-- HSP 3.5.1
+- HSP 3.5
 - Windows 10
 
 ## 不具合報告など
