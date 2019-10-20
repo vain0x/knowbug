@@ -2,33 +2,33 @@
 
 #include "../WrapCall.as"
 
-// WrapCall ‚É‚æ‚Á‚ÄAƒ†[ƒU’è‹`ŠÖ”‚ÌŒÄ‚Ño‚µ‚Ì•Ï‘J‚ğ’Ç‚¤‚±‚Æ‚ª‚Å‚«‚éB
-// @ ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ÌuŸsvƒ{ƒ^ƒ“‚ğ‰Ÿ‚µ‚È‚ª‚çA+dynamic ƒm[ƒh‚ğŒ©‚éB
+// WrapCall ã«ã‚ˆã£ã¦ã€ãƒ¦ãƒ¼ã‚¶å®šç¾©é–¢æ•°ã®å‘¼ã³å‡ºã—ã®å¤‰é·ã‚’è¿½ã†ã“ã¨ãŒã§ãã‚‹ã€‚
+// @ ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ã€Œæ¬¡è¡Œã€ãƒœã‚¿ãƒ³ã‚’æŠ¼ã—ãªãŒã‚‰ã€+dynamic ãƒãƒ¼ãƒ‰ã‚’è¦‹ã‚‹ã€‚
 
-	assert		// ©‚¢‚«‚È‚è~‚Ü‚é‚Ì‚Å
-	
+	assert		// â†ã„ããªã‚Šæ­¢ã¾ã‚‹ã®ã§
+
 #module Point x, y
 
 #modinit int x_, int y_
 	point_set thismod, x_, y_
 	return
-	
+
 #modfunc point_set int x_, int y_,  local z
 	logmes "old: " + point_toString(thismod)
 	x = x_
 	y = y_
 	return
-	
+
 #modcfunc point_toString
 	return strf("(%d, %d)", x, y)
-	
+
 #global
-	
+
 	newmod x, Point, 20, 30
 	assert
 	logmes point_toString(x)
-	
+
 	mes "end"
 	stop
-	
+
 ;	point_set x, 30, 40
