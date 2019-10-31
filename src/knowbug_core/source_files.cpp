@@ -94,9 +94,9 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 	// 未解決のファイル参照名の集合
 	auto file_ref_names = std::vector<std::pair<std::string, OsString>>{};
 
-	for (auto&& file_ref_name : std::move(file_ref_names_)) {
+	for (auto&& file_ref_name : file_ref_names_) {
 		auto os_str = to_os(as_hsp(file_ref_name));
-		file_ref_names.emplace_back(std::move(file_ref_name), std::move(os_str));
+		file_ref_names.emplace_back(file_ref_name, std::move(os_str));
 	}
 
 	// 絶対パス → ファイルID
