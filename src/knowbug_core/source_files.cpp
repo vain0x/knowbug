@@ -118,14 +118,20 @@ void SourceFileResolver::add_file_ref_name(std::string&& file_ref_name) {
 }
 
 void SourceFileResolver::dedup() {
-	std::sort(std::begin(file_ref_names_), std::end(file_ref_names_));
+	// 注意: 解決処理の精度を上げるため、ファイル参照名の順番を維持する。
 
-	// 重複したファイル参照名を配列の後方 (mid 以降) に移動させて、erase により配列を縮める。
-	// 結果として重複が取り除かれる。
-	// 参考: [std::unique](https://cpprefjp.github.io/reference/algorithm/unique.html)
+	auto output = std::vector<std::string>{};
+	auto done = std::unordered_set<std::string>{};
 
-	auto mid = std::unique(std::begin(file_ref_names_), std::end(file_ref_names_));
-	file_ref_names_.erase(mid, std::end(file_ref_names_));
+	for (auto&& file_ref_name : file_ref_names_) {
+		auto pair = done.insert(file_ref_name);
+		auto added = pair.second;
+		if (added) {
+			output.push_back(file_ref_name);
+		}
+	}
+
+	file_ref_names_ = std::move(output);
 }
 
 auto SourceFileResolver::resolve() -> SourceFileRepository {
@@ -173,7 +179,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		return true;
 	};
 
-	// hsptmp に対応するファイルを見つける。(dedup より前に行う必要がある。)
+	// hsptmp に対応するファイルを見つける。
 	// hsptmp の絶対パスを見つけておくため、ファイル参照名に hsptmp を追加する。
 	auto hsptmp_ref_name_opt = resolve_hsptmp(file_ref_names_);
 	add_file_ref_name(u8"hsptmp");
