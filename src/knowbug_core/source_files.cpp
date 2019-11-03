@@ -156,7 +156,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 			}
 
 			// i 番目の要素を削除
-			std::iter_swap(&file_ref_names[i], &file_ref_names.back());
+			std::swap(file_ref_names[i], file_ref_names.back());
 			file_ref_names.pop_back();
 
 			stuck = false;
