@@ -185,7 +185,9 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) {
 		case DLL_PROCESS_ATTACH: {
 			g_dll_instance = hInstance;
 #if _DEBUG
-			if (GetKeyState(VK_SHIFT) & 0x8000) { MessageBox(nullptr, TEXT("Attach Me!"), TEXT("knowbug"), MB_OK); }
+			if (GetKeyState(VK_SHIFT) & 0x8000) {
+				MessageBox(nullptr, TEXT("Ctrl+Alt+P でプロセス hsp3.exe にアタッチし、デバッグを開始してください。"), TEXT("knowbug"), MB_OK);
+			}
 #endif
 			break;
 		}
