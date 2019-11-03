@@ -177,7 +177,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		}
 
 		// 見つかったディレクトリを検索対象に加える。
-		dirs_.emplace(std::move(result_opt->dir_name_));
+		dirs_.emplace(std::move(result_opt->dir_path_));
 
 		// メモ化する。
 		add(original, result_opt->full_path_);

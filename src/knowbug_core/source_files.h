@@ -23,7 +23,10 @@ class FileSystemApi {
 public:
 	class SearchFileResult {
 	public:
-		OsString dir_name_;
+		// ファイルが含まれるディレクトリへの絶対パス
+		OsString dir_path_;
+
+		// 見つかったファイルへの絶対パス
 		OsString full_path_;
 	};
 
