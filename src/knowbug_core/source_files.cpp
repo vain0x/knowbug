@@ -79,6 +79,33 @@ auto WindowsFileSystemApi::search_file_from_current_dir(OsStringView file_name)-
 }
 
 // -----------------------------------------------
+// hsptmp の解決
+// -----------------------------------------------
+
+// hsptmp に対応するファイル参照名を見つける。
+//
+// 解説:
+// スクリプトエディタで未保存の内容が、カレントディレクトリの hsptmp に保存されているはず。
+// 1. タブがファイルを開いているのではなく「無題」のとき、
+//    hsptmp に相当するファイル名は ??? (ファイル名なし) になっている。
+// 2. タブがファイルを開いているとき、hsptmp は「最初に出現する」ファイルに対応するはず。
+//    ただし、実行されたスクリプトより前に標準ヘッダファイル (hspdef.as など) が読まれるので、
+//    正確には「最後に hspdef.as が出現する行の次の行のファイル名」を見つけて hsptmp とみなす。
+// (この処理は HSP のコンパイラの実装に依存したものである。)
+static auto resolve_hsptmp(std::vector<std::string> const& file_ref_names) -> std::optional<std::string> {
+	// 逆順にループを回して hspdef.as が最後に出現する位置を探し、あればその次を返す。
+	for (auto i = file_ref_names.size(); i >= 1;) {
+		i--;
+
+		if (file_ref_names[i] == u8"hspdef.as" && i + 1 < file_ref_names.size()) {
+			return file_ref_names[i + 1];
+		}
+	}
+
+	return std::nullopt;
+}
+
+// -----------------------------------------------
 // SourceFileResolver
 // -----------------------------------------------
 
@@ -91,7 +118,6 @@ void SourceFileResolver::add_file_ref_name(std::string&& file_ref_name) {
 }
 
 void SourceFileResolver::dedup() {
-
 	std::sort(std::begin(file_ref_names_), std::end(file_ref_names_));
 
 	// 重複したファイル参照名を配列の後方 (mid 以降) に移動させて、erase により配列を縮める。
@@ -103,8 +129,12 @@ void SourceFileResolver::dedup() {
 }
 
 auto SourceFileResolver::resolve() -> SourceFileRepository {
+	auto hsptmp_ref_name_opt = resolve_hsptmp(file_ref_names_);
+
 	// 未解決のファイル参照名の集合
 	auto file_ref_names = std::vector<std::pair<std::string, OsString>>{};
+
+	add_file_ref_name(u8"hsptmp");
 
 	dedup();
 
@@ -190,6 +220,24 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		}
 
 		file_map.emplace(pair.first, iter->second);
+	}
+
+	// hsptmp を解決する。
+	auto hsptmp_iter = file_map.find(u8"hsptmp");
+	if (hsptmp_iter != file_map.end() && hsptmp_ref_name_opt) {
+		auto file_iter = file_map.find(*hsptmp_ref_name_opt);
+
+		// ここでファイル file_id の内容は編集中の可能性があるので、
+		// hsptmp の内容を読む方がよいということが分かった。
+		// FIXME: 内容は hsptmp から読むが、ファイルを開くときは元のファイルを開くべきなため、ファイルIDの差し替えという実装は雑すぎる。
+		auto file_id = file_iter->second;
+		auto hsptmp_id = hsptmp_iter->second;
+
+		for (auto&& iter : file_map) {
+			if (iter.second == file_id) {
+				iter.second = hsptmp_id;
+			}
+		}
 	}
 
 	return SourceFileRepository{ std::move(source_files), std::move(file_map) };
@@ -475,5 +523,25 @@ void source_files_tests(Tests& tests) {
 				&& t.eq(as_native(*repository.file_to_line_at(file_id, 0)), u8"main")
 				&& t.eq(as_native(*repository.file_to_line_at(file_id, 1)), u8"stop")
 				&& t.eq(as_native(*repository.file_to_line_at(file_id, 9999)), u8"");
+		});
+
+	suite.test(
+		u8"実行スクリプトファイルの内容を hsptmp から読む",
+		[&](TestCaseContext& t) {
+			auto fs = create_file_system_for_testing();
+			fs.add_file(TEXT("/src/main.hsp"), u8"保存されたスクリプト");
+			fs.add_file(TEXT("/src/hsptmp"), u8"実行されたスクリプト");
+
+			auto resolver = SourceFileResolver{ fs };
+			resolver.add_file_ref_name(u8"hspdef.as");
+			resolver.add_file_ref_name(u8"userdef.as");
+			resolver.add_file_ref_name(u8"hspdef.as");
+			resolver.add_file_ref_name(u8"main.hsp");
+			resolver.add_file_ref_name(u8"other.hsp");
+
+			auto repository = resolver.resolve();
+			auto file_id = *repository.file_ref_name_to_file_id(u8"main.hsp");
+
+			return t.eq(as_native(*repository.file_to_content(file_id)), u8"実行されたスクリプト");
 		});
 }

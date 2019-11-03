@@ -112,6 +112,10 @@ public:
 	{
 	}
 
+	auto operator ==(SourceFileId other) const -> bool {
+		return id_ == other.id_;
+	}
+
 	auto id() const -> std::size_t {
 		return id_;
 	}
