@@ -129,19 +129,8 @@ void SourceFileResolver::dedup() {
 }
 
 auto SourceFileResolver::resolve() -> SourceFileRepository {
-	auto hsptmp_ref_name_opt = resolve_hsptmp(file_ref_names_);
-
 	// 未解決のファイル参照名の集合
 	auto file_ref_names = std::vector<std::pair<std::string, OsString>>{};
-
-	add_file_ref_name(u8"hsptmp");
-
-	dedup();
-
-	for (auto&& file_ref_name : file_ref_names_) {
-		auto os_str = to_os(as_hsp(file_ref_name));
-		file_ref_names.emplace_back(file_ref_name, std::move(os_str));
-	}
 
 	// 絶対パス → ファイルID
 	auto full_path_map = std::unordered_map<OsString, SourceFileId>{};
@@ -183,6 +172,18 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		add(original, result_opt->full_path_);
 		return true;
 	};
+
+	// hsptmp に対応するファイルを見つける。(dedup より前に行う必要がある。)
+	// hsptmp の絶対パスを見つけておくため、ファイル参照名に hsptmp を追加する。
+	auto hsptmp_ref_name_opt = resolve_hsptmp(file_ref_names_);
+	add_file_ref_name(u8"hsptmp");
+
+	// ファイル参照名の重複を除去する。ついでに OsString に変換しておく。
+	dedup();
+	for (auto&& file_ref_name : file_ref_names_) {
+		auto os_str = to_os(as_hsp(file_ref_name));
+		file_ref_names.emplace_back(file_ref_name, std::move(os_str));
+	}
 
 	while (true) {
 		// ループ中に何か変化が起こったら false。
