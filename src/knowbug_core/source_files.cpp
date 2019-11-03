@@ -242,7 +242,9 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 			auto hsptmp_full_path = source_files[hsptmp_iter->second.id()].full_path();
 
 			auto file_iter = file_map.find(*hsptmp_ref_name_opt);
-			source_files[file_iter->second.id()].set_content_file_path(OsString{ hsptmp_full_path });
+			if (file_iter != file_map.end()) {
+				source_files[file_iter->second.id()].set_content_file_path(OsString{ hsptmp_full_path });
+			}
 		}
 	}
 
