@@ -42,14 +42,14 @@ steps:
   inputs:
     solution: 'src/knowbug.sln'
     msbuildArchitecture: 'x64'
-    platform: 'Win32'
+    platform: 'x86'
     configuration: 'Release'
 
 - task: MSBuild@1
   inputs:
     solution: 'src/knowbug.sln'
     msbuildArchitecture: 'x64'
-    platform: 'Win32'
+    platform: 'x86'
     configuration: 'ReleaseUtf8'
 
 - task: MSBuild@1
