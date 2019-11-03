@@ -87,12 +87,26 @@ void SourceFileResolver::add_known_dir(OsString&& dir) {
 }
 
 void SourceFileResolver::add_file_ref_name(std::string&& file_ref_name) {
-	file_ref_names_.emplace(std::move(file_ref_name));
+	file_ref_names_.push_back(std::move(file_ref_name));
+}
+
+void SourceFileResolver::dedup() {
+
+	std::sort(std::begin(file_ref_names_), std::end(file_ref_names_));
+
+	// 重複したファイル参照名を配列の後方 (mid 以降) に移動させて、erase により配列を縮める。
+	// 結果として重複が取り除かれる。
+	// 参考: [std::unique](https://cpprefjp.github.io/reference/algorithm/unique.html)
+
+	auto mid = std::unique(std::begin(file_ref_names_), std::end(file_ref_names_));
+	file_ref_names_.erase(mid, std::end(file_ref_names_));
 }
 
 auto SourceFileResolver::resolve() -> SourceFileRepository {
 	// 未解決のファイル参照名の集合
 	auto file_ref_names = std::vector<std::pair<std::string, OsString>>{};
+
+	dedup();
 
 	for (auto&& file_ref_name : file_ref_names_) {
 		auto os_str = to_os(as_hsp(file_ref_name));

@@ -44,8 +44,8 @@ class SourceFileResolver {
 	// ファイルを探す基準となるディレクトリの集合。
 	std::unordered_set<OsString> dirs_;
 
-	// 解決すべきファイル参照名の集合。
-	std::unordered_set<std::string> file_ref_names_;
+	// 解決すべきファイル参照名の集まり。
+	std::vector<std::string> file_ref_names_;
 
 	FileSystemApi& fs_;
 
@@ -60,6 +60,9 @@ public:
 	void add_known_dir(OsString&& dir);
 
 	void add_file_ref_name(std::string&& file_ref_name);
+
+	// 重複して登録されたファイル参照名を削除する。
+	void dedup();
 
 	auto resolve()->SourceFileRepository;
 };
