@@ -1114,7 +1114,7 @@ auto HspObjects::script_to_current_line() const -> std::size_t {
 
 auto HspObjects::script_to_current_location_summary() const -> Utf8String {
 	// FIXME: 長すぎるときは切る
-	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or(u8"???");
+	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or(u8"hsptmp");
 	auto line_index = script_to_current_line();
 	auto line = source_file_repository_->file_ref_name_to_line_at(file_ref_name, line_index).value_or(MISSING_FILE_LINE);
 

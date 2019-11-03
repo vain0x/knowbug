@@ -212,6 +212,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	auto resolver = SourceFileResolver{ g_fs };
 	auto objects_builder = HspObjectsBuilder{};
 	resolver.add_known_dir(config->common_dir());
+	resolver.add_file_ref_name(u8"hsptmp");
 	objects_builder.read_debug_segment(resolver, ctx);
 	auto source_file_repository = std::make_unique<SourceFileRepository>(resolver.resolve());
 	auto objects = std::make_unique<HspObjects>(objects_builder.finish(debug, std::move(source_file_repository)));
