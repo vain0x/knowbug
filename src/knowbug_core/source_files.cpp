@@ -48,13 +48,20 @@ static auto search_file_from_dir(
 	return FileSystemApi::SearchFileResult{ std::move(dir_name), std::move(full_path) };
 }
 
-// 複数のディレクトリを基準としてファイルを探し、カレントディレクトリからも探す。
+// カレントディレクトリを基準としてファイルを探し、なければ指定された各ディレクトリから探す。
 template<typename TDirs>
 static auto search_file_from_dirs(
 	OsStringView const& file_ref,
 	TDirs const& dirs,
 	FileSystemApi& api
 ) -> std::optional<FileSystemApi::SearchFileResult> {
+	{
+		auto result_opt = api.search_file_from_current_dir(file_ref);
+		if (result_opt) {
+			return result_opt;
+		}
+	}
+
 	for (auto&& dir : dirs) {
 		auto result_opt = api.search_file_from_dir(file_ref, dir);
 		if (result_opt) {
@@ -62,8 +69,7 @@ static auto search_file_from_dirs(
 		}
 	}
 
-	// カレントディレクトリから探す。
-	return api.search_file_from_current_dir(file_ref);
+	return std::nullopt;
 }
 
 auto WindowsFileSystemApi::read_all_text(OsString const& file_path)->std::optional<std::string> {
@@ -531,10 +537,13 @@ void source_files_tests(Tests& tests) {
 		u8"実行スクリプトファイルの内容を hsptmp から読む",
 		[&](TestCaseContext& t) {
 			auto fs = create_file_system_for_testing();
+
 			fs.add_file(TEXT("/src/main.hsp"), u8"保存されたスクリプト");
 			fs.add_file(TEXT("/src/hsptmp"), u8"実行されたスクリプト");
+			fs.add_file(TEXT("/hsp/common/hsptmp"), u8"common の hsptmp は探さないでほしい");
 
 			auto resolver = SourceFileResolver{ fs };
+			resolver.add_known_dir(to_owned(TEXT("/hsp/common")));
 			resolver.add_file_ref_name(u8"hspdef.as");
 			resolver.add_file_ref_name(u8"userdef.as");
 			resolver.add_file_ref_name(u8"hspdef.as");
