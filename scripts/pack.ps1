@@ -2,7 +2,7 @@
 # 使い方: ./scripts/pack
 
 # バージョン番号
-$version = $env:APPVEYOR_BUILD_VERSION
+$version = $env:KNOWBUG_VERSION
 if (!$version) {
     $version = "next"
 }

@@ -42,7 +42,7 @@
     - HSP のディレクトリへのパスを指定しておく
 - KNOWBUG_MSBUILD:
     - `MSBuild.exe` へのパスを指定しておく
-    - `appveyor.yml`.environment.KNOWBUG_MSBUILD を参照
+    - Visual Studio 2019 の場合は `C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe`
 
 ## デバッグ版のインストール
 
