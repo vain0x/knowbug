@@ -7,7 +7,7 @@
 #include "string_split.h"
 
 // -----------------------------------------------
-// File System API
+// ファイルシステム
 // -----------------------------------------------
 
 static auto read_all_text(OsString const& file_path)->std::optional<std::string> {
@@ -20,7 +20,7 @@ static auto read_all_text(OsString const& file_path)->std::optional<std::string>
 
 // 指定したディレクトリを基準として、指定した名前または相対パスのファイルを検索する。
 // 結果として、フルパスと、パス中のディレクトリの部分を返す。
-// use_current_dir=true のときは、指定したディレクトリではなく、カレントディレクトリで検索する。
+// base_dir_opt=nullopt のときは、カレントディレクトリで検索する。
 static auto search_file_from_dir(
 	OsStringView const& file_ref,
 	std::optional<OsStringView> base_dir_opt
@@ -48,13 +48,20 @@ static auto search_file_from_dir(
 	return FileSystemApi::SearchFileResult{ std::move(dir_name), std::move(full_path) };
 }
 
-// 複数のディレクトリを基準としてファイルを探し、カレントディレクトリからも探す。
+// カレントディレクトリを基準としてファイルを探し、なければ指定された各ディレクトリから探す。
 template<typename TDirs>
 static auto search_file_from_dirs(
 	OsStringView const& file_ref,
 	TDirs const& dirs,
 	FileSystemApi& api
 ) -> std::optional<FileSystemApi::SearchFileResult> {
+	{
+		auto result_opt = api.search_file_from_current_dir(file_ref);
+		if (result_opt) {
+			return result_opt;
+		}
+	}
+
 	for (auto&& dir : dirs) {
 		auto result_opt = api.search_file_from_dir(file_ref, dir);
 		if (result_opt) {
@@ -62,8 +69,7 @@ static auto search_file_from_dirs(
 		}
 	}
 
-	// カレントディレクトリから探す。
-	return api.search_file_from_current_dir(file_ref);
+	return std::nullopt;
 }
 
 auto WindowsFileSystemApi::read_all_text(OsString const& file_path)->std::optional<std::string> {
@@ -79,6 +85,33 @@ auto WindowsFileSystemApi::search_file_from_current_dir(OsStringView file_name)-
 }
 
 // -----------------------------------------------
+// hsptmp の解決
+// -----------------------------------------------
+
+// hsptmp に対応するファイル参照名を見つける。
+//
+// 解説:
+// スクリプトエディタで未保存の内容が、カレントディレクトリの hsptmp に保存されているはず。
+// 1. タブがファイルを開いているのではなく「無題」のとき、
+//    hsptmp に相当するファイル名は ??? (ファイル名なし) になっている。
+// 2. タブがファイルを開いているとき、hsptmp は「最初に出現する」ファイルに対応するはず。
+//    ただし、実行されたスクリプトより前に標準ヘッダファイル (hspdef.as など) が読まれるので、
+//    正確には「最後に hspdef.as が出現する行の次の行のファイル名」を見つけて hsptmp とみなす。
+// (この処理は HSP のコンパイラの実装に依存したものである。)
+static auto resolve_hsptmp(std::vector<std::string> const& file_ref_names) -> std::optional<std::string> {
+	// 逆順にループを回して hspdef.as が最後に出現する位置を探し、あればその次を返す。
+	for (auto i = file_ref_names.size(); i >= 1;) {
+		i--;
+
+		if (file_ref_names[i] == u8"hspdef.as" && i + 1 < file_ref_names.size()) {
+			return file_ref_names[i + 1];
+		}
+	}
+
+	return std::nullopt;
+}
+
+// -----------------------------------------------
 // SourceFileResolver
 // -----------------------------------------------
 
@@ -87,17 +120,29 @@ void SourceFileResolver::add_known_dir(OsString&& dir) {
 }
 
 void SourceFileResolver::add_file_ref_name(std::string&& file_ref_name) {
-	file_ref_names_.emplace(std::move(file_ref_name));
+	file_ref_names_.push_back(std::move(file_ref_name));
+}
+
+void SourceFileResolver::dedup() {
+	// 注意: 解決処理の精度を上げるため、ファイル参照名の順番を維持する。
+
+	auto output = std::vector<std::string>{};
+	auto done = std::unordered_set<std::string>{};
+
+	for (auto&& file_ref_name : file_ref_names_) {
+		auto pair = done.insert(file_ref_name);
+		auto added = pair.second;
+		if (added) {
+			output.push_back(file_ref_name);
+		}
+	}
+
+	file_ref_names_ = std::move(output);
 }
 
 auto SourceFileResolver::resolve() -> SourceFileRepository {
 	// 未解決のファイル参照名の集合
 	auto file_ref_names = std::vector<std::pair<std::string, OsString>>{};
-
-	for (auto&& file_ref_name : file_ref_names_) {
-		auto os_str = to_os(as_hsp(file_ref_name));
-		file_ref_names.emplace_back(file_ref_name, std::move(os_str));
-	}
 
 	// 絶対パス → ファイルID
 	auto full_path_map = std::unordered_map<OsString, SourceFileId>{};
@@ -133,12 +178,24 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		}
 
 		// 見つかったディレクトリを検索対象に加える。
-		dirs_.emplace(std::move(result_opt->dir_name_));
+		dirs_.emplace(std::move(result_opt->dir_path_));
 
 		// メモ化する。
 		add(original, result_opt->full_path_);
 		return true;
 	};
+
+	// hsptmp に対応するファイルを見つける。
+	// hsptmp の絶対パスを見つけておくため、ファイル参照名に hsptmp を追加する。
+	auto hsptmp_ref_name_opt = resolve_hsptmp(file_ref_names_);
+	add_file_ref_name(u8"hsptmp");
+
+	// ファイル参照名の重複を除去する。ついでに OsString に変換しておく。
+	dedup();
+	for (auto&& file_ref_name : file_ref_names_) {
+		auto os_str = to_os(as_hsp(file_ref_name));
+		file_ref_names.emplace_back(file_ref_name, std::move(os_str));
+	}
 
 	while (true) {
 		// ループ中に何か変化が起こったら false。
@@ -146,8 +203,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		auto stuck = true;
 
 		// 要素を削除する必要があるので後ろから前にループを回す。
-		auto i = file_ref_names.size();
-		while (i > 0) {
+		for (auto i = file_ref_names.size(); i >= 1;) {
 			i--;
 
 			auto ok = find(file_ref_names[i].first, file_ref_names[i].second);
@@ -156,7 +212,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 			}
 
 			// i 番目の要素を削除
-			std::iter_swap(&file_ref_names[i], &file_ref_names.back());
+			std::swap(file_ref_names[i], file_ref_names.back());
 			file_ref_names.pop_back();
 
 			stuck = false;
@@ -177,6 +233,17 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		}
 
 		file_map.emplace(pair.first, iter->second);
+	}
+
+	// hsptmp を解決する。
+	if (hsptmp_ref_name_opt) {
+		auto hsptmp_iter = file_map.find(u8"hsptmp");
+		if (hsptmp_iter != file_map.end()) {
+			auto hsptmp_full_path = source_files[hsptmp_iter->second.id()].full_path();
+
+			auto file_iter = file_map.find(*hsptmp_ref_name_opt);
+			source_files[file_iter->second.id()].set_content_file_path(OsString{ hsptmp_full_path });
+		}
 	}
 
 	return SourceFileRepository{ std::move(source_files), std::move(file_map) };
@@ -324,7 +391,9 @@ void SourceFile::load() {
 		return;
 	}
 
-	content_ = load_text_file(full_path_, fs_);
+	auto full_path = content_file_path_.value_or(full_path_);
+
+	content_ = load_text_file(full_path, fs_);
 	lines_ = split_by_lines(content_);
 	loaded_ = true;
 }
@@ -462,5 +531,29 @@ void source_files_tests(Tests& tests) {
 				&& t.eq(as_native(*repository.file_to_line_at(file_id, 0)), u8"main")
 				&& t.eq(as_native(*repository.file_to_line_at(file_id, 1)), u8"stop")
 				&& t.eq(as_native(*repository.file_to_line_at(file_id, 9999)), u8"");
+		});
+
+	suite.test(
+		u8"実行スクリプトファイルの内容を hsptmp から読む",
+		[&](TestCaseContext& t) {
+			auto fs = create_file_system_for_testing();
+
+			fs.add_file(TEXT("/src/main.hsp"), u8"保存されたスクリプト");
+			fs.add_file(TEXT("/src/hsptmp"), u8"実行されたスクリプト");
+			fs.add_file(TEXT("/hsp/common/hsptmp"), u8"common の hsptmp は探さないでほしい");
+
+			auto resolver = SourceFileResolver{ fs };
+			resolver.add_known_dir(to_owned(TEXT("/hsp/common")));
+			resolver.add_file_ref_name(u8"hspdef.as");
+			resolver.add_file_ref_name(u8"userdef.as");
+			resolver.add_file_ref_name(u8"hspdef.as");
+			resolver.add_file_ref_name(u8"main.hsp");
+			resolver.add_file_ref_name(u8"other.hsp");
+
+			auto repository = resolver.resolve();
+			auto file_id = *repository.file_ref_name_to_file_id(u8"main.hsp");
+
+			return t.eq(as_native(*repository.file_to_content(file_id)), u8"実行されたスクリプト")
+				&& t.eq(*repository.file_to_full_path(file_id), TEXT("/src/main.hsp"));
 		});
 }

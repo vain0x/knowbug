@@ -13,11 +13,20 @@ class SourceFileResolver;
 
 extern void source_files_tests(Tests& tests);
 
+// -----------------------------------------------
+// ファイルシステム
+// -----------------------------------------------
+
+// ファイルシステムへの操作を表す。
+// (ファイルシステムにアクセスすることなくファイル操作を行うコードをテストするための抽象化層。)
 class FileSystemApi {
 public:
 	class SearchFileResult {
 	public:
-		OsString dir_name_;
+		// ファイルが含まれるディレクトリへの絶対パス
+		OsString dir_path_;
+
+		// 見つかったファイルへの絶対パス
 		OsString full_path_;
 	};
 
@@ -28,6 +37,7 @@ public:
 	virtual auto search_file_from_current_dir(OsStringView file_name)->std::optional<SearchFileResult> = 0;
 };
 
+// FileSysetmApi を Windows のファイル操作 API を使って実装したもの。
 class WindowsFileSystemApi
 	: public FileSystemApi
 {
@@ -44,8 +54,8 @@ class SourceFileResolver {
 	// ファイルを探す基準となるディレクトリの集合。
 	std::unordered_set<OsString> dirs_;
 
-	// 解決すべきファイル参照名の集合。
-	std::unordered_set<std::string> file_ref_names_;
+	// 解決すべきファイル参照名の集まり。
+	std::vector<std::string> file_ref_names_;
 
 	FileSystemApi& fs_;
 
@@ -57,9 +67,14 @@ public:
 	{
 	}
 
+	// ファイルを探す基準となるディレクトリを登録する。
 	void add_known_dir(OsString&& dir);
 
+	// 解決すべきファイル参照名を登録する。(重複登録は無視される。)
 	void add_file_ref_name(std::string&& file_ref_name);
+
+	// 重複して登録されたファイル参照名を削除する。
+	void dedup();
 
 	auto resolve()->SourceFileRepository;
 };
@@ -109,6 +124,10 @@ public:
 	{
 	}
 
+	auto operator ==(SourceFileId other) const -> bool {
+		return id_ == other.id_;
+	}
+
 	auto id() const -> std::size_t {
 		return id_;
 	}
@@ -131,6 +150,9 @@ class SourceFile {
 	OsString full_path_;
 
 	Utf8String full_path_as_utf8_;
+
+	// ソースファイルの内容を読むべきファイルの絶対パス。
+	std::optional<OsString> content_file_path_;
 
 	// ソースファイルの中身がロード済みなら true
 	bool loaded_;
@@ -162,6 +184,10 @@ public:
 
 	// ソースファイルの指定した行の文字列 (字下げを除く) を取得する。
 	auto line_at(std::size_t line_index)->std::optional<Utf8StringView>;
+
+	auto set_content_file_path(OsString&& content_file_path) {
+		content_file_path_ = std::move(content_file_path);
+	}
 
 private:
 	void load();
