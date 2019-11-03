@@ -13,6 +13,12 @@ class SourceFileResolver;
 
 extern void source_files_tests(Tests& tests);
 
+// -----------------------------------------------
+// ファイルシステム
+// -----------------------------------------------
+
+// ファイルシステムへの操作を表す。
+// (ファイルシステムにアクセスすることなくファイル操作を行うコードをテストするための抽象化層。)
 class FileSystemApi {
 public:
 	class SearchFileResult {
@@ -28,6 +34,7 @@ public:
 	virtual auto search_file_from_current_dir(OsStringView file_name)->std::optional<SearchFileResult> = 0;
 };
 
+// FileSysetmApi を Windows のファイル操作 API を使って実装したもの。
 class WindowsFileSystemApi
 	: public FileSystemApi
 {
@@ -57,8 +64,10 @@ public:
 	{
 	}
 
+	// ファイルを探す基準となるディレクトリを登録する。
 	void add_known_dir(OsString&& dir);
 
+	// 解決すべきファイル参照名を登録する。(重複登録は無視される。)
 	void add_file_ref_name(std::string&& file_ref_name);
 
 	// 重複して登録されたファイル参照名を削除する。

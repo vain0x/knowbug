@@ -7,7 +7,7 @@
 #include "string_split.h"
 
 // -----------------------------------------------
-// File System API
+// ファイルシステム
 // -----------------------------------------------
 
 static auto read_all_text(OsString const& file_path)->std::optional<std::string> {
@@ -20,7 +20,7 @@ static auto read_all_text(OsString const& file_path)->std::optional<std::string>
 
 // 指定したディレクトリを基準として、指定した名前または相対パスのファイルを検索する。
 // 結果として、フルパスと、パス中のディレクトリの部分を返す。
-// use_current_dir=true のときは、指定したディレクトリではなく、カレントディレクトリで検索する。
+// base_dir_opt=nullopt のときは、カレントディレクトリで検索する。
 static auto search_file_from_dir(
 	OsStringView const& file_ref,
 	std::optional<OsStringView> base_dir_opt
