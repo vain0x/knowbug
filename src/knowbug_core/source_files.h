@@ -151,6 +151,9 @@ class SourceFile {
 
 	Utf8String full_path_as_utf8_;
 
+	// ソースファイルの内容を読むべきファイルの絶対パス。
+	std::optional<OsString> content_file_path_;
+
 	// ソースファイルの中身がロード済みなら true
 	bool loaded_;
 
@@ -181,6 +184,10 @@ public:
 
 	// ソースファイルの指定した行の文字列 (字下げを除く) を取得する。
 	auto line_at(std::size_t line_index)->std::optional<Utf8StringView>;
+
+	auto set_content_file_path(OsString&& content_file_path) {
+		content_file_path_ = std::move(content_file_path);
+	}
 
 private:
 	void load();

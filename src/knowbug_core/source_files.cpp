@@ -224,20 +224,13 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 	}
 
 	// hsptmp を解決する。
-	auto hsptmp_iter = file_map.find(u8"hsptmp");
-	if (hsptmp_iter != file_map.end() && hsptmp_ref_name_opt) {
-		auto file_iter = file_map.find(*hsptmp_ref_name_opt);
+	if (hsptmp_ref_name_opt) {
+		auto hsptmp_iter = file_map.find(u8"hsptmp");
+		if (hsptmp_iter != file_map.end()) {
+			auto hsptmp_full_path = source_files[hsptmp_iter->second.id()].full_path();
 
-		// ここでファイル file_id の内容は編集中の可能性があるので、
-		// hsptmp の内容を読む方がよいということが分かった。
-		// FIXME: 内容は hsptmp から読むが、ファイルを開くときは元のファイルを開くべきなため、ファイルIDの差し替えという実装は雑すぎる。
-		auto file_id = file_iter->second;
-		auto hsptmp_id = hsptmp_iter->second;
-
-		for (auto&& iter : file_map) {
-			if (iter.second == file_id) {
-				iter.second = hsptmp_id;
-			}
+			auto file_iter = file_map.find(*hsptmp_ref_name_opt);
+			source_files[file_iter->second.id()].set_content_file_path(OsString{ hsptmp_full_path });
 		}
 	}
 
@@ -386,7 +379,9 @@ void SourceFile::load() {
 		return;
 	}
 
-	content_ = load_text_file(full_path_, fs_);
+	auto full_path = content_file_path_.value_or(full_path_);
+
+	content_ = load_text_file(full_path, fs_);
 	lines_ = split_by_lines(content_);
 	loaded_ = true;
 }
@@ -543,6 +538,7 @@ void source_files_tests(Tests& tests) {
 			auto repository = resolver.resolve();
 			auto file_id = *repository.file_ref_name_to_file_id(u8"main.hsp");
 
-			return t.eq(as_native(*repository.file_to_content(file_id)), u8"実行されたスクリプト");
+			return t.eq(as_native(*repository.file_to_content(file_id)), u8"実行されたスクリプト")
+				&& t.eq(*repository.file_to_full_path(file_id), TEXT("/src/main.hsp"));
 		});
 }
