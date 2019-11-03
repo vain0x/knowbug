@@ -146,8 +146,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		auto stuck = true;
 
 		// 要素を削除する必要があるので後ろから前にループを回す。
-		auto i = file_ref_names.size();
-		while (i > 0) {
+		for (auto i = file_ref_names.size(); i >= 1;) {
 			i--;
 
 			auto ok = find(file_ref_names[i].first, file_ref_names[i].second);
