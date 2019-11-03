@@ -540,8 +540,8 @@ void source_files_tests(Tests& tests) {
 		[&](TestCaseContext& t) {
 			auto fs = create_file_system_for_testing();
 
-			fs.add_file(TEXT("/src/main.hsp"), u8"保存されたスクリプト");
-			fs.add_file(TEXT("/src/hsptmp"), u8"実行されたスクリプト");
+			fs.add_file(TEXT("/src/main.hsp"), u8"saved script");
+			fs.add_file(TEXT("/src/hsptmp"), u8"run script");
 			fs.add_file(TEXT("/hsp/common/hsptmp"), u8"common の hsptmp は探さないでほしい");
 
 			auto resolver = SourceFileResolver{ fs };
@@ -555,7 +555,7 @@ void source_files_tests(Tests& tests) {
 			auto repository = resolver.resolve();
 			auto file_id = *repository.file_ref_name_to_file_id(u8"main.hsp");
 
-			return t.eq(as_native(*repository.file_to_content(file_id)), u8"実行されたスクリプト")
+			return t.eq(as_native(*repository.file_to_content(file_id)), u8"run script")
 				&& t.eq(*repository.file_to_full_path(file_id), TEXT("/src/main.hsp"));
 		});
 }
