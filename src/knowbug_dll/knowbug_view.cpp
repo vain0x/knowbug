@@ -201,10 +201,15 @@ public:
 
 	void update() override {
 		update_view_edit();
+		notify_did_update();
 	}
 
 	void update_source_edit(OsStringView const& content) override {
 		Edit_SetText(source_edit(), content.data());
+	}
+
+	void did_update() {
+		var_tree_view_control().did_update();
 	}
 
 	void did_log_change() override {
@@ -290,6 +295,10 @@ public:
 
 		case WM_KNOWBUG_UPDATE_VIEW:
 			app.update_view();
+			return TRUE;
+
+		case WM_KNOWBUG_DID_UPDATE:
+			did_update();
 			return TRUE;
 
 		case WM_COMMAND:
@@ -459,6 +468,10 @@ private:
 
 	void move_view_window_to_front() {
 		SetWindowPos(view_window(), main_window(), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+	}
+
+	void notify_did_update() {
+		PostMessage(main_window(), WM_KNOWBUG_DID_UPDATE, WPARAM{}, LPARAM{});
 	}
 
 	auto point_to_path(POINT const& point) -> std::optional<std::shared_ptr<HspObjectPath const>> {

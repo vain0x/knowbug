@@ -67,7 +67,11 @@ class VarTreeViewControlImpl
 	std::unordered_map<HTREEITEM, std::size_t> node_ids_;
 	std::unordered_map<std::size_t, HTREEITEM> node_tv_items_;
 
-	std::unordered_set<HTREEITEM> auto_expand_items_;
+	// 自動で展開されるべきノードのリスト。
+	// NOTE: ノードはツリービューに追加した直後には展開できず、さらに子ノードを持たないと展開できない模様。
+	//       そのため、ノードが追加された段階ではこの配列にノードを追加することで「自動展開の予約」を行い、
+	//       更新後のイベント (did_update) で展開可能か検査し、初めて可能になったときに展開する。
+	std::vector<HTREEITEM> auto_expand_items_;
 
 	// NOTE: 削除されたノードに関してエディットコントロールが持っている情報を削除するため、
 	//       削除されたノードをここに記録して、次の更新時にまとめて削除依頼を出す。
@@ -91,8 +95,7 @@ public:
 
 	void did_initialize() override {
 		select_global();
-
-		do_auto_expand();
+		do_auto_expand_all();
 	}
 
 	// オブジェクトツリーが更新されたときに呼ばれる。
@@ -114,9 +117,7 @@ public:
 		node_ids_.emplace(tv_item, node_id);
 		node_tv_items_.emplace(node_id, tv_item);
 
-		if (object_path_is_auto_expand(*path, objects_)) {
-			auto_expand_items_.emplace(tv_item);
-		}
+		auto_expand(*path, tv_item);
 	}
 
 	// オブジェクトツリーのノードが破棄される前に呼ばれる。
@@ -158,8 +159,6 @@ public:
 		auto&& path = **path_opt;
 		auto&& tv_item = *tv_item_opt;
 
-		auto_expand(path, tv_item);
-
 		// ビューウィンドウを更新する。
 		{
 			// 遅延されていたデータの削除を実行する。
@@ -176,6 +175,10 @@ public:
 
 			view_edit_control.update(tv_item, text, cursor_policy);
 		}
+	}
+
+	void did_update() override {
+		do_auto_expand_all();
 	}
 
 	auto log_is_selected() const -> bool override {
@@ -236,15 +239,30 @@ private:
 
 	void auto_expand(HspObjectPath const& path, HTREEITEM tv_item) {
 		if (object_path_is_auto_expand(path, objects_)) {
-			auto_expand_items_.emplace(tv_item);
+			auto_expand_items_.push_back(tv_item);
 		}
 	}
 
-	void do_auto_expand() {
-		for (auto tv_item : auto_expand_items_) {
+	void do_auto_expand_all() {
+		for (auto i = auto_expand_items_.size(); i >= 1;) {
+			i--;
+
+			auto tv_item = auto_expand_items_[i];
+			if (!has_child(tv_item)) {
+				continue;
+			}
+
 			do_expand_item(tv_item);
+
+			// この要素を除去する。
+			std::swap(auto_expand_items_[i], auto_expand_items_.back());
+			auto_expand_items_.pop_back();
 		}
-		auto_expand_items_.clear();
+	}
+
+	auto has_child(HTREEITEM tv_item) const -> bool {
+		auto first_child = TreeView_GetChild(tree_view_, tv_item);
+		return first_child != nullptr;
 	}
 
 	auto do_insert_item(HTREEITEM hParent, OsStringView const& name, HTREEITEM sibling) -> HTREEITEM {

@@ -22,6 +22,8 @@ public:
 
 	virtual void did_initialize() = 0;
 
+	virtual void did_update() = 0;
+
 	virtual void update_view_window(ViewEditControl& view_edit_control) = 0;
 
 	virtual auto log_is_selected() const -> bool = 0;
