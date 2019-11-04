@@ -79,7 +79,9 @@ public:
 
 	void initialize() {
 		objects().initialize();
+
 		object_tree().focus_root(object_tree_observer());
+		focus_global();
 
 		view().initialize();
 	}
@@ -106,16 +108,17 @@ public:
 		objects().log_do_append(to_utf8(text));
 		objects().log_do_append(as_utf8(u8"\r\n"));
 
-		view().did_log_change(objects(), object_tree(), object_tree_observer());
+		view().did_log_change(objects(), object_tree());
 	}
 
 	void update_view() override {
 		objects().script_do_update_location();
 
 		update_call_stack();
+		update_current_node();
 
 		view().update_source_edit(to_os(objects().script_to_current_location_summary()));
-		view().update(objects(), object_tree(), object_tree_observer());
+		view().update(objects(), object_tree());
 	}
 
 	void step_run(StepControl const& step_control) override {
@@ -202,8 +205,19 @@ private:
 		view().object_node_will_destroy(node_id, object_tree());
 	}
 
+	void focus_global() {
+		auto global_path = objects().root_path().new_global_module(objects());
+		object_tree().focus_by_path(*global_path, object_tree_observer());
+	}
+
 	void update_call_stack() {
 		object_tree().focus_by_path(*objects().root_path().new_call_stack(), object_tree_observer());
+	}
+
+	void update_current_node() {
+		if (auto node_id_opt = view().current_node_id_opt()) {
+			object_tree().focus(*node_id_opt, object_tree_observer());
+		}
 	}
 };
 

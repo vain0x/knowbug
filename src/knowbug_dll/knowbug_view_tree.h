@@ -20,11 +20,13 @@ public:
 	virtual ~VarTreeViewControl() {
 	}
 
-	virtual void did_initialize(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer) = 0;
+	virtual auto selected_node_id_opt() const->std::optional<std::size_t> = 0;
+
+	virtual void did_initialize(HspObjects& objects, HspObjectTree& object_tree) = 0;
 
 	virtual void did_update() = 0;
 
-	virtual void update_view_window(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer, ViewEditControl& view_edit_control) = 0;
+	virtual void update_view_window(HspObjects& objects, HspObjectTree& object_tree, ViewEditControl& view_edit_control) = 0;
 
 	virtual void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjects& objects, HspObjectTree& object_tree) = 0;
 

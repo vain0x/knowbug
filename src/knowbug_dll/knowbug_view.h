@@ -23,13 +23,15 @@ public:
 	virtual ~KnowbugView() {
 	}
 
+	virtual auto current_node_id_opt() const->std::optional<std::size_t> = 0;
+
 	virtual void initialize() = 0;
 
-	virtual void update(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer) = 0;
+	virtual void update(HspObjects& objects, HspObjectTree& object_tree) = 0;
 
 	virtual void update_source_edit(OsStringView const& content) = 0;
 
-	virtual void did_log_change(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer) = 0;
+	virtual void did_log_change(HspObjects& objects, HspObjectTree& object_tree) = 0;
 
 	virtual void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjects& objects, HspObjectTree& object_tree) = 0;
 
