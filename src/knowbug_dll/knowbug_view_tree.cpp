@@ -155,17 +155,6 @@ public:
 		return node_id(selected_tv_item());
 	}
 
-	auto log_is_selected(HspObjectTree& object_tree) const -> bool override {
-		if (auto&& node_id_opt = selected_node_id_opt()) {
-			if (auto&& path_opt = object_tree.path(*node_id_opt)) {
-				if ((*path_opt)->kind() == HspObjectKind::Log) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	auto item_to_path(HTREEITEM tv_item, HspObjectTree& object_tree) const -> std::optional<std::shared_ptr<HspObjectPath const>> override {
 		if (auto&& node_id_opt = selected_node_id_opt()) {
 			if (auto&& path_opt = object_tree.path(*node_id_opt)) {

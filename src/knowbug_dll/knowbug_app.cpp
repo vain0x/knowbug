@@ -65,6 +65,10 @@ public:
 		return *objects_;
 	}
 
+	auto object_tree() const -> HspObjectTree const& {
+		return *object_tree_;
+	}
+
 	auto object_tree() -> HspObjectTree& {
 		return *object_tree_;
 	}
@@ -108,7 +112,9 @@ public:
 		objects().log_do_append(to_utf8(text));
 		objects().log_do_append(as_utf8(u8"\r\n"));
 
-		view().did_log_change(objects(), object_tree());
+		if (log_is_selected()) {
+			view().update(objects(), object_tree());
+		}
 	}
 
 	void update_view() override {
@@ -197,6 +203,15 @@ public:
 	}
 
 private:
+	auto log_is_selected() const -> bool {
+		auto&& path_opt = object_tree().current_path_opt();
+		if (!path_opt) {
+			return false;
+		}
+
+		return (*path_opt)->kind() == HspObjectKind::Log;
+	}
+
 	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode) {
 		view().object_node_did_create(node_id, mode, objects(), object_tree());
 	}

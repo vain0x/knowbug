@@ -50,6 +50,10 @@ public:
 
 	virtual void focus_by_path(HspObjectPath const& path, HspObjectTreeObserver& observer) = 0;
 
+	auto current_path_opt() const -> std::optional<std::shared_ptr<HspObjectPath const>> {
+		return path(current_node_id());
+	}
+
 	auto focus_root(HspObjectTreeObserver& observer) {
 		focus(root_id(), observer);
 	}

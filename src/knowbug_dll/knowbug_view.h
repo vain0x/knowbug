@@ -31,8 +31,6 @@ public:
 
 	virtual void update_source_edit(OsStringView const& content) = 0;
 
-	virtual void did_log_change(HspObjects& objects, HspObjectTree& object_tree) = 0;
-
 	virtual void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjects& objects, HspObjectTree& object_tree) = 0;
 
 	virtual void object_node_will_destroy(std::size_t node_id, HspObjectTree& object_tree) = 0;

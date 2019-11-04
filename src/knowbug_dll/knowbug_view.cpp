@@ -212,12 +212,6 @@ public:
 		var_tree_view_control().did_update();
 	}
 
-	void did_log_change(HspObjects& objects, HspObjectTree& object_tree) override {
-		if (var_tree_view_control().log_is_selected(object_tree)) {
-			update_view_edit(objects, object_tree);
-		}
-	}
-
 	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjects& objects, HspObjectTree& object_tree) override {
 		var_tree_view_control().object_node_did_create(node_id, mode, objects, object_tree);
 	}
