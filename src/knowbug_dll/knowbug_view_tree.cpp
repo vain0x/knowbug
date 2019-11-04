@@ -72,10 +72,6 @@ class VarTreeViewControlImpl
 	//       更新後のイベント (did_update) で展開可能か検査し、初めて可能になったときに展開する。
 	std::vector<HTREEITEM> auto_expand_items_;
 
-	// NOTE: 削除されたノードに関してエディットコントロールが持っている情報を削除するため、
-	//       削除されたノードをここに記録して、次の更新時にまとめて削除依頼を出す。
-	std::vector<HTREEITEM> tv_items_for_view_edit_control_to_forget_;
-
 public:
 	VarTreeViewControlImpl(HspObjects& objects, HspObjectTree& object_tree, HWND tree_view)
 		: objects_(objects)
@@ -84,7 +80,6 @@ public:
 		, node_ids_()
 		, node_tv_items_()
 		, auto_expand_items_()
-		, tv_items_for_view_edit_control_to_forget_()
 	{
 		node_ids_.emplace(TVI_ROOT, object_tree_.root_id());
 		node_tv_items_.emplace(object_tree_.root_id(), TVI_ROOT);
@@ -119,7 +114,7 @@ public:
 	}
 
 	// オブジェクトツリーのノードが破棄される前に呼ばれる。
-	void object_node_will_destroy(std::size_t node_id) override {
+	void object_node_will_destroy(std::size_t node_id, ViewEditControl& view_edit_control) override {
 		auto&& path_opt = object_tree_.path(node_id);
 		if (!path_opt) {
 			return;
@@ -132,7 +127,8 @@ public:
 		do_delete_item(tv_item);
 		node_ids_.erase(tv_item);
 		node_tv_items_.erase(node_id);
-		tv_items_for_view_edit_control_to_forget_.push_back(tv_item);
+
+		view_edit_control.forget(tv_item);
 	}
 
 	void update_view_window(HspObjectTreeObserver& observer, ViewEditControl& view_edit_control) override {
@@ -159,15 +155,6 @@ public:
 
 		// ビューウィンドウを更新する。
 		{
-			// 遅延されていたデータの削除を実行する。
-			{
-				auto& tv_items = tv_items_for_view_edit_control_to_forget_;
-				for (auto tv_item : tv_items) {
-					view_edit_control.forget(tv_item);
-				}
-				tv_items.clear();
-			}
-
 			auto text = object_path_to_text(path, objects_);
 			auto cursor_policy = object_path_to_cursor_policy(path, objects_);
 

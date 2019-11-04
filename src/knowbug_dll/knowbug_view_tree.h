@@ -28,7 +28,7 @@ public:
 
 	virtual void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode) = 0;
 
-	virtual void object_node_will_destroy(std::size_t node_id) = 0;
+	virtual void object_node_will_destroy(std::size_t node_id, ViewEditControl& view_edit_control) = 0;
 
 	virtual auto log_is_selected() const -> bool = 0;
 

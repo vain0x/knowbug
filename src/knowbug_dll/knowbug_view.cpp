@@ -223,7 +223,7 @@ public:
 	}
 
 	void object_node_will_destroy(std::size_t node_id) override {
-		var_tree_view_control().object_node_will_destroy(node_id);
+		var_tree_view_control().object_node_will_destroy(node_id, view_edit_control());
 	}
 
 	void will_exit() override {
