@@ -3,6 +3,7 @@
 #pragma once
 
 class HspObjectPath;
+class HspObjectTreeObserver;
 class HspRuntime;
 class KnowbugView;
 class StepControl;
@@ -15,6 +16,8 @@ public:
 	}
 
 	virtual void will_exit() = 0;
+
+	virtual auto object_tree_observer()->HspObjectTreeObserver & = 0;
 
 	virtual auto view() -> KnowbugView& = 0;
 

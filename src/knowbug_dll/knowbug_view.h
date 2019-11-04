@@ -4,6 +4,7 @@
 
 #include <optional>
 #include "../knowbug_core/encoding.h"
+#include "../knowbug_core/hsp_object_tree.h"
 #include "../knowbug_core/platform.h"
 
 class HspObjects;
@@ -24,11 +25,15 @@ public:
 
 	virtual void initialize() = 0;
 
-	virtual void update() = 0;
+	virtual void update(HspObjectTreeObserver& observer) = 0;
 
 	virtual void update_source_edit(OsStringView const& content) = 0;
 
-	virtual void did_log_change() = 0;
+	virtual void did_log_change(HspObjectTreeObserver& observer) = 0;
+
+	virtual void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode) = 0;
+
+	virtual void object_node_will_destroy(std::size_t node_id) = 0;
 
 	virtual void will_exit() = 0;
 

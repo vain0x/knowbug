@@ -15,6 +15,8 @@
 #include "knowbug_config.h"
 #include "knowbug_view.h"
 
+class KnowbugAppImpl;
+
 static auto g_fs = WindowsFileSystemApi{};
 static auto g_dll_instance = HINSTANCE{};
 
@@ -23,14 +25,24 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
 EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4);
 static void debugbye();
 
+static auto create_object_tree_observer(KnowbugAppImpl& app)->std::unique_ptr<HspObjectTreeObserver>;
+
+// -----------------------------------------------
+// KnowbugApp
+// -----------------------------------------------
+
 class KnowbugAppImpl
 	: public KnowbugApp
 {
+	friend class HspObjectTreeObserverImpl;
+
 	std::unique_ptr<KnowbugConfig> config_;
 	std::unique_ptr<KnowbugStepController> step_controller_;
 	std::unique_ptr<HspObjects> objects_;
 	std::unique_ptr<HspObjectTree> object_tree_;
 	std::unique_ptr<KnowbugView> view_;
+
+	std::unique_ptr<HspObjectTreeObserver> object_tree_observer_;
 
 public:
 	KnowbugAppImpl(
@@ -45,7 +57,12 @@ public:
 		, objects_(std::move(objects))
 		, object_tree_(std::move(object_tree))
 		, view_(std::move(view))
+		, object_tree_observer_(create_object_tree_observer(*this))
 	{
+	}
+
+	auto object_tree_observer() -> HspObjectTreeObserver& {
+		return *object_tree_observer_;
 	}
 
 	auto view() -> KnowbugView& override {
@@ -80,13 +97,13 @@ public:
 		objects().log_do_append(to_utf8(text));
 		objects().log_do_append(as_utf8(u8"\r\n"));
 
-		view().did_log_change();
+		view().did_log_change(object_tree_observer());
 	}
 
 	void update_view() override {
 		objects().script_do_update_location();
 		view().update_source_edit(to_os(objects().script_to_current_location_summary()));
-		view().update();
+		view().update(object_tree_observer());
 	}
 
 	void step_run(StepControl const& step_control) override {
@@ -172,7 +189,45 @@ private:
 	auto object_tree() ->HspObjectTree& {
 		return *object_tree_;
 	}
+
+	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode) {
+		view().object_node_did_create(node_id, mode);
+	}
+
+	void object_node_will_destroy(std::size_t node_id) {
+		view().object_node_will_destroy(node_id);
+	}
 };
+
+// -----------------------------------------------
+// HspObjectTreeObserver
+// -----------------------------------------------
+
+class HspObjectTreeObserverImpl
+	: public HspObjectTreeObserver
+{
+	KnowbugAppImpl& parent_;
+
+public:
+	HspObjectTreeObserverImpl(KnowbugAppImpl& parent)
+		: parent_(parent)
+	{
+	}
+
+	void did_create(std::size_t node_id, HspObjectTreeInsertMode mode) override {
+		parent_.object_node_did_create(node_id, mode);
+	}
+
+	void will_destroy(std::size_t node_id) override {
+		parent_.object_node_will_destroy(node_id);
+	}
+};
+
+auto create_object_tree_observer(KnowbugAppImpl& app) -> std::unique_ptr<HspObjectTreeObserver> {
+	return std::make_unique<HspObjectTreeObserverImpl>(app);
+}
+
+// -----------------------------------------------
 
 static auto g_app = std::shared_ptr<KnowbugAppImpl>{};
 
