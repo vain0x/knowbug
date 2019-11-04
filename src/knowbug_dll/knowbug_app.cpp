@@ -61,6 +61,10 @@ public:
 	{
 	}
 
+	auto object_tree() -> HspObjectTree& {
+		return *object_tree_;
+	}
+
 	auto object_tree_observer() -> HspObjectTreeObserver& {
 		return *object_tree_observer_;
 	}
@@ -97,13 +101,13 @@ public:
 		objects().log_do_append(to_utf8(text));
 		objects().log_do_append(as_utf8(u8"\r\n"));
 
-		view().did_log_change(object_tree_observer());
+		view().did_log_change(object_tree(), object_tree_observer());
 	}
 
 	void update_view() override {
 		objects().script_do_update_location();
 		view().update_source_edit(to_os(objects().script_to_current_location_summary()));
-		view().update(object_tree_observer());
+		view().update(object_tree(), object_tree_observer());
 	}
 
 	void step_run(StepControl const& step_control) override {
@@ -186,16 +190,12 @@ private:
 		return *objects_;
 	}
 
-	auto object_tree() ->HspObjectTree& {
-		return *object_tree_;
-	}
-
 	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode) {
-		view().object_node_did_create(node_id, mode);
+		view().object_node_did_create(node_id, mode, object_tree());
 	}
 
 	void object_node_will_destroy(std::size_t node_id) {
-		view().object_node_will_destroy(node_id);
+		view().object_node_will_destroy(node_id, object_tree());
 	}
 };
 

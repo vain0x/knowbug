@@ -199,8 +199,8 @@ public:
 		notify_did_initialize();
 	}
 
-	void update(HspObjectTreeObserver& observer) override {
-		update_view_edit(observer);
+	void update(HspObjectTree& object_tree, HspObjectTreeObserver& observer) override {
+		update_view_edit(object_tree, observer);
 		notify_did_update();
 	}
 
@@ -212,18 +212,18 @@ public:
 		var_tree_view_control().did_update();
 	}
 
-	void did_log_change(HspObjectTreeObserver& observer) override {
-		if (var_tree_view_control().log_is_selected()) {
-			update_view_edit(observer);
+	void did_log_change(HspObjectTree& object_tree, HspObjectTreeObserver& observer) override {
+		if (var_tree_view_control().log_is_selected(object_tree)) {
+			update_view_edit(object_tree, observer);
 		}
 	}
 
-	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode) override {
-		var_tree_view_control().object_node_did_create(node_id, mode);
+	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjectTree& object_tree) override {
+		var_tree_view_control().object_node_did_create(node_id, mode, object_tree);
 	}
 
-	void object_node_will_destroy(std::size_t node_id) override {
-		var_tree_view_control().object_node_will_destroy(node_id, view_edit_control());
+	void object_node_will_destroy(std::size_t node_id, HspObjectTree& object_tree) override {
+		var_tree_view_control().object_node_will_destroy(node_id, object_tree, view_edit_control());
 	}
 
 	void will_exit() override {
@@ -268,8 +268,8 @@ public:
 		}
 	}
 
-	void update_view_edit(HspObjectTreeObserver& observer) {
-		var_tree_view_control().update_view_window(observer, view_edit_control());
+	void update_view_edit(HspObjectTree& object_tree, HspObjectTreeObserver& observer) {
+		var_tree_view_control().update_view_window(object_tree, observer, view_edit_control());
 	}
 
 	auto open_context_menu(HWND hwnd, POINT point, KnowbugApp& app) -> bool {
@@ -280,7 +280,7 @@ public:
 	}
 
 	auto open_context_menu_var_tree_view(POINT const& point, KnowbugApp& app) -> bool {
-		auto&& path_opt = point_to_path(point);
+		auto&& path_opt = point_to_path(point, app.object_tree());
 		if (!path_opt) {
 			return false;
 		}
@@ -298,7 +298,7 @@ public:
 	auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, KnowbugApp& app) -> LRESULT override {
 		switch (msg) {
 		case WM_KNOWBUG_DID_INITIALIZE:
-			var_tree_view_control().did_initialize(app.object_tree_observer());
+			var_tree_view_control().did_initialize(app.object_tree(), app.object_tree_observer());
 			break;
 
 		case WM_KNOWBUG_UPDATE_VIEW:
@@ -482,13 +482,13 @@ private:
 		PostMessage(main_window(), WM_KNOWBUG_DID_UPDATE, WPARAM{}, LPARAM{});
 	}
 
-	auto point_to_path(POINT const& point) -> std::optional<std::shared_ptr<HspObjectPath const>> {
+	auto point_to_path(POINT const& point, HspObjectTree& object_tree) -> std::optional<std::shared_ptr<HspObjectPath const>> {
 		auto tree_item = TreeView_GetItemAtPoint(var_tree_view(), point);
 		if (!tree_item) {
 			return std::nullopt;
 		}
 
-		return var_tree_view_control().item_to_path(tree_item);
+		return var_tree_view_control().item_to_path(tree_item, object_tree);
 	}
 
 	auto get_node_menu(HspObjectPath const& path) -> HMENU {
@@ -517,7 +517,7 @@ private:
 	void execute_popup_menu_action(int selected_id, HspObjectPath const& path, KnowbugApp& app) {
 		switch (selected_id) {
 		case IDC_NODE_UPDATE:
-			update_view_edit(app.object_tree_observer());
+			update_view_edit(app.object_tree(), app.object_tree_observer());
 			return;
 
 		case IDC_NODE_LOG:

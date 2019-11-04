@@ -25,15 +25,15 @@ public:
 
 	virtual void initialize() = 0;
 
-	virtual void update(HspObjectTreeObserver& observer) = 0;
+	virtual void update(HspObjectTree& object_tree, HspObjectTreeObserver& observer) = 0;
 
 	virtual void update_source_edit(OsStringView const& content) = 0;
 
-	virtual void did_log_change(HspObjectTreeObserver& observer) = 0;
+	virtual void did_log_change(HspObjectTree& object_tree, HspObjectTreeObserver& observer) = 0;
 
-	virtual void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode) = 0;
+	virtual void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjectTree& object_tree) = 0;
 
-	virtual void object_node_will_destroy(std::size_t node_id) = 0;
+	virtual void object_node_will_destroy(std::size_t node_id, HspObjectTree& object_tree) = 0;
 
 	virtual void will_exit() = 0;
 

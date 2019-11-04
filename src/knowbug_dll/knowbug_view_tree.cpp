@@ -60,7 +60,6 @@ class VarTreeViewControlImpl
 	: public VarTreeViewControl
 {
 	HspObjects& objects_;
-	HspObjectTree& object_tree_;
 
 	HWND tree_view_;
 	std::unordered_map<HTREEITEM, std::size_t> node_ids_;
@@ -75,25 +74,24 @@ class VarTreeViewControlImpl
 public:
 	VarTreeViewControlImpl(HspObjects& objects, HspObjectTree& object_tree, HWND tree_view)
 		: objects_(objects)
-		, object_tree_(object_tree)
 		, tree_view_(tree_view)
 		, node_ids_()
 		, node_tv_items_()
 		, auto_expand_items_()
 	{
-		node_ids_.emplace(TVI_ROOT, object_tree_.root_id());
-		node_tv_items_.emplace(object_tree_.root_id(), TVI_ROOT);
+		node_ids_.emplace(TVI_ROOT, object_tree.root_id());
+		node_tv_items_.emplace(object_tree.root_id(), TVI_ROOT);
 	}
 
-	void did_initialize(HspObjectTreeObserver& observer) override {
-		object_tree_.focus_root(observer);
-		select_global(observer);
+	void did_initialize(HspObjectTree& object_tree, HspObjectTreeObserver& observer) override {
+		object_tree.focus_root(observer);
+		select_global(object_tree, observer);
 		do_auto_expand_all();
 	}
 
 	// オブジェクトツリーが更新されたときに呼ばれる。
-	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode) override {
-		auto&& path_opt = object_tree_.path(node_id);
+	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjectTree& object_tree) override {
+		auto&& path_opt = object_tree.path(node_id);
 		if (!path_opt) {
 			return;
 		}
@@ -101,7 +99,7 @@ public:
 
 		auto&& name = path->name(objects_);
 
-		auto&& parent_id_opt = object_tree_.parent(node_id);
+		auto&& parent_id_opt = object_tree.parent(node_id);
 		auto tv_parent = parent_id_opt && node_tv_items_.count(*parent_id_opt)
 			? node_tv_items_.at(*parent_id_opt)
 			: TVI_ROOT;
@@ -114,8 +112,8 @@ public:
 	}
 
 	// オブジェクトツリーのノードが破棄される前に呼ばれる。
-	void object_node_will_destroy(std::size_t node_id, ViewEditControl& view_edit_control) override {
-		auto&& path_opt = object_tree_.path(node_id);
+	void object_node_will_destroy(std::size_t node_id, HspObjectTree& object_tree, ViewEditControl& view_edit_control) override {
+		auto&& path_opt = object_tree.path(node_id);
 		if (!path_opt) {
 			return;
 		}
@@ -131,9 +129,9 @@ public:
 		view_edit_control.forget(tv_item);
 	}
 
-	void update_view_window(HspObjectTreeObserver& observer, ViewEditControl& view_edit_control) override {
+	void update_view_window(HspObjectTree& object_tree, HspObjectTreeObserver& observer, ViewEditControl& view_edit_control) override {
 		// コールスタックを自動で更新する。
-		object_tree_.focus_by_path(*objects_.root_path().new_call_stack(), observer);
+		object_tree.focus_by_path(*objects_.root_path().new_call_stack(), observer);
 
 		auto&& selected_node_id_opt = this->selected_node_id();
 		if (!selected_node_id_opt) {
@@ -141,10 +139,10 @@ public:
 		}
 
 		// フォーカスを当てる。
-		auto focused_node_id = object_tree_.focus(*selected_node_id_opt, observer);
+		auto focused_node_id = object_tree.focus(*selected_node_id_opt, observer);
 
 		// フォーカスの当たった要素のパスとハンドル。
-		auto&& path_opt = object_tree_.path(focused_node_id);
+		auto&& path_opt = object_tree.path(focused_node_id);
 		auto&& tv_item_opt = node_to_tv_item(focused_node_id);
 
 		if (!path_opt || !tv_item_opt) {
@@ -166,9 +164,9 @@ public:
 		do_auto_expand_all();
 	}
 
-	auto log_is_selected() const -> bool override {
+	auto log_is_selected(HspObjectTree& object_tree) const -> bool override {
 		if (auto&& node_id_opt = selected_node_id()) {
-			if (auto&& path_opt = object_tree_.path(*node_id_opt)) {
+			if (auto&& path_opt = object_tree.path(*node_id_opt)) {
 				if ((*path_opt)->kind() == HspObjectKind::Log) {
 					return true;
 				}
@@ -177,9 +175,9 @@ public:
 		return false;
 	}
 
-	auto item_to_path(HTREEITEM tv_item) const -> std::optional<std::shared_ptr<HspObjectPath const>> override {
+	auto item_to_path(HTREEITEM tv_item, HspObjectTree& object_tree) const -> std::optional<std::shared_ptr<HspObjectPath const>> override {
 		if (auto&& node_id_opt = selected_node_id()) {
-			if (auto&& path_opt = object_tree_.path(*node_id_opt)) {
+			if (auto&& path_opt = object_tree.path(*node_id_opt)) {
 				return path_opt;
 			}
 		}
@@ -213,9 +211,9 @@ private:
 		return TreeView_GetSelection(tree_view_);
 	}
 
-	void select_global(HspObjectTreeObserver& observer) {
+	void select_global(HspObjectTree& object_tree, HspObjectTreeObserver& observer) {
 		auto global_path = objects_.root_path().new_global_module(objects_);
-		auto node_id = object_tree_.focus_by_path(*global_path, observer);
+		auto node_id = object_tree.focus_by_path(*global_path, observer);
 		auto tv_item_opt = node_to_tv_item(node_id);
 		if (tv_item_opt) {
 			do_select_item(*tv_item_opt);
