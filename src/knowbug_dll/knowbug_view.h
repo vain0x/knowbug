@@ -18,20 +18,20 @@ static constexpr auto WM_KNOWBUG_DID_UPDATE = WM_USER + 3;
 
 class KnowbugView {
 public:
-	static auto create(KnowbugConfig const& config, HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView>;
+	static auto create(KnowbugConfig const& config, HINSTANCE instance, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView>;
 
 	virtual ~KnowbugView() {
 	}
 
 	virtual void initialize() = 0;
 
-	virtual void update(HspObjectTree& object_tree, HspObjectTreeObserver& observer) = 0;
+	virtual void update(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer) = 0;
 
 	virtual void update_source_edit(OsStringView const& content) = 0;
 
-	virtual void did_log_change(HspObjectTree& object_tree, HspObjectTreeObserver& observer) = 0;
+	virtual void did_log_change(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer) = 0;
 
-	virtual void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjectTree& object_tree) = 0;
+	virtual void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjects& objects, HspObjectTree& object_tree) = 0;
 
 	virtual void object_node_will_destroy(std::size_t node_id, HspObjectTree& object_tree) = 0;
 

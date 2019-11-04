@@ -61,6 +61,10 @@ public:
 	{
 	}
 
+	auto objects() ->HspObjects& {
+		return *objects_;
+	}
+
 	auto object_tree() -> HspObjectTree& {
 		return *object_tree_;
 	}
@@ -101,13 +105,13 @@ public:
 		objects().log_do_append(to_utf8(text));
 		objects().log_do_append(as_utf8(u8"\r\n"));
 
-		view().did_log_change(object_tree(), object_tree_observer());
+		view().did_log_change(objects(), object_tree(), object_tree_observer());
 	}
 
 	void update_view() override {
 		objects().script_do_update_location();
 		view().update_source_edit(to_os(objects().script_to_current_location_summary()));
-		view().update(object_tree(), object_tree_observer());
+		view().update(objects(), object_tree(), object_tree_observer());
 	}
 
 	void step_run(StepControl const& step_control) override {
@@ -186,12 +190,8 @@ public:
 	}
 
 private:
-	auto objects() ->HspObjects& {
-		return *objects_;
-	}
-
 	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode) {
-		view().object_node_did_create(node_id, mode, object_tree());
+		view().object_node_did_create(node_id, mode, objects(), object_tree());
 	}
 
 	void object_node_will_destroy(std::size_t node_id) {
@@ -273,7 +273,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 	auto object_tree = HspObjectTree::create(*objects);
 
-	auto view = KnowbugView::create(*config, g_dll_instance, *objects, *object_tree);
+	auto view = KnowbugView::create(*config, g_dll_instance, *object_tree);
 
 	g_app = std::make_shared<KnowbugAppImpl>(
 		std::move(config),

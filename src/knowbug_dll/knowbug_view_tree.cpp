@@ -59,8 +59,6 @@ static auto insert_mode_to_sibling(HspObjectTreeInsertMode mode) {
 class VarTreeViewControlImpl
 	: public VarTreeViewControl
 {
-	HspObjects& objects_;
-
 	HWND tree_view_;
 	std::unordered_map<HTREEITEM, std::size_t> node_ids_;
 	std::unordered_map<std::size_t, HTREEITEM> node_tv_items_;
@@ -72,9 +70,8 @@ class VarTreeViewControlImpl
 	std::vector<HTREEITEM> auto_expand_items_;
 
 public:
-	VarTreeViewControlImpl(HspObjects& objects, HspObjectTree& object_tree, HWND tree_view)
-		: objects_(objects)
-		, tree_view_(tree_view)
+	VarTreeViewControlImpl(HspObjectTree& object_tree, HWND tree_view)
+		: tree_view_(tree_view)
 		, node_ids_()
 		, node_tv_items_()
 		, auto_expand_items_()
@@ -83,21 +80,21 @@ public:
 		node_tv_items_.emplace(object_tree.root_id(), TVI_ROOT);
 	}
 
-	void did_initialize(HspObjectTree& object_tree, HspObjectTreeObserver& observer) override {
+	void did_initialize(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer) override {
 		object_tree.focus_root(observer);
-		select_global(object_tree, observer);
+		select_global(objects, object_tree, observer);
 		do_auto_expand_all();
 	}
 
 	// オブジェクトツリーが更新されたときに呼ばれる。
-	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjectTree& object_tree) override {
+	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjects& objects, HspObjectTree& object_tree) override {
 		auto&& path_opt = object_tree.path(node_id);
 		if (!path_opt) {
 			return;
 		}
 		auto&& path = *path_opt;
 
-		auto&& name = path->name(objects_);
+		auto&& name = path->name(objects);
 
 		auto&& parent_id_opt = object_tree.parent(node_id);
 		auto tv_parent = parent_id_opt && node_tv_items_.count(*parent_id_opt)
@@ -108,7 +105,7 @@ public:
 		node_ids_.emplace(tv_item, node_id);
 		node_tv_items_.emplace(node_id, tv_item);
 
-		auto_expand(*path, tv_item);
+		auto_expand(*path, tv_item, objects);
 	}
 
 	// オブジェクトツリーのノードが破棄される前に呼ばれる。
@@ -129,9 +126,9 @@ public:
 		view_edit_control.forget(tv_item);
 	}
 
-	void update_view_window(HspObjectTree& object_tree, HspObjectTreeObserver& observer, ViewEditControl& view_edit_control) override {
+	void update_view_window(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer, ViewEditControl& view_edit_control) override {
 		// コールスタックを自動で更新する。
-		object_tree.focus_by_path(*objects_.root_path().new_call_stack(), observer);
+		object_tree.focus_by_path(*objects.root_path().new_call_stack(), observer);
 
 		auto&& selected_node_id_opt = this->selected_node_id();
 		if (!selected_node_id_opt) {
@@ -153,8 +150,8 @@ public:
 
 		// ビューウィンドウを更新する。
 		{
-			auto text = object_path_to_text(path, objects_);
-			auto cursor_policy = object_path_to_cursor_policy(path, objects_);
+			auto text = object_path_to_text(path, objects);
+			auto cursor_policy = object_path_to_cursor_policy(path, objects);
 
 			view_edit_control.update(tv_item, text, cursor_policy);
 		}
@@ -211,8 +208,8 @@ private:
 		return TreeView_GetSelection(tree_view_);
 	}
 
-	void select_global(HspObjectTree& object_tree, HspObjectTreeObserver& observer) {
-		auto global_path = objects_.root_path().new_global_module(objects_);
+	void select_global(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer) {
+		auto global_path = objects.root_path().new_global_module(objects);
 		auto node_id = object_tree.focus_by_path(*global_path, observer);
 		auto tv_item_opt = node_to_tv_item(node_id);
 		if (tv_item_opt) {
@@ -220,8 +217,8 @@ private:
 		}
 	}
 
-	void auto_expand(HspObjectPath const& path, HTREEITEM tv_item) {
-		if (object_path_is_auto_expand(path, objects_)) {
+	void auto_expand(HspObjectPath const& path, HTREEITEM tv_item, HspObjects& objects) {
+		if (object_path_is_auto_expand(path, objects)) {
 			auto_expand_items_.push_back(tv_item);
 		}
 	}
@@ -273,6 +270,6 @@ private:
 	}
 };
 
-auto VarTreeViewControl::create(HspObjects& objects, HspObjectTree& object_tree, HWND tree_view) -> std::unique_ptr<VarTreeViewControl> {
-	return std::make_unique<VarTreeViewControlImpl>(objects, object_tree, tree_view);
+auto VarTreeViewControl::create(HspObjectTree& object_tree, HWND tree_view) -> std::unique_ptr<VarTreeViewControl> {
+	return std::make_unique<VarTreeViewControlImpl>(object_tree, tree_view);
 }

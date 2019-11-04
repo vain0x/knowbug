@@ -199,8 +199,8 @@ public:
 		notify_did_initialize();
 	}
 
-	void update(HspObjectTree& object_tree, HspObjectTreeObserver& observer) override {
-		update_view_edit(object_tree, observer);
+	void update(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer) override {
+		update_view_edit(objects, object_tree, observer);
 		notify_did_update();
 	}
 
@@ -212,14 +212,14 @@ public:
 		var_tree_view_control().did_update();
 	}
 
-	void did_log_change(HspObjectTree& object_tree, HspObjectTreeObserver& observer) override {
+	void did_log_change(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer) override {
 		if (var_tree_view_control().log_is_selected(object_tree)) {
-			update_view_edit(object_tree, observer);
+			update_view_edit(objects, object_tree, observer);
 		}
 	}
 
-	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjectTree& object_tree) override {
-		var_tree_view_control().object_node_did_create(node_id, mode, object_tree);
+	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjects& objects, HspObjectTree& object_tree) override {
+		var_tree_view_control().object_node_did_create(node_id, mode, objects, object_tree);
 	}
 
 	void object_node_will_destroy(std::size_t node_id, HspObjectTree& object_tree) override {
@@ -268,8 +268,8 @@ public:
 		}
 	}
 
-	void update_view_edit(HspObjectTree& object_tree, HspObjectTreeObserver& observer) {
-		var_tree_view_control().update_view_window(object_tree, observer, view_edit_control());
+	void update_view_edit(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer) {
+		var_tree_view_control().update_view_window(objects, object_tree, observer, view_edit_control());
 	}
 
 	auto open_context_menu(HWND hwnd, POINT point, KnowbugApp& app) -> bool {
@@ -298,7 +298,7 @@ public:
 	auto process_main_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, KnowbugApp& app) -> LRESULT override {
 		switch (msg) {
 		case WM_KNOWBUG_DID_INITIALIZE:
-			var_tree_view_control().did_initialize(app.object_tree(), app.object_tree_observer());
+			var_tree_view_control().did_initialize(app.objects(), app.object_tree(), app.object_tree_observer());
 			break;
 
 		case WM_KNOWBUG_UPDATE_VIEW:
@@ -517,7 +517,7 @@ private:
 	void execute_popup_menu_action(int selected_id, HspObjectPath const& path, KnowbugApp& app) {
 		switch (selected_id) {
 		case IDC_NODE_UPDATE:
-			update_view_edit(app.object_tree(), app.object_tree_observer());
+			update_view_edit(app.objects(), app.object_tree(), app.object_tree_observer());
 			return;
 
 		case IDC_NODE_LOG:
@@ -554,7 +554,7 @@ LRESULT CALLBACK process_view_window(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) 
 	return DefWindowProc(hDlg, msg, wp, lp);
 }
 
-auto KnowbugView::create(KnowbugConfig const& config, HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView> {
+auto KnowbugView::create(KnowbugConfig const& config, HINSTANCE instance, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView> {
 	auto const display_x = GetSystemMetrics(SM_CXSCREEN);
 	auto const display_y = GetSystemMetrics(SM_CYSCREEN);
 
@@ -629,7 +629,7 @@ auto KnowbugView::create(KnowbugConfig const& config, HINSTANCE instance, HspObj
 	// ツリービュー
 	auto const tree_view = GetDlgItem(main_pane, IDC_VARTREE);
 
-	auto var_tree_view_control = VarTreeViewControl::create(objects, object_tree, tree_view);
+	auto var_tree_view_control = VarTreeViewControl::create(object_tree, tree_view);
 
 	auto const source_edit = GetDlgItem(main_pane, IDC_SRC_LINE);
 
