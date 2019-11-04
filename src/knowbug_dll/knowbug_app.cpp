@@ -79,6 +79,7 @@ public:
 
 	void initialize() {
 		objects().initialize();
+		object_tree().focus_root(object_tree_observer());
 
 		view().initialize();
 	}
@@ -110,6 +111,9 @@ public:
 
 	void update_view() override {
 		objects().script_do_update_location();
+
+		update_call_stack();
+
 		view().update_source_edit(to_os(objects().script_to_current_location_summary()));
 		view().update(objects(), object_tree(), object_tree_observer());
 	}
@@ -196,6 +200,10 @@ private:
 
 	void object_node_will_destroy(std::size_t node_id) {
 		view().object_node_will_destroy(node_id, object_tree());
+	}
+
+	void update_call_stack() {
+		object_tree().focus_by_path(*objects().root_path().new_call_stack(), object_tree_observer());
 	}
 };
 

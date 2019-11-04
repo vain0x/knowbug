@@ -81,7 +81,6 @@ public:
 	}
 
 	void did_initialize(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer) override {
-		object_tree.focus_root(observer);
 		select_global(objects, object_tree, observer);
 		do_auto_expand_all();
 	}
@@ -127,9 +126,6 @@ public:
 	}
 
 	void update_view_window(HspObjects& objects, HspObjectTree& object_tree, HspObjectTreeObserver& observer, ViewEditControl& view_edit_control) override {
-		// コールスタックを自動で更新する。
-		object_tree.focus_by_path(*objects.root_path().new_call_stack(), observer);
-
 		auto&& selected_node_id_opt = this->selected_node_id();
 		if (!selected_node_id_opt) {
 			return;
