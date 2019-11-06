@@ -4,6 +4,7 @@
 
 #include <optional>
 #include "../knowbug_core/encoding.h"
+#include "../knowbug_core/hsp_object_tree.h"
 #include "../knowbug_core/platform.h"
 
 class HspObjects;
@@ -17,18 +18,22 @@ static constexpr auto WM_KNOWBUG_DID_UPDATE = WM_USER + 3;
 
 class KnowbugView {
 public:
-	static auto create(KnowbugConfig const& config, HINSTANCE instance, HspObjects& objects, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView>;
+	static auto create(KnowbugConfig const& config, HINSTANCE instance, HspObjectTree& object_tree) -> std::unique_ptr<KnowbugView>;
 
 	virtual ~KnowbugView() {
 	}
 
+	virtual auto current_node_id_opt() const->std::optional<std::size_t> = 0;
+
 	virtual void initialize() = 0;
 
-	virtual void update() = 0;
+	virtual void update(HspObjects& objects, HspObjectTree& object_tree) = 0;
 
 	virtual void update_source_edit(OsStringView const& content) = 0;
 
-	virtual void did_log_change() = 0;
+	virtual void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjects& objects, HspObjectTree& object_tree) = 0;
+
+	virtual void object_node_will_destroy(std::size_t node_id, HspObjectTree& object_tree) = 0;
 
 	virtual void will_exit() = 0;
 

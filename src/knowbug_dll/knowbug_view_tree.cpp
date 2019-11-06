@@ -58,11 +58,7 @@ static auto insert_mode_to_sibling(HspObjectTreeInsertMode mode) {
 
 class VarTreeViewControlImpl
 	: public VarTreeViewControl
-	, public HspObjectTreeObserver
 {
-	HspObjects& objects_;
-	HspObjectTree& object_tree_;
-
 	HWND tree_view_;
 	std::unordered_map<HTREEITEM, std::size_t> node_ids_;
 	std::unordered_map<std::size_t, HTREEITEM> node_tv_items_;
@@ -73,42 +69,33 @@ class VarTreeViewControlImpl
 	//       更新後のイベント (did_update) で展開可能か検査し、初めて可能になったときに展開する。
 	std::vector<HTREEITEM> auto_expand_items_;
 
-	// NOTE: 削除されたノードに関してエディットコントロールが持っている情報を削除するため、
-	//       削除されたノードをここに記録して、次の更新時にまとめて削除依頼を出す。
-	std::vector<HTREEITEM> tv_items_for_view_edit_control_to_forget_;
-
 public:
-	VarTreeViewControlImpl(HspObjects& objects, HspObjectTree& object_tree, HWND tree_view)
-		: objects_(objects)
-		, object_tree_(object_tree)
-		, tree_view_(tree_view)
+	VarTreeViewControlImpl(HspObjectTree& object_tree, HWND tree_view)
+		: tree_view_(tree_view)
 		, node_ids_()
 		, node_tv_items_()
 		, auto_expand_items_()
-		, tv_items_for_view_edit_control_to_forget_()
 	{
-		node_ids_.emplace(TVI_ROOT, object_tree_.root_id());
-		node_tv_items_.emplace(object_tree_.root_id(), TVI_ROOT);
-
-		object_tree_.focus_root(*this);
+		node_ids_.emplace(TVI_ROOT, object_tree.root_id());
+		node_tv_items_.emplace(object_tree.root_id(), TVI_ROOT);
 	}
 
-	void did_initialize() override {
-		select_global();
+	void did_initialize(HspObjects& objects, HspObjectTree& object_tree) override {
+		select_current(objects, object_tree);
 		do_auto_expand_all();
 	}
 
 	// オブジェクトツリーが更新されたときに呼ばれる。
-	void did_create(std::size_t node_id, HspObjectTreeInsertMode mode) override {
-		auto&& path_opt = object_tree_.path(node_id);
+	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode, HspObjects& objects, HspObjectTree& object_tree) override {
+		auto&& path_opt = object_tree.path(node_id);
 		if (!path_opt) {
 			return;
 		}
 		auto&& path = *path_opt;
 
-		auto&& name = path->name(objects_);
+		auto&& name = path->name(objects);
 
-		auto&& parent_id_opt = object_tree_.parent(node_id);
+		auto&& parent_id_opt = object_tree.parent(node_id);
 		auto tv_parent = parent_id_opt && node_tv_items_.count(*parent_id_opt)
 			? node_tv_items_.at(*parent_id_opt)
 			: TVI_ROOT;
@@ -117,12 +104,12 @@ public:
 		node_ids_.emplace(tv_item, node_id);
 		node_tv_items_.emplace(node_id, tv_item);
 
-		auto_expand(*path, tv_item);
+		auto_expand(*path, tv_item, objects);
 	}
 
 	// オブジェクトツリーのノードが破棄される前に呼ばれる。
-	void will_destroy(std::size_t node_id) override {
-		auto&& path_opt = object_tree_.path(node_id);
+	void object_node_will_destroy(std::size_t node_id, HspObjectTree& object_tree, ViewEditControl& view_edit_control) override {
+		auto&& path_opt = object_tree.path(node_id);
 		if (!path_opt) {
 			return;
 		}
@@ -134,24 +121,16 @@ public:
 		do_delete_item(tv_item);
 		node_ids_.erase(tv_item);
 		node_tv_items_.erase(node_id);
-		tv_items_for_view_edit_control_to_forget_.push_back(tv_item);
+
+		view_edit_control.forget(tv_item);
 	}
 
-	void update_view_window(ViewEditControl& view_edit_control) override {
-		// コールスタックを自動で更新する。
-		object_tree_.focus_by_path(*objects_.root_path().new_call_stack(), *this);
-
-		auto&& selected_node_id_opt = this->selected_node_id();
-		if (!selected_node_id_opt) {
-			return;
-		}
-
-		// フォーカスを当てる。
-		auto focused_node_id = object_tree_.focus(*selected_node_id_opt, *this);
+	void update_view_window(HspObjects& objects, HspObjectTree& object_tree, ViewEditControl& view_edit_control) override {
+		auto current_node_id = object_tree.current_node_id();
 
 		// フォーカスの当たった要素のパスとハンドル。
-		auto&& path_opt = object_tree_.path(focused_node_id);
-		auto&& tv_item_opt = node_to_tv_item(focused_node_id);
+		auto&& path_opt = object_tree.path(current_node_id);
+		auto&& tv_item_opt = node_to_tv_item(current_node_id);
 
 		if (!path_opt || !tv_item_opt) {
 			return;
@@ -161,17 +140,8 @@ public:
 
 		// ビューウィンドウを更新する。
 		{
-			// 遅延されていたデータの削除を実行する。
-			{
-				auto& tv_items = tv_items_for_view_edit_control_to_forget_;
-				for (auto tv_item : tv_items) {
-					view_edit_control.forget(tv_item);
-				}
-				tv_items.clear();
-			}
-
-			auto text = object_path_to_text(path, objects_);
-			auto cursor_policy = object_path_to_cursor_policy(path, objects_);
+			auto text = object_path_to_text(path, objects);
+			auto cursor_policy = object_path_to_cursor_policy(path, objects);
 
 			view_edit_control.update(tv_item, text, cursor_policy);
 		}
@@ -181,20 +151,13 @@ public:
 		do_auto_expand_all();
 	}
 
-	auto log_is_selected() const -> bool override {
-		if (auto&& node_id_opt = selected_node_id()) {
-			if (auto&& path_opt = object_tree_.path(*node_id_opt)) {
-				if ((*path_opt)->kind() == HspObjectKind::Log) {
-					return true;
-				}
-			}
-		}
-		return false;
+	auto selected_node_id_opt() const -> std::optional<std::size_t> override {
+		return node_id(selected_tv_item());
 	}
 
-	auto item_to_path(HTREEITEM tv_item) const -> std::optional<std::shared_ptr<HspObjectPath const>> override {
-		if (auto&& node_id_opt = selected_node_id()) {
-			if (auto&& path_opt = object_tree_.path(*node_id_opt)) {
+	auto item_to_path(HTREEITEM tv_item, HspObjectTree& object_tree) const -> std::optional<std::shared_ptr<HspObjectPath const>> override {
+		if (auto&& node_id_opt = selected_node_id_opt()) {
+			if (auto&& path_opt = object_tree.path(*node_id_opt)) {
 				return path_opt;
 			}
 		}
@@ -220,25 +183,19 @@ private:
 		return std::make_optional(iter->second);
 	}
 
-	auto selected_node_id() const -> std::optional<std::size_t> {
-		return node_id(selected_tv_item());
-	}
-
 	auto selected_tv_item() const -> HTREEITEM {
 		return TreeView_GetSelection(tree_view_);
 	}
 
-	void select_global() {
-		auto global_path = objects_.root_path().new_global_module(objects_);
-		auto node_id = object_tree_.focus_by_path(*global_path, *this);
-		auto tv_item_opt = node_to_tv_item(node_id);
+	void select_current(HspObjects& objects, HspObjectTree& object_tree) {
+		auto tv_item_opt = node_to_tv_item(object_tree.current_node_id());
 		if (tv_item_opt) {
 			do_select_item(*tv_item_opt);
 		}
 	}
 
-	void auto_expand(HspObjectPath const& path, HTREEITEM tv_item) {
-		if (object_path_is_auto_expand(path, objects_)) {
+	void auto_expand(HspObjectPath const& path, HTREEITEM tv_item, HspObjects& objects) {
+		if (object_path_is_auto_expand(path, objects)) {
 			auto_expand_items_.push_back(tv_item);
 		}
 	}
@@ -290,6 +247,6 @@ private:
 	}
 };
 
-auto VarTreeViewControl::create(HspObjects& objects, HspObjectTree& object_tree, HWND tree_view) -> std::unique_ptr<VarTreeViewControl> {
-	return std::make_unique<VarTreeViewControlImpl>(objects, object_tree, tree_view);
+auto VarTreeViewControl::create(HspObjectTree& object_tree, HWND tree_view) -> std::unique_ptr<VarTreeViewControl> {
+	return std::make_unique<VarTreeViewControlImpl>(object_tree, tree_view);
 }

@@ -72,19 +72,26 @@ private:
 	std::unordered_map<std::size_t, Node> nodes_;
 	std::size_t root_node_id_;
 	std::size_t last_node_id_;
+	std::size_t current_node_id_;
 
 public:
 	HspObjectTreeImpl(HspObjects& objects)
 		: objects_(objects)
 		, nodes_()
-		, root_node_id_(0)
+		, root_node_id_()
 		, last_node_id_(0)
+		, current_node_id_()
 	{
 		root_node_id_ = do_create_node(1, objects_.root_path().self());
+		current_node_id_ = root_node_id_;
 	}
 
 	auto root_id() const -> std::size_t override {
 		return root_node_id_;
+	}
+
+	auto current_node_id() const -> std::size_t override {
+		return current_node_id_;
 	}
 
 	auto path(std::size_t node_id) const -> std::optional<std::shared_ptr<HspObjectPath const>> override {
@@ -115,29 +122,29 @@ public:
 		return std::nullopt;
 	}
 
-	auto focus(std::size_t node_id, HspObjectTreeObserver& observer) -> std::size_t override {
+	void focus(std::size_t node_id, HspObjectTreeObserver& observer) override {
 		if (!nodes_.count(node_id)) {
 			assert(false && u8"存在しないノードにフォーカスしようとしています");
-			return root_id();
+			return;
 		}
 
 		if (!node_is_alive(node_id)) {
 			auto parent = nodes_.at(node_id).parent();
 
 			remove_node(node_id, observer);
-			return focus(parent, observer);
+			focus(parent, observer);
+			return;
 		}
 
 		update_root(observer);
-		return node_id;
+		current_node_id_ = node_id;
 	}
 
-	auto focus_by_path(HspObjectPath const& path, HspObjectTreeObserver& observer) -> std::size_t override {
+	void focus_by_path(HspObjectPath const& path, HspObjectTreeObserver& observer) override {
 		if (auto&& node_id_opt = find_by_path(path)) {
-			return focus(*node_id_opt, observer);
+			focus(*node_id_opt, observer);
+			return;
 		}
-
-		return root_id();
 	}
 
 private:
