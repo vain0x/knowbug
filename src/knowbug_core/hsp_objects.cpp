@@ -227,6 +227,16 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX co
 			return std::nullopt;
 		}
 
+		// FIXME: 場当たり的
+		if (hsx::param_to_type(param_data_opt->param()) == MPTYPE_LOCALVAR) {
+			auto pval_opt = hsx::param_data_to_pval(*param_data_opt);
+			if (!pval_opt) {
+				return std::nullopt;
+			}
+
+			return hsx::pval_to_data(*pval_opt, ctx);
+		}
+
 		return hsx::param_data_to_data(*param_data_opt);
 	}
 	case HspObjectKind::SystemVar:
@@ -272,6 +282,16 @@ static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX con
 		auto&& param_data_opt = param_path_to_param_data(path.as_param(), depth, ctx);
 		if (!param_data_opt) {
 			return std::nullopt;
+		}
+
+		// FIXME: 場当たり的
+		if (hsx::param_to_type(param_data_opt->param()) == MPTYPE_LOCALVAR) {
+			auto pval_opt = hsx::param_data_to_pval(*param_data_opt);
+			if (!pval_opt) {
+				return std::nullopt;
+			}
+
+			return hsx::pval_to_str(*pval_opt, ctx);
 		}
 
 		return hsx::param_data_to_str(*param_data_opt);
