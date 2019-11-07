@@ -195,9 +195,17 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX co
 	}
 	depth++;
 
-	// FIXME: 静的変数も値を提供できる
-
 	switch (path.kind()) {
+	case HspObjectKind::StaticVar:
+	{
+		auto static_var_id = path.as_static_var().static_var_id();
+		auto pval_opt = hsx::static_var_to_pval(static_var_id, ctx);
+		if (!pval_opt) {
+			return std::nullopt;
+		}
+
+		return hsx::pval_to_data(*pval_opt, ctx);
+	}
 	case HspObjectKind::Element:
 		{
 			auto&& pval_opt = path_to_pval(path.parent(), depth, ctx);
@@ -238,6 +246,15 @@ static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX con
 	depth++;
 
 	switch (path.kind()) {
+	case HspObjectKind::StaticVar: {
+		auto static_var_id = path.as_static_var().static_var_id();
+		auto pval_opt = hsx::static_var_to_pval(static_var_id, ctx);
+		if (!pval_opt) {
+			return std::nullopt;
+		}
+
+		return hsx::pval_to_str(*pval_opt, ctx);
+	}
 	case HspObjectKind::Element: {
 		auto&& pval_opt = path_to_pval(path.parent(), depth, ctx);
 		if (!pval_opt) {
