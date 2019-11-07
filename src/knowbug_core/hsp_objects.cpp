@@ -326,6 +326,30 @@ static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_in
 		throw new std::out_of_range{ u8"child_index" };
 	}
 
+	if (!hsx::pval_is_standard_array(*pval_opt, ctx)) {
+		// FIXME: element_path_to_child_at と重複している。
+		auto type = hsx::pval_to_type(*pval_opt);
+		switch (type) {
+		case hsx::HspType::Label:
+			return path.new_label();
+
+		case hsx::HspType::Str:
+			return path.new_str();
+
+		case hsx::HspType::Double:
+			return path.new_double();
+
+		case hsx::HspType::Int:
+			return path.new_int();
+
+		case hsx::HspType::Struct:
+			return path.new_flex();
+
+		default:
+			return path.new_unknown();
+		}
+	}
+
 	auto pval = *pval_opt;
 	auto aptr = (APTR)child_index;
 	auto&& indexes_opt = hsx::element_to_indexes(pval, aptr);

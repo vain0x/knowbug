@@ -197,6 +197,7 @@ protected:
 	// param_index: 親要素の何番目の引数か
 	auto new_param(hsx::HspParamType param_type, std::size_t param_index) const->std::shared_ptr<HspObjectPath const>;
 
+public:
 	auto new_label() const->std::shared_ptr<HspObjectPath const>;
 
 	auto new_str() const->std::shared_ptr<HspObjectPath const>;
@@ -209,6 +210,7 @@ protected:
 
 	auto new_unknown() const->std::shared_ptr<HspObjectPath const>;
 
+protected:
 	auto new_system_var_list() const->std::shared_ptr<HspObjectPath const>;
 
 	auto new_system_var(hsx::HspSystemVarKind system_var_kind) const->std::shared_ptr<HspObjectPath const>;

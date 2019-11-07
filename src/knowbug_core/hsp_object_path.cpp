@@ -4,6 +4,7 @@
 
 static bool kind_can_have_value(HspObjectKind kind) {
 	return kind == HspObjectKind::StaticVar
+		|| kind == HspObjectKind::Param
 		|| kind == HspObjectKind::Element
 		|| kind == HspObjectKind::Param
 		|| kind == HspObjectKind::SystemVar;
