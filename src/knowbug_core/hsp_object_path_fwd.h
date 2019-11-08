@@ -109,6 +109,9 @@ public:
 	// equals が検査するため、other と this の kind() が等しく、親要素も等しいと仮定してよい。
 	virtual bool does_equal(HspObjectPath const& other) const = 0;
 
+	// ハッシュテーブルのためのハッシュ値を計算する。
+	virtual auto do_hash() const->std::size_t = 0;
+
 	virtual auto parent() const->HspObjectPath const& = 0;
 
 	virtual auto child_count(HspObjects& objects) const->std::size_t = 0;
@@ -130,6 +133,8 @@ public:
 		}
 		return kind() == other.kind() && does_equal(other) && parent().equals(other.parent());
 	}
+
+	virtual auto hash() const->std::size_t;
 
 	// パスが生存しているかを判定する。
 	virtual auto is_alive(HspObjects& objects) const -> bool {
@@ -238,3 +243,12 @@ protected:
 public:
 	auto new_unavailable(Utf8String&& reason) const->std::shared_ptr<HspObjectPath const>;
 };
+
+namespace std {
+	template<>
+	struct hash<std::shared_ptr<::HspObjectPath const>> {
+		auto operator()(std::shared_ptr<::HspObjectPath const>& path) const {
+			return path->hash();
+		}
+	};
+}
