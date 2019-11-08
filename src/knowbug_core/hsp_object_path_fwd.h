@@ -14,6 +14,9 @@ enum class HspObjectKind {
 	// ルート
 	Root = 1,
 
+	// グループ
+	Group,
+
 	// モジュール
 	Module,
 
@@ -69,6 +72,7 @@ class HspObjectPath
 public:
 	class Visitor;
 	class Root;
+	class Group;
 	class Module;
 	class StaticVar;
 	class Element;
@@ -149,6 +153,8 @@ public:
 
 	auto as_root() const->HspObjectPath::Root const&;
 
+	auto as_group() const->HspObjectPath::Group const&;
+
 	auto as_module() const->HspObjectPath::Module const&;
 
 	auto as_static_var() const->HspObjectPath::StaticVar const&;
@@ -184,6 +190,8 @@ public:
 	auto as_script() const->HspObjectPath::Script const&;
 
 	auto as_unavailable() const->HspObjectPath::Unavailable const&;
+
+	auto new_group(std::size_t offset) const->std::shared_ptr<HspObjectPath const>;
 
 protected:
 	auto new_module(std::size_t module_id) const->std::shared_ptr<HspObjectPath const>;

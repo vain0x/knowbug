@@ -66,6 +66,55 @@ auto HspObjectPath::Root::child_at(std::size_t child_index, HspObjects& objects)
 }
 
 // -----------------------------------------------
+// グループパス
+// -----------------------------------------------
+
+auto HspObjectPath::new_group(std::size_t offset) const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::Group>(self(), offset);
+}
+
+auto HspObjectPath::as_group() const -> HspObjectPath::Group const& {
+	if (kind() != HspObjectKind::Group) {
+		assert(false && u8"Casting to group");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Group const*)this;
+}
+
+auto HspObjectPath::Group::child_count(HspObjects& objects) const->std::size_t {
+	auto n = parent().child_count(objects);
+	return n - std::min(n, offset());
+}
+
+auto HspObjectPath::Group::child_at(std::size_t child_index, HspObjects& objects) const->std::shared_ptr<HspObjectPath const> {
+	auto n = parent().child_count(objects);
+	auto i = offset() + child_index;
+	if (i >= n) {
+		return new_unavailable(to_owned(as_utf8(u8"out of range")));
+	}
+
+	return parent().child_at(n, objects);
+}
+
+auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
+	auto n = parent().child_count(objects);
+	if (offset() >= n) {
+		return to_owned(as_utf8(u8"..."));
+	}
+
+	auto first_index = offset();
+	auto last_index = std::min(n, offset() + THRESHOLD - 1);
+	assert(first_index < last_index);
+
+	auto name = parent().child_at(first_index, objects)->name(objects);
+	auto last = parent().child_at(last_index, objects)->name(objects);
+
+	name += as_utf8(u8"...");
+	name += last;
+	return name;
+}
+
+// -----------------------------------------------
 // モジュールパス
 // -----------------------------------------------
 
