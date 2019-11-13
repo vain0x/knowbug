@@ -3,6 +3,7 @@
 #include <fstream>
 #include "../hspsdk/hsp3plugin.h"
 #include "../knowbug_core/encoding.h"
+#include "../knowbug_core/hsp_object_path.h"
 #include "../knowbug_core/hsp_object_tree.h"
 #include "../knowbug_core/hsp_object_writer.h"
 #include "../knowbug_core/hsp_objects.h"

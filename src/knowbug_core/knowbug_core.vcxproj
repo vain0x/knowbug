@@ -336,6 +336,7 @@
     <ClInclude Include="encoding.h" />
     <ClInclude Include="hsp_object_path.h" />
     <ClInclude Include="hsp_objects.h" />
+    <ClInclude Include="hsp_object_path_fwd.h" />
     <ClInclude Include="hsp_object_tree.h" />
     <ClInclude Include="hsp_object_writer.h" />
     <ClInclude Include="hsp_objects_module_tree.h" />

@@ -1,10 +1,13 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
+#include <unordered_map>
+#include <vector>
 #include "encoding.h"
 #include "hsx.h"
-#include "hsp_object_path.h"
+#include "hsp_object_path_fwd.h"
 #include "hsp_wrap_call.h"
 
 class SourceFileId;
