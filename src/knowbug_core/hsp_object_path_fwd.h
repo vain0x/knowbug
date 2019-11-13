@@ -14,6 +14,9 @@ enum class HspObjectKind {
 	// ルート
 	Root = 1,
 
+	// グループ
+	Group,
+
 	// モジュール
 	Module,
 
@@ -69,6 +72,7 @@ class HspObjectPath
 public:
 	class Visitor;
 	class Root;
+	class Group;
 	class Module;
 	class StaticVar;
 	class Element;
@@ -105,6 +109,9 @@ public:
 	// equals が検査するため、other と this の kind() が等しく、親要素も等しいと仮定してよい。
 	virtual bool does_equal(HspObjectPath const& other) const = 0;
 
+	// ハッシュテーブルのためのハッシュ値を計算する。
+	virtual auto do_hash() const->std::size_t = 0;
+
 	virtual auto parent() const->HspObjectPath const& = 0;
 
 	virtual auto child_count(HspObjects& objects) const->std::size_t = 0;
@@ -127,6 +134,8 @@ public:
 		return kind() == other.kind() && does_equal(other) && parent().equals(other.parent());
 	}
 
+	virtual auto hash() const->std::size_t;
+
 	// パスが生存しているかを判定する。
 	virtual auto is_alive(HspObjects& objects) const -> bool {
 		if (!parent().is_alive(objects)) {
@@ -148,6 +157,8 @@ public:
 	auto self() const->std::shared_ptr<HspObjectPath const>;
 
 	auto as_root() const->HspObjectPath::Root const&;
+
+	auto as_group() const->HspObjectPath::Group const&;
 
 	auto as_module() const->HspObjectPath::Module const&;
 
@@ -185,6 +196,8 @@ public:
 
 	auto as_unavailable() const->HspObjectPath::Unavailable const&;
 
+	auto new_group(std::size_t offset) const->std::shared_ptr<HspObjectPath const>;
+
 protected:
 	auto new_module(std::size_t module_id) const->std::shared_ptr<HspObjectPath const>;
 
@@ -197,6 +210,7 @@ protected:
 	// param_index: 親要素の何番目の引数か
 	auto new_param(hsx::HspParamType param_type, std::size_t param_index) const->std::shared_ptr<HspObjectPath const>;
 
+public:
 	auto new_label() const->std::shared_ptr<HspObjectPath const>;
 
 	auto new_str() const->std::shared_ptr<HspObjectPath const>;
@@ -209,6 +223,7 @@ protected:
 
 	auto new_unknown() const->std::shared_ptr<HspObjectPath const>;
 
+protected:
 	auto new_system_var_list() const->std::shared_ptr<HspObjectPath const>;
 
 	auto new_system_var(hsx::HspSystemVarKind system_var_kind) const->std::shared_ptr<HspObjectPath const>;
@@ -228,3 +243,12 @@ protected:
 public:
 	auto new_unavailable(Utf8String&& reason) const->std::shared_ptr<HspObjectPath const>;
 };
+
+namespace std {
+	template<>
+	struct hash<std::shared_ptr<::HspObjectPath const>> {
+		auto operator()(std::shared_ptr<::HspObjectPath const>& path) const {
+			return path->hash();
+		}
+	};
+}

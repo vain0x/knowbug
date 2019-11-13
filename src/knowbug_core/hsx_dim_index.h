@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include "hash_code.h"
 #include "hsx_types_fwd.h"
 
 namespace hsx {
@@ -41,6 +42,14 @@ namespace hsx {
 			return dim() == other.dim() && indexes_ == other.indexes_;
 		}
 
+		auto hash() const -> std::size_t {
+			auto h = HashCode::from(dim_);
+			for (auto i : indexes_) {
+				h = h.combine(i);
+			}
+			return h.value();
+		}
+
 		// 次元数
 		auto dim() const -> std::size_t {
 			return dim_;
@@ -75,6 +84,15 @@ namespace hsx {
 				count *= i;
 			}
 			return count;
+		}
+	};
+}
+
+namespace std {
+	template<>
+	struct hash<hsx::HspDimIndex> {
+		auto operator()(hsx::HspDimIndex const& value) -> std::size_t {
+			return value.hash();
 		}
 	};
 }

@@ -7,42 +7,60 @@
 #include "hsp_object_tree.h"
 
 static auto const MAX_CHILD_COUNT = std::size_t{ 300 };
+static auto const MAX_UPDATE_COUNT = std::size_t{ 100000 };
 
-// FIXME: v1 時代のツリーと挙動を揃えるためのもの。
-static auto object_path_has_children(HspObjectPath const& path) -> bool {
-	switch (path.kind()) {
-	case HspObjectKind::Root:
-	case HspObjectKind::Module:
-	case HspObjectKind::SystemVarList:
-	case HspObjectKind::CallStack:
-		return true;
+// オブジェクトツリーの自動更新にかかる制限
+class UnfoldLimit {
+	// 更新した要素数
+	std::size_t count_;
 
-	default:
-		return false;
+	// ノードの深さ
+	// フォーカスを持ったことがあるノードの深さは数えない。
+	// フォーカスを持ったことがあるノードの一段下まで展開したい。
+	std::size_t depth_;
+
+public:
+	UnfoldLimit()
+		: count_(0)
+		, depth_(0)
+	{
 	}
-}
 
-static auto object_path_has_dynamic_children(HspObjectPath const& path) -> bool {
-	switch (path.kind()) {
-	case HspObjectKind::Root:
-	case HspObjectKind::CallStack:
-		return true;
-
-	default:
-		return false;
+	void increment_depth() {
+		depth_++;
 	}
-}
+
+	void decrement_depth() {
+		if (depth_ == 0) {
+			assert(false && u8"decrement_depth が多すぎます");
+			return;
+		}
+		depth_--;
+	}
+
+	void add_count(std::size_t count) {
+		count_ += count;
+	}
+
+	auto ok() const -> bool {
+		return count_ <= MAX_UPDATE_COUNT && depth_ <= 1;
+	}
+};
 
 class Node {
 	std::size_t parent_;
 	std::shared_ptr<HspObjectPath const> path_;
 	std::vector<std::size_t> children_;
 
+	// フォーカスを持ったことがあるか？
+	bool expanded_;
+
 public:
 	Node(std::size_t parent, std::shared_ptr<HspObjectPath const> path)
 		: parent_(parent)
 		, path_(path)
 		, children_()
+		, expanded_(false)
 	{
 	}
 
@@ -61,6 +79,14 @@ public:
 
 	auto children() const -> std::vector<std::size_t> const& {
 		return children_;
+	}
+
+	auto expanded() const -> bool {
+		return expanded_;
+	}
+
+	void expand() {
+		expanded_ = true;
 	}
 };
 
@@ -137,7 +163,9 @@ public:
 		}
 
 		update_root(observer);
+
 		current_node_id_ = node_id;
+		expand(node_id);
 	}
 
 	void focus_by_path(HspObjectPath const& path, HspObjectTreeObserver& observer) override {
@@ -170,7 +198,8 @@ private:
 	}
 
 	void update_root(HspObjectTreeObserver& observer) {
-		update_children(root_id(), observer);
+		auto limit = UnfoldLimit{};
+		update_children(root_id(), limit, observer);
 	}
 
 	auto do_create_node(std::size_t parent_id, std::shared_ptr<HspObjectPath const> path) -> std::size_t {
@@ -215,7 +244,7 @@ private:
 	// 指定したノードに対応するパスの子要素のうち、
 	// 無効なパスに対応する子ノードがあれば削除し、
 	// 有効なパスに対応する子ノードがなければ挿入する。
-	void update_children(std::size_t node_id, HspObjectTreeObserver& observer) {
+	void update_children(std::size_t node_id, UnfoldLimit& limit, HspObjectTreeObserver& observer) {
 		if (!nodes_.count(node_id)) {
 			assert(false && u8"存在しないノードの子ノード更新をしようとしています");
 			return;
@@ -223,13 +252,12 @@ private:
 
 		auto&& children = nodes_.at(node_id).children();
 		auto&& path = nodes_.at(node_id).path();
-
-		if (!object_path_has_children(path)) {
-			return;
-		}
+		auto is_expanded = nodes_.at(node_id).expanded();
 
 		auto child_count = std::min(MAX_CHILD_COUNT, path.child_count(objects()));
-		if (!children.empty() && !object_path_has_dynamic_children(path)) {
+
+		limit.add_count(child_count);
+		if (!limit.ok()) {
 			return;
 		}
 
@@ -283,8 +311,16 @@ private:
 		}
 
 		// 更新
+		if (!is_expanded) {
+			limit.increment_depth();
+		}
+
 		for (auto i = std::size_t{}; i < children.size(); i++) {
-			update_children(children.at(i), observer);
+			update_children(children.at(i), limit, observer);
+		}
+
+		if (!is_expanded) {
+			limit.decrement_depth();
 		}
 	}
 
@@ -297,6 +333,25 @@ private:
 
 		auto&& node = iter->second;
 		return node.path().is_alive(objects());
+	}
+
+	void expand(std::size_t node_id) {
+		auto&& iter = nodes_.find(node_id);
+		if (iter == nodes_.end()) {
+			assert(false && u8"存在しないノードを展開しようとしています");
+			return;
+		}
+
+		auto&& node = iter->second;
+		if (node.expanded()) {
+			return;
+		}
+
+		node.expand();
+
+		if (node_id != root_id()) {
+			expand(node.parent());
+		}
 	}
 };
 

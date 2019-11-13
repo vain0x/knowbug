@@ -195,9 +195,17 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX co
 	}
 	depth++;
 
-	// FIXME: 静的変数も値を提供できる
-
 	switch (path.kind()) {
+	case HspObjectKind::StaticVar:
+	{
+		auto static_var_id = path.as_static_var().static_var_id();
+		auto pval_opt = hsx::static_var_to_pval(static_var_id, ctx);
+		if (!pval_opt) {
+			return std::nullopt;
+		}
+
+		return hsx::pval_to_data(*pval_opt, ctx);
+	}
 	case HspObjectKind::Element:
 		{
 			auto&& pval_opt = path_to_pval(path.parent(), depth, ctx);
@@ -219,6 +227,16 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX co
 			return std::nullopt;
 		}
 
+		// FIXME: 場当たり的
+		if (hsx::param_to_type(param_data_opt->param()) == MPTYPE_LOCALVAR) {
+			auto pval_opt = hsx::param_data_to_pval(*param_data_opt);
+			if (!pval_opt) {
+				return std::nullopt;
+			}
+
+			return hsx::pval_to_data(*pval_opt, ctx);
+		}
+
 		return hsx::param_data_to_data(*param_data_opt);
 	}
 	case HspObjectKind::SystemVar:
@@ -238,6 +256,15 @@ static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX con
 	depth++;
 
 	switch (path.kind()) {
+	case HspObjectKind::StaticVar: {
+		auto static_var_id = path.as_static_var().static_var_id();
+		auto pval_opt = hsx::static_var_to_pval(static_var_id, ctx);
+		if (!pval_opt) {
+			return std::nullopt;
+		}
+
+		return hsx::pval_to_str(*pval_opt, ctx);
+	}
 	case HspObjectKind::Element: {
 		auto&& pval_opt = path_to_pval(path.parent(), depth, ctx);
 		if (!pval_opt) {
@@ -255,6 +282,16 @@ static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX con
 		auto&& param_data_opt = param_path_to_param_data(path.as_param(), depth, ctx);
 		if (!param_data_opt) {
 			return std::nullopt;
+		}
+
+		// FIXME: 場当たり的
+		if (hsx::param_to_type(param_data_opt->param()) == MPTYPE_LOCALVAR) {
+			auto pval_opt = hsx::param_data_to_pval(*param_data_opt);
+			if (!pval_opt) {
+				return std::nullopt;
+			}
+
+			return hsx::pval_to_str(*pval_opt, ctx);
 		}
 
 		return hsx::param_data_to_str(*param_data_opt);
@@ -287,6 +324,30 @@ static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_in
 	if (!pval_opt || child_index >= var_path_to_child_count(path, ctx)) {
 		assert(false && u8"Invalid var path child index");
 		throw new std::out_of_range{ u8"child_index" };
+	}
+
+	if (!hsx::pval_is_standard_array(*pval_opt, ctx)) {
+		// FIXME: element_path_to_child_at と重複している。
+		auto type = hsx::pval_to_type(*pval_opt);
+		switch (type) {
+		case hsx::HspType::Label:
+			return path.new_label();
+
+		case hsx::HspType::Str:
+			return path.new_str();
+
+		case hsx::HspType::Double:
+			return path.new_double();
+
+		case hsx::HspType::Int:
+			return path.new_int();
+
+		case hsx::HspType::Struct:
+			return path.new_flex();
+
+		default:
+			return path.new_unknown();
+		}
 	}
 
 	auto pval = *pval_opt;

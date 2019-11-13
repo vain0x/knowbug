@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "encoding.h"
+#include "hash_code.h"
 #include "hsx.h"
 #include "hsp_object_path_fwd.h"
 #include "hsp_objects.h"
@@ -29,6 +30,14 @@ public:
 		return kind() == other.kind();
 	}
 
+	auto do_hash() const -> std::size_t override {
+		return 1;
+	}
+
+	auto hash() const -> std::size_t override {
+		return 1;
+	}
+
 	auto is_alive(HspObjects& objects) const -> bool override {
 		return true;
 	}
@@ -45,6 +54,63 @@ public:
 
 	auto new_global_module(HspObjects& objects) const->std::shared_ptr<HspObjectPath const> {
 		return new_module(objects.module_global_id());
+	}
+};
+
+// -----------------------------------------------
+// グループパス
+// -----------------------------------------------
+
+class HspObjectPath::Group final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+	std::size_t offset_;
+
+public:
+	static auto constexpr THRESHOLD = std::size_t{ 1000 };
+
+	using HspObjectPath::new_element;
+
+	Group(std::shared_ptr<HspObjectPath const> parent, std::size_t offset)
+		: parent_(std::move(parent))
+		, offset_(offset)
+	{
+	}
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::Group;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return kind() == other.kind();
+	}
+
+	bool equals(HspObjectPath const& other) const override {
+		return kind() == other.kind();
+	}
+
+	auto do_hash() const -> std::size_t override {
+		return offset();
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return parent().is_alive(objects)
+			&& parent().child_count(objects) >= std::min(THRESHOLD, offset_ + 1);
+	}
+
+	auto parent() const -> HspObjectPath const& override {
+		return *this;
+	}
+
+	auto child_count(HspObjects& objects) const->std::size_t override;
+
+	auto child_at(std::size_t child_index, HspObjects& objects) const->std::shared_ptr<HspObjectPath const> override;
+
+	auto name(HspObjects& objects) const->Utf8String override;
+
+	auto offset() const -> std::size_t {
+		return offset_;
 	}
 };
 
@@ -74,6 +140,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return module_id() == other.as_module().module_id();
+	}
+
+	auto do_hash() const -> std::size_t override {
+		return module_id();
 	}
 
 	auto is_alive(HspObjects& objects) const -> bool override {
@@ -127,6 +197,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return static_var_id() == other.as_static_var().static_var_id();
+	}
+
+	auto do_hash() const -> std::size_t override {
+		return static_var_id();
 	}
 
 	auto is_alive(HspObjects& objects) const -> bool override {
@@ -207,6 +281,10 @@ public:
 		return indexes() == other.as_element().indexes();
 	}
 
+	auto do_hash() const -> std::size_t override {
+		return indexes().hash();
+	}
+
 	auto is_alive(HspObjects& objects) const -> bool override {
 		return objects.element_path_is_alive(*this);
 	}
@@ -267,6 +345,10 @@ public:
 		return param_type() == o.param_type() && param_index() == o.param_index();
 	}
 
+	auto do_hash() const -> std::size_t override {
+		return param_index();
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -317,6 +399,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return true;
+	}
+
+	auto do_hash() const -> std::size_t override {
+		return 0;
 	}
 
 	auto parent() const -> HspObjectPath const& override {
@@ -373,6 +459,10 @@ public:
 		return true;
 	}
 
+	auto do_hash() const -> std::size_t override {
+		return 0;
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -416,6 +506,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return true;
+	}
+
+	auto do_hash() const -> std::size_t override {
+		return 0;
 	}
 
 	auto parent() const -> HspObjectPath const& override {
@@ -463,6 +557,10 @@ public:
 		return true;
 	}
 
+	auto do_hash() const -> std::size_t override {
+		return 0;
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -508,6 +606,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return true;
+	}
+
+	auto do_hash() const -> std::size_t override {
+		return 0;
 	}
 
 	auto parent() const -> HspObjectPath const& override {
@@ -563,6 +665,10 @@ public:
 		return true;
 	}
 
+	auto do_hash() const -> std::size_t override {
+		return 0;
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -602,6 +708,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return true;
+	}
+
+	auto do_hash() const -> std::size_t override {
+		return 0;
 	}
 
 	auto is_alive(HspObjects& objects) const -> bool override {
@@ -652,6 +762,10 @@ public:
 		return system_var_kind() == other.as_system_var().system_var_kind();
 	}
 
+	auto do_hash() const -> std::size_t override {
+		return (std::size_t)system_var_kind();
+	}
+
 	auto is_alive(HspObjects& objects) const -> bool override {
 		return true;
 	}
@@ -700,6 +814,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return true;
+	}
+
+	auto do_hash() const -> std::size_t override {
+		return 0;
 	}
 
 	auto is_alive(HspObjects& objects) const -> bool override {
@@ -760,6 +878,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return key() == other.as_call_frame().key();
+	}
+
+	auto do_hash() const -> std::size_t override {
+		return key_.call_frame_id();
 	}
 
 	auto is_alive(HspObjects& objects) const -> bool override {
@@ -831,6 +953,10 @@ public:
 		return true;
 	}
 
+	auto do_hash() const -> std::size_t override {
+		return 0;
+	}
+
 	auto is_alive(HspObjects& objects) const -> bool override {
 		return true;
 	}
@@ -878,6 +1004,10 @@ public:
 
 	bool does_equal(HspObjectPath const& other) const override {
 		return true;
+	}
+
+	auto do_hash() const -> std::size_t override {
+		return 0;
 	}
 
 	auto is_alive(HspObjects& objects) const -> bool override {
@@ -937,6 +1067,10 @@ public:
 		return true;
 	}
 
+	auto do_hash() const -> std::size_t override {
+		return 0;
+	}
+
 	auto is_alive(HspObjects& objects) const -> bool override {
 		return true;
 	}
@@ -994,6 +1128,10 @@ public:
 		return true;
 	}
 
+	auto do_hash() const -> std::size_t override {
+		return 0;
+	}
+
 	auto parent() const -> HspObjectPath const& override {
 		return *parent_;
 	}
@@ -1032,6 +1170,10 @@ public:
 		switch (path.kind()) {
 		case HspObjectKind::Root:
 			on_root(path.as_root());
+			return;
+
+		case HspObjectKind::Group:
+			on_group(path.as_group());
 			return;
 
 		case HspObjectKind::Module:
@@ -1132,6 +1274,10 @@ public:
 	}
 
 	virtual void on_root(HspObjectPath::Root const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_group(HspObjectPath::Group const& path) {
 		accept_default(path);
 	}
 

@@ -334,6 +334,7 @@
     <ClInclude Include="..\hspsdk\hspwnd.h" />
     <ClInclude Include="..\hspsdk\win32gui\hspwnd_win.h" />
     <ClInclude Include="encoding.h" />
+    <ClInclude Include="hash_code.h" />
     <ClInclude Include="hsp_object_path.h" />
     <ClInclude Include="hsp_objects.h" />
     <ClInclude Include="hsp_object_path_fwd.h" />

@@ -163,6 +163,9 @@ namespace hsx {
 	// 配列の先頭要素のメモリブロックを得る。
 	extern auto pval_to_memory_block(PVal const* pval, HSPCTX const* ctx)->MemoryView;
 
+	// 配列が文字列型なら、そのデータへの参照を得る。
+	extern auto pval_to_str(PVal const* pval, HSPCTX const* ctx)->std::optional<HspStr>;
+
 	extern auto static_vars(HSPCTX const* ctx)->Slice<PVal>;
 
 	extern auto static_var_count(HSPCTX const* ctx)->std::size_t;
