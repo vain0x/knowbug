@@ -25,6 +25,7 @@ $inclusions = @(
     @("$package/hsp3debug.dll", "$pwd/src/Win32/Release/hsp3debug.dll"),
     @("$package/hsp3debug_u8.dll", "$pwd/src/Win32/ReleaseUtf8/hsp3debug_u8.dll"),
     @("$package/hsp3debug_64.dll", "$pwd/src/x64/Release/hsp3debug_64.dll")
+    @("$package/hsp3debug_64_hsp36.dll", "$pwd/src/x64/ReleaseUtf8/hsp3debug_64.dll")
 )
 
 if (test-path "$package.zip") {

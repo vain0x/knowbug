@@ -10,7 +10,8 @@ $knowbugConfigs = @(
     "-p:Configuration=Debug;Platform=x64",
     "-p:Configuration=Release;Platform=x86",
     "-p:Configuration=ReleaseUtf8;Platform=x86",
-    "-p:Configuration=Release;Platform=x64"
+    "-p:Configuration=Release;Platform=x64",
+    "-p:Configuration=ReleaseUtf8;Platform=x64"
 )
 
 $msBuild = $env:KNOWBUG_MSBUILD
