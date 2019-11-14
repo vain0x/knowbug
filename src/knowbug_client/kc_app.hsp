@@ -1,0 +1,114 @@
+// アプリケーションのコア部分
+
+#packopt name "knowbug_client"
+#packopt hide 1
+
+#include "hsp3utf.as"
+#include "kernel32.as"
+#include "user32.as"
+
+// -----------------------------------------------
+// HSP の定数
+// -----------------------------------------------
+
+#define global dialog_warn 1
+
+#define global gsel_hide (-1)
+#define global gsel_show 1
+
+#define global mesbox_readonly 0
+
+#define global objmode_font 2
+
+// -----------------------------------------------
+// ヘルパー
+// -----------------------------------------------
+
+//#ifdef _DEBUG
+#define global debug_trace(%1) s_log_text@ += "TRACE: " + (%1) + "\n" : app_log_did_update
+#define global debug_warn(%1) s_log_text@ += "WARN: " + (%1) + "\n" : app_log_did_update
+//#else
+//#define global debug_trace(%1) :
+//#endif
+
+// -----------------------------------------------
+// アプリケーション
+// -----------------------------------------------
+
+#module m_app
+
+#define true 1
+#define false 0
+
+// FIXME: エンコーディングとプラットフォームも表示
+#define s_title "knowbug v0.1.0"
+
+#enum s_default_window_id = 0
+
+#deffunc app_init
+
+	app_init_globals
+	app_init_windows
+
+	infra_connect_server
+	if stat == false {
+		app_did_disconnect
+		return
+	}
+
+	infra_send_hello
+	return
+
+#deffunc app_init_globals
+
+	// サーバーと接続しているか？
+	s_connected = false
+
+	// logmes の出力結果
+	sdim s_log_text, 0x10000
+	return
+
+#deffunc app_init_windows
+
+	// gsel s_default_window_id, gsel_hide
+
+	screen s_main_window_id
+	title s_title + " [接続待ち]"
+
+	font "MS Gothic", 12
+	objmode objmode_font
+	mesbox s_log_text, ginfo_winx, ginfo_winy, mesbox_readonly
+	s_log_edit_id = stat
+
+	gsel s_default_window_id, gsel_show
+	return
+
+// -----------------------------------------------
+// サーバーからのメッセージへの応答
+// -----------------------------------------------
+
+#deffunc app_did_receive_hello_ok
+
+	s_connected = true
+	title s_title
+	return
+
+#deffunc app_did_receive_shutdown
+
+	end
+
+// -----------------------------------------------
+// その他
+// -----------------------------------------------
+
+#deffunc app_did_disconnect
+
+	title s_title + " [接続なし]"
+	return
+
+#deffunc app_log_did_update
+
+	objprm s_log_edit_id, s_log_text
+	return
+
+#global

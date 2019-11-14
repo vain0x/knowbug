@@ -1,10 +1,10 @@
 #!/bin/pwsh
-# HSP3 スクリプトを実行する
+# HSP3 スクリプトをデバッグ環境で実行する。
 
 # 使い方
 #   ./scripts/run <script> <runtime-name>
 
-$hspRoot = $env:HSP3_ROOT
+$hspRoot = $env:HSP3_ROOT_DEV
 $workDir = (get-item .).fullName
 
 $scriptName = (get-item $args[0]).fullName
@@ -14,7 +14,7 @@ $axName = [system.io.path]::changeExtension($scriptName, ".ax")
 $baseDir = [system.io.path]::getDirectoryName((get-item $scriptName).fullName)
 
 if (!$hspRoot) {
-    write-error "環境変数 HSP3_ROOT を設定してください。"
+    write-error '環境変数 HSP3_ROOT_DEV を設定してください。'
     exit 1
 }
 

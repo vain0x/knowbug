@@ -1,6 +1,10 @@
 hsptmp
+hsp3_makefile
 obj
+packfile
+start.ax
 sandbox/*.ax
+scripts/*.ax
 src/knowbug_install/*.ax
 src/knowbug_install/packfile
 DebugUtf8

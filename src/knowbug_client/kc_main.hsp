@@ -1,0 +1,82 @@
+// エントリーポイント
+
+#include "kc_app.hsp"
+
+#module m_infra
+
+#define true 1
+#define false 0
+
+// Knowbug window Message To the Server
+#define KMTS_FIRST      (WM_USER + 1)
+#define KMTS_HELLO      (WM_USER + 1)
+#define KMTS_LAST       (WM_USER + 999)
+
+// Knowbug window Message To the Client
+#define KMTC_FIRST      (WM_USER + 1001)
+#define KMTC_HELLO_OK   (WM_USER + 1001)
+#define KMTC_SHUTDOWN   (WM_USER + 1002)
+#define KMTC_LAST       (WM_USER + 1999)
+
+#define NULL 0
+#define EXIT_FAILURE 1
+
+#define fail_with(%1) dialog (%1), dialog_error, "knowbug" : end EXIT_FAILURE
+
+#deffunc infra_connect_server
+
+	infra_init_globals
+	infra_init_subs
+	infra_parse_cmdline
+	return
+
+#deffunc infra_init_globals
+
+	s_pipe = NULL
+	return
+
+// -----------------------------------------------
+// コマンドライン
+// -----------------------------------------------
+
+#deffunc infra_parse_cmdline
+
+	if dir_cmdline == "" {
+		fail_with "コマンドラインが空です。"
+	}
+
+	s_server_hwnd = int(dir_cmdline)
+	return
+
+// -----------------------------------------------
+// サーバーへのメッセージ
+// -----------------------------------------------
+
+#deffunc infra_send_hello
+
+	sendmsg s_server_hwnd, KMTS_HELLO, 0, hwnd
+	return
+
+// -----------------------------------------------
+// サーバーからのメッセージ
+// -----------------------------------------------
+
+#deffunc infra_init_subs
+
+	oncmd gosub *l_on_hello_ok, KMTC_HELLO_OK
+	oncmd gosub *l_on_shutdown, KMTC_SHUTDOWN
+	return
+
+*l_on_hello_ok
+
+	app_did_receive_hello_ok
+	return
+
+*l_on_shutdown
+
+	app_did_receive_shutdown
+	return
+
+#global
+
+	app_init

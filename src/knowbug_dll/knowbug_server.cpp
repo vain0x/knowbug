@@ -20,8 +20,9 @@ static auto constexpr PIPE_TIMEOUT_MILLIS = std::size_t{ 50 };
 #define KMTS_LAST       (WM_USER + 999)
 
 // Knowbug window Message To the Client
-#define KMTS_FIRST      (WM_USER + 1001)
+#define KMTC_FIRST      (WM_USER + 1001)
 #define KMTC_HELLO_OK   (WM_USER + 1001)
+#define KMTC_SHUTDOWN   (WM_USER + 1002)
 #define KMTC_LAST       (WM_USER + 1999)
 
 class KnowbugServerImpl;
@@ -42,6 +43,7 @@ public:
 class Win32DestroyWindowFn {
 public:
 	using pointer = HWND;
+
 	void operator()(HWND p) {
 		DestroyWindow(p);
 	}
@@ -101,8 +103,8 @@ static auto create_pipe(OsString const& pipe_name) -> PipeHandle {
 		NULL
 	);
 	if (pipe_handle == INVALID_HANDLE_VALUE) {
-		fail_with(TEXT("WARN: couldn't create pipe"));
-		return PipeHandle{};
+		MessageBox(HWND{}, TEXT("デバッグウィンドウの初期化に失敗しました。(サーバーがパイプを作成できませんでした。)"), TEXT("knowbug"), MB_ICONERROR);
+		exit(EXIT_FAILURE);
 	}
 
 	return PipeHandle{ pipe_handle };
@@ -342,7 +344,7 @@ public:
 	}
 
 	void will_exit() override {
-		// FIXME: impl
+		send(KMTC_SHUTDOWN);
 	}
 
 	void client_did_hello(HWND client_hwnd) {
