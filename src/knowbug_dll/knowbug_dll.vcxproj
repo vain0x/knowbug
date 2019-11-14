@@ -325,6 +325,7 @@
   <ItemGroup>
     <ClInclude Include="knowbug_app.h" />
     <ClInclude Include="knowbug_config.h" />
+    <ClInclude Include="knowbug_server.h" />
     <ClInclude Include="knowbug_view.h" />
     <ClInclude Include="knowbug_view_edit.h" />
     <ClInclude Include="knowbug_view_tree.h" />
@@ -337,6 +338,7 @@
   <ItemGroup>
     <ClCompile Include="knowbug_app.cpp" />
     <ClCompile Include="knowbug_config.cpp" />
+    <ClCompile Include="knowbug_server.cpp" />
     <ClCompile Include="knowbug_view.cpp" />
     <ClCompile Include="knowbug_view_edit.cpp" />
     <ClCompile Include="knowbug_view_tree.cpp" />

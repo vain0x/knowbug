@@ -14,12 +14,14 @@
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
 #include "knowbug_config.h"
+#include "knowbug_server.h"
 #include "knowbug_view.h"
 
 class KnowbugAppImpl;
 
 static auto g_fs = WindowsFileSystemApi{};
 static auto g_dll_instance = HINSTANCE{};
+static auto g_debug_opt = std::optional<HSP3DEBUG*>{};
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
@@ -44,6 +46,7 @@ class KnowbugAppImpl
 	std::unique_ptr<KnowbugView> view_;
 
 	std::unique_ptr<HspObjectTreeObserver> object_tree_observer_;
+	std::shared_ptr<KnowbugServer> server_;
 
 public:
 	KnowbugAppImpl(
@@ -59,6 +62,7 @@ public:
 		, object_tree_(std::move(object_tree))
 		, view_(std::move(view))
 		, object_tree_observer_(create_object_tree_observer(*this))
+		, server_()
 	{
 	}
 
@@ -78,6 +82,10 @@ public:
 		return *object_tree_observer_;
 	}
 
+	auto server() -> KnowbugServer& {
+		return *server_;
+	}
+
 	auto view() -> KnowbugView& override {
 		return *view_;
 	}
@@ -89,11 +97,14 @@ public:
 		focus_global();
 
 		view().initialize();
+
+		server_ = KnowbugServer::start(*g_debug_opt, g_dll_instance);
 	}
 
 	void will_exit() {
 		auto_save_log();
 
+		server().will_exit();
 		view().will_exit();
 	}
 
@@ -297,6 +308,8 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	ctx = p1->hspctx;
 	exinfo = ctx->exinfo2;
 
+	g_debug_opt = debug;
+
 	auto config = KnowbugConfig::create();
 
 	auto step_controller = std::make_unique<KnowbugStepController>(debug);
@@ -326,6 +339,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	if (auto&& app = g_app) {
 		app->initialize();
 	}
+
 	return 0;
 }
 

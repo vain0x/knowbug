@@ -3,6 +3,7 @@
 #pragma once
 
 class HspObjectPath;
+class HspObjects;
 class HspObjectTree;
 class HspObjectTreeObserver;
 class HspRuntime;
