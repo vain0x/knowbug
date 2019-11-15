@@ -10,9 +10,7 @@
 #include "knowbug_app.h"
 #include "knowbug_server.h"
 
-static auto constexpr PIPE_BUFFER_SIZE = std::size_t{ 0x10000 };
-static auto constexpr PIPE_MAX_INSTANCE_COUNT = std::size_t{ 1 };
-static auto constexpr PIPE_TIMEOUT_MILLIS = std::size_t{ 50 };
+static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x10000 };
 
 // Knowbug window Message To the Server
 #define KMTS_FIRST      (WM_USER + 1)
@@ -49,9 +47,18 @@ public:
 	}
 };
 
-using PipeBuffer = std::array<Utf8Char, PIPE_BUFFER_SIZE>;
+class Win32UnmapViewOfFileFn {
+public:
+	using pointer = LPVOID;
 
-using PipeHandle = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
+	void operator()(LPVOID p) {
+		UnmapViewOfFile(p);
+	}
+};
+
+using MemoryMappedFile = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
+
+using MemoryMappedFileView = std::unique_ptr<LPVOID, Win32UnmapViewOfFileFn>;
 
 using ProcessHandle = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
 
@@ -59,118 +66,40 @@ using ThreadHandle = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
 
 using WindowHandle = std::unique_ptr<HWND, Win32DestroyWindowFn>;
 
-class NamedPipeConnection {
-	HANDLE pipe_handle_;
-
-public:
-	explicit NamedPipeConnection(PipeHandle const& pipe_handle)
-		: pipe_handle_(pipe_handle.get())
-	{
-	}
-
-	~NamedPipeConnection() {
-		if (auto p = std::exchange(pipe_handle_, HANDLE{})) {
-			DisconnectNamedPipe(p);
-		}
-	}
-
-	auto pipe() const -> HANDLE {
-		return pipe_handle_;
-	}
-};
-
 static void fail_with(OsStringView reason) {
 	MessageBox(HWND{}, to_owned(reason).data(), TEXT("knowbug"), MB_ICONWARNING);
 	exit(EXIT_FAILURE);
 }
 
 // -----------------------------------------------
-// パイプ
+// メモリマップドファイル
 // -----------------------------------------------
 
-static auto create_pipe(OsString const& pipe_name) -> PipeHandle {
-	// https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createnamedpipea
-	auto pipe_handle = CreateNamedPipe(
-		pipe_name.data(),
-		// 双方向通信
-		PIPE_ACCESS_DUPLEX,
-		// PIPE_TYPE_MESSAGE: データをメッセージ単位で送受信する。
-		PIPE_TYPE_MESSAGE,
-		PIPE_MAX_INSTANCE_COUNT,
-		PIPE_BUFFER_SIZE,
-		PIPE_BUFFER_SIZE,
-		PIPE_TIMEOUT_MILLIS,
-		NULL
+static auto create_memory_mapped_file(OsString const& name) -> MemoryMappedFile {
+	auto mapping_handle = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		LPSECURITY_ATTRIBUTES{},
+		PAGE_READWRITE,
+		DWORD{},
+		(DWORD)MEMORY_BUFFER_SIZE,
+		name.data()
 	);
-	if (pipe_handle == INVALID_HANDLE_VALUE) {
-		MessageBox(HWND{}, TEXT("デバッグウィンドウの初期化に失敗しました。(サーバーがパイプを作成できませんでした。)"), TEXT("knowbug"), MB_ICONERROR);
+	if (!mapping_handle) {
+		MessageBox(HWND{}, TEXT("デバッグウィンドウの初期化に失敗しました。(サーバーがデータ交換バッファーを作成できませんでした。)"), TEXT("knowbug"), MB_ICONERROR);
 		exit(EXIT_FAILURE);
 	}
 
-	return PipeHandle{ pipe_handle };
+	return MemoryMappedFile{ mapping_handle };
 }
 
-static auto connect_pipe(PipeHandle const& pipe_handle) -> NamedPipeConnection {
-	assert(pipe_handle.get());
-
-	if (!ConnectNamedPipe(pipe_handle.get(), LPOVERLAPPED{})) {
-		MessageBox(HWND{}, TEXT("デバッグウィンドウの初期化に失敗しました。(サーバーがパイプに接続できませんでした。)"), TEXT("knowbug"), MB_ICONERROR);
+static auto connect_memory_mapped_file(MemoryMappedFile const& mapping_handle) -> MemoryMappedFileView {
+	auto data = MapViewOfFile(mapping_handle.get(), FILE_MAP_ALL_ACCESS, 0, 0, MEMORY_BUFFER_SIZE);
+	if (!data) {
+		MessageBox(HWND{}, TEXT("デバッグウィンドウの初期化に失敗しました。(サーバーがデータ交換バッファーへのビューを作成できませんでした。)"), TEXT("knowbug"), MB_ICONERROR);
 		exit(EXIT_FAILURE);
 	}
 
-	return NamedPipeConnection{ pipe_handle };
-}
-
-static void write_to_pipe(Utf8StringView text, PipeBuffer& buffer, NamedPipeConnection const& connection) {
-	assert(buffer.size() >= PIPE_BUFFER_SIZE);
-	if (text.size() >= PIPE_BUFFER_SIZE) {
-		assert(false && u8"too long to write");
-		// FIXME: ログ出力
-		return;
-	}
-
-	auto data = text.data();
-	auto size = text.size();
-
-	if (data[size] != Utf8Char{}) {
-		// NULL 文字で終端されていない場合はバッファーにコピーして送信する。
-		std::memcpy(buffer.data(), data, size);
-		buffer[size] = Utf8Char{};
-	}
-	assert(data[size] == Utf8Char{});
-
-	auto written_size = DWORD{};
-	auto success = WriteFile(connection.pipe(), data, (DWORD)size, &written_size, LPOVERLAPPED{});
-	if (!success) {
-		assert(false && u8"failed to write to the pipe");
-		// FIXME: ログ出力
-		return;
-	}
-	assert(std::size_t{ written_size } == size);
-}
-
-// パイプからデータを読み、それを UTF-8 エンコーディングされた文字列として解釈したものを返す。
-// 結果は渡したバッファーへの参照である。
-static auto read_from_pipe(std::size_t expected_size, PipeBuffer& buffer, NamedPipeConnection const& connection) -> Utf8StringView {
-	assert(buffer.size() >= PIPE_BUFFER_SIZE);
-	if (expected_size >= PIPE_BUFFER_SIZE) {
-		assert(false && u8"too long to read");
-		// FIXME: ログ出力
-		return as_utf8(u8"");
-	}
-
-	auto actual_size = DWORD{};
-	auto success = ReadFile(connection.pipe(), buffer.data(), (DWORD)expected_size, &actual_size, LPOVERLAPPED{});
-	if (!success) {
-		assert(false && u8"failed to read from the pipe");
-		return as_utf8(u8"");
-	}
-	assert(actual_size == expected_size);
-
-	auto size = std::min(std::size_t{ actual_size }, expected_size);
-	buffer.data()[size] = Utf8Char{};
-
-	return Utf8StringView{ buffer.data(), size };
+	return MemoryMappedFileView{ data };
 }
 
 // -----------------------------------------------
@@ -295,13 +224,17 @@ class KnowbugServerImpl
 
 	bool started_;
 
-	OsString pipe_name_;
+	OsString server_buffer_name_;
 
-	PipeBuffer pipe_buffer_;
+	std::optional<MemoryMappedFile> server_buffer_opt_;
 
-	std::optional<PipeHandle> pipe_opt_;
+	std::optional<MemoryMappedFileView> server_buffer_view_opt_;
 
-	std::optional<NamedPipeConnection> pipe_connection_opt_;
+	OsString client_buffer_name_;
+
+	std::optional<MemoryMappedFile> client_buffer_opt_;
+
+	std::optional<MemoryMappedFileView> client_buffer_view_opt_;
 
 	std::optional<WindowHandle> hidden_window_opt_;
 
@@ -317,10 +250,12 @@ public:
 		, instance_(instance)
 		, started_(false)
 		, hidden_window_opt_()
-		, pipe_name_(TEXT("\\\\.\\pipe\\knowbug"))
-		, pipe_buffer_()
-		, pipe_opt_()
-		, pipe_connection_opt_()
+		, server_buffer_name_(TEXT("KnowbugServerBuffer"))
+		, server_buffer_opt_()
+		, server_buffer_view_opt_()
+		, client_buffer_name_(TEXT("KnowbugClientBuffer"))
+		, client_buffer_opt_()
+		, client_buffer_view_opt_()
 		, client_hwnd_opt_()
 		, client_process_opt_()
 		, client_thread_opt_()
@@ -333,10 +268,15 @@ public:
 			return;
 		}
 
-		pipe_opt_ = create_pipe(pipe_name_);
-		pipe_connection_opt_ = connect_pipe(*pipe_opt_);
-
 		hidden_window_opt_ = create_hidden_window(instance_);
+
+		server_buffer_opt_ = create_memory_mapped_file(server_buffer_name_);
+
+		server_buffer_view_opt_ = connect_memory_mapped_file(*server_buffer_opt_);
+
+		client_buffer_opt_ = create_memory_mapped_file(client_buffer_name_);
+
+		client_buffer_view_opt_ = connect_memory_mapped_file(*client_buffer_opt_);
 
 		auto pair = start_client_process(hidden_window_opt_->get());
 		client_thread_opt_ = std::move(pair.first);
@@ -360,12 +300,12 @@ public:
 
 private:
 	void send(int kind, Utf8StringView text) {
-		if (!client_hwnd_opt_ || !pipe_connection_opt_) {
-			// FIXME: バッファーか何かに溜めて後で送る
+		if (!client_hwnd_opt_ || !server_buffer_view_opt_) {
+			// FIXME: キューに溜めて後で送る
 			return;
 		}
 
-		write_to_pipe(text, pipe_buffer_, *pipe_connection_opt_);
+		// write to the buffer
 		SendMessage(*client_hwnd_opt_, kind, WPARAM{}, text.size());
 	}
 
