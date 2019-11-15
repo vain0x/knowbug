@@ -8,20 +8,30 @@
 #define false 0
 
 // Knowbug window Message To the Server
-#define KMTS_FIRST          (WM_USER + 1)
-#define KMTS_HELLO          (WM_USER + 1)
-#define KMTS_STEP_CONTINUE  (WM_USER + 2)
-#define KMTS_STEP_PAUSE     (WM_USER + 3)
-#define KMTS_STEP_IN        (WM_USER + 4)
-#define KMTS_LAST           (WM_USER + 999)
+#define KMTS_FIRST                  (WM_USER + 1)
+// クライアントが起動したことをサーバーに伝える。
+// lparam: クライアントのウィンドウハンドル
+#define KMTS_HELLO                  (WM_USER + 1)
+// 実行
+#define KMTS_STEP_CONTINUE          (WM_USER + 2)
+// 停止
+#define KMTS_STEP_PAUSE             (WM_USER + 3)
+// 次へ
+#define KMTS_STEP_IN                (WM_USER + 4)
+#define KMTS_LAST                   (WM_USER + 999)
 
 // Knowbug window Message To the Client
-#define KMTC_FIRST          (WM_USER + 1001)
-#define KMTC_HELLO_OK       (WM_USER + 1001)
-#define KMTC_SHUTDOWN       (WM_USER + 1002)
-#define KMTC_LOGMES         (WM_USER + 1003)
-#define KMTC_STOPPED        (WM_USER + 1004)
-#define KMTC_LAST           (WM_USER + 1999)
+#define KMTC_FIRST                  (WM_USER + 1001)
+// クライアントの起動をサーバーが確認したことを伝える。
+#define KMTC_HELLO_OK               (WM_USER + 1001)
+// クライアントを終了させる。
+#define KMTC_SHUTDOWN               (WM_USER + 1002)
+// logmes 命令
+// text: logmes の引数。(UTF-8。改行は追加されていない。)
+#define KMTC_LOGMES                 (WM_USER + 1003)
+// assert や stop により停止したことを伝える。
+#define KMTC_STOPPED                (WM_USER + 1004)
+#define KMTC_LAST                   (WM_USER + 1999)
 
 #define MEMORY_BUFFER_SIZE  0x10000
 
