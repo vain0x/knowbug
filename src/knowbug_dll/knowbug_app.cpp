@@ -120,6 +120,8 @@ public:
 	}
 
 	void did_hsp_logmes(HspStringView const& text) {
+		server().logmes(text);
+
 		objects().log_do_append(to_utf8(text));
 		objects().log_do_append(as_utf8(u8"\r\n"));
 

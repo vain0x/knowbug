@@ -107,6 +107,12 @@
 
 	end
 
+#deffunc app_did_receive_logmes var text
+
+	s_log_text += text + "\n"
+	app_log_did_update
+	return
+
 // -----------------------------------------------
 // その他
 // -----------------------------------------------

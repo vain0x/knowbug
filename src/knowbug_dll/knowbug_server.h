@@ -15,4 +15,6 @@ public:
 	virtual void start() = 0;
 
 	virtual void will_exit() = 0;
+
+	virtual void logmes(HspStringView text) = 0;
 };

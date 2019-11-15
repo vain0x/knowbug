@@ -16,6 +16,7 @@
 #define KMTC_FIRST          (WM_USER + 1001)
 #define KMTC_HELLO_OK       (WM_USER + 1001)
 #define KMTC_SHUTDOWN       (WM_USER + 1002)
+#define KMTC_LOGMES         (WM_USER + 1003)
 #define KMTC_LAST           (WM_USER + 1999)
 
 #define MEMORY_BUFFER_SIZE  0x10000
@@ -143,6 +144,7 @@
 
 	oncmd gosub *l_on_hello_ok, KMTC_HELLO_OK
 	oncmd gosub *l_on_shutdown, KMTC_SHUTDOWN
+	oncmd gosub *l_on_logmes, KMTC_LOGMES
 	return
 
 *l_on_hello_ok
@@ -153,6 +155,11 @@
 *l_on_shutdown
 
 	app_did_receive_shutdown
+	return
+
+*l_on_logmes
+
+	app_did_receive_logmes s_server_buffer_data
 	return
 
 #global
