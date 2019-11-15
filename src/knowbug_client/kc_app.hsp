@@ -45,6 +45,9 @@
 // アプリケーション
 // -----------------------------------------------
 
+#enum global s_default_window_id = 0
+#enum global s_main_window_id
+
 #module m_app
 
 #define true 1
@@ -52,8 +55,6 @@
 
 // FIXME: エンコーディングとプラットフォームも表示
 #define s_title "knowbug v0.1.0"
-
-#enum s_default_window_id = 0
 
 #deffunc app_init
 
@@ -80,45 +81,109 @@
 
 	// logmes の出力結果
 	sdim s_log_text, 0x10000
+
+	// スクリプト
+	sdim s_script_text
+	s_script_line = 0
+
+	// データリスト
+	s_list_note = "a\nb\nc\n"
+	s_list_current = -1
 	return
 
 #deffunc app_init_windows \
 	local x
 
-	// gsel s_default_window_id, gsel_hide
-	width , , ginfo_dispx - ginfo_winx - 16, ginfo_dispy - ginfo_winy - 64
+	gsel s_default_window_id, gsel_hide
+
+	s_main_window_width = 480
+	s_main_window_height = 520
+	s_main_window_left = ginfo_dispx - s_main_window_width - 16
+	s_main_window_top =  ginfo_dispy - s_main_window_height - 72
+	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height
 
 	title s_title + " [接続待ち]"
 
-	s_step_button_width = 80
-	s_step_control_height = 24
-	s_step_control_top = ginfo_winy - s_step_control_height - 8
+	hsvcolor , , 0xfc
+	boxf
 
-	font "MS Gothic", 12
 	objmode objmode_font
-	mesbox s_log_text, ginfo_winx, ginfo_winy - 8 - s_step_control_height - 8, mesbox_readonly
-	s_log_edit_id = stat
 
-	objsize s_step_button_width, s_step_control_height
+	s_margin = 4
+	s_step_button_width = 80
+	s_step_button_height = 24
+
+	s_footer_left = 0
+	s_footer_height = s_step_button_height
+	s_footer_top = s_main_window_height - s_margin - s_footer_height
+	s_footer_width = s_main_window_width
+
+	s_main_left = 0
+	s_main_top = 0
+	s_main_height = s_footer_top - s_margin
+	s_main_width = s_main_window_width
+
+	s_list_box_left = s_main_left
+	s_list_box_top = s_main_top
+	s_list_box_width = s_main_width / 2
+	s_list_box_height = s_main_height
+
+	s_script_edit_left = s_list_box_width
+	s_script_edit_top = s_main_top
+	s_script_edit_width = s_main_width - s_list_box_width
+	s_script_edit_height = s_main_height / 2
+
+	s_log_edit_left = s_list_box_width
+	s_log_edit_top = s_script_edit_top + s_script_edit_height
+	s_log_edit_width = s_main_width - s_list_box_width
+	s_log_edit_height = s_main_height - s_script_edit_height
+
+	// リストボックス
+	font "MS Gothic", 16
+	pos s_list_box_left, s_list_box_top
+	objsize s_list_box_width, s_list_box_height - 100
+	listbox s_list_current, 100, s_list_note
+	s_list_box_id = stat
+	s_list_box_hwnd = objinfo_hwnd(s_list_box_id)
+
+	// スクリプト
+	font "MS Gothic", 13
+	pos s_script_edit_left, s_script_edit_top
+	mesbox s_script_text, s_script_edit_width, s_script_edit_height, mesbox_readonly
+	s_script_edit_id = stat
+	s_script_edit_hwnd = objinfo_hwnd(s_script_edit_id)
+
+	// ログ
+	pos s_log_edit_left, s_log_edit_top
+	mesbox s_log_text, s_log_edit_width, s_log_edit_height, mesbox_readonly
+	s_log_edit_id = stat
+	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
+
+	// フッター
+	objsize s_step_button_width, s_step_button_height
 	x = 8
 
-	pos x, s_step_control_top
+	pos x, s_footer_top
 	button gosub "実行", *l_step_continue_button
 	x += s_step_button_width + 8
 
-	pos x, s_step_control_top
+	pos x, s_footer_top
 	button gosub "停止", *l_step_pause_button
 	x += s_step_button_width + 8
 
-	pos x, s_step_control_top
+	pos x, s_footer_top
 	button gosub "次へ", *l_step_in_button
 	x += s_step_button_width + 8
 
-	gsel s_default_window_id, gsel_show
+	x = s_footer_width - s_margin - s_step_button_width
+	pos x, s_footer_top
+	button gosub "更新", *l_refresh_button
+
+	gsel s_main_window_id, gsel_show
 	return
 
 // -----------------------------------------------
-// ステップ実行ボタン
+// ボタン
 // -----------------------------------------------
 
 #deffunc app_step_continue
@@ -154,6 +219,17 @@
 	app_step_in
 	return
 
+#deffunc app_refresh
+
+	logmes "app_refresh"
+	// FIXME: update
+	return
+
+*l_refresh_button
+
+	app_refresh
+	return
+
 // -----------------------------------------------
 // サーバーからのメッセージへの応答
 // -----------------------------------------------
@@ -167,7 +243,7 @@
 
 #deffunc app_did_receive_shutdown
 
-	gsel s_default_window_id, gsel_hide
+	gsel s_main_window_id, gsel_hide
 	end
 
 #deffunc app_did_receive_logmes var text
