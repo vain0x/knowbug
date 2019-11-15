@@ -22,6 +22,7 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x10000 };
 #define KMTC_HELLO_OK       (WM_USER + 1001)
 #define KMTC_SHUTDOWN       (WM_USER + 1002)
 #define KMTC_LOGMES         (WM_USER + 1003)
+#define KMTC_STOPPED        (WM_USER + 1004)
 #define KMTC_LAST           (WM_USER + 1999)
 
 class KnowbugServerImpl;
@@ -317,6 +318,10 @@ public:
 
 	void logmes(HspStringView text) override {
 		send(KMTC_LOGMES, to_utf8(text));
+	}
+
+	void debuggee_did_stop() override {
+		send(KMTC_STOPPED);
 	}
 
 	void client_did_hello(HWND client_hwnd) {

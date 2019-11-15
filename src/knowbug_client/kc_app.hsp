@@ -74,6 +74,9 @@
 	// サーバーと接続しているか？
 	s_connected = false
 
+	// デバッギが実行中か？
+	s_debuggee_is_running = true
+
 	// logmes の出力結果
 	sdim s_log_text, 0x10000
 	return
@@ -112,6 +115,12 @@
 
 	s_log_text += text + "\n"
 	app_log_did_update
+	return
+
+#deffunc app_did_receive_stopped
+
+	logmes "stopped"
+	s_debuggee_is_running = false
 	return
 
 // -----------------------------------------------

@@ -108,6 +108,8 @@ public:
 	}
 
 	void did_hsp_pause() {
+		server().debuggee_did_stop();
+
 		if (step_controller_->continue_step_running()) {
 			// HACK: すべてのウィンドウに無意味なメッセージを送信する。
 			//       HSP のウィンドウがこれを受信したとき、デバッグモードの変化が再検査されて、
