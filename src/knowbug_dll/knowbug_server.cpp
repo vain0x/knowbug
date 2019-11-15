@@ -210,6 +210,30 @@ static auto start_client_process(HWND server_hwnd) -> std::pair<ThreadHandle, Pr
 }
 
 // -----------------------------------------------
+// メッセージ
+// -----------------------------------------------
+
+class Msg {
+	int kind_;
+	Utf8String text_;
+
+public:
+	Msg(int kind, Utf8String text)
+		: kind_(kind)
+		, text_(std::move(text))
+	{
+	}
+
+	auto kind() const -> int {
+		return kind_;
+	}
+
+	auto text() const -> Utf8StringView {
+		return text_;
+	}
+};
+
+// -----------------------------------------------
 // サーバー
 // -----------------------------------------------
 
@@ -245,6 +269,8 @@ class KnowbugServerImpl
 	std::optional<ProcessHandle> client_process_opt_;
 
 	std::optional<ThreadHandle> client_thread_opt_;
+
+	std::vector<Msg> send_queue_;
 
 public:
 	KnowbugServerImpl(HSP3DEBUG* debug, HINSTANCE instance)
@@ -302,13 +328,19 @@ public:
 		client_hwnd_opt_ = client_hwnd;
 
 		send(KMTC_HELLO_OK);
+
+		// キューに溜まっていたメッセージをすべて送る。
+		for (auto&& msg : send_queue_) {
+			send(msg.kind(), msg.text());
+		}
+		send_queue_.clear();
 	}
 
 private:
 	void send(int kind, Utf8StringView text) {
 		if (!client_hwnd_opt_ || !server_buffer_view_opt_) {
-			// FIXME: キューに溜めて後で送る
-			assert(false);
+			// 接続確立後に送る。
+			send_queue_.push_back(Msg{ kind, Utf8String{ text } });
 			return;
 		}
 
