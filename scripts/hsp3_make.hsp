@@ -28,7 +28,7 @@
 	s_obj_name = "start.ax"
 	s_runtime_name = ""
 	s_runtime_dir = ""
-	s_debug_mode = 1 | 4 // 1: debug mode, 4: utf-8
+	s_compile_opts = 1 | 4 // 1: debug info, 4: utf-8
 	s_pp_opt = 4 | 16 | 32 // 4: make packfile, 16/32: utf-8
 	s_exit_code = EXIT_FAILURE
 
@@ -69,8 +69,10 @@
 		return false
 	}
 
+	hsc_compath s_hsp_root + "\\common\\"
+
 	// Compile to make object file.
-	hsc_comp s_debug_mode, s_pp_opt
+	hsc_comp s_compile_opts, s_pp_opt
 	if stat {
 		hsc_getmes s_error
 		return false

@@ -22,8 +22,9 @@
 
 	s_obj_name = "start.ax"
 	s_runtime_name = ""
-	s_debug_mode = 1
+	s_compile_opts = 1 // 1: デバッグ情報を埋め込む
 	s_pp_opts = 16 | 32 // utf-8
+	s_debug_mode = 1 // 1: デバッグウィンドウ表示
 	s_exit_code = EXIT_FAILURE
 
 	sdim s_error, 0x10000
@@ -59,8 +60,9 @@
 
 	hsc_ini s_src_name
 	hsc_objname s_obj_name
+	hsc_compath s_hsp_root + "\\common\\"
 
-	hsc_comp s_debug_mode, s_pp_opts
+	hsc_comp s_compile_opts, s_pp_opts, s_debug_mode
 	if stat {
 		hsc_getmes s_error
 		return false
@@ -73,7 +75,7 @@
 
 	s_runtime_path = s_hsp_root + "\\" + s_runtime_name
 
-	s_cmd = "\"" + s_runtime_path + "\" " + s_obj_name + " " + dir_cmdline
+	s_cmd = "\"" + s_runtime_path + "\" " + s_obj_name + " " + dirinfo(4) // FIXME: dir_cmdline is undefined?
 	pipeexec s_buffer, s_cmd, true // true = show window
 	if stat {
 		s_error = "Could not execute: '" + s_cmd + "'"

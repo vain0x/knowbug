@@ -7,6 +7,8 @@
 #define true 1
 #define false 0
 
+#define WM_USER 0x0400
+
 // Knowbug window Message To the Server
 #define KMTS_FIRST      (WM_USER + 1)
 #define KMTS_HELLO      (WM_USER + 1)
@@ -21,18 +23,17 @@
 #define NULL 0
 #define EXIT_FAILURE 1
 
-#define fail_with(%1) dialog (%1), dialog_error, "knowbug" : end EXIT_FAILURE
+#define fail_with(%1) dialog (%1), dialog_warn, "knowbug" : end EXIT_FAILURE
 
 #deffunc infra_connect_server
 
 	infra_init_globals
 	infra_init_subs
 	infra_parse_cmdline
-	return
+	return true
 
 #deffunc infra_init_globals
 
-	s_pipe = NULL
 	return
 
 // -----------------------------------------------
@@ -45,7 +46,7 @@
 		fail_with "コマンドラインが空です。"
 	}
 
-	s_server_hwnd = int(dir_cmdline)
+	s_server_hwnd = int(dirinfo(4)) // dir_cmdline not defined?
 	return
 
 // -----------------------------------------------
@@ -54,6 +55,7 @@
 
 #deffunc infra_send_hello
 
+	logmes "send hello"
 	sendmsg s_server_hwnd, KMTS_HELLO, 0, hwnd
 	return
 

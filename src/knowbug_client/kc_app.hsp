@@ -72,7 +72,6 @@
 
 	// gsel s_default_window_id, gsel_hide
 
-	screen s_main_window_id
 	title s_title + " [接続待ち]"
 
 	font "MS Gothic", 12

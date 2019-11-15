@@ -45,6 +45,7 @@ try {
         write-error 'プロキシクライアントのビルドに失敗しました。'
         exit 1
     }
+    sleep 1
 
     # プロキシの設定ファイルを作成する。
     $proxyConfigPath = "$env:HSP3_ROOT/knowbug_client_proxy.txt"

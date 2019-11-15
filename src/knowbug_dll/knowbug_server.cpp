@@ -125,10 +125,6 @@ static auto create_hidden_window(HINSTANCE instance) -> WindowHandle {
 	wndclass.lpszClassName = CLASS_NAME;
 	RegisterClass(&wndclass);
 
-	auto size_x = 100;
-	auto size_y = 100;
-	auto pos_x = -size_x;
-	auto pos_y = -size_y;
 	auto hwnd = CreateWindow(
 		CLASS_NAME,
 		TITLE,
@@ -180,13 +176,18 @@ static auto start_client_process(HWND server_hwnd) -> std::pair<ThreadHandle, Pr
 	auto name = get_hsp_dir();
 	name += TEXT("knowbug_client.exe");
 
-	auto cmdline = to_os(ascii_as_utf8(std::to_string((UINT_PTR)server_hwnd)));
+	auto server_hwnd_str = to_os(as_utf8(std::to_string((UINT_PTR)server_hwnd)));
+
+	auto cmdline = OsString{ TEXT("\"") };
+	cmdline += name;
+	cmdline += TEXT("\" ");
+	cmdline += server_hwnd_str;
 
 	auto si = STARTUPINFO{ sizeof(STARTUPINFO) };
 	auto pi = PROCESS_INFORMATION{};
 
 	auto success = CreateProcess(
-		name.data(),
+		LPCTSTR{},
 		cmdline.data(),
 		LPSECURITY_ATTRIBUTES{},
 		LPSECURITY_ATTRIBUTES{},
@@ -262,7 +263,7 @@ public:
 	{
 	}
 
-	void start() {
+	void start() override {
 		if (std::exchange(started_, true)) {
 			assert(false && u8"double start");
 			return;
@@ -270,13 +271,13 @@ public:
 
 		hidden_window_opt_ = create_hidden_window(instance_);
 
-		server_buffer_opt_ = create_memory_mapped_file(server_buffer_name_);
+		//server_buffer_opt_ = create_memory_mapped_file(server_buffer_name_);
 
-		server_buffer_view_opt_ = connect_memory_mapped_file(*server_buffer_opt_);
+		//server_buffer_view_opt_ = connect_memory_mapped_file(*server_buffer_opt_);
 
-		client_buffer_opt_ = create_memory_mapped_file(client_buffer_name_);
+		//client_buffer_opt_ = create_memory_mapped_file(client_buffer_name_);
 
-		client_buffer_view_opt_ = connect_memory_mapped_file(*client_buffer_opt_);
+		//client_buffer_view_opt_ = connect_memory_mapped_file(*client_buffer_opt_);
 
 		auto pair = start_client_process(hidden_window_opt_->get());
 		client_thread_opt_ = std::move(pair.first);
@@ -300,7 +301,8 @@ public:
 
 private:
 	void send(int kind, Utf8StringView text) {
-		if (!client_hwnd_opt_ || !server_buffer_view_opt_) {
+		//if (!client_hwnd_opt_ || !server_buffer_view_opt_) {
+		if (!client_hwnd_opt_) {
 			// FIXME: キューに溜めて後で送る
 			return;
 		}
@@ -314,10 +316,9 @@ private:
 	}
 };
 
-auto KnowbugServer::start(HSP3DEBUG* debug, HINSTANCE instance)->std::shared_ptr<KnowbugServer> {
+auto KnowbugServer::create(HSP3DEBUG* debug, HINSTANCE instance)->std::shared_ptr<KnowbugServer> {
 	auto server = std::make_shared<KnowbugServerImpl>(debug, instance);
 	s_server = server;
-	server->start();
 	return server;
 }
 
