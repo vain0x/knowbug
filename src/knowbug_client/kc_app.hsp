@@ -167,6 +167,7 @@
 
 #deffunc app_did_receive_shutdown
 
+	gsel s_default_window_id, gsel_hide
 	end
 
 #deffunc app_did_receive_logmes var text
