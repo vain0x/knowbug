@@ -81,6 +81,7 @@
 #deffunc app_init_windows
 
 	// gsel s_default_window_id, gsel_hide
+	width , , ginfo_dispx - ginfo_winx - 16, ginfo_dispy - ginfo_winy - 16
 
 	title s_title + " [接続待ち]"
 
