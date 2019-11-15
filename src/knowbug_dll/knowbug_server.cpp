@@ -6,6 +6,7 @@
 #include <optional>
 #include <vector>
 #include "../knowbug_core/encoding.h"
+#include "../knowbug_core/hsx.h"
 #include "../knowbug_core/platform.h"
 #include "knowbug_app.h"
 #include "knowbug_server.h"
@@ -15,6 +16,9 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x10000 };
 // Knowbug window Message To the Server
 #define KMTS_FIRST          (WM_USER + 1)
 #define KMTS_HELLO          (WM_USER + 1)
+#define KMTS_STEP_CONTINUE  (WM_USER + 2)
+#define KMTS_STEP_PAUSE     (WM_USER + 3)
+#define KMTS_STEP_IN        (WM_USER + 4)
 #define KMTS_LAST           (WM_USER + 999)
 
 // Knowbug window Message To the Client
@@ -341,6 +345,31 @@ public:
 		send_queue_.clear();
 	}
 
+	void client_did_step_continue() {
+		hsx::debug_do_set_mode(HSPDEBUG_RUN, debug_);
+		touch_all_windows();
+	}
+
+	void client_did_step_pause() {
+		hsx::debug_do_set_mode(HSPDEBUG_STOP, debug_);
+		touch_all_windows();
+	}
+
+	void client_did_step_in() {
+		hsx::debug_do_set_mode(HSPDEBUG_STEPIN, debug_);
+		touch_all_windows();
+	}
+
+	void touch_all_windows() {
+		auto hwnd = (HWND)debug_->hspctx->wnd_parent;
+		if (!hwnd) {
+			hwnd = HWND_BROADCAST;
+		}
+
+		// HACK: HSP のウィンドウに無意味なメッセージを送信することで、デバッグモードの変更に気づかせる。
+		PostMessage(hwnd, WM_NULL, WPARAM{}, LPARAM{});
+	}
+
 private:
 	void send(int kind, Utf8StringView text) {
 		if (!client_hwnd_opt_ || !server_buffer_view_opt_) {
@@ -389,6 +418,18 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 				switch (msg) {
 				case KMTS_HELLO:
 					server->client_did_hello((HWND)lp);
+					break;
+
+				case KMTS_STEP_CONTINUE:
+					server->client_did_step_continue();
+					break;
+
+				case KMTS_STEP_PAUSE:
+					server->client_did_step_pause();
+					break;
+
+				case KMTS_STEP_IN:
+					server->client_did_step_in();
 					break;
 
 				default:

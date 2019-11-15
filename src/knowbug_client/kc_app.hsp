@@ -66,6 +66,7 @@
 		return
 	}
 
+	logmes "send hello"
 	infra_send_hello
 	return
 
@@ -81,19 +82,76 @@
 	sdim s_log_text, 0x10000
 	return
 
-#deffunc app_init_windows
+#deffunc app_init_windows \
+	local x
 
 	// gsel s_default_window_id, gsel_hide
-	width , , ginfo_dispx - ginfo_winx - 16, ginfo_dispy - ginfo_winy - 16
+	width , , ginfo_dispx - ginfo_winx - 16, ginfo_dispy - ginfo_winy - 64
 
 	title s_title + " [接続待ち]"
 
+	s_step_button_width = 80
+	s_step_control_height = 24
+	s_step_control_top = ginfo_winy - s_step_control_height - 8
+
 	font "MS Gothic", 12
 	objmode objmode_font
-	mesbox s_log_text, ginfo_winx, ginfo_winy, mesbox_readonly
+	mesbox s_log_text, ginfo_winx, ginfo_winy - 8 - s_step_control_height - 8, mesbox_readonly
 	s_log_edit_id = stat
 
+	objsize s_step_button_width, s_step_control_height
+	x = 8
+
+	pos x, s_step_control_top
+	button gosub "実行", *l_step_continue_button
+	x += s_step_button_width + 8
+
+	pos x, s_step_control_top
+	button gosub "停止", *l_step_pause_button
+	x += s_step_button_width + 8
+
+	pos x, s_step_control_top
+	button gosub "次へ", *l_step_in_button
+	x += s_step_button_width + 8
+
 	gsel s_default_window_id, gsel_show
+	return
+
+// -----------------------------------------------
+// ステップ実行ボタン
+// -----------------------------------------------
+
+#deffunc app_step_continue
+
+	logmes "app_step_continue"
+	infra_send_step_continue
+	return
+
+*l_step_continue_button
+
+	app_step_continue
+	return
+
+#deffunc app_step_pause
+
+	logmes "app_step_pause"
+	infra_send_step_pause
+	return
+
+*l_step_pause_button
+
+	app_step_pause
+	return
+
+#deffunc app_step_in
+
+	logmes "app_step_in"
+	infra_send_step_in
+	return
+
+*l_step_in_button
+
+	app_step_in
 	return
 
 // -----------------------------------------------

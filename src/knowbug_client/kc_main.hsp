@@ -10,6 +10,9 @@
 // Knowbug window Message To the Server
 #define KMTS_FIRST          (WM_USER + 1)
 #define KMTS_HELLO          (WM_USER + 1)
+#define KMTS_STEP_CONTINUE  (WM_USER + 2)
+#define KMTS_STEP_PAUSE     (WM_USER + 3)
+#define KMTS_STEP_IN        (WM_USER + 4)
 #define KMTS_LAST           (WM_USER + 999)
 
 // Knowbug window Message To the Client
@@ -133,8 +136,22 @@
 
 #deffunc infra_send_hello
 
-	logmes "infra_send_hello"
 	sendmsg s_server_hwnd, KMTS_HELLO, 0, hwnd
+	return
+
+#deffunc infra_send_step_continue
+
+	sendmsg s_server_hwnd, KMTS_STEP_CONTINUE
+	return
+
+#deffunc infra_send_step_pause
+
+	sendmsg s_server_hwnd, KMTS_STEP_PAUSE
+	return
+
+#deffunc infra_send_step_in
+
+	sendmsg s_server_hwnd, KMTS_STEP_IN
 	return
 
 // -----------------------------------------------
