@@ -6,6 +6,7 @@
 #include <optional>
 #include <vector>
 #include "../knowbug_core/encoding.h"
+#include "../knowbug_core/hsp_objects.h"
 #include "../knowbug_core/hsx.h"
 #include "../knowbug_core/platform.h"
 #include "knowbug_app.h"
@@ -14,20 +15,39 @@
 static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x10000 };
 
 // Knowbug window Message To the Server
-#define KMTS_FIRST          (WM_USER + 1)
-#define KMTS_HELLO          (WM_USER + 1)
-#define KMTS_STEP_CONTINUE  (WM_USER + 2)
-#define KMTS_STEP_PAUSE     (WM_USER + 3)
-#define KMTS_STEP_IN        (WM_USER + 4)
-#define KMTS_LAST           (WM_USER + 999)
+#define KMTS_FIRST                  (WM_USER + 1)
+// クライアントが起動したことをサーバーに伝える。
+// lparam: クライアントのウィンドウハンドル
+#define KMTS_HELLO                  (WM_USER + 1)
+// 実行
+#define KMTS_STEP_CONTINUE          (WM_USER + 2)
+// 停止
+#define KMTS_STEP_PAUSE             (WM_USER + 3)
+// 次へ
+#define KMTS_STEP_IN                (WM_USER + 4)
+// ソースコードのテキストを要求する。
+// wparam: ソースファイルID
+#define KMTS_SOURCE                 (WM_USER + 5)
+#define KMTS_LAST                   (WM_USER + 999)
 
 // Knowbug window Message To the Client
-#define KMTC_FIRST          (WM_USER + 1001)
-#define KMTC_HELLO_OK       (WM_USER + 1001)
-#define KMTC_SHUTDOWN       (WM_USER + 1002)
-#define KMTC_LOGMES         (WM_USER + 1003)
-#define KMTC_STOPPED        (WM_USER + 1004)
-#define KMTC_LAST           (WM_USER + 1999)
+#define KMTC_FIRST                  (WM_USER + 1001)
+// クライアントの起動をサーバーが確認したことを伝える。
+#define KMTC_HELLO_OK               (WM_USER + 1001)
+// クライアントを終了させる。
+#define KMTC_SHUTDOWN               (WM_USER + 1002)
+// logmes 命令
+// text: logmes の引数。(UTF-8。改行は追加されていない。)
+#define KMTC_LOGMES                 (WM_USER + 1003)
+// assert や stop により停止したことを伝える。
+// wparam: ソースファイルID
+// lparam: 行番号 (0-indexed)
+#define KMTC_STOPPED                (WM_USER + 1004)
+// ソースコードのテキストを返す。
+// wparam: ソースファイルID
+// text: ソースコード (UTF-8)
+#define KMTC_SOURCE_OK              (WM_USER + 1005)
+#define KMTC_LAST                   (WM_USER + 1999)
 
 class KnowbugServerImpl;
 
@@ -220,17 +240,29 @@ static auto start_client_process(HWND server_hwnd) -> std::pair<ThreadHandle, Pr
 
 class Msg {
 	int kind_;
+	int wparam_;
+	int lparam_;
 	Utf8String text_;
 
 public:
-	Msg(int kind, Utf8String text)
+	Msg(int kind, int wparam, int lparam, Utf8String text)
 		: kind_(kind)
+		, wparam_(wparam)
+		, lparam_(lparam)
 		, text_(std::move(text))
 	{
 	}
 
 	auto kind() const -> int {
 		return kind_;
+	}
+
+	auto wparam() const -> int {
+		return wparam_;
+	}
+
+	auto lparam() const -> int {
+		return lparam_;
 	}
 
 	auto text() const -> Utf8StringView {
@@ -250,6 +282,8 @@ class KnowbugServerImpl
 	// NOTE: メンバーの順番はデストラクタの呼び出し順序 (下から上へ) に影響する。
 
 	HSP3DEBUG* debug_;
+
+	HspObjects& objects_;
 
 	HINSTANCE instance_;
 
@@ -278,8 +312,9 @@ class KnowbugServerImpl
 	std::vector<Msg> send_queue_;
 
 public:
-	KnowbugServerImpl(HSP3DEBUG* debug, HINSTANCE instance)
+	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)
 		: debug_(debug)
+		, objects_(objects)
 		, instance_(instance)
 		, started_(false)
 		, hidden_window_opt_()
@@ -321,11 +356,16 @@ public:
 	}
 
 	void logmes(HspStringView text) override {
-		send(KMTC_LOGMES, to_utf8(text));
+		send(KMTC_LOGMES, WPARAM{}, LPARAM{}, to_utf8(text));
 	}
 
 	void debuggee_did_stop() override {
-		send(KMTC_STOPPED);
+		objects().script_do_update_location();
+
+		auto file_id = objects().script_to_current_file().value_or(0);
+		auto line_index = objects().script_to_current_line();
+
+		send(KMTC_STOPPED, (int)file_id, (int)line_index);
 	}
 
 	void client_did_hello(HWND client_hwnd) {
@@ -340,7 +380,7 @@ public:
 
 		// キューに溜まっていたメッセージをすべて送る。
 		for (auto&& msg : send_queue_) {
-			send(msg.kind(), msg.text());
+			send(msg.kind(), msg.wparam(), msg.lparam(), msg.text());
 		}
 		send_queue_.clear();
 	}
@@ -360,6 +400,11 @@ public:
 		touch_all_windows();
 	}
 
+	void client_did_source(std::size_t source_file_id) {
+		auto content = objects().source_file_to_content(source_file_id).value_or(Utf8StringView{});
+		send(KMTC_SOURCE_OK, (int)source_file_id, int{}, content);
+	}
+
 	void touch_all_windows() {
 		auto hwnd = (HWND)debug_->hspctx->wnd_parent;
 		if (!hwnd) {
@@ -371,10 +416,14 @@ public:
 	}
 
 private:
-	void send(int kind, Utf8StringView text) {
+	auto objects() -> HspObjects& {
+		return objects_;
+	}
+
+	void send(int kind, int wparam, int lparam, Utf8StringView text) {
 		if (!client_hwnd_opt_ || !server_buffer_view_opt_) {
-			// 接続確立後に送る。
-			send_queue_.push_back(Msg{ kind, Utf8String{ text } });
+			// 後で、接続が確立したときに送る。
+			send_queue_.push_back(Msg{ kind, wparam, lparam, Utf8String{ text } });
 			return;
 		}
 
@@ -382,16 +431,20 @@ private:
 		std::memcpy(data, text.data(), text.size());
 		data[text.size()] = Utf8Char{};
 
-		SendMessage(*client_hwnd_opt_, kind, WPARAM{}, text.size());
+		SendMessage(*client_hwnd_opt_, kind, (WPARAM)wparam, (LPARAM)lparam);
+	}
+
+	void send(int kind, int wparam, int lparam) {
+		send(kind, (WPARAM)wparam, (LPARAM)lparam, Utf8StringView{});
 	}
 
 	void send(int kind) {
-		send(kind, Utf8StringView{});
+		send(kind, WPARAM{}, LPARAM{}, Utf8StringView{});
 	}
 };
 
-auto KnowbugServer::create(HSP3DEBUG* debug, HINSTANCE instance)->std::shared_ptr<KnowbugServer> {
-	auto server = std::make_shared<KnowbugServerImpl>(debug, instance);
+auto KnowbugServer::create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)->std::shared_ptr<KnowbugServer> {
+	auto server = std::make_shared<KnowbugServerImpl>(debug, objects, instance);
 	s_server = server;
 	return server;
 }
@@ -430,6 +483,10 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 
 				case KMTS_STEP_IN:
 					server->client_did_step_in();
+					break;
+
+				case KMTS_SOURCE:
+					server->client_did_source((std::size_t)wp);
 					break;
 
 				default:

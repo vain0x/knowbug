@@ -62,7 +62,7 @@ public:
 		, object_tree_(std::move(object_tree))
 		, view_(std::move(view))
 		, object_tree_observer_(create_object_tree_observer(*this))
-		, server_(KnowbugServer::create(*g_debug_opt, g_dll_instance))
+		, server_(KnowbugServer::create(*g_debug_opt, this->objects(), g_dll_instance))
 	{
 	}
 

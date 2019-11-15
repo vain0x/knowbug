@@ -18,6 +18,9 @@
 #define KMTS_STEP_PAUSE             (WM_USER + 3)
 // 次へ
 #define KMTS_STEP_IN                (WM_USER + 4)
+// ソースコードのテキストを要求する。
+// wparam: ソースファイルID
+#define KMTS_SOURCE                 (WM_USER + 5)
 #define KMTS_LAST                   (WM_USER + 999)
 
 // Knowbug window Message To the Client
@@ -30,7 +33,13 @@
 // text: logmes の引数。(UTF-8。改行は追加されていない。)
 #define KMTC_LOGMES                 (WM_USER + 1003)
 // assert や stop により停止したことを伝える。
+// wparam: ソースファイルID
+// lparam: 行番号 (0-indexed)
 #define KMTC_STOPPED                (WM_USER + 1004)
+// ソースコードのテキストを返す。
+// wparam: ソースファイルID
+// text: ソースコード (UTF-8)
+#define KMTC_SOURCE_OK              (WM_USER + 1005)
 #define KMTC_LAST                   (WM_USER + 1999)
 
 #define MEMORY_BUFFER_SIZE  0x10000
@@ -164,6 +173,11 @@
 	sendmsg s_server_hwnd, KMTS_STEP_IN
 	return
 
+#deffunc infra_send_source int source_file_id
+
+	sendmsg s_server_hwnd, KMTS_SOURCE, source_file_id
+	return
+
 // -----------------------------------------------
 // サーバーからのメッセージ
 // -----------------------------------------------
@@ -174,6 +188,7 @@
 	oncmd gosub *l_on_shutdown, KMTC_SHUTDOWN
 	oncmd gosub *l_on_logmes, KMTC_LOGMES
 	oncmd gosub *l_on_stopped, KMTC_STOPPED
+	oncmd gosub *l_on_source_ok, KMTC_SOURCE_OK
 	return
 
 *l_on_hello_ok
@@ -193,7 +208,12 @@
 
 *l_on_stopped
 
-	app_did_receive_stopped
+	app_did_receive_stopped wparam, lparam
+	return
+
+*l_on_source_ok
+
+	app_did_receive_source_ok wparam, s_server_buffer_data
 	return
 
 #global

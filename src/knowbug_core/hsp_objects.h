@@ -149,12 +149,16 @@ public:
 
 	auto script_to_content() const -> Utf8StringView;
 
+	auto script_to_current_file() const->std::optional<std::size_t>;
+
 	auto script_to_current_line() const -> std::size_t;
 
 	auto script_to_current_location_summary() const->Utf8String;
 
 	// :thinking_face:
 	void script_do_update_location();
+
+	auto source_file_to_content(std::size_t source_file_id) const->std::optional<Utf8StringView>;
 
 private:
 	auto debug() -> HSP3DEBUG* {

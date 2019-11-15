@@ -20,6 +20,8 @@
 
 #define global objmode_font 2
 
+#define global char_lf 0x0a
+
 // -----------------------------------------------
 // Win32 API の定数
 // -----------------------------------------------
@@ -29,6 +31,22 @@
 #define global FILE_MAP_WRITE  0x0002
 #define global FILE_MAP_READ   0x0004
 #define global WM_USER         0x0400
+
+#define global EM_GETSEL       0x00b0
+#define global EM_SETSEL       0x00b1
+#define global EM_LINESCROLL   0x00b6
+#define global EM_LINEINDEX    0x00bb
+
+#define global WS_HSCROLL      0x00100000
+#define global WS_VSCROLL      0x00200000
+#define global WS_BORDER       0x00800000
+#define global WS_VISIBLE      0x10000000
+#define global WS_CHILD        0x40000000
+#define global ES_MULTILINE    0x0004
+#define global ES_AUTOVSCROLL  0x0040
+#define global ES_AUTOHSCROLL  0x0080
+#define global ES_NOHIDESEL    0x0100
+#define global ES_READONLY     0x0800
 
 // -----------------------------------------------
 // ヘルパー
@@ -84,11 +102,24 @@
 
 	// スクリプト
 	sdim s_script_text
-	s_script_line = 0
+	// 表示中のソースファイルID (なければ -1)
+	s_script_source_file_id = -1
+	// 表示中のソースファイルの表示時点でソースコードが存在したか
+	s_script_source_exists = false
+	// 表示している行番号 (最後に自動スクロールした時点での行番号。現在の行番号ではない。)
+	s_script_line_index = 0
 
 	// データリスト
 	s_list_note = "a\nb\nc\n"
 	s_list_current = -1
+
+	// ソースファイル
+	sdim s_source_texts
+	dim s_source_exists
+
+	sdim s_lf
+	poke s_lf, 0, char_lf
+	poke s_lf, 1, 0
 	return
 
 #deffunc app_init_windows \
@@ -147,13 +178,15 @@
 	s_list_box_hwnd = objinfo_hwnd(s_list_box_id)
 
 	// スクリプト
-	font "MS Gothic", 13
 	pos s_script_edit_left, s_script_edit_top
-	mesbox s_script_text, s_script_edit_width, s_script_edit_height, mesbox_readonly
-	s_script_edit_id = stat
-	s_script_edit_hwnd = objinfo_hwnd(s_script_edit_id)
+
+	// FIXME: フォント
+	s_script_edit_style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
+	CreateWindowEx 0, "EDIT", "", s_script_edit_style, s_script_edit_left, s_script_edit_top, s_script_edit_width, s_script_edit_height, hwnd, NULL, hinstance, NULL
+	s_script_edit_hwnd = stat
 
 	// ログ
+	font "MS Gothic", 13
 	pos s_log_edit_left, s_log_edit_top
 	mesbox s_log_text, s_log_edit_width, s_log_edit_height, mesbox_readonly
 	s_log_edit_id = stat
@@ -180,6 +213,100 @@
 	button gosub "更新", *l_refresh_button
 
 	gsel s_main_window_id, gsel_show
+	return
+
+// -----------------------------------------------
+// ソースファイル
+// -----------------------------------------------
+
+#deffunc app_source_add int source_file_id, var text, \
+	local lines, local n
+
+	if source_file_id < 0 {
+		debug_warn "ソースファイルIDは非負でなければいけません。"
+		return
+	}
+	if app_source_exists(source_file_id) {
+		debug_warn "同じソースファイルを複数回ロードしました。"
+		return
+	}
+
+	// 改行コードを正規化する。(FIXME: 高速化)
+	split text, s_lf, lines
+	n = stat
+
+	s_source_texts(source_file_id) = ""
+	repeat n
+		s_source_texts(source_file_id) += lines(cnt) + "\n"
+	loop
+
+	s_source_exists(source_file_id) = true
+	return
+
+// ソースファイルIDに対応するソースコードを保持しているかを返す。
+#defcfunc app_source_exists int source_file_id
+
+	if source_file_id < 0 || source_file_id >= length(s_source_exists) {
+		return false
+	}
+
+	return s_source_exists(source_file_id)
+
+// ソースコードのクローンをとる。成功したら true を返す。
+#deffunc app_source_dup_text int source_file_id, var text
+
+	if app_source_exists(source_file_id) == false {
+		return false
+	}
+
+	dup text, s_source_texts(source_file_id)
+	return true
+
+// -----------------------------------------------
+// スクリプトエディット
+// -----------------------------------------------
+
+#deffunc app_script_edit_update int source_file_id, int line_index, \
+	local text, local text_updated, local start_index, local end_index
+
+	// FIXME: 行番号とパスも表示する。
+
+	text_updated = false
+
+	// テキストを更新する。
+	if s_script_source_file_id != source_file_id || s_script_source_exists != app_source_exists(source_file_id) {
+		app_source_dup_text source_file_id, text
+		if stat == false {
+			text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
+		}
+		// FIXME: 文字コード
+		SetWindowText s_script_edit_hwnd, text
+
+		s_script_source_file_id = source_file_id
+		s_script_source_exists = app_source_exists(source_file_id)
+		text_updated = true
+	}
+
+	// 行を更新する。
+	if text_updated || s_script_line_index != line_index {
+		// 指定行の範囲をバイトインデックスとして求める。
+		sendmsg s_script_edit_hwnd, EM_LINEINDEX, line_index, NULL
+		start_index = stat
+
+		sendmsg s_script_edit_hwnd, EM_LINEINDEX, line_index + 1, NULL
+		end_index = stat
+
+		if start_index < 0 || end_index < 0 {
+			// 行番号が不正？
+			start_index = 0
+			end_index = 0
+		}
+
+		sendmsg s_script_edit_hwnd, EM_SETSEL, start_index, end_index
+		sendmsg s_script_edit_hwnd, EM_LINESCROLL, 0, limit(line_index - 3, 0)
+
+		s_script_line_index = line_index
+	}
 	return
 
 // -----------------------------------------------
@@ -252,10 +379,27 @@
 	app_log_did_update
 	return
 
-#deffunc app_did_receive_stopped
+#deffunc app_did_receive_stopped int source_file_id, int line_index
 
-	logmes "stopped"
+	logmes strf("app_did_receive_stopped(%d, %d)", source_file_id, line_index)
 	s_debuggee_is_running = false
+
+	if app_source_exists(source_file_id) == false {
+		infra_send_source source_file_id
+	}
+
+	app_script_edit_update source_file_id, line_index
+	return
+
+#deffunc app_did_receive_source_ok int source_file_id, var text
+
+	logmes strf("app_did_receive_source_ok(%d, ...)", source_file_id)
+	app_source_add source_file_id, text
+
+	// ソースコードが読み込まれたら表示に反映する。
+	if s_script_source_file_id == source_file_id {
+		app_script_edit_update source_file_id, s_script_line_index
+	}
 	return
 
 // -----------------------------------------------

@@ -5,9 +5,11 @@
 #include "../hspsdk/hsp3debug.h"
 #include "../knowbug_core/platform.h"
 
+class HspObjects;
+
 class KnowbugServer {
 public:
-	static auto create(HSP3DEBUG* debug, HINSTANCE instance)->std::shared_ptr<KnowbugServer>;
+	static auto create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)->std::shared_ptr<KnowbugServer>;
 
 	virtual ~KnowbugServer() {
 	}
