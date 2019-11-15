@@ -21,12 +21,22 @@
 #define global objmode_font 2
 
 // -----------------------------------------------
+// Win32 API の定数
+// -----------------------------------------------
+
+#define global NULL            0
+#define global EXIT_FAILURE    1
+#define global FILE_MAP_WRITE  0x0002
+#define global FILE_MAP_READ   0x0004
+#define global WM_USER         0x0400
+
+// -----------------------------------------------
 // ヘルパー
 // -----------------------------------------------
 
 //#ifdef _DEBUG
-#define global debug_trace(%1) s_log_text@ += "TRACE: " + (%1) + "\n" : app_log_did_update
-#define global debug_warn(%1) s_log_text@ += "WARN: " + (%1) + "\n" : app_log_did_update
+#define global debug_trace(%1) s_log_text@m_app += "TRACE: " + (%1) + "\n" : app_log_did_update
+#define global debug_warn(%1) s_log_text@m_app += "WARN: " + (%1) + "\n" : app_log_did_update
 //#else
 //#define global debug_trace(%1) :
 //#endif
@@ -88,6 +98,7 @@
 
 #deffunc app_did_receive_hello_ok
 
+	logmes "app_did_receive_hello_ok"
 	s_connected = true
 	title s_title
 	return

@@ -13,15 +13,15 @@
 static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x10000 };
 
 // Knowbug window Message To the Server
-#define KMTS_FIRST      (WM_USER + 1)
-#define KMTS_HELLO      (WM_USER + 1)
-#define KMTS_LAST       (WM_USER + 999)
+#define KMTS_FIRST          (WM_USER + 1)
+#define KMTS_HELLO          (WM_USER + 1)
+#define KMTS_LAST           (WM_USER + 999)
 
 // Knowbug window Message To the Client
-#define KMTC_FIRST      (WM_USER + 1001)
-#define KMTC_HELLO_OK   (WM_USER + 1001)
-#define KMTC_SHUTDOWN   (WM_USER + 1002)
-#define KMTC_LAST       (WM_USER + 1999)
+#define KMTC_FIRST          (WM_USER + 1001)
+#define KMTC_HELLO_OK       (WM_USER + 1001)
+#define KMTC_SHUTDOWN       (WM_USER + 1002)
+#define KMTC_LAST           (WM_USER + 1999)
 
 class KnowbugServerImpl;
 
@@ -271,13 +271,13 @@ public:
 
 		hidden_window_opt_ = create_hidden_window(instance_);
 
-		//server_buffer_opt_ = create_memory_mapped_file(server_buffer_name_);
+		server_buffer_opt_ = create_memory_mapped_file(server_buffer_name_);
 
-		//server_buffer_view_opt_ = connect_memory_mapped_file(*server_buffer_opt_);
+		server_buffer_view_opt_ = connect_memory_mapped_file(*server_buffer_opt_);
 
-		//client_buffer_opt_ = create_memory_mapped_file(client_buffer_name_);
+		client_buffer_opt_ = create_memory_mapped_file(client_buffer_name_);
 
-		//client_buffer_view_opt_ = connect_memory_mapped_file(*client_buffer_opt_);
+		client_buffer_view_opt_ = connect_memory_mapped_file(*client_buffer_opt_);
 
 		auto pair = start_client_process(hidden_window_opt_->get());
 		client_thread_opt_ = std::move(pair.first);
@@ -290,7 +290,7 @@ public:
 
 	void client_did_hello(HWND client_hwnd) {
 		if (!client_hwnd) {
-			fail_with(TEXT("The client sent invalid hwnd!"));
+			fail_with(TEXT("The client sent hwnd=NULL"));
 		}
 
 		assert(!client_hwnd_opt_);
@@ -301,13 +301,16 @@ public:
 
 private:
 	void send(int kind, Utf8StringView text) {
-		//if (!client_hwnd_opt_ || !server_buffer_view_opt_) {
-		if (!client_hwnd_opt_) {
+		if (!client_hwnd_opt_ || !server_buffer_view_opt_) {
 			// FIXME: キューに溜めて後で送る
+			assert(false);
 			return;
 		}
 
-		// write to the buffer
+		auto data = (Utf8Char*)server_buffer_view_opt_->get();
+		std::memcpy(data, text.data(), text.size());
+		data[text.size()] = Utf8Char{};
+
 		SendMessage(*client_hwnd_opt_, kind, WPARAM{}, text.size());
 	}
 

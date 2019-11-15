@@ -20,7 +20,7 @@
 
 	gsel s_default_window_id, gsel_hide
 
-	s_obj_name = "start.ax"
+	s_obj_name = "knowbug_client.ax"
 	s_runtime_name = ""
 	s_compile_opts = 1 // 1: デバッグ情報を埋め込む
 	s_pp_opts = 16 | 32 // utf-8
