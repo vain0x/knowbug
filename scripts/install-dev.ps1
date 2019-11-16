@@ -1,38 +1,36 @@
 # knowbug のデバッグ版をインストールする。
-
-# (どういうわけかこれを実行しても動作しない。参考程度に使う。)
-
-# 条件:
-#   環境変数 KNOWBUG_SERVER_HSP3_ROOT に HSP のディレクトリを設定しておく。
-
-# 使い方:
-#   (管理者権限で実行する。)
-#   echo $env:KNOWBUG_SERVER_HSP3_ROOT
-#   cd knowbug
-#   ./scripts/install-dev.ps1
+# シンボリックリンクを作成するため、管理者権限が要求される。
 
 if (!$env:KNOWBUG_SERVER_HSP3_ROOT) {
-    write-error "環境変数 KNOWBUG_SERVER_HSP3_ROOT を設定してください"
+    write-error '環境変数 KNOWBUG_SERVER_HSP3_ROOT を設定してください。'
     exit 1
 }
 
-$table = @(
-    @("hsp3debug.dll", "$pwd/src/Win32/Debug/hsp3debug.dll"),
-    @("hsp3debug_u8.dll", "$pwd/src/Win32/DebugUtf8/hsp3debug_u8.dll"),
-    @("hsp3debug_64.dll", "$pwd/src/x64/Debug/hsp3debug_64.dll")
-)
-
-foreach ($row in $table) {
-    $name = $row[0]
-    $targetPath = $row[1]
-    $sourcePath = "$env:KNOWBUG_SERVER_HSP3_ROOT/$name"
-    $backup = "$env:KNOWBUG_SERVER_HSP3_ROOT/$name.orig"
-
-    # ファイルを移動する。
-    echo "move $sourcePath -> $backup"
-    move-item -force -path $sourcePath -destination $backup
-
-    # シンボリックリンクを張る。
-    echo "link $sourcePath -> $backup"
-    new-item -itemType symbolicLink -path $sourcePath -value $targetPath
+function escalate() {
+    if (!$(test-path '.lock')) {
+        new-item '.lock'
+        start-process pwsh -argumentList @('/c', './scripts/install-dev.ps1; pause') -verb 'runas'
+        exit 0
+    }
+    remove-item '.lock'
 }
+
+function install($name, $config, $platform) {
+    $root = (get-item $env:KNOWBUG_SERVER_HSP3_ROOT).fullName
+    $src = (get-item "./src/target/knowbug_dll-$platform-$config/bin/$name").fullName
+    $dest = "$root/$name"
+
+    if ($(test-path $dest)) {
+        remove-item $dest
+    }
+
+    new-item -itemType symbolicLink -path $dest -value $src
+}
+
+./scripts/backup
+./scripts/build-all
+
+escalate
+install 'hsp3debug.dll' 'Debug' 'Win32'
+install 'hsp3debug_u8.dll' 'DebugUtf8' 'Win32'
+install 'hsp3debug_64.dll' 'Debug' 'x64'

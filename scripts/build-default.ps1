@@ -8,20 +8,14 @@ if (!$(which MSBuild.exe)) {
     exit 1
 }
 
-$knowbugRoot = (get-item .).FullName
+MSBuild.exe './src/knowbug.sln' "-p:Configuration=DebugUtf8;Platform=x86"
+if (!$?) {
+    write-error 'ビルドに失敗しました。'
+    exit 1
+}
 
-try {
-    cd "$knowbugRoot/src"
-
-    MSBuild.exe knowbug.sln "-p:Configuration=DebugUtf8;Platform=x86"
-    if (!$?) {
-        exit 1
-    }
-
-    & "Win32/DebugUtf8/knowbug_tests"
-    if (!$?) {
-        exit 1
-    }
-} finally {
-    cd $knowbugRoot
+& './src/target/knowbug_tests-Win32-DebugUtf8/bin/knowbug_tests.exe'
+if (!$?) {
+    write-error 'テストに失敗しました。'
+    exit 1
 }
