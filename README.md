@@ -66,4 +66,4 @@ knowbug のリリースの一覧は以下を参照してください。(pre-rele
 ## 関連リンク
 
 - OpenHSP <http://dev.onionsoft.net/trac>
-- GINGER <https://github.com/vain0x/hsp3-debug-ginger>
+- HSP3 GINGER <https://github.com/vain0x/hsp3-ginger>
