@@ -15,7 +15,8 @@
 #include "knowbug_app.h"
 #include "knowbug_server.h"
 
-static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x10000 };
+// 1 MB
+static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x1000000 };
 
 // Knowbug window Message To the Server
 #define KMTS_FIRST                  (WM_USER + 1)
@@ -518,6 +519,12 @@ private:
 	}
 
 	void send(int kind, int wparam, int lparam, Utf8StringView text) {
+		if (text.size() >= MEMORY_BUFFER_SIZE) {
+			// FIXME: ログ出力
+			assert(false);
+			return;
+		}
+
 		if (!client_hwnd_opt_ || !server_buffer_view_opt_) {
 			// 後で、接続が確立したときに送る。
 			send_queue_.push_back(Msg{ kind, wparam, lparam, Utf8String{ text } });

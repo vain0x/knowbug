@@ -49,7 +49,7 @@
 #define KMTC_LIST_UPDATE_OK         (WM_USER + 1006)
 #define KMTC_LAST                   (WM_USER + 1999)
 
-#define MEMORY_BUFFER_SIZE  0x10000
+#define MEMORY_BUFFER_SIZE  0x1000000
 
 #deffunc infra_connect_server
 
