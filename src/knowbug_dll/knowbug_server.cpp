@@ -518,6 +518,12 @@ private:
 	}
 
 	void send(int kind, int wparam, int lparam, Utf8StringView text) {
+		if (text.size() >= MEMORY_BUFFER_SIZE) {
+			// FIXME: ログ出力
+			assert(false);
+			return;
+		}
+
 		if (!client_hwnd_opt_ || !server_buffer_view_opt_) {
 			// 後で、接続が確立したときに送る。
 			send_queue_.push_back(Msg{ kind, wparam, lparam, Utf8String{ text } });
