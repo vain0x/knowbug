@@ -1,5 +1,5 @@
 #include "hsp3utf.as"
-#include "WrapCall.as"
+#addition "WrapCall.as"
 
 #module
 

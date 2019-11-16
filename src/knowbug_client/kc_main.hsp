@@ -1,0 +1,244 @@
+// エントリーポイント
+
+#include "kc_app.hsp"
+
+#module m_infra
+
+#define true 1
+#define false 0
+
+// Knowbug window Message To the Server
+#define KMTS_FIRST                  (WM_USER + 1)
+// クライアントが起動したことをサーバーに伝える。
+// lparam: クライアントのウィンドウハンドル
+#define KMTS_HELLO                  (WM_USER + 1)
+// デバッグの終了をサーバーに要求する。
+#define KMTS_TERMINATE              (WM_USER + 2)
+// 実行
+#define KMTS_STEP_CONTINUE          (WM_USER + 3)
+// 停止
+#define KMTS_STEP_PAUSE             (WM_USER + 4)
+// 次へ
+#define KMTS_STEP_IN                (WM_USER + 5)
+// ソースコードのテキストを要求する。
+// wparam: ソースファイルID
+#define KMTS_SOURCE                 (WM_USER + 6)
+// オブジェクトリストを要求する。
+#define KMTS_LIST_UPDATE            (WM_USER + 7)
+#define KMTS_LAST                   (WM_USER + 999)
+
+// Knowbug window Message To the Client
+#define KMTC_FIRST                  (WM_USER + 1001)
+// クライアントの起動をサーバーが確認したことを伝える。
+#define KMTC_HELLO_OK               (WM_USER + 1001)
+// クライアントを終了させる。
+#define KMTC_SHUTDOWN               (WM_USER + 1002)
+// logmes 命令
+// text: logmes の引数。(UTF-8。改行は追加されていない。)
+#define KMTC_LOGMES                 (WM_USER + 1003)
+// assert や stop により停止したことを伝える。
+// wparam: ソースファイルID
+// lparam: 行番号 (0-indexed)
+#define KMTC_STOPPED                (WM_USER + 1004)
+// ソースコードのテキストを返す。
+// wparam: ソースファイルID
+// text: ソースコード (UTF-8)
+#define KMTC_SOURCE_OK              (WM_USER + 1005)
+// オブジェクトリストを返す。
+// text: オブジェクトリスト (UTF-8、改行区切り)
+#define KMTC_LIST_UPDATE_OK         (WM_USER + 1006)
+#define KMTC_LAST                   (WM_USER + 1999)
+
+#define MEMORY_BUFFER_SIZE  0x10000
+
+#deffunc infra_connect_server
+
+	infra_init_globals
+	infra_init_subs
+
+	infra_parse_cmdline
+	if stat == false {
+		return false
+	}
+
+	infra_connect_server_buffer
+	if stat == false {
+		return false
+	}
+
+	infra_connect_client_buffer
+	if stat == false {
+		return false
+	}
+	return true
+
+#deffunc infra_init_globals
+
+	sdim s_error
+
+	// サーバー側のウィンドウハンドル
+	dim s_server_hwnd
+
+	// サーバー側のデータ交換バッファー
+	dim s_server_buffer_handle
+	dim s_server_buffer_view
+	sdim s_server_buffer_data
+
+	// クライアント側のデータ交換バッファー
+	dim s_client_buffer_handle
+	dim s_client_buffer_view
+	sdim s_client_buffer_data
+	return
+
+#deffunc infra_onexit onexit
+
+	sdim s_server_buffer_data
+	if s_server_buffer_view {
+		UnmapViewOfFile s_server_buffer_view
+	}
+	if s_server_buffer_handle {
+		CloseHandle s_server_buffer_handle
+	}
+
+	sdim s_client_buffer_data
+	if s_client_buffer_view {
+		UnmapViewOfFile s_client_buffer_view
+	}
+	if s_client_buffer_handle {
+		CloseHandle s_client_buffer_handle
+	}
+	return
+
+// -----------------------------------------------
+// コマンドライン
+// -----------------------------------------------
+
+#deffunc infra_parse_cmdline
+
+	if dir_cmdline == "" {
+		dialog "コマンドラインが空です。", dialog_warn
+		return false
+	}
+
+	s_server_hwnd = int(dirinfo(4)) // dir_cmdline not defined?
+	return true
+
+// -----------------------------------------------
+// メモリマップトファイル
+// -----------------------------------------------
+
+#deffunc infra_connect_memory_mapped_file str file_name, var file_handle, var view, var data
+
+	OpenFileMapping FILE_MAP_READ | FILE_MAP_WRITE, false, file_name
+	file_handle = stat
+	if file_handle == NULL {
+		debug_warn "デバッグウィンドウの初期化に失敗しました。(クライアントがデータ交換バッファーにアクセスできませんでした。)"
+		return false
+	}
+
+	MapViewOfFile file_handle, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0
+	view = stat
+	if view == NULL {
+		debug_warn "デバッグウィンドウの初期化に失敗しました。(クライアントがデータ交換バッファーのビューを作成できませんでした。)"
+		return false
+	}
+
+	dupptr data, view, MEMORY_BUFFER_SIZE, vartype("str")
+	return true
+
+#deffunc infra_connect_server_buffer
+
+	infra_connect_memory_mapped_file "KnowbugServerBuffer", s_server_buffer_handle, s_server_buffer_view, s_server_buffer_data
+	return stat
+
+#deffunc infra_connect_client_buffer
+
+	infra_connect_memory_mapped_file "KnowbugClientBuffer", s_client_buffer_handle, s_client_buffer_view, s_client_buffer_data
+	return stat
+
+// -----------------------------------------------
+// サーバーへのメッセージ
+// -----------------------------------------------
+
+#deffunc infra_send_hello
+
+	sendmsg s_server_hwnd, KMTS_HELLO, 0, hwnd
+	return
+
+#deffunc infra_send_terminate
+
+	sendmsg s_server_hwnd, KMTS_TERMINATE
+	return
+
+#deffunc infra_send_step_continue
+
+	sendmsg s_server_hwnd, KMTS_STEP_CONTINUE
+	return
+
+#deffunc infra_send_step_pause
+
+	sendmsg s_server_hwnd, KMTS_STEP_PAUSE
+	return
+
+#deffunc infra_send_step_in
+
+	sendmsg s_server_hwnd, KMTS_STEP_IN
+	return
+
+#deffunc infra_send_source int source_file_id
+
+	sendmsg s_server_hwnd, KMTS_SOURCE, source_file_id
+	return
+
+#deffunc infra_send_list_update
+
+	sendmsg s_server_hwnd, KMTS_LIST_UPDATE
+	return
+
+// -----------------------------------------------
+// サーバーからのメッセージ
+// -----------------------------------------------
+
+#deffunc infra_init_subs
+
+	oncmd gosub *l_on_hello_ok, KMTC_HELLO_OK
+	oncmd gosub *l_on_shutdown, KMTC_SHUTDOWN
+	oncmd gosub *l_on_logmes, KMTC_LOGMES
+	oncmd gosub *l_on_stopped, KMTC_STOPPED
+	oncmd gosub *l_on_source_ok, KMTC_SOURCE_OK
+	oncmd gosub *l_on_list_update_ok, KMTC_LIST_UPDATE_OK
+	return
+
+*l_on_hello_ok
+
+	app_did_receive_hello_ok
+	return
+
+*l_on_shutdown
+
+	app_did_receive_shutdown
+	return
+
+*l_on_logmes
+
+	app_did_receive_logmes s_server_buffer_data
+	return
+
+*l_on_stopped
+
+	app_did_receive_stopped wparam, lparam
+	return
+
+*l_on_source_ok
+
+	app_did_receive_source_ok wparam, s_server_buffer_data
+	return
+
+*l_on_list_update_ok
+
+	app_did_receive_list_update_ok s_server_buffer_data
+	return
+
+#global
+
+	app_init

@@ -1,0 +1,442 @@
+// アプリケーションのコア部分
+
+#packopt name "knowbug_client"
+#packopt hide 1
+
+#include "hsp3utf.as"
+#include "kernel32.as"
+#include "user32.as"
+
+// -----------------------------------------------
+// HSP の定数
+// -----------------------------------------------
+
+#define global dialog_warn 1
+
+#define global gsel_hide (-1)
+#define global gsel_show 1
+
+#define global mesbox_readonly 0
+
+#define global objmode_font 2
+
+#define global char_lf 0x0a
+
+// -----------------------------------------------
+// Win32 API の定数
+// -----------------------------------------------
+
+#define global NULL            0
+#define global EXIT_FAILURE    1
+#define global FILE_MAP_WRITE  0x0002
+#define global FILE_MAP_READ   0x0004
+#define global WM_USER         0x0400
+
+#define global EM_GETSEL       0x00b0
+#define global EM_SETSEL       0x00b1
+#define global EM_LINESCROLL   0x00b6
+#define global EM_LINEINDEX    0x00bb
+
+#define global WS_HSCROLL      0x00100000
+#define global WS_VSCROLL      0x00200000
+#define global WS_BORDER       0x00800000
+#define global WS_VISIBLE      0x10000000
+#define global WS_CHILD        0x40000000
+#define global ES_MULTILINE    0x0004
+#define global ES_AUTOVSCROLL  0x0040
+#define global ES_AUTOHSCROLL  0x0080
+#define global ES_NOHIDESEL    0x0100
+#define global ES_READONLY     0x0800
+
+// -----------------------------------------------
+// ヘルパー
+// -----------------------------------------------
+
+//#ifdef _DEBUG
+#define global debug_trace(%1) s_log_text@m_app += "TRACE: " + (%1) + "\n" : app_log_did_update
+#define global debug_warn(%1) s_log_text@m_app += "WARN: " + (%1) + "\n" : app_log_did_update
+//#else
+//#define global debug_trace(%1) :
+//#endif
+
+// -----------------------------------------------
+// アプリケーション
+// -----------------------------------------------
+
+#enum global s_default_window_id = 0
+#enum global s_main_window_id
+
+#module m_app
+
+#define true 1
+#define false 0
+
+// FIXME: エンコーディングとプラットフォームも表示
+#define s_title "knowbug v0.1.0"
+
+#deffunc app_init
+
+	app_init_globals
+	app_init_windows
+	app_init_subs
+
+	infra_connect_server
+	if stat == false {
+		app_did_disconnect
+		return
+	}
+
+	logmes "send hello"
+	infra_send_hello
+	return
+
+#deffunc app_init_globals
+
+	// サーバーと接続しているか？
+	s_connected = false
+
+	// デバッギが実行中か？
+	s_debuggee_is_running = true
+
+	// logmes の出力結果
+	sdim s_log_text, 0x10000
+
+	// スクリプト
+	sdim s_script_text
+	// 表示中のソースファイルID (なければ -1)
+	s_script_source_file_id = -1
+	// 表示中のソースファイルの表示時点でソースコードが存在したか
+	s_script_source_exists = false
+	// 表示している行番号 (最後に自動スクロールした時点での行番号。現在の行番号ではない。)
+	s_script_line_index = 0
+
+	// データリスト
+	s_list_note = "a\nb\nc\n"
+	s_list_current = -1
+
+	// ソースファイル
+	sdim s_source_texts
+	dim s_source_exists
+
+	sdim s_lf
+	poke s_lf, 0, char_lf
+	poke s_lf, 1, 0
+	return
+
+#deffunc app_init_windows \
+	local x
+
+	gsel s_default_window_id, gsel_hide
+
+	s_main_window_width = 480
+	s_main_window_height = 520
+	s_main_window_left = ginfo_dispx - s_main_window_width - 16
+	s_main_window_top =  ginfo_dispy - s_main_window_height - 72
+	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height
+
+	title s_title + " [接続待ち]"
+
+	hsvcolor , , 0xfc
+	boxf
+
+	objmode objmode_font
+
+	s_margin = 4
+	s_step_button_width = 80
+	s_step_button_height = 24
+
+	s_footer_left = 0
+	s_footer_height = s_step_button_height
+	s_footer_top = s_main_window_height - s_margin - s_footer_height
+	s_footer_width = s_main_window_width
+
+	s_main_left = 0
+	s_main_top = 0
+	s_main_height = s_footer_top - s_margin
+	s_main_width = s_main_window_width
+
+	s_list_box_left = s_main_left
+	s_list_box_top = s_main_top
+	s_list_box_width = s_main_width / 2
+	s_list_box_height = s_main_height
+
+	s_script_edit_left = s_list_box_width
+	s_script_edit_top = s_main_top
+	s_script_edit_width = s_main_width - s_list_box_width
+	s_script_edit_height = s_main_height / 2
+
+	s_log_edit_left = s_list_box_width
+	s_log_edit_top = s_script_edit_top + s_script_edit_height
+	s_log_edit_width = s_main_width - s_list_box_width
+	s_log_edit_height = s_main_height - s_script_edit_height
+
+	// リストボックス
+	font "MS Gothic", 13
+	pos s_list_box_left, s_list_box_top
+	objsize s_list_box_width, s_list_box_height - 100
+	listbox s_list_current, 100, s_list_note
+	s_list_box_id = stat
+	s_list_box_hwnd = objinfo_hwnd(s_list_box_id)
+
+	// スクリプト
+	pos s_script_edit_left, s_script_edit_top
+
+	// FIXME: フォント
+	s_script_edit_style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
+	CreateWindowEx 0, "EDIT", "", s_script_edit_style, s_script_edit_left, s_script_edit_top, s_script_edit_width, s_script_edit_height, hwnd, NULL, hinstance, NULL
+	s_script_edit_hwnd = stat
+
+	// ログ
+	pos s_log_edit_left, s_log_edit_top
+	mesbox s_log_text, s_log_edit_width, s_log_edit_height, mesbox_readonly
+	s_log_edit_id = stat
+	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
+
+	// フッター
+	objsize s_step_button_width, s_step_button_height
+	x = 8
+
+	pos x, s_footer_top
+	button gosub "実行", *l_step_continue_button
+	x += s_step_button_width + 8
+
+	pos x, s_footer_top
+	button gosub "停止", *l_step_pause_button
+	x += s_step_button_width + 8
+
+	pos x, s_footer_top
+	button gosub "次へ", *l_step_in_button
+	x += s_step_button_width + 8
+
+	x = s_footer_width - s_margin - s_step_button_width
+	pos x, s_footer_top
+	button gosub "更新", *l_refresh_button
+
+	gsel s_main_window_id, gsel_show
+	return
+
+#deffunc app_init_subs
+
+	onexit goto *l_on_exit
+	return
+
+*l_on_exit
+
+	infra_send_terminate
+	return
+
+// -----------------------------------------------
+// ソースファイル
+// -----------------------------------------------
+
+#deffunc app_source_add int source_file_id, var text, \
+	local lines, local n
+
+	if source_file_id < 0 {
+		debug_warn "ソースファイルIDは非負でなければいけません。"
+		return
+	}
+	if app_source_exists(source_file_id) {
+		debug_warn "同じソースファイルを複数回ロードしました。"
+		return
+	}
+
+	// 改行コードを正規化する。(FIXME: 高速化)
+	split text, s_lf, lines
+	n = stat
+
+	s_source_texts(source_file_id) = ""
+	repeat n
+		s_source_texts(source_file_id) += lines(cnt) + "\n"
+	loop
+
+	s_source_exists(source_file_id) = true
+	return
+
+// ソースファイルIDに対応するソースコードを保持しているかを返す。
+#defcfunc app_source_exists int source_file_id
+
+	if source_file_id < 0 || source_file_id >= length(s_source_exists) {
+		return false
+	}
+
+	return s_source_exists(source_file_id)
+
+// ソースコードのクローンをとる。成功したら true を返す。
+#deffunc app_source_dup_text int source_file_id, var text
+
+	if app_source_exists(source_file_id) == false {
+		return false
+	}
+
+	dup text, s_source_texts(source_file_id)
+	return true
+
+// -----------------------------------------------
+// スクリプトエディット
+// -----------------------------------------------
+
+#deffunc app_script_edit_update int source_file_id, int line_index, \
+	local text, local text_updated, local start_index, local end_index
+
+	// FIXME: 行番号とパスも表示する。
+
+	text_updated = false
+
+	// テキストを更新する。
+	if s_script_source_file_id != source_file_id || s_script_source_exists != app_source_exists(source_file_id) {
+		app_source_dup_text source_file_id, text
+		if stat == false {
+			text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
+		}
+		// FIXME: 文字コード
+		SetWindowText s_script_edit_hwnd, text
+
+		s_script_source_file_id = source_file_id
+		s_script_source_exists = app_source_exists(source_file_id)
+		text_updated = true
+	}
+
+	// 行を更新する。
+	if text_updated || s_script_line_index != line_index {
+		// 指定行の範囲をバイトインデックスとして求める。
+		sendmsg s_script_edit_hwnd, EM_LINEINDEX, line_index, NULL
+		start_index = stat
+
+		sendmsg s_script_edit_hwnd, EM_LINEINDEX, line_index + 1, NULL
+		end_index = stat
+
+		if start_index < 0 || end_index < 0 {
+			// 行番号が不正？
+			start_index = 0
+			end_index = 0
+		}
+
+		sendmsg s_script_edit_hwnd, EM_SETSEL, start_index, end_index
+		sendmsg s_script_edit_hwnd, EM_LINESCROLL, 0, limit(line_index - 3, 0)
+
+		s_script_line_index = line_index
+	}
+	return
+
+// -----------------------------------------------
+// ボタン
+// -----------------------------------------------
+
+#deffunc app_step_continue
+
+	logmes "app_step_continue"
+	infra_send_step_continue
+	return
+
+*l_step_continue_button
+
+	app_step_continue
+	return
+
+#deffunc app_step_pause
+
+	logmes "app_step_pause"
+	infra_send_step_pause
+	return
+
+*l_step_pause_button
+
+	app_step_pause
+	return
+
+#deffunc app_step_in
+
+	logmes "app_step_in"
+	infra_send_step_in
+	return
+
+*l_step_in_button
+
+	app_step_in
+	return
+
+#deffunc app_refresh
+
+	logmes "app_refresh"
+
+	// FIXME: 実行位置も更新する
+	infra_send_list_update
+	return
+
+*l_refresh_button
+
+	app_refresh
+	return
+
+// -----------------------------------------------
+// サーバーからのメッセージへの応答
+// -----------------------------------------------
+
+#deffunc app_did_receive_hello_ok
+
+	logmes "app_did_receive_hello_ok"
+	s_connected = true
+	title s_title
+
+	app_refresh
+	return
+
+#deffunc app_did_receive_shutdown
+
+	gsel s_main_window_id, gsel_hide
+	end
+
+#deffunc app_did_receive_logmes var text
+
+	s_log_text += text + "\n"
+	app_log_did_update
+	return
+
+#deffunc app_did_receive_stopped int source_file_id, int line_index
+
+	logmes strf("app_did_receive_stopped(%d, %d)", source_file_id, line_index)
+	s_debuggee_is_running = false
+
+	if app_source_exists(source_file_id) == false {
+		infra_send_source source_file_id
+	}
+
+	app_script_edit_update source_file_id, line_index
+
+	infra_send_list_update
+	return
+
+#deffunc app_did_receive_source_ok int source_file_id, var text
+
+	logmes strf("app_did_receive_source_ok(%d, ...)", source_file_id)
+	app_source_add source_file_id, text
+
+	// ソースコードが読み込まれたら表示に反映する。
+	if s_script_source_file_id == source_file_id {
+		app_script_edit_update source_file_id, s_script_line_index
+	}
+	return
+
+#deffunc app_did_receive_list_update_ok var text
+
+	logmes "app_did_receive_list_update_ok"
+	gsel s_main_window_id
+	objprm s_list_box_id, text
+	return
+
+// -----------------------------------------------
+// その他
+// -----------------------------------------------
+
+#deffunc app_did_disconnect
+
+	title s_title + " [接続なし]"
+	return
+
+#deffunc app_log_did_update
+
+	objprm s_log_edit_id, s_log_text
+	return
+
+#global

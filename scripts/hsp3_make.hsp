@@ -1,0 +1,109 @@
+// Make hsp3 executables.
+// Poor.
+
+// USAGE:
+//   Make a file named 'hsp3_makefile'.
+//   The first line is the name of the script file to compile.
+//   The second line is the full path to the hsp.
+
+#include "hspcmp.as"
+
+#packopt name "hsp3_make"
+#packopt hide 1
+
+#define true 1
+#define false 0
+
+#define gsel_hide (-1)
+#define gsel_show 1
+#define mesbox_readonly 1
+#define objmode_font 2
+
+#define EXIT_FAILURE 1
+
+#define s_default_window_id 0
+
+	gsel s_default_window_id, gsel_hide
+
+	s_obj_name = "start.ax"
+	s_runtime_name = ""
+	s_runtime_dir = ""
+	s_compile_opts = 1 | 4 // 1: debug info, 4: utf-8
+	s_pp_opt = 4 | 16 | 32 // 4: make packfile, 16/32: utf-8
+	s_exit_code = EXIT_FAILURE
+
+	sdim s_makefile
+	sdim s_src_name
+	sdim s_hsp_root
+	sdim s_error, 0x10000
+
+	onexit goto *l_on_exit
+
+	gosub *l_load
+	gosub *l_make
+	if stat == false {
+		goto *l_fail
+	}
+	end
+
+*l_load
+
+	notesel s_makefile
+	noteload "hsp3_makefile"
+	noteget s_src_name, 0
+	noteget s_hsp_root, 1
+	noteunsel
+	return
+
+*l_make
+
+	hsc_ini s_src_name
+	if stat {
+		hsc_getmes s_error
+		return false
+	}
+
+	hsc_objname s_obj_name
+	if stat {
+		hsc_getmes s_error
+		return false
+	}
+
+	hsc_compath s_hsp_root + "\\common\\"
+
+	// Compile to make object file.
+	hsc_comp s_compile_opts, s_pp_opt
+	if stat {
+		hsc_getmes s_error
+		return false
+	}
+
+	hsc3_getruntime s_runtime_name, s_obj_name
+	if s_runtime_name == "" {
+		s_runtime_name = "hsp3.exe"
+	}
+	if s_runtime_name == "hsp3.exe" {
+		s_runtime_dir = s_hsp_root + "\\"
+	} else {
+		s_runtime_dir = s_hsp_root + "\\runtime\\"
+	}
+
+	hsc3_make s_runtime_dir
+	if stat {
+		hsc_getmes s_error
+		return false
+	}
+	return true
+
+*l_fail
+
+	title "hsp3_make"
+	font "MS Gothic", 12
+	objmode objmode_font
+	mesbox s_error, ginfo_winx, ginfo_winy, mesbox_readonly
+	gsel s_default_window_id, gsel_show
+	stop
+
+*l_on_exit
+
+	end s_exit_code

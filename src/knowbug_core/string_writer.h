@@ -27,6 +27,10 @@ public:
 public:
 	auto is_full() const -> bool;
 
+	auto indent_length() const -> std::size_t {
+		return depth_ * 2;
+	}
+
 	auto as_view() const->Utf8StringView;
 
 	void cat(std::string_view const& str) {

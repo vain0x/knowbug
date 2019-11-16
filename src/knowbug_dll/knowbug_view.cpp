@@ -178,8 +178,10 @@ private:
 
 	void show_windows() {
 		for (auto hwnd : windows()) {
-			UpdateWindow(hwnd);
-			ShowWindow(hwnd, SW_SHOW);
+			// サーバーモードなので表示しない
+			// UpdateWindow(hwnd);
+			// ShowWindow(hwnd, SW_SHOW);
+			ShowWindow(hwnd, SW_HIDE);
 		}
 	}
 

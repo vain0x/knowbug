@@ -1170,6 +1170,16 @@ auto HspObjects::script_to_content() const -> Utf8StringView {
 	return source_file_repository_->file_ref_name_to_content(file_ref_name).value_or(MISSING_FILE_CONTENT);
 }
 
+auto HspObjects::script_to_current_file() const -> std::optional<std::size_t> {
+	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or(u8"hsptmp");
+	auto source_file_id_opt = source_file_repository_->file_ref_name_to_file_id(file_ref_name);
+	if (!source_file_id_opt) {
+		return std::nullopt;
+	}
+
+	return source_file_id_opt->id();
+}
+
 auto HspObjects::script_to_current_line() const -> std::size_t {
 	return hsx::debug_to_line_index(debug());
 }
@@ -1188,6 +1198,10 @@ auto HspObjects::script_to_current_location_summary() const -> Utf8String {
 
 void HspObjects::script_do_update_location() {
 	hsx::debug_do_update_location(debug());
+}
+
+auto HspObjects::source_file_to_content(std::size_t source_file_id) const->std::optional<Utf8StringView> {
+	return source_file_repository_->file_to_content(SourceFileId{ source_file_id });
 }
 
 auto HspObjects::context() const -> HSPCTX const* {
