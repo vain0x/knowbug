@@ -1,47 +1,32 @@
 #!/bin/pwsh
 # すべてのテストを実行する。
 
-$msBuild = $env:KNOWBUG_MSBUILD
-if (!$msBuild) {
-    # NOTE: 文字列中に非 ASCII 文字があると構文エラーになることがある
-    write-error "Environmnet variable KNOWBUG_MSBUILD is missing"
+if (!$(which MSBuild.exe)) {
+    write-error 'MSBuild.exe にパスを通してください。'
     exit 1
 }
 
 $knowbugRoot = (get-item .).FullName
 
-$table = @(
-    @("/p:Configuration=Debug;Platform=x86", "Win32/Debug/knowbug_tests.exe"),
-    @("/p:Configuration=DebugUtf8;Platform=x86", "Win32/DebugUtf8/knowbug_tests.exe"),
-    @("/p:Configuration=Debug;Platform=x64", "x64/Debug/knowbug_tests.exe")
-)
-
-$success = $true
-
-try {
-    cd "$knowbugRoot/src"
-
-    foreach ($row in $table) {
-        $config = $row[0]
-        $exe = $row[1]
-
-        # -t:build,run を指定するとビルド後に実行されるが、なぜか文字化けするので使わない。
-        & $msBuild knowbug.sln -t:build $config
-        if (!$?) {
-            $success = $false
-            continue
-        }
-
-        & $exe
-        if (!$?) {
-            $success = $false
-            continue
-        }
+function test($config, $platform) {
+    # -t:build,run を指定するとビルド後に実行されるが、なぜか文字化けするので使わない。
+    MSBuild.exe './src/knowbug.sln' -t:build "-p:Configuration=$config;Platform=$platform"
+    if (!$?) {
+        write-error 'ビルドに失敗しました。'
+        exit 1
     }
-} finally {
-    cd $knowbugRoot
+
+    if ($platform -eq 'x86') {
+        $platform = 'Win32'
+    }
+
+    & "./src/target/knowbug_tests-$platform-$config/bin/knowbug_tests.exe"
+    if (!$?) {
+        write-error 'テストに失敗しました。'
+        exit 1
+    }
 }
 
-if (!$success) {
-    exit 1
-}
+test 'Debug' 'x86'
+test 'DebugUtf8' 'x86'
+test 'Debug' 'x64'

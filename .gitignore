@@ -7,8 +7,7 @@ sandbox/*.ax
 scripts/*.ax
 src/knowbug_install/*.ax
 src/knowbug_install/packfile
-DebugUtf8
-ReleaseUtf8
+target
 
 
 

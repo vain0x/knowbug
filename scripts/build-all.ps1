@@ -4,41 +4,29 @@
 # 使い方:
 #   ./scripts/build-all
 
-$knowbugConfigs = @(
-    "-p:Configuration=Debug;Platform=x86",
-    "-p:Configuration=DebugUtf8;Platform=x86",
-    "-p:Configuration=Debug;Platform=x64",
-    "-p:Configuration=Release;Platform=x86",
-    "-p:Configuration=ReleaseUtf8;Platform=x86",
-    "-p:Configuration=Release;Platform=x64",
-    "-p:Configuration=ReleaseUtf8;Platform=x64"
-)
-
-$msBuild = $env:KNOWBUG_MSBUILD
-if (!$msBuild) {
-    # NOTE: 文字列中に非 ASCII 文字があると構文エラーになることがある
-    write-error "Environmnet variable KNOWBUG_MSBUILD is missing"
+if (!$(which MSBuild.exe)) {
+    write-error 'MSBuild.exe にパスを通してください。'
     exit 1
 }
 
-$knowbugRoot = (get-item .).FullName
-
-$success = $true
-
-try {
-    cd "$knowbugRoot/src"
-
-    foreach ($config in $knowbugConfigs) {
-        & $msBuild knowbug.sln -t:Build $config
-        if (!$?) {
-           $success = $false
-           continue
-        }
+function build($config, $platform) {
+    MSBuild.exe './src/knowbug.sln' "-p:Configuration=$config;Platform=$platform"
+    if (!$?) {
+        write-error "ビルドに失敗しました。($platform-$config)"
+        exit 1
     }
-} finally {
-    cd $knowbugRoot
 }
 
-if (!$success) {
+./scripts/build-client
+if (!$?) {
+    write-error 'クライアントのビルドに失敗しました。'
     exit 1
 }
+
+build 'Debug' 'x86'
+build 'DebugUtf8' 'x86'
+build 'Debug' 'x64'
+build 'Release' 'x86'
+build 'ReleaseUtf8' 'x86'
+build 'Release' 'x64'
+build 'ReleaseUtf8' 'x64'

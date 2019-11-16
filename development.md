@@ -3,55 +3,61 @@
 ## 開発環境
 
 - Windows 10
-- Git for Windows
-- Visual Studio 2019
+- [Git for Windows](https://gitforwindows.org/)
+- [PowerShell 6](https://github.com/PowerShell/PowerShell/releases/latest)
+- [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs)
     - C++ 開発用の機能をインストールしておく。
 
 ## ソリューション
 
-ソリューション (src/knowbug.sln) を Visual Studio で開いて「ビルド」(Ctrl+Shift+B)します。
+ソリューション (`src/knowbug.sln`) を Visual Studio で開いて「ビルド」(Ctrl+Shift+B)します。
 
-- ビルドプロファイル
+- コンフィギュレーション
     - Debug/Release
         - Debug は knowbug 自体のデバッグ用。
         - Release は配布用。
-        - shift_jis 用
+        - shift_jis ランタイム用
     - DebugUtf8/ReleseUtf8
-        - hsp3utf (UTF-8) ランタイム用
+        - UTF-8 ランタイム用
 - プラットフォーム
-    - Win32/x64
-        - **Win32**: 32 ビット版
-        - **x64**: 64 ビット版 (hsp3debug_64.dll)
+    - x86/x64
+        - **x86**: 32 ビット版
+        - **x64**: 64 ビット版 (`hsp3debug_64.dll`)
 
 ## テスト
 
-`knowbug_tests` プロジェクトを起動するとテストが実行され、一定の動作確認を行えます。(ただしテストコードが少ないため信頼はできない。)
+knowbug_tests プロジェクトを起動するとテストが実行され、一定の動作確認を行えます。(ただしテストコードは少ないです。)
 
 ## 動作確認
 
 `./sandbox` のサンプルコードなどを使って動作確認を行います。
 
-- スクリプトの実行中に Visual Studio の「プロセスにアタッチ」(Ctrl+Alt+P)で hsp.exe を選ぶと、ブレークポイントや assert で停止したときに knowbug 側のコードをトレース実行できて便利です。
+- スクリプトの実行中に Visual Studio の「プロセスにアタッチ」(Ctrl+Alt+P)で hsp3.exe を選ぶと knowbug 側のコードをトレース実行できて便利です。
 - knowbug の起動時にシフトキーを押しておくと、knowbug の開始時に停止するようになっていて、アタッチしやすくなります。
 
 ## 環境変数
 
 `./scripts` にあるビルドスクリプトを使うには、以下の環境変数が必要です。(Win+Break → システムの詳細設定 → 環境変数 → 新規)
 
-- HSP3_ROOT:
-    - HSP のディレクトリへのパスを指定しておく
-- KNOWBUG_MSBUILD:
-    - `MSBuild.exe` へのパスを指定しておく
-    - Visual Studio 2019 の場合は `C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe`
+- KNOWBUG_SERVER_HSP3_ROOT:
+    - [HSP のフルセット・アーカイブ版](http://hsp.tv/make/downlist.html)を新たに展開して、そのディレクトリへの絶対パスを指定する。
+    - サーバー (knowbug_dll) をデバッグするために使う。
+- KNOWBUG_CLIENT_HSP3_ROOT:
+    - HSP のフルセット・アーカイブ版を新たに展開して、そのディレクトリへの絶対パスを指定する。
+    - クライアント (knowbug_client) をデバッグするために使う。
+    - KNOWBUG_SERVER_HSP3_ROOT と同じにはできない。
+
+また、`MSBuild.exe` へのパスを通してください。(環境変数 Path に `MSBuild.exe` があるディレクトリへの絶対パスを追加してください。)
+
+- `MSBuild.exe` は、Visual Studio 2019 なら `"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\"` にあります。
 
 ## デバッグ版のインストール
 
 ビルドで生成される DLL を指すシンボリックリンクをインストールしておくと便利です。
 
-PowerShell を開き、すべてのバージョンをビルドしてから、インストールを行います。(シンボリックリンクの作成には管理者権限が必要なので、PowerShell は管理者権限で実行してください。)
+シンボリックリンクを手動で作成するのはめんどうなので、スクリプトを用意しています。PowerShell (pwsh) を開き、以下のスクリプトを実行してください。
 
 ```pwsh
-./scripts/build-all.ps1
 ./scripts/install-dev.ps1
 ```
 
@@ -70,7 +76,7 @@ PowerShell を開き、すべてのバージョンをビルドしてから、イ
 
 - パッケージを GitHub Releases にアップロードする。
 
-## コーディングメモ
+## C++ コーディングメモ
 
 コーディング上で迷ったときの参考用です。守らなくても可。
 
@@ -92,6 +98,20 @@ PowerShell を開き、すべてのバージョンをビルドしてから、イ
 - 関数の結果型は後置 (例 `auto f() -> ResultType {..}`) (void だけ前置)
 - Visual Studio の「ドキュメントのフォーマット」になるべく従う
     - ただし「else の前に改行する」設定だけ変えて「改行しない」ようにしている
+
+## HSP コーディングメモ
+
+### 名前付け
+
+原則として `snake_case` です。(例外: Win32 API の定数など)
+
+- 変数: `s_xxx`
+    - ただし引数や local 変数には `s_` をつけません。
+- ラベル: `l_xxx`
+- モジュール名: `m_xxx`
+- メンバ変数: `xxx_`
+- 命令・関数: `xxx_yyy`
+    - 例えばモジュール `m_foo` の中で定義される命令や関数は `foo_hello` のような名前にします。
 
 ## コミットメッセージ
 
