@@ -38,8 +38,13 @@
 
 `./scripts` にあるビルドスクリプトを使うには、以下の環境変数が必要です。(Win+Break → システムの詳細設定 → 環境変数 → 新規)
 
-- HSP3_ROOT:
-    - HSP のディレクトリへのパスを指定しておく
+- KNOWBUG_SERVER_HSP3_ROOT:
+    - HSP のアーカイブ版をどこかに展開して、そのディレクトリへの絶対パスを指定する。
+    - サーバー (knowbug_dll) をデバッグするために使う。
+- KNOWBUG_CLIENT_HSP3_ROOT:
+    - HSP のアーカイブ版をどこかに展開して、そのディレクトリへの絶対パスを指定する。
+    - クライアント (knowbug_client) をデバッグするために使う。
+    - KNOWBUG_SERVER_HSP3_ROOT と同じにはできない。
 - KNOWBUG_MSBUILD:
     - `MSBuild.exe` へのパスを指定しておく
     - Visual Studio 2019 の場合は `C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe`

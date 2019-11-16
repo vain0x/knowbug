@@ -1,18 +1,18 @@
 # knowbug_client をビルドする。
 
-if (!$env:HSP3_ROOT) {
-    write-error '環境変数 HSP3_ROOT を設定してください。'
+if (!$env:KNOWBUG_SERVER_HSP3_ROOT) {
+    write-error '環境変数 KNOWBUG_SERVER_HSP3_ROOT を設定してください。'
     exit 1
 }
 
-if (!$env:HSP3_ROOT_DEV) {
-    write-error '環境変数 HSP3_ROOT_DEV を設定してください。'
+if (!$env:KNOWBUG_CLIENT_HSP3_ROOT) {
+    write-error '環境変数 KNOWBUG_CLIENT_HSP3_ROOT を設定してください。'
     exit 1
 }
 
 ./scripts/hsp3-make.ps1
 if (!$?) {
-    write-error 'hsp3-make failed'
+    write-error 'hsp3-make.ps1 が失敗しました。'
     exit 1
 }
 
@@ -21,17 +21,17 @@ try {
     $makeAx = "$workDir/scripts/hsp3_make.ax"
     $makeFile = "$workDir/src/knowbug_client/hsp3_makefile"
     if (!(test-path $makeAx)) {
-        write-error 'hsp3_make.ax が見つかりません。'
+        write-error "$makeAx が見つかりません。"
         exit 1
     }
 
     # クライアントをビルドする。
     cd "$workDir/src/knowbug_client"
     echo "$workDir/src/knowbug_client/kc_main.hsp" >$makeFile
-    echo $env:HSP3_ROOT >>$makeFile
-    & "$env:HSP3_ROOT/hsp3.exe" $makeAx
+    echo $env:KNOWBUG_SERVER_HSP3_ROOT >>$makeFile
+    & "$env:KNOWBUG_SERVER_HSP3_ROOT/hsp3.exe" $makeAx
     if (!$?) {
-        write-error 'クライアントのビルドに失敗しました。'
+        write-error 'knowbug_client のビルドに失敗しました。'
         exit 1
     }
     sleep 1
@@ -39,21 +39,21 @@ try {
     # プロキシをビルドする。
     cd "$workDir/src/knowbug_client"
     echo "$workDir/src/knowbug_client/kc_main_proxy.hsp" >$makeFile
-    echo $env:HSP3_ROOT >>$makeFile
-    & "$env:HSP3_ROOT/hsp3.exe" $makeAx
+    echo $env:KNOWBUG_SERVER_HSP3_ROOT >>$makeFile
+    & "$env:KNOWBUG_SERVER_HSP3_ROOT/hsp3.exe" $makeAx
     if (!$?) {
-        write-error 'プロキシクライアントのビルドに失敗しました。'
+        write-error 'knowbug_client_proxy のビルドに失敗しました。'
         exit 1
     }
     sleep 1
 
     # プロキシの設定ファイルを作成する。
-    $proxyConfigPath = "$env:HSP3_ROOT/knowbug_client_proxy.txt"
+    $proxyConfigPath = "$env:KNOWBUG_SERVER_HSP3_ROOT/knowbug_client_proxy.txt"
     echo "$workDir/src/knowbug_client/kc_main.hsp" >$proxyConfigPath
-    echo $env:HSP3_ROOT_DEV >>$proxyConfigPath
+    echo $env:KNOWBUG_CLIENT_HSP3_ROOT >>$proxyConfigPath
 
     # プロキシを配置する。
-    copy-item -force "$workDir/src/knowbug_client/knowbug_client_proxy.exe" "$env:HSP3_ROOT/knowbug_client.exe"
+    copy-item -force "$workDir/src/knowbug_client/knowbug_client_proxy.exe" "$env:KNOWBUG_SERVER_HSP3_ROOT/knowbug_client.exe"
 } finally {
     cd $workDir
 }
