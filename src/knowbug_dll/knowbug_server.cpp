@@ -22,17 +22,19 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x10000 };
 // クライアントが起動したことをサーバーに伝える。
 // lparam: クライアントのウィンドウハンドル
 #define KMTS_HELLO                  (WM_USER + 1)
+// デバッグの終了をサーバーに要求する。
+#define KMTS_TERMINATE              (WM_USER + 2)
 // 実行
-#define KMTS_STEP_CONTINUE          (WM_USER + 2)
+#define KMTS_STEP_CONTINUE          (WM_USER + 3)
 // 停止
-#define KMTS_STEP_PAUSE             (WM_USER + 3)
+#define KMTS_STEP_PAUSE             (WM_USER + 4)
 // 次へ
-#define KMTS_STEP_IN                (WM_USER + 4)
+#define KMTS_STEP_IN                (WM_USER + 5)
 // ソースコードのテキストを要求する。
 // wparam: ソースファイルID
-#define KMTS_SOURCE                 (WM_USER + 5)
+#define KMTS_SOURCE                 (WM_USER + 6)
 // オブジェクトリストを要求する。
-#define KMTS_LIST_UPDATE            (WM_USER + 6)
+#define KMTS_LIST_UPDATE            (WM_USER + 7)
 #define KMTS_LAST                   (WM_USER + 999)
 
 // Knowbug window Message To the Client
@@ -393,6 +395,10 @@ public:
 		send_queue_.clear();
 	}
 
+	void client_did_terminate() {
+		PostQuitMessage(EXIT_SUCCESS);
+	}
+
 	void client_did_step_continue() {
 		hsx::debug_do_set_mode(HSPDEBUG_RUN, debug_);
 		touch_all_windows();
@@ -563,6 +569,10 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 				switch (msg) {
 				case KMTS_HELLO:
 					server->client_did_hello((HWND)lp);
+					break;
+
+				case KMTS_TERMINATE:
+					server->client_did_terminate();
 					break;
 
 				case KMTS_STEP_CONTINUE:

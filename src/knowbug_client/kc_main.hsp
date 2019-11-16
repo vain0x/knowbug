@@ -12,17 +12,19 @@
 // クライアントが起動したことをサーバーに伝える。
 // lparam: クライアントのウィンドウハンドル
 #define KMTS_HELLO                  (WM_USER + 1)
+// デバッグの終了をサーバーに要求する。
+#define KMTS_TERMINATE              (WM_USER + 2)
 // 実行
-#define KMTS_STEP_CONTINUE          (WM_USER + 2)
+#define KMTS_STEP_CONTINUE          (WM_USER + 3)
 // 停止
-#define KMTS_STEP_PAUSE             (WM_USER + 3)
+#define KMTS_STEP_PAUSE             (WM_USER + 4)
 // 次へ
-#define KMTS_STEP_IN                (WM_USER + 4)
+#define KMTS_STEP_IN                (WM_USER + 5)
 // ソースコードのテキストを要求する。
 // wparam: ソースファイルID
-#define KMTS_SOURCE                 (WM_USER + 5)
+#define KMTS_SOURCE                 (WM_USER + 6)
 // オブジェクトリストを要求する。
-#define KMTS_LIST_UPDATE            (WM_USER + 6)
+#define KMTS_LIST_UPDATE            (WM_USER + 7)
 #define KMTS_LAST                   (WM_USER + 999)
 
 // Knowbug window Message To the Client
@@ -161,6 +163,11 @@
 #deffunc infra_send_hello
 
 	sendmsg s_server_hwnd, KMTS_HELLO, 0, hwnd
+	return
+
+#deffunc infra_send_terminate
+
+	sendmsg s_server_hwnd, KMTS_TERMINATE
 	return
 
 #deffunc infra_send_step_continue

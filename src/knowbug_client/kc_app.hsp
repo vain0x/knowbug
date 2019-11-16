@@ -78,6 +78,7 @@
 
 	app_init_globals
 	app_init_windows
+	app_init_subs
 
 	infra_connect_server
 	if stat == false {
@@ -212,6 +213,16 @@
 	button gosub "更新", *l_refresh_button
 
 	gsel s_main_window_id, gsel_show
+	return
+
+#deffunc app_init_subs
+
+	onexit goto *l_on_exit
+	return
+
+*l_on_exit
+
+	infra_send_terminate
 	return
 
 // -----------------------------------------------
