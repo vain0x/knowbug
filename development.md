@@ -61,6 +61,13 @@ knowbug_tests プロジェクトを起動するとテストが実行され、一
 ./scripts/install-dev.ps1
 ```
 
+インストール先の環境でスクリプトをデバッグ実行するには `./scripts/run.ps1` が使用できます。`./scripts/run-default.ps1` は `./sandbox/default.hsp` を実行します。
+
+
+```pwsh
+./scripts/run-default.ps1
+```
+
 ## デプロイ
 
 - 作業を master ブランチにマージする。
