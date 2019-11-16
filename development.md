@@ -45,9 +45,10 @@
     - HSP のアーカイブ版をどこかに展開して、そのディレクトリへの絶対パスを指定する。
     - クライアント (knowbug_client) をデバッグするために使う。
     - KNOWBUG_SERVER_HSP3_ROOT と同じにはできない。
-- KNOWBUG_MSBUILD:
-    - `MSBuild.exe` へのパスを指定しておく
-    - Visual Studio 2019 の場合は `C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe`
+
+また、MSBuild.exe へのパスを通してください。(環境変数 `Path` に MSBuild.exe があるディレクトリへの絶対パスを追加してください。)
+
+- MSBuild.exe は、Visual Studio 2019 なら `"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\"` にあります。
 
 ## デバッグ版のインストール
 
