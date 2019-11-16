@@ -1,8 +1,9 @@
 # パッケージを生成する。
-# 使い方: ./scripts/pack
+# 使い方: ./scripts/pack v2.0.0
 
-# バージョン番号
-$version = $env:KNOWBUG_VERSION
+if ($args.length -ge 1) {
+    $version = $args[0]
+}
 if (!$version) {
     $version = "next"
 }
@@ -13,7 +14,9 @@ $package = "knowbug-$version"
 # パッケージから除外されるファイル (dist/ 以下)
 $exclusions = @(
     "hsptmp",
-    "obj"
+    "obj",
+    "start.ax",
+    "packfile"
 )
 
 # パッケージに含められるファイル (dist/ 以外)
@@ -22,10 +25,11 @@ $inclusions = @(
     @("$package/LICENSE", "$pwd/LICENSE"),
     @("$package/README.md", "$pwd/README.md"),
     @("$package/knowbug_install.exe", "$pwd/src/knowbug_install/knowbug_install.exe"),
-    @("$package/hsp3debug.dll", "$pwd/src/Win32/Release/hsp3debug.dll"),
-    @("$package/hsp3debug_u8.dll", "$pwd/src/Win32/ReleaseUtf8/hsp3debug_u8.dll"),
-    @("$package/hsp3debug_64.dll", "$pwd/src/x64/Release/hsp3debug_64.dll"),
-    @("$package/hsp3debug_64_hsp36.dll", "$pwd/src/x64/ReleaseUtf8/hsp3debug_64.dll")
+    @("$package/hsp3debug.dll", "$pwd/src/target/knowbug_dll-Win32-Release/bin/hsp3debug.dll"),
+    @("$package/hsp3debug_u8.dll", "$pwd/src/target/knowbug_dll-Win32-ReleaseUtf8/bin/hsp3debug_u8.dll"),
+    @("$package/hsp3debug_64.dll", "$pwd/src/target/knowbug_dll-x64-Release/bin/hsp3debug_64.dll"),
+    @("$package/hsp3debug_64_hsp36.dll", "$pwd/src/target/knowbug_dll-x64-ReleaseUtf8/bin/knowbug_dll.dll"),
+    @("$package/knowbug_client.exe", "$pwd/src/knowbug_client/knowbug_client.exe")
 )
 
 if (test-path "$package.zip") {
@@ -52,7 +56,7 @@ try {
     # パッケージを圧縮する。
     compress-archive $package "$package.zip"
 
-    echo "HINT: 'expand-archive $package.zip' to expand"
+    echo "HINT: 'expand-archive $package.zip .' to expand"
     echo "Completed."
 } finally {
     rm -recurse -force $package
