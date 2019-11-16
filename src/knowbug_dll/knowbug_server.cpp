@@ -15,7 +15,8 @@
 #include "knowbug_app.h"
 #include "knowbug_server.h"
 
-static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x10000 };
+// 1 MB
+static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x1000000 };
 
 // Knowbug window Message To the Server
 #define KMTS_FIRST                  (WM_USER + 1)
