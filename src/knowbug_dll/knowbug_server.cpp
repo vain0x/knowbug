@@ -65,6 +65,8 @@ class KnowbugServerImpl;
 // オブジェクトリスト
 // -----------------------------------------------
 
+static auto constexpr MAX_CHILD_COUNT = std::size_t{ 300 };
+
 // オブジェクトリストを描画する関数。
 class HspObjectListWriter {
 	HspObjects& objects_;
@@ -100,7 +102,7 @@ public:
 
 	void write_children(HspObjectPath const& path) {
 		auto item_count = path.child_count(objects());
-		for (auto i = std::size_t{}; i < item_count; i++) {
+		for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, item_count); i++) {
 			auto item_path = path.child_at(i, objects());
 			write(*item_path);
 		}
