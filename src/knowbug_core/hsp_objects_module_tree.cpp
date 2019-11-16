@@ -123,14 +123,14 @@ void module_tree_tests(Tests& tests) {
 
 			auto expected = as_utf8(
 				u8"@\r\n"
-				u8"\tg1 #4\r\n"
-				u8"\tg2 #5\r\n"
+				u8"  g1 #4\r\n"
+				u8"  g2 #5\r\n"
 				u8"@m1\r\n"
-				u8"\ts1@m1 #0\r\n"
-				u8"\ts2@m1 #2\r\n"
+				u8"  s1@m1 #0\r\n"
+				u8"  s2@m1 #2\r\n"
 				u8"@m2\r\n"
-				u8"\tt1@m2 #3\r\n"
-				u8"\tt2@m2 #1\r\n"
+				u8"  t1@m2 #3\r\n"
+				u8"  t2@m2 #1\r\n"
 			);
 			return t.eq(as_view(w), expected);
 		});

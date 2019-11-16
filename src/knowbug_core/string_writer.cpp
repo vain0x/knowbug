@@ -206,11 +206,11 @@ void string_writer_tests(Tests& tests) {
 
 			auto expected = as_utf8(
 				u8"親\r\n"
-				u8"\t兄\r\n"
-				u8"\t\t甥\r\n"
-				u8"\t本人\r\n"
-				u8"\t\t長男\r\n"
-				u8"\t\t長女\r\n"
+				u8"  兄\r\n"
+				u8"    甥\r\n"
+				u8"  本人\r\n"
+				u8"    長男\r\n"
+				u8"    長女\r\n"
 			);
 			return t.eq(as_view(w), expected);
 		});
