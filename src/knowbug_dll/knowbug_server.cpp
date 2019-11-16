@@ -98,6 +98,14 @@ public:
 		write_scope(path);
 	}
 
+	void write_children(HspObjectPath const& path) {
+		auto item_count = path.child_count(objects());
+		for (auto i = std::size_t{}; i < item_count; i++) {
+			auto item_path = path.child_at(i, objects());
+			write(*item_path);
+		}
+	}
+
 private:
 	void write_scope(HspObjectPath const& path) {
 		auto name = path.name(objects());
@@ -109,12 +117,7 @@ private:
 		writer().cat(as_utf8("):"));
 		writer().cat_crlf();
 		writer().indent();
-
-		for (auto i = std::size_t{}; i < item_count; i++) {
-			auto item_path = path.child_at(i, objects());
-			write(*item_path);
-		}
-
+		write_children(path);
 		writer().unindent();
 	}
 
@@ -502,8 +505,7 @@ public:
 
 	void client_did_list_update() {
 		auto string_writer = StringWriter{};
-		auto global_path = objects().root_path().new_global_module(objects());
-		HspObjectListWriter{ objects(), string_writer }.write(*global_path);
+		HspObjectListWriter{ objects(), string_writer }.write_children(objects().root_path());
 
 		send(KMTC_LIST_UPDATE_OK, int{}, int{}, string_writer.finish());
 	}
