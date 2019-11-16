@@ -95,8 +95,7 @@ void StringWriter::cat_by_lines(Utf8StringView str) {
 
 		if (head_) {
 			for (auto i = std::size_t{}; i < depth_; i++) {
-				// FIXME: 字下げをスペースで行う？
-				cat_limited(as_utf8(u8"\t"));
+				cat_limited(as_utf8(u8"  "));
 			}
 			head_ = false;
 		}

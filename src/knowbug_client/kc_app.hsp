@@ -170,7 +170,7 @@
 	s_log_edit_height = s_main_height - s_script_edit_height
 
 	// リストボックス
-	font "MS Gothic", 16
+	font "MS Gothic", 13
 	pos s_list_box_left, s_list_box_top
 	objsize s_list_box_width, s_list_box_height - 100
 	listbox s_list_current, 100, s_list_note
@@ -186,7 +186,6 @@
 	s_script_edit_hwnd = stat
 
 	// ログ
-	font "MS Gothic", 13
 	pos s_log_edit_left, s_log_edit_top
 	mesbox s_log_text, s_log_edit_width, s_log_edit_height, mesbox_readonly
 	s_log_edit_id = stat
@@ -349,7 +348,9 @@
 #deffunc app_refresh
 
 	logmes "app_refresh"
-	// FIXME: update
+
+	// FIXME: 実行位置も更新する
+	infra_send_list_update
 	return
 
 *l_refresh_button
@@ -366,6 +367,8 @@
 	logmes "app_did_receive_hello_ok"
 	s_connected = true
 	title s_title
+
+	app_refresh
 	return
 
 #deffunc app_did_receive_shutdown
@@ -389,6 +392,8 @@
 	}
 
 	app_script_edit_update source_file_id, line_index
+
+	infra_send_list_update
 	return
 
 #deffunc app_did_receive_source_ok int source_file_id, var text
@@ -400,6 +405,13 @@
 	if s_script_source_file_id == source_file_id {
 		app_script_edit_update source_file_id, s_script_line_index
 	}
+	return
+
+#deffunc app_did_receive_list_update_ok var text
+
+	logmes "app_did_receive_list_update_ok"
+	gsel s_main_window_id
+	objprm s_list_box_id, text
 	return
 
 // -----------------------------------------------

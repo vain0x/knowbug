@@ -6,9 +6,12 @@
 #include <optional>
 #include <vector>
 #include "../knowbug_core/encoding.h"
+#include "../knowbug_core/hsp_object_path.h"
+#include "../knowbug_core/hsp_object_writer.h"
 #include "../knowbug_core/hsp_objects.h"
 #include "../knowbug_core/hsx.h"
 #include "../knowbug_core/platform.h"
+#include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
 #include "knowbug_server.h"
 
@@ -28,6 +31,8 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x10000 };
 // ソースコードのテキストを要求する。
 // wparam: ソースファイルID
 #define KMTS_SOURCE                 (WM_USER + 5)
+// オブジェクトリストを要求する。
+#define KMTS_LIST_UPDATE            (WM_USER + 6)
 #define KMTS_LAST                   (WM_USER + 999)
 
 // Knowbug window Message To the Client
@@ -47,6 +52,9 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x10000 };
 // wparam: ソースファイルID
 // text: ソースコード (UTF-8)
 #define KMTC_SOURCE_OK              (WM_USER + 1005)
+// オブジェクトリストを返す。
+// text: オブジェクトリスト (UTF-8、改行区切り)
+#define KMTC_LIST_UPDATE_OK         (WM_USER + 1006)
 #define KMTC_LAST                   (WM_USER + 1999)
 
 class KnowbugServerImpl;
@@ -405,6 +413,90 @@ public:
 		send(KMTC_SOURCE_OK, (int)source_file_id, int{}, content);
 	}
 
+	void client_did_list_update() {
+		class HspObjectListWriter {
+			HspObjects& objects_;
+			StringWriter& writer_;
+
+		public:
+			HspObjectListWriter(HspObjects& objects, StringWriter& writer)
+				: objects_(objects)
+				, writer_(writer)
+			{
+			}
+
+			void write(HspObjectPath const& path) {
+				if (path.child_count(objects()) == 1) {
+					auto value_path = path.child_at(0, objects());
+					switch (value_path->kind()) {
+					case HspObjectKind::Label:
+					case HspObjectKind::Str:
+					case HspObjectKind::Double:
+					case HspObjectKind::Int:
+					case HspObjectKind::Flex:
+					case HspObjectKind::Unknown:
+						write_value(path, *value_path);
+						return;
+
+					default:
+						break;
+					}
+				}
+
+				write_scope(path);
+			}
+
+		private:
+			void write_scope(HspObjectPath const& path) {
+				auto name = path.name(objects());
+				auto item_count = path.child_count(objects());
+
+				writer().cat(name);
+				writer().cat(as_utf8(" ("));
+				writer().cat_size(item_count);
+				writer().cat(as_utf8("):"));
+				writer().cat_crlf();
+				writer().indent();
+
+				for (auto i = std::size_t{}; i < item_count; i++) {
+					auto item_path = path.child_at(i, objects());
+					write(*item_path);
+				}
+
+				writer().unindent();
+			}
+
+			void write_value(HspObjectPath const& path, HspObjectPath const& value_path) {
+				static auto constexpr SPACES = u8"                ";
+				static auto constexpr PAD = std::size_t{ 15 };
+
+				auto name = path.name(objects());
+				auto indent_length = writer().indent_length();
+				auto padding = PAD - std::min(PAD, indent_length + name.length());
+
+				writer().cat(name);
+				writer().cat(as_utf8(SPACES).substr(0, padding));
+				writer().cat(as_utf8(u8" = "));
+				HspObjectWriter{ objects(), writer() }.write_flow_form(value_path);
+				writer().cat_crlf();
+			}
+
+			auto objects() -> HspObjects& {
+				return objects_;
+			}
+
+			auto writer() -> StringWriter& {
+				return writer_;
+			}
+		};
+
+		auto string_writer = StringWriter{};
+		auto global_path = objects().root_path().new_global_module(objects());
+		HspObjectListWriter{ objects(), string_writer }.write(*global_path);
+
+		send(KMTC_LIST_UPDATE_OK, int{}, int{}, string_writer.finish());
+	}
+
 private:
 	auto objects() -> HspObjects& {
 		return objects_;
@@ -487,6 +579,10 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 
 				case KMTS_SOURCE:
 					server->client_did_source((std::size_t)wp);
+					break;
+
+				case KMTS_LIST_UPDATE:
+					server->client_did_list_update();
 					break;
 
 				default:

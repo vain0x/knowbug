@@ -21,6 +21,8 @@
 // ソースコードのテキストを要求する。
 // wparam: ソースファイルID
 #define KMTS_SOURCE                 (WM_USER + 5)
+// オブジェクトリストを要求する。
+#define KMTS_LIST_UPDATE            (WM_USER + 6)
 #define KMTS_LAST                   (WM_USER + 999)
 
 // Knowbug window Message To the Client
@@ -40,6 +42,9 @@
 // wparam: ソースファイルID
 // text: ソースコード (UTF-8)
 #define KMTC_SOURCE_OK              (WM_USER + 1005)
+// オブジェクトリストを返す。
+// text: オブジェクトリスト (UTF-8、改行区切り)
+#define KMTC_LIST_UPDATE_OK         (WM_USER + 1006)
 #define KMTC_LAST                   (WM_USER + 1999)
 
 #define MEMORY_BUFFER_SIZE  0x10000
@@ -178,6 +183,11 @@
 	sendmsg s_server_hwnd, KMTS_SOURCE, source_file_id
 	return
 
+#deffunc infra_send_list_update
+
+	sendmsg s_server_hwnd, KMTS_LIST_UPDATE
+	return
+
 // -----------------------------------------------
 // サーバーからのメッセージ
 // -----------------------------------------------
@@ -189,6 +199,7 @@
 	oncmd gosub *l_on_logmes, KMTC_LOGMES
 	oncmd gosub *l_on_stopped, KMTC_STOPPED
 	oncmd gosub *l_on_source_ok, KMTC_SOURCE_OK
+	oncmd gosub *l_on_list_update_ok, KMTC_LIST_UPDATE_OK
 	return
 
 *l_on_hello_ok
@@ -214,6 +225,11 @@
 *l_on_source_ok
 
 	app_did_receive_source_ok wparam, s_server_buffer_data
+	return
+
+*l_on_list_update_ok
+
+	app_did_receive_list_update_ok s_server_buffer_data
 	return
 
 #global
