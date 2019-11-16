@@ -62,6 +62,87 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x10000 };
 class KnowbugServerImpl;
 
 // -----------------------------------------------
+// オブジェクトリスト
+// -----------------------------------------------
+
+// オブジェクトリストを描画する関数。
+class HspObjectListWriter {
+	HspObjects& objects_;
+	StringWriter& writer_;
+
+public:
+	HspObjectListWriter(HspObjects& objects, StringWriter& writer)
+		: objects_(objects)
+		, writer_(writer)
+	{
+	}
+
+	void write(HspObjectPath const& path) {
+		if (path.child_count(objects()) == 1) {
+			auto value_path = path.child_at(0, objects());
+			switch (value_path->kind()) {
+			case HspObjectKind::Label:
+			case HspObjectKind::Str:
+			case HspObjectKind::Double:
+			case HspObjectKind::Int:
+			case HspObjectKind::Flex:
+			case HspObjectKind::Unknown:
+				write_value(path, *value_path);
+				return;
+
+			default:
+				break;
+			}
+		}
+
+		write_scope(path);
+	}
+
+private:
+	void write_scope(HspObjectPath const& path) {
+		auto name = path.name(objects());
+		auto item_count = path.child_count(objects());
+
+		writer().cat(name);
+		writer().cat(as_utf8(" ("));
+		writer().cat_size(item_count);
+		writer().cat(as_utf8("):"));
+		writer().cat_crlf();
+		writer().indent();
+
+		for (auto i = std::size_t{}; i < item_count; i++) {
+			auto item_path = path.child_at(i, objects());
+			write(*item_path);
+		}
+
+		writer().unindent();
+	}
+
+	void write_value(HspObjectPath const& path, HspObjectPath const& value_path) {
+		static auto constexpr SPACES = u8"                ";
+		static auto constexpr PAD = std::size_t{ 15 };
+
+		auto name = path.name(objects());
+		auto indent_length = writer().indent_length();
+		auto padding = PAD - std::min(PAD, indent_length + name.length());
+
+		writer().cat(name);
+		writer().cat(as_utf8(SPACES).substr(0, padding));
+		writer().cat(as_utf8(u8" = "));
+		HspObjectWriter{ objects(), writer() }.write_flow_form(value_path);
+		writer().cat_crlf();
+	}
+
+	auto objects() -> HspObjects& {
+		return objects_;
+	}
+
+	auto writer() -> StringWriter& {
+		return writer_;
+	}
+};
+
+// -----------------------------------------------
 // ヘルパー
 // -----------------------------------------------
 
@@ -420,82 +501,6 @@ public:
 	}
 
 	void client_did_list_update() {
-		class HspObjectListWriter {
-			HspObjects& objects_;
-			StringWriter& writer_;
-
-		public:
-			HspObjectListWriter(HspObjects& objects, StringWriter& writer)
-				: objects_(objects)
-				, writer_(writer)
-			{
-			}
-
-			void write(HspObjectPath const& path) {
-				if (path.child_count(objects()) == 1) {
-					auto value_path = path.child_at(0, objects());
-					switch (value_path->kind()) {
-					case HspObjectKind::Label:
-					case HspObjectKind::Str:
-					case HspObjectKind::Double:
-					case HspObjectKind::Int:
-					case HspObjectKind::Flex:
-					case HspObjectKind::Unknown:
-						write_value(path, *value_path);
-						return;
-
-					default:
-						break;
-					}
-				}
-
-				write_scope(path);
-			}
-
-		private:
-			void write_scope(HspObjectPath const& path) {
-				auto name = path.name(objects());
-				auto item_count = path.child_count(objects());
-
-				writer().cat(name);
-				writer().cat(as_utf8(" ("));
-				writer().cat_size(item_count);
-				writer().cat(as_utf8("):"));
-				writer().cat_crlf();
-				writer().indent();
-
-				for (auto i = std::size_t{}; i < item_count; i++) {
-					auto item_path = path.child_at(i, objects());
-					write(*item_path);
-				}
-
-				writer().unindent();
-			}
-
-			void write_value(HspObjectPath const& path, HspObjectPath const& value_path) {
-				static auto constexpr SPACES = u8"                ";
-				static auto constexpr PAD = std::size_t{ 15 };
-
-				auto name = path.name(objects());
-				auto indent_length = writer().indent_length();
-				auto padding = PAD - std::min(PAD, indent_length + name.length());
-
-				writer().cat(name);
-				writer().cat(as_utf8(SPACES).substr(0, padding));
-				writer().cat(as_utf8(u8" = "));
-				HspObjectWriter{ objects(), writer() }.write_flow_form(value_path);
-				writer().cat_crlf();
-			}
-
-			auto objects() -> HspObjects& {
-				return objects_;
-			}
-
-			auto writer() -> StringWriter& {
-				return writer_;
-			}
-		};
-
 		auto string_writer = StringWriter{};
 		auto global_path = objects().root_path().new_global_module(objects());
 		HspObjectListWriter{ objects(), string_writer }.write(*global_path);
