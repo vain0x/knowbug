@@ -146,10 +146,6 @@
 	// 表示している行番号 (最後に自動スクロールした時点での行番号。現在の行番号ではない。)
 	s_script_line_index = 0
 
-	// データリスト
-	s_list_note = "a\nb\nc\n"
-	s_list_current = -1
-
 	// ソースファイル
 	sdim s_source_texts
 	dim s_source_exists
@@ -294,7 +290,7 @@
 	assert stat >= 0
 	return
 
-#deffunc app_list_box_insert_row int row_index,  str name, str value, \
+#deffunc app_list_box_insert_row int row_index, str name, str value, \
 	local lvitem, local text
 
 	text = name
@@ -319,20 +315,49 @@
 	assert stat
 	return
 
-#deffunc app_list_box_update var text, \
-	local line_text, local name, local value
+#deffunc app_list_box_delete_row int row_index
 
-	sendmsg s_list_box_hwnd, LVM_DELETEALLITEMS
+	sendmsg s_list_box_hwnd, LVM_DELETEITEM, row_index
+	assert stat
+	return
+
+#deffunc app_list_box_update_row int row_index, var name, var value
+
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 0
+	lvitem(5) = varptr(name)
+	sendmsg s_list_box_hwnd, LVM_SETITEM, , varptr(lvitem)
+	assert stat
+
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 1
+	lvitem(5) = varptr(value)
+	sendmsg s_list_box_hwnd, LVM_SETITEM, , varptr(lvitem)
+	assert stat
+	return
+
+#deffunc app_list_box_update var text, \
+	local delta, local kind, local index_str, local index, local name, local value
 
 	notesel text
 	repeat notemax
-		noteget line_text, cnt
+		noteget delta, cnt
+		logmes delta
+		split delta, ",", kind, index_str, name, value
+		index = int(index_str)
 
-		if instr(line_text, , "):") >= 0 {
-			app_list_box_insert_row cnt, line_text, ""
+		if kind == "+" {
+			app_list_box_insert_row index, name, value
+		} else : if kind == "-" {
+			app_list_box_delete_row index
+		} else : if kind == "!" {
+			app_list_box_update_row index, name, value
 		} else {
-			split line_text, " = ", name, value
-			app_list_box_insert_row cnt, strtrim(name, strtrim_end), strtrim(value)
+			logmes "unknown kind"
 		}
 	loop
 	noteunsel
