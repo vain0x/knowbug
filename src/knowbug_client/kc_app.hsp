@@ -184,8 +184,10 @@
 
 	// FIXME: フォント
 	s_script_edit_style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
-	CreateWindowEx 0, "EDIT", "", s_script_edit_style, s_script_edit_left, s_script_edit_top, s_script_edit_width, s_script_edit_height, hwnd, NULL, hinstance, NULL
-	s_script_edit_hwnd = stat
+	pos s_script_edit_left, s_script_edit_top
+	winobj "EDIT", "", 0, s_script_edit_style, s_script_edit_width, s_script_edit_height
+	s_script_edit_id = stat
+	s_script_edit_hwnd = objinfo_hwnd(stat)
 
 	// ログ
 	pos s_log_edit_left, s_log_edit_top
