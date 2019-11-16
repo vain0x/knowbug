@@ -405,16 +405,6 @@ public:
 		send(KMTC_SOURCE_OK, (int)source_file_id, int{}, content);
 	}
 
-	void touch_all_windows() {
-		auto hwnd = (HWND)debug_->hspctx->wnd_parent;
-		if (!hwnd) {
-			hwnd = HWND_BROADCAST;
-		}
-
-		// HACK: HSP のウィンドウに無意味なメッセージを送信することで、デバッグモードの変更に気づかせる。
-		PostMessage(hwnd, WM_NULL, WPARAM{}, LPARAM{});
-	}
-
 private:
 	auto objects() -> HspObjects& {
 		return objects_;
@@ -440,6 +430,16 @@ private:
 
 	void send(int kind) {
 		send(kind, WPARAM{}, LPARAM{}, Utf8StringView{});
+	}
+
+	void touch_all_windows() {
+		auto hwnd = (HWND)debug_->hspctx->wnd_parent;
+		if (!hwnd) {
+			hwnd = HWND_BROADCAST;
+		}
+
+		// HACK: HSP のウィンドウに無意味なメッセージを送信することで、デバッグモードの変更に気づかせる。
+		PostMessage(hwnd, WM_NULL, WPARAM{}, LPARAM{});
 	}
 };
 
