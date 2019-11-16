@@ -32,10 +32,11 @@
 #define global FILE_MAP_READ   0x0004
 #define global WM_USER         0x0400
 
-#define global EM_GETSEL       0x00b0
-#define global EM_SETSEL       0x00b1
-#define global EM_LINESCROLL   0x00b6
-#define global EM_LINEINDEX    0x00bb
+#define global EM_GETSEL               0x00b0
+#define global EM_SETSEL               0x00b1
+#define global EM_LINESCROLL           0x00b6
+#define global EM_LINEINDEX            0x00bb
+#define global EM_GETFIRSTVISIBLELINE  0x00ce
 
 #define global WS_HSCROLL      0x00100000
 #define global WS_VSCROLL      0x00200000
@@ -277,7 +278,8 @@
 // -----------------------------------------------
 
 #deffunc app_script_edit_update int source_file_id, int line_index, \
-	local text, local text_updated, local start_index, local end_index
+	local text, local text_updated, local start_index, local end_index, \
+	local current_line_index
 
 	// FIXME: 行番号とパスも表示する。
 
@@ -313,7 +315,11 @@
 		}
 
 		sendmsg s_script_edit_hwnd, EM_SETSEL, start_index, end_index
-		sendmsg s_script_edit_hwnd, EM_LINESCROLL, 0, limit(line_index - 3, 0)
+
+		// 指定行の少し上にスクロールする。
+		sendmsg s_script_edit_hwnd, EM_GETFIRSTVISIBLELINE
+		current_line_index = stat
+		sendmsg s_script_edit_hwnd, EM_LINESCROLL, 0, limit(line_index - 3, 0) - current_line_index
 
 		s_script_line_index = line_index
 	}
