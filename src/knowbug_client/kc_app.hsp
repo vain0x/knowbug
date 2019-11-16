@@ -20,6 +20,9 @@
 
 #define global objmode_font 2
 
+#define global strtrim_start 1
+#define global strtrim_end 2
+
 #define global char_lf 0x0a
 
 // -----------------------------------------------
@@ -48,6 +51,38 @@
 #define global ES_AUTOHSCROLL  0x0080
 #define global ES_NOHIDESEL    0x0100
 #define global ES_READONLY     0x0800
+
+// リストビューを詳細表示する。
+#define global LVS_REPORT           0x0001
+
+// リストビューのカラムヘッダーを表示しない。
+#define global LVS_NOCOLUMNHEADER   0x4000
+
+// リストビューのメッセージ
+// https://docs.microsoft.com/en-us/windows/win32/controls/bumper-list-view-control-reference-messages
+
+// 項目数を取得する。
+#define global LVM_GETITEMCOUNT         0x1004
+
+#define global LVM_GETITEM              0x1005
+#define global LVM_SETITEM              0x1006
+#define global LVM_INSERTITEM           0x1007
+#define global LVM_DELETEITEM           0x1008
+#define global LVM_DELETEALLITEMS       0x1009
+#define global LVM_INSERTCOLUMN         0x101b
+#define global LVM_SETTEXTCOLOR         0x1024
+#define global LVM_SETTEXTBKCOLOR       0x1026
+
+#define global LVCF_FMT                 0x0001
+#define global LVCF_WIDTH               0x0002
+#define global LVCF_TEXT                0x0004
+#define global LVCF_SUBITEM             0x0008
+
+#define global LVIF_TEXT                0x0001
+#define global LVIF_IMAGE               0x0002
+#define global LVIF_PARAM               0x0004
+#define global LVIF_STATE               0x0008
+#define global LVIF_INDENT              0x0010
 
 // -----------------------------------------------
 // ヘルパー
@@ -172,12 +207,8 @@
 	s_log_edit_height = s_main_height - s_script_edit_height
 
 	// リストボックス
-	font "MS Gothic", 13
-	pos s_list_box_left, s_list_box_top
-	objsize s_list_box_width, s_list_box_height - 100
-	listbox s_list_current, 100, s_list_note
-	s_list_box_id = stat
-	s_list_box_hwnd = objinfo_hwnd(s_list_box_id)
+	font "MSGothic", 13
+	app_list_box_create
 
 	// スクリプト
 	pos s_script_edit_left, s_script_edit_top
@@ -227,6 +258,85 @@
 
 	infra_send_terminate
 	end
+
+// -----------------------------------------------
+// リストビュー
+// -----------------------------------------------
+
+#deffunc app_list_box_create \
+	local style, local style_ex
+
+	style = WS_VISIBLE | WS_CHILD | LVS_REPORT
+	style_ex = 0
+
+	pos s_list_box_left, s_list_box_top
+	winobj "SysListView32", "", style_ex, style, s_list_box_width, s_list_box_height
+	s_list_box_id = stat
+	s_list_box_hwnd = objinfo_hwnd(s_list_box_id)
+
+	app_list_box_insert_column 0, "name", 120
+	app_list_box_insert_column 1, "value", 80
+	return
+
+#deffunc app_list_box_insert_column int column_index, str text, int column_width, \
+	local text_var, local lvcolumn, local mask
+
+	text_var = text
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvcolumna
+	dim lvcolumn, 11
+	lvcolumn(0) = LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM
+	lvcolumn(2) = column_width
+	lvcolumn(3) = varptr(text_var)
+	lvcolumn(5) = column_index // ?
+
+	sendmsg s_list_box_hwnd, LVM_INSERTCOLUMN, column_index, varptr(lvcolumn)
+	assert stat >= 0
+	return
+
+#deffunc app_list_box_insert_row int row_index,  str name, str value, \
+	local lvitem, local text
+
+	text = name
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvitema
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 0
+	lvitem(5) = varptr(text)
+	sendmsg s_list_box_hwnd, LVM_INSERTITEM, , varptr(lvitem)
+	assert stat == row_index
+
+	text = value
+
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 1
+	lvitem(5) = varptr(text)
+	sendmsg s_list_box_hwnd, LVM_SETITEM, , varptr(lvitem)
+	assert stat
+	return
+
+#deffunc app_list_box_update var text, \
+	local line_text, local name, local value
+
+	sendmsg s_list_box_hwnd, LVM_DELETEALLITEMS
+
+	notesel text
+	repeat notemax
+		noteget line_text, cnt
+
+		if instr(line_text, , "):") >= 0 {
+			app_list_box_insert_row cnt, line_text, ""
+		} else {
+			split line_text, " = ", name, value
+			app_list_box_insert_row cnt, strtrim(name, strtrim_end), strtrim(value)
+		}
+	loop
+	noteunsel
+	return
 
 // -----------------------------------------------
 // ソースファイル
@@ -430,7 +540,7 @@
 
 	logmes "app_did_receive_list_update_ok"
 	gsel s_main_window_id
-	objprm s_list_box_id, text
+	app_list_box_update text
 	return
 
 // -----------------------------------------------
