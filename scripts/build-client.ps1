@@ -1,4 +1,7 @@
 # knowbug_client をビルドする。
+# 注意: pwsh で GUI アプリを起動するとき、終了を待機しないことがある。
+#      アプリをパイプの途中で実行するときは待機されるので、
+#      xxx.exe (GUIアプリ) が終了するのを待ちたいときは xxx.exe | out-null と書く。
 
 if (!$env:KNOWBUG_SERVER_HSP3_ROOT) {
     write-error '環境変数 KNOWBUG_SERVER_HSP3_ROOT を設定してください。'
@@ -29,23 +32,21 @@ try {
     cd "$workDir/src/knowbug_client"
     echo "$workDir/src/knowbug_client/kc_main.hsp" >$makeFile
     echo $env:KNOWBUG_SERVER_HSP3_ROOT >>$makeFile
-    & "$env:KNOWBUG_SERVER_HSP3_ROOT/hsp3.exe" $makeAx
+    & "$env:KNOWBUG_SERVER_HSP3_ROOT/hsp3.exe" $makeAx | out-null
     if (!$?) {
         write-error 'knowbug_client のビルドに失敗しました。'
         exit 1
     }
-    sleep 1
 
     # プロキシをビルドする。
     cd "$workDir/src/knowbug_client"
     echo "$workDir/src/knowbug_client/kc_main_proxy.hsp" >$makeFile
     echo $env:KNOWBUG_SERVER_HSP3_ROOT >>$makeFile
-    & "$env:KNOWBUG_SERVER_HSP3_ROOT/hsp3.exe" $makeAx
+    & "$env:KNOWBUG_SERVER_HSP3_ROOT/hsp3.exe" $makeAx | out-null
     if (!$?) {
         write-error 'knowbug_client_proxy のビルドに失敗しました。'
         exit 1
     }
-    sleep 1
 
     # プロキシの設定ファイルを作成する。
     $proxyConfigPath = "$env:KNOWBUG_SERVER_HSP3_ROOT/knowbug_client_proxy.txt"
