@@ -10,6 +10,11 @@ class HashCode {
 	std::size_t value_;
 
 public:
+	HashCode()
+		: value_()
+	{
+	}
+
 	explicit HashCode(std::size_t value)
 		: value_(value)
 	{

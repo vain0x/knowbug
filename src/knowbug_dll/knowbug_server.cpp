@@ -4,6 +4,7 @@
 #include <deque>
 #include <mutex>
 #include <optional>
+#include <unordered_set>
 #include <vector>
 #include "../knowbug_core/encoding.h"
 #include "../knowbug_core/hsp_object_path.h"
@@ -21,6 +22,7 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x1000000 };
 // Knowbug window Message To the Server
 #define KMTS_FIRST                  (WM_USER + 1)
 // クライアントが起動したことをサーバーに伝える。
+// KMTC_HELLO_OK が返ってくる。
 // lparam: クライアントのウィンドウハンドル
 #define KMTS_HELLO                  (WM_USER + 1)
 // デバッグの終了をサーバーに要求する。
@@ -32,10 +34,20 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x1000000 };
 // 次へ
 #define KMTS_STEP_IN                (WM_USER + 5)
 // ソースコードのテキストを要求する。
+// KMTC_SOURCE_OK が返ってくる。
 // wparam: ソースファイルID
 #define KMTS_SOURCE                 (WM_USER + 6)
 // オブジェクトリストを要求する。
+// KMTC_LIST_UPDATE_OK が返ってくる。
 #define KMTS_LIST_UPDATE            (WM_USER + 7)
+// オブジェクトリストのノードを開閉する。
+// KMTC_LIST_UPDATE_OK が返ってくる。
+// wparam: リストのインデックス
+#define KMTS_LIST_TOGGLE_EXPAND     (WM_USER + 8)
+// オブジェクトリストのノードの詳細情報を要求する。
+// KMTC_LIST_DETAILS_OK が返ってくる。
+// wparam: リストのインデックス
+#define KMTS_LIST_DETAILS           (WM_USER + 9)
 #define KMTS_LAST                   (WM_USER + 999)
 
 // Knowbug window Message To the Client
@@ -44,7 +56,7 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x1000000 };
 #define KMTC_HELLO_OK               (WM_USER + 1001)
 // クライアントを終了させる。
 #define KMTC_SHUTDOWN               (WM_USER + 1002)
-// logmes 命令
+// logmes 命令が実行されたことを伝える。
 // text: logmes の引数。(UTF-8。改行は追加されていない。)
 #define KMTC_LOGMES                 (WM_USER + 1003)
 // assert や stop により停止したことを伝える。
@@ -55,9 +67,13 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x1000000 };
 // wparam: ソースファイルID
 // text: ソースコード (UTF-8)
 #define KMTC_SOURCE_OK              (WM_USER + 1005)
-// オブジェクトリストを返す。
-// text: オブジェクトリスト (UTF-8、改行区切り)
+// オブジェクトリストの更新を返す。
+// text: オブジェクトリストの差分リスト (UTF-8、改行区切り)
+// 詳細はサーバー側の HspObjectListDelta を参照。
 #define KMTC_LIST_UPDATE_OK         (WM_USER + 1006)
+// オブジェクトリストのノードの詳細データを返す。
+// text: 詳細 (UTF-8)
+#define KMTC_LIST_DETAILS_OK        (WM_USER + 1007)
 #define KMTC_LAST                   (WM_USER + 1999)
 
 class KnowbugServerImpl;
@@ -68,19 +84,108 @@ class KnowbugServerImpl;
 
 static auto constexpr MAX_CHILD_COUNT = std::size_t{ 300 };
 
-// オブジェクトリストを描画する関数。
-class HspObjectListWriter {
-	HspObjects& objects_;
-	StringWriter& writer_;
+class HspObjectListItem {
+	std::shared_ptr<HspObjectPath const> path_;
+	std::size_t depth_;
+	Utf8String name_;
+	Utf8String value_;
+	std::size_t child_count_;
 
 public:
-	HspObjectListWriter(HspObjects& objects, StringWriter& writer)
-		: objects_(objects)
-		, writer_(writer)
+	HspObjectListItem(std::shared_ptr<HspObjectPath const> path, std::size_t depth, Utf8String name, Utf8String value, std::size_t child_count)
+		: path_(std::move(path))
+		, depth_(depth)
+		, name_(std::move(name))
+		, value_(std::move(value))
+		, child_count_(child_count)
 	{
 	}
 
-	void write(HspObjectPath const& path) {
+	auto path() const -> HspObjectPath const& {
+		return *path_;
+	}
+
+	auto depth() const ->std::size_t {
+		return depth_;
+	}
+
+	auto name() const ->Utf8StringView {
+		return name_;
+	}
+
+	auto value() const ->Utf8StringView {
+		return value_;
+	}
+
+	auto child_count() const -> std::size_t {
+		return child_count_;
+	}
+
+	auto equals(HspObjectListItem const& other) const -> bool {
+		return path().equals(other.path())
+			&& depth() == other.depth()
+			&& name() == other.name()
+			&& value() == other.value()
+			&& child_count() == other.child_count();
+	}
+};
+
+class HspObjectList {
+	std::vector<HspObjectListItem> items_;
+	std::unordered_map<std::shared_ptr<HspObjectPath const>, bool> expanded_;
+
+public:
+	auto items() const ->std::vector<HspObjectListItem> const& {
+		return items_;
+	}
+
+	auto size() const -> std::size_t {
+		return items().size();
+	}
+
+	auto operator[](std::size_t index) const -> HspObjectListItem const& {
+		return items().at(index);
+	}
+
+	auto is_expanded(HspObjectPath const& path) const -> bool {
+		auto iter = expanded_.find(path.self());
+		if (iter == expanded_.end()) {
+			// ルートの子要素は既定で開く。
+			return path.parent().kind() == HspObjectKind::Root;
+		}
+
+		return iter->second;
+	}
+
+	void add_item(HspObjectListItem item) {
+		items_.push_back(std::move(item));
+	}
+
+	void inherit_expanded(HspObjectList const& other) {
+		expanded_ = other.expanded_;
+	}
+
+	void toggle_expanded(HspObjectPath const& path) {
+		expanded_[path.self()] = !is_expanded(path);
+	}
+};
+
+// オブジェクトリストを構築する関数。
+class HspObjectListWriter {
+	HspObjects& objects_;
+	HspObjectList& object_list_;
+
+	std::size_t depth_;
+
+public:
+	HspObjectListWriter(HspObjects& objects, HspObjectList& object_list)
+		: objects_(objects)
+		, object_list_(object_list)
+		, depth_()
+	{
+	}
+
+	void add(HspObjectPath const& path) {
 		if (path.child_count(objects()) == 1) {
 			auto value_path = path.child_at(0, objects());
 			switch (value_path->kind()) {
@@ -88,9 +193,8 @@ public:
 			case HspObjectKind::Str:
 			case HspObjectKind::Double:
 			case HspObjectKind::Int:
-			case HspObjectKind::Flex:
 			case HspObjectKind::Unknown:
-				write_value(path, *value_path);
+				add_value(path, *value_path);
 				return;
 
 			default:
@@ -98,55 +202,201 @@ public:
 			}
 		}
 
-		write_scope(path);
+		add_scope(path);
 	}
 
-	void write_children(HspObjectPath const& path) {
+	void add_children(HspObjectPath const& path) {
+		if (!object_list_.is_expanded(path)) {
+			return;
+		}
+
 		auto item_count = path.child_count(objects());
 		for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, item_count); i++) {
 			auto item_path = path.child_at(i, objects());
-			write(*item_path);
+			add(*item_path);
 		}
 	}
 
 private:
-	void write_scope(HspObjectPath const& path) {
+	void add_scope(HspObjectPath const& path) {
 		auto name = path.name(objects());
 		auto item_count = path.child_count(objects());
 
-		writer().cat(name);
-		writer().cat(as_utf8(" ("));
-		writer().cat_size(item_count);
-		writer().cat(as_utf8("):"));
-		writer().cat_crlf();
-		writer().indent();
-		write_children(path);
-		writer().unindent();
+		auto value = Utf8String{ as_utf8(u8"(") };
+		value += as_utf8(std::to_string(item_count));
+		value += as_utf8(u8"):");
+
+		object_list_.add_item(HspObjectListItem{ path.self(), depth_, name, value, item_count });
+		depth_++;
+		add_children(path);
+		depth_--;
 	}
 
-	void write_value(HspObjectPath const& path, HspObjectPath const& value_path) {
-		static auto constexpr SPACES = u8"                ";
-		static auto constexpr PAD = std::size_t{ 15 };
-
+	void add_value(HspObjectPath const& path, HspObjectPath const& value_path) {
 		auto name = path.name(objects());
-		auto indent_length = writer().indent_length();
-		auto padding = PAD - std::min(PAD, indent_length + name.length());
 
-		writer().cat(name);
-		writer().cat(as_utf8(SPACES).substr(0, padding));
-		writer().cat(as_utf8(u8" = "));
-		HspObjectWriter{ objects(), writer() }.write_flow_form(value_path);
-		writer().cat_crlf();
+		auto value_writer = StringWriter{};
+		HspObjectWriter{ objects(), value_writer }.write_flow_form(value_path);
+		auto value = value_writer.finish();
+
+		object_list_.add_item(HspObjectListItem{ path.self(), depth_, name, value, 0 });
 	}
 
 	auto objects() -> HspObjects& {
 		return objects_;
 	}
+};
 
-	auto writer() -> StringWriter& {
-		return writer_;
+class HspObjectListDelta {
+public:
+	enum class Kind {
+		Insert,
+		Remove,
+		Update,
+	};
+
+	static auto kind_to_string(Kind kind) -> Utf8StringView {
+		switch (kind) {
+		case Kind::Insert:
+			return as_utf8(u8"+");
+
+		case Kind::Remove:
+			return as_utf8(u8"-");
+
+		case Kind::Update:
+			return as_utf8(u8"!");
+
+		default:
+			throw std::exception{};
+		}
+	}
+
+private:
+	Kind kind_;
+	std::size_t index_;
+	std::size_t depth_;
+	Utf8String name_;
+	Utf8String value_;
+
+public:
+	HspObjectListDelta(Kind kind, std::size_t index, std::size_t depth, Utf8String name, Utf8String value)
+		: kind_(kind)
+		, index_(index)
+		, depth_(depth)
+		, name_(std::move(name))
+		, value_(std::move(value))
+	{
+	}
+
+	static auto new_insert(std::size_t index, HspObjectListItem const& item) -> HspObjectListDelta {
+		return HspObjectListDelta{
+			Kind::Insert,
+			index,
+			item.depth(),
+			Utf8String{ item.name() },
+			Utf8String{ item.value() }
+		};
+	}
+
+	static auto new_remove(std::size_t index) -> HspObjectListDelta {
+		return HspObjectListDelta{
+			Kind::Remove,
+			index,
+			std::size_t{},
+			Utf8String{},
+			Utf8String{}
+		};
+	}
+
+	static auto new_update(std::size_t index, HspObjectListItem const& item) -> HspObjectListDelta {
+		return HspObjectListDelta{
+			Kind::Update,
+			index,
+			item.depth(),
+			Utf8String{ item.name() },
+			Utf8String{ item.value() }
+		};
+	}
+
+	auto write_to(StringWriter& w) {
+		static auto constexpr SPACES = u8"                ";
+
+		w.cat(kind_to_string(kind_));
+		w.cat(u8",");
+		w.cat_size(index_);
+		w.cat(u8",");
+		w.cat(as_utf8(SPACES).substr(0, depth_ * 2));
+		w.cat(name_);
+		w.cat(u8",");
+		w.cat(value_);
+		w.cat_crlf();
 	}
 };
+
+static auto diff_object_list(HspObjectList const& source, HspObjectList const& target, std::vector<HspObjectListDelta>& diff) {
+	auto source_done = std::vector<bool>{};
+	source_done.resize(source.size());
+
+	auto target_done = std::vector<bool>{};
+	target_done.resize(target.size());
+
+	// FIXME: 高速化
+	for (auto si = std::size_t{}; si < source.size(); si++) {
+		if (source_done[si]) {
+			continue;
+		}
+
+		for (auto ti = std::size_t{}; ti < target.size(); ti++) {
+			if (target_done[ti]) {
+				continue;
+			}
+
+			if (source[si].path().equals(target[ti].path())) {
+				source_done[si] = true;
+				target_done[ti] = true;
+				break;
+			}
+		}
+	}
+
+	{
+		auto si = std::size_t{};
+		auto ti = std::size_t{};
+
+		while (si < source.size() || ti < target.size()) {
+			if (ti == target.size() || (si < source.size() && !source_done[si])) {
+				diff.push_back(HspObjectListDelta::new_remove(ti));
+				si++;
+				continue;
+			}
+
+			if (si == source.size() || (ti < target.size() && !target_done[ti])) {
+				diff.push_back(HspObjectListDelta::new_insert(ti, target[ti]));
+				ti++;
+				continue;
+			}
+
+			assert(si < source.size() && ti < target.size());
+			assert(source_done[si] && target_done[ti]);
+
+			if (source[si].path().equals(target[ti].path())) {
+				auto&& s = source[si];
+				auto&& t = target[ti];
+				if (!s.equals(t)) {
+					diff.push_back(HspObjectListDelta::new_update(ti, target[ti]));
+				}
+
+				si++;
+				ti++;
+				continue;
+			}
+
+			assert(false && u8"パスの順番が入れ替わるケースは未実装。");
+			diff.clear();
+			break;
+		}
+	}
+}
 
 // -----------------------------------------------
 // ヘルパー
@@ -408,6 +658,8 @@ class KnowbugServerImpl
 
 	std::vector<Msg> send_queue_;
 
+	HspObjectList object_list_;
+
 public:
 	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)
 		: debug_(debug)
@@ -424,6 +676,8 @@ public:
 		, client_hwnd_opt_()
 		, client_process_opt_()
 		, client_thread_opt_()
+		, send_queue_()
+		, object_list_()
 	{
 	}
 
@@ -507,10 +761,52 @@ public:
 	}
 
 	void client_did_list_update() {
-		auto string_writer = StringWriter{};
-		HspObjectListWriter{ objects(), string_writer }.write_children(objects().root_path());
+		auto new_list = HspObjectList{};
+		new_list.inherit_expanded(object_list_);
+		HspObjectListWriter{ objects(), new_list }.add_children(objects().root_path());
 
-		send(KMTC_LIST_UPDATE_OK, int{}, int{}, string_writer.finish());
+		auto diff = std::vector<HspObjectListDelta>{};
+		diff_object_list(object_list_, new_list, diff);
+
+		auto string_writer = StringWriter{};
+		for (auto&& delta : diff) {
+			delta.write_to(string_writer);
+		}
+		auto text = string_writer.finish();
+
+		object_list_ = std::move(new_list);
+
+		send(KMTC_LIST_UPDATE_OK, int{}, int{}, text);
+	}
+
+	void client_did_list_toggle_expand(int index) {
+		if (index < 0 || (std::size_t)index >= object_list_.size()) {
+			OutputDebugString(TEXT("out of range"));
+			return;
+		}
+
+		// 子要素のないノードは開閉しない。
+		auto&& item = object_list_[index];
+		if (item.child_count() != 0) {
+			object_list_.toggle_expanded(item.path());
+		}
+
+		client_did_list_update();
+	}
+
+	void client_did_list_details(int index) {
+		if (index < 0 || (std::size_t)index >= object_list_.size()) {
+			OutputDebugString(TEXT("out of range"));
+			return;
+		}
+
+		auto&& item = object_list_[index];
+
+		auto string_writer = StringWriter{};
+		HspObjectWriter{ objects(), string_writer }.write_table_form(item.path());
+		auto text = string_writer.finish();
+
+		send(KMTC_LIST_DETAILS_OK, int{}, int{}, text);
 	}
 
 private:
@@ -609,6 +905,14 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 
 				case KMTS_LIST_UPDATE:
 					server->client_did_list_update();
+					break;
+
+				case KMTS_LIST_TOGGLE_EXPAND:
+					server->client_did_list_toggle_expand((int)wp);
+					break;
+
+				case KMTS_LIST_DETAILS:
+					server->client_did_list_details((int)wp);
 					break;
 
 				default:

@@ -15,10 +15,14 @@
 
 #define global gsel_hide (-1)
 #define global gsel_show 1
+#define global gsel_activate 2
 
 #define global mesbox_readonly 0
 
 #define global objmode_font 2
+
+#define global strtrim_start 1
+#define global strtrim_end 2
 
 #define global char_lf 0x0a
 
@@ -30,13 +34,22 @@
 #define global EXIT_FAILURE    1
 #define global FILE_MAP_WRITE  0x0002
 #define global FILE_MAP_READ   0x0004
-#define global WM_USER         0x0400
 
-#define global EM_GETSEL               0x00b0
-#define global EM_SETSEL               0x00b1
-#define global EM_LINESCROLL           0x00b6
-#define global EM_LINEINDEX            0x00bb
-#define global EM_GETFIRSTVISIBLELINE  0x00ce
+#define global VK_ESCAPE                0x1b
+
+#define global WM_NOTIFY                0x004e
+#define global WM_COMMAND               0x0111
+#define global WM_USER                  0x0400
+
+#define global NM_CLICK                 (-2)
+#define global NM_DBLCLK                (-3)
+#define global NM_RETURN                (-4)
+
+#define global EM_GETSEL                0x00b0
+#define global EM_SETSEL                0x00b1
+#define global EM_LINESCROLL            0x00b6
+#define global EM_LINEINDEX             0x00bb
+#define global EM_GETFIRSTVISIBLELINE   0x00ce
 
 #define global WS_HSCROLL      0x00100000
 #define global WS_VSCROLL      0x00200000
@@ -48,6 +61,53 @@
 #define global ES_AUTOHSCROLL  0x0080
 #define global ES_NOHIDESEL    0x0100
 #define global ES_READONLY     0x0800
+
+// リストビューを詳細表示する。
+#define global LVS_REPORT               0x0001
+
+// リストビューのカラムヘッダーを表示しない。
+#define global LVS_NOCOLUMNHEADER       0x4000
+
+#define global LVS_EX_FULLROWSELECT     0x0020
+
+// リストビューのメッセージ
+// https://docs.microsoft.com/en-us/windows/win32/controls/bumper-list-view-control-reference-messages
+
+// 項目数を取得する。
+#define global LVM_GETITEMCOUNT         0x1004
+
+#define global LVM_FIRST                0x1000
+#define global LVM_GETITEM              0x1005
+#define global LVM_SETITEM              0x1006
+#define global LVM_DELETEITEM           0x1008
+#define global LVM_DELETEALLITEMS       0x1009
+#define global LVM_HITTEST              0x1012
+#define global LVM_INSERTCOLUMN         0x101b
+#define global LVM_SETTEXTCOLOR         0x1024
+#define global LVM_SETTEXTBKCOLOR       0x1026
+#define global LVM_SUBITEMHITTEST               (LVM_FIRST + 57)
+#define global LVM_SETEXTENDEDLISTVIEWSTYLE     (LVM_FIRST + 54)
+#define global LVM_GETEXTENDEDLISTVIEWSTYLE     (LVM_FIRST + 55)
+#define global LVM_SETITEMW                     (LVM_FIRST + 76)
+#define global LVM_INSERTITEMW                  (LVM_FIRST + 77)
+
+#define global LVCF_FMT                 0x0001
+#define global LVCF_WIDTH               0x0002
+#define global LVCF_TEXT                0x0004
+#define global LVCF_SUBITEM             0x0008
+
+#define global LVIF_TEXT                0x0001
+#define global LVIF_IMAGE               0x0002
+#define global LVIF_PARAM               0x0004
+#define global LVIF_STATE               0x0008
+#define global LVIF_INDENT              0x0010
+
+#define global LVHT_ONITEMICON          0x00000002
+#define global LVHT_ONITEMLABEL         0x00000004
+#define global LVHT_ONITEMSTATEICON     0x00000008
+#define global LVHT_ONITEM              (LVHT_ONITEMICON | LVHT_ONITEMLABEL | LVHT_ONITEMSTATEICON)
+
+#define global LBN_DBLCLK               2
 
 // -----------------------------------------------
 // ヘルパー
@@ -66,6 +126,7 @@
 
 #enum global s_default_window_id = 0
 #enum global s_main_window_id
+#enum global s_details_window_id
 
 #module m_app
 
@@ -99,6 +160,9 @@
 	// デバッギが実行中か？
 	s_debuggee_is_running = true
 
+	// 詳細
+	sdim s_details_text
+
 	// logmes の出力結果
 	sdim s_log_text, 0x10000
 
@@ -110,10 +174,6 @@
 	s_script_source_exists = false
 	// 表示している行番号 (最後に自動スクロールした時点での行番号。現在の行番号ではない。)
 	s_script_line_index = 0
-
-	// データリスト
-	s_list_note = "a\nb\nc\n"
-	s_list_current = -1
 
 	// ソースファイル
 	sdim s_source_texts
@@ -133,14 +193,11 @@
 	s_main_window_height = 520
 	s_main_window_left = ginfo_dispx - s_main_window_width - 16
 	s_main_window_top =  ginfo_dispy - s_main_window_height - 72
-	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height
 
-	title s_title + " [接続待ち]"
-
-	hsvcolor , , 0xfc
-	boxf
-
-	objmode objmode_font
+	s_details_window_width = s_main_window_width
+	s_details_window_height = 320
+	s_details_window_left = s_main_window_left
+	s_details_window_top = s_main_window_top - s_details_window_height - 8
 
 	s_margin = 4
 	s_step_button_width = 80
@@ -156,36 +213,45 @@
 	s_main_height = s_footer_top - s_margin
 	s_main_width = s_main_window_width
 
-	s_list_box_left = s_main_left
-	s_list_box_top = s_main_top
-	s_list_box_width = s_main_width / 2
-	s_list_box_height = s_main_height
+	s_list_view_left = s_main_left
+	s_list_view_top = s_main_top
+	s_list_view_width = s_main_width / 2
+	s_list_view_height = s_main_height
 
-	s_script_edit_left = s_list_box_width
+	s_script_edit_left = s_list_view_width
 	s_script_edit_top = s_main_top
-	s_script_edit_width = s_main_width - s_list_box_width
+	s_script_edit_width = s_main_width - s_list_view_width
 	s_script_edit_height = s_main_height / 2
 
-	s_log_edit_left = s_list_box_width
+	s_log_edit_left = s_list_view_width
 	s_log_edit_top = s_script_edit_top + s_script_edit_height
-	s_log_edit_width = s_main_width - s_list_box_width
+	s_log_edit_width = s_main_width - s_list_view_width
 	s_log_edit_height = s_main_height - s_script_edit_height
 
-	// リストボックス
-	font "MS Gothic", 13
-	pos s_list_box_left, s_list_box_top
-	objsize s_list_box_width, s_list_box_height - 100
-	listbox s_list_current, 100, s_list_note
-	s_list_box_id = stat
-	s_list_box_hwnd = objinfo_hwnd(s_list_box_id)
+	app_details_window_create
+
+	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height
+
+	title s_title + " [接続待ち]"
+
+	hsvcolor , , 0xfc
+	boxf
+
+	objmode objmode_font
+
+	// リストビュー
+	font "MSGothic", 13
+	app_list_view_create
 
 	// スクリプト
 	pos s_script_edit_left, s_script_edit_top
 
 	// FIXME: フォント
 	s_script_edit_style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
-	CreateWindowEx 0, "EDIT", "", s_script_edit_style, s_script_edit_left, s_script_edit_top, s_script_edit_width, s_script_edit_height, hwnd, NULL, hinstance, NULL
-	s_script_edit_hwnd = stat
+	pos s_script_edit_left, s_script_edit_top
+	winobj "EDIT", "", 0, s_script_edit_style, s_script_edit_width, s_script_edit_height
+	s_script_edit_id = stat
+	s_script_edit_hwnd = objinfo_hwnd(stat)
 
 	// ログ
 	pos s_log_edit_left, s_log_edit_top
@@ -213,18 +279,219 @@
 	pos x, s_footer_top
 	button gosub "更新", *l_refresh_button
 
+	oncmd gosub *l_on_notify, WM_NOTIFY
+
 	gsel s_main_window_id, gsel_show
 	return
 
 #deffunc app_init_subs
 
-	onexit goto *l_on_exit
+	onkey gosub *l_on_key
+	onexit gosub *l_on_exit
+	return
+
+*l_on_key
+
+	if ginfo_act == s_details_window_id {
+		if wparam == VK_ESCAPE {
+			app_details_window_hide
+			return
+		}
+	}
 	return
 
 *l_on_exit
 
+	if wparam != s_main_window_id {
+		gsel wparam, gsel_hide
+		return
+	}
+
 	infra_send_terminate
 	end
+
+// -----------------------------------------------
+// 詳細ウィンドウ
+// -----------------------------------------------
+
+#deffunc app_details_window_create
+
+	screen s_details_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_details_window_left, s_details_window_top, s_details_window_width, s_details_window_height
+
+	font "MS Gothic", 13
+	objmode objmode_font
+
+	mesbox s_details_text, s_details_window_width, s_details_window_height, mesbox_readonly
+	s_details_edit_id = stat
+	return
+
+#deffunc app_details_window_set_text var text
+
+	gsel s_details_window_id
+	objprm s_details_edit_id, text
+	return
+
+#deffunc app_details_window_show
+
+	gsel s_details_window_id, gsel_activate
+	return
+
+#deffunc app_details_window_hide
+
+	gsel s_details_window_id, gsel_hide
+	gsel s_main_window_id, gsel_activate
+	return
+
+// -----------------------------------------------
+// リストビュー
+// -----------------------------------------------
+
+#deffunc app_list_view_create \
+	local style, local style_ex, local lvs_ex
+
+	style = WS_VISIBLE | WS_CHILD | LVS_REPORT
+	style_ex = 0
+
+	pos s_list_view_left, s_list_view_top
+	winobj "SysListView32", "", style_ex, style, s_list_view_width, s_list_view_height
+	s_list_view_id = stat
+	s_list_view_hwnd = objinfo_hwnd(s_list_view_id)
+
+	// 拡張スタイルを適用する。
+	sendmsg s_list_view_hwnd, LVM_GETEXTENDEDLISTVIEWSTYLE
+	lvs_ex = stat | LVS_EX_FULLROWSELECT
+	sendmsg s_list_view_hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, lvs_ex
+
+	app_list_view_insert_column 0, "name", 120
+	app_list_view_insert_column 1, "value", 80
+	return
+
+#deffunc app_list_view_insert_column int column_index, str text, int column_width, \
+	local text_var, local lvcolumn, local mask
+
+	text_var = text
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvcolumna
+	dim lvcolumn, 11
+	lvcolumn(0) = LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM
+	lvcolumn(2) = column_width
+	lvcolumn(3) = varptr(text_var)
+	lvcolumn(5) = column_index // ?
+
+	sendmsg s_list_view_hwnd, LVM_INSERTCOLUMN, column_index, varptr(lvcolumn)
+	assert stat >= 0
+	return
+
+#deffunc app_list_view_insert_row int row_index, str name, str value, \
+	local lvitem, local os_text
+
+	sdim os_text, 0x1000
+	cnvstow os_text, name
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvitema
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 0
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_view_hwnd, LVM_INSERTITEMW, , varptr(lvitem)
+	assert stat == row_index
+
+	cnvstow os_text, value
+
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 1
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
+	assert stat
+	return
+
+#deffunc app_list_view_delete_row int row_index
+
+	sendmsg s_list_view_hwnd, LVM_DELETEITEM, row_index
+	assert stat
+	return
+
+#deffunc app_list_view_update_row int row_index, var name, var value, \
+	local os_text
+
+	sdim os_text, 0x1000
+	cnvstow os_text, name
+
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 0
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
+	assert stat
+
+	cnvstow os_text, value
+
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 1
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
+	assert stat
+	return
+
+#deffunc app_list_view_update var text, \
+	local delta, local kind, local index_str, local index, local name, local value
+
+	notesel text
+	repeat notemax
+		noteget delta, cnt
+		logmes delta
+		split delta, ",", kind, index_str, name, value
+		index = int(index_str)
+
+		if kind == "+" {
+			app_list_view_insert_row index, name, value
+		} else : if kind == "-" {
+			app_list_view_delete_row index
+		} else : if kind == "!" {
+			app_list_view_update_row index, name, value
+		} else {
+			logmes "unknown kind"
+		}
+	loop
+	noteunsel
+	return
+
+#deffunc app_list_view_did_click \
+	local point, local lvhittestinfo, local row_index, local column_index
+
+	point = ginfo_mx, ginfo_my
+	ScreenToClient s_list_view_hwnd, varptr(point)
+	assert stat
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvhittestinfo
+	dim lvhittestinfo, 6
+	lvhittestinfo = point(0), point(1), LVHT_ONITEM
+	sendmsg s_list_view_hwnd, LVM_SUBITEMHITTEST, , varptr(lvhittestinfo)
+	assert stat >= 0
+
+	row_index = lvhittestinfo(3)
+	column_index = lvhittestinfo(4)
+	if row_index < 0 || column_index < 0 {
+		return
+	}
+
+	if column_index == 0 {
+		logmes "send_toggle_expand: " + row_index
+		infra_send_list_toggle_expand row_index
+		return
+	}
+	if column_index == 1 {
+		logmes "send_list_details: " + row_index
+		infra_send_list_details row_index
+		return
+	}
+	return
 
 // -----------------------------------------------
 // ソースファイル
@@ -278,7 +545,7 @@
 // -----------------------------------------------
 
 #deffunc app_script_edit_update int source_file_id, int line_index, \
-	local text, local text_updated, local start_index, local end_index, \
+	local text, local os_text, local text_updated, local start_index, local end_index, \
 	local current_line_index
 
 	// FIXME: 行番号とパスも表示する。
@@ -291,8 +558,9 @@
 		if stat == false {
 			text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
 		}
-		// FIXME: 文字コード
-		SetWindowText s_script_edit_hwnd, text
+		sdim os_text, strlen(text) * 2 + 1
+		cnvstow os_text, text
+		SetWindowTextW s_script_edit_hwnd, varptr(os_text)
 
 		s_script_source_file_id = source_file_id
 		s_script_source_exists = app_source_exists(source_file_id)
@@ -428,7 +696,13 @@
 
 	logmes "app_did_receive_list_update_ok"
 	gsel s_main_window_id
-	objprm s_list_box_id, text
+	app_list_view_update text
+	return
+
+#deffunc app_did_receive_list_details_ok var text
+
+	app_details_window_set_text text
+	app_details_window_show
 	return
 
 // -----------------------------------------------
@@ -443,6 +717,20 @@
 #deffunc app_log_did_update
 
 	objprm s_log_edit_id, s_log_text
+	return
+
+*l_on_notify
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/richedit/ns-richedit-nmhdr
+	dupptr s_nmhdr, lparam, 12
+	s_nmhdr_hwnd_from = s_nmhdr(0)
+	s_nmhdr_code = s_nmhdr(2)
+
+	if s_nmhdr_hwnd_from == s_list_view_hwnd {
+		if s_nmhdr_code == NM_CLICK {
+			app_list_view_did_click
+		}
+	}
 	return
 
 #global
