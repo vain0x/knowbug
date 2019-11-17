@@ -415,7 +415,7 @@
 	return
 
 #deffunc app_list_view_update_row int row_index, var name, var value, \
-	local os_text
+	local os_text, local lvitem
 
 	sdim os_text, 0x1000
 	cnvstow os_text, name
