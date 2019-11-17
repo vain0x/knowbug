@@ -762,6 +762,11 @@
 
 	text_len = strlen(text)
 
+	if s_log_text_len + text_len + 2 >= 0x7fff {
+		// FIXME: ログが長すぎると mesbox がクラッシュするので連結しない。
+		return
+	}
+
 	// NOTE: 文字列を書き込む領域を確保して (memexpand)、
 	//       文字列の末尾に追加する文字列を書く (poke)。+= より遥かに速く文字列連結ができる。
 
