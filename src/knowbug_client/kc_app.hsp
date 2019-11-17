@@ -702,7 +702,10 @@
 #deffunc app_did_receive_hello_ok
 
 	logmes "app_did_receive_hello_ok"
+
 	s_connected = true
+
+	gsel s_main_window_id
 	title s_title
 
 	app_refresh
@@ -763,6 +766,7 @@
 
 #deffunc app_did_disconnect
 
+	gsel s_main_window_id
 	title s_title + " [接続なし]"
 	return
 
