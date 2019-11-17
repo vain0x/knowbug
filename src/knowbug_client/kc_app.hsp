@@ -15,6 +15,7 @@
 
 #define global gsel_hide (-1)
 #define global gsel_show 1
+#define global gsel_activate 2
 
 #define global mesbox_readonly 0
 
@@ -33,6 +34,8 @@
 #define global EXIT_FAILURE    1
 #define global FILE_MAP_WRITE  0x0002
 #define global FILE_MAP_READ   0x0004
+
+#define global VK_ESCAPE                0x1b
 
 #define global WM_NOTIFY                0x004e
 #define global WM_COMMAND               0x0111
@@ -122,6 +125,7 @@
 
 #enum global s_default_window_id = 0
 #enum global s_main_window_id
+#enum global s_details_window_id
 
 #module m_app
 
@@ -155,6 +159,9 @@
 	// デバッギが実行中か？
 	s_debuggee_is_running = true
 
+	// 詳細
+	sdim s_details_text
+
 	// logmes の出力結果
 	sdim s_log_text, 0x10000
 
@@ -185,14 +192,11 @@
 	s_main_window_height = 520
 	s_main_window_left = ginfo_dispx - s_main_window_width - 16
 	s_main_window_top =  ginfo_dispy - s_main_window_height - 72
-	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height
 
-	title s_title + " [接続待ち]"
-
-	hsvcolor , , 0xfc
-	boxf
-
-	objmode objmode_font
+	s_details_window_width = s_main_window_width
+	s_details_window_height = 320
+	s_details_window_left = s_main_window_left
+	s_details_window_top = s_main_window_top - s_details_window_height - 8
 
 	s_margin = 4
 	s_step_button_width = 80
@@ -222,6 +226,17 @@
 	s_log_edit_top = s_script_edit_top + s_script_edit_height
 	s_log_edit_width = s_main_width - s_list_box_width
 	s_log_edit_height = s_main_height - s_script_edit_height
+
+	app_details_window_create
+
+	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height
+
+	title s_title + " [接続待ち]"
+
+	hsvcolor , , 0xfc
+	boxf
+
+	objmode objmode_font
 
 	// リストボックス
 	font "MSGothic", 13
@@ -270,13 +285,61 @@
 
 #deffunc app_init_subs
 
-	onexit goto *l_on_exit
+	onkey gosub *l_on_key
+	onexit gosub *l_on_exit
+	return
+
+*l_on_key
+
+	if ginfo_act == s_details_window_id {
+		if wparam == VK_ESCAPE {
+			app_details_window_hide
+			return
+		}
+	}
 	return
 
 *l_on_exit
 
+	if wparam != s_main_window_id {
+		gsel wparam, gsel_hide
+		return
+	}
+
 	infra_send_terminate
 	end
+
+// -----------------------------------------------
+// 詳細ウィンドウ
+// -----------------------------------------------
+
+#deffunc app_details_window_create
+
+	screen s_details_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_details_window_left, s_details_window_top, s_details_window_width, s_details_window_height
+
+	font "MS Gothic", 13
+	objmode objmode_font
+
+	mesbox s_details_text, s_details_window_width, s_details_window_height, mesbox_readonly
+	s_details_edit_id = stat
+	return
+
+#deffunc app_details_window_set_text var text
+
+	gsel s_details_window_id
+	objprm s_details_edit_id, text
+	return
+
+#deffunc app_details_window_show
+
+	gsel s_details_window_id, gsel_activate
+	return
+
+#deffunc app_details_window_hide
+
+	gsel s_details_window_id, gsel_hide
+	gsel s_main_window_id, gsel_activate
+	return
 
 // -----------------------------------------------
 // リストビュー
@@ -631,7 +694,8 @@
 
 #deffunc app_did_receive_list_details_ok var text
 
-	dialog text
+	app_details_window_set_text text
+	app_details_window_show
 	return
 
 // -----------------------------------------------
