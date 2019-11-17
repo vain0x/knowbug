@@ -51,6 +51,7 @@
 #define global WM_SIZE          0x0005
 #define global WM_NOTIFY        0x004e
 #define global WM_COMMAND       0x0111
+#define global WM_TIMER         0x0113
 #define global WM_USER          0x0400
 
 #define global NM_CLICK         (-2)
@@ -122,8 +123,8 @@
 // -----------------------------------------------
 
 //#ifdef _DEBUG
-#define global debug_trace(%1) s_log_text@m_app += "TRACE: " + (%1) + "\n" : app_log_edit_update
-#define global debug_warn(%1) s_log_text@m_app += "WARN: " + (%1) + "\n" : app_log_edit_update
+#define global debug_trace(%1) app_log_edit_append "TRACE: " + (%1)
+#define global debug_warn(%1) app_log_edit_append "WARN: " + (%1)
 //#else
 //#define global debug_trace(%1) :
 //#endif
@@ -136,6 +137,8 @@
 #enum global s_main_window_id
 #enum global s_details_window_id
 #enum global s_help_window_id
+
+#enum global s_animation_timer_id = 1
 
 #module m_app
 
@@ -176,7 +179,9 @@
 	dim s_list_view_hwnd
 
 	// logmes の出力結果
-	sdim s_log_text, 0x10000
+	s_log_text_len = 0
+	s_log_text_cap = 0x100
+	sdim s_log_text, s_log_text_cap
 
 	// ソースファイル
 	sdim s_source_texts
@@ -306,6 +311,7 @@
 		return
 	}
 
+	app_main_window_on_exit
 	infra_send_terminate
 	end
 
@@ -316,6 +322,7 @@
 #deffunc app_main_window_create
 
 	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height
+	s_main_window_hwnd = hwnd
 
 	title s_main_window_title + " [接続待ち]"
 
@@ -356,8 +363,16 @@
 	button gosub "？", *l_help_button
 	s_help_button_hwnd = objinfo_hwnd(stat)
 
+	// タイマー (60fps)
+	SetTimer hwnd, s_animation_timer_id, 1000 / 60, NULL
+	assert stat
+	if stat {
+		s_animation_timer_is_running = true
+	}
+
 	oncmd gosub *l_main_window_on_size, WM_SIZE
 	oncmd gosub *l_on_notify, WM_NOTIFY
+	oncmd gosub *l_main_window_on_timer, WM_TIMER
 	return
 
 *l_main_window_on_size
@@ -383,6 +398,22 @@
 		if s_nmhdr_code == NM_CLICK {
 			app_list_view_did_click
 		}
+	}
+	return
+
+*l_main_window_on_timer
+
+	if wparam == s_animation_timer_id {
+		app_log_edit_update
+	}
+	return
+
+#deffunc app_main_window_on_exit
+
+	// タイマーを切る。
+	if s_animation_timer_is_running {
+		KillTimer s_main_window_hwnd, s_animation_timer_id
+		s_animation_timer_is_running = false
 	}
 	return
 
@@ -726,6 +757,33 @@
 	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
 	return
 
+#deffunc app_log_edit_append var text, \
+	local text_len
+
+	text_len = strlen(text)
+
+	if s_log_text_len + text_len + 2 >= 0x7fff {
+		// FIXME: ログが長すぎると mesbox がクラッシュするので連結しない。
+		return
+	}
+
+	// NOTE: 文字列を書き込む領域を確保して (memexpand)、
+	//       文字列の末尾に追加する文字列を書く (poke)。+= より遥かに速く文字列連結ができる。
+
+	if s_log_text_len + text_len + 2 >= s_log_text_cap {
+		s_log_text_cap += s_log_text_cap / 2 + text_len + 2 + 1
+		memexpand s_log_text, s_log_text_cap
+	}
+
+	poke s_log_text, s_log_text_len, text
+	s_log_text_len += text_len
+
+	poke s_log_text, s_log_text_len, "\n"
+	s_log_text_len += 2
+
+	s_log_is_dirty = true
+	return
+
 #deffunc app_log_edit_get_selection var start_index, var end_index
 
 	sendmsg s_log_edit_hwnd, EM_GETSEL, varptr(start_index), varptr(end_index)
@@ -765,6 +823,11 @@
 
 #deffunc app_log_edit_update \
 	local at_bottom, local current_line, local start_index, local end_index
+
+	if s_log_is_dirty == false {
+		return
+	}
+	s_log_is_dirty = false
 
 	at_bottom = app_log_edit_is_scrolled_to_bottom()
 	current_line = app_log_edit_get_scrolled_line()
@@ -924,8 +987,7 @@
 
 #deffunc app_did_receive_logmes var text
 
-	s_log_text += text + "\n"
-	app_log_edit_update
+	app_log_edit_append text
 	return
 
 #deffunc app_did_receive_stopped int source_file_id, int line_index
