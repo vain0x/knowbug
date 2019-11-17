@@ -185,7 +185,6 @@ public:
 			case HspObjectKind::Str:
 			case HspObjectKind::Double:
 			case HspObjectKind::Int:
-			case HspObjectKind::Flex:
 			case HspObjectKind::Unknown:
 				add_value(path, *value_path);
 				return;
