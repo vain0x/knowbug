@@ -138,7 +138,7 @@
 #define false 0
 
 // FIXME: エンコーディングとプラットフォームも表示
-#define s_title "knowbug v0.1.0"
+#define s_main_window_title "knowbug v0.1.0"
 
 #deffunc app_init
 
@@ -289,7 +289,7 @@
 
 	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height
 
-	title s_title + " [接続待ち]"
+	title s_main_window_title + " [接続待ち]"
 
 	hsvcolor , , 0xfc
 	boxf
@@ -706,7 +706,7 @@
 	s_connected = true
 
 	gsel s_main_window_id
-	title s_title
+	title s_main_window_title
 
 	app_refresh
 	return
@@ -767,7 +767,7 @@
 #deffunc app_did_disconnect
 
 	gsel s_main_window_id
-	title s_title + " [接続なし]"
+	title s_main_window_title + " [接続なし]"
 	return
 
 #global
