@@ -139,8 +139,7 @@
 #deffunc app_init
 
 	app_init_globals
-	app_init_windows
-	app_init_subs
+	app_ui_init
 
 	infra_connect_server
 	if stat == false {
@@ -163,8 +162,14 @@
 	// 詳細
 	sdim s_details_text
 
+	dim s_list_view_hwnd
+
 	// logmes の出力結果
 	sdim s_log_text, 0x10000
+
+	// ソースファイル
+	sdim s_source_texts
+	dim s_source_exists
 
 	// スクリプト
 	sdim s_script_text
@@ -175,19 +180,31 @@
 	// 表示している行番号 (最後に自動スクロールした時点での行番号。現在の行番号ではない。)
 	s_script_line_index = 0
 
-	// ソースファイル
-	sdim s_source_texts
-	dim s_source_exists
-
 	sdim s_lf
 	poke s_lf, 0, char_lf
 	poke s_lf, 1, 0
 	return
 
-#deffunc app_init_windows \
-	local x
+// -----------------------------------------------
+// UI
+// -----------------------------------------------
+
+#deffunc app_ui_init
 
 	gsel s_default_window_id, gsel_hide
+
+	app_ui_layout
+	app_details_window_create
+	app_main_window_create
+
+	onkey gosub *l_on_key
+	onexit gosub *l_on_exit
+
+	gsel s_main_window_id, gsel_show
+	return
+
+// ウィンドウやコントロールの位置や大きさを計算する。
+#deffunc app_ui_layout
 
 	s_main_window_width = 480
 	s_main_window_height = 520
@@ -227,8 +244,34 @@
 	s_log_edit_top = s_script_edit_top + s_script_edit_height
 	s_log_edit_width = s_main_width - s_list_view_width
 	s_log_edit_height = s_main_height - s_script_edit_height
+	return
 
-	app_details_window_create
+*l_on_key
+
+	if ginfo_act == s_details_window_id {
+		if wparam == VK_ESCAPE {
+			app_details_window_hide
+			return
+		}
+	}
+	return
+
+*l_on_exit
+
+	if wparam != s_main_window_id {
+		gsel wparam, gsel_hide
+		return
+	}
+
+	infra_send_terminate
+	end
+
+// -----------------------------------------------
+// メインウィンドウ
+// -----------------------------------------------
+
+#deffunc app_main_window_create \
+	local x
 
 	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height
 
@@ -237,27 +280,17 @@
 	hsvcolor , , 0xfc
 	boxf
 
+	font "MSGothic", 13
 	objmode objmode_font
 
 	// リストビュー
-	font "MSGothic", 13
 	app_list_view_create
 
 	// スクリプト
-	pos s_script_edit_left, s_script_edit_top
-
-	// FIXME: フォント
-	s_script_edit_style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
-	pos s_script_edit_left, s_script_edit_top
-	winobj "EDIT", "", 0, s_script_edit_style, s_script_edit_width, s_script_edit_height
-	s_script_edit_id = stat
-	s_script_edit_hwnd = objinfo_hwnd(stat)
+	app_script_edit_create
 
 	// ログ
-	pos s_log_edit_left, s_log_edit_top
-	mesbox s_log_text, s_log_edit_width, s_log_edit_height, mesbox_readonly
-	s_log_edit_id = stat
-	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
+	app_log_edit_create
 
 	// フッター
 	objsize s_step_button_width, s_step_button_height
@@ -280,35 +313,21 @@
 	button gosub "更新", *l_refresh_button
 
 	oncmd gosub *l_on_notify, WM_NOTIFY
-
-	gsel s_main_window_id, gsel_show
 	return
 
-#deffunc app_init_subs
+*l_on_notify
 
-	onkey gosub *l_on_key
-	onexit gosub *l_on_exit
-	return
+	// https://docs.microsoft.com/en-us/windows/win32/api/richedit/ns-richedit-nmhdr
+	dupptr s_nmhdr, lparam, 12
+	s_nmhdr_hwnd_from = s_nmhdr(0)
+	s_nmhdr_code = s_nmhdr(2)
 
-*l_on_key
-
-	if ginfo_act == s_details_window_id {
-		if wparam == VK_ESCAPE {
-			app_details_window_hide
-			return
+	if s_nmhdr_hwnd_from == s_list_view_hwnd {
+		if s_nmhdr_code == NM_CLICK {
+			app_list_view_did_click
 		}
 	}
 	return
-
-*l_on_exit
-
-	if wparam != s_main_window_id {
-		gsel wparam, gsel_hide
-		return
-	}
-
-	infra_send_terminate
-	end
 
 // -----------------------------------------------
 // 詳細ウィンドウ
@@ -544,6 +563,21 @@
 // スクリプトエディット
 // -----------------------------------------------
 
+#deffunc app_script_edit_create \
+	local style, local style_ex
+
+	style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD
+	style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
+	style_ex = 0
+
+	pos s_script_edit_left, s_script_edit_top
+	winobj "EDIT", "", style_ex, style, s_script_edit_width, s_script_edit_height
+	s_script_edit_id = stat
+	s_script_edit_hwnd = objinfo_hwnd(stat)
+
+	// FIXME: フォント
+	return
+
 #deffunc app_script_edit_update int source_file_id, int line_index, \
 	local text, local os_text, local text_updated, local start_index, local end_index, \
 	local current_line_index
@@ -591,6 +625,24 @@
 
 		s_script_line_index = line_index
 	}
+	return
+
+// -----------------------------------------------
+// ログエディット
+// -----------------------------------------------
+
+#deffunc app_log_edit_create
+
+	pos s_log_edit_left, s_log_edit_top
+	mesbox s_log_text, s_log_edit_width, s_log_edit_height, mesbox_readonly
+	s_log_edit_id = stat
+	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
+	return
+
+#deffunc app_log_did_update
+
+	gsel s_main_window_id
+	objprm s_log_edit_id, s_log_text
 	return
 
 // -----------------------------------------------
@@ -712,26 +764,6 @@
 #deffunc app_did_disconnect
 
 	title s_title + " [接続なし]"
-	return
-
-#deffunc app_log_did_update
-
-	gsel s_main_window_id
-	objprm s_log_edit_id, s_log_text
-	return
-
-*l_on_notify
-
-	// https://docs.microsoft.com/en-us/windows/win32/api/richedit/ns-richedit-nmhdr
-	dupptr s_nmhdr, lparam, 12
-	s_nmhdr_hwnd_from = s_nmhdr(0)
-	s_nmhdr_code = s_nmhdr(2)
-
-	if s_nmhdr_hwnd_from == s_list_view_hwnd {
-		if s_nmhdr_code == NM_CLICK {
-			app_list_view_did_click
-		}
-	}
 	return
 
 #global
