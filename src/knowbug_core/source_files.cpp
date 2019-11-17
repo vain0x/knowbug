@@ -6,6 +6,22 @@
 #include "source_files.h"
 #include "string_split.h"
 
+// 改行コードを CRLF に固定する。
+static auto normalize_lines(Utf8StringView text) -> Utf8String {
+	auto output = Utf8String{};
+	auto first = true;
+
+	for (auto&& line : StringLines{ text }) {
+		if (!std::exchange(first, false)) {
+			output += as_utf8(u8"\r\n");
+		}
+
+		output += line;
+	}
+
+	return output;
+}
+
 // -----------------------------------------------
 // ファイルシステム
 // -----------------------------------------------
@@ -395,7 +411,7 @@ void SourceFile::load() {
 
 	auto full_path = content_file_path_.value_or(full_path_);
 
-	content_ = load_text_file(full_path, fs_);
+	content_ = normalize_lines(load_text_file(full_path, fs_));
 	lines_ = split_by_lines(content_);
 	loaded_ = true;
 }

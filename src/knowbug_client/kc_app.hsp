@@ -534,15 +534,7 @@
 		return
 	}
 
-	// 改行コードを正規化する。(FIXME: 高速化)
-	split text, s_lf, lines
-	n = stat
-
-	s_source_texts(source_file_id) = ""
-	repeat n
-		s_source_texts(source_file_id) += lines(cnt) + "\n"
-	loop
-
+	s_source_texts(source_file_id) = text
 	s_source_exists(source_file_id) = true
 	return
 
