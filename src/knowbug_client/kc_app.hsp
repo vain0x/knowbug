@@ -481,8 +481,6 @@
 		return
 	}
 
-	logmes "click: " + row_index + ", c = " + column_index
-
 	if column_index == 0 {
 		logmes "send_toggle_expand: " + row_index
 		infra_send_list_toggle_expand row_index
