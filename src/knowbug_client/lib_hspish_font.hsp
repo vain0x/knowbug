@@ -1,0 +1,124 @@
+// Description:
+//      Create a font object like `font` command.
+// Platform:
+//      Works only on HSP3/win32gui.
+// References:
+//      http://chokuto.ifdef.jp/urawaza/setfont.html
+// LICENSE:
+//      PUBLIC DOMAIN
+
+#ifndef included_lib_hspish_font_hsp
+#define included_lib_hspish_font_hsp
+
+#module m_lib_hspish_font
+
+#uselib "gdi32.dll"
+#func CreateFontIndirect@m_lib_hspish_font "CreateFontIndirectA" int
+#func GetObject@m_lib_hspish_font          "GetObjectA"          int, int, int
+#func DeleteObject@m_lib_hspish_font       "DeleteObject"        int
+
+#define NULL 0
+
+#deffunc lib_hspish_font_init
+
+	s_font_handle_count = 0
+	dim s_font_handles
+	return
+
+// Delete a font handle on exit.
+// For internal use.
+#deffunc lib_hspish_font_delete_on_exit \
+	int font_handle
+
+	s_font_handles(s_font_handle_count) = font_handle
+	s_font_handle_count++
+	return
+
+#deffunc lib_hspish_font_on_exit onexit
+
+	repeat s_font_handle_count
+		DeleteObject s_font_handles(cnt)
+	loop
+	s_font_handle_count = 0
+	return
+
+// Copy the current LOGFONT structure to the specified array.
+// For internal use.
+#deffunc lib_hspish_font_get_logfont \
+	array logfont, \
+	local bmscr
+
+	dim logfont, 15
+	mref bmscr, 67
+	GetObject bmscr(38), 60, varptr(logfont)
+	return
+
+// Get the parameters of the current font.
+// For internal use.
+#deffunc lib_hspish_font_get_font_parameters \
+	var font_family, var font_size, var font_style, \
+	local logfont
+
+	if vartype(font_family) != vartype("str") {
+		sdim font_family
+	}
+
+	lib_hspish_font_get_logfont logfont
+
+	getstr font_family, logfont(7)
+
+	font_size = (logfont(0) ^ 0xffffffff) + 1
+
+	font_style  = (logfont(4) >= 700)               << 0 // bold
+	font_style |= (logfont(5) & 0x000000ff != 0)    << 1 // italic
+	font_style |= (logfont(5) & 0x0000ff00 != 0)    << 2 // underline
+	font_style |= (logfont(5) & 0x00ff0000 != 0)    << 3 // strike
+	font_style |= (logfont(6) & 0x00040000 != 0)    << 4 // anti-alias
+	return
+
+// Create a font handle.
+// Return NULL if failure.
+#deffunc lib_hspish_font_create_font_handle \
+	str font_family, int font_size, int font_style, \
+	local logfont, local font_handle, \
+	local prev_family, local prev_size, local prev_style
+
+	// Backup the current font.
+	lib_hspish_font_get_font_parameters prev_family, prev_size, prev_style
+
+	// Create new font.
+	font font_family, font_size, font_style
+	lib_hspish_font_get_logfont logfont
+	CreateFontIndirect varptr(logfont)
+	font_handle = stat
+
+	if font_handle != NULL {
+		lib_hspish_font_delete_on_exit font_handle
+	}
+
+	// Restore the font.
+	font prev_family, prev_size, prev_style
+	return font_handle
+
+// Set a new font to the specified object.
+// Return the font handle or NULL if failure.
+// HINT: Use objinfo_hwnd(object_id) to get object_hwnd.
+#deffunc lib_hspish_font_set_object_font \
+	int object_hwnd, str font_family, int font_size, int font_style, int no_refresh, \
+	local font_handle
+
+	lib_hspish_font_create_font_handle font_family, font_size, font_style
+	font_handle = stat
+
+	if font_handle != NULL {
+		// WM_SETFONT
+		sendmsg object_hwnd, 0x0030, font_handle, no_refresh == 0
+	}
+
+	return font_handle
+
+#global
+
+	lib_hspish_font_init
+
+#endif

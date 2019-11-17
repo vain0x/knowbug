@@ -6,6 +6,44 @@
 #include "source_files.h"
 #include "string_split.h"
 
+// 改行コードを CRLF に固定する。
+static auto normalize_lines(Utf8StringView text) -> Utf8String {
+	auto output = Utf8String{};
+	auto first = true;
+
+	for (auto&& line : StringLines{ text }) {
+		if (!std::exchange(first, false)) {
+			output += as_utf8(u8"\r\n");
+		}
+
+		output += line;
+	}
+
+	return output;
+}
+
+// タブ文字を置換する。
+// NOTE: タブの幅は計算していない。この処理は、ソースファイルを表示するエディットボックスのタブ幅を
+// 　     8から4に変更するのがめんどくさいので、手抜きのために行っている。
+static auto replace_tabs_with_spaces(Utf8StringView text) -> Utf8String {
+	auto output = Utf8String{};
+	auto l = std::size_t{};
+
+	while (true) {
+		auto r = text.find(Utf8Char{ u8'\t' }, l);
+		if (r == Utf8String::npos) {
+			output += text.substr(l);
+			break;
+		}
+
+		output += text.substr(l, r - l);
+		output += as_utf8(u8"    ");
+		l = r + 1;
+	}
+
+	return output;
+}
+
 // -----------------------------------------------
 // ファイルシステム
 // -----------------------------------------------
@@ -395,7 +433,7 @@ void SourceFile::load() {
 
 	auto full_path = content_file_path_.value_or(full_path_);
 
-	content_ = load_text_file(full_path, fs_);
+	content_ = replace_tabs_with_spaces(normalize_lines(load_text_file(full_path, fs_)));
 	lines_ = split_by_lines(content_);
 	loaded_ = true;
 }
@@ -516,8 +554,8 @@ void source_files_tests(Tests& tests) {
 		u8"ソースファイルの内容を取得できる",
 		[&](TestCaseContext& t) {
 			auto content =
-				u8" \t \t main\r\n"
-				u8"       stop\r\n";
+				u8"  main\r\n"
+				u8"  stop\r\n";
 
 			auto fs = create_file_system_for_testing();
 			fs.add_file(TEXT("/src/main.hsp"), content);
