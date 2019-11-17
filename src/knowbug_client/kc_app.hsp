@@ -291,7 +291,7 @@
 	hsvcolor , , 0xfc
 	boxf
 
-	font "MSGothic", 13
+	font "MS Gothic", 13
 	objmode objmode_font
 
 	app_list_view_create
