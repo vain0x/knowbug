@@ -716,6 +716,7 @@
 
 #deffunc app_log_did_update
 
+	gsel s_main_window_id
 	objprm s_log_edit_id, s_log_text
 	return
 
