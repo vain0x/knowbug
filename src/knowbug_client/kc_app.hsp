@@ -179,7 +179,9 @@
 	dim s_list_view_hwnd
 
 	// logmes の出力結果
-	sdim s_log_text, 0x10000
+	s_log_text_len = 0
+	s_log_text_cap = 0x100
+	sdim s_log_text, s_log_text_cap
 
 	// ソースファイル
 	sdim s_source_texts
@@ -755,9 +757,25 @@
 	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
 	return
 
-#deffunc app_log_edit_append var text
+#deffunc app_log_edit_append var text, \
+	local text_len
 
-	s_log_text += text + "\n"
+	text_len = strlen(text)
+
+	// NOTE: 文字列を書き込む領域を確保して (memexpand)、
+	//       文字列の末尾に追加する文字列を書く (poke)。+= より遥かに速く文字列連結ができる。
+
+	if s_log_text_len + text_len + 2 >= s_log_text_cap {
+		s_log_text_cap += s_log_text_cap / 2 + text_len + 2 + 1
+		memexpand s_log_text, s_log_text_cap
+	}
+
+	poke s_log_text, s_log_text_len, text
+	s_log_text_len += text_len
+
+	poke s_log_text, s_log_text_len, "\n"
+	s_log_text_len += 2
+
 	s_log_is_dirty = true
 	return
 
