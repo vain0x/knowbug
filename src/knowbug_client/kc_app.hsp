@@ -216,10 +216,7 @@
 	s_main_window_left = ginfo_dispx - s_main_window_width - 16
 	s_main_window_top =  ginfo_dispy - s_main_window_height - 72
 
-	s_details_window_width = s_main_window_width
 	s_details_window_height = 320
-	s_details_window_left = s_main_window_left
-	s_details_window_top = s_main_window_top - s_details_window_height - 8
 
 	app_ui_layout_arrange
 	return
@@ -227,6 +224,10 @@
 // ウィンドウやコントロールの位置や大きさを計算する。
 #deffunc app_ui_layout_arrange \
 	local x
+
+	s_details_window_width = s_main_window_width
+	s_details_window_left = s_main_window_left
+	s_details_window_top = s_main_window_top - s_details_window_height - 32
 
 	s_margin = 4
 	s_step_button_width = 80
@@ -338,6 +339,8 @@
 	gsel s_main_window_id
 	s_main_window_width = ginfo_winx
 	s_main_window_height = ginfo_winy
+	s_main_window_left = ginfo_wx1
+	s_main_window_top = ginfo_wy1
 
 	app_ui_layout_arrange
 	app_main_window_update_layout
@@ -367,6 +370,10 @@
 	MoveWindow s_step_pause_button_hwnd, s_step_pause_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
 	MoveWindow s_step_in_button_hwnd, s_step_in_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
 	MoveWindow s_refresh_button_hwnd, s_refresh_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
+
+	// 詳細ウィンドウも一緒に移動する。
+	gsel s_details_window_id
+	width s_details_window_width, s_details_window_height, s_details_window_left, s_details_window_top
 	return
 
 // -----------------------------------------------
