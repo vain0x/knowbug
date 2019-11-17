@@ -64,6 +64,7 @@
 #define global EM_GETSEL                    0x00b0
 #define global EM_SETSEL                    0x00b1
 #define global EM_LINESCROLL                0x00b6
+#define global EM_GETLINECOUNT              0x00ba
 #define global EM_LINEINDEX                 0x00bb
 #define global EM_GETFIRSTVISIBLELINE       0x00ce
 
@@ -699,10 +700,62 @@
 	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
 	return
 
-#deffunc app_log_edit_update
+#deffunc app_log_edit_get_selection var start_index, var end_index
+
+	sendmsg s_log_edit_hwnd, EM_GETSEL, varptr(start_index), varptr(end_index)
+	return
+
+#defcfunc app_log_edit_get_scrolled_line
+
+	sendmsg s_log_edit_hwnd, EM_GETFIRSTVISIBLELINE
+	return stat
+
+#defcfunc app_log_edit_is_scrolled_to_bottom \
+	local current_line_index, local line_count
+
+	current_line_index = app_log_edit_get_scrolled_line()
+
+	sendmsg s_log_edit_hwnd, EM_GETLINECOUNT
+	line_count = stat
+
+	// スクロールが一番下にありそうかどうか判定する。
+	return line_count - current_line_index <= 25
+
+#deffunc app_log_edit_set_selection int start_index, int end_index
+
+	sendmsg s_log_edit_hwnd, EM_SETSEL, start_index, end_index
+	return
+
+#deffunc app_log_edit_scroll_to_line int line_index, \
+	local current_line
+
+	sendmsg s_log_edit_hwnd, EM_LINESCROLL, 0, line_index - current_line
+	return
+
+#deffunc app_log_edit_scroll_to_bottom
+
+	sendmsg s_log_edit_hwnd, EM_LINESCROLL, 0, 0x7fffffff
+	return
+
+#deffunc app_log_edit_update \
+	local at_bottom, local current_line, local start_index, local end_index
+
+	at_bottom = app_log_edit_is_scrolled_to_bottom()
+	current_line = app_log_edit_get_scrolled_line()
+	app_log_edit_get_selection start_index, end_index
+
+	sendmsg s_log_edit_hwnd, EM_GETFIRSTVISIBLELINE
+	current_line_index = stat
 
 	gsel s_main_window_id
 	objprm s_log_edit_id, s_log_text
+
+	if at_bottom {
+		app_log_edit_scroll_to_bottom
+	} else {
+		app_log_edit_scroll_to_line current_line
+	}
+	app_log_edit_set_selection start_index, end_index
 	return
 
 // -----------------------------------------------
