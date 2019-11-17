@@ -114,8 +114,8 @@
 // -----------------------------------------------
 
 //#ifdef _DEBUG
-#define global debug_trace(%1) s_log_text@m_app += "TRACE: " + (%1) + "\n" : app_log_did_update
-#define global debug_warn(%1) s_log_text@m_app += "WARN: " + (%1) + "\n" : app_log_did_update
+#define global debug_trace(%1) s_log_text@m_app += "TRACE: " + (%1) + "\n" : app_log_edit_update
+#define global debug_warn(%1) s_log_text@m_app += "WARN: " + (%1) + "\n" : app_log_edit_update
 //#else
 //#define global debug_trace(%1) :
 //#endif
@@ -639,7 +639,7 @@
 	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
 	return
 
-#deffunc app_log_did_update
+#deffunc app_log_edit_update
 
 	gsel s_main_window_id
 	objprm s_log_edit_id, s_log_text
@@ -716,7 +716,7 @@
 #deffunc app_did_receive_logmes var text
 
 	s_log_text += text + "\n"
-	app_log_did_update
+	app_log_edit_update
 	return
 
 #deffunc app_did_receive_stopped int source_file_id, int line_index
