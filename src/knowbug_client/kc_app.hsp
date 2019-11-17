@@ -213,19 +213,19 @@
 	s_main_height = s_footer_top - s_margin
 	s_main_width = s_main_window_width
 
-	s_list_box_left = s_main_left
-	s_list_box_top = s_main_top
-	s_list_box_width = s_main_width / 2
-	s_list_box_height = s_main_height
+	s_list_view_left = s_main_left
+	s_list_view_top = s_main_top
+	s_list_view_width = s_main_width / 2
+	s_list_view_height = s_main_height
 
-	s_script_edit_left = s_list_box_width
+	s_script_edit_left = s_list_view_width
 	s_script_edit_top = s_main_top
-	s_script_edit_width = s_main_width - s_list_box_width
+	s_script_edit_width = s_main_width - s_list_view_width
 	s_script_edit_height = s_main_height / 2
 
-	s_log_edit_left = s_list_box_width
+	s_log_edit_left = s_list_view_width
 	s_log_edit_top = s_script_edit_top + s_script_edit_height
-	s_log_edit_width = s_main_width - s_list_box_width
+	s_log_edit_width = s_main_width - s_list_view_width
 	s_log_edit_height = s_main_height - s_script_edit_height
 
 	app_details_window_create
@@ -239,9 +239,9 @@
 
 	objmode objmode_font
 
-	// リストボックス
+	// リストビュー
 	font "MSGothic", 13
-	app_list_box_create
+	app_list_view_create
 
 	// スクリプト
 	pos s_script_edit_left, s_script_edit_top
@@ -346,27 +346,27 @@
 // リストビュー
 // -----------------------------------------------
 
-#deffunc app_list_box_create \
+#deffunc app_list_view_create \
 	local style, local style_ex, local lvs_ex
 
 	style = WS_VISIBLE | WS_CHILD | LVS_REPORT
 	style_ex = 0
 
-	pos s_list_box_left, s_list_box_top
-	winobj "SysListView32", "", style_ex, style, s_list_box_width, s_list_box_height
-	s_list_box_id = stat
-	s_list_box_hwnd = objinfo_hwnd(s_list_box_id)
+	pos s_list_view_left, s_list_view_top
+	winobj "SysListView32", "", style_ex, style, s_list_view_width, s_list_view_height
+	s_list_view_id = stat
+	s_list_view_hwnd = objinfo_hwnd(s_list_view_id)
 
 	// 拡張スタイルを適用する。
-	sendmsg s_list_box_hwnd, LVM_GETEXTENDEDLISTVIEWSTYLE
+	sendmsg s_list_view_hwnd, LVM_GETEXTENDEDLISTVIEWSTYLE
 	lvs_ex = stat | LVS_EX_FULLROWSELECT
-	sendmsg s_list_box_hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, lvs_ex
+	sendmsg s_list_view_hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, lvs_ex
 
-	app_list_box_insert_column 0, "name", 120
-	app_list_box_insert_column 1, "value", 80
+	app_list_view_insert_column 0, "name", 120
+	app_list_view_insert_column 1, "value", 80
 	return
 
-#deffunc app_list_box_insert_column int column_index, str text, int column_width, \
+#deffunc app_list_view_insert_column int column_index, str text, int column_width, \
 	local text_var, local lvcolumn, local mask
 
 	text_var = text
@@ -378,11 +378,11 @@
 	lvcolumn(3) = varptr(text_var)
 	lvcolumn(5) = column_index // ?
 
-	sendmsg s_list_box_hwnd, LVM_INSERTCOLUMN, column_index, varptr(lvcolumn)
+	sendmsg s_list_view_hwnd, LVM_INSERTCOLUMN, column_index, varptr(lvcolumn)
 	assert stat >= 0
 	return
 
-#deffunc app_list_box_insert_row int row_index, str name, str value, \
+#deffunc app_list_view_insert_row int row_index, str name, str value, \
 	local lvitem, local os_text
 
 	sdim os_text, 0x1000
@@ -394,7 +394,7 @@
 	lvitem(1) = row_index
 	lvitem(2) = 0
 	lvitem(5) = varptr(os_text)
-	sendmsg s_list_box_hwnd, LVM_INSERTITEMW, , varptr(lvitem)
+	sendmsg s_list_view_hwnd, LVM_INSERTITEMW, , varptr(lvitem)
 	assert stat == row_index
 
 	cnvstow os_text, value
@@ -404,17 +404,17 @@
 	lvitem(1) = row_index
 	lvitem(2) = 1
 	lvitem(5) = varptr(os_text)
-	sendmsg s_list_box_hwnd, LVM_SETITEMW, , varptr(lvitem)
+	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 	return
 
-#deffunc app_list_box_delete_row int row_index
+#deffunc app_list_view_delete_row int row_index
 
-	sendmsg s_list_box_hwnd, LVM_DELETEITEM, row_index
+	sendmsg s_list_view_hwnd, LVM_DELETEITEM, row_index
 	assert stat
 	return
 
-#deffunc app_list_box_update_row int row_index, var name, var value, \
+#deffunc app_list_view_update_row int row_index, var name, var value, \
 	local os_text
 
 	sdim os_text, 0x1000
@@ -425,7 +425,7 @@
 	lvitem(1) = row_index
 	lvitem(2) = 0
 	lvitem(5) = varptr(os_text)
-	sendmsg s_list_box_hwnd, LVM_SETITEMW, , varptr(lvitem)
+	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 
 	cnvstow os_text, value
@@ -435,11 +435,11 @@
 	lvitem(1) = row_index
 	lvitem(2) = 1
 	lvitem(5) = varptr(os_text)
-	sendmsg s_list_box_hwnd, LVM_SETITEMW, , varptr(lvitem)
+	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 	return
 
-#deffunc app_list_box_update var text, \
+#deffunc app_list_view_update var text, \
 	local delta, local kind, local index_str, local index, local name, local value
 
 	notesel text
@@ -450,11 +450,11 @@
 		index = int(index_str)
 
 		if kind == "+" {
-			app_list_box_insert_row index, name, value
+			app_list_view_insert_row index, name, value
 		} else : if kind == "-" {
-			app_list_box_delete_row index
+			app_list_view_delete_row index
 		} else : if kind == "!" {
-			app_list_box_update_row index, name, value
+			app_list_view_update_row index, name, value
 		} else {
 			logmes "unknown kind"
 		}
@@ -462,17 +462,17 @@
 	noteunsel
 	return
 
-#deffunc app_list_box_did_click \
+#deffunc app_list_view_did_click \
 	local point, local lvhittestinfo, local row_index, local column_index
 
 	point = ginfo_mx, ginfo_my
-	ScreenToClient s_list_box_hwnd, varptr(point)
+	ScreenToClient s_list_view_hwnd, varptr(point)
 	assert stat
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvhittestinfo
 	dim lvhittestinfo, 6
 	lvhittestinfo = point(0), point(1), LVHT_ONITEM
-	sendmsg s_list_box_hwnd, LVM_SUBITEMHITTEST, , varptr(lvhittestinfo)
+	sendmsg s_list_view_hwnd, LVM_SUBITEMHITTEST, , varptr(lvhittestinfo)
 	assert stat >= 0
 
 	row_index = lvhittestinfo(3)
@@ -696,7 +696,7 @@
 
 	logmes "app_did_receive_list_update_ok"
 	gsel s_main_window_id
-	app_list_box_update text
+	app_list_view_update text
 	return
 
 #deffunc app_did_receive_list_details_ok var text
@@ -726,9 +726,9 @@
 	s_nmhdr_hwnd_from = s_nmhdr(0)
 	s_nmhdr_code = s_nmhdr(2)
 
-	if s_nmhdr_hwnd_from == s_list_box_hwnd {
+	if s_nmhdr_hwnd_from == s_list_view_hwnd {
 		if s_nmhdr_code == NM_CLICK {
-			app_list_box_did_click
+			app_list_view_did_click
 		}
 	}
 	return
