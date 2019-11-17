@@ -139,6 +139,7 @@
 
 // FIXME: エンコーディングとプラットフォームも表示
 #define s_main_window_title "knowbug v0.1.0"
+#define s_details_window_title "knowbug details"
 
 #deffunc app_init
 
@@ -342,6 +343,8 @@
 #deffunc app_details_window_create
 
 	screen s_details_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_details_window_left, s_details_window_top, s_details_window_width, s_details_window_height
+
+	title s_details_window_title
 
 	font "MS Gothic", 13
 	objmode objmode_font
