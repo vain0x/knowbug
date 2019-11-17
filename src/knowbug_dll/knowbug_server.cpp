@@ -42,7 +42,12 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x1000000 };
 #define KMTS_LIST_UPDATE            (WM_USER + 7)
 // オブジェクトリストのノードを開閉する。
 // KMTC_LIST_UPDATE_OK が返ってくる。
+// wparam: リストのインデックス
 #define KMTS_LIST_TOGGLE_EXPAND     (WM_USER + 8)
+// オブジェクトリストのノードの詳細情報を要求する。
+// KMTC_LIST_DETAILS_OK が返ってくる。
+// wparam: リストのインデックス
+#define KMTS_LIST_DETAILS           (WM_USER + 9)
 #define KMTS_LAST                   (WM_USER + 999)
 
 // Knowbug window Message To the Client
@@ -66,6 +71,9 @@ static auto constexpr MEMORY_BUFFER_SIZE = std::size_t{ 0x1000000 };
 // text: オブジェクトリストの差分リスト (UTF-8、改行区切り)
 // 詳細はサーバー側の HspObjectListDelta を参照。
 #define KMTC_LIST_UPDATE_OK         (WM_USER + 1006)
+// オブジェクトリストのノードの詳細データを返す。
+// text: 詳細 (UTF-8)
+#define KMTC_LIST_DETAILS_OK        (WM_USER + 1007)
 #define KMTC_LAST                   (WM_USER + 1999)
 
 class KnowbugServerImpl;
@@ -773,6 +781,7 @@ public:
 
 	void client_did_list_toggle_expand(int index) {
 		if (index < 0 || (std::size_t)index >= object_list_.size()) {
+			OutputDebugString(TEXT("out of range"));
 			return;
 		}
 
@@ -783,6 +792,21 @@ public:
 		}
 
 		client_did_list_update();
+	}
+
+	void client_did_list_details(int index) {
+		if (index < 0 || (std::size_t)index >= object_list_.size()) {
+			OutputDebugString(TEXT("out of range"));
+			return;
+		}
+
+		auto&& item = object_list_[index];
+
+		auto string_writer = StringWriter{};
+		HspObjectWriter{ objects(), string_writer }.write_table_form(item.path());
+		auto text = string_writer.finish();
+
+		send(KMTC_LIST_DETAILS_OK, int{}, int{}, text);
 	}
 
 private:
@@ -885,6 +909,10 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 
 				case KMTS_LIST_TOGGLE_EXPAND:
 					server->client_did_list_toggle_expand((int)wp);
+					break;
+
+				case KMTS_LIST_DETAILS:
+					server->client_did_list_details((int)wp);
 					break;
 
 				default:
