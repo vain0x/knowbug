@@ -108,15 +108,36 @@ public:
 	}
 };
 
+class HspObjectList {
+	std::vector<HspObjectListItem> items_;
+
+public:
+	auto items() const ->std::vector<HspObjectListItem> const& {
+		return items_;
+	}
+
+	auto size() const -> std::size_t {
+		return items().size();
+	}
+
+	auto operator[](std::size_t index) const -> HspObjectListItem const& {
+		return items().at(index);
+	}
+
+	void add_item(HspObjectListItem item) {
+		items_.push_back(std::move(item));
+	}
+};
+
 // オブジェクトリストを構築する関数。
 class HspObjectListWriter {
 	HspObjects& objects_;
-	std::vector<HspObjectListItem>& object_list_;
+	HspObjectList& object_list_;
 
 	std::size_t depth_;
 
 public:
-	HspObjectListWriter(HspObjects& objects, std::vector<HspObjectListItem>& object_list)
+	HspObjectListWriter(HspObjects& objects, HspObjectList& object_list)
 		: objects_(objects)
 		, object_list_(object_list)
 		, depth_()
@@ -161,7 +182,7 @@ private:
 		value += as_utf8(std::to_string(item_count));
 		value += as_utf8(u8"):");
 
-		object_list_.push_back(HspObjectListItem{ path.self(), depth_, name, value });
+		object_list_.add_item(HspObjectListItem{ path.self(), depth_, name, value });
 		depth_++;
 		add_children(path);
 		depth_--;
@@ -174,7 +195,7 @@ private:
 		HspObjectWriter{ objects(), value_writer }.write_flow_form(value_path);
 		auto value = value_writer.finish();
 
-		object_list_.push_back(HspObjectListItem{ path.self(), depth_, name, value });
+		object_list_.add_item(HspObjectListItem{ path.self(), depth_, name, value });
 	}
 
 	auto objects() -> HspObjects& {
@@ -268,7 +289,7 @@ public:
 	}
 };
 
-static auto diff_object_list(std::vector<HspObjectListItem> const& source, std::vector<HspObjectListItem> const& target, std::vector<HspObjectListDelta>& diff) {
+static auto diff_object_list(HspObjectList const& source, HspObjectList const& target, std::vector<HspObjectListDelta>& diff) {
 	auto source_done = std::vector<bool>{};
 	source_done.resize(source.size());
 
@@ -593,7 +614,7 @@ class KnowbugServerImpl
 
 	std::vector<Msg> send_queue_;
 
-	std::vector<HspObjectListItem> object_list_;
+	HspObjectList object_list_;
 
 public:
 	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)
@@ -696,7 +717,7 @@ public:
 	}
 
 	void client_did_list_update() {
-		auto new_list = std::vector<HspObjectListItem>{};
+		auto new_list = HspObjectList{};
 		HspObjectListWriter{ objects(), new_list }.add_children(objects().root_path());
 
 		auto diff = std::vector<HspObjectListDelta>{};
