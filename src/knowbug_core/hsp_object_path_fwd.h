@@ -244,10 +244,30 @@ public:
 	auto new_unavailable(Utf8String&& reason) const->std::shared_ptr<HspObjectPath const>;
 };
 
+static auto operator ==(HspObjectPath const& first, HspObjectPath const& second) -> bool {
+	return first.equals(second);
+}
+
+static auto operator !=(HspObjectPath const& first, HspObjectPath const& second) -> bool {
+	return !(first == second);
+}
+
+static auto operator ==(std::shared_ptr<HspObjectPath const> const& first, std::shared_ptr<HspObjectPath const> const& second) -> bool {
+	if (!first) {
+		return !second;
+	}
+
+	return first->equals(*second);
+}
+
+static auto operator !=(std::shared_ptr<HspObjectPath const> const& first, std::shared_ptr<HspObjectPath const> const& second) -> bool {
+	return !(first == second);
+}
+
 namespace std {
 	template<>
 	struct hash<std::shared_ptr<::HspObjectPath const>> {
-		auto operator()(std::shared_ptr<::HspObjectPath const>& path) const {
+		auto operator()(std::shared_ptr<::HspObjectPath const> const& path) const {
 			return path->hash();
 		}
 	};

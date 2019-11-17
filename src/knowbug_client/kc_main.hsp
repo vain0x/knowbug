@@ -10,6 +10,7 @@
 // Knowbug window Message To the Server
 #define KMTS_FIRST                  (WM_USER + 1)
 // クライアントが起動したことをサーバーに伝える。
+// KMTC_HELLO_OK が返ってくる。
 // lparam: クライアントのウィンドウハンドル
 #define KMTS_HELLO                  (WM_USER + 1)
 // デバッグの終了をサーバーに要求する。
@@ -21,10 +22,15 @@
 // 次へ
 #define KMTS_STEP_IN                (WM_USER + 5)
 // ソースコードのテキストを要求する。
+// KMTC_SOURCE_OK が返ってくる。
 // wparam: ソースファイルID
 #define KMTS_SOURCE                 (WM_USER + 6)
 // オブジェクトリストを要求する。
+// KMTC_LIST_UPDATE_OK が返ってくる。
 #define KMTS_LIST_UPDATE            (WM_USER + 7)
+// オブジェクトリストのノードを開閉する。
+// KMTC_LIST_UPDATE_OK が返ってくる。
+#define KMTS_LIST_TOGGLE_EXPAND     (WM_USER + 8)
 #define KMTS_LAST                   (WM_USER + 999)
 
 // Knowbug window Message To the Client
@@ -33,7 +39,7 @@
 #define KMTC_HELLO_OK               (WM_USER + 1001)
 // クライアントを終了させる。
 #define KMTC_SHUTDOWN               (WM_USER + 1002)
-// logmes 命令
+// logmes 命令が実行されたことを伝える。
 // text: logmes の引数。(UTF-8。改行は追加されていない。)
 #define KMTC_LOGMES                 (WM_USER + 1003)
 // assert や stop により停止したことを伝える。
@@ -44,8 +50,9 @@
 // wparam: ソースファイルID
 // text: ソースコード (UTF-8)
 #define KMTC_SOURCE_OK              (WM_USER + 1005)
-// オブジェクトリストを返す。
-// text: オブジェクトリスト (UTF-8、改行区切り)
+// オブジェクトリストの更新を返す。
+// text: オブジェクトリストの差分リスト (UTF-8、改行区切り)
+// 詳細はサーバー側の HspObjectListDelta を参照。
 #define KMTC_LIST_UPDATE_OK         (WM_USER + 1006)
 #define KMTC_LAST                   (WM_USER + 1999)
 
@@ -193,6 +200,11 @@
 #deffunc infra_send_list_update
 
 	sendmsg s_server_hwnd, KMTS_LIST_UPDATE
+	return
+
+#deffunc infra_send_list_toggle_expand int item_index
+
+	sendmsg s_server_hwnd, KMTS_LIST_TOGGLE_EXPAND, item_index
 	return
 
 // -----------------------------------------------
