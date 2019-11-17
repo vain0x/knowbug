@@ -233,6 +233,8 @@
 	s_margin = 4
 	s_step_button_width = 80
 	s_step_button_height = 24
+	s_help_button_width = 65
+	s_help_button_height = 24
 
 	s_footer_left = 0
 	s_footer_height = s_step_button_height
@@ -267,7 +269,12 @@
 	s_step_pause_button_left = x
 	x += s_step_button_width + s_margin
 	s_step_in_button_left = x
-	s_refresh_button_left = s_footer_width - s_margin - s_step_button_width
+
+	x = s_footer_width
+	x -= s_help_button_width + s_margin
+	s_help_button_left = x
+	x -= s_help_button_width + s_margin
+	s_refresh_button_left = x
 	return
 
 *l_on_key
@@ -327,9 +334,15 @@
 	button gosub "次へ", *l_step_in_button
 	s_step_in_button_hwnd = objinfo_hwnd(stat)
 
+	objsize s_help_button_width, s_help_button_height
+
 	pos s_refresh_button_left, s_footer_top
 	button gosub "更新", *l_refresh_button
 	s_refresh_button_hwnd = objinfo_hwnd(stat)
+
+	pos s_help_button_left, s_footer_top
+	button gosub "？", *l_help_button
+	s_help_button_hwnd = objinfo_hwnd(stat)
 
 	oncmd gosub *l_main_window_on_size, WM_SIZE
 	oncmd gosub *l_on_notify, WM_NOTIFY
@@ -370,7 +383,8 @@
 	MoveWindow s_step_continue_button_hwnd, s_step_continue_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
 	MoveWindow s_step_pause_button_hwnd, s_step_pause_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
 	MoveWindow s_step_in_button_hwnd, s_step_in_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
-	MoveWindow s_refresh_button_hwnd, s_refresh_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
+	MoveWindow s_refresh_button_hwnd, s_refresh_button_left, s_footer_top, s_help_button_width, s_help_button_height, true
+	MoveWindow s_help_button_hwnd, s_help_button_left, s_footer_top, s_help_button_width, s_help_button_height, true
 
 	// 詳細ウィンドウも一緒に移動する。
 	gsel s_details_window_id
@@ -806,6 +820,11 @@
 *l_refresh_button
 
 	app_refresh
+	return
+
+*l_help_button
+
+	dialog "?"
 	return
 
 // -----------------------------------------------
