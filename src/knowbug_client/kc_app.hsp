@@ -766,6 +766,7 @@
 
 #deffunc app_did_receive_shutdown
 
+	gsel s_details_window_id, gsel_hide
 	gsel s_main_window_id, gsel_hide
 	end
 
