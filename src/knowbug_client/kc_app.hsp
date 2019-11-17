@@ -11,103 +11,106 @@
 // HSP の定数
 // -----------------------------------------------
 
-#define global dialog_warn 1
+#define global dialog_warn      1
 
-#define global gsel_hide (-1)
-#define global gsel_show 1
-#define global gsel_activate 2
+#define global gsel_hide        (-1)
+#define global gsel_show        1
+#define global gsel_activate    2
 
-#define global mesbox_readonly 0
+#define global mesbox_readonly  0
 
-#define global objmode_font 2
+#define global objmode_font     2
 
-#define global strtrim_start 1
-#define global strtrim_end 2
+#define global strtrim_start    1
+#define global strtrim_end      2
 
-#define global char_lf 0x0a
+#define global char_lf          0x0a
 
 // -----------------------------------------------
 // Win32 API の定数
 // -----------------------------------------------
 
-#define global NULL            0
-#define global EXIT_FAILURE    1
-#define global FILE_MAP_WRITE  0x0002
-#define global FILE_MAP_READ   0x0004
+#define global NULL             0
 
-#define global VK_ESCAPE                0x1b
+#define global EXIT_FAILURE     1
 
-#define global WM_NOTIFY                0x004e
-#define global WM_COMMAND               0x0111
-#define global WM_USER                  0x0400
+#define global FILE_MAP_WRITE   0x0002
+#define global FILE_MAP_READ    0x0004
 
-#define global NM_CLICK                 (-2)
-#define global NM_DBLCLK                (-3)
-#define global NM_RETURN                (-4)
+#define global VK_ESCAPE        0x1b
 
-#define global EM_GETSEL                0x00b0
-#define global EM_SETSEL                0x00b1
-#define global EM_LINESCROLL            0x00b6
-#define global EM_LINEINDEX             0x00bb
-#define global EM_GETFIRSTVISIBLELINE   0x00ce
+#define global WS_HSCROLL       0x00100000
+#define global WS_VSCROLL       0x00200000
+#define global WS_BORDER        0x00800000
+#define global WS_VISIBLE       0x10000000
+#define global WS_CHILD         0x40000000
 
-#define global WS_HSCROLL      0x00100000
-#define global WS_VSCROLL      0x00200000
-#define global WS_BORDER       0x00800000
-#define global WS_VISIBLE      0x10000000
-#define global WS_CHILD        0x40000000
-#define global ES_MULTILINE    0x0004
-#define global ES_AUTOVSCROLL  0x0040
-#define global ES_AUTOHSCROLL  0x0080
-#define global ES_NOHIDESEL    0x0100
-#define global ES_READONLY     0x0800
+#define global WM_NOTIFY        0x004e
+#define global WM_COMMAND       0x0111
+#define global WM_USER          0x0400
+
+#define global NM_CLICK         (-2)
+#define global NM_DBLCLK        (-3)
+#define global NM_RETURN        (-4)
+
+#define global ES_MULTILINE     0x0004
+#define global ES_AUTOVSCROLL   0x0040
+#define global ES_AUTOHSCROLL   0x0080
+#define global ES_NOHIDESEL     0x0100
+#define global ES_READONLY      0x0800
+
+#define global EM_GETSEL                    0x00b0
+#define global EM_SETSEL                    0x00b1
+#define global EM_LINESCROLL                0x00b6
+#define global EM_LINEINDEX                 0x00bb
+#define global EM_GETFIRSTVISIBLELINE       0x00ce
 
 // リストビューを詳細表示する。
-#define global LVS_REPORT               0x0001
+#define global LVS_REPORT                   0x0001
 
 // リストビューのカラムヘッダーを表示しない。
-#define global LVS_NOCOLUMNHEADER       0x4000
+#define global LVS_NOCOLUMNHEADER           0x4000
 
-#define global LVS_EX_FULLROWSELECT     0x0020
+#define global LVS_EX_FULLROWSELECT         0x0020
 
 // リストビューのメッセージ
 // https://docs.microsoft.com/en-us/windows/win32/controls/bumper-list-view-control-reference-messages
 
 // 項目数を取得する。
-#define global LVM_GETITEMCOUNT         0x1004
+#define global LVM_GETITEMCOUNT             0x1004
 
-#define global LVM_FIRST                0x1000
-#define global LVM_GETITEM              0x1005
-#define global LVM_SETITEM              0x1006
-#define global LVM_DELETEITEM           0x1008
-#define global LVM_DELETEALLITEMS       0x1009
-#define global LVM_HITTEST              0x1012
-#define global LVM_INSERTCOLUMN         0x101b
-#define global LVM_SETTEXTCOLOR         0x1024
-#define global LVM_SETTEXTBKCOLOR       0x1026
-#define global LVM_SUBITEMHITTEST               (LVM_FIRST + 57)
-#define global LVM_SETEXTENDEDLISTVIEWSTYLE     (LVM_FIRST + 54)
-#define global LVM_GETEXTENDEDLISTVIEWSTYLE     (LVM_FIRST + 55)
-#define global LVM_SETITEMW                     (LVM_FIRST + 76)
-#define global LVM_INSERTITEMW                  (LVM_FIRST + 77)
+#define global LVM_FIRST                    0x1000
+#define global LVM_GETITEM                  0x1005
+#define global LVM_SETITEM                  0x1006
+#define global LVM_DELETEITEM               0x1008
+#define global LVM_DELETEALLITEMS           0x1009
+#define global LVM_HITTEST                  0x1012
+#define global LVM_INSERTCOLUMN             0x101b
+#define global LVM_SETTEXTCOLOR             0x1024
+#define global LVM_SETTEXTBKCOLOR           0x1026
+#define global LVM_SUBITEMHITTEST           (LVM_FIRST + 57)
+#define global LVM_SETEXTENDEDLISTVIEWSTYLE (LVM_FIRST + 54)
+#define global LVM_GETEXTENDEDLISTVIEWSTYLE (LVM_FIRST + 55)
+#define global LVM_SETITEMW                 (LVM_FIRST + 76)
+#define global LVM_INSERTITEMW              (LVM_FIRST + 77)
 
-#define global LVCF_FMT                 0x0001
-#define global LVCF_WIDTH               0x0002
-#define global LVCF_TEXT                0x0004
-#define global LVCF_SUBITEM             0x0008
+#define global LBN_DBLCLK       2
 
-#define global LVIF_TEXT                0x0001
-#define global LVIF_IMAGE               0x0002
-#define global LVIF_PARAM               0x0004
-#define global LVIF_STATE               0x0008
-#define global LVIF_INDENT              0x0010
+#define global LVCF_FMT         0x0001
+#define global LVCF_WIDTH       0x0002
+#define global LVCF_TEXT        0x0004
+#define global LVCF_SUBITEM     0x0008
 
-#define global LVHT_ONITEMICON          0x00000002
-#define global LVHT_ONITEMLABEL         0x00000004
-#define global LVHT_ONITEMSTATEICON     0x00000008
-#define global LVHT_ONITEM              (LVHT_ONITEMICON | LVHT_ONITEMLABEL | LVHT_ONITEMSTATEICON)
+#define global LVIF_TEXT        0x0001
+#define global LVIF_IMAGE       0x0002
+#define global LVIF_PARAM       0x0004
+#define global LVIF_STATE       0x0008
+#define global LVIF_INDENT      0x0010
 
-#define global LBN_DBLCLK               2
+#define global LVHT_ONITEMICON              0x00000002
+#define global LVHT_ONITEMLABEL             0x00000004
+#define global LVHT_ONITEMSTATEICON         0x00000008
+#define global LVHT_ONITEM                  (LVHT_ONITEMICON | LVHT_ONITEMLABEL | LVHT_ONITEMSTATEICON)
 
 // -----------------------------------------------
 // ヘルパー
