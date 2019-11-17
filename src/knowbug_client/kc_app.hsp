@@ -211,8 +211,8 @@
 #deffunc app_ui_layout \
 	local x
 
-	s_main_window_width = 480
-	s_main_window_height = 520
+	s_main_window_width = 640
+	s_main_window_height = 480
 	s_main_window_left = ginfo_dispx - s_main_window_width - 16
 	s_main_window_top =  ginfo_dispy - s_main_window_height - 72
 
@@ -239,6 +239,8 @@
 	s_list_view_top = s_main_top
 	s_list_view_width = s_main_width / 2
 	s_list_view_height = s_main_height
+	s_list_view_name_column_width = (s_list_view_width - 20) / 2
+	s_list_view_value_column_width = (s_list_view_width - 20) / 2
 
 	s_script_edit_left = s_list_view_width
 	s_script_edit_top = s_main_top
@@ -385,8 +387,8 @@
 	lvs_ex = stat | LVS_EX_FULLROWSELECT
 	sendmsg s_list_view_hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, lvs_ex
 
-	app_list_view_insert_column 0, "name", 120
-	app_list_view_insert_column 1, "value", 80
+	app_list_view_insert_column 0, "name", s_list_view_name_column_width
+	app_list_view_insert_column 1, "value", s_list_view_value_column_width
 
 	lib_hspish_font_set_object_font s_list_view_hwnd, "MS Gothic", 13
 	return
