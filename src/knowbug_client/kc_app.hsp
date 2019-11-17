@@ -14,6 +14,8 @@
 
 #define global dialog_warn      1
 
+#define global exec_app         16
+
 #define global gsel_hide        (-1)
 #define global gsel_show        1
 #define global gsel_activate    2
@@ -133,6 +135,7 @@
 #enum global s_default_window_id = 0
 #enum global s_main_window_id
 #enum global s_details_window_id
+#enum global s_help_window_id
 
 #module m_app
 
@@ -140,8 +143,9 @@
 #define false 0
 
 // FIXME: エンコーディングとプラットフォームも表示
-#define s_main_window_title "knowbug v0.1.0"
+#define s_main_window_title "knowbug v2.0.0 beta-3"
 #define s_details_window_title "knowbug details"
+#define s_help_window_title "knowbug help"
 
 #deffunc app_init
 
@@ -202,6 +206,7 @@
 
 	app_ui_layout_init
 	app_details_window_create
+	app_help_window_create
 	app_main_window_create
 
 	onkey gosub *l_on_key
@@ -282,6 +287,13 @@
 	if ginfo_act == s_details_window_id {
 		if wparam == VK_ESCAPE {
 			app_details_window_hide
+			return
+		}
+	}
+
+	if ginfo_act == s_help_window_id {
+		if wparam == VK_ESCAPE {
+			app_help_window_hide
 			return
 		}
 	}
@@ -824,7 +836,67 @@
 
 *l_help_button
 
-	dialog "?"
+	app_help_window_show
+	return
+
+// -----------------------------------------------
+// ヘルプウィンドウ
+// -----------------------------------------------
+
+#deffunc app_help_window_create
+
+	s_help_window_width = 120 + 32 + 32
+	s_help_window_height = 16 + 36 + 24 + 16
+
+	screen s_help_window_id, s_help_window_width, s_help_window_height, screen_hide | screen_tool
+
+	title "knowbug ヘルプ"
+
+	hsvcolor , , 0xee
+	boxf
+	color
+
+	font "Yu Gothic Medium", 24
+
+	pos 32, 16
+	mes "KNOWBUG"
+
+	font "MS Gothic", 13
+	objmode objmode_font
+	objsize 120, 24, 24 + 8
+
+	pos 32, 16 + 36
+	button gosub "公式サイトを開く", *l_open_web_site_button
+
+	// button gosub "設定ファイルを開く", *l_open_config
+	return
+
+*l_open_web_site_button
+
+	exec "https://github.com/vain0x/knowbug", exec_app
+	return
+
+#deffunc app_help_window_show \
+	local window_left, local window_top
+
+	gsel s_main_window_id
+	s_main_window_left = ginfo_wx1
+	s_main_window_top = ginfo_wy1
+
+	// メインウィンドウの中央に表示する。
+	window_left = s_main_window_left + (s_main_window_width - s_help_window_width) / 2
+	window_top = s_main_window_top + (s_main_window_height - s_help_window_height) / 2
+
+	gsel s_help_window_id
+	width , , window_left, window_top
+
+	gsel s_help_window_id, gsel_activate
+	return
+
+#deffunc app_help_window_hide
+
+	gsel s_help_window_id, gsel_hide
+	gsel s_main_window_id, gsel_activate
 	return
 
 // -----------------------------------------------
@@ -845,6 +917,7 @@
 
 #deffunc app_did_receive_shutdown
 
+	gsel s_help_window_id, gsel_hide
 	gsel s_details_window_id, gsel_hide
 	gsel s_main_window_id, gsel_hide
 	end
