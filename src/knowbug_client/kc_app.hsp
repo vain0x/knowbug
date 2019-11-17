@@ -204,7 +204,8 @@
 	return
 
 // ウィンドウやコントロールの位置や大きさを計算する。
-#deffunc app_ui_layout
+#deffunc app_ui_layout \
+	local x
 
 	s_main_window_width = 480
 	s_main_window_height = 520
@@ -244,6 +245,14 @@
 	s_log_edit_top = s_script_edit_top + s_script_edit_height
 	s_log_edit_width = s_main_width - s_list_view_width
 	s_log_edit_height = s_main_height - s_script_edit_height
+
+	x = 8
+	s_step_continue_button_left = 8
+	x += s_step_button_width + 8
+	s_step_pause_button_left = x
+	x += s_step_button_width + 8
+	s_step_in_button_left = x
+	s_refresh_button_left = s_footer_width - s_margin - s_step_button_width
 	return
 
 *l_on_key
@@ -270,8 +279,7 @@
 // メインウィンドウ
 // -----------------------------------------------
 
-#deffunc app_main_window_create \
-	local x
+#deffunc app_main_window_create
 
 	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height
 
@@ -283,33 +291,25 @@
 	font "MSGothic", 13
 	objmode objmode_font
 
-	// リストビュー
 	app_list_view_create
 
-	// スクリプト
 	app_script_edit_create
 
-	// ログ
 	app_log_edit_create
 
 	// フッター
 	objsize s_step_button_width, s_step_button_height
-	x = 8
 
-	pos x, s_footer_top
+	pos s_step_continue_button_left, s_footer_top
 	button gosub "実行", *l_step_continue_button
-	x += s_step_button_width + 8
 
-	pos x, s_footer_top
+	pos s_step_pause_button_left, s_footer_top
 	button gosub "停止", *l_step_pause_button
-	x += s_step_button_width + 8
 
-	pos x, s_footer_top
+	pos s_step_in_button_left, s_footer_top
 	button gosub "次へ", *l_step_in_button
-	x += s_step_button_width + 8
 
-	x = s_footer_width - s_margin - s_step_button_width
-	pos x, s_footer_top
+	pos s_refresh_button_left, s_footer_top
 	button gosub "更新", *l_refresh_button
 
 	oncmd gosub *l_on_notify, WM_NOTIFY
