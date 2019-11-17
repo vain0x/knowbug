@@ -79,7 +79,6 @@
 #define global LVM_FIRST                0x1000
 #define global LVM_GETITEM              0x1005
 #define global LVM_SETITEM              0x1006
-#define global LVM_INSERTITEM           0x1007
 #define global LVM_DELETEITEM           0x1008
 #define global LVM_DELETEALLITEMS       0x1009
 #define global LVM_HITTEST              0x1012
@@ -89,6 +88,8 @@
 #define global LVM_SUBITEMHITTEST               (LVM_FIRST + 57)
 #define global LVM_SETEXTENDEDLISTVIEWSTYLE     (LVM_FIRST + 54)
 #define global LVM_GETEXTENDEDLISTVIEWSTYLE     (LVM_FIRST + 55)
+#define global LVM_SETITEMW                     (LVM_FIRST + 76)
+#define global LVM_INSERTITEMW                  (LVM_FIRST + 77)
 
 #define global LVCF_FMT                 0x0001
 #define global LVCF_WIDTH               0x0002
@@ -382,27 +383,28 @@
 	return
 
 #deffunc app_list_box_insert_row int row_index, str name, str value, \
-	local lvitem, local text
+	local lvitem, local os_text
 
-	text = name
+	sdim os_text, 0x1000
+	cnvstow os_text, name
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvitema
 	dim lvitem, 15
 	lvitem(0) = LVIF_TEXT
 	lvitem(1) = row_index
 	lvitem(2) = 0
-	lvitem(5) = varptr(text)
-	sendmsg s_list_box_hwnd, LVM_INSERTITEM, , varptr(lvitem)
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_box_hwnd, LVM_INSERTITEMW, , varptr(lvitem)
 	assert stat == row_index
 
-	text = value
+	cnvstow os_text, value
 
 	dim lvitem, 15
 	lvitem(0) = LVIF_TEXT
 	lvitem(1) = row_index
 	lvitem(2) = 1
-	lvitem(5) = varptr(text)
-	sendmsg s_list_box_hwnd, LVM_SETITEM, , varptr(lvitem)
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_box_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 	return
 
@@ -412,22 +414,28 @@
 	assert stat
 	return
 
-#deffunc app_list_box_update_row int row_index, var name, var value
+#deffunc app_list_box_update_row int row_index, var name, var value, \
+	local os_text
+
+	sdim os_text, 0x1000
+	cnvstow os_text, name
 
 	dim lvitem, 15
 	lvitem(0) = LVIF_TEXT
 	lvitem(1) = row_index
 	lvitem(2) = 0
-	lvitem(5) = varptr(name)
-	sendmsg s_list_box_hwnd, LVM_SETITEM, , varptr(lvitem)
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_box_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
+
+	cnvstow os_text, value
 
 	dim lvitem, 15
 	lvitem(0) = LVIF_TEXT
 	lvitem(1) = row_index
 	lvitem(2) = 1
-	lvitem(5) = varptr(value)
-	sendmsg s_list_box_hwnd, LVM_SETITEM, , varptr(lvitem)
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_box_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 	return
 
@@ -539,7 +547,7 @@
 // -----------------------------------------------
 
 #deffunc app_script_edit_update int source_file_id, int line_index, \
-	local text, local text_updated, local start_index, local end_index, \
+	local text, local os_text, local text_updated, local start_index, local end_index, \
 	local current_line_index
 
 	// FIXME: 行番号とパスも表示する。
@@ -552,8 +560,9 @@
 		if stat == false {
 			text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
 		}
-		// FIXME: 文字コード
-		SetWindowText s_script_edit_hwnd, text
+		sdim os_text, strlen(text) * 2 + 1
+		cnvstow os_text, text
+		SetWindowTextW s_script_edit_hwnd, varptr(os_text)
 
 		s_script_source_file_id = source_file_id
 		s_script_source_exists = app_source_exists(source_file_id)
