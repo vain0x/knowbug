@@ -46,6 +46,7 @@
 #define global WS_VISIBLE       0x10000000
 #define global WS_CHILD         0x40000000
 
+#define global WM_SIZE          0x0005
 #define global WM_NOTIFY        0x004e
 #define global WM_COMMAND       0x0111
 #define global WM_USER          0x0400
@@ -351,6 +352,14 @@
 
 	mesbox s_details_text, s_details_window_width, s_details_window_height, mesbox_readonly
 	s_details_edit_id = stat
+	s_details_edit_hwnd = objinfo_hwnd(s_details_edit_id)
+
+	oncmd gosub *l_details_window_on_size, WM_SIZE
+	return
+
+#deffunc app_details_window_update_layout
+
+	MoveWindow s_details_edit_hwnd, 0, 0, s_details_window_width, s_details_window_height, true
 	return
 
 #deffunc app_details_window_set_text var text
@@ -368,6 +377,15 @@
 
 	gsel s_details_window_id, gsel_hide
 	gsel s_main_window_id, gsel_activate
+	return
+
+*l_details_window_on_size
+
+	gsel s_details_window_id
+	s_details_window_width = ginfo_winx
+	s_details_window_height = ginfo_winy
+
+	app_details_window_update_layout
 	return
 
 // -----------------------------------------------
