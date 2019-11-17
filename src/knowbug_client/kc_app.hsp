@@ -199,7 +199,7 @@
 
 	gsel s_default_window_id, gsel_hide
 
-	app_ui_layout
+	app_ui_layout_init
 	app_details_window_create
 	app_main_window_create
 
@@ -209,9 +209,7 @@
 	gsel s_main_window_id, gsel_show
 	return
 
-// ウィンドウやコントロールの位置や大きさを計算する。
-#deffunc app_ui_layout \
-	local x
+#deffunc app_ui_layout_init
 
 	s_main_window_width = 640
 	s_main_window_height = 480
@@ -222,6 +220,13 @@
 	s_details_window_height = 320
 	s_details_window_left = s_main_window_left
 	s_details_window_top = s_main_window_top - s_details_window_height - 8
+
+	app_ui_layout_arrange
+	return
+
+// ウィンドウやコントロールの位置や大きさを計算する。
+#deffunc app_ui_layout_arrange \
+	local x
 
 	s_margin = 4
 	s_step_button_width = 80
@@ -254,11 +259,11 @@
 	s_log_edit_width = s_main_width - s_list_view_width
 	s_log_edit_height = s_main_height - s_script_edit_height
 
-	x = 8
-	s_step_continue_button_left = 8
-	x += s_step_button_width + 8
+	x = s_margin
+	s_step_continue_button_left = x
+	x += s_step_button_width + s_margin
 	s_step_pause_button_left = x
-	x += s_step_button_width + 8
+	x += s_step_button_width + s_margin
 	s_step_in_button_left = x
 	s_refresh_button_left = s_footer_width - s_margin - s_step_button_width
 	return
@@ -310,17 +315,32 @@
 
 	pos s_step_continue_button_left, s_footer_top
 	button gosub "実行", *l_step_continue_button
+	s_step_continue_button_hwnd = objinfo_hwnd(stat)
 
 	pos s_step_pause_button_left, s_footer_top
 	button gosub "停止", *l_step_pause_button
+	s_step_pause_button_hwnd = objinfo_hwnd(stat)
 
 	pos s_step_in_button_left, s_footer_top
 	button gosub "次へ", *l_step_in_button
+	s_step_in_button_hwnd = objinfo_hwnd(stat)
 
 	pos s_refresh_button_left, s_footer_top
 	button gosub "更新", *l_refresh_button
+	s_refresh_button_hwnd = objinfo_hwnd(stat)
 
+	oncmd gosub *l_main_window_on_size, WM_SIZE
 	oncmd gosub *l_on_notify, WM_NOTIFY
+	return
+
+*l_main_window_on_size
+
+	gsel s_main_window_id
+	s_main_window_width = ginfo_winx
+	s_main_window_height = ginfo_winy
+
+	app_ui_layout_arrange
+	app_main_window_update_layout
 	return
 
 *l_on_notify
@@ -335,6 +355,18 @@
 			app_list_view_did_click
 		}
 	}
+	return
+
+#deffunc app_main_window_update_layout
+
+	MoveWindow s_list_view_hwnd, s_list_view_left, s_list_view_top, s_list_view_width, s_list_view_height, true
+	MoveWindow s_log_edit_hwnd, s_log_edit_left, s_log_edit_top, s_log_edit_width, s_log_edit_height, true
+	MoveWindow s_script_edit_hwnd, s_script_edit_left, s_script_edit_top, s_script_edit_width, s_script_edit_height, true
+
+	MoveWindow s_step_continue_button_hwnd, s_step_continue_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
+	MoveWindow s_step_pause_button_hwnd, s_step_pause_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
+	MoveWindow s_step_in_button_hwnd, s_step_in_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
+	MoveWindow s_refresh_button_hwnd, s_refresh_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
 	return
 
 // -----------------------------------------------
