@@ -158,6 +158,8 @@ public:
 	// :thinking_face:
 	void script_do_update_location();
 
+	auto source_file_to_full_path(std::size_t source_file_id) const->std::optional<Utf8StringView>;
+
 	auto source_file_to_content(std::size_t source_file_id) const->std::optional<Utf8StringView>;
 
 private:

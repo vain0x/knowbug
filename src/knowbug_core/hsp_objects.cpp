@@ -1200,6 +1200,10 @@ void HspObjects::script_do_update_location() {
 	hsx::debug_do_update_location(debug());
 }
 
+auto HspObjects::source_file_to_full_path(std::size_t source_file_id) const->std::optional<Utf8StringView> {
+	return source_file_repository_->file_to_full_path_as_utf8(SourceFileId{ source_file_id });
+}
+
 auto HspObjects::source_file_to_content(std::size_t source_file_id) const->std::optional<Utf8StringView> {
 	return source_file_repository_->file_to_content(SourceFileId{ source_file_id });
 }

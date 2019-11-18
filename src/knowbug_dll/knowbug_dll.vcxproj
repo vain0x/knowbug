@@ -331,6 +331,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\knowbug_client\knowbug_protocol.h" />
     <ClInclude Include="knowbug_app.h" />
     <ClInclude Include="knowbug_config.h" />
     <ClInclude Include="knowbug_server.h" />

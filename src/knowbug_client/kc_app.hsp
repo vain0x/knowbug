@@ -184,6 +184,7 @@
 	sdim s_log_text, s_log_text_cap
 
 	// ソースファイル
+	sdim s_source_paths
 	sdim s_source_texts
 	dim s_source_exists
 
@@ -642,8 +643,35 @@
 // ソースファイル
 // -----------------------------------------------
 
-#deffunc app_source_add int source_file_id, var text, \
-	local lines, local n
+#deffunc app_source_get_path int source_file_id, var full_path
+
+	if source_file_id < 0 || source_file_id >= length(s_source_paths) {
+		return false
+	}
+	if strlen(s_source_paths(source_file_id)) == 0 {
+		return false
+	}
+
+	full_path = s_source_paths(source_file_id)
+	return true
+
+#deffunc app_source_set_path int source_file_id, var full_path
+
+	if source_file_id < 0 {
+		debug_warn "ソースファイルIDは非負でなければいけません。"
+		return
+	}
+	if strlen(full_path) == 0 {
+		debug_warn "ソースファイルの絶対パスが空です。"
+		return
+	}
+
+	logmes "app_source_set_path " + source_file_id + ": " + full_path
+
+	s_source_paths(source_file_id) = full_path
+	return
+
+#deffunc app_source_set_text int source_file_id, var text
 
 	if source_file_id < 0 {
 		debug_warn "ソースファイルIDは非負でなければいけません。"
@@ -653,6 +681,8 @@
 		debug_warn "同じソースファイルを複数回ロードしました。"
 		return
 	}
+
+	logmes "app_source_set_text " + source_file_id
 
 	s_source_texts(source_file_id) = text
 	s_source_exists(source_file_id) = true
@@ -697,8 +727,8 @@
 	return
 
 #deffunc app_script_edit_update int source_file_id, int line_index, \
-	local text, local os_text, local text_updated, local start_index, local end_index, \
-	local current_line_index
+	local text, local os_text, local full_path, local text_updated, \
+	local start_index, local end_index, local current_line_index
 
 	// FIXME: 行番号とパスも表示する。
 
@@ -708,7 +738,13 @@
 	if s_script_source_file_id != source_file_id || s_script_source_exists != app_source_exists(source_file_id) {
 		app_source_dup_text source_file_id, text
 		if stat == false {
-			text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
+			text = "(スクリプトファイルが見つかりません)\n#" + line_index
+
+			app_source_get_path source_file_id, full_path
+			if stat {
+				text += " " + full_path
+			}
+			text += "\n"
 		}
 		sdim os_text, strlen(text) * 2 + 1
 		cnvstow os_text, text
@@ -1004,10 +1040,21 @@
 	infra_send_list_update
 	return
 
-#deffunc app_did_receive_source_ok int source_file_id, var text
+#deffunc app_did_receive_source_path int source_file_id, var text
 
-	logmes strf("app_did_receive_source_ok(%d, ...)", source_file_id)
-	app_source_add source_file_id, text
+	logmes strf("app_did_receive_source_path(%d)", source_file_id)
+	app_source_set_path source_file_id, text
+
+	// ソースコードが読み込まれたら表示に反映する。
+	if s_script_source_file_id == source_file_id {
+		app_script_edit_update source_file_id, s_script_line_index
+	}
+	return
+
+#deffunc app_did_receive_source_text int source_file_id, var text
+
+	logmes strf("app_did_receive_source_text(%d)", source_file_id)
+	app_source_set_text source_file_id, text
 
 	// ソースコードが読み込まれたら表示に反映する。
 	if s_script_source_file_id == source_file_id {

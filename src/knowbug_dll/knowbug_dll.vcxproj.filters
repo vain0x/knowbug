@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="knowbug_client">
+      <UniqueIdentifier>{aa7dde6f-0501-42e3-96f9-417ccff0203f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -47,6 +50,9 @@
     </ClInclude>
     <ClInclude Include="knowbug_server.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\knowbug_client\knowbug_protocol.h">
+      <Filter>knowbug_client</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
