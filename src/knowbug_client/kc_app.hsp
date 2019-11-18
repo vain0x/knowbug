@@ -282,15 +282,15 @@
 	s_source_path_button_height = s_source_path_edit_height
 	s_source_path_button_top = s_source_path_edit_top
 
-	s_script_edit_left = s_source_path_edit_left
-	s_script_edit_top = s_source_path_edit_top+ s_source_path_edit_height
-	s_script_edit_width = s_source_path_edit_width
-	s_script_edit_height = s_main_height / 2 - s_source_path_edit_height
+	s_source_code_edit_left = s_source_path_edit_left
+	s_source_code_edit_top = s_source_path_edit_top + s_source_path_edit_height
+	s_source_code_edit_width = s_source_path_edit_width
+	s_source_code_edit_height = s_main_height / 2 - s_source_path_edit_height
 
 	s_log_edit_left = s_list_view_width
-	s_log_edit_top = s_script_edit_top + s_script_edit_height
+	s_log_edit_top = s_source_code_edit_top + s_source_code_edit_height
 	s_log_edit_width = s_main_width - s_list_view_width
-	s_log_edit_height = s_main_height - s_source_path_edit_height - s_script_edit_height
+	s_log_edit_height = s_main_height - s_source_path_edit_height - s_source_code_edit_height
 
 	x = s_margin
 	s_step_continue_button_left = x
@@ -353,7 +353,7 @@
 
 	app_list_view_create
 
-	app_script_edit_create
+	app_source_code_edit_create
 
 	app_log_edit_create
 
@@ -442,7 +442,7 @@
 	MoveWindow s_log_edit_hwnd, s_log_edit_left, s_log_edit_top, s_log_edit_width, s_log_edit_height, true
 	MoveWindow s_source_path_button_hwnd, s_source_path_button_left, s_source_path_button_top, s_source_path_button_width, s_source_path_button_height, true
 	MoveWindow s_source_path_edit_hwnd, s_source_path_edit_left, s_source_path_edit_top, s_source_path_edit_width, s_source_path_edit_height, true
-	MoveWindow s_script_edit_hwnd, s_script_edit_left, s_script_edit_top, s_script_edit_width, s_script_edit_height, true
+	MoveWindow s_source_code_edit_hwnd, s_source_code_edit_left, s_source_code_edit_top, s_source_code_edit_width, s_source_code_edit_height, true
 
 	MoveWindow s_step_continue_button_hwnd, s_step_continue_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
 	MoveWindow s_step_pause_button_hwnd, s_step_pause_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
@@ -740,7 +740,7 @@
 // スクリプトエディット
 // -----------------------------------------------
 
-#deffunc app_script_edit_create \
+#deffunc app_source_code_edit_create \
 	local style, local style_ex
 
 	// スクリプトパスエディット
@@ -767,15 +767,15 @@
 	style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
 	style_ex = 0
 
-	pos s_script_edit_left, s_script_edit_top
-	winobj "EDIT", "", style_ex, style, s_script_edit_width, s_script_edit_height
-	s_script_edit_id = stat
-	s_script_edit_hwnd = objinfo_hwnd(stat)
+	pos s_source_code_edit_left, s_source_code_edit_top
+	winobj "EDIT", "", style_ex, style, s_source_code_edit_width, s_source_code_edit_height
+	s_source_code_edit_id = stat
+	s_source_code_edit_hwnd = objinfo_hwnd(stat)
 
-	hspish_font_set_object_font s_script_edit_hwnd, "MS Gothic", 13
+	hspish_font_set_object_font s_source_code_edit_hwnd, "MS Gothic", 13
 	return
 
-#deffunc app_script_edit_update int source_file_id, int line_index, \
+#deffunc app_source_code_edit_update int source_file_id, int line_index, \
 	local text, local os_text, \
 	local source_path, local os_source_path, local source_path_exists, \
 	local text_updated, \
@@ -807,7 +807,7 @@
 
 		sdim os_text, strlen(text) * 2 + 1
 		cnvstow os_text, text
-		SetWindowTextW s_script_edit_hwnd, varptr(os_text)
+		SetWindowTextW s_source_code_edit_hwnd, varptr(os_text)
 
 		s_script_source_file_id = source_file_id
 		s_script_source_exists = app_source_exists(source_file_id)
@@ -817,10 +817,10 @@
 	// 行を更新する。
 	if text_updated || s_script_line_index != line_index {
 		// 指定行の範囲をバイトインデックスとして求める。
-		sendmsg s_script_edit_hwnd, EM_LINEINDEX, line_index, NULL
+		sendmsg s_source_code_edit_hwnd, EM_LINEINDEX, line_index, NULL
 		start_index = stat
 
-		sendmsg s_script_edit_hwnd, EM_LINEINDEX, line_index + 1, NULL
+		sendmsg s_source_code_edit_hwnd, EM_LINEINDEX, line_index + 1, NULL
 		end_index = stat
 
 		if start_index < 0 || end_index < 0 {
@@ -829,12 +829,12 @@
 			end_index = 0
 		}
 
-		sendmsg s_script_edit_hwnd, EM_SETSEL, start_index, end_index
+		sendmsg s_source_code_edit_hwnd, EM_SETSEL, start_index, end_index
 
 		// 指定行の少し上にスクロールする。
-		sendmsg s_script_edit_hwnd, EM_GETFIRSTVISIBLELINE
+		sendmsg s_source_code_edit_hwnd, EM_GETFIRSTVISIBLELINE
 		current_line_index = stat
-		sendmsg s_script_edit_hwnd, EM_LINESCROLL, 0, limit(line_index - 3, 0) - current_line_index
+		sendmsg s_source_code_edit_hwnd, EM_LINESCROLL, 0, limit(line_index - 3, 0) - current_line_index
 
 		s_script_line_index = line_index
 	}
@@ -1119,7 +1119,7 @@
 		infra_send_source source_file_id
 	}
 
-	app_script_edit_update source_file_id, line_index
+	app_source_code_edit_update source_file_id, line_index
 
 	infra_send_list_update
 	return
@@ -1131,7 +1131,7 @@
 
 	// ソースコードが読み込まれたら表示に反映する。
 	if s_script_source_file_id == source_file_id {
-		app_script_edit_update source_file_id, s_script_line_index
+		app_source_code_edit_update source_file_id, s_script_line_index
 	}
 	return
 
@@ -1142,7 +1142,7 @@
 
 	// ソースコードが読み込まれたら表示に反映する。
 	if s_script_source_file_id == source_file_id {
-		app_script_edit_update source_file_id, s_script_line_index
+		app_source_code_edit_update source_file_id, s_script_line_index
 	}
 	return
 
