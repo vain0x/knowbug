@@ -272,25 +272,25 @@
 	s_list_view_value_column_width = (s_list_view_width - 20) / 2
 
 	s_source_path_button_width = 24
-	s_script_path_edit_height = 24
+	s_source_path_edit_height = 24
 
-	s_script_path_edit_left = s_list_view_width
-	s_script_path_edit_top = s_main_top
-	s_script_path_edit_width = s_main_width - s_list_view_width - s_source_path_button_width
+	s_source_path_edit_left = s_list_view_width
+	s_source_path_edit_top = s_main_top
+	s_source_path_edit_width = s_main_width - s_list_view_width - s_source_path_button_width
 
-	s_source_path_button_left = s_script_path_edit_left + s_script_path_edit_width
-	s_source_path_button_height = s_script_path_edit_height
-	s_source_path_button_top = s_script_path_edit_top
+	s_source_path_button_left = s_source_path_edit_left + s_source_path_edit_width
+	s_source_path_button_height = s_source_path_edit_height
+	s_source_path_button_top = s_source_path_edit_top
 
-	s_script_edit_left = s_script_path_edit_left
-	s_script_edit_top = s_script_path_edit_top+ s_script_path_edit_height
-	s_script_edit_width = s_script_path_edit_width
-	s_script_edit_height = s_main_height / 2 - s_script_path_edit_height
+	s_script_edit_left = s_source_path_edit_left
+	s_script_edit_top = s_source_path_edit_top+ s_source_path_edit_height
+	s_script_edit_width = s_source_path_edit_width
+	s_script_edit_height = s_main_height / 2 - s_source_path_edit_height
 
 	s_log_edit_left = s_list_view_width
 	s_log_edit_top = s_script_edit_top + s_script_edit_height
 	s_log_edit_width = s_main_width - s_list_view_width
-	s_log_edit_height = s_main_height - s_script_path_edit_height - s_script_edit_height
+	s_log_edit_height = s_main_height - s_source_path_edit_height - s_script_edit_height
 
 	x = s_margin
 	s_step_continue_button_left = x
@@ -441,7 +441,7 @@
 	MoveWindow s_list_view_hwnd, s_list_view_left, s_list_view_top, s_list_view_width, s_list_view_height, true
 	MoveWindow s_log_edit_hwnd, s_log_edit_left, s_log_edit_top, s_log_edit_width, s_log_edit_height, true
 	MoveWindow s_source_path_button_hwnd, s_source_path_button_left, s_source_path_button_top, s_source_path_button_width, s_source_path_button_height, true
-	MoveWindow s_script_path_edit_hwnd, s_script_path_edit_left, s_script_path_edit_top, s_script_path_edit_width, s_script_path_edit_height, true
+	MoveWindow s_source_path_edit_hwnd, s_source_path_edit_left, s_source_path_edit_top, s_source_path_edit_width, s_source_path_edit_height, true
 	MoveWindow s_script_edit_hwnd, s_script_edit_left, s_script_edit_top, s_script_edit_width, s_script_edit_height, true
 
 	MoveWindow s_step_continue_button_hwnd, s_step_continue_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
@@ -748,12 +748,12 @@
 	style |= ES_AUTOHSCROLL | ES_READONLY
 	style_ex = 0
 
-	pos s_script_path_edit_left, s_script_path_edit_top
-	winobj "EDIT", "", style_ex, style, s_script_path_edit_width, s_script_path_edit_height
-	s_script_path_edit_id = stat
-	s_script_path_edit_hwnd = objinfo_hwnd(s_script_path_edit_id)
+	pos s_source_path_edit_left, s_source_path_edit_top
+	winobj "EDIT", "", style_ex, style, s_source_path_edit_width, s_source_path_edit_height
+	s_source_path_edit_id = stat
+	s_source_path_edit_hwnd = objinfo_hwnd(s_source_path_edit_id)
 
-	hspish_font_set_object_font s_script_path_edit_hwnd, "MS Gothic", 13
+	hspish_font_set_object_font s_source_path_edit_hwnd, "MS Gothic", 13
 
 	// スクリプトパスボックス
 	pos s_source_path_button_left, s_source_path_button_top
@@ -794,10 +794,10 @@
 
 		sdim os_source_path, strlen(source_path) * 2 + 1
 		cnvstow os_source_path, source_path
-		SetWindowTextW s_script_path_edit_hwnd, varptr(os_source_path)
+		SetWindowTextW s_source_path_edit_hwnd, varptr(os_source_path)
 
 		// 右端までスクロールするために、カーソルを末尾に移動させる。
-		sendmsg s_script_path_edit_hwnd, EM_SETSEL, 0x7fffffff, 0x7fffffff
+		sendmsg s_source_path_edit_hwnd, EM_SETSEL, 0x7fffffff, 0x7fffffff
 
 		// ソースコードがあれば取得し、なければその旨のメッセージを表示する。
 		app_source_dup_text source_file_id, text
