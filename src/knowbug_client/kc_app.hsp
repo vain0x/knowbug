@@ -190,7 +190,7 @@
 	// ソースファイル
 	sdim s_source_paths
 	sdim s_source_texts
-	dim s_source_exists
+	dim s_source_code_exists
 
 	// スクリプト
 	// 表示中のソースファイルID (なければ -1)
@@ -704,7 +704,7 @@
 		debug_warn "ソースファイルIDは非負でなければいけません。"
 		return
 	}
-	if app_source_exists(source_file_id) {
+	if app_source_code_exists(source_file_id) {
 		debug_warn "同じソースファイルを複数回ロードしました。"
 		return
 	}
@@ -712,22 +712,22 @@
 	logmes "app_source_set_text " + source_file_id
 
 	s_source_texts(source_file_id) = text
-	s_source_exists(source_file_id) = true
+	s_source_code_exists(source_file_id) = true
 	return
 
 // ソースファイルIDに対応するソースコードを保持しているかを返す。
-#defcfunc app_source_exists int source_file_id
+#defcfunc app_source_code_exists int source_file_id
 
-	if source_file_id < 0 || source_file_id >= length(s_source_exists) {
+	if source_file_id < 0 || source_file_id >= length(s_source_code_exists) {
 		return false
 	}
 
-	return s_source_exists(source_file_id)
+	return s_source_code_exists(source_file_id)
 
 // ソースコードのクローンをとる。成功したら true を返す。
 #deffunc app_source_dup_text int source_file_id, var text
 
-	if app_source_exists(source_file_id) == false {
+	if app_source_code_exists(source_file_id) == false {
 		return false
 	}
 
@@ -783,7 +783,7 @@
 
 	text_updated = s_current_source_file_id != source_file_id
 	text_updated |= s_current_source_path_exists != app_source_path_exists(source_file_id)
-	text_updated |= s_current_source_code_exists != app_source_exists(source_file_id)
+	text_updated |= s_current_source_code_exists != app_source_code_exists(source_file_id)
 
 	// テキストを更新する。
 	if text_updated {
@@ -808,7 +808,7 @@
 		SetWindowTextW s_source_code_edit_hwnd, varptr(os_text)
 
 		s_current_source_file_id = source_file_id
-		s_current_source_code_exists = app_source_exists(source_file_id)
+		s_current_source_code_exists = app_source_code_exists(source_file_id)
 		text_updated = true
 	}
 
@@ -1113,7 +1113,7 @@
 	logmes strf("app_did_receive_stopped(%d, %d)", source_file_id, line_index)
 	s_debuggee_is_running = false
 
-	if app_source_exists(source_file_id) == false {
+	if app_source_code_exists(source_file_id) == false {
 		infra_send_source source_file_id
 	}
 
