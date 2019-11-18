@@ -198,7 +198,7 @@
 	// 表示中のソースファイルID (なければ -1)
 	s_current_source_file_id = -1
 	// 表示中のソースファイルの表示時点でソースパスが存在したか
-	s_script_path_exists = false
+	s_current_source_path_exists = false
 	// 表示中のソースファイルの表示時点でソースコードが存在したか
 	s_script_source_exists = false
 	// 表示している行番号 (最後に自動スクロールした時点での行番号。現在の行番号ではない。)
@@ -784,7 +784,7 @@
 	// FIXME: 行番号とパスも表示する。
 
 	text_updated = s_current_source_file_id != source_file_id
-	text_updated |= s_script_path_exists != app_source_path_exists(source_file_id)
+	text_updated |= s_current_source_path_exists != app_source_path_exists(source_file_id)
 	text_updated |= s_script_source_exists != app_source_exists(source_file_id)
 
 	// テキストを更新する。
