@@ -247,9 +247,9 @@
 	s_details_window_top = s_main_window_top - s_details_window_height - 32
 
 	s_margin = 4
-	s_step_button_width = 80
+	s_step_button_width = 60
 	s_step_button_height = 24
-	s_help_button_width = 65
+	s_help_button_width = 60
 	s_help_button_height = 24
 
 	s_footer_left = 0
