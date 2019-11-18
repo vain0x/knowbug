@@ -143,6 +143,7 @@
 #enum global s_help_window_id
 
 #enum global s_animation_timer_id = 1
+#enum global s_refresh_timer_id
 
 #module m_app
 
@@ -387,6 +388,12 @@
 		s_animation_timer_is_running = true
 	}
 
+	SetTimer hwnd, s_refresh_timer_id, 3000, NULL
+	assert stat
+	if stat {
+		s_refresh_timer_is_running = true
+	}
+
 	oncmd gosub *l_main_window_on_size, WM_SIZE
 	oncmd gosub *l_on_notify, WM_NOTIFY
 	oncmd gosub *l_main_window_on_timer, WM_TIMER
@@ -423,6 +430,9 @@
 	if wparam == s_animation_timer_id {
 		app_log_edit_update
 	}
+	if wparam == s_refresh_timer_id {
+		app_refresh
+	}
 	return
 
 #deffunc app_main_window_on_exit
@@ -431,6 +441,10 @@
 	if s_animation_timer_is_running {
 		KillTimer s_main_window_hwnd, s_animation_timer_id
 		s_animation_timer_is_running = false
+	}
+	if s_refresh_timer_running {
+		KillTimer s_main_window_height, s_refresh_timer_id
+		s_refresh_timer_running = false
 	}
 	return
 
