@@ -189,7 +189,7 @@
 
 	// ソースファイル
 	sdim s_source_paths
-	sdim s_source_texts
+	sdim s_source_codes
 	dim s_source_code_exists
 
 	// スクリプト
@@ -698,7 +698,7 @@
 	s_source_paths(source_file_id) = full_path
 	return
 
-#deffunc app_source_set_text int source_file_id, var text
+#deffunc app_source_code_set int source_file_id, var text
 
 	if source_file_id < 0 {
 		debug_warn "ソースファイルIDは非負でなければいけません。"
@@ -709,9 +709,9 @@
 		return
 	}
 
-	logmes "app_source_set_text " + source_file_id
+	logmes "app_source_code_set " + source_file_id
 
-	s_source_texts(source_file_id) = text
+	s_source_codes(source_file_id) = text
 	s_source_code_exists(source_file_id) = true
 	return
 
@@ -725,13 +725,13 @@
 	return s_source_code_exists(source_file_id)
 
 // ソースコードのクローンをとる。成功したら true を返す。
-#deffunc app_source_dup_text int source_file_id, var text
+#deffunc app_source_code_dup int source_file_id, var text
 
 	if app_source_code_exists(source_file_id) == false {
 		return false
 	}
 
-	dup text, s_source_texts(source_file_id)
+	dup text, s_source_codes(source_file_id)
 	return true
 
 // -----------------------------------------------
@@ -798,7 +798,7 @@
 		sendmsg s_source_path_edit_hwnd, EM_SETSEL, 0x7fffffff, 0x7fffffff
 
 		// ソースコードがあれば取得し、なければその旨のメッセージを表示する。
-		app_source_dup_text source_file_id, text
+		app_source_code_dup source_file_id, text
 		if stat == false {
 			text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
 		}
@@ -1136,7 +1136,7 @@
 #deffunc app_did_receive_source_text int source_file_id, var text
 
 	logmes strf("app_did_receive_source_text(%d)", source_file_id)
-	app_source_set_text source_file_id, text
+	app_source_code_set source_file_id, text
 
 	// ソースコードが読み込まれたら表示に反映する。
 	if s_current_source_file_id == source_file_id {
