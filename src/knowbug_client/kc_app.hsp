@@ -732,13 +732,19 @@
 #deffunc app_script_edit_create \
 	local style, local style_ex
 
+	// スクリプトパスエディット
+	style = WS_BORDER | WS_VISIBLE | WS_CHILD
+	style |= ES_AUTOHSCROLL | ES_READONLY
+	style_ex = 0
+
 	pos s_script_path_edit_left, s_script_path_edit_top
-	objsize s_script_path_edit_width, s_script_path_edit_height
-	input s_script_path
+	winobj "EDIT", "", style_ex, style, s_script_path_edit_width, s_script_path_edit_height
 	s_script_path_edit_id = stat
 	s_script_path_edit_hwnd = objinfo_hwnd(s_script_path_edit_id)
-	// FIXME: 読み取り専用にする
 
+	hspish_font_set_object_font s_script_path_edit_hwnd, "MS Gothic", 13
+
+	// スクリプトエディット
 	style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD
 	style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
 	style_ex = 0
@@ -752,7 +758,9 @@
 	return
 
 #deffunc app_script_edit_update int source_file_id, int line_index, \
-	local text, local os_text, local source_path, local source_path_exists, local text_updated, \
+	local text, local os_text, \
+	local source_path, local os_source_path, local source_path_exists, \
+	local text_updated, \
 	local start_index, local end_index, local current_line_index
 
 	// FIXME: 行番号とパスも表示する。
@@ -766,8 +774,9 @@
 		app_source_get_path source_file_id, source_path
 		source_path_exists = stat
 
-		gsel s_main_window_id
-		objprm s_script_path_edit_id, source_path
+		sdim os_source_path, strlen(source_path) * 2 + 1
+		cnvstow os_source_path, source_path
+		SetWindowTextW s_script_path_edit_hwnd, varptr(os_source_path)
 
 		// ソースコードがあれば取得し、なければその旨のメッセージを表示する。
 		app_source_dup_text source_file_id, text
