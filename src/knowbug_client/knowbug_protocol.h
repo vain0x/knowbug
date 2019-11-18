@@ -23,7 +23,7 @@
 // 次へ
 #define KMTS_STEP_IN                (WM_USER + 5)
 // ソースファイルの詳細を要求する。
-// KMTC_SOURCE_PATH, KMTC_SOURCE_TEXT が返ってくる。
+// KMTC_SOURCE_PATH, KMTC_SOURCE_CODE が返ってくる。
 // wparam: ソースファイルID
 #define KMTS_SOURCE                 (WM_USER + 21)
 // オブジェクトリストを要求する。
@@ -57,7 +57,7 @@
 // ソースコードを渡す。
 // wparam: ソースファイルID
 // text: ソースコード (UTF-8)
-#define KMTC_SOURCE_TEXT            (WM_USER + 1022)
+#define KMTC_SOURCE_CODE            (WM_USER + 1022)
 // オブジェクトリストの更新を返す。
 // text: オブジェクトリストの差分リスト (UTF-8、改行区切り)
 // 詳細はサーバー側の HspObjectListDelta を参照。

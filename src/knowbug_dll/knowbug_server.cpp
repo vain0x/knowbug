@@ -704,7 +704,7 @@ public:
 		}
 
 		if (auto content_opt = objects().source_file_to_content(source_file_id)) {
-			send(KMTC_SOURCE_TEXT, (int)source_file_id, int{}, *content_opt);
+			send(KMTC_SOURCE_CODE, (int)source_file_id, int{}, *content_opt);
 		}
 	}
 

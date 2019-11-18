@@ -1133,9 +1133,9 @@
 	}
 	return
 
-#deffunc app_did_receive_source_text int source_file_id, var text
+#deffunc app_did_receive_source_code int source_file_id, var text
 
-	logmes strf("app_did_receive_source_text(%d)", source_file_id)
+	logmes strf("app_did_receive_source_code(%d)", source_file_id)
 	app_source_code_set source_file_id, text
 
 	// ソースコードが読み込まれたら表示に反映する。
