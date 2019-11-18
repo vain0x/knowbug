@@ -22,8 +22,10 @@
 #define KMTS_STEP_PAUSE             (WM_USER + 4)
 // 次へ
 #define KMTS_STEP_IN                (WM_USER + 5)
+// ステップオーバー
+#define KMTS_STEP_OVER              (WM_USER + 6)
 // 現在の実行位置を要求する。
-#define KMTS_LOCATION_UPDATE        (WM_USER + 6)
+#define KMTS_LOCATION_UPDATE        (WM_USER + 11)
 // ソースファイルの詳細を要求する。
 // KMTC_SOURCE_PATH, KMTC_SOURCE_CODE が返ってくる。
 // wparam: ソースファイルID

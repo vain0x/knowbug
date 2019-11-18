@@ -9,7 +9,7 @@ class HspObjects;
 
 class KnowbugServer {
 public:
-	static auto create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)->std::shared_ptr<KnowbugServer>;
+	static auto create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugStepController& step_controller)->std::shared_ptr<KnowbugServer>;
 
 	virtual ~KnowbugServer() {
 	}

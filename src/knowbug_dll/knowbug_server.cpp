@@ -12,13 +12,13 @@
 #include "../knowbug_core/hsp_objects.h"
 #include "../knowbug_core/hsx.h"
 #include "../knowbug_core/platform.h"
+#include "../knowbug_core/step_controller.h"
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
 #include "knowbug_server.h"
 
 #include "../knowbug_client/knowbug_protocol.h"
 
-// 1 MB
 class KnowbugServerImpl;
 
 // -----------------------------------------------
@@ -577,6 +577,8 @@ class KnowbugServerImpl
 
 	HINSTANCE instance_;
 
+	KnowbugStepController& step_controller_;
+
 	bool started_;
 
 	OsString server_buffer_name_;
@@ -604,10 +606,11 @@ class KnowbugServerImpl
 	HspObjectList object_list_;
 
 public:
-	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)
+	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugStepController& step_controller)
 		: debug_(debug)
 		, objects_(objects)
 		, instance_(instance)
+		, step_controller_(step_controller)
 		, started_(false)
 		, hidden_window_opt_()
 		, server_buffer_name_(TEXT("KnowbugServerBuffer"))
@@ -690,6 +693,11 @@ public:
 
 	void client_did_step_in() {
 		hsx::debug_do_set_mode(HSPDEBUG_STEPIN, debug_);
+		touch_all_windows();
+	}
+
+	void client_did_step_over() {
+		step_controller_.update(StepControl::new_step_over());
 		touch_all_windows();
 	}
 
@@ -811,8 +819,8 @@ private:
 	}
 };
 
-auto KnowbugServer::create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)->std::shared_ptr<KnowbugServer> {
-	auto server = std::make_shared<KnowbugServerImpl>(debug, objects, instance);
+auto KnowbugServer::create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugStepController& step_controller)->std::shared_ptr<KnowbugServer> {
+	auto server = std::make_shared<KnowbugServerImpl>(debug, objects, instance, step_controller);
 	s_server = server;
 	return server;
 }
@@ -855,6 +863,10 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 
 				case KMTS_STEP_IN:
 					server->client_did_step_in();
+					break;
+
+				case KMTS_STEP_OVER:
+					server->client_did_step_over();
 					break;
 
 				case KMTS_LOCATION_UPDATE:

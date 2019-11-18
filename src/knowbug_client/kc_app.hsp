@@ -296,6 +296,8 @@
 	s_step_pause_button_left = x
 	x += s_step_button_width + s_margin
 	s_step_in_button_left = x
+	x += s_step_button_width + s_margin
+	s_step_over_button_left = x
 
 	x = s_footer_width
 	x -= s_help_button_width + s_margin
@@ -369,6 +371,10 @@
 	pos s_step_in_button_left, s_footer_top
 	button gosub "次へ", *l_step_in_button
 	s_step_in_button_hwnd = objinfo_hwnd(stat)
+
+	pos s_step_over_button_left, s_footer_top
+	button gosub "次飛", *l_step_over_button
+	s_step_over_button_hwnd = objinfo_hwnd(stat)
 
 	objsize s_help_button_width, s_help_button_height
 
@@ -445,6 +451,7 @@
 	MoveWindow s_step_continue_button_hwnd, s_step_continue_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
 	MoveWindow s_step_pause_button_hwnd, s_step_pause_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
 	MoveWindow s_step_in_button_hwnd, s_step_in_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
+	MoveWindow s_step_over_button_hwnd, s_step_over_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
 	MoveWindow s_refresh_button_hwnd, s_refresh_button_left, s_footer_top, s_help_button_width, s_help_button_height, true
 	MoveWindow s_help_button_hwnd, s_help_button_left, s_footer_top, s_help_button_width, s_help_button_height, true
 
@@ -998,6 +1005,17 @@
 *l_step_in_button
 
 	app_step_in
+	return
+
+#deffunc app_step_over
+
+	logmes "app_step_over"
+	infra_send_step_over
+	return
+
+*l_step_over_button
+
+	app_step_over
 	return
 
 #deffunc app_refresh
