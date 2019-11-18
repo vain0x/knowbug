@@ -779,8 +779,6 @@
 	local text_updated, \
 	local start_index, local end_index, local current_line_index
 
-	// FIXME: 行番号とパスも表示する。
-
 	text_updated = s_current_source_file_id != source_file_id
 	text_updated |= s_current_source_path_exists != app_source_path_exists(source_file_id)
 	text_updated |= s_current_source_code_exists != app_source_code_exists(source_file_id)
