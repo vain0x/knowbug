@@ -196,7 +196,7 @@
 	sdim s_script_path
 	sdim s_script_text
 	// 表示中のソースファイルID (なければ -1)
-	s_script_source_file_id = -1
+	s_current_source_file_id = -1
 	// 表示中のソースファイルの表示時点でソースパスが存在したか
 	s_script_path_exists = false
 	// 表示中のソースファイルの表示時点でソースコードが存在したか
@@ -783,7 +783,7 @@
 
 	// FIXME: 行番号とパスも表示する。
 
-	text_updated = s_script_source_file_id != source_file_id
+	text_updated = s_current_source_file_id != source_file_id
 	text_updated |= s_script_path_exists != app_source_path_exists(source_file_id)
 	text_updated |= s_script_source_exists != app_source_exists(source_file_id)
 
@@ -809,7 +809,7 @@
 		cnvstow os_text, text
 		SetWindowTextW s_source_code_edit_hwnd, varptr(os_text)
 
-		s_script_source_file_id = source_file_id
+		s_current_source_file_id = source_file_id
 		s_script_source_exists = app_source_exists(source_file_id)
 		text_updated = true
 	}
@@ -845,7 +845,7 @@
 
 	// FIXME: ポップアップメニューを出す。スクリプトエディタや標準のエディタで開く選択肢もほしい。
 
-	app_source_get_path s_script_source_file_id, script_path
+	app_source_get_path s_current_source_file_id, script_path
 	if stat == false {
 		return false
 	}
@@ -1130,7 +1130,7 @@
 	app_source_set_path source_file_id, text
 
 	// ソースコードが読み込まれたら表示に反映する。
-	if s_script_source_file_id == source_file_id {
+	if s_current_source_file_id == source_file_id {
 		app_source_code_edit_update source_file_id, s_script_line_index
 	}
 	return
@@ -1141,7 +1141,7 @@
 	app_source_set_text source_file_id, text
 
 	// ソースコードが読み込まれたら表示に反映する。
-	if s_script_source_file_id == source_file_id {
+	if s_current_source_file_id == source_file_id {
 		app_source_code_edit_update source_file_id, s_script_line_index
 	}
 	return
