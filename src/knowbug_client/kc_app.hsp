@@ -6,7 +6,7 @@
 #include "hsp3utf.as"
 #include "kernel32.as"
 #include "user32.as"
-#include "lib_hspish_font.hsp"
+#include "mod_hspish_font.hsp"
 
 // -----------------------------------------------
 // HSP の定数
@@ -508,7 +508,7 @@
 	app_list_view_insert_column 0, "name", s_list_view_name_column_width
 	app_list_view_insert_column 1, "value", s_list_view_value_column_width
 
-	lib_hspish_font_set_object_font s_list_view_hwnd, "MS Gothic", 13
+	hspish_font_set_object_font s_list_view_hwnd, "MS Gothic", 13
 	return
 
 #deffunc app_list_view_insert_column int column_index, str text, int column_width, \
@@ -693,7 +693,7 @@
 	s_script_edit_id = stat
 	s_script_edit_hwnd = objinfo_hwnd(stat)
 
-	lib_hspish_font_set_object_font s_script_edit_hwnd, "MS Gothic", 13
+	hspish_font_set_object_font s_script_edit_hwnd, "MS Gothic", 13
 	return
 
 #deffunc app_script_edit_update int source_file_id, int line_index, \
