@@ -31,6 +31,6 @@
 		font_family = "Meiryo"
 	}
 
-	lib_hspish_font_set_object_font button_hwnd, font_family, 13, , no_refresh
+	hspish_font_set_object_font button_hwnd, font_family, 13, , no_refresh
 	mes "Button font changed"
 	return
