@@ -1,0 +1,130 @@
+#ifndef included_mod_config_hsp
+#define global included_mod_config_hsp
+
+#module m_config
+
+#define char_lf 0x0a
+
+#deffunc config_init
+
+	s_file_count = 0
+	sdim s_file_names
+	return
+
+#deffunc config_open str file_name, \
+	local i
+
+	s_file_names(s_file_count) = file_name
+	s_file_count++
+	return s_file_count - 1
+
+#deffunc config_load int config_id, var text, var text_len, \
+	local size
+
+	exist s_file_names(config_id)
+	text_len = strsize
+	if strsize < 0 {
+		bsave s_file_names(config_id), s_file_count, 0, 0
+		text_len = 0
+	}
+
+	sdim text, size + 1
+	bload s_file_names(config_id), text, text_len
+	return
+
+#deffunc config_parse \
+	int config_id, str key, \
+	var line_index, var line_start, var line_end, var value_start, var value_end, \
+	local text, local text_len, local i, local c, local ok, local key_start, local key_end
+
+	config_load config_id, text, text_len
+
+	i = 0
+	repeat
+		if i >= text_len {
+			break
+		}
+
+		// i is start of line here.
+
+		gosub *l_parse_spaces
+
+		key_start = i
+		gosub *l_parse_key
+		ok = stat
+		key_end = i
+		gosub *l_parse_spaces
+
+		if ok {
+			ok = strmid(text, key_start, key_end) == key
+		}
+
+		if ok {
+			gosub *l_parse_sep
+
+			if stat {
+				gosub *l_parse_spaces
+
+				value_start = i
+				gosub *l_parse_value
+				value_end = i
+				break
+			}
+			break
+		}
+
+		gosub *l_parse_over_line
+	loop
+	return
+
+*l_parse_spaces
+
+	repeat
+		if i >= text_len {
+			break
+		}
+
+		c = peek(text, i)
+		if c == ' ' || c == '\t' {
+			i++
+			continue
+		}
+	loop
+
+	gosub *l_parse_comment
+	return
+
+*l_parse_comment
+
+	c = peek(text, i)
+	if c == ';' || c == '#' {
+		i++
+
+		repeat
+			if i >= text_len || peek(text, i) == '\n' {
+				break
+			}
+			i++
+		loop
+	}
+	return
+
+*l_parse_nonspace
+
+	repeat
+		if i >= text_len {
+			return
+		}
+
+		c = peek(text, i)
+		if c == ' ' || c == '\t' || c == '\r' || c == char_lf || c == ';' || c == '#' || c == ',' {
+			break
+		}
+
+		i++
+	loop
+	return
+
+#global
+
+#endif
