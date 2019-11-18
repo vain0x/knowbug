@@ -1,0 +1,73 @@
+// Example.
+
+#include "mod_config.hsp"
+
+	sdim text
+	config_open "MEM:first.cnf"
+	config_id = stat
+
+	sdim keys
+	dim key_lens
+	sdim values
+	dim value_lens
+
+	// Single key case.
+	sdim text
+	text = {"
+		key = value
+	"}
+	memfile text
+	config_load config_id
+	config_to_assoc config_id, keys, key_lens, values, value_lens
+	assert stat == 1
+	assert keys(0) == "key"
+	assert key_lens(0) == 3
+	assert values(0) == "value"
+	assert value_lens(0) == 5
+
+	// Multiple key case.
+	sdim text
+	text = {"
+		key1 = value1
+		key2 = value2
+	"}
+	memfile text
+	config_load config_id
+	config_to_assoc config_id, keys, key_lens, values, value_lens
+	assert stat == 2
+	assert keys(0) == "key1"
+	assert keys(1) == "key2"
+	assert values(0) == "value1"
+	assert values(1) == "value2"
+
+	// Comments.
+	sdim text
+	text = {"
+		key1 = value1; a
+		;hello = world
+		key2 = value2# b
+		#hoge = piyo
+		key3 = value3
+		[foo=bar]
+		key4 = value4
+	"}
+	memfile text
+	config_load config_id
+	config_to_assoc config_id, keys, key_lens, values, value_lens
+	assert stat == 4
+	assert values(0) == "value1"
+	assert values(1) == "value2"
+
+	// Spaces in values.
+	sdim text 
+	text = {"
+		key =   hello world  ; hoge
+	"}
+	memfile text
+	config_load config_id
+	config_to_assoc config_id, keys, key_lens, values, value_lens
+	assert stat == 1
+	assert values(0) == "hello world"
+
+	dialog "ok"
+	end

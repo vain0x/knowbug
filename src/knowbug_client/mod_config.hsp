@@ -1,130 +1,315 @@
+// Config parse module.
+
 #ifndef included_mod_config_hsp
 #define global included_mod_config_hsp
 
 #module m_config
 
+#define true 1
+#define false 0
+
+#define char_null 0
 #define char_lf 0x0a
+
+#define ctype is_space(%1) \
+	((%1) == ' ' || (%1) == '\t' || (%1) == '\r' || (%1) == char_lf || (%1) == char_null)
+
+#define ctype is_first_of_comment(%1) \
+	((%1) == ';' || (%1) == '#')
 
 #deffunc config_init
 
-	s_file_count = 0
-	sdim s_file_names
+	s_count = 0
+	sdim s_paths
+	sdim s_texts
+	dim s_text_lens // -1 before load
+	dim s_parse_indexes
+
+	dim s_char
 	return
 
-#deffunc config_open str file_name, \
-	local i
+#deffunc config_open str file_path
 
-	s_file_names(s_file_count) = file_name
-	s_file_count++
-	return s_file_count - 1
+	s_paths(s_count) = file_path
+	s_texts(s_count) = ""
+	s_text_lens(s_count) = -1
+	s_parse_indexes(s_count) = 0
+	s_count++
+	return s_count - 1
 
-#deffunc config_load int config_id, var text, var text_len, \
+#deffunc config_load int config_id, \
 	local size
 
-	exist s_file_names(config_id)
-	text_len = strsize
-	if strsize < 0 {
-		bsave s_file_names(config_id), s_file_count, 0, 0
-		text_len = 0
+	assert 0 <= config_id && config_id < s_count
+
+	exist s_paths(config_id)
+	size = strsize
+	if size < 0 {
+		s_texts(config_id) = ""
+		s_text_lens(config_id) = 0
+		s_parse_indexes(config_id) = 0
+		return
 	}
 
-	sdim text, size + 1
-	bload s_file_names(config_id), text, text_len
+	memexpand s_texts(config_id), size + 1 + size / 8
+	bload s_paths(config_id), s_texts(config_id), size
+	s_text_lens(config_id) = size
+	s_parse_indexes(config_id) = 0
 	return
 
-#deffunc config_parse \
-	int config_id, str key, \
-	var line_index, var line_start, var line_end, var value_start, var value_end, \
-	local text, local text_len, local i, local c, local ok, local key_start, local key_end
+#deffunc config_ensure_loaded int config_id
 
-	config_load config_id, text, text_len
+	assert 0 <= config_id && config_id < s_count
 
-	i = 0
+	if s_text_lens(config_id) < 0 {
+		config_load config_id
+	}
+	return
+
+#define text        s_texts(config_id)
+#define text_len    s_text_lens(config_id)
+#define i          	s_parse_indexes(config_id)
+
+#deffunc config_tokenize_line int config_id, \
+	var key_start_index, var key_end_index, \
+	var sep_index, \
+	var value_start_index, var value_end_index
+
+	assert text_len >= 0
+
+	logmes "config_tokenize_line " + config_id
+	logmes "i = " + i
+
+	if i >= text_len {
+		return false
+	}
+
+	gosub *l_tokenize_section
+	gosub *l_tokenize_spaces
+	key_start_index = i
+	gosub *l_tokenize_key
+	key_end_index = i
+
+	gosub *l_tokenize_spaces
+	sep_index = i
+	gosub *l_tokenize_sep
+
+	gosub *l_tokenize_spaces
+	value_start_index = i
+	gosub *l_tokenize_value
+	value_end_index = i
+
+	gosub *l_tokenize_until_eol
+	gosub *l_tokenize_eol
+
+	logmes "key_start_index = " + key_start_index
+	logmes "key_end_index = " + key_end_index
+	logmes "sep_index = " + sep_index
+	logmes "value_index = " + value_index
+	return true
+
+// Don't skip LF.
+*l_tokenize_until_eol
+
 	repeat
 		if i >= text_len {
 			break
 		}
 
-		// i is start of line here.
-
-		gosub *l_parse_spaces
-
-		key_start = i
-		gosub *l_parse_key
-		ok = stat
-		key_end = i
-		gosub *l_parse_spaces
-
-		if ok {
-			ok = strmid(text, key_start, key_end) == key
-		}
-
-		if ok {
-			gosub *l_parse_sep
-
-			if stat {
-				gosub *l_parse_spaces
-
-				value_start = i
-				gosub *l_parse_value
-				value_end = i
-				break
-			}
+		s_char = peek(text, i)
+		if s_char == char_lf || s_char == char_null {
 			break
 		}
-
-		gosub *l_parse_over_line
+		i++
 	loop
 	return
 
-*l_parse_spaces
+*l_tokenize_eol
+
+	if i >= text_len {
+		return
+	}
+
+	if peek(text, i) == '\r' {
+		i++
+	}
+	if peek(text, i) == char_lf {
+		i++
+	}
+	return
+
+*l_tokenize_section
+
+	if i >= text_len {
+		return
+	}
+
+	if peek(text, i) == '[' {
+		gosub *l_tokenize_until_eol
+	}
+	return
+
+// Don't skip LF.
+*l_tokenize_comment
+
+	if i >= text_len {
+		return
+	}
+
+	s_char = peek(text, i)
+	if is_first_of_comment(s_char) == false {
+		return
+	}
+	i++
+
+	gosub *l_tokenize_until_eol
+	return
+
+// Don't skip CR/LF.
+*l_tokenize_spaces
 
 	repeat
 		if i >= text_len {
 			break
 		}
 
-		c = peek(text, i)
-		if c == ' ' || c == '\t' {
-			i++
+		s_char = peek(text, i)
+		if (s_char == ' ' || s_char == '\t') == false {
+			break
+		}
+		i++
+	loop
+
+	gosub *l_tokenize_comment
+	return
+
+*l_tokenize_key
+
+	repeat
+		if i >= text_len {
+			break
+		}
+
+		s_char = peek(text, i)
+
+		// FIXME: handle escape sequences
+		// FIXME: handle quotes
+
+		if is_space(s_char) || is_first_of_comment(s_char) || s_char == '=' {
+			break
+		}
+
+		i++
+	loop
+	return
+
+*l_tokenize_sep
+
+	if i >= text_len {
+		return
+	}
+	if peek(text, i) != '=' {
+		return
+	}
+	i++
+	return
+
+*l_tokenize_value
+
+	repeat
+		if i >= text_len {
+			break
+		}
+
+		s_char = peek(text, i)
+
+		// FIXME: handle escape sequences
+		// FIXME: handle quotes
+
+		if s_char == char_lf || is_first_of_comment(s_char) {
+			break
+		}
+
+		i++
+	loop
+	return
+
+#deffunc config_parse_key int config_id, int key_start_index, int key_end_index, var key, var key_len
+
+	// FIXME: handle escape sequences
+	// FIXME: handle quotes
+
+	logmes "config_parse_key " + config_id
+	logmes "key_start_index = " + key_start_index
+	logmes "key_end_index = " + key_end_index
+	key_len = key_end_index - key_start_index
+	key = strmid(text, key_start_index, key_len)
+	return
+
+#deffunc config_parse_value int config_id, int value_start_index, int value_end_index, var value, var value_len, \
+	local r
+
+	// FIXME: handle escape sequences
+	// FIXME: handle quotes
+
+	r = value_end_index
+	repeat
+		if r <= value_start_index {
+			break
+		}
+
+		s_char = peek(text, r - 1)
+		if is_space(s_char) == false {
+			break
+		}
+
+		r--
+	loop
+
+	value_len = r - value_start_index
+	value = strmid(text, value_start_index, value_len)
+	return
+
+#undef text
+#undef text_len
+#undef i
+
+#deffunc config_to_assoc int config_id, \
+	array keys, array key_lens, \
+	array values, array value_lens, \
+	local key_start_index, local key_end_index, \
+	local sep_index, \
+	local value_start_index, local value_end_index, \
+	local count
+
+	config_ensure_loaded config_id
+	s_parse_indexes(config_id) = 0
+
+	count = 0
+	repeat
+		config_tokenize_line config_id, key_start_index, key_end_index, sep_index, value_start_index, value_end_index
+		if stat == false {
+			break
+		}
+
+		if key_start_index == key_end_index {
 			continue
 		}
+
+		keys(count) = ""
+		key_lens(count) = 0
+		values(count) = ""
+		value_lens(count) = 0
+
+		config_parse_key config_id, key_start_index, key_end_index, keys(count), key_lens(count)
+		config_parse_value config_id, value_start_index, value_end_index, values(count), value_lens(count)
+
+		count++
 	loop
-
-	gosub *l_parse_comment
-	return
-
-*l_parse_comment
-
-	c = peek(text, i)
-	if c == ';' || c == '#' {
-		i++
-
-		repeat
-			if i >= text_len || peek(text, i) == '\n' {
-				break
-			}
-			i++
-		loop
-	}
-	return
-
-*l_parse_nonspace
-
-	repeat
-		if i >= text_len {
-			return
-		}
-
-		c = peek(text, i)
-		if c == ' ' || c == '\t' || c == '\r' || c == char_lf || c == ';' || c == '#' || c == ',' {
-			break
-		}
-
-		i++
-	loop
-	return
+	return count
 
 #global
+
+	config_init
 
 #endif
