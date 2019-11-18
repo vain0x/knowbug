@@ -839,11 +839,11 @@
 	return
 
 #deffunc app_source_path_button_click \
-	local script_path, local script_dir
+	local source_path, local source_dir
 
 	// FIXME: ポップアップメニューを出す。スクリプトエディタや標準のエディタで開く選択肢もほしい。
 
-	app_source_get_path s_current_source_file_id, script_path
+	app_source_get_path s_current_source_file_id, source_path
 	if stat == false {
 		return false
 	}
@@ -853,9 +853,9 @@
 		return false
 	}
 
-	script_dir = getpath(script_path, getpath_dir)
-	chdir script_dir
-	exec "explorer /select," + script_path + "\""
+	source_dir = getpath(source_path, getpath_dir)
+	chdir source_dir
+	exec "explorer /select," + source_path + "\""
 	return true
 
 *l_source_path_button_click
