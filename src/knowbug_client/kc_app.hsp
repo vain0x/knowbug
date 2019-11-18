@@ -668,7 +668,7 @@
 	}
 	return strlen(s_source_paths(source_file_id)) != 0
 
-#deffunc app_source_get_path int source_file_id, var full_path
+#deffunc app_source_path_get int source_file_id, var full_path
 
 	if app_source_path_exists(source_file_id) == false {
 		full_path = ""
@@ -678,7 +678,7 @@
 	full_path = s_source_paths(source_file_id)
 	return true
 
-#deffunc app_source_set_path int source_file_id, var full_path
+#deffunc app_source_path_set int source_file_id, var full_path
 
 	if source_file_id < 0 {
 		debug_warn "ソースファイルIDは非負でなければいけません。"
@@ -693,7 +693,7 @@
 		return
 	}
 
-	logmes "app_source_set_path " + source_file_id + ": " + full_path
+	logmes "app_source_path_set " + source_file_id + ": " + full_path
 
 	s_source_paths(source_file_id) = full_path
 	return
@@ -787,7 +787,7 @@
 
 	// テキストを更新する。
 	if text_updated {
-		app_source_get_path source_file_id, source_path
+		app_source_path_get source_file_id, source_path
 		source_path_exists = stat
 
 		sdim os_source_path, strlen(source_path) * 2 + 1
@@ -843,7 +843,7 @@
 
 	// FIXME: ポップアップメニューを出す。スクリプトエディタや標準のエディタで開く選択肢もほしい。
 
-	app_source_get_path s_current_source_file_id, source_path
+	app_source_path_get s_current_source_file_id, source_path
 	if stat == false {
 		return false
 	}
@@ -1125,7 +1125,7 @@
 #deffunc app_did_receive_source_path int source_file_id, var text
 
 	logmes strf("app_did_receive_source_path(%d)", source_file_id)
-	app_source_set_path source_file_id, text
+	app_source_path_set source_file_id, text
 
 	// ソースコードが読み込まれたら表示に反映する。
 	if s_current_source_file_id == source_file_id {
