@@ -202,7 +202,7 @@
 	// 表示中のソースファイルの表示時点でソースコードが存在したか
 	s_current_source_code_exists = false
 	// 表示している行番号 (最後に自動スクロールした時点での行番号。現在の行番号ではない。)
-	s_script_line_index = 0
+	s_current_line_index = 0
 
 	sdim s_lf
 	poke s_lf, 0, char_lf
@@ -815,7 +815,7 @@
 	}
 
 	// 行を更新する。
-	if text_updated || s_script_line_index != line_index {
+	if text_updated || s_current_line_index != line_index {
 		// 指定行の範囲をバイトインデックスとして求める。
 		sendmsg s_source_code_edit_hwnd, EM_LINEINDEX, line_index, NULL
 		start_index = stat
@@ -836,7 +836,7 @@
 		current_line_index = stat
 		sendmsg s_source_code_edit_hwnd, EM_LINESCROLL, 0, limit(line_index - 3, 0) - current_line_index
 
-		s_script_line_index = line_index
+		s_current_line_index = line_index
 	}
 	return
 
@@ -1131,7 +1131,7 @@
 
 	// ソースコードが読み込まれたら表示に反映する。
 	if s_current_source_file_id == source_file_id {
-		app_source_code_edit_update source_file_id, s_script_line_index
+		app_source_code_edit_update source_file_id, s_current_line_index
 	}
 	return
 
@@ -1142,7 +1142,7 @@
 
 	// ソースコードが読み込まれたら表示に反映する。
 	if s_current_source_file_id == source_file_id {
-		app_source_code_edit_update source_file_id, s_script_line_index
+		app_source_code_edit_update source_file_id, s_current_line_index
 	}
 	return
 
