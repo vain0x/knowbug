@@ -189,9 +189,12 @@
 	dim s_source_exists
 
 	// スクリプト
+	sdim s_script_path
 	sdim s_script_text
 	// 表示中のソースファイルID (なければ -1)
 	s_script_source_file_id = -1
+	// 表示中のソースファイルの表示時点でソースパスが存在したか
+	s_script_path_exists = false
 	// 表示中のソースファイルの表示時点でソースコードが存在したか
 	s_script_source_exists = false
 	// 表示している行番号 (最後に自動スクロールした時点での行番号。現在の行番号ではない。)
@@ -264,15 +267,20 @@
 	s_list_view_name_column_width = (s_list_view_width - 20) / 2
 	s_list_view_value_column_width = (s_list_view_width - 20) / 2
 
-	s_script_edit_left = s_list_view_width
-	s_script_edit_top = s_main_top
-	s_script_edit_width = s_main_width - s_list_view_width
-	s_script_edit_height = s_main_height / 2
+	s_script_path_edit_left = s_list_view_width
+	s_script_path_edit_top = s_main_top
+	s_script_path_edit_width = s_main_width - s_list_view_width
+	s_script_path_edit_height = 24
+
+	s_script_edit_left = s_script_path_edit_left
+	s_script_edit_top = s_script_path_edit_top+ s_script_path_edit_height
+	s_script_edit_width = s_script_path_edit_width
+	s_script_edit_height = s_main_height / 2 - s_script_path_edit_height
 
 	s_log_edit_left = s_list_view_width
 	s_log_edit_top = s_script_edit_top + s_script_edit_height
 	s_log_edit_width = s_main_width - s_list_view_width
-	s_log_edit_height = s_main_height - s_script_edit_height
+	s_log_edit_height = s_main_height - s_script_path_edit_height - s_script_edit_height
 
 	x = s_margin
 	s_step_continue_button_left = x
@@ -422,6 +430,7 @@
 
 	MoveWindow s_list_view_hwnd, s_list_view_left, s_list_view_top, s_list_view_width, s_list_view_height, true
 	MoveWindow s_log_edit_hwnd, s_log_edit_left, s_log_edit_top, s_log_edit_width, s_log_edit_height, true
+	MoveWindow s_script_path_edit_hwnd, s_script_path_edit_left, s_script_path_edit_top, s_script_path_edit_width, s_script_path_edit_height, true
 	MoveWindow s_script_edit_hwnd, s_script_edit_left, s_script_edit_top, s_script_edit_width, s_script_edit_height, true
 
 	MoveWindow s_step_continue_button_hwnd, s_step_continue_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
@@ -643,12 +652,17 @@
 // ソースファイル
 // -----------------------------------------------
 
-#deffunc app_source_get_path int source_file_id, var full_path
+#defcfunc app_source_path_exists int source_file_id
 
 	if source_file_id < 0 || source_file_id >= length(s_source_paths) {
 		return false
 	}
-	if strlen(s_source_paths(source_file_id)) == 0 {
+	return strlen(s_source_paths(source_file_id)) != 0
+
+#deffunc app_source_get_path int source_file_id, var full_path
+
+	if app_source_path_exists(source_file_id) == false {
+		full_path = ""
 		return false
 	}
 
@@ -660,6 +674,10 @@
 	if source_file_id < 0 {
 		debug_warn "ソースファイルIDは非負でなければいけません。"
 		return
+	}
+	if app_source_path_exists(source_file_id) {
+		debug_warn "同じソースパスを複数回ロードしました。"
+		return false
 	}
 	if strlen(full_path) == 0 {
 		debug_warn "ソースファイルの絶対パスが空です。"
@@ -714,6 +732,13 @@
 #deffunc app_script_edit_create \
 	local style, local style_ex
 
+	pos s_script_path_edit_left, s_script_path_edit_top
+	objsize s_script_path_edit_width, s_script_path_edit_height
+	input s_script_path
+	s_script_path_edit_id = stat
+	s_script_path_edit_hwnd = objinfo_hwnd(s_script_path_edit_id)
+	// FIXME: 読み取り専用にする
+
 	style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD
 	style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
 	style_ex = 0
@@ -727,25 +752,29 @@
 	return
 
 #deffunc app_script_edit_update int source_file_id, int line_index, \
-	local text, local os_text, local full_path, local text_updated, \
+	local text, local os_text, local source_path, local source_path_exists, local text_updated, \
 	local start_index, local end_index, local current_line_index
 
 	// FIXME: 行番号とパスも表示する。
 
-	text_updated = false
+	text_updated = s_script_source_file_id != source_file_id
+	text_updated |= s_script_path_exists != app_source_path_exists(source_file_id)
+	text_updated |= s_script_source_exists != app_source_exists(source_file_id)
 
 	// テキストを更新する。
-	if s_script_source_file_id != source_file_id || s_script_source_exists != app_source_exists(source_file_id) {
+	if text_updated {
+		app_source_get_path source_file_id, source_path
+		source_path_exists = stat
+
+		gsel s_main_window_id
+		objprm s_script_path_edit_id, source_path
+
+		// ソースコードがあれば取得し、なければその旨のメッセージを表示する。
 		app_source_dup_text source_file_id, text
 		if stat == false {
-			text = "(スクリプトファイルが見つかりません)\n#" + line_index
-
-			app_source_get_path source_file_id, full_path
-			if stat {
-				text += " " + full_path
-			}
-			text += "\n"
+			text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
 		}
+
 		sdim os_text, strlen(text) * 2 + 1
 		cnvstow os_text, text
 		SetWindowTextW s_script_edit_hwnd, varptr(os_text)
