@@ -778,6 +778,9 @@
 		cnvstow os_source_path, source_path
 		SetWindowTextW s_script_path_edit_hwnd, varptr(os_source_path)
 
+		// 右端までスクロールするために、カーソルを末尾に移動させる。
+		sendmsg s_script_path_edit_hwnd, EM_SETSEL, 0x7fffffff, 0x7fffffff
+
 		// ソースコードがあれば取得し、なければその旨のメッセージを表示する。
 		app_source_dup_text source_file_id, text
 		if stat == false {
