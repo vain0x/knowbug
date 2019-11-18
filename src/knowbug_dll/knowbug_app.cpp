@@ -62,7 +62,7 @@ public:
 		, object_tree_(std::move(object_tree))
 		, view_(std::move(view))
 		, object_tree_observer_(create_object_tree_observer(*this))
-		, server_(KnowbugServer::create(*g_debug_opt, this->objects(), g_dll_instance))
+		, server_(KnowbugServer::create(*g_debug_opt, this->objects(), g_dll_instance, *step_controller_))
 	{
 	}
 
@@ -108,8 +108,6 @@ public:
 	}
 
 	void did_hsp_pause() {
-		server().debuggee_did_stop();
-
 		if (step_controller_->continue_step_running()) {
 			// HACK: すべてのウィンドウに無意味なメッセージを送信する。
 			//       HSP のウィンドウがこれを受信したとき、デバッグモードの変化が再検査されて、
@@ -117,6 +115,8 @@ public:
 			PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
 			return;
 		}
+
+		server().debuggee_did_stop();
 
 		update_view();
 	}
