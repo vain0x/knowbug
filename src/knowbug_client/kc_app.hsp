@@ -6,7 +6,7 @@
 #include "hsp3utf.as"
 #include "kernel32.as"
 #include "user32.as"
-#include "lib_hspish_font.hsp"
+#include "mod_hspish_font.hsp"
 
 // -----------------------------------------------
 // HSP の定数
