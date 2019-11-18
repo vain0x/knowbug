@@ -193,8 +193,6 @@
 	dim s_source_exists
 
 	// スクリプト
-	sdim s_script_path
-	sdim s_script_text
 	// 表示中のソースファイルID (なければ -1)
 	s_current_source_file_id = -1
 	// 表示中のソースファイルの表示時点でソースパスが存在したか
