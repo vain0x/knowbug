@@ -53,6 +53,8 @@
 // lparam: 行番号 (0-indexed)
 #define KMTC_STOPPED                (WM_USER + 1004)
 // ソースファイルの絶対パスを渡す。
+// wparam: ソースファイルID
+// text: ソースパス (UTF-8)
 #define KMTC_SOURCE_PATH            (WM_USER + 1021)
 // ソースコードを渡す。
 // wparam: ソースファイルID
