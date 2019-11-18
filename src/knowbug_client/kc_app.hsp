@@ -200,7 +200,7 @@
 	// 表示中のソースファイルの表示時点でソースパスが存在したか
 	s_current_source_path_exists = false
 	// 表示中のソースファイルの表示時点でソースコードが存在したか
-	s_script_source_exists = false
+	s_current_source_code_exists = false
 	// 表示している行番号 (最後に自動スクロールした時点での行番号。現在の行番号ではない。)
 	s_script_line_index = 0
 
@@ -785,7 +785,7 @@
 
 	text_updated = s_current_source_file_id != source_file_id
 	text_updated |= s_current_source_path_exists != app_source_path_exists(source_file_id)
-	text_updated |= s_script_source_exists != app_source_exists(source_file_id)
+	text_updated |= s_current_source_code_exists != app_source_exists(source_file_id)
 
 	// テキストを更新する。
 	if text_updated {
@@ -810,7 +810,7 @@
 		SetWindowTextW s_source_code_edit_hwnd, varptr(os_text)
 
 		s_current_source_file_id = source_file_id
-		s_script_source_exists = app_source_exists(source_file_id)
+		s_current_source_code_exists = app_source_exists(source_file_id)
 		text_updated = true
 	}
 
