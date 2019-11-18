@@ -144,6 +144,11 @@
 	sendmsg s_server_hwnd, KMTS_STEP_IN
 	return
 
+#deffunc infra_send_location_update
+
+	sendmsg s_server_hwnd, KMTS_LOCATION_UPDATE
+	return
+
 #deffunc infra_send_source int source_file_id
 
 	sendmsg s_server_hwnd, KMTS_SOURCE, source_file_id
@@ -174,6 +179,7 @@
 	oncmd gosub *l_on_shutdown, KMTC_SHUTDOWN
 	oncmd gosub *l_on_logmes, KMTC_LOGMES
 	oncmd gosub *l_on_stopped, KMTC_STOPPED
+	oncmd gosub *l_on_location, KMTC_LOCATION
 	oncmd gosub *l_on_source_path, KMTC_SOURCE_PATH
 	oncmd gosub *l_on_source_code, KMTC_SOURCE_CODE
 	oncmd gosub *l_on_list_update_ok, KMTC_LIST_UPDATE_OK
@@ -198,6 +204,11 @@
 *l_on_stopped
 
 	app_did_receive_stopped wparam, lparam
+	return
+
+*l_on_location
+
+	app_did_receive_location wparam, lparam
 	return
 
 *l_on_source_path

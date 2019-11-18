@@ -1004,7 +1004,7 @@
 
 	logmes "app_refresh"
 
-	// FIXME: 実行位置も更新する
+	infra_send_location_update
 	infra_send_list_update
 	return
 
@@ -1111,13 +1111,15 @@
 	logmes strf("app_did_receive_stopped(%d, %d)", source_file_id, line_index)
 	s_debuggee_is_running = false
 
-	if app_source_code_exists(source_file_id) == false {
-		infra_send_source source_file_id
-	}
-
-	app_source_code_edit_update source_file_id, line_index
-
+	app_location_did_change source_file_id, line_index
 	infra_send_list_update
+	return
+
+#deffunc app_did_receive_location int source_file_id, int line_index
+
+	logmes strf("app_did_receive_location(%d, %d)", source_file_id, line_index)
+
+	app_location_did_change source_file_id, line_index
 	return
 
 #deffunc app_did_receive_source_path int source_file_id, var text
@@ -1163,6 +1165,15 @@
 
 	gsel s_main_window_id
 	title s_main_window_title + " [接続なし]"
+	return
+
+#deffunc app_location_did_change int source_file_id, int line_index
+
+	if app_source_code_exists(source_file_id) == false {
+		infra_send_source source_file_id
+	}
+
+	app_source_code_edit_update source_file_id, line_index
 	return
 
 #global

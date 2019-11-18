@@ -654,12 +654,7 @@ public:
 	}
 
 	void debuggee_did_stop() override {
-		objects().script_do_update_location();
-
-		auto file_id = objects().script_to_current_file().value_or(0);
-		auto line_index = objects().script_to_current_line();
-
-		send(KMTC_STOPPED, (int)file_id, (int)line_index);
+		send_location(KMTC_STOPPED);
 	}
 
 	void client_did_hello(HWND client_hwnd) {
@@ -696,6 +691,10 @@ public:
 	void client_did_step_in() {
 		hsx::debug_do_set_mode(HSPDEBUG_STEPIN, debug_);
 		touch_all_windows();
+	}
+
+	void client_did_location_update() {
+		send_location(KMTC_LOCATION);
 	}
 
 	void client_did_source(std::size_t source_file_id) {
@@ -790,6 +789,17 @@ private:
 		send(kind, WPARAM{}, LPARAM{}, Utf8StringView{});
 	}
 
+	void send_location(int kind) {
+		assert(kind == KMTC_STOPPED || kind == KMTC_LOCATION);
+
+		objects().script_do_update_location();
+
+		auto file_id = objects().script_to_current_file().value_or(0);
+		auto line_index = objects().script_to_current_line();
+
+		send(kind, (int)file_id, (int)line_index);
+	}
+
 	void touch_all_windows() {
 		auto hwnd = (HWND)debug_->hspctx->wnd_parent;
 		if (!hwnd) {
@@ -845,6 +855,10 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 
 				case KMTS_STEP_IN:
 					server->client_did_step_in();
+					break;
+
+				case KMTS_LOCATION_UPDATE:
+					server->client_did_location_update();
 					break;
 
 				case KMTS_SOURCE:
