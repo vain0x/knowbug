@@ -174,7 +174,8 @@
 	oncmd gosub *l_on_shutdown, KMTC_SHUTDOWN
 	oncmd gosub *l_on_logmes, KMTC_LOGMES
 	oncmd gosub *l_on_stopped, KMTC_STOPPED
-	oncmd gosub *l_on_source_ok, KMTC_SOURCE_OK
+	oncmd gosub *l_on_source_path, KMTC_SOURCE_PATH
+	oncmd gosub *l_on_source_code, KMTC_SOURCE_CODE
 	oncmd gosub *l_on_list_update_ok, KMTC_LIST_UPDATE_OK
 	oncmd gosub *l_on_list_details_ok, KMTC_LIST_DETAILS_OK
 	return
@@ -199,9 +200,14 @@
 	app_did_receive_stopped wparam, lparam
 	return
 
-*l_on_source_ok
+*l_on_source_path
 
-	app_did_receive_source_ok wparam, s_server_buffer_data
+	app_did_receive_source_path wparam, s_server_buffer_data
+	return
+
+*l_on_source_code
+
+	app_did_receive_source_code wparam, s_server_buffer_data
 	return
 
 *l_on_list_update_ok

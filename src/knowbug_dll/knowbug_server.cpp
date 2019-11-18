@@ -699,8 +699,13 @@ public:
 	}
 
 	void client_did_source(std::size_t source_file_id) {
-		auto content = objects().source_file_to_content(source_file_id).value_or(Utf8StringView{});
-		send(KMTC_SOURCE_OK, (int)source_file_id, int{}, content);
+		if (auto full_path_opt = objects().source_file_to_full_path(source_file_id)) {
+			send(KMTC_SOURCE_PATH, (int)source_file_id, int{}, *full_path_opt);
+		}
+
+		if (auto content_opt = objects().source_file_to_content(source_file_id)) {
+			send(KMTC_SOURCE_CODE, (int)source_file_id, int{}, *content_opt);
+		}
 	}
 
 	void client_did_list_update() {
