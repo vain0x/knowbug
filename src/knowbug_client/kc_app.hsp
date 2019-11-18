@@ -13,8 +13,12 @@
 // -----------------------------------------------
 
 #define global dialog_warn      1
+#define global dialog_yesno     2
+#define global dialog_yes       6
 
 #define global exec_app         16
+
+#define global getpath_dir      32
 
 #define global gsel_hide        (-1)
 #define global gsel_show        1
@@ -267,10 +271,16 @@
 	s_list_view_name_column_width = (s_list_view_width - 20) / 2
 	s_list_view_value_column_width = (s_list_view_width - 20) / 2
 
+	s_script_path_button_width = 24
+	s_script_path_edit_height = 24
+
 	s_script_path_edit_left = s_list_view_width
 	s_script_path_edit_top = s_main_top
-	s_script_path_edit_width = s_main_width - s_list_view_width
-	s_script_path_edit_height = 24
+	s_script_path_edit_width = s_main_width - s_list_view_width - s_script_path_button_width
+
+	s_script_path_button_left = s_script_path_edit_left + s_script_path_edit_width
+	s_script_path_button_height = s_script_path_edit_height
+	s_script_path_button_top = s_script_path_edit_top
 
 	s_script_edit_left = s_script_path_edit_left
 	s_script_edit_top = s_script_path_edit_top+ s_script_path_edit_height
@@ -430,6 +440,7 @@
 
 	MoveWindow s_list_view_hwnd, s_list_view_left, s_list_view_top, s_list_view_width, s_list_view_height, true
 	MoveWindow s_log_edit_hwnd, s_log_edit_left, s_log_edit_top, s_log_edit_width, s_log_edit_height, true
+	MoveWindow s_script_path_button_hwnd, s_script_path_button_left, s_script_path_button_top, s_script_path_button_width, s_script_path_button_height, true
 	MoveWindow s_script_path_edit_hwnd, s_script_path_edit_left, s_script_path_edit_top, s_script_path_edit_width, s_script_path_edit_height, true
 	MoveWindow s_script_edit_hwnd, s_script_edit_left, s_script_edit_top, s_script_edit_width, s_script_edit_height, true
 
@@ -744,6 +755,13 @@
 
 	hspish_font_set_object_font s_script_path_edit_hwnd, "MS Gothic", 13
 
+	// スクリプトパスボックス
+	pos s_script_path_button_left, s_script_path_button_top
+	objsize s_script_path_button_width,s_script_path_button_height
+	button gosub "開", *l_script_path_button_click
+	s_script_path_button_id = stat
+	s_script_path_button_hwnd = objinfo_hwnd(s_script_path_button_id)
+
 	// スクリプトエディット
 	style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD
 	style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
@@ -822,6 +840,31 @@
 	}
 	return
 
+#deffunc app_script_path_button_click \
+	local script_path, local script_dir
+
+	// FIXME: ポップアップメニューを出す。スクリプトエディタや標準のエディタで開く選択肢もほしい。
+
+	app_source_get_path s_script_source_file_id, script_path
+	if stat == false {
+		return false
+	}
+
+	dialog "ソースファイルをエクスプローラーで開きますか？", dialog_yesno
+	if stat != dialog_yes {
+		return false
+	}
+
+	script_dir = getpath(script_path, getpath_dir)
+	chdir script_dir
+	exec "explorer /select," + script_path + "\""
+	return true
+
+*l_script_path_button_click
+
+	app_script_path_button_click
+	return
+
 // -----------------------------------------------
 // ログエディット
 // -----------------------------------------------
@@ -834,7 +877,7 @@
 	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
 	return
 
-#deffunc app_log_edit_append var text, \
+#deffunc app_log_edit_append str text, \
 	local text_len
 
 	text_len = strlen(text)
