@@ -149,6 +149,11 @@
 	sendmsg s_server_hwnd, KMTS_STEP_OVER
 	return
 
+#deffunc infra_send_step_out
+
+	sendmsg s_server_hwnd, KMTS_STEP_OUT
+	return
+
 #deffunc infra_send_location_update
 
 	sendmsg s_server_hwnd, KMTS_LOCATION_UPDATE

@@ -701,6 +701,11 @@ public:
 		touch_all_windows();
 	}
 
+	void client_did_step_out() {
+		step_controller_.update(StepControl::new_step_out());
+		touch_all_windows();
+	}
+
 	void client_did_location_update() {
 		send_location(KMTC_LOCATION);
 	}
@@ -867,6 +872,10 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 
 				case KMTS_STEP_OVER:
 					server->client_did_step_over();
+					break;
+
+				case KMTS_STEP_OUT:
+					server->client_did_step_out();
 					break;
 
 				case KMTS_LOCATION_UPDATE:
