@@ -929,9 +929,9 @@
 	return
 
 #deffunc app_log_edit_scroll_to_line int line_index, \
-	local current_line
+	local current_line_index
 
-	sendmsg s_log_edit_hwnd, EM_LINESCROLL, 0, line_index - current_line
+	sendmsg s_log_edit_hwnd, EM_LINESCROLL, 0, line_index - current_line_index
 	return
 
 #deffunc app_log_edit_scroll_to_bottom
@@ -940,7 +940,7 @@
 	return
 
 #deffunc app_log_edit_update \
-	local at_bottom, local current_line, local start_index, local end_index
+	local at_bottom, local current_line_index, local start_index, local end_index
 
 	if s_log_is_dirty == false {
 		return
@@ -948,7 +948,7 @@
 	s_log_is_dirty = false
 
 	at_bottom = app_log_edit_is_scrolled_to_bottom()
-	current_line = app_log_edit_get_scrolled_line()
+	current_line_index = app_log_edit_get_scrolled_line()
 	app_log_edit_get_selection start_index, end_index
 
 	sendmsg s_log_edit_hwnd, EM_GETFIRSTVISIBLELINE
@@ -960,7 +960,7 @@
 	if at_bottom {
 		app_log_edit_scroll_to_bottom
 	} else {
-		app_log_edit_scroll_to_line current_line
+		app_log_edit_scroll_to_line current_line_index
 	}
 	app_log_edit_set_selection start_index, end_index
 	return
