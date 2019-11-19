@@ -215,17 +215,17 @@ public:
 
 private:
 	Kind kind_;
+	std::size_t object_id_;
 	std::size_t index_;
-	std::size_t old_index_;
 	std::size_t depth_;
 	Utf8String name_;
 	Utf8String value_;
 
 public:
-	HspObjectListDelta(Kind kind, std::size_t index, std::size_t old_index, std::size_t depth, Utf8String name, Utf8String value)
+	HspObjectListDelta(Kind kind, std::size_t object_id, std::size_t index, std::size_t depth, Utf8String name, Utf8String value)
 		: kind_(kind)
+		, object_id_(object_id)
 		, index_(index)
-		, old_index_(old_index)
 		, depth_(depth)
 		, name_(std::move(name))
 		, value_(std::move(value))
@@ -235,30 +235,30 @@ public:
 	static auto new_insert(std::size_t index, HspObjectListItem const& item) -> HspObjectListDelta {
 		return HspObjectListDelta{
 			Kind::Insert,
+			item.object_id(),
 			index,
-			std::size_t{},
 			item.depth(),
 			Utf8String{ item.name() },
 			Utf8String{ item.value() }
 		};
 	}
 
-	static auto new_remove(std::size_t index, std::size_t old_index) -> HspObjectListDelta {
+	static auto new_remove(std::size_t object_id, std::size_t index) -> HspObjectListDelta {
 		return HspObjectListDelta{
 			Kind::Remove,
+			object_id,
 			index,
-			old_index,
 			std::size_t{},
 			Utf8String{},
 			Utf8String{}
 		};
 	}
 
-	static auto new_update(std::size_t index, std::size_t old_index, HspObjectListItem const& item) -> HspObjectListDelta {
+	static auto new_update(std::size_t index, HspObjectListItem const& item) -> HspObjectListDelta {
 		return HspObjectListDelta{
 			Kind::Update,
+			item.object_id(),
 			index,
-			old_index,
 			item.depth(),
 			Utf8String{ item.name() },
 			Utf8String{ item.value() }
@@ -269,12 +269,12 @@ public:
 		return kind_;
 	}
 
-	auto index() const -> std::size_t {
-		return index_;
+	auto object_id() const -> std::size_t {
+		return object_id_;
 	}
 
-	auto old_index() const -> std::size_t {
-		return old_index_;
+	auto index() const -> std::size_t {
+		return index_;
 	}
 
 	auto write_to(StringWriter& w) {
@@ -324,7 +324,7 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 
 		while (si < source.size() || ti < target.size()) {
 			if (ti == target.size() || (si < source.size() && !source_done[si])) {
-				diff.push_back(HspObjectListDelta::new_remove(ti, si));
+				diff.push_back(HspObjectListDelta::new_remove(source[si].object_id(), ti));
 				si++;
 				continue;
 			}
@@ -342,7 +342,7 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 				auto&& s = source[si];
 				auto&& t = target[ti];
 				if (!s.equals(t)) {
-					diff.push_back(HspObjectListDelta::new_update(ti, si, target[ti]));
+					diff.push_back(HspObjectListDelta::new_update(ti, target[ti]));
 				}
 
 				si++;
@@ -455,7 +455,7 @@ private:
 	void apply_delta(HspObjectListDelta const& delta, HspObjectList& new_list) {
 		switch (delta.kind()) {
 		case HspObjectListDelta::Kind::Remove: {
-			auto object_id = object_list_[delta.old_index()].object_id();
+			auto object_id = delta.object_id();
 			auto iter = id_to_paths_.find(object_id);
 			if (iter == id_to_paths_.end()) {
 				assert(false);
