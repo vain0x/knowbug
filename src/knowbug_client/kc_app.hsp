@@ -184,6 +184,8 @@
 
 	dim s_list_view_hwnd
 	sdim s_list_view_note
+	// 詳細を表示している項目の番号
+	s_current_object_id = -1
 
 	// logmes の出力結果
 	s_log_text_len = 0
@@ -508,6 +510,7 @@
 
 #deffunc app_details_window_hide
 
+	s_current_object_id = -1
 	gsel s_details_window_id, gsel_hide
 	gsel s_main_window_id, gsel_activate
 	return
@@ -657,6 +660,14 @@
 	noteunsel
 	return
 
+#deffunc app_list_view_show_details int object_id
+
+	logmes "send_list_details: " + object_id
+
+	s_current_object_id = object_id
+	infra_send_list_details object_id
+	return
+
 #deffunc app_list_view_did_click \
 	local point, local lvhittestinfo, local row_index, local column_index, \
 	local line_text, local object_id_str
@@ -693,8 +704,7 @@
 		split   line_text, ",", object_id_str
 		noteunsel
 
-		logmes "send_list_details: " + object_id_str + " at " +  row_index
-		infra_send_list_details int(object_id_str)
+		app_list_view_show_details int(object_id_str)
 		return
 	}
 	return
