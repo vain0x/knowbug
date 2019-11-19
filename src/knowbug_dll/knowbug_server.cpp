@@ -341,6 +341,42 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 	}
 }
 
+class HspObjectListEntity {
+	HspObjectList object_list_;
+
+public:
+	auto size() const -> std::size_t {
+		return object_list_.size();
+	}
+
+	auto item_path(std::size_t index) const -> HspObjectPath const& {
+		assert(index < size());
+		return object_list_[index].path();
+	}
+
+	auto update(HspObjects& objects) -> std::vector<HspObjectListDelta> {
+		auto new_list = HspObjectList{};
+		new_list.inherit_expanded(object_list_);
+		HspObjectListWriter{ objects, new_list }.add_children(objects.root_path());
+
+		auto diff = std::vector<HspObjectListDelta>{};
+		diff_object_list(object_list_, new_list, diff);
+
+		object_list_ = std::move(new_list);
+		return diff;
+	}
+
+	void toggle_expand(std::size_t index) {
+		assert(index < size());
+
+		// 子要素のないノードは開閉しない。
+		auto&& item = object_list_[index];
+		if (item.child_count() != 0) {
+			object_list_.toggle_expanded(item.path());
+		}
+	}
+};
+
 // -----------------------------------------------
 // ヘルパー
 // -----------------------------------------------
@@ -603,7 +639,7 @@ class KnowbugServerImpl
 
 	std::vector<Msg> send_queue_;
 
-	HspObjectList object_list_;
+	HspObjectListEntity object_list_entity_;
 
 public:
 	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugStepController& step_controller)
@@ -623,7 +659,7 @@ public:
 		, client_process_opt_()
 		, client_thread_opt_()
 		, send_queue_()
-		, object_list_()
+		, object_list_entity_()
 	{
 	}
 
@@ -721,12 +757,7 @@ public:
 	}
 
 	void client_did_list_update() {
-		auto new_list = HspObjectList{};
-		new_list.inherit_expanded(object_list_);
-		HspObjectListWriter{ objects(), new_list }.add_children(objects().root_path());
-
-		auto diff = std::vector<HspObjectListDelta>{};
-		diff_object_list(object_list_, new_list, diff);
+		auto diff = object_list_entity_.update(objects());
 
 		auto string_writer = StringWriter{};
 		for (auto&& delta : diff) {
@@ -734,36 +765,30 @@ public:
 		}
 		auto text = string_writer.finish();
 
-		object_list_ = std::move(new_list);
-
 		send(KMTC_LIST_UPDATE_OK, int{}, int{}, text);
 	}
 
 	void client_did_list_toggle_expand(int index) {
-		if (index < 0 || (std::size_t)index >= object_list_.size()) {
+		if (index < 0 || (std::size_t)index >= object_list_entity_.size()) {
 			OutputDebugString(TEXT("out of range"));
 			return;
 		}
 
-		// 子要素のないノードは開閉しない。
-		auto&& item = object_list_[index];
-		if (item.child_count() != 0) {
-			object_list_.toggle_expanded(item.path());
-		}
+		object_list_entity_.toggle_expand(index);
 
 		client_did_list_update();
 	}
 
 	void client_did_list_details(int index) {
-		if (index < 0 || (std::size_t)index >= object_list_.size()) {
+		if (index < 0 || (std::size_t)index >= object_list_entity_.size()) {
 			OutputDebugString(TEXT("out of range"));
 			return;
 		}
 
-		auto&& item = object_list_[index];
+		auto&& item_path = object_list_entity_.item_path(index);
 
 		auto string_writer = StringWriter{};
-		HspObjectWriter{ objects(), string_writer }.write_table_form(item.path());
+		HspObjectWriter{ objects(), string_writer }.write_table_form(item_path);
 		auto text = string_writer.finish();
 
 		send(KMTC_LIST_DETAILS_OK, int{}, int{}, text);
