@@ -464,7 +464,20 @@ private:
 
 			auto path = iter->second;
 			id_to_paths_.erase(iter);
-			path_to_ids_.erase(path_to_ids_.find(path));
+
+			{
+				auto iter = path_to_ids_.find(path);
+				if (iter != path_to_ids_.end()) {
+					path_to_ids_.erase(iter);
+				}
+			}
+
+			{
+				auto iter = expanded_.find(path);
+				if (iter != expanded_.end()) {
+					expanded_.erase(iter);
+				}
+			}
 			return;
 		}
 		default:
