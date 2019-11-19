@@ -27,16 +27,28 @@ class KnowbugServerImpl;
 
 static auto constexpr MAX_CHILD_COUNT = std::size_t{ 300 };
 
+class HspObjectIdProvider {
+public:
+	virtual auto path_to_object_id(HspObjectPath const& path)->std::size_t = 0;
+
+	virtual auto object_id_to_path(std::size_t object_id)->std::optional<std::shared_ptr<HspObjectPath const>> = 0;
+};
+
+class HspObjectListExpansion {
+public:
+	virtual auto is_expanded(HspObjectPath const& path) const -> bool = 0;
+};
+
 class HspObjectListItem {
-	std::shared_ptr<HspObjectPath const> path_;
+	std::size_t object_id_;
 	std::size_t depth_;
 	Utf8String name_;
 	Utf8String value_;
 	std::size_t child_count_;
 
 public:
-	HspObjectListItem(std::shared_ptr<HspObjectPath const> path, std::size_t depth, Utf8String name, Utf8String value, std::size_t child_count)
-		: path_(std::move(path))
+	HspObjectListItem(std::size_t object_id, std::size_t depth, Utf8String name, Utf8String value, std::size_t child_count)
+		: object_id_(object_id)
 		, depth_(depth)
 		, name_(std::move(name))
 		, value_(std::move(value))
@@ -44,8 +56,8 @@ public:
 	{
 	}
 
-	auto path() const -> HspObjectPath const& {
-		return *path_;
+	auto object_id() const -> std::size_t {
+		return object_id_;
 	}
 
 	auto depth() const ->std::size_t {
@@ -65,7 +77,7 @@ public:
 	}
 
 	auto equals(HspObjectListItem const& other) const -> bool {
-		return path().equals(other.path())
+		return object_id() == other.object_id()
 			&& depth() == other.depth()
 			&& name() == other.name()
 			&& value() == other.value()
@@ -75,7 +87,6 @@ public:
 
 class HspObjectList {
 	std::vector<HspObjectListItem> items_;
-	std::unordered_map<std::shared_ptr<HspObjectPath const>, bool> expanded_;
 
 public:
 	auto items() const ->std::vector<HspObjectListItem> const& {
@@ -90,26 +101,17 @@ public:
 		return items().at(index);
 	}
 
-	auto is_expanded(HspObjectPath const& path) const -> bool {
-		auto iter = expanded_.find(path.self());
-		if (iter == expanded_.end()) {
-			// ルートの子要素は既定で開く。
-			return path.parent().kind() == HspObjectKind::Root;
+	auto find_by_object_id(std::size_t object_id) const -> std::optional<HspObjectListItem const*> {
+		for (auto&& item : items()) {
+			if (item.object_id() == object_id) {
+				return &item;
+			}
 		}
-
-		return iter->second;
+		return std::nullopt;
 	}
 
 	void add_item(HspObjectListItem item) {
 		items_.push_back(std::move(item));
-	}
-
-	void inherit_expanded(HspObjectList const& other) {
-		expanded_ = other.expanded_;
-	}
-
-	void toggle_expanded(HspObjectPath const& path) {
-		expanded_[path.self()] = !is_expanded(path);
 	}
 };
 
@@ -117,13 +119,17 @@ public:
 class HspObjectListWriter {
 	HspObjects& objects_;
 	HspObjectList& object_list_;
+	HspObjectIdProvider& id_provider_;
+	HspObjectListExpansion& expansion_;
 
 	std::size_t depth_;
 
 public:
-	HspObjectListWriter(HspObjects& objects, HspObjectList& object_list)
+	HspObjectListWriter(HspObjects& objects, HspObjectList& object_list, HspObjectIdProvider& id_provider, HspObjectListExpansion& expansion)
 		: objects_(objects)
 		, object_list_(object_list)
+		, id_provider_(id_provider)
+		, expansion_(expansion)
 		, depth_()
 	{
 	}
@@ -149,7 +155,7 @@ public:
 	}
 
 	void add_children(HspObjectPath const& path) {
-		if (!object_list_.is_expanded(path)) {
+		if (!expansion_.is_expanded(path)) {
 			return;
 		}
 
@@ -169,7 +175,8 @@ private:
 		value += as_utf8(std::to_string(item_count));
 		value += as_utf8(u8"):");
 
-		object_list_.add_item(HspObjectListItem{ path.self(), depth_, name, value, item_count });
+		auto object_id = id_provider_.path_to_object_id(path);
+		object_list_.add_item(HspObjectListItem{ object_id, depth_, name, value, item_count });
 		depth_++;
 		add_children(path);
 		depth_--;
@@ -182,7 +189,8 @@ private:
 		HspObjectWriter{ objects(), value_writer }.write_flow_form(value_path);
 		auto value = value_writer.finish();
 
-		object_list_.add_item(HspObjectListItem{ path.self(), depth_, name, value, 0 });
+		auto object_id = id_provider_.path_to_object_id(path);
+		object_list_.add_item(HspObjectListItem{ object_id, depth_, name, value, 0 });
 	}
 
 	auto objects() -> HspObjects& {
@@ -216,14 +224,16 @@ public:
 
 private:
 	Kind kind_;
+	std::size_t object_id_;
 	std::size_t index_;
 	std::size_t depth_;
 	Utf8String name_;
 	Utf8String value_;
 
 public:
-	HspObjectListDelta(Kind kind, std::size_t index, std::size_t depth, Utf8String name, Utf8String value)
+	HspObjectListDelta(Kind kind, std::size_t object_id, std::size_t index, std::size_t depth, Utf8String name, Utf8String value)
 		: kind_(kind)
+		, object_id_(object_id)
 		, index_(index)
 		, depth_(depth)
 		, name_(std::move(name))
@@ -234,6 +244,7 @@ public:
 	static auto new_insert(std::size_t index, HspObjectListItem const& item) -> HspObjectListDelta {
 		return HspObjectListDelta{
 			Kind::Insert,
+			item.object_id(),
 			index,
 			item.depth(),
 			Utf8String{ item.name() },
@@ -241,9 +252,10 @@ public:
 		};
 	}
 
-	static auto new_remove(std::size_t index) -> HspObjectListDelta {
+	static auto new_remove(std::size_t object_id, std::size_t index) -> HspObjectListDelta {
 		return HspObjectListDelta{
 			Kind::Remove,
+			object_id,
 			index,
 			std::size_t{},
 			Utf8String{},
@@ -254,6 +266,7 @@ public:
 	static auto new_update(std::size_t index, HspObjectListItem const& item) -> HspObjectListDelta {
 		return HspObjectListDelta{
 			Kind::Update,
+			item.object_id(),
 			index,
 			item.depth(),
 			Utf8String{ item.name() },
@@ -261,10 +274,24 @@ public:
 		};
 	}
 
+	auto kind() const -> Kind {
+		return kind_;
+	}
+
+	auto object_id() const -> std::size_t {
+		return object_id_;
+	}
+
+	auto index() const -> std::size_t {
+		return index_;
+	}
+
 	auto write_to(StringWriter& w) {
 		static auto constexpr SPACES = u8"                ";
 
 		w.cat(kind_to_string(kind_));
+		w.cat(u8",");
+		w.cat_size(object_id());
 		w.cat(u8",");
 		w.cat_size(index_);
 		w.cat(u8",");
@@ -294,7 +321,7 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 				continue;
 			}
 
-			if (source[si].path().equals(target[ti].path())) {
+			if (source[si].object_id() == target[ti].object_id()) {
 				source_done[si] = true;
 				target_done[ti] = true;
 				break;
@@ -308,7 +335,7 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 
 		while (si < source.size() || ti < target.size()) {
 			if (ti == target.size() || (si < source.size() && !source_done[si])) {
-				diff.push_back(HspObjectListDelta::new_remove(ti));
+				diff.push_back(HspObjectListDelta::new_remove(source[si].object_id(), ti));
 				si++;
 				continue;
 			}
@@ -322,7 +349,7 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 			assert(si < source.size() && ti < target.size());
 			assert(source_done[si] && target_done[ti]);
 
-			if (source[si].path().equals(target[ti].path())) {
+			if (source[si].object_id() == target[ti].object_id()) {
 				auto&& s = source[si];
 				auto&& t = target[ti];
 				if (!s.equals(t)) {
@@ -340,6 +367,132 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 		}
 	}
 }
+
+class HspObjectListEntity
+	: public HspObjectIdProvider
+	, public HspObjectListExpansion
+{
+	HspObjectList object_list_;
+
+	std::size_t last_id_;
+	std::unordered_map<std::size_t, std::shared_ptr<HspObjectPath const>> id_to_paths_;
+	std::unordered_map<std::shared_ptr<HspObjectPath const>, std::size_t> path_to_ids_;
+
+	std::unordered_map<std::shared_ptr<HspObjectPath const>, bool> expanded_;
+
+public:
+	HspObjectListEntity()
+		: object_list_()
+		, last_id_()
+		, id_to_paths_()
+		, path_to_ids_()
+		, expanded_()
+	{
+	}
+
+	auto size() const -> std::size_t {
+		return object_list_.size();
+	}
+
+	auto path_to_object_id(HspObjectPath const& path) -> std::size_t override {
+		auto iter = path_to_ids_.find(path.self());
+		if (iter == path_to_ids_.end()) {
+			auto id = ++last_id_;
+			path_to_ids_[path.self()] = id;
+			id_to_paths_[id] = path.self();
+			return id;
+		}
+
+		return iter->second;
+	}
+
+	auto object_id_to_path(std::size_t object_id) -> std::optional<std::shared_ptr<HspObjectPath const>> override {
+		auto iter = id_to_paths_.find(object_id);
+		if (iter == id_to_paths_.end()) {
+			return std::nullopt;
+		}
+
+		return iter->second;
+	}
+
+	auto is_expanded(HspObjectPath const& path) const -> bool {
+		auto iter = expanded_.find(path.self());
+		if (iter == expanded_.end()) {
+			// ルートの子要素は既定で開く。
+			return path.parent().kind() == HspObjectKind::Root;
+		}
+
+		return iter->second;
+	}
+
+	auto update(HspObjects& objects) -> std::vector<HspObjectListDelta> {
+		auto new_list = HspObjectList{};
+		HspObjectListWriter{ objects, new_list, *this, *this }.add_children(objects.root_path());
+
+		auto diff = std::vector<HspObjectListDelta>{};
+		diff_object_list(object_list_, new_list, diff);
+
+		for (auto&& delta : diff) {
+			apply_delta(delta, new_list);
+		}
+
+		object_list_ = std::move(new_list);
+		return diff;
+	}
+
+	void toggle_expand(std::size_t object_id) {
+		auto path_opt = object_id_to_path(object_id);
+		if (!path_opt) {
+			return;
+		}
+
+		auto item_opt = object_list_.find_by_object_id(object_id);
+		if(!item_opt) {
+			return;
+		}
+
+		// 子要素のないノードは開閉しない。
+		if ((**item_opt).child_count() == 0) {
+			return;
+		}
+
+		expanded_[*path_opt] = !is_expanded(**path_opt);
+	}
+
+private:
+	void apply_delta(HspObjectListDelta const& delta, HspObjectList& new_list) {
+		switch (delta.kind()) {
+		case HspObjectListDelta::Kind::Remove: {
+			auto object_id = delta.object_id();
+			auto iter = id_to_paths_.find(object_id);
+			if (iter == id_to_paths_.end()) {
+				assert(false);
+				return;
+			}
+
+			auto path = iter->second;
+			id_to_paths_.erase(iter);
+
+			{
+				auto iter = path_to_ids_.find(path);
+				if (iter != path_to_ids_.end()) {
+					path_to_ids_.erase(iter);
+				}
+			}
+
+			{
+				auto iter = expanded_.find(path);
+				if (iter != expanded_.end()) {
+					expanded_.erase(iter);
+				}
+			}
+			return;
+		}
+		default:
+			return;
+		}
+	}
+};
 
 // -----------------------------------------------
 // ヘルパー
@@ -603,7 +756,7 @@ class KnowbugServerImpl
 
 	std::vector<Msg> send_queue_;
 
-	HspObjectList object_list_;
+	HspObjectListEntity object_list_entity_;
 
 public:
 	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugStepController& step_controller)
@@ -623,7 +776,7 @@ public:
 		, client_process_opt_()
 		, client_thread_opt_()
 		, send_queue_()
-		, object_list_()
+		, object_list_entity_()
 	{
 	}
 
@@ -721,12 +874,7 @@ public:
 	}
 
 	void client_did_list_update() {
-		auto new_list = HspObjectList{};
-		new_list.inherit_expanded(object_list_);
-		HspObjectListWriter{ objects(), new_list }.add_children(objects().root_path());
-
-		auto diff = std::vector<HspObjectListDelta>{};
-		diff_object_list(object_list_, new_list, diff);
+		auto diff = object_list_entity_.update(objects());
 
 		auto string_writer = StringWriter{};
 		for (auto&& delta : diff) {
@@ -734,39 +882,38 @@ public:
 		}
 		auto text = string_writer.finish();
 
-		object_list_ = std::move(new_list);
-
 		send(KMTC_LIST_UPDATE_OK, int{}, int{}, text);
 	}
 
-	void client_did_list_toggle_expand(int index) {
-		if (index < 0 || (std::size_t)index >= object_list_.size()) {
+	void client_did_list_toggle_expand(int object_id) {
+		if (object_id < 0) {
 			OutputDebugString(TEXT("out of range"));
 			return;
 		}
 
-		// 子要素のないノードは開閉しない。
-		auto&& item = object_list_[index];
-		if (item.child_count() != 0) {
-			object_list_.toggle_expanded(item.path());
-		}
+		object_list_entity_.toggle_expand((std::size_t)object_id);
 
 		client_did_list_update();
 	}
 
-	void client_did_list_details(int index) {
-		if (index < 0 || (std::size_t)index >= object_list_.size()) {
+	void client_did_list_details(int object_id) {
+		if (object_id < 0) {
 			OutputDebugString(TEXT("out of range"));
 			return;
 		}
 
-		auto&& item = object_list_[index];
+		auto&& path_opt = object_list_entity_.object_id_to_path((std::size_t)object_id);
+		if (!path_opt) {
+			// FIXME: 情報がない旨を伝える。
+			send(KMTC_LIST_DETAILS_OK, int{}, int{}, as_utf8(u8""));
+			return;
+		}
 
 		auto string_writer = StringWriter{};
-		HspObjectWriter{ objects(), string_writer }.write_table_form(item.path());
+		HspObjectWriter{ objects(), string_writer }.write_table_form(**path_opt);
 		auto text = string_writer.finish();
 
-		send(KMTC_LIST_DETAILS_OK, int{}, int{}, text);
+		send(KMTC_LIST_DETAILS_OK, object_id, int{}, text);
 	}
 
 private:

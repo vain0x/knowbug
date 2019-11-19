@@ -26,6 +26,8 @@
 
 #define global mesbox_readonly  0
 
+#define global noteadd_set      1
+
 #define global objmode_font     2
 
 #define global strtrim_start    1
@@ -181,6 +183,9 @@
 	sdim s_details_text
 
 	dim s_list_view_hwnd
+	sdim s_list_view_note
+	// 詳細を表示している項目の番号
+	s_current_object_id = -1
 
 	// logmes の出力結果
 	s_log_text_len = 0
@@ -505,6 +510,7 @@
 
 #deffunc app_details_window_hide
 
+	s_current_object_id = -1
 	gsel s_details_window_id, gsel_hide
 	gsel s_main_window_id, gsel_activate
 	return
@@ -560,8 +566,12 @@
 	assert stat >= 0
 	return
 
-#deffunc app_list_view_insert_row int row_index, str name, str value, \
+#deffunc app_list_view_insert_row int object_id, int row_index, str name, str value, \
 	local lvitem, local os_text
+
+	notesel s_list_view_note
+	noteadd strf("%d,%s,%s", object_id, name, value), row_index
+	noteunsel
 
 	sdim os_text, 0x1000
 	cnvstow os_text, name
@@ -586,14 +596,22 @@
 	assert stat
 	return
 
-#deffunc app_list_view_delete_row int row_index
+#deffunc app_list_view_delete_row int object_id, int row_index
+
+	notesel s_list_view_note
+	notedel row_index
+	noteunsel
 
 	sendmsg s_list_view_hwnd, LVM_DELETEITEM, row_index
 	assert stat
 	return
 
-#deffunc app_list_view_update_row int row_index, var name, var value, \
+#deffunc app_list_view_update_row int object_id, int row_index, var name, var value, \
 	local os_text, local lvitem
+
+	notesel s_list_view_note
+	noteadd strf("%d,%s,%s", object_id, name, value), row_index, noteadd_set
+	noteunsel
 
 	sdim os_text, 0x1000
 	cnvstow os_text, name
@@ -618,21 +636,23 @@
 	return
 
 #deffunc app_list_view_update var text, \
-	local delta, local kind, local index_str, local index, local name, local value
+	local delta, local kind, local object_id_str, local object_id, \
+	local index_str, local index, local name, local value
 
 	notesel text
 	repeat notemax
 		noteget delta, cnt
 		logmes delta
-		split delta, ",", kind, index_str, name, value
+		split delta, ",", kind, object_id_str, index_str, name, value
+		object_id = int(object_id_str)
 		index = int(index_str)
 
 		if kind == "+" {
-			app_list_view_insert_row index, name, value
+			app_list_view_insert_row object_id, index, name, value
 		} else : if kind == "-" {
-			app_list_view_delete_row index
+			app_list_view_delete_row object_id, index
 		} else : if kind == "!" {
-			app_list_view_update_row index, name, value
+			app_list_view_update_row object_id, index, name, value
 		} else {
 			logmes "unknown kind"
 		}
@@ -640,8 +660,17 @@
 	noteunsel
 	return
 
+#deffunc app_list_view_show_details int object_id
+
+	logmes "send_list_details: " + object_id
+
+	s_current_object_id = object_id
+	infra_send_list_details object_id
+	return
+
 #deffunc app_list_view_did_click \
-	local point, local lvhittestinfo, local row_index, local column_index
+	local point, local lvhittestinfo, local row_index, local column_index, \
+	local line_text, local object_id_str
 
 	point = ginfo_mx, ginfo_my
 	ScreenToClient s_list_view_hwnd, varptr(point)
@@ -660,13 +689,22 @@
 	}
 
 	if column_index == 0 {
-		logmes "send_toggle_expand: " + row_index
-		infra_send_list_toggle_expand row_index
+		notesel s_list_view_note
+		noteget line_text, row_index
+		split   line_text, ",", object_id_str
+		noteunsel
+
+		logmes "send_toggle_expand: " + object_id_str + " at " + row_index
+		infra_send_list_toggle_expand int(object_id_str)
 		return
 	}
 	if column_index == 1 {
-		logmes "send_list_details: " + row_index
-		infra_send_list_details row_index
+		notesel s_list_view_note
+		noteget line_text, row_index
+		split   line_text, ",", object_id_str
+		noteunsel
+
+		app_list_view_show_details int(object_id_str)
 		return
 	}
 	return
@@ -1042,6 +1080,10 @@
 
 	infra_send_location_update
 	infra_send_list_update
+
+	if s_current_object_id >= 1 {
+		app_list_view_show_details s_current_object_id
+	}
 	return
 
 *l_refresh_button
@@ -1149,6 +1191,10 @@
 
 	app_location_did_change source_file_id, line_index
 	infra_send_list_update
+
+	if s_current_object_id >= 1 {
+		app_list_view_show_details s_current_object_id
+	}
 	return
 
 #deffunc app_did_receive_location int source_file_id, int line_index

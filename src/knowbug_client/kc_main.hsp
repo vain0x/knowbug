@@ -169,14 +169,14 @@
 	sendmsg s_server_hwnd, KMTS_LIST_UPDATE
 	return
 
-#deffunc infra_send_list_toggle_expand int item_index
+#deffunc infra_send_list_toggle_expand int object_id
 
-	sendmsg s_server_hwnd, KMTS_LIST_TOGGLE_EXPAND, item_index
+	sendmsg s_server_hwnd, KMTS_LIST_TOGGLE_EXPAND, object_id
 	return
 
-#deffunc infra_send_list_details int item_index
+#deffunc infra_send_list_details int object_id
 
-	sendmsg s_server_hwnd, KMTS_LIST_DETAILS, item_index
+	sendmsg s_server_hwnd, KMTS_LIST_DETAILS, object_id
 	return
 
 // -----------------------------------------------
