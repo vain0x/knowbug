@@ -400,7 +400,7 @@
 	}
 
 	oncmd gosub *l_main_window_on_size, WM_SIZE
-	oncmd gosub *l_on_notify, WM_NOTIFY
+	oncmd gosub *l_main_window_on_notify, WM_NOTIFY
 	oncmd gosub *l_main_window_on_timer, WM_TIMER
 	return
 
@@ -416,7 +416,7 @@
 	app_main_window_update_layout
 	return
 
-*l_on_notify
+*l_main_window_on_notify
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/richedit/ns-richedit-nmhdr
 	dupptr s_nmhdr, lparam, 12
