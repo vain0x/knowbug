@@ -1080,6 +1080,10 @@
 
 	infra_send_location_update
 	infra_send_list_update
+
+	if s_current_object_id >= 1 {
+		app_list_view_show_details s_current_object_id
+	}
 	return
 
 *l_refresh_button
@@ -1187,6 +1191,10 @@
 
 	app_location_did_change source_file_id, line_index
 	infra_send_list_update
+
+	if s_current_object_id >= 1 {
+		app_list_view_show_details s_current_object_id
+	}
 	return
 
 #deffunc app_did_receive_location int source_file_id, int line_index
