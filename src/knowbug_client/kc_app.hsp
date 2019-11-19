@@ -26,6 +26,8 @@
 
 #define global mesbox_readonly  0
 
+#define global noteadd_set      1
+
 #define global objmode_font     2
 
 #define global strtrim_start    1
@@ -181,6 +183,7 @@
 	sdim s_details_text
 
 	dim s_list_view_hwnd
+	sdim s_list_view_note
 
 	// logmes の出力結果
 	s_log_text_len = 0
@@ -560,8 +563,12 @@
 	assert stat >= 0
 	return
 
-#deffunc app_list_view_insert_row int row_index, str name, str value, \
+#deffunc app_list_view_insert_row int object_id, int row_index, str name, str value, \
 	local lvitem, local os_text
+
+	notesel s_list_view_note
+	noteadd strf("%d,%s,%s", object_id, name, value), row_index
+	noteunsel
 
 	sdim os_text, 0x1000
 	cnvstow os_text, name
@@ -586,14 +593,22 @@
 	assert stat
 	return
 
-#deffunc app_list_view_delete_row int row_index
+#deffunc app_list_view_delete_row int object_id, int row_index
+
+	notesel s_list_view_note
+	notedel row_index
+	noteunsel
 
 	sendmsg s_list_view_hwnd, LVM_DELETEITEM, row_index
 	assert stat
 	return
 
-#deffunc app_list_view_update_row int row_index, var name, var value, \
+#deffunc app_list_view_update_row int object_id, int row_index, var name, var value, \
 	local os_text, local lvitem
+
+	notesel s_list_view_note
+	noteadd strf("%d,%s,%s", object_id, name, value), row_index, noteadd_set
+	noteunsel
 
 	sdim os_text, 0x1000
 	cnvstow os_text, name
@@ -630,11 +645,11 @@
 		index = int(index_str)
 
 		if kind == "+" {
-			app_list_view_insert_row index, name, value
+			app_list_view_insert_row object_id, index, name, value
 		} else : if kind == "-" {
-			app_list_view_delete_row index
+			app_list_view_delete_row object_id, index
 		} else : if kind == "!" {
-			app_list_view_update_row index, name, value
+			app_list_view_update_row object_id, index, name, value
 		} else {
 			logmes "unknown kind"
 		}
