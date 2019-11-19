@@ -27,6 +27,11 @@ class KnowbugServerImpl;
 
 static auto constexpr MAX_CHILD_COUNT = std::size_t{ 300 };
 
+class HspObjectListExpansion {
+public:
+	virtual auto is_expanded(HspObjectPath const& path) const -> bool = 0;
+};
+
 class HspObjectListItem {
 	std::shared_ptr<HspObjectPath const> path_;
 	std::size_t depth_;
@@ -75,7 +80,6 @@ public:
 
 class HspObjectList {
 	std::vector<HspObjectListItem> items_;
-	std::unordered_map<std::shared_ptr<HspObjectPath const>, bool> expanded_;
 
 public:
 	auto items() const ->std::vector<HspObjectListItem> const& {
@@ -90,26 +94,8 @@ public:
 		return items().at(index);
 	}
 
-	auto is_expanded(HspObjectPath const& path) const -> bool {
-		auto iter = expanded_.find(path.self());
-		if (iter == expanded_.end()) {
-			// ルートの子要素は既定で開く。
-			return path.parent().kind() == HspObjectKind::Root;
-		}
-
-		return iter->second;
-	}
-
 	void add_item(HspObjectListItem item) {
 		items_.push_back(std::move(item));
-	}
-
-	void inherit_expanded(HspObjectList const& other) {
-		expanded_ = other.expanded_;
-	}
-
-	void toggle_expanded(HspObjectPath const& path) {
-		expanded_[path.self()] = !is_expanded(path);
 	}
 };
 
@@ -117,13 +103,15 @@ public:
 class HspObjectListWriter {
 	HspObjects& objects_;
 	HspObjectList& object_list_;
+	HspObjectListExpansion& expansion_;
 
 	std::size_t depth_;
 
 public:
-	HspObjectListWriter(HspObjects& objects, HspObjectList& object_list)
+	HspObjectListWriter(HspObjects& objects, HspObjectList& object_list, HspObjectListExpansion& expansion)
 		: objects_(objects)
 		, object_list_(object_list)
+		, expansion_(expansion)
 		, depth_()
 	{
 	}
@@ -149,7 +137,7 @@ public:
 	}
 
 	void add_children(HspObjectPath const& path) {
-		if (!object_list_.is_expanded(path)) {
+		if (!expansion_.is_expanded(path)) {
 			return;
 		}
 
@@ -341,12 +329,26 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 	}
 }
 
-class HspObjectListEntity {
+class HspObjectListEntity
+	: public HspObjectListExpansion
+{
 	HspObjectList object_list_;
+
+	std::unordered_map<std::shared_ptr<HspObjectPath const>, bool> expanded_;
 
 public:
 	auto size() const -> std::size_t {
 		return object_list_.size();
+	}
+
+	auto is_expanded(HspObjectPath const& path) const -> bool {
+		auto iter = expanded_.find(path.self());
+		if (iter == expanded_.end()) {
+			// ルートの子要素は既定で開く。
+			return path.parent().kind() == HspObjectKind::Root;
+		}
+
+		return iter->second;
 	}
 
 	auto item_path(std::size_t index) const -> HspObjectPath const& {
@@ -356,8 +358,7 @@ public:
 
 	auto update(HspObjects& objects) -> std::vector<HspObjectListDelta> {
 		auto new_list = HspObjectList{};
-		new_list.inherit_expanded(object_list_);
-		HspObjectListWriter{ objects, new_list }.add_children(objects.root_path());
+		HspObjectListWriter{ objects, new_list, *this }.add_children(objects.root_path());
 
 		auto diff = std::vector<HspObjectListDelta>{};
 		diff_object_list(object_list_, new_list, diff);
@@ -372,7 +373,7 @@ public:
 		// 子要素のないノードは開閉しない。
 		auto&& item = object_list_[index];
 		if (item.child_count() != 0) {
-			object_list_.toggle_expanded(item.path());
+			expanded_[item.path().self()] = !is_expanded(item.path());
 		}
 	}
 };
