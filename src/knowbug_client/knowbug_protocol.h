@@ -37,11 +37,11 @@
 #define KMTS_LIST_UPDATE            (WM_USER + 31)
 // オブジェクトリストのノードを開閉する。
 // KMTC_LIST_UPDATE_OK が返ってくる。
-// wparam: リストのインデックス
+// wparam: オブジェクトID
 #define KMTS_LIST_TOGGLE_EXPAND     (WM_USER + 32)
 // オブジェクトリストのノードの詳細情報を要求する。
 // KMTC_LIST_DETAILS_OK が返ってくる。
-// wparam: リストのインデックス
+// wparam: オブジェクトID
 #define KMTS_LIST_DETAILS           (WM_USER + 33)
 #define KMTS_LAST                   (WM_USER + 999)
 
@@ -75,6 +75,7 @@
 // 詳細はサーバー側の HspObjectListDelta を参照。
 #define KMTC_LIST_UPDATE_OK         (WM_USER + 1031)
 // オブジェクトリストのノードの詳細データを返す。
+// wparam: オブジェクトID
 // text: 詳細 (UTF-8)
 #define KMTC_LIST_DETAILS_OK        (WM_USER + 1032)
 #define KMTC_LAST                   (WM_USER + 1999)

@@ -101,6 +101,15 @@ public:
 		return items().at(index);
 	}
 
+	auto find_by_object_id(std::size_t object_id) const -> std::optional<HspObjectListItem const*> {
+		for (auto&& item : items()) {
+			if (item.object_id() == object_id) {
+				return &item;
+			}
+		}
+		return std::nullopt;
+	}
+
 	void add_item(HspObjectListItem item) {
 		items_.push_back(std::move(item));
 	}
@@ -416,16 +425,6 @@ public:
 		return iter->second;
 	}
 
-	auto item_path(std::size_t index) const -> std::optional<std::shared_ptr<HspObjectPath const>> {
-		assert(index < size());
-		auto object_id = object_list_[index].object_id();
-		auto iter = id_to_paths_.find(object_id);
-		if (iter == id_to_paths_.end()) {
-			return std::nullopt;
-		}
-		return iter->second;
-	}
-
 	auto update(HspObjects& objects) -> std::vector<HspObjectListDelta> {
 		auto new_list = HspObjectList{};
 		HspObjectListWriter{ objects, new_list, *this, *this }.add_children(objects.root_path());
@@ -441,16 +440,23 @@ public:
 		return diff;
 	}
 
-	void toggle_expand(std::size_t index) {
-		assert(index < size());
+	void toggle_expand(std::size_t object_id) {
+		auto path_opt = object_id_to_path(object_id);
+		if (!path_opt) {
+			return;
+		}
+
+		auto item_opt = object_list_.find_by_object_id(object_id);
+		if(!item_opt) {
+			return;
+		}
 
 		// 子要素のないノードは開閉しない。
-		auto&& item = object_list_[index];
-		if (item.child_count() != 0) {
-			if (auto path_opt = object_id_to_path(item.object_id())) {
-				expanded_[*path_opt] = !is_expanded(**path_opt);
-			}
+		if ((**item_opt).child_count() == 0) {
+			return;
 		}
+
+		expanded_[*path_opt] = !is_expanded(**path_opt);
 	}
 
 private:
@@ -879,35 +885,35 @@ public:
 		send(KMTC_LIST_UPDATE_OK, int{}, int{}, text);
 	}
 
-	void client_did_list_toggle_expand(int index) {
-		if (index < 0 || (std::size_t)index >= object_list_entity_.size()) {
+	void client_did_list_toggle_expand(int object_id) {
+		if (object_id < 0) {
 			OutputDebugString(TEXT("out of range"));
 			return;
 		}
 
-		object_list_entity_.toggle_expand(index);
+		object_list_entity_.toggle_expand((std::size_t)object_id);
 
 		client_did_list_update();
 	}
 
-	void client_did_list_details(int index) {
-		if (index < 0 || (std::size_t)index >= object_list_entity_.size()) {
+	void client_did_list_details(int object_id) {
+		if (object_id < 0) {
 			OutputDebugString(TEXT("out of range"));
 			return;
 		}
 
-		auto&& item_path_opt = object_list_entity_.item_path(index);
-		if (!item_path_opt) {
+		auto&& path_opt = object_list_entity_.object_id_to_path((std::size_t)object_id);
+		if (!path_opt) {
 			// FIXME: 情報がない旨を伝える。
 			send(KMTC_LIST_DETAILS_OK, int{}, int{}, as_utf8(u8""));
 			return;
 		}
 
 		auto string_writer = StringWriter{};
-		HspObjectWriter{ objects(), string_writer }.write_table_form(**item_path_opt);
+		HspObjectWriter{ objects(), string_writer }.write_table_form(**path_opt);
 		auto text = string_writer.finish();
 
-		send(KMTC_LIST_DETAILS_OK, int{}, int{}, text);
+		send(KMTC_LIST_DETAILS_OK, object_id, int{}, text);
 	}
 
 private:

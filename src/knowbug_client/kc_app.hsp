@@ -658,7 +658,8 @@
 	return
 
 #deffunc app_list_view_did_click \
-	local point, local lvhittestinfo, local row_index, local column_index
+	local point, local lvhittestinfo, local row_index, local column_index, \
+	local line_text, local object_id_str
 
 	point = ginfo_mx, ginfo_my
 	ScreenToClient s_list_view_hwnd, varptr(point)
@@ -677,13 +678,23 @@
 	}
 
 	if column_index == 0 {
-		logmes "send_toggle_expand: " + row_index
-		infra_send_list_toggle_expand row_index
+		notesel s_list_view_note
+		noteget line_text, row_index
+		split   line_text, ",", object_id_str
+		noteunsel
+
+		logmes "send_toggle_expand: " + object_id_str + " at " + row_index
+		infra_send_list_toggle_expand int(object_id_str)
 		return
 	}
 	if column_index == 1 {
-		logmes "send_list_details: " + row_index
-		infra_send_list_details row_index
+		notesel s_list_view_note
+		noteget line_text, row_index
+		split   line_text, ",", object_id_str
+		noteunsel
+
+		logmes "send_list_details: " + object_id_str + " at " +  row_index
+		infra_send_list_details int(object_id_str)
 		return
 	}
 	return
