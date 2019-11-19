@@ -618,13 +618,15 @@
 	return
 
 #deffunc app_list_view_update var text, \
-	local delta, local kind, local index_str, local index, local name, local value
+	local delta, local kind, local object_id_str, local object_id, \
+	local index_str, local index, local name, local value
 
 	notesel text
 	repeat notemax
 		noteget delta, cnt
 		logmes delta
-		split delta, ",", kind, index_str, name, value
+		split delta, ",", kind, object_id_str, index_str, name, value
+		object_id = int(object_id_str)
 		index = int(index_str)
 
 		if kind == "+" {

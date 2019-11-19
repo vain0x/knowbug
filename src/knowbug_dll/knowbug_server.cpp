@@ -282,6 +282,8 @@ public:
 
 		w.cat(kind_to_string(kind_));
 		w.cat(u8",");
+		w.cat_size(object_id());
+		w.cat(u8",");
 		w.cat_size(index_);
 		w.cat(u8",");
 		w.cat(as_utf8(SPACES).substr(0, depth_ * 2));
