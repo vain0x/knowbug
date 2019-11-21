@@ -21,6 +21,27 @@
 
 class KnowbugServerImpl;
 
+static constexpr auto KNOWBUG_VERSION = u8"v2.0.0-beta3";
+
+#ifdef _M_X64
+static constexpr auto KNOWBUG_PLATFORM_SUFFIX = u8" (x64)";
+#else //defined(_M_X64)
+static constexpr auto KNOWBUG_PLATFORM_SUFFIX = u8"";
+#endif
+
+#ifdef HSP3_UTF8
+static constexpr auto KNOWBUG_ENCODING_SUFFIX = u8" (UTF-8)";
+#else
+static constexpr auto KNOWBUG_ENCODING_SUFFIX = u8"";
+#endif
+
+static auto knowbug_version() -> Utf8String {
+	auto suffix = Utf8String{ as_utf8(KNOWBUG_VERSION) };
+	suffix += as_utf8(KNOWBUG_PLATFORM_SUFFIX);
+	suffix += as_utf8(KNOWBUG_ENCODING_SUFFIX);
+	return suffix;
+}
+
 // -----------------------------------------------
 // オブジェクトリスト
 // -----------------------------------------------
@@ -821,7 +842,7 @@ public:
 		assert(!client_hwnd_opt_);
 		client_hwnd_opt_ = client_hwnd;
 
-		send(KMTC_HELLO_OK);
+		send(KMTC_HELLO_OK, int{}, int{}, knowbug_version());
 
 		// キューに溜まっていたメッセージをすべて送る。
 		for (auto&& msg : send_queue_) {

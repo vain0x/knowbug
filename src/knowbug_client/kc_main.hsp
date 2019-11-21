@@ -198,7 +198,7 @@
 
 *l_on_hello_ok
 
-	app_did_receive_hello_ok
+	app_did_receive_hello_ok s_server_buffer_data
 	return
 
 *l_on_shutdown

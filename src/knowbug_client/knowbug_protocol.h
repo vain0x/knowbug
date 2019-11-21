@@ -48,6 +48,7 @@
 // Knowbug window Message To the Client
 #define KMTC_FIRST                  (WM_USER + 1001)
 // クライアントの起動をサーバーが確認したことを伝える。
+// text: バージョンを表す文字列 (UTF-8)
 #define KMTC_HELLO_OK               (WM_USER + 1001)
 // クライアントを終了させる。
 #define KMTC_SHUTDOWN               (WM_USER + 1002)

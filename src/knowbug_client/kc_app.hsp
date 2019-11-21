@@ -151,8 +151,7 @@
 #define true 1
 #define false 0
 
-// FIXME: エンコーディングとプラットフォームも表示
-#define s_main_window_title "knowbug v2.0.0 beta-3"
+#define s_main_window_title "knowbug"
 #define s_details_window_title "knowbug details"
 #define s_help_window_title "knowbug help"
 
@@ -1160,14 +1159,15 @@
 // サーバーからのメッセージへの応答
 // -----------------------------------------------
 
-#deffunc app_did_receive_hello_ok
+#deffunc app_did_receive_hello_ok var text
 
 	logmes "app_did_receive_hello_ok"
 
+	s_version = strtrim(text, strtrim_end)
 	s_connected = true
 
 	gsel s_main_window_id
-	title s_main_window_title
+	title s_main_window_title + " " + s_version
 
 	app_refresh
 	return
