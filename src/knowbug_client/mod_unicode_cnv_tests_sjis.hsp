@@ -1,0 +1,35 @@
+// Test on the shift_jis runtime.
+
+#include "mod_unicode_cnv.hsp"
+
+	// Empty.
+	sjis_str = ""
+	sjis_len = strlen(sjis_str)
+
+	unicode_cnv_from_sjis sjis_str, sjis_len, os_str, os_len
+	assert stat
+
+	assert wpeek(os_str, 0) == 0
+	assert os_len == 0
+
+	// To unicode.
+	sdim sjis_str // sekai (world)
+	lpoke sjis_str, 0, 0x458aa290
+	sjis_len = strlen(sjis_str)
+
+	unicode_cnv_from_sjis sjis_str, sjis_len, os_str, os_len
+	assert stat
+
+	assert lpeek(os_str,0 ) == 0x754c4e16
+	assert os_len == 2
+
+	// To sjis.
+	sdim sjis_str
+	sjis_len = -1
+
+	unicode_cnv_to_sjis os_str, os_len, sjis_str, sjis_len
+	assert stat
+
+	assert lpeek(sjis_str, 0) == 0x458aa290
+	assert sjis_len == 4
+	end

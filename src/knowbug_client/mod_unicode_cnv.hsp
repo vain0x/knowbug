@@ -1,0 +1,148 @@
+// Character encoding conversion from/to unicode
+// Powered by Win32 API
+// LICENSE: PUBLIC DOMAIN
+
+#ifndef included_mod_unicode_cnv_hsp
+#define included_mod_unicode_cnv_hsp
+
+#module m_unicode_cnv
+
+#uselib "KERNEL32.DLL"
+#func MultiByteToWideChar "MultiByteToWideChar" sptr, sptr, sptr, sptr, sptr, sptr
+#func WideCharToMultiByte "WideCharToMultiByte" sptr, sptr, sptr, sptr, sptr, sptr, sptr, sptr
+
+#define true 1
+#define false
+
+#define NULL 0
+#define CP_SJIS 932
+#define CP_UTF8 65001
+
+// Detect the default encoding of the HSP runtime.
+#ifdef __hsp64__
+	#ifdef __hspver__ < 0x3600
+		#define CP_HSP CP_SJIS
+	#else
+		#define CP_HSP CP_UTF8
+	#endif
+#else
+	#ifdef __hsp3utf__
+		#define CP_HSP CP_UTF8
+	#else
+		#define CP_HSP CP_SJIS
+	#endif
+#endif
+
+// Convert from unicode to multibyte string
+// of the specified code page (cp).
+// The result is null-terminated.
+// Return false if failure.
+// Mainly for internal use.
+// Reference: <https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-widechartomultibyte>
+#deffunc unicode_cnv_from_multibyte int cp, var mb_str, int mb_len, var os_str, var os_len, \
+	local size
+
+	os_str = ""
+
+	assert mb_len >= 0
+	if mb_len == 0 {
+		wpoke os_str, 0, 0
+		os_len = 0
+		return true
+	}
+
+	MultiByteToWideChar cp, 0, varptr(mb_str), mb_len, NULL, 0
+	size = stat
+	if stat == 0 {
+		wpoke os_str, 0, 0
+		os_len = 0
+		return false
+	}
+	assert size >= 1
+
+	os_len = size
+	memexpand os_str, os_len * 2 + 2
+
+	MultiByteToWideChar cp, 0, varptr(mb_str), mb_len, varptr(os_str), size
+	size = stat
+	if stat == 0 {
+		wpoke os_str, 0, 0
+		os_len = 0
+		return false
+	}
+	assert size == os_len
+
+	wpoke os_str, os_len * 2, 0
+	return true
+
+// Convert to unicode from multibyte string
+// of the specified code page (cp).
+// The result is null-terminated.
+// Return false if failure.
+#deffunc unicode_cnv_to_multibyte int cp, var os_str, int os_len, var mb_str, var mb_len, \
+	local size
+
+	mb_str = ""
+
+	assert os_len >= 0
+	if os_len == 0 {
+		mb_len = 0
+		return true
+	}
+
+	WideCharToMultiByte cp, 0, varptr(os_str), os_len, NULL, 0, NULL, NULL
+	size = stat
+	if size == 0 {
+		mb_len = 0
+		return false
+	}
+	assert size >= 1
+
+	mb_len = size
+
+	memexpand mb_str, size
+
+	WideCharToMultiByte cp, 0, varptr(os_str), os_len, varptr(mb_str), size, NULL, NULL
+	size = stat
+	if size == 0 {
+		mb_len = 0
+		return false
+	}
+	assert size == mb_len
+
+	poke mb_str, mb_len, 0
+	return true
+
+#deffunc unicode_cnv_from_sjis var sjis_str, int sjis_len, var os_str, var os_len
+
+	unicode_cnv_from_multibyte CP_SJIS, sjis_str, sjis_len, os_str, os_len
+	return stat
+
+#deffunc unicode_cnv_to_sjis  var os_str, int os_len, var sjis_str, var sjis_len
+
+	unicode_cnv_to_multibyte CP_SJIS, os_str, os_len, sjis_str, sjis_len
+	return stat
+
+#deffunc unicode_cnv_from_utf8 var utf8_str, int utf8_len, var os_str, var os_len
+
+	unicode_cnv_from_multibyte CP_UTF8, utf8_str, utf8_len, os_str, os_len
+	return stat
+
+#deffunc unicode_cnv_to_utf8  var os_str, int os_len, var utf8_str, var utf8_len
+
+	unicode_cnv_to_multibyte CP_UTF8, os_str, os_len, utf8_str, utf8_len
+	return stat
+
+#deffunc unicode_cnv_from_hsp var mb_str, int mb_len, var os_str, var os_len
+
+	unicode_cnv_from_multibyte CP_HSP, mb_str, mb_len, os_str, os_len
+	return stat
+
+#deffunc unicode_cnv_to_hsp  var os_str, int os_len, var utf8_str, var utf8_len
+
+	unicode_cnv_to_multibyte CP_HSP, os_str, os_len, mb_str, mb_len
+	return stat
+
+#global
+
+#endif
