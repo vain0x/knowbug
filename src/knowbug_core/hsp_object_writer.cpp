@@ -423,7 +423,7 @@ void HspObjectWriterImpl::TableForm::accept(std::optional<std::shared_ptr<HspObj
 		return;
 	}
 
-	Visitor::accept(**path_opt);
+	accept(**path_opt);
 }
 
 void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
@@ -742,6 +742,10 @@ HspObjectWriterImpl::FlowForm::FlowForm(HspObjects& objects, StringWriter& write
 }
 
 void HspObjectWriterImpl::FlowForm::accept(HspObjectPath const& path) {
+	if (writer().is_full()) {
+		return;
+	}
+
 	Visitor::accept(path);
 }
 
