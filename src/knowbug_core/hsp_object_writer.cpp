@@ -5,8 +5,6 @@
 #include "hsp_objects.h"
 #include "string_writer.h"
 
-static auto const MAX_CHILD_COUNT = std::size_t{ 300 };
-
 // -----------------------------------------------
 // ヘルパー
 // -----------------------------------------------
@@ -452,14 +450,8 @@ void HspObjectWriterImpl::TableForm::accept_children(HspObjectPath const& path) 
 	auto&& o = objects();
 
 	auto child_count = path.visual_child_count(o);
-	for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, child_count); i++) {
+	for (auto i = std::size_t{}; i < child_count; i++) {
 		accept(*path.visual_child_at(i, o));
-	}
-
-	if (child_count >= MAX_CHILD_COUNT) {
-		w.cat(u8".. (合計");
-		w.cat_size(child_count);
-		w.cat_line(u8" 件)");
 	}
 }
 
@@ -609,14 +601,8 @@ void HspObjectWriterImpl::BlockForm::accept_children(HspObjectPath const& path) 
 	auto&& o = objects();
 
 	auto child_count = path.visual_child_count(o);
-	for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, child_count); i++) {
+	for (auto i = std::size_t{}; i < child_count; i++) {
 		accept(*path.visual_child_at(i, o));
-	}
-
-	if (child_count >= MAX_CHILD_COUNT) {
-		w.cat(u8".. (合計 ");
-		w.cat_size(child_count);
-		w.cat_line(u8" 件)");
 	}
 }
 
@@ -763,16 +749,12 @@ void HspObjectWriterImpl::FlowForm::accept_children(HspObjectPath const& path) {
 	auto&& o = objects();
 
 	auto child_count = path.visual_child_count(o);
-	for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, child_count); i++) {
+	for (auto i = std::size_t{}; i < child_count; i++) {
 		if (i != 0) {
 			w.cat(u8", ");
 		}
 
 		accept(*path.visual_child_at(i, o));
-	}
-
-	if (child_count >= MAX_CHILD_COUNT) {
-		w.cat(u8"; ..");
 	}
 }
 

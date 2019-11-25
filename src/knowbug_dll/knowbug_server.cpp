@@ -46,8 +46,6 @@ static auto knowbug_version() -> Utf8String {
 // オブジェクトリスト
 // -----------------------------------------------
 
-static auto constexpr MAX_CHILD_COUNT = std::size_t{ 300 };
-
 class HspObjectIdProvider {
 public:
 	virtual auto path_to_object_id(HspObjectPath const& path)->std::size_t = 0;
@@ -185,7 +183,7 @@ public:
 		}
 
 		auto item_count = path.visual_child_count(objects());
-		for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, item_count); i++) {
+		for (auto i = std::size_t{}; i < item_count; i++) {
 			auto item_path_opt = path.visual_child_at(i, objects());
 			if (!item_path_opt) {
 				assert(false);

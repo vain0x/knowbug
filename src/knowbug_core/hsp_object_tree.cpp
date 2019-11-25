@@ -6,7 +6,6 @@
 #include "hsp_objects.h"
 #include "hsp_object_tree.h"
 
-static auto const MAX_CHILD_COUNT = std::size_t{ 300 };
 static auto const MAX_UPDATE_COUNT = std::size_t{ 100000 };
 
 // オブジェクトツリーの自動更新にかかる制限
@@ -254,7 +253,7 @@ private:
 		auto&& path = nodes_.at(node_id).path();
 		auto is_expanded = nodes_.at(node_id).expanded();
 
-		auto child_count = std::min(MAX_CHILD_COUNT, path.visual_child_count(objects()));
+		auto child_count = path.visual_child_count(objects());
 
 		limit.add_count(child_count);
 		if (!limit.ok()) {

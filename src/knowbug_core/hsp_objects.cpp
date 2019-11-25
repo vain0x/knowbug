@@ -15,6 +15,9 @@ static auto const MIN_DEPTH = std::size_t{};
 // 再帰深度の最大値 (スタックオーバーフローを防ぐため)
 static auto const MAX_DEPTH = std::size_t{ 32 };
 
+// ビジュアルツリーの子要素数の最大値
+static auto const MAX_VISUAL_CHILD_COUNT = std::size_t{ 500 };
+
 static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::HspParamData>;
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
@@ -140,7 +143,7 @@ static auto path_to_visual_child_count_default(HspObjectPath const& path, HspObj
 		return std::min((n + m - 1) / m, m); // O(m^2)
 	}
 
-	return n;
+	return std::min(n, MAX_VISUAL_CHILD_COUNT);
 }
 
 static auto path_to_visual_child_at_default(HspObjectPath const& path, std::size_t child_index, HspObjects& objects) -> std::optional<std::shared_ptr<HspObjectPath const>> {
