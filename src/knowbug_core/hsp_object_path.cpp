@@ -127,6 +127,35 @@ auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
 }
 
 // -----------------------------------------------
+// 省略パス
+// -----------------------------------------------
+
+auto HspObjectPath::new_ellipsis(std::size_t total_count) const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::Ellipsis>(self(), total_count);
+}
+
+auto HspObjectPath::as_ellipsis() const -> HspObjectPath::Ellipsis const& {
+	if (kind() != HspObjectKind::Ellipsis) {
+		assert(false && u8"Casting to ellipsis");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Ellipsis const*)this;
+}
+
+auto HspObjectPath::Ellipsis::child_count(HspObjects& objects) const->std::size_t {
+	return 0;
+}
+
+auto HspObjectPath::Ellipsis::child_at(std::size_t child_index, HspObjects& objects) const->std::shared_ptr<HspObjectPath const> {
+	assert(false);
+	throw std::exception{};
+}
+
+auto HspObjectPath::Ellipsis::name(HspObjects& objects) const->Utf8String {
+	return to_owned(as_utf8(u8"..."));
+}
+
+// -----------------------------------------------
 // モジュールパス
 // -----------------------------------------------
 

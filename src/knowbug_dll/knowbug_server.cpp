@@ -154,6 +154,11 @@ public:
 	}
 
 	void add(HspObjectPath const& path) {
+		if (path.kind() == HspObjectKind::Ellipsis) {
+			add_value(path, path);
+			return;
+		}
+
 		if (path.visual_child_count(objects()) == 1) {
 			auto value_path_opt = path.visual_child_at(0, objects());
 			assert(value_path_opt);

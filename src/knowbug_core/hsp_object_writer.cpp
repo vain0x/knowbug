@@ -286,6 +286,8 @@ public:
 
 	void accept_children(HspObjectPath const& path) override;
 
+	void on_ellipsis(HspObjectPath::Ellipsis const& path) override;
+
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
 
 	void on_param(HspObjectPath::Param const& path) override;
@@ -321,6 +323,8 @@ public:
 
 	void accept_children(HspObjectPath const& path) override;
 
+	void on_ellipsis(HspObjectPath::Ellipsis const& path) override;
+
 	void on_module(HspObjectPath::Module const& path) override;
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
@@ -355,6 +359,8 @@ public:
 	void accept(std::optional<std::shared_ptr<HspObjectPath const>> const& path_opt);
 
 	void accept_children(HspObjectPath const& path) override;
+
+	void on_ellipsis(HspObjectPath::Ellipsis const& path) override;
 
 	void on_static_var(HspObjectPath::StaticVar const& path) override;
 
@@ -453,6 +459,12 @@ void HspObjectWriterImpl::TableForm::accept_children(HspObjectPath const& path) 
 	for (auto i = std::size_t{}; i < child_count; i++) {
 		accept(*path.visual_child_at(i, o));
 	}
+}
+
+void HspObjectWriterImpl::TableForm::on_ellipsis(HspObjectPath::Ellipsis const& path) {
+	writer().cat(u8"...(合計 ");
+	writer().cat_size(path.total_count());
+	writer().cat_line(u8" 件)");
 }
 
 void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar const& path) {
@@ -606,6 +618,12 @@ void HspObjectWriterImpl::BlockForm::accept_children(HspObjectPath const& path) 
 	}
 }
 
+void HspObjectWriterImpl::BlockForm::on_ellipsis(HspObjectPath::Ellipsis const& path) {
+	writer().cat(u8"...(合計 ");
+	writer().cat_size(path.total_count());
+	writer().cat_line(u8" 件)");
+}
+
 void HspObjectWriterImpl::BlockForm::on_module(HspObjectPath::Module const& path) {
 	auto&& name = path.name(objects());
 
@@ -756,6 +774,10 @@ void HspObjectWriterImpl::FlowForm::accept_children(HspObjectPath const& path) {
 
 		accept(*path.visual_child_at(i, o));
 	}
+}
+
+void HspObjectWriterImpl::FlowForm::on_ellipsis(HspObjectPath::Ellipsis const& path) {
+	writer().cat(u8"...");
 }
 
 void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const& path) {

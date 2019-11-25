@@ -17,6 +17,9 @@ enum class HspObjectKind {
 	// グループ
 	Group,
 
+	// 省略 (「残りは省略されました」の部分)
+	Ellipsis,
+
 	// モジュール
 	Module,
 
@@ -73,6 +76,7 @@ public:
 	class Visitor;
 	class Root;
 	class Group;
+	class Ellipsis;
 	class Module;
 	class StaticVar;
 	class Element;
@@ -168,6 +172,8 @@ public:
 
 	auto as_group() const->HspObjectPath::Group const&;
 
+	auto as_ellipsis() const->HspObjectPath::Ellipsis const&;
+
 	auto as_module() const->HspObjectPath::Module const&;
 
 	auto as_static_var() const->HspObjectPath::StaticVar const&;
@@ -205,6 +211,8 @@ public:
 	auto as_unavailable() const->HspObjectPath::Unavailable const&;
 
 	auto new_group(std::size_t offset) const->std::shared_ptr<HspObjectPath const>;
+
+	auto new_ellipsis(std::size_t total_count) const->std::shared_ptr<HspObjectPath const>;
 
 protected:
 	auto new_module(std::size_t module_id) const->std::shared_ptr<HspObjectPath const>;

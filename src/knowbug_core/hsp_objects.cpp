@@ -139,8 +139,12 @@ static auto create_general_content(HSP3DEBUG* debug) -> Utf8String {
 static auto path_to_visual_child_count_default(HspObjectPath const& path, HspObjects& objects) -> std::size_t {
 	auto n = path.child_count(objects);
 	if (n >= HspObjectPath::Group::THRESHOLD) {
-		constexpr auto m = HspObjectPath::Group::MAX_CHILD_COUNT;
-		return std::min((n + m - 1) / m, m); // O(m^2)
+		constexpr auto M = HspObjectPath::Group::MAX_CHILD_COUNT;
+		auto group_count = (n + M - 1) / M;
+		if (group_count > M) {
+			return M + 1; // M 個のグループと1個の省略
+		}
+		return group_count;
 	}
 
 	return std::min(n, MAX_VISUAL_CHILD_COUNT);
@@ -149,7 +153,11 @@ static auto path_to_visual_child_count_default(HspObjectPath const& path, HspObj
 static auto path_to_visual_child_at_default(HspObjectPath const& path, std::size_t child_index, HspObjects& objects) -> std::optional<std::shared_ptr<HspObjectPath const>> {
 	auto n = path.child_count(objects);
 	if (n >= HspObjectPath::Group::THRESHOLD) {
-		return path.new_group(child_index * HspObjectPath::Group::MAX_CHILD_COUNT);
+		constexpr auto M = HspObjectPath::Group::MAX_CHILD_COUNT;
+		if (child_index >= M) {
+			return path.new_ellipsis(n);
+		}
+		return path.new_group(child_index * M);
 	}
 
 	if (child_index >= n) {

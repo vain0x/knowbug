@@ -71,6 +71,9 @@ public:
 	// グループノードの要素数の最大値。
 	static constexpr auto MAX_CHILD_COUNT = std::size_t{ 100 };
 
+	// グループノードを挟んだときに表示される親要素の子要素の総数。
+	static constexpr auto MAX_CHILD_COUNT_TOTAL = MAX_CHILD_COUNT * MAX_CHILD_COUNT;
+
 	// これ以上の要素数を持つノードには、グループノードを挟む。
 	static constexpr auto THRESHOLD = std::size_t{ 201 };
 
@@ -109,6 +112,55 @@ public:
 
 	auto offset() const -> std::size_t {
 		return offset_;
+	}
+};
+
+// -----------------------------------------------
+// 省略パス
+// -----------------------------------------------
+
+class HspObjectPath::Ellipsis final
+	: public HspObjectPath
+{
+	std::shared_ptr<HspObjectPath const> parent_;
+	std::size_t total_count_;
+
+public:
+	Ellipsis(std::shared_ptr<HspObjectPath const> parent, std::size_t total_count)
+		: parent_(std::move(parent))
+		, total_count_(total_count)
+	{
+	}
+
+	auto kind() const -> HspObjectKind override {
+		return HspObjectKind::Ellipsis;
+	}
+
+	bool does_equal(HspObjectPath const& other) const override {
+		return total_count() == other.as_ellipsis().total_count();
+	}
+
+	auto do_hash() const -> std::size_t override {
+		return total_count();
+	}
+
+	auto is_alive(HspObjects& objects) const -> bool override {
+		return parent().is_alive(objects)
+			&& parent().child_count(objects) > Group::MAX_CHILD_COUNT_TOTAL;
+	}
+
+	auto parent() const -> HspObjectPath const& override {
+		return *parent_;
+	}
+
+	auto child_count(HspObjects& objects) const->std::size_t override;
+
+	auto child_at(std::size_t child_index, HspObjects& objects) const->std::shared_ptr<HspObjectPath const> override;
+
+	auto name(HspObjects& objects) const->Utf8String override;
+
+	auto total_count() const -> std::size_t {
+		return total_count_;
 	}
 };
 
@@ -1182,6 +1234,10 @@ public:
 			on_group(path.as_group());
 			return;
 
+		case HspObjectKind::Ellipsis:
+			on_ellipsis(path.as_ellipsis());
+			return;
+
 		case HspObjectKind::Module:
 			on_module(path.as_module());
 			return;
@@ -1284,6 +1340,10 @@ public:
 	}
 
 	virtual void on_group(HspObjectPath::Group const& path) {
+		accept_default(path);
+	}
+
+	virtual void on_ellipsis(HspObjectPath::Ellipsis const& path) {
 		accept_default(path);
 	}
 
