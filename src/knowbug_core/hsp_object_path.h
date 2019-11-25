@@ -68,9 +68,11 @@ class HspObjectPath::Group final
 	std::size_t offset_;
 
 public:
-	static auto constexpr THRESHOLD = std::size_t{ 1000 };
+	// グループノードの要素数の最大値。
+	static constexpr auto MAX_CHILD_COUNT = std::size_t{ 500 };
 
-	using HspObjectPath::new_element;
+	// これ以上の要素数を持つノードには、グループノードを挟む。
+	static constexpr auto THRESHOLD = std::size_t{ 700 };
 
 	Group(std::shared_ptr<HspObjectPath const> parent, std::size_t offset)
 		: parent_(std::move(parent))
@@ -83,11 +85,7 @@ public:
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
-		return kind() == other.kind();
-	}
-
-	bool equals(HspObjectPath const& other) const override {
-		return kind() == other.kind();
+		return offset() == other.as_group().offset();
 	}
 
 	auto do_hash() const -> std::size_t override {
@@ -96,11 +94,11 @@ public:
 
 	auto is_alive(HspObjects& objects) const -> bool override {
 		return parent().is_alive(objects)
-			&& parent().child_count(objects) >= std::min(THRESHOLD, offset_ + 1);
+			&& parent().child_count(objects) >= std::min(THRESHOLD, offset() + 1);
 	}
 
 	auto parent() const -> HspObjectPath const& override {
-		return *this;
+		return *parent_;
 	}
 
 	auto child_count(HspObjects& objects) const->std::size_t override;

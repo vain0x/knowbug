@@ -95,7 +95,7 @@ auto HspObjectPath::as_group() const -> HspObjectPath::Group const& {
 
 auto HspObjectPath::Group::child_count(HspObjects& objects) const->std::size_t {
 	auto n = parent().child_count(objects);
-	return n - std::min(n, offset());
+	return std::min(n - std::min(n, offset()), MAX_CHILD_COUNT);
 }
 
 auto HspObjectPath::Group::child_at(std::size_t child_index, HspObjects& objects) const->std::shared_ptr<HspObjectPath const> {
@@ -105,7 +105,7 @@ auto HspObjectPath::Group::child_at(std::size_t child_index, HspObjects& objects
 		return new_unavailable(to_owned(as_utf8(u8"out of range")));
 	}
 
-	return parent().child_at(n, objects);
+	return parent().child_at(i, objects);
 }
 
 auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
@@ -115,7 +115,7 @@ auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
 	}
 
 	auto first_index = offset();
-	auto last_index = std::min(n, offset() + THRESHOLD - 1);
+	auto last_index = std::min(n, offset() + MAX_CHILD_COUNT - 1);
 	assert(first_index < last_index);
 
 	auto name = parent().child_at(first_index, objects)->name(objects);

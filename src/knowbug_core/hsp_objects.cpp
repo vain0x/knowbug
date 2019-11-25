@@ -134,11 +134,22 @@ static auto create_general_content(HSP3DEBUG* debug) -> Utf8String {
 }
 
 static auto path_to_visual_child_count_default(HspObjectPath const& path, HspObjects& objects) -> std::size_t {
-	return path.child_count(objects);
+	auto n = path.child_count(objects);
+	if (n >= HspObjectPath::Group::THRESHOLD) {
+		constexpr auto m = HspObjectPath::Group::MAX_CHILD_COUNT;
+		return std::min((n + m - 1) / m, m); // O(m^2)
+	}
+
+	return n;
 }
 
 static auto path_to_visual_child_at_default(HspObjectPath const& path, std::size_t child_index, HspObjects& objects) -> std::optional<std::shared_ptr<HspObjectPath const>> {
-	if (child_index >= path.child_count(objects)) {
+	auto n = path.child_count(objects);
+	if (n >= HspObjectPath::Group::THRESHOLD) {
+		return path.new_group(child_index * HspObjectPath::Group::MAX_CHILD_COUNT);
+	}
+
+	if (child_index >= n) {
 		return std::nullopt;
 	}
 
@@ -326,7 +337,6 @@ static auto var_path_to_child_count(HspObjectPath const& path, HSPCTX const* ctx
 		return 0;
 	}
 
-	// FIXME: 要素数が多すぎると動作が遅くなりすぎるので適度に打ち切るかグループ化する
 	auto pval = *pval_opt;
 	return hsx::pval_to_element_count(pval);
 }
