@@ -156,19 +156,23 @@ public:
 	}
 
 	void add(HspObjectPath const& path) {
-		if (path.child_count(objects()) == 1) {
-			auto value_path = path.child_at(0, objects());
-			switch (value_path->kind()) {
-			case HspObjectKind::Label:
-			case HspObjectKind::Str:
-			case HspObjectKind::Double:
-			case HspObjectKind::Int:
-			case HspObjectKind::Unknown:
-				add_value(path, *value_path);
-				return;
+		if (path.visual_child_count(objects()) == 1) {
+			auto value_path_opt = path.visual_child_at(0, objects());
+			assert(value_path_opt);
 
-			default:
-				break;
+			if (value_path_opt) {
+				switch ((**value_path_opt).kind()) {
+				case HspObjectKind::Label:
+				case HspObjectKind::Str:
+				case HspObjectKind::Double:
+				case HspObjectKind::Int:
+				case HspObjectKind::Unknown:
+					add_value(path, **value_path_opt);
+					return;
+
+				default:
+					break;
+				}
 			}
 		}
 
@@ -180,17 +184,22 @@ public:
 			return;
 		}
 
-		auto item_count = path.child_count(objects());
+		auto item_count = path.visual_child_count(objects());
 		for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, item_count); i++) {
-			auto item_path = path.child_at(i, objects());
-			add(*item_path);
+			auto item_path_opt = path.visual_child_at(i, objects());
+			if (!item_path_opt) {
+				assert(false);
+				continue;
+			}
+
+			add(**item_path_opt);
 		}
 	}
 
 private:
 	void add_scope(HspObjectPath const& path) {
 		auto name = path.name(objects());
-		auto item_count = path.child_count(objects());
+		auto item_count = path.visual_child_count(objects());
 
 		auto value = Utf8String{ as_utf8(u8"(") };
 		value += as_utf8(std::to_string(item_count));
