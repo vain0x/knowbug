@@ -133,6 +133,18 @@ static auto create_general_content(HSP3DEBUG* debug) -> Utf8String {
 	return to_utf8(as_hsp(buffer.str()));
 }
 
+static auto path_to_visual_child_count_default(HspObjectPath const& path, HspObjects& objects) -> std::size_t {
+	return path.child_count(objects);
+}
+
+static auto path_to_visual_child_at_default(HspObjectPath const& path, std::size_t child_index, HspObjects& objects) -> std::optional<std::shared_ptr<HspObjectPath const>> {
+	if (child_index >= path.child_count(objects)) {
+		return std::nullopt;
+	}
+
+	return path.child_at(child_index, objects);
+}
+
 static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<PVal const*> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
@@ -326,30 +338,6 @@ static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_in
 		throw new std::out_of_range{ u8"child_index" };
 	}
 
-	if (!hsx::pval_is_standard_array(*pval_opt, ctx)) {
-		// FIXME: element_path_to_child_at と重複している。
-		auto type = hsx::pval_to_type(*pval_opt);
-		switch (type) {
-		case hsx::HspType::Label:
-			return path.new_label();
-
-		case hsx::HspType::Str:
-			return path.new_str();
-
-		case hsx::HspType::Double:
-			return path.new_double();
-
-		case hsx::HspType::Int:
-			return path.new_int();
-
-		case hsx::HspType::Struct:
-			return path.new_flex();
-
-		default:
-			return path.new_unknown();
-		}
-	}
-
 	auto pval = *pval_opt;
 	auto aptr = (APTR)child_index;
 	auto&& indexes_opt = hsx::element_to_indexes(pval, aptr);
@@ -358,6 +346,44 @@ static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_in
 	}
 
 	return path.new_element(*indexes_opt);
+}
+
+static auto var_path_to_visual_child_count(HspObjectPath const& path, HSPCTX const* ctx, HspObjects& objects) -> std::size_t {
+	auto&& pval_opt = path_to_pval(path, MIN_DEPTH, ctx);
+	if (!pval_opt) {
+		return 0;
+	}
+
+	// 配列でなければ要素の子要素を直接配置する。
+	if (!hsx::pval_is_standard_array(*pval_opt, ctx)) {
+		if (var_path_to_child_count(path, ctx) == 0) {
+			return 0;
+		}
+
+		auto child_path = var_path_to_child_at(path, 0, ctx);
+		return child_path->visual_child_count(objects);
+	}
+
+	return path_to_visual_child_count_default(path, objects);
+}
+
+static auto var_path_to_visual_child_at(HspObjectPath const& path, std::size_t child_index, HSPCTX const* ctx, HspObjects& objects) -> std::optional<std::shared_ptr<HspObjectPath const>> {
+	auto pval_opt = path_to_pval(path, MIN_DEPTH, ctx);
+	if (!pval_opt) {
+		assert(false && u8"Invalid var path child index");
+		return std::nullopt;
+	}
+
+	if (!hsx::pval_is_standard_array(*pval_opt, ctx)) {
+		if (var_path_to_child_count(path, ctx) == 0) {
+			return std::nullopt;
+		}
+
+		auto child_path = var_path_to_child_at(path, 0, ctx);
+		return child_path->visual_child_at(child_index, objects);
+	}
+
+	return path_to_visual_child_at_default(path, child_index, objects);
 }
 
 static auto var_path_to_metadata(HspObjectPath const& path, HSPCTX const* ctx) -> std::optional<hsx::HspVarMetadata> {
@@ -592,6 +618,14 @@ auto HspObjects::root_path() const->HspObjectPath::Root const& {
 	return root_path_->as_root();
 }
 
+auto HspObjects::path_to_visual_child_count(HspObjectPath const& path)->std::size_t {
+	return (::path_to_visual_child_count_default)(path, *this);
+}
+
+auto HspObjects::path_to_visual_child_at(HspObjectPath const& path, std::size_t child_index)->std::optional<std::shared_ptr<HspObjectPath const>> {
+	return (::path_to_visual_child_at_default)(path, child_index, *this);
+}
+
 auto HspObjects::path_to_memory_view(HspObjectPath const& path) const->std::optional<MemoryView> {
 	return (::path_to_memory_view(path, MIN_DEPTH, context()));
 }
@@ -658,6 +692,14 @@ auto HspObjects::static_var_path_to_child_count(HspObjectPath::StaticVar const& 
 
 auto HspObjects::static_var_path_to_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index) const->std::shared_ptr<HspObjectPath const> {
 	return var_path_to_child_at(path, child_index, context());
+}
+
+auto HspObjects::static_var_path_to_visual_child_count(HspObjectPath::StaticVar const& path)->std::size_t {
+	return var_path_to_visual_child_count(path, context(), *this);
+}
+
+auto HspObjects::static_var_path_to_visual_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index)->std::optional<std::shared_ptr<HspObjectPath const>> {
+	return var_path_to_visual_child_at(path, child_index, context(), *this);
 }
 
 auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> hsx::HspVarMetadata {

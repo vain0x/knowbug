@@ -48,6 +48,10 @@ public:
 
 	auto root_path() const->HspObjectPath::Root const&;
 
+	auto path_to_visual_child_count(HspObjectPath const& path)->std::size_t;
+
+	auto path_to_visual_child_at(HspObjectPath const& path, std::size_t child_index)->std::optional<std::shared_ptr<HspObjectPath const>>;
+
 	auto path_to_memory_view(HspObjectPath const& path) const->std::optional<MemoryView>;
 
 	auto type_to_name(hsx::HspType type) const->Utf8StringView;
@@ -71,6 +75,10 @@ public:
 	auto static_var_path_to_child_count(HspObjectPath::StaticVar const& path) const->std::size_t;
 
 	auto static_var_path_to_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index) const->std::shared_ptr<HspObjectPath const>;
+
+	auto static_var_path_to_visual_child_count(HspObjectPath::StaticVar const& path)->std::size_t;
+
+	auto static_var_path_to_visual_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index)->std::optional<std::shared_ptr<HspObjectPath const>>;
 
 	auto static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> hsx::HspVarMetadata;
 

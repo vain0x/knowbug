@@ -219,6 +219,14 @@ public:
 		return objects.static_var_path_to_child_at(*this, child_index);
 	}
 
+	auto visual_child_count(HspObjects& objects) const->std::size_t override {
+		return objects.static_var_path_to_visual_child_count(*this);
+	}
+
+	auto visual_child_at(std::size_t child_index, HspObjects& objects) const->std::optional<std::shared_ptr<HspObjectPath const>> override {
+		return objects.static_var_path_to_visual_child_at(*this, child_index);
+	}
+
 	auto name(HspObjects& objects) const -> Utf8String override {
 		return objects.static_var_path_to_name(*this);
 	}

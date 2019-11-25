@@ -21,16 +21,12 @@ auto HspObjectPath::hash() const -> std::size_t {
 	return HashCode::from(parent().hash()).combine(kind()).combine(do_hash()).value();
 }
 
-auto HspObjectPath::visual_child_count(HspObjects& objects) const->std::size_t {
-	return child_count(objects);
+auto HspObjectPath::visual_child_count(HspObjects& objects) const -> std::size_t {
+	return objects.path_to_visual_child_count(*this);
 }
 
-// 表示のための子要素を取得する。
-auto HspObjectPath::visual_child_at(std::size_t child_index, HspObjects& objects) const->std::optional<std::shared_ptr<HspObjectPath const>> {
-	if (child_index >= visual_child_count(objects)) {
-		return std::nullopt;
-	}
-	return child_at(child_index, objects);
+auto HspObjectPath::visual_child_at(std::size_t child_index, HspObjects& objects) const -> std::optional<std::shared_ptr<HspObjectPath const>> {
+	return objects.path_to_visual_child_at(*this, child_index);
 }
 
 auto HspObjectPath::memory_view(HspObjects& objects) const -> std::optional<MemoryView> {
