@@ -118,6 +118,14 @@ public:
 
 	virtual auto child_at(std::size_t index, HspObjects& objects) const->std::shared_ptr<HspObjectPath const> = 0;
 
+	// 表示のための子要素の個数。
+	// 基本的には child_at と同じだが、表示の都合で異なる場合がある。
+	// 例えば子要素が多いときはグループノードが生成される。
+	virtual auto visual_child_count(HspObjects& objects) const->std::size_t;
+
+	// 表示のための子要素を取得する。
+	virtual auto visual_child_at(std::size_t child_index, HspObjects& objects) const->std::optional<std::shared_ptr<HspObjectPath const>>;
+
 	// FIXME: 名前のないノードのときはどうする？
 	virtual auto name(HspObjects& objects) const->Utf8String = 0;
 
