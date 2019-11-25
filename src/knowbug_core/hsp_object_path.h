@@ -69,10 +69,10 @@ class HspObjectPath::Group final
 
 public:
 	// グループノードの要素数の最大値。
-	static constexpr auto MAX_CHILD_COUNT = std::size_t{ 500 };
+	static constexpr auto MAX_CHILD_COUNT = std::size_t{ 100 };
 
 	// これ以上の要素数を持つノードには、グループノードを挟む。
-	static constexpr auto THRESHOLD = std::size_t{ 700 };
+	static constexpr auto THRESHOLD = std::size_t{ 201 };
 
 	Group(std::shared_ptr<HspObjectPath const> parent, std::size_t offset)
 		: parent_(std::move(parent))

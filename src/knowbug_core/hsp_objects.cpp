@@ -16,7 +16,7 @@ static auto const MIN_DEPTH = std::size_t{};
 static auto const MAX_DEPTH = std::size_t{ 32 };
 
 // ビジュアルツリーの子要素数の最大値
-static auto const MAX_VISUAL_CHILD_COUNT = std::size_t{ 500 };
+static constexpr auto MAX_VISUAL_CHILD_COUNT = HspObjectPath::Group::MAX_CHILD_COUNT;
 
 static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::HspParamData>;
 
