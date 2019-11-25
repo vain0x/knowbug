@@ -280,6 +280,10 @@ class HspObjectWriterImpl::TableForm
 public:
 	TableForm(HspObjects& objects, StringWriter& writer);
 
+	void accept(HspObjectPath const& path) override;
+
+	void accept(std::optional<std::shared_ptr<HspObjectPath const>> const& path_opt);
+
 	void accept_default(HspObjectPath const& path) override;
 
 	void accept_children(HspObjectPath const& path) override;
@@ -313,6 +317,8 @@ public:
 
 	void accept(HspObjectPath const& path) override;
 
+	void accept(std::optional<std::shared_ptr<HspObjectPath const>> const& path_opt);
+
 	void accept_default(HspObjectPath const& path) override;
 
 	void accept_children(HspObjectPath const& path) override;
@@ -345,6 +351,10 @@ class HspObjectWriterImpl::FlowForm
 {
 public:
 	FlowForm(HspObjects& objects, StringWriter& writer);
+
+	void accept(HspObjectPath const& path);
+
+	void accept(std::optional<std::shared_ptr<HspObjectPath const>> const& path_opt);
 
 	void accept_children(HspObjectPath const& path) override;
 
@@ -403,11 +413,24 @@ void HspObjectWriterImpl::TableForm::write_name(HspObjectPath const& path) {
 	w.cat_line(u8"]");
 }
 
+void HspObjectWriterImpl::TableForm::accept(HspObjectPath const& path) {
+	Visitor::accept(path);
+}
+
+void HspObjectWriterImpl::TableForm::accept(std::optional<std::shared_ptr<HspObjectPath const>> const& path_opt) {
+	if (!path_opt) {
+		writer().cat(u8"???");
+		return;
+	}
+
+	Visitor::accept(**path_opt);
+}
+
 void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
 	auto&& o = objects();
 	auto&& w = writer();
 
-	if (path.child_count(o) == 0) {
+	if (path.visual_child_count(o) == 0) {
 		write_name(path);
 		to_block_form().accept(path);
 		return;
@@ -428,9 +451,9 @@ void HspObjectWriterImpl::TableForm::accept_children(HspObjectPath const& path) 
 	auto&& w = writer();
 	auto&& o = objects();
 
-	auto child_count = path.child_count(o);
+	auto child_count = path.visual_child_count(o);
 	for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, child_count); i++) {
-		accept(*path.child_at(i, o));
+		accept(*path.visual_child_at(i, o));
 	}
 
 	if (child_count >= MAX_CHILD_COUNT) {
@@ -568,6 +591,15 @@ void HspObjectWriterImpl::BlockForm::accept(HspObjectPath const& path) {
 	Visitor::accept(path);
 }
 
+void HspObjectWriterImpl::BlockForm::accept(std::optional<std::shared_ptr<HspObjectPath const>> const& path_opt) {
+	if (!path_opt) {
+		writer().cat_line(u8"???");
+		return;
+	}
+
+	accept(**path_opt);
+}
+
 void HspObjectWriterImpl::BlockForm::accept_default(HspObjectPath const& path) {
 	add_name_children(path);
 }
@@ -576,9 +608,9 @@ void HspObjectWriterImpl::BlockForm::accept_children(HspObjectPath const& path) 
 	auto&& w = writer();
 	auto&& o = objects();
 
-	auto child_count = path.child_count(o);
+	auto child_count = path.visual_child_count(o);
 	for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, child_count); i++) {
-		accept(*path.child_at(i, o));
+		accept(*path.visual_child_at(i, o));
 	}
 
 	if (child_count >= MAX_CHILD_COUNT) {
@@ -678,17 +710,18 @@ void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path
 	auto&& o = objects();
 	auto&& name = path.name(o);
 
-	auto child_count = path.child_count(o);
+	auto child_count = path.visual_child_count(o);
 	if (child_count == 0) {
 		w.cat_line(name.data());
 		return;
 	}
 
-	auto&& first_child = path.child_at(0, o);
-	if (child_count == 1 && object_path_is_compact(*first_child, o)) {
+	auto&& first_child_opt = path.visual_child_at(0, o);
+	assert(first_child_opt);
+	if (child_count == 1 && first_child_opt && object_path_is_compact(**first_child_opt, o)) {
 		w.cat(name.data());
 		w.cat(u8"\t= ");
-		to_block_form().accept(*first_child);
+		to_block_form().accept(**first_child_opt);
 		return;
 	}
 
@@ -708,17 +741,30 @@ HspObjectWriterImpl::FlowForm::FlowForm(HspObjects& objects, StringWriter& write
 {
 }
 
+void HspObjectWriterImpl::FlowForm::accept(HspObjectPath const& path) {
+	Visitor::accept(path);
+}
+
+void HspObjectWriterImpl::FlowForm::accept(std::optional<std::shared_ptr<HspObjectPath const>> const& path_opt) {
+	if (!path_opt) {
+		writer().cat(u8"???");
+		return;
+	}
+
+	accept(**path_opt);
+}
+
 void HspObjectWriterImpl::FlowForm::accept_children(HspObjectPath const& path) {
 	auto&& w = writer();
 	auto&& o = objects();
 
-	auto child_count = path.child_count(o);
+	auto child_count = path.visual_child_count(o);
 	for (auto i = std::size_t{}; i < std::min(MAX_CHILD_COUNT, child_count); i++) {
 		if (i != 0) {
 			w.cat(u8", ");
 		}
 
-		accept(*path.child_at(i, o));
+		accept(*path.visual_child_at(i, o));
 	}
 
 	if (child_count >= MAX_CHILD_COUNT) {
@@ -730,7 +776,7 @@ void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const
 	auto&& w = writer();
 	auto type = path.type(objects());
 	auto&& type_name = objects().type_to_name(type);
-	auto child_count = path.child_count(objects());
+	auto child_count = path.visual_child_count(objects());
 
 	if (!path.is_array(objects())) {
 		accept_children(path);
@@ -798,8 +844,8 @@ void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
 	write_flex_module_name(w, module_name, is_clone_opt);
 	w.cat(u8"{");
 
-	for (auto i = std::size_t{}; i < path.child_count(o); i++) {
-		auto&& child_path = path.child_at(i, o);
+	for (auto i = std::size_t{}; i < path.visual_child_count(o); i++) {
+		auto&& child_path = path.visual_child_at(i, o);
 
 		if (i != 0) {
 			w.cat(u8", ");
