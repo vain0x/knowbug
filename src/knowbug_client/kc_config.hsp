@@ -16,7 +16,7 @@
 	}
 	return
 
-#deffunc app_config_get str key, str default_value, \
+#deffunc app_config_get_str str key, str default_value, \
 	local value
 
 	assert s_count >= 0
@@ -31,5 +31,11 @@
 	loop
 
 	return value
+
+#deffunc app_config_get_int str key, int default_value, \
+	local value
+
+	app_config_get_str key, str(default_value)
+	return int(refstr)
 
 #global

@@ -235,36 +235,36 @@
 
 #deffunc app_ui_config_init
 
-	app_config_get "ui_font_family", "MS Gothic"
+	app_config_get_str "ui_font_family", "MS Gothic"
 	s_default_font_family = refstr
 
-	app_config_get "ui_font_size", "13"
-	s_default_font_size = limit(int(refstr), 8, 100)
+	app_config_get_int "ui_font_size", 13
+	s_default_font_size = limit(stat, 8, 100)
 
 	return
 
 #deffunc app_ui_layout_init
 
-	app_config_get "ui_main_window_width", "640"
-	s_main_window_width = limit(int(refstr), 100, ginfo_dispx)
+	app_config_get_int "ui_main_window_width", 640
+	s_main_window_width = limit(stat, 100, ginfo_dispx)
 
-	app_config_get "ui_main_window_height", "480"
-	s_main_window_height = limit(int(refstr), 100, ginfo_dispy)
+	app_config_get_int "ui_main_window_height", 480
+	s_main_window_height = limit(stat, 100, ginfo_dispy)
 
-	app_config_get "ui_main_window_left", "-640"
-	s_main_window_left = int(refstr)
+	app_config_get_int "ui_main_window_left", -640
+	s_main_window_left = stat
 	if s_main_window_left < 0 {
 		s_main_window_left += ginfo_dispx - 4
 	}
 
-	app_config_get "ui_main_window_top", "-480"
-	s_main_window_top = int(refstr)
+	app_config_get_int "ui_main_window_top", -480
+	s_main_window_top = stat
 	if s_main_window_top < 0 {
 		s_main_window_top += ginfo_dispy - 72 // FIXME: タスクバーの幅を取得
 	}
 
-	app_config_get "ui_details_window_height", "320"
-	s_details_window_height = limit(int(refstr), 80)
+	app_config_get_int "ui_details_window_height", 320
+	s_details_window_height = limit(stat, 80)
 
 	app_ui_layout_arrange
 	return
