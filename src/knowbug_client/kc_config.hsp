@@ -32,10 +32,16 @@
 
 	return value
 
-#deffunc app_config_get_int str key, int default_value, \
-	local value
+#deffunc app_config_get_int str key, int default_value
 
+	// FIXME: 整数でなければ警告
 	app_config_get_str key, str(default_value)
 	return int(refstr)
+
+#deffunc app_config_get_bool str key, int default_value
+
+	// FIXME: 1/0, true/false, yes/no 以外なら警告
+	app_config_get_str key, str(default_value != 0)
+	return refstr == "1" || refstr == "true" || refstr == "yes"
 
 #global

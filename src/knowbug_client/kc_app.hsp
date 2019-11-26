@@ -23,7 +23,7 @@
 
 #define global gsel_hide        (-1)
 #define global gsel_show        1
-#define global gsel_activate    2
+#define global gsel_top_most    2
 
 #define global mesbox_readonly  0
 
@@ -124,6 +124,10 @@
 #define global LVHT_ONITEMLABEL             0x00000004
 #define global LVHT_ONITEMSTATEICON         0x00000008
 #define global LVHT_ONITEM                  (LVHT_ONITEMICON | LVHT_ONITEMLABEL | LVHT_ONITEMSTATEICON)
+
+#define global HWND_TOPMOST      (-1)
+#define global SWP_NOSIZE        0x0001
+#define global SWP_NOMOVE        0x0002
 
 // -----------------------------------------------
 // ヘルパー
@@ -230,10 +234,13 @@
 	onkey gosub *l_on_key
 	onexit gosub *l_on_exit
 
-	gsel s_main_window_id, gsel_show
+	app_main_window_show
 	return
 
 #deffunc app_ui_config_init
+
+	app_config_get_bool "ui_main_window_top_most", false
+	s_main_window_top_most = stat
 
 	app_config_get_str "ui_default_font_family", "MS Gothic"
 	s_default_font_family = refstr
@@ -498,6 +505,15 @@
 	width s_details_window_width, s_details_window_height, s_details_window_left, s_details_window_top
 	return
 
+#deffunc app_main_window_show
+
+	gsel s_main_window_id, gsel_show
+
+	if s_main_window_top_most {
+		SetWindowPos s_main_window_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE
+	}
+	return
+
 // -----------------------------------------------
 // 詳細ウィンドウ
 // -----------------------------------------------
@@ -531,14 +547,14 @@
 
 #deffunc app_details_window_show
 
-	gsel s_details_window_id, gsel_activate
+	gsel s_details_window_id, gsel_show
 	return
 
 #deffunc app_details_window_hide
 
 	s_current_object_id = -1
 	gsel s_details_window_id, gsel_hide
-	gsel s_main_window_id, gsel_activate
+	gsel s_main_window_id, gsel_show
 	return
 
 *l_details_window_on_size
@@ -1173,13 +1189,13 @@
 	gsel s_help_window_id
 	width , , window_left, window_top
 
-	gsel s_help_window_id, gsel_activate
+	gsel s_help_window_id, gsel_show
 	return
 
 #deffunc app_help_window_hide
 
 	gsel s_help_window_id, gsel_hide
-	gsel s_main_window_id, gsel_activate
+	gsel s_main_window_id, gsel_show
 	return
 
 // -----------------------------------------------
