@@ -1,0 +1,73 @@
+// 設定ファイル操作モジュール
+// LICENSE: PUBLIC DOMAIN
+
+// - 文字コードは UTF-8 (BOM なし)
+// - 改行コードは LF または CRLF
+// - '#' で始まる行や、'=' を含まない行は無視する。
+// - 雑実装
+
+#ifndef included_mod_config_hsp
+#define included_mod_config_hsp
+
+#module m_config
+
+#define true 1
+#define false 0
+
+// 設定ファイルをロードする。
+//
+// %prm
+// file_name, keys, values
+//
+// str file_name: ロードするファイル名
+// array keys: キーが格納される配列変数
+// array values: 値が格納される配列変数
+// stat: キーと値の個数 または -1
+//
+// %inst
+// 設定ファイルをロードして、キーと値のペアを配列 keys, values に格納し、
+// その件数を stat に設定する。
+// ファイルが存在しなければ stat < 0 になる。
+#deffunc config_load str file_name, array keys, array values, \
+	local text, local text_len
+
+	exist file_name
+	text_len = strsize
+	if text_len < 0 {
+		return -1
+	}
+
+	sdim text, text_len + 1
+	bload file_name, text, text_len
+
+	config_to_assoc text, text_len, keys, values
+	return stat
+
+#deffunc config_to_assoc var text, int text_len, array keys, array values, \
+	local count, local row, local sep
+
+	notesel text
+	repeat notemax
+		noteget row, cnt
+
+		if peek(row) == '#' {
+			continue
+		}
+
+		sep = instr(row, 0, "=")
+		if sep < 0 {
+			continue
+		}
+
+		keys(count) = strmid(row, 0, sep)
+		keys(count) = strtrim(keys(count))
+		values(count) = strmid(row, sep + 1, 0x7fffffff)
+		values(count) = strtrim(values(count))
+		count++
+	loop
+	noteunsel
+	return count
+
+#global
+
+#endif
