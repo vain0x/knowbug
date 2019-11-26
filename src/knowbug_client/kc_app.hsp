@@ -221,6 +221,7 @@
 
 	gsel s_default_window_id, gsel_hide
 
+	app_ui_config_init
 	app_ui_layout_init
 	app_details_window_create
 	app_help_window_create
@@ -230,6 +231,16 @@
 	onexit gosub *l_on_exit
 
 	gsel s_main_window_id, gsel_show
+	return
+
+#deffunc app_ui_config_init
+
+	app_config_get "ui_font_family", "MS Gothic"
+	s_default_font_family = refstr
+
+	app_config_get "ui_font_size", "13"
+	s_default_font_size = limit(int(refstr), 8, 100)
+
 	return
 
 #deffunc app_ui_layout_init
@@ -370,7 +381,7 @@
 	hsvcolor , , 0xfc
 	boxf
 
-	font "MS Gothic", 13
+	font s_default_font_family, s_default_font_size
 	objmode objmode_font
 
 	app_list_view_create
@@ -497,7 +508,7 @@
 
 	title s_details_window_title
 
-	font "MS Gothic", 13
+	font s_default_font_family, s_default_font_size
 	objmode objmode_font
 
 	mesbox s_details_text, s_details_window_width, s_details_window_height, mesbox_readonly
@@ -562,7 +573,7 @@
 	app_list_view_insert_column 0, "名前", s_list_view_name_column_width
 	app_list_view_insert_column 1, "値", s_list_view_value_column_width
 
-	hspish_font_set_object_font s_list_view_hwnd, "MS Gothic", 13
+	hspish_font_set_object_font s_list_view_hwnd, s_default_font_family, s_default_font_size
 	return
 
 #deffunc app_list_view_insert_column int column_index, str text, int column_width, \
@@ -818,7 +829,7 @@
 	s_source_path_edit_id = stat
 	s_source_path_edit_hwnd = objinfo_hwnd(s_source_path_edit_id)
 
-	hspish_font_set_object_font s_source_path_edit_hwnd, "MS Gothic", 13
+	hspish_font_set_object_font s_source_path_edit_hwnd, s_default_font_family, s_default_font_size
 
 	// スクリプトパスボックス
 	pos s_source_path_button_left, s_source_path_button_top
@@ -837,7 +848,7 @@
 	s_source_code_edit_id = stat
 	s_source_code_edit_hwnd = objinfo_hwnd(stat)
 
-	hspish_font_set_object_font s_source_code_edit_hwnd, "MS Gothic", 13
+	hspish_font_set_object_font s_source_code_edit_hwnd, s_default_font_family, s_default_font_size
 	return
 
 #deffunc app_source_code_edit_update int source_file_id, int line_index, \
