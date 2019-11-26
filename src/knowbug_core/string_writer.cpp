@@ -56,7 +56,7 @@ void StringWriter::cat_limited(Utf8StringView str) {
 		return;
 	}
 
-	if (str.size() > limit_) {
+	if (str.size() + TRIMMED_SUFFIX.size() > limit_) {
 		if (limit_ < TRIMMED_SUFFIX.size()) {
 			buf_ += str.substr(0, limit_);
 			limit_ = 0;
