@@ -235,10 +235,10 @@
 
 #deffunc app_ui_config_init
 
-	app_config_get_str "ui_font_family", "MS Gothic"
+	app_config_get_str "ui_default_font_family", "MS Gothic"
 	s_default_font_family = refstr
 
-	app_config_get_int "ui_font_size", 13
+	app_config_get_int "ui_default_font_size", 13
 	s_default_font_size = limit(stat, 8, 100)
 
 	return
