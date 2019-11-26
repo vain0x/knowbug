@@ -101,6 +101,7 @@
 #define global LVM_INSERTCOLUMN             0x101b
 #define global LVM_SETTEXTCOLOR             0x1024
 #define global LVM_SETTEXTBKCOLOR           0x1026
+#define global LVM_SETCOLUMNWIDTH           (LVM_FIRST + 30)
 #define global LVM_SUBITEMHITTEST           (LVM_FIRST + 57)
 #define global LVM_SETEXTENDEDLISTVIEWSTYLE (LVM_FIRST + 54)
 #define global LVM_GETEXTENDEDLISTVIEWSTYLE (LVM_FIRST + 55)
@@ -500,6 +501,8 @@
 	MoveWindow s_refresh_button_hwnd, s_refresh_button_left, s_footer_top, s_help_button_width, s_help_button_height, true
 	MoveWindow s_help_button_hwnd, s_help_button_left, s_footer_top, s_help_button_width, s_help_button_height, true
 
+	app_list_view_update_column_width
+
 	// 詳細ウィンドウも一緒に移動する。
 	gsel s_details_window_id
 	width s_details_window_width, s_details_window_height, s_details_window_left, s_details_window_top
@@ -749,6 +752,14 @@
 		app_list_view_show_details int(object_id_str)
 		return
 	}
+	return
+
+#deffunc app_list_view_update_column_width
+
+	// 名前
+	sendmsg s_list_view_hwnd, LVM_SETCOLUMNWIDTH, 0, s_list_view_name_column_width
+	// 値
+	sendmsg s_list_view_hwnd, LVM_SETCOLUMNWIDTH, 1, s_list_view_value_column_width
 	return
 
 // -----------------------------------------------
