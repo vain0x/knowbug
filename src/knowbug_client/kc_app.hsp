@@ -7,6 +7,7 @@
 #include "kernel32.as"
 #include "user32.as"
 #include "mod_hspish_font.hsp"
+#include "kc_config.hsp"
 
 // -----------------------------------------------
 // HSP の定数
@@ -158,6 +159,7 @@
 #deffunc app_init
 
 	app_init_globals
+	app_config_load
 	app_ui_init
 
 	infra_connect_server

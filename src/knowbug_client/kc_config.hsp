@@ -1,0 +1,35 @@
+// アプリの設定
+
+#include "mod_config.hsp"
+
+#module m_app_config
+
+#deffunc app_config_load
+
+	sdim s_keys
+	sdim s_values
+
+	config_load "knowbug.conf", s_keys, s_values
+	s_count = limit(stat, 0)
+	if stat >= 0 {
+		logmes "INFO: 設定ファイルがロードされました。"
+	}
+	return
+
+#deffunc app_config_get str key, str default_value, \
+	local value
+
+	assert s_count >= 0
+
+	value = default_value
+
+	repeat s_count
+		if s_keys(cnt) == key {
+			value = s_values(cnt)
+			break
+		}
+	loop
+
+	return value
+
+#global
