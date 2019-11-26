@@ -5,6 +5,8 @@
 #include "hsp_objects.h"
 #include "string_writer.h"
 
+static constexpr auto MAX_FLOW_COUNT = HspObjectPath::Group::MAX_CHILD_COUNT;
+
 // -----------------------------------------------
 // ヘルパー
 // -----------------------------------------------
@@ -351,6 +353,8 @@ private:
 class HspObjectWriterImpl::FlowForm
 	: public HspObjectWriterImpl
 {
+	std::size_t count_;
+
 public:
 	FlowForm(HspObjects& objects, StringWriter& writer);
 
@@ -742,6 +746,7 @@ void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path
 
 HspObjectWriterImpl::FlowForm::FlowForm(HspObjects& objects, StringWriter& writer)
 	: HspObjectWriterImpl(objects, writer)
+	, count_()
 {
 }
 
@@ -749,6 +754,16 @@ void HspObjectWriterImpl::FlowForm::accept(HspObjectPath const& path) {
 	if (writer().is_full()) {
 		return;
 	}
+
+	// 描画件数を制限する。
+	if (count_ >= MAX_FLOW_COUNT) {
+		if (count_ == MAX_FLOW_COUNT) {
+			writer().cat(u8"...");
+			count_++;
+		}
+		return;
+	}
+	count_++;
 
 	Visitor::accept(path);
 }
@@ -768,6 +783,10 @@ void HspObjectWriterImpl::FlowForm::accept_children(HspObjectPath const& path) {
 
 	auto child_count = path.visual_child_count(o);
 	for (auto i = std::size_t{}; i < child_count; i++) {
+		if (count_ >= MAX_FLOW_COUNT) {
+			break;
+		}
+
 		if (i != 0) {
 			w.cat(u8", ");
 		}
@@ -857,6 +876,10 @@ void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
 
 		if (i != 0) {
 			w.cat(u8", ");
+		}
+
+		if (count_ >= MAX_FLOW_COUNT) {
+			break;
 		}
 		accept(*child_path);
 	}
