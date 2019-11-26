@@ -675,8 +675,8 @@ static auto get_hsp_dir() -> OsString {
 }
 
 static auto start_client_process(HWND server_hwnd) -> std::pair<ThreadHandle, ProcessHandle> {
-	auto name = get_hsp_dir();
-	name += TEXT("knowbug_client.exe");
+	auto hsp_dir = get_hsp_dir();
+	auto name = hsp_dir + TEXT("knowbug_client.exe");
 
 	auto server_hwnd_str = to_os(as_utf8(std::to_string((UINT_PTR)server_hwnd)));
 
@@ -696,7 +696,7 @@ static auto start_client_process(HWND server_hwnd) -> std::pair<ThreadHandle, Pr
 		FALSE,
 		NORMAL_PRIORITY_CLASS,
 		LPTSTR{},
-		LPCTSTR{},
+		hsp_dir.data(),
 		&si,
 		&pi
 	);

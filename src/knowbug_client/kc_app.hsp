@@ -7,6 +7,7 @@
 #include "kernel32.as"
 #include "user32.as"
 #include "mod_hspish_font.hsp"
+#include "kc_config.hsp"
 
 // -----------------------------------------------
 // HSP の定数
@@ -22,7 +23,7 @@
 
 #define global gsel_hide        (-1)
 #define global gsel_show        1
-#define global gsel_activate    2
+#define global gsel_top_most    2
 
 #define global mesbox_readonly  0
 
@@ -124,6 +125,10 @@
 #define global LVHT_ONITEMSTATEICON         0x00000008
 #define global LVHT_ONITEM                  (LVHT_ONITEMICON | LVHT_ONITEMLABEL | LVHT_ONITEMSTATEICON)
 
+#define global HWND_TOPMOST      (-1)
+#define global SWP_NOSIZE        0x0001
+#define global SWP_NOMOVE        0x0002
+
 // -----------------------------------------------
 // ヘルパー
 // -----------------------------------------------
@@ -158,6 +163,7 @@
 #deffunc app_init
 
 	app_init_globals
+	app_config_load
 	app_ui_init
 
 	infra_connect_server
@@ -219,6 +225,7 @@
 
 	gsel s_default_window_id, gsel_hide
 
+	app_ui_config_init
 	app_ui_layout_init
 	app_details_window_create
 	app_help_window_create
@@ -227,17 +234,44 @@
 	onkey gosub *l_on_key
 	onexit gosub *l_on_exit
 
-	gsel s_main_window_id, gsel_show
+	app_main_window_show
+	return
+
+#deffunc app_ui_config_init
+
+	app_config_get_bool "ui_main_window_top_most", false
+	s_main_window_top_most = stat
+
+	app_config_get_str "ui_default_font_family", "MS Gothic"
+	s_default_font_family = refstr
+
+	app_config_get_int "ui_default_font_size", 13
+	s_default_font_size = limit(stat, 8, 100)
+
 	return
 
 #deffunc app_ui_layout_init
 
-	s_main_window_width = 640
-	s_main_window_height = 480
-	s_main_window_left = ginfo_dispx - s_main_window_width - 16
-	s_main_window_top =  ginfo_dispy - s_main_window_height - 72
+	app_config_get_int "ui_main_window_width", 640
+	s_main_window_width = limit(stat, 100, ginfo_dispx)
 
-	s_details_window_height = 320
+	app_config_get_int "ui_main_window_height", 480
+	s_main_window_height = limit(stat, 100, ginfo_dispy)
+
+	app_config_get_int "ui_main_window_left", -640
+	s_main_window_left = stat
+	if s_main_window_left < 0 {
+		s_main_window_left += ginfo_dispx - 4
+	}
+
+	app_config_get_int "ui_main_window_top", -480
+	s_main_window_top = stat
+	if s_main_window_top < 0 {
+		s_main_window_top += ginfo_dispy - 72 // FIXME: タスクバーの幅を取得
+	}
+
+	app_config_get_int "ui_details_window_height", 320
+	s_details_window_height = limit(stat, 80)
 
 	app_ui_layout_arrange
 	return
@@ -354,7 +388,7 @@
 	hsvcolor , , 0xfc
 	boxf
 
-	font "MS Gothic", 13
+	font s_default_font_family, s_default_font_size
 	objmode objmode_font
 
 	app_list_view_create
@@ -471,6 +505,15 @@
 	width s_details_window_width, s_details_window_height, s_details_window_left, s_details_window_top
 	return
 
+#deffunc app_main_window_show
+
+	gsel s_main_window_id, gsel_show
+
+	if s_main_window_top_most {
+		SetWindowPos s_main_window_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE
+	}
+	return
+
 // -----------------------------------------------
 // 詳細ウィンドウ
 // -----------------------------------------------
@@ -481,7 +524,7 @@
 
 	title s_details_window_title
 
-	font "MS Gothic", 13
+	font s_default_font_family, s_default_font_size
 	objmode objmode_font
 
 	mesbox s_details_text, s_details_window_width, s_details_window_height, mesbox_readonly
@@ -504,14 +547,14 @@
 
 #deffunc app_details_window_show
 
-	gsel s_details_window_id, gsel_activate
+	gsel s_details_window_id, gsel_show
 	return
 
 #deffunc app_details_window_hide
 
 	s_current_object_id = -1
 	gsel s_details_window_id, gsel_hide
-	gsel s_main_window_id, gsel_activate
+	gsel s_main_window_id, gsel_show
 	return
 
 *l_details_window_on_size
@@ -546,7 +589,7 @@
 	app_list_view_insert_column 0, "名前", s_list_view_name_column_width
 	app_list_view_insert_column 1, "値", s_list_view_value_column_width
 
-	hspish_font_set_object_font s_list_view_hwnd, "MS Gothic", 13
+	hspish_font_set_object_font s_list_view_hwnd, s_default_font_family, s_default_font_size
 	return
 
 #deffunc app_list_view_insert_column int column_index, str text, int column_width, \
@@ -802,7 +845,7 @@
 	s_source_path_edit_id = stat
 	s_source_path_edit_hwnd = objinfo_hwnd(s_source_path_edit_id)
 
-	hspish_font_set_object_font s_source_path_edit_hwnd, "MS Gothic", 13
+	hspish_font_set_object_font s_source_path_edit_hwnd, s_default_font_family, s_default_font_size
 
 	// スクリプトパスボックス
 	pos s_source_path_button_left, s_source_path_button_top
@@ -821,7 +864,7 @@
 	s_source_code_edit_id = stat
 	s_source_code_edit_hwnd = objinfo_hwnd(stat)
 
-	hspish_font_set_object_font s_source_code_edit_hwnd, "MS Gothic", 13
+	hspish_font_set_object_font s_source_code_edit_hwnd, s_default_font_family, s_default_font_size
 	return
 
 #deffunc app_source_code_edit_update int source_file_id, int line_index, \
@@ -1146,13 +1189,13 @@
 	gsel s_help_window_id
 	width , , window_left, window_top
 
-	gsel s_help_window_id, gsel_activate
+	gsel s_help_window_id, gsel_show
 	return
 
 #deffunc app_help_window_hide
 
 	gsel s_help_window_id, gsel_hide
-	gsel s_main_window_id, gsel_activate
+	gsel s_main_window_id, gsel_show
 	return
 
 // -----------------------------------------------
