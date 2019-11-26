@@ -234,10 +234,23 @@
 
 #deffunc app_ui_layout_init
 
-	s_main_window_width = 640
-	s_main_window_height = 480
-	s_main_window_left = ginfo_dispx - s_main_window_width - 16
-	s_main_window_top =  ginfo_dispy - s_main_window_height - 72
+	app_config_get "ui_main_window_width", "640"
+	s_main_window_width = limit(int(refstr), 100, ginfo_dispx)
+
+	app_config_get "ui_main_window_height", "480"
+	s_main_window_height = limit(int(refstr), 100, ginfo_dispy)
+
+	app_config_get "ui_main_window_left", "-640"
+	s_main_window_left = int(refstr)
+	if s_main_window_left < 0 {
+		s_main_window_left += ginfo_dispx - 4
+	}
+
+	app_config_get "ui_main_window_top", "-480"
+	s_main_window_top = int(refstr)
+	if s_main_window_top < 0 {
+		s_main_window_top += ginfo_dispy - 72 // FIXME: タスクバーの幅を取得
+	}
 
 	s_details_window_height = 320
 
