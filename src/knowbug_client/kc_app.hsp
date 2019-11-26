@@ -107,6 +107,7 @@
 #define global LVM_GETEXTENDEDLISTVIEWSTYLE (LVM_FIRST + 55)
 #define global LVM_SETITEMW                 (LVM_FIRST + 76)
 #define global LVM_INSERTITEMW              (LVM_FIRST + 77)
+#define global LVM_INSERTCOLUMNW            (LVM_FIRST + 97)
 
 #define global LBN_DBLCLK       2
 
@@ -596,18 +597,19 @@
 	return
 
 #deffunc app_list_view_insert_column int column_index, str text, int column_width, \
-	local text_var, local lvcolumn, local mask
+	local os_text_var, local lvcolumn, local mask
 
-	text_var = text
+	sdim os_text_var, strlen(text) * 2 + 2
+	cnvstow os_text_var, text
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvcolumna
 	dim lvcolumn, 11
 	lvcolumn(0) = LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM
 	lvcolumn(2) = column_width
-	lvcolumn(3) = varptr(text_var)
+	lvcolumn(3) = varptr(os_text_var)
 	lvcolumn(5) = column_index // ?
 
-	sendmsg s_list_view_hwnd, LVM_INSERTCOLUMN, column_index, varptr(lvcolumn)
+	sendmsg s_list_view_hwnd, LVM_INSERTCOLUMNW, column_index, varptr(lvcolumn)
 	assert stat >= 0
 	return
 
