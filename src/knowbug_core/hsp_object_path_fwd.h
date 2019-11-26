@@ -17,6 +17,9 @@ enum class HspObjectKind {
 	// グループ
 	Group,
 
+	// 省略 (「残りは省略されました」の部分)
+	Ellipsis,
+
 	// モジュール
 	Module,
 
@@ -73,6 +76,7 @@ public:
 	class Visitor;
 	class Root;
 	class Group;
+	class Ellipsis;
 	class Module;
 	class StaticVar;
 	class Element;
@@ -118,6 +122,14 @@ public:
 
 	virtual auto child_at(std::size_t index, HspObjects& objects) const->std::shared_ptr<HspObjectPath const> = 0;
 
+	// 表示のための子要素の個数。
+	// 基本的には child_at と同じだが、表示の都合で異なる場合がある。
+	// 例えば子要素が多いときはグループノードが生成される。
+	virtual auto visual_child_count(HspObjects& objects) const->std::size_t;
+
+	// 表示のための子要素を取得する。
+	virtual auto visual_child_at(std::size_t child_index, HspObjects& objects) const->std::optional<std::shared_ptr<HspObjectPath const>>;
+
 	// FIXME: 名前のないノードのときはどうする？
 	virtual auto name(HspObjects& objects) const->Utf8String = 0;
 
@@ -160,6 +172,8 @@ public:
 
 	auto as_group() const->HspObjectPath::Group const&;
 
+	auto as_ellipsis() const->HspObjectPath::Ellipsis const&;
+
 	auto as_module() const->HspObjectPath::Module const&;
 
 	auto as_static_var() const->HspObjectPath::StaticVar const&;
@@ -197,6 +211,8 @@ public:
 	auto as_unavailable() const->HspObjectPath::Unavailable const&;
 
 	auto new_group(std::size_t offset) const->std::shared_ptr<HspObjectPath const>;
+
+	auto new_ellipsis(std::size_t total_count) const->std::shared_ptr<HspObjectPath const>;
 
 protected:
 	auto new_module(std::size_t module_id) const->std::shared_ptr<HspObjectPath const>;

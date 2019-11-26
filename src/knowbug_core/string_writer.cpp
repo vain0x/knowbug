@@ -7,7 +7,7 @@
 
 static auto const TRIMMED_SUFFIX = as_utf8(u8"(too long)");
 
-static auto const DEFAULT_LIMIT = std::size_t{ 0x8000 };
+static auto const DEFAULT_LIMIT = std::size_t{ 0x2000 };
 
 StringWriter::StringWriter()
 	: buf_()
@@ -56,7 +56,7 @@ void StringWriter::cat_limited(Utf8StringView str) {
 		return;
 	}
 
-	if (str.size() > limit_) {
+	if (str.size() + TRIMMED_SUFFIX.size() > limit_) {
 		if (limit_ < TRIMMED_SUFFIX.size()) {
 			buf_ += str.substr(0, limit_);
 			limit_ = 0;

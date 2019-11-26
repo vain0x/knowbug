@@ -21,6 +21,14 @@ auto HspObjectPath::hash() const -> std::size_t {
 	return HashCode::from(parent().hash()).combine(kind()).combine(do_hash()).value();
 }
 
+auto HspObjectPath::visual_child_count(HspObjects& objects) const -> std::size_t {
+	return objects.path_to_visual_child_count(*this);
+}
+
+auto HspObjectPath::visual_child_at(std::size_t child_index, HspObjects& objects) const -> std::optional<std::shared_ptr<HspObjectPath const>> {
+	return objects.path_to_visual_child_at(*this, child_index);
+}
+
 auto HspObjectPath::memory_view(HspObjects& objects) const -> std::optional<MemoryView> {
 	return objects.path_to_memory_view(*this);
 }
@@ -87,7 +95,7 @@ auto HspObjectPath::as_group() const -> HspObjectPath::Group const& {
 
 auto HspObjectPath::Group::child_count(HspObjects& objects) const->std::size_t {
 	auto n = parent().child_count(objects);
-	return n - std::min(n, offset());
+	return std::min(n - std::min(n, offset()), MAX_CHILD_COUNT);
 }
 
 auto HspObjectPath::Group::child_at(std::size_t child_index, HspObjects& objects) const->std::shared_ptr<HspObjectPath const> {
@@ -97,7 +105,7 @@ auto HspObjectPath::Group::child_at(std::size_t child_index, HspObjects& objects
 		return new_unavailable(to_owned(as_utf8(u8"out of range")));
 	}
 
-	return parent().child_at(n, objects);
+	return parent().child_at(i, objects);
 }
 
 auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
@@ -107,7 +115,7 @@ auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
 	}
 
 	auto first_index = offset();
-	auto last_index = std::min(n, offset() + THRESHOLD - 1);
+	auto last_index = std::min(n, offset() + MAX_CHILD_COUNT - 1);
 	assert(first_index < last_index);
 
 	auto name = parent().child_at(first_index, objects)->name(objects);
@@ -116,6 +124,35 @@ auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
 	name += as_utf8(u8"...");
 	name += last;
 	return name;
+}
+
+// -----------------------------------------------
+// 省略パス
+// -----------------------------------------------
+
+auto HspObjectPath::new_ellipsis(std::size_t total_count) const -> std::shared_ptr<HspObjectPath const> {
+	return std::make_shared<HspObjectPath::Ellipsis>(self(), total_count);
+}
+
+auto HspObjectPath::as_ellipsis() const -> HspObjectPath::Ellipsis const& {
+	if (kind() != HspObjectKind::Ellipsis) {
+		assert(false && u8"Casting to ellipsis");
+		throw new std::bad_cast{};
+	}
+	return *(HspObjectPath::Ellipsis const*)this;
+}
+
+auto HspObjectPath::Ellipsis::child_count(HspObjects& objects) const->std::size_t {
+	return 0;
+}
+
+auto HspObjectPath::Ellipsis::child_at(std::size_t child_index, HspObjects& objects) const->std::shared_ptr<HspObjectPath const> {
+	assert(false);
+	throw std::exception{};
+}
+
+auto HspObjectPath::Ellipsis::name(HspObjects& objects) const->Utf8String {
+	return to_owned(as_utf8(u8"..."));
 }
 
 // -----------------------------------------------

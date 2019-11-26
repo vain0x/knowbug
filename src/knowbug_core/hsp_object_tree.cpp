@@ -6,7 +6,6 @@
 #include "hsp_objects.h"
 #include "hsp_object_tree.h"
 
-static auto const MAX_CHILD_COUNT = std::size_t{ 300 };
 static auto const MAX_UPDATE_COUNT = std::size_t{ 100000 };
 
 // オブジェクトツリーの自動更新にかかる制限
@@ -254,7 +253,7 @@ private:
 		auto&& path = nodes_.at(node_id).path();
 		auto is_expanded = nodes_.at(node_id).expanded();
 
-		auto child_count = std::min(MAX_CHILD_COUNT, path.child_count(objects()));
+		auto child_count = path.visual_child_count(objects());
 
 		limit.add_count(child_count);
 		if (!limit.ok()) {
@@ -265,9 +264,12 @@ private:
 			// 初回: ノードを順番通りに挿入する。
 
 			for (auto i = std::size_t{}; i < child_count; i++) {
-				auto&& child_path = path.child_at(i, objects());
+				auto&& child_path_opt = path.visual_child_at(i, objects());
+				if (!child_path_opt) {
+					continue;
+				}
 
-				auto child_node_id = do_create_node(node_id, child_path);
+				auto child_node_id = do_create_node(node_id, *child_path_opt);
 				children.push_back(child_node_id);
 				observer.did_create(child_node_id, HspObjectTreeInsertMode::Back);
 			}
@@ -281,10 +283,10 @@ private:
 			auto n = std::size_t{};
 
 			while (n < std::min(children.size(), child_count)) {
-				auto&& child_path = path.child_at(child_count - n - 1, objects());
+				auto&& child_path_opt = path.visual_child_at(child_count - n - 1, objects());
 				auto&& child_node = nodes_.at(children[children.size() - n - 1]);
 
-				if (!child_path->equals(child_node.path())) {
+				if (!child_path_opt || !(**child_path_opt).equals(child_node.path())) {
 					break;
 				}
 
@@ -302,9 +304,12 @@ private:
 			for (auto i = child_count - n; i >= 1;) {
 				i--;
 
-				auto&& child_path = path.child_at(i, objects());
+				auto&& child_path_opt = path.visual_child_at(i, objects());
+				if (!child_path_opt) {
+					continue;
+				}
 
-				auto child_node_id = do_create_node(node_id, child_path);
+				auto child_node_id = do_create_node(node_id, *child_path_opt);
 				children.insert(children.begin(), child_node_id);
 				observer.did_create(child_node_id, HspObjectTreeInsertMode::Front);
 			}
