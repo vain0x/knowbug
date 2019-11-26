@@ -1,8 +1,8 @@
-// Test on the shift_jis runtime.
+// mod_unicode_cnv のテスト。shift_jis ランタイム版。
 
 #include "mod_unicode_cnv.hsp"
 
-	// Empty.
+	// 空の文字列。
 	sjis_str = ""
 	sjis_len = strlen(sjis_str)
 
@@ -12,8 +12,8 @@
 	assert wpeek(os_str, 0) == 0
 	assert os_len == 0
 
-	// To unicode.
-	sdim sjis_str // sekai (world)
+	// shift_jis → Unicode
+	sdim sjis_str // 「世界」(shift_jis)
 	lpoke sjis_str, 0, 0x458aa290
 	sjis_len = strlen(sjis_str)
 
@@ -23,7 +23,7 @@
 	assert lpeek(os_str,0 ) == 0x754c4e16
 	assert os_len == 2
 
-	// To sjis.
+	// Unicode → shift_jis
 	sdim sjis_str
 	sjis_len = -1
 
