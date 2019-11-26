@@ -252,7 +252,8 @@
 		s_main_window_top += ginfo_dispy - 72 // FIXME: タスクバーの幅を取得
 	}
 
-	s_details_window_height = 320
+	app_config_get "ui_details_window_height", "320"
+	s_details_window_height = limit(int(refstr), 80)
 
 	app_ui_layout_arrange
 	return
