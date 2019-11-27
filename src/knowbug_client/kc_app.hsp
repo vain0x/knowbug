@@ -1245,8 +1245,8 @@
 
 #deffunc app_help_window_create
 
-	s_help_window_width = 120 + 32 + 32
-	s_help_window_height = 16 + 36 + 24 + 16
+	s_help_window_width = 150 + 32 + 32
+	s_help_window_height = 16 + 36 + 24 + 8 + 24 + 16
 
 	screen s_help_window_id, s_help_window_width, s_help_window_height, screen_hide | screen_tool
 
@@ -1258,22 +1258,27 @@
 
 	font "Yu Gothic Medium", 24
 
-	pos 32, 16
+	pos 32 + (150 - 120) / 2, 16
 	mes "KNOWBUG"
 
 	font "MS Gothic", 13
 	objmode objmode_font
-	objsize 120, 24, 24 + 8
+	objsize 150, 24, 24 + 8
 
 	pos 32, 16 + 36
 	button gosub "公式サイトを開く", *l_open_web_site_button
 
-	// button gosub "設定ファイルを開く", *l_open_config
+	button gosub "設定ファイルを開く", *l_open_config
 	return
 
 *l_open_web_site_button
 
 	exec "https://github.com/vain0x/knowbug", exec_app
+	return
+
+*l_open_config
+
+	exec "knowbug.conf", exec_app
 	return
 
 #deffunc app_help_window_show \
