@@ -1290,7 +1290,7 @@
 	gsel s_help_window_id
 	width , , window_left, window_top
 
-	gsel s_help_window_id, gsel_show
+	gsel s_help_window_id, gsel_top_most
 	return
 
 #deffunc app_help_window_hide
