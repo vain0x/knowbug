@@ -132,6 +132,7 @@
 #define global LVHT_ONITEM                  (LVHT_ONITEMICON | LVHT_ONITEMLABEL | LVHT_ONITEMSTATEICON)
 
 #define global HWND_TOPMOST      (-1)
+#define global HWND_NOTOPMOST    (-2)
 #define global SWP_NOSIZE        0x0001
 #define global SWP_NOMOVE        0x0002
 
@@ -158,6 +159,7 @@
 #enum global s_animation_timer_id = 1
 
 #enum global s_main_window_context_menu_ok_id = 1
+#enum global s_main_window_context_menu_top_most_id
 #enum global s_main_window_context_menu_log_clear_id
 #enum global s_main_window_context_menu_log_save_id
 
@@ -524,9 +526,25 @@
 
 	gsel s_main_window_id, gsel_show
 
+	app_main_window_update_top_most
+	return
+
+#deffunc app_main_window_toggle_top_most
+
+	s_main_window_top_most ^= true
+
+	app_main_window_update_top_most
+	return
+
+#deffunc app_main_window_update_top_most
+
 	if s_main_window_top_most {
 		SetWindowPos s_main_window_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE
+	} else {
+		SetWindowPos s_main_window_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE
 	}
+
+	menu_check_by_id s_main_window_context_menu_handle, s_main_window_context_menu_top_most_id, s_main_window_top_most
 	return
 
 #deffunc app_main_window_context_menu_create \
@@ -537,6 +555,7 @@
 	h = stat
 
 	menu_add_text h, "OK (& )", s_main_window_context_menu_ok_id
+	menu_add_text h, "最前面 (&T)", s_main_window_context_menu_top_most_id
 	menu_add_sep h
 	menu_add_text h, "ログを消去する", s_main_window_context_menu_log_clear_id
 	menu_add_sep h
@@ -547,11 +566,17 @@
 
 	gsel s_main_window_id, gsel_show
 	menu_show_popup s_main_window_context_menu_handle
+	if stat == s_main_window_context_menu_top_most_id {
+		app_main_window_toggle_top_most
+		return
+	}
 	if stat == s_main_window_context_menu_log_clear_id {
 		app_log_edit_clear
+		return
 	}
 	if stat == s_main_window_context_menu_log_save_id {
 		app_log_edit_save
+		return
 	}
 	return
 
