@@ -7,6 +7,7 @@
 #include "kernel32.as"
 #include "user32.as"
 #include "mod_hspish_font.hsp"
+#include "mod_menu.hsp"
 #include "kc_config.hsp"
 
 // -----------------------------------------------
@@ -15,6 +16,8 @@
 
 #define global dialog_warn      1
 #define global dialog_yesno     2
+#define global dialog_save      17
+
 #define global dialog_yes       6
 
 #define global exec_app         16
@@ -57,6 +60,7 @@
 
 #define global WM_SIZE          0x0005
 #define global WM_NOTIFY        0x004e
+#define global WM_CONTEXTMENU   0x007b
 #define global WM_COMMAND       0x0111
 #define global WM_TIMER         0x0113
 #define global WM_USER          0x0400
@@ -128,6 +132,7 @@
 #define global LVHT_ONITEM                  (LVHT_ONITEMICON | LVHT_ONITEMLABEL | LVHT_ONITEMSTATEICON)
 
 #define global HWND_TOPMOST      (-1)
+#define global HWND_NOTOPMOST    (-2)
 #define global SWP_NOSIZE        0x0001
 #define global SWP_NOMOVE        0x0002
 
@@ -152,6 +157,11 @@
 #enum global s_help_window_id
 
 #enum global s_animation_timer_id = 1
+
+#enum global s_main_window_context_menu_ok_id = 1
+#enum global s_main_window_context_menu_top_most_id
+#enum global s_main_window_context_menu_log_clear_id
+#enum global s_main_window_context_menu_log_save_id
 
 #module m_app
 
@@ -439,8 +449,11 @@
 		s_animation_timer_is_running = true
 	}
 
+	app_main_window_context_menu_create
+
 	oncmd gosub *l_main_window_on_size, WM_SIZE
 	oncmd gosub *l_main_window_on_notify, WM_NOTIFY
+	oncmd gosub *l_main_window_on_context_menu, WM_CONTEXTMENU
 	oncmd gosub *l_main_window_on_timer, WM_TIMER
 	return
 
@@ -513,9 +526,63 @@
 
 	gsel s_main_window_id, gsel_show
 
+	app_main_window_update_top_most
+	return
+
+#deffunc app_main_window_toggle_top_most
+
+	s_main_window_top_most ^= true
+
+	app_main_window_update_top_most
+	return
+
+#deffunc app_main_window_update_top_most
+
 	if s_main_window_top_most {
 		SetWindowPos s_main_window_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE
+	} else {
+		SetWindowPos s_main_window_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE
 	}
+
+	menu_check_by_id s_main_window_context_menu_handle, s_main_window_context_menu_top_most_id, s_main_window_top_most
+	return
+
+#deffunc app_main_window_context_menu_create \
+	local h
+
+	menu_make_popup
+	s_main_window_context_menu_handle = stat
+	h = stat
+
+	menu_add_text h, "OK (& )", s_main_window_context_menu_ok_id
+	menu_add_text h, "最前面 (&T)", s_main_window_context_menu_top_most_id
+	menu_add_sep h
+	menu_add_text h, "ログを消去する", s_main_window_context_menu_log_clear_id
+	menu_add_sep h
+	menu_add_text h, "ログを保存する (&L)", s_main_window_context_menu_log_save_id
+	return
+
+#deffunc app_main_window_context_menu_popup
+
+	gsel s_main_window_id, gsel_show
+	menu_show_popup s_main_window_context_menu_handle
+	if stat == s_main_window_context_menu_top_most_id {
+		app_main_window_toggle_top_most
+		return
+	}
+	if stat == s_main_window_context_menu_log_clear_id {
+		app_log_edit_clear
+		return
+	}
+	if stat == s_main_window_context_menu_log_save_id {
+		app_log_edit_save
+		return
+	}
+	return
+
+*l_main_window_on_context_menu
+
+	app_main_window_context_menu_popup
 	return
 
 // -----------------------------------------------
@@ -1007,6 +1074,27 @@
 	s_log_is_dirty = true
 	return
 
+#deffunc app_log_edit_clear
+
+	s_log_text = ""
+	s_log_text_len = 0
+	s_log_is_dirty = true
+	return
+
+#deffunc app_log_edit_save \
+	local file_name
+
+	dialog "txt|log", dialog_save, "テキストファイル|ログファイル"
+	if stat == 0 {
+		return
+	}
+	file_name = refstr
+
+	notesel s_log_text
+	notesave file_name
+	noteunsel
+	return
+
 #deffunc app_log_edit_get_selection var start_index, var end_index
 
 	sendmsg s_log_edit_hwnd, EM_GETSEL, varptr(start_index), varptr(end_index)
@@ -1157,8 +1245,8 @@
 
 #deffunc app_help_window_create
 
-	s_help_window_width = 120 + 32 + 32
-	s_help_window_height = 16 + 36 + 24 + 16
+	s_help_window_width = 150 + 32 + 32
+	s_help_window_height = 16 + 36 + 24 + 8 + 24 + 16
 
 	screen s_help_window_id, s_help_window_width, s_help_window_height, screen_hide | screen_tool
 
@@ -1170,22 +1258,27 @@
 
 	font "Yu Gothic Medium", 24
 
-	pos 32, 16
+	pos 32 + (150 - 120) / 2, 16
 	mes "KNOWBUG"
 
 	font "MS Gothic", 13
 	objmode objmode_font
-	objsize 120, 24, 24 + 8
+	objsize 150, 24, 24 + 8
 
 	pos 32, 16 + 36
 	button gosub "公式サイトを開く", *l_open_web_site_button
 
-	// button gosub "設定ファイルを開く", *l_open_config
+	button gosub "設定ファイルを開く", *l_open_config
 	return
 
 *l_open_web_site_button
 
 	exec "https://github.com/vain0x/knowbug", exec_app
+	return
+
+*l_open_config
+
+	exec "knowbug.conf", exec_app
 	return
 
 #deffunc app_help_window_show \
@@ -1202,7 +1295,7 @@
 	gsel s_help_window_id
 	width , , window_left, window_top
 
-	gsel s_help_window_id, gsel_show
+	gsel s_help_window_id, gsel_top_most
 	return
 
 #deffunc app_help_window_hide
