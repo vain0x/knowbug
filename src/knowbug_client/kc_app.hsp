@@ -156,6 +156,7 @@
 #enum global s_animation_timer_id = 1
 
 #enum global s_main_window_context_menu_ok_id = 1
+#enum global s_main_window_context_menu_log_clear_id
 
 #module m_app
 
@@ -532,12 +533,18 @@
 	s_main_window_context_menu_handle = stat
 	h = stat
 
-	menu_add_text h, "OK", s_main_window_context_menu_ok_id
+	menu_add_text h, "OK (& )", s_main_window_context_menu_ok_id
+	menu_add_sep h
+	menu_add_text h, "ログを消去する (&C)", s_main_window_context_menu_log_clear_id
 	return
 
 #deffunc app_main_window_context_menu_popup
 
+	gsel s_main_window_id, gsel_show
 	menu_show_popup s_main_window_context_menu_handle
+	if stat == s_main_window_context_menu_log_clear_id {
+		app_log_edit_clear
+	}
 	return
 
 *l_main_window_on_context_menu
@@ -1031,6 +1038,13 @@
 	poke s_log_text, s_log_text_len, "\n"
 	s_log_text_len += 2
 
+	s_log_is_dirty = true
+	return
+
+#deffunc app_log_edit_clear
+
+	s_log_text = ""
+	s_log_text_len = 0
 	s_log_is_dirty = true
 	return
 
