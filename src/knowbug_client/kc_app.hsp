@@ -16,6 +16,8 @@
 
 #define global dialog_warn      1
 #define global dialog_yesno     2
+#define global dialog_save      17
+
 #define global dialog_yes       6
 
 #define global exec_app         16
@@ -157,6 +159,7 @@
 
 #enum global s_main_window_context_menu_ok_id = 1
 #enum global s_main_window_context_menu_log_clear_id
+#enum global s_main_window_context_menu_log_save_id
 
 #module m_app
 
@@ -535,7 +538,9 @@
 
 	menu_add_text h, "OK (& )", s_main_window_context_menu_ok_id
 	menu_add_sep h
-	menu_add_text h, "ログを消去する (&C)", s_main_window_context_menu_log_clear_id
+	menu_add_text h, "ログを消去する", s_main_window_context_menu_log_clear_id
+	menu_add_sep h
+	menu_add_text h, "ログを保存する (&L)", s_main_window_context_menu_log_save_id
 	return
 
 #deffunc app_main_window_context_menu_popup
@@ -544,6 +549,9 @@
 	menu_show_popup s_main_window_context_menu_handle
 	if stat == s_main_window_context_menu_log_clear_id {
 		app_log_edit_clear
+	}
+	if stat == s_main_window_context_menu_log_save_id {
+		app_log_edit_save
 	}
 	return
 
@@ -1046,6 +1054,20 @@
 	s_log_text = ""
 	s_log_text_len = 0
 	s_log_is_dirty = true
+	return
+
+#deffunc app_log_edit_save \
+	local file_name
+
+	dialog "txt|log", dialog_save, "テキストファイル|ログファイル"
+	if stat == 0 {
+		return
+	}
+	file_name = refstr
+
+	notesel s_log_text
+	notesave file_name
+	noteunsel
 	return
 
 #deffunc app_log_edit_get_selection var start_index, var end_index
