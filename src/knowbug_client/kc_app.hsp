@@ -7,6 +7,7 @@
 #include "kernel32.as"
 #include "user32.as"
 #include "mod_hspish_font.hsp"
+#include "mod_menu.hsp"
 #include "kc_config.hsp"
 
 // -----------------------------------------------
@@ -57,6 +58,7 @@
 
 #define global WM_SIZE          0x0005
 #define global WM_NOTIFY        0x004e
+#define global WM_CONTEXTMENU   0x007b
 #define global WM_COMMAND       0x0111
 #define global WM_TIMER         0x0113
 #define global WM_USER          0x0400
@@ -152,6 +154,8 @@
 #enum global s_help_window_id
 
 #enum global s_animation_timer_id = 1
+
+#enum global s_main_window_context_menu_ok_id = 1
 
 #module m_app
 
@@ -439,8 +443,11 @@
 		s_animation_timer_is_running = true
 	}
 
+	app_main_window_context_menu_create
+
 	oncmd gosub *l_main_window_on_size, WM_SIZE
 	oncmd gosub *l_main_window_on_notify, WM_NOTIFY
+	oncmd gosub *l_main_window_on_context_menu, WM_CONTEXTMENU
 	oncmd gosub *l_main_window_on_timer, WM_TIMER
 	return
 
@@ -516,6 +523,26 @@
 	if s_main_window_top_most {
 		SetWindowPos s_main_window_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE
 	}
+	return
+
+#deffunc app_main_window_context_menu_create \
+	local h
+
+	menu_make_popup
+	s_main_window_context_menu_handle = stat
+	h = stat
+
+	menu_add_text h, "OK", s_main_window_context_menu_ok_id
+	return
+
+#deffunc app_main_window_context_menu_popup
+
+	menu_show_popup s_main_window_context_menu_handle
+	return
+
+*l_main_window_on_context_menu
+
+	app_main_window_context_menu_popup
 	return
 
 // -----------------------------------------------
