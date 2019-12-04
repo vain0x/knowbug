@@ -1,3 +1,7 @@
+// mod_hspish_font のサンプル
+// LICENCE: Unlicensed (PUBLIC DOMAIN)
+
+// CHANGE ボタンを押すと OK ボタンのフォントが変わる。
 
 #include "mod_hspish_font.hsp"
 
