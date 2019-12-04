@@ -1,21 +1,21 @@
-// 設定ファイル操作モジュール
-// LICENSE: PUBLIC DOMAIN
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
 // v0.1.0
-
-// - 文字コードは UTF-8 (BOM なし)
-// - 改行コードは LF または CRLF
-// - '#' で始まる行や、'=' を含まない行は無視する。
-// - 雑実装
 
 #ifndef included_mod_config_hsp
 #define included_mod_config_hsp
 
+// 設定ファイル操作モジュール
+//
+// - 文字コードは UTF-8 (BOM なし)
+// - 改行コードは LF または CRLF
+// - '#' で始まる行や、'=' を含まない行は無視する。
+// - 雑実装
 #module m_config
 
 #define true 1
 #define false 0
 
-// 設定ファイルをロードする。
+// 設定ファイルをロードする
 //
 // %prm
 // file_name, keys, values
@@ -23,11 +23,13 @@
 // str file_name: ロードするファイル名
 // array keys: キーが格納される配列変数
 // array values: 値が格納される配列変数
+//
 // stat: キーと値の個数 または -1
 //
 // %inst
 // 設定ファイルをロードして、キーと値のペアを配列 keys, values に格納し、
 // その件数を stat に設定する。
+//
 // ファイルが存在しなければ stat < 0 になる。
 #deffunc config_load str file_name, array keys, array values, \
 	local text, local text_len
