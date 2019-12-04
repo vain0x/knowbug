@@ -1,4 +1,5 @@
 //　mod_menu のサンプル
+// LICENCE: Unlicensed (PUBLIC DOMAIN)
 
 #include "hsp3utf.as"
 #include "mod_menu.hsp"
