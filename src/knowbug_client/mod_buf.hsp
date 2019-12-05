@@ -1,0 +1,68 @@
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
+// v1.0.0
+
+#ifndef included_mod_buf_hsp
+#define included_mod_buf_hsp
+
+// データバッファ操作モジュール
+//
+// %inst
+// memcpy や poke などのメモリ操作命令と同様に、
+// str 型の変数をメモリバッファとして操作する命令を提供する。
+// ただし、メモリ領域は必要に応じて自動で拡張される。
+//
+// %note
+// mod_buf.hsp を #include すること。
+#module m_buf
+
+// データバッファの領域を確保する
+#deffunc buf_expand var buf, int min_len
+
+	repeat 30 - 8, 8
+		if (1 << cnt) >= min_len {
+			memexpand buf, 1 << cnt
+			break
+		}
+	loop
+	return
+
+// データバッファにデータの一部を連結する
+#deffunc buf_add_slice var buf, int buf_len, var data, int data_offset, int data_len
+
+	assert buf_len >= 0
+	assert data_offset >= 0
+	assert data_len >= 0
+
+	buf_expand buf, buf_len + data_len
+
+	memcpy buf, data, data_len, buf_len, data_offset
+	return data_len
+
+// データバッファに1バイトを連結する
+#deffunc buf_add_byte var buf, int buf_len, int byte
+
+	assert buf_len >= 0
+
+	buf_expand buf, buf_len + 1
+
+	poke buf, buf_len, byte
+	return 1
+
+// データバッファにデータを連結する
+#deffunc buf_add var buf, int buf_len, var data, int data_len
+
+	buf_add_slice buf, buf_len, data, 0, data_len
+	return stat
+
+// データバッファに文字列を連結する
+#deffunc buf_add_str var buf, int buf_len, str text, \
+	local local_text
+
+	local_text = text
+
+	buf_add_slice buf, buf_len, local_text, 0, strlen(local_text)
+	return stat
+
+#global
+
+#endif
