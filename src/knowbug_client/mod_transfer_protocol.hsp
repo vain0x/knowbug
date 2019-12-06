@@ -1,0 +1,134 @@
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
+// v1.0.0
+
+#ifndef included_mod_transfer_protocol_hsp
+#define included_mod_transfer_protocol_hsp
+
+// メッセージ転送プロトコルのためのモジュール
+//
+// %inst
+// 転送プロトコル (transfer protocol) はデータをメッセージのリスト (ストリーム) として
+// 送受信するプロトコル (仮)。各メッセージは以下の形式。
+//
+// Header-Key1: Header-Value1\r\n
+// Header-Key2: Header-Value2\r\n
+// \r\n
+// Body
+//
+// メッセージは1つの Content-Length ヘッダーを含み、
+// その値を Body 部分の長さ (バイト単位) とする。
+//
+// Content-Length 以外のヘッダーや body の内容については特に規定しない。
+//
+// %note
+// mod_transfer_protocol.hsp を #include すること。
+#module m_transfer_protocol
+
+#define true 1
+#define false 0
+
+#define char_lf 0x0a
+
+#define ctype char_is_space(%1 = char) \
+	((%1) == ' ' || (%1) == '\t' || (%1) == '\r' || (%1) == char_lf)
+
+// 2^n のメモリサイズで領域を拡張する
+#deffunc local powerful_memexpand var buf, int min_len
+
+	repeat 30 - 8, 8
+		if (1 << cnt) >= min_len {
+			memexpand buf, 1 << cnt
+			break
+		}
+	loop
+	return
+
+// バッファーに送られてきたデータを連結する
+#deffunc transfer_protocol_append var buf, var buf_len, var chunk, int chunk_len, \
+	local buf_cap
+
+	assert buf_len >= 0
+	assert chunk_len >= 0
+
+	if chunk_len <= 0 {
+		return
+	}
+
+	powerful_memexpand buf, buf_len + chunk_len
+
+	memcpy buf, chunk, chunk_len, buf_len
+
+	buf_len += chunk_len
+	return
+
+// バッファーにメッセージヘッダーを書き込む
+#deffunc transfer_protocol_write_header int body_len, var buf
+
+	buf = "Content-Length: " + body_len + "\n\n"
+	return
+
+// バッファーから最初のメッセージを取り出す
+#deffunc transfer_protocol_parse var buf, var buf_len, var body, var body_len, \
+	local index, local has_body, local line_len, \
+	local header_line, local header_key, local header_value
+
+	body = ""
+	body_len = 0
+
+	index = instr(buf, 0, "Content-Length")
+	if index < 0 {
+		return false
+	}
+
+	repeat
+		if index >= buf_len {
+			break
+		}
+
+		line_len = instr(buf, index, "\n")
+		if line_len <= 0 {
+			has_body = line_len == 0
+			break
+		}
+
+		header_line = strmid(buf, index, line_len)
+		split header_line, ":", header_key, header_value
+
+		if strtrim(header_key) == "Content-Length" {
+			body_len = int(strtrim(header_value))
+		}
+
+		index += line_len + 2
+	loop
+
+	if has_body == false {
+		// ヘッダーの途中までしかデータが来ていないとき
+		return false
+	}
+
+	index += 2
+
+	if index + body_len > buf_len {
+		// ボディーの途中までしかデータが来ていないとき
+		return false
+	}
+
+	// ボディーを複写する。
+	powerful_memexpand body, body_len
+	memcpy body, buf, body_len, 0, index
+	poke body, body_len, 0
+
+	index += body_len
+
+	// 残りのデータを前方に詰める。
+	buf_len -= index
+	if buf_len > 0 {
+		memcpy buf, buf, buf_len, 0, index
+		poke buf, buf_len, 0
+	}
+
+	return true
+
+#global
+
+#endif
