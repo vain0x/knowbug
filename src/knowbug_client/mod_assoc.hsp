@@ -171,15 +171,13 @@
 // var count: 連想配列の要素数
 // str key: 探すキー
 // var value: 設定する値が格納されている変数
-// var value_len: 設定する値の長さ
+// int value_len: 設定する値の長さ
 //
 // %inst
 // 連想配列に要素を追加して、指定されたキーに対応する値を設定する。
 //
 // 次にこのキーで要素を探すと、いま追加した要素が見つかる。
-#deffunc assoc_set array keys, array values, array value_lens, var count, str key, var value, var value_len
-
-	// FIXME: value_len は int
+#deffunc assoc_set array keys, array values, array value_lens, var count, str key, var value, int value_len
 
 	keys(count) = key
 
