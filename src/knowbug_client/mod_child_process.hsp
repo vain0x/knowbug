@@ -35,8 +35,7 @@
 #enum s_cp_max
 
 // 匿名パイプを作成する
-// FIXME: local にする
-#deffunc child_process_create_pipe var read_handle, var write_handle, \
+#deffunc local child_process_create_pipe var read_handle, var write_handle, \
 	local security_attrs
 
 	// SECURITY_ATTRIBUTES 構造体
@@ -92,8 +91,7 @@
 	child_process_do_close_handle inner(s_cp_stdout_write_handle)
 	return
 
-// FIXME: local にする
-#deffunc child_process_do_close_handle var handle
+#deffunc local child_process_do_close_handle var handle
 
 	if handle {
 		CloseHandle handle
