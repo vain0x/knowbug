@@ -157,16 +157,16 @@
 		return false
 	}
 
-	s_child_running = true
-	s_stdin_working = true
-	s_stdout_working = true
+	s_child_is_running = true
+	s_stdin_is_available = true
+	s_stdout_is_available = true
 
 	repeat
 		await 4
 
-		if s_child_running {
+		if s_child_is_running {
 			child_process_wait s_cp, 4
-			s_child_running = stat == false
+			s_child_is_running = stat == false
 		}
 
 		// 標準入力を転送する。
@@ -175,7 +175,7 @@
 		// 標準出力を転送する。
 		gosub *l_forward_stdout
 
-		if s_child_running == false && s_stdin_working == false {
+		if s_child_is_running == false && s_stdin_is_available == false {
 			break
 		}
 	loop
@@ -186,7 +186,7 @@
 
 *l_forward_stdin
 
-	if s_stdin_working == false {
+	if s_stdin_is_available == false {
 		return
 	}
 
@@ -195,7 +195,7 @@
 
 	if s_stdin_len < 0 {
 		logmes "WARN: STDIN stopped"
-		s_stdin_working = false
+		s_stdin_is_available = false
 		return
 	}
 
@@ -206,7 +206,7 @@
 	child_process_write_stdin s_cp, s_stdin_data, s_stdin_len
 	if stat < 0 {
 		logmes "WARN: STDIN stopped"
-		s_stdin_working = false
+		s_stdin_is_available = false
 		return
 	}
 
@@ -214,7 +214,7 @@
 
 *l_forward_stdout
 
-	if s_stdout_working == false {
+	if s_stdout_is_available == false {
 		return
 	}
 
@@ -223,7 +223,7 @@
 
 	if s_stdout_len < 0 {
 		logmes "WARN: STDOUT stopped"
-		s_stdout_working = false
+		s_stdout_is_available = false
 		return
 	}
 
@@ -234,7 +234,7 @@
 	stdout_write s_stdout_data, s_stdout_len
 	if stat < 0 {
 		logmes "WARN: STDOUT stopped"
-		s_stdout_working = false
+		s_stdout_is_available = false
 		return
 	}
 
