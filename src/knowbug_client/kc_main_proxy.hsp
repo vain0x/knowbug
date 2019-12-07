@@ -1,7 +1,14 @@
-// knowbug_client proxy
+// knowbug_client プロキシー
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
 
-#include "hspext.as"
+// knowbug_client.hsp をデバッグウィンドウ付きで実行する。
+
+#include "hsp3utf.as"
 #include "hspcmp.as"
+#include "hspext.as"
+#include "mod_child_process.hsp"
+#include "mod_stdin.hsp"
+#include "mod_stdout.hsp"
 
 #packopt name "knowbug_client_proxy"
 #packopt hide 1
@@ -9,43 +16,79 @@
 #define true 1
 #define false 0
 
-#define gsel_hide (-1)
-#define gsel_show 1
-#define mesbox_readonly 0
-#define objmode_font 2
+#define global gsel_hide (-1)
+#define global gsel_show 1
+#define global mesbox_readonly 0
+#define global objmode_font 2
 
-#define EXIT_FAILURE 1
+#define global EXIT_SUCCESS 1
+#define global EXIT_FAILURE 1
 
-#define s_default_window_id 0
+#enum global s_default_window_id = 0
 
 	gsel s_default_window_id, gsel_hide
 
-	s_obj_name = "knowbug_client.ax"
-	s_runtime_name = ""
-	s_compile_opts = 1 // 1: デバッグ情報を埋め込む
-	s_pp_opts = 16 | 32 // utf-8
-	s_debug_mode = 1 // 1: デバッグウィンドウ表示
+	sdim s_error, 0x10000
 	s_exit_code = EXIT_FAILURE
 
-	sdim s_error, 0x10000
+	s_obj_name = "knowbug_client.ax"
+
+	s_runtime_name = ""
+
+	// 1: デバッグ情報を埋め込む, 4: utf-8 input
+	s_compile_opts = 1 | 4
+
+	// 32: utf-8 output
+	s_pp_opts = 32
+
+	// 1: デバッグウィンドウ表示
+	s_debug_mode = 1
+
 	sdim s_config
 	sdim s_src_name
 	sdim s_hsp_root
 
-	sdim s_buffer
-	sdim s_line
+	s_stdout_cap = 8 * 1024 * 1024 // 8 MB
+	sdim s_stdout_data, s_stdout_cap
 
-	onexit goto *l_on_exit
+	s_stdin_cap = 8 * 1024 * 1024 // 8 MB
+	sdim s_stdin_data, s_stdin_cap
+
+	onexit gosub *l_on_exit
 
 	gosub *l_load_config
+	if stat == false {
+		goto *l_fail
+	}
+
+	stdin_init
+	if stat == false {
+		s_error = "stdin_init failed"
+		goto *l_fail
+	}
+
+	stdout_init
+	if stat == false {
+		s_error = "stdout_init failed"
+		goto *l_fail
+	}
+
+	gosub *l_compile
+	if stat == false {
+		goto *l_fail
+	}
 
 	gosub *l_run
 	if stat == false {
 		goto *l_fail
 	}
 
-	s_exit_code = 0
+	s_exit_code = EXIT_SUCCESS
 	end
+
+*l_on_exit
+
+	end s_exit_code
 
 *l_load_config
 
@@ -54,13 +97,27 @@
 	noteget s_src_name, 0
 	noteget s_hsp_root, 1
 	noteunsel
-	return
+	return true
 
-*l_run
+*l_compile
 
 	hsc_ini s_src_name
+	if stat {
+		hsc_getmes s_error
+		return false
+	}
+
 	hsc_objname s_obj_name
+	if stat {
+		hsc_getmes s_error
+		return false
+	}
+
 	hsc_compath s_hsp_root + "\\common\\"
+	if stat {
+		hsc_getmes s_error
+		return false
+	}
 
 	hsc_comp s_compile_opts, s_pp_opts, s_debug_mode
 	if stat {
@@ -74,26 +131,114 @@
 	}
 
 	s_runtime_path = s_hsp_root + "\\" + s_runtime_name
+	return true
 
-	s_cmd = "\"" + s_runtime_path + "\" " + s_obj_name + " " + dirinfo(4) // FIXME: dir_cmdline is undefined?
-	pipeexec s_buffer, s_cmd, true // true = show window
-	if stat {
-		s_error = "Could not execute: '" + s_cmd + "'"
+*l_run
+
+	s_cmdline = "\"" + s_runtime_path + "\" " + s_obj_name + " " + dir_cmdline
+
+	child_process_prepare s_cp
+
+	child_process_redirect_stdin s_cp
+	if stat == false {
+		s_error = "redirect_stdin failed"
 		return false
 	}
 
+	child_process_redirect_stdout s_cp
+	if stat == false {
+		s_error = "redirect_stdout failed"
+		return false
+	}
+
+	child_process_spawn s_cp, s_cmdline
+	if stat == false {
+		s_error = "spawn failed"
+		return false
+	}
+
+	s_child_running = true
+	s_stdin_working = true
+	s_stdout_working = true
+
 	repeat
-		pipeget s_line
-		if stat == 0 {
+		await 4
+
+		if s_child_running {
+			child_process_wait s_cp, 4
+			s_child_running = stat == false
+		}
+
+		// 標準入力を転送する。
+		gosub *l_forward_stdin
+
+		// 標準出力を転送する。
+		gosub *l_forward_stdout
+
+		if s_child_running == false && s_stdin_working == false {
 			break
 		}
-		await 100
 	loop
-	return true
 
-*l_on_exit
+	child_process_close s_cp
 
-	end s_exit_code
+	return s_error == ""
+
+*l_forward_stdin
+
+	if s_stdin_working == false {
+		return
+	}
+
+	stdin_read s_stdin_data, s_stdin_cap
+	s_stdin_len = stat
+
+	if s_stdin_len < 0 {
+		logmes "WARN: STDIN stopped"
+		s_stdin_working = false
+		return
+	}
+
+	if s_stdin_len == 0 {
+		return
+	}
+
+	child_process_write_stdin s_cp, s_stdin_data, s_stdin_len
+	if stat < 0 {
+		logmes "WARN: STDIN stopped"
+		s_stdin_working = false
+		return
+	}
+
+	return
+
+*l_forward_stdout
+
+	if s_stdout_working == false {
+		return
+	}
+
+	child_process_read_stdout s_cp, s_stdout_data, s_stdout_cap
+	s_stdout_len = stat
+
+	if s_stdout_len < 0 {
+		logmes "WARN: STDOUT stopped"
+		s_stdout_working = false
+		return
+	}
+
+	if s_stdout_len == 0 {
+		return
+	}
+
+	stdout_write s_stdout_data, s_stdout_len
+	if stat < 0 {
+		logmes "WARN: STDOUT stopped"
+		s_stdout_working = false
+		return
+	}
+
+	return
 
 *l_fail
 

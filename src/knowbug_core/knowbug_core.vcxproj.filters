@@ -132,6 +132,12 @@
     <ClInclude Include="hash_code.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="knowbug_protocol.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="transfer_protocol.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -213,6 +219,12 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="step_controller.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="knowbug_protocol.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="transfer_protocol.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

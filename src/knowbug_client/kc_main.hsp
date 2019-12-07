@@ -13,234 +13,295 @@
 #deffunc infra_connect_server
 
 	infra_init_globals
-	infra_init_subs
 
-	infra_parse_cmdline
+	stdin_init
 	if stat == false {
+		logmes "WARN: stdin is not available"
 		return false
 	}
+	s_stdin_is_available = true
 
-	infra_connect_server_buffer
+	stdout_init
 	if stat == false {
+		logmes "WARN: stdout is not available"
 		return false
 	}
-
-	infra_connect_client_buffer
-	if stat == false {
-		return false
-	}
+	s_stdout_is_available = true
 	return true
 
 #deffunc infra_init_globals
 
-	sdim s_error
-
-	// サーバー側のウィンドウハンドル
-	dim s_server_hwnd
-
-	// サーバー側のデータ交換バッファー
-	dim s_server_buffer_handle
-	dim s_server_buffer_view
-	sdim s_server_buffer_data
-
-	// クライアント側のデータ交換バッファー
-	dim s_client_buffer_handle
-	dim s_client_buffer_view
-	sdim s_client_buffer_data
+	s_stdin_buffer_len = 0
+	s_stdin_buffer_cap = 1024 * 1024 // 1 MB
+	sdim s_stdin_buffer, s_stdin_buffer_cap
 	return
 
-#deffunc infra_onexit onexit
+// サーバーからのメッセージを受信・処理する。
+#deffunc infra_poll \
+	local chunk, local chunk_len, local chunk_cap, \
+	local keys, local values, local value_lens, local count
 
-	sdim s_server_buffer_data
-	if s_server_buffer_view {
-		UnmapViewOfFile s_server_buffer_view
-	}
-	if s_server_buffer_handle {
-		CloseHandle s_server_buffer_handle
+	if s_stdin_is_available == false {
+		return
 	}
 
-	sdim s_client_buffer_data
-	if s_client_buffer_view {
-		UnmapViewOfFile s_client_buffer_view
+	// 標準入力にデータが来ていたら読み取る。
+	chunk_cap = 1024 * 1024 // 1 MB
+	sdim chunk, chunk_cap
+
+	stdin_read chunk, chunk_cap
+	chunk_len = stat
+
+	if chunk_len < 0 {
+		logmes "WARN: stdin_read failed"
+		s_stdin_is_available = false
+		return
 	}
-	if s_client_buffer_handle {
-		CloseHandle s_client_buffer_handle
+
+	if chunk_len == 0 {
+		return
 	}
+
+	// 読み取ったデータをバッファーに連結する。
+	knowbug_protocol_append s_stdin_buffer, s_stdin_buffer_len, chunk, chunk_len
+
+	// バッファーからメッセージを取り出す。
+	repeat
+		knowbug_protocol_parse s_stdin_buffer, s_stdin_buffer_len, keys, values, value_lens, count
+		if stat == false {
+			break
+		}
+
+		// 受け取ったメッセージを処理する。
+		infra_process_message keys, values, value_lens, count
+	loop
 	return
-
-// -----------------------------------------------
-// コマンドライン
-// -----------------------------------------------
-
-#deffunc infra_parse_cmdline
-
-	if dir_cmdline == "" {
-		dialog "コマンドラインが空です。", dialog_warn
-		return false
-	}
-
-	s_server_hwnd = int(dirinfo(4)) // dir_cmdline not defined?
-	return true
-
-// -----------------------------------------------
-// メモリマップトファイル
-// -----------------------------------------------
-
-#deffunc infra_connect_memory_mapped_file str file_name, var file_handle, var view, var data
-
-	OpenFileMapping FILE_MAP_READ | FILE_MAP_WRITE, false, file_name
-	file_handle = stat
-	if file_handle == NULL {
-		debug_warn "デバッグウィンドウの初期化に失敗しました。(クライアントがデータ交換バッファーにアクセスできませんでした。)"
-		return false
-	}
-
-	MapViewOfFile file_handle, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0
-	view = stat
-	if view == NULL {
-		debug_warn "デバッグウィンドウの初期化に失敗しました。(クライアントがデータ交換バッファーのビューを作成できませんでした。)"
-		return false
-	}
-
-	dupptr data, view, MEMORY_BUFFER_SIZE, vartype("str")
-	return true
-
-#deffunc infra_connect_server_buffer
-
-	infra_connect_memory_mapped_file "KnowbugServerBuffer", s_server_buffer_handle, s_server_buffer_view, s_server_buffer_data
-	return stat
-
-#deffunc infra_connect_client_buffer
-
-	infra_connect_memory_mapped_file "KnowbugClientBuffer", s_client_buffer_handle, s_client_buffer_view, s_client_buffer_data
-	return stat
 
 // -----------------------------------------------
 // サーバーへのメッセージ
 // -----------------------------------------------
 
-#deffunc infra_send_hello
+#deffunc infra_send_message array keys, array values, array value_lens, int count, \
+	local message, local message_len
 
-	sendmsg s_server_hwnd, KMTS_HELLO, 0, hwnd
+	if s_stdout_is_available == false {
+		return
+	}
+
+	sdim message
+	message_len = 0
+
+	knowbug_protocol_serialize keys, values, value_lens, count, message, message_len
+	logmes "send: " + message
+
+	stdout_write message, message_len
 	return
 
-#deffunc infra_send_terminate
+#deffunc infra_send_hello \
+	local keys, local values, local value_lens, local count
 
-	sendmsg s_server_hwnd, KMTS_TERMINATE
+	assoc_set_str keys, values, value_lens, count, "method", "initialize_notification"
+
+	infra_send_message keys, values, value_lens, count
 	return
 
-#deffunc infra_send_step_continue
+#deffunc infra_send_terminate \
+	local keys, local values, local value_lens, local count
 
-	sendmsg s_server_hwnd, KMTS_STEP_CONTINUE
+	assoc_set_str keys, values, value_lens, count, "method", "terminate_notification"
+
+	infra_send_message keys, values, value_lens, count
 	return
 
-#deffunc infra_send_step_pause
+#deffunc infra_send_step_continue \
+	local keys, local values, local value_lens, local count
 
-	sendmsg s_server_hwnd, KMTS_STEP_PAUSE
+	assoc_set_str keys, values, value_lens, count, "method", "continue_notification"
+
+	infra_send_message keys, values, value_lens, count
 	return
 
-#deffunc infra_send_step_in
+#deffunc infra_send_step_pause \
+	local keys, local values, local value_lens, local count
 
-	sendmsg s_server_hwnd, KMTS_STEP_IN
+	assoc_set_str keys, values, value_lens, count, "method", "pause_notification"
+
+	infra_send_message keys, values, value_lens, count
 	return
 
-#deffunc infra_send_step_over
+#deffunc infra_send_step_in \
+	local keys, local values, local value_lens, local count
 
-	sendmsg s_server_hwnd, KMTS_STEP_OVER
+	assoc_set_str keys, values, value_lens, count, "method", "step_in_notification"
+
+	infra_send_message keys, values, value_lens, count
 	return
 
-#deffunc infra_send_step_out
+#deffunc infra_send_step_over \
+	local keys, local values, local value_lens, local count
 
-	sendmsg s_server_hwnd, KMTS_STEP_OUT
+	assoc_set_str keys, values, value_lens, count, "method", "step_over_notification"
+
+	infra_send_message keys, values, value_lens, count
 	return
 
-#deffunc infra_send_location_update
+#deffunc infra_send_step_out \
+	local keys, local values, local value_lens, local count
 
-	sendmsg s_server_hwnd, KMTS_LOCATION_UPDATE
+	assoc_set_str keys, values, value_lens, count, "method", "step_out_notification"
+
+	infra_send_message keys, values, value_lens, count
 	return
 
-#deffunc infra_send_source int source_file_id
+#deffunc infra_send_location_update \
+	local keys, local values, local value_lens, local count
 
-	sendmsg s_server_hwnd, KMTS_SOURCE, source_file_id
+	assoc_set_str keys, values, value_lens, count, "method", "location_notification"
+
+	infra_send_message keys, values, value_lens, count
 	return
 
-#deffunc infra_send_list_update
+#deffunc infra_send_source int source_file_id, \
+	local keys, local values, local value_lens, local count
 
-	sendmsg s_server_hwnd, KMTS_LIST_UPDATE
+	assoc_set_str keys, values, value_lens, count, "method", "source_notification"
+
+	assoc_set_str keys, values, value_lens, count, "source_file_id", str(source_file_id)
+
+	infra_send_message keys, values, value_lens, count
 	return
 
-#deffunc infra_send_list_toggle_expand int object_id
+#deffunc infra_send_list_update \
+	local keys, local values, local value_lens, local count
 
-	sendmsg s_server_hwnd, KMTS_LIST_TOGGLE_EXPAND, object_id
+	assoc_set_str keys, values, value_lens, count, "method", "list_update_notification"
+
+	infra_send_message keys, values, value_lens, count
 	return
 
-#deffunc infra_send_list_details int object_id
+#deffunc infra_send_list_toggle_expand int object_id, \
+	local keys, local values, local value_lens, local count
 
-	sendmsg s_server_hwnd, KMTS_LIST_DETAILS, object_id
+	assoc_set_str keys, values, value_lens, count, "method", "list_toggle_expand_notification"
+
+	assoc_set_str keys, values, value_lens, count, "object_id", str(object_id)
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_list_details int object_id, \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "list_details_notification"
+
+	assoc_set_str keys, values, value_lens, count, "object_id", str(object_id)
+
+	infra_send_message keys, values, value_lens, count
 	return
 
 // -----------------------------------------------
 // サーバーからのメッセージ
 // -----------------------------------------------
 
-#deffunc infra_init_subs
+#deffunc infra_process_message array keys, array values, array value_lens, var count, \
+	local method, local version, local version_len, local output, local output_len, \
+	local source_file_id, local line_index, \
+	local source_path, local source_path_len, \
+	local source_code, local source_code_len, \
+	local object_id, local index, \
+	local kind, local kind_len, \
+	local name, local name_len, \
+	local value, local value_len, \
+	local text, local text_len
 
-	oncmd gosub *l_on_hello_ok, KMTC_HELLO_OK
-	oncmd gosub *l_on_shutdown, KMTC_SHUTDOWN
-	oncmd gosub *l_on_logmes, KMTC_LOGMES
-	oncmd gosub *l_on_stopped, KMTC_STOPPED
-	oncmd gosub *l_on_location, KMTC_LOCATION
-	oncmd gosub *l_on_source_path, KMTC_SOURCE_PATH
-	oncmd gosub *l_on_source_code, KMTC_SOURCE_CODE
-	oncmd gosub *l_on_list_update_ok, KMTC_LIST_UPDATE_OK
-	oncmd gosub *l_on_list_details_ok, KMTC_LIST_DETAILS_OK
-	return
+	assert count >= 1 && keys(0) == "method"
+	method = values(0)
 
-*l_on_hello_ok
+	logmes "receievd: "
+	repeat count
+		logmes "  " + keys(cnt) + " = " + values(cnt)
+	loop
 
-	app_did_receive_hello_ok s_server_buffer_data
-	return
+	if method == "initialized_event" {
+		assoc_get keys, values, value_lens, count, "version", version, version_len
+		if stat == false {
+			version = "v?.?.?"
+		}
 
-*l_on_shutdown
+		app_did_receive_hello_ok version
+		return
+	}
 
-	app_did_receive_shutdown
-	return
+	if method == "terminated_event" {
+		app_did_receive_shutdown
+		return
+	}
 
-*l_on_logmes
+	if method == "output_event" {
+		assoc_get keys, values, value_lens, count, "output", output, output_len
 
-	app_did_receive_logmes s_server_buffer_data
-	return
+		app_did_receive_logmes output
+		return
+	}
 
-*l_on_stopped
+	if method == "continued_event" {
+		logmes "debuggee has continued to run"
+		return
+	}
 
-	app_did_receive_stopped wparam, lparam
-	return
+	if method == "stopped_event" {
+		app_did_receive_stopped
+		return
+	}
 
-*l_on_location
+	if method == "location_event" {
+		assoc_get_int keys, values, value_lens, count, "source_file_id", source_file_id
+		assoc_get_int keys, values, value_lens, count, "line_index", line_index
 
-	app_did_receive_location wparam, lparam
-	return
+		app_did_receive_location source_file_id, line_index
+		return
+	}
 
-*l_on_source_path
+	if method == "source_event" {
+		assoc_get_int keys, values, value_lens, count, "source_file_id", source_file_id
+		assoc_get keys, values, value_lens, count, "source_path", source_path, source_path_len
+		assoc_get keys, values, value_lens, count, "source_code", source_code, source_code_len
 
-	app_did_receive_source_path wparam, s_server_buffer_data
-	return
+		app_did_receive_source_path source_file_id, source_path
+		app_did_receive_source_code source_file_id, source_code
+		return
+	}
 
-*l_on_source_code
+	if method == "list_updated_event" {
+		assoc_get keys, values, value_lens, count, "kind", kind, kind_len
+		assoc_get_int keys, values, value_lens, count, "object_id", object_id
+		assoc_get_int keys, values, value_lens, count, "index", index
+		assoc_get keys, values, value_lens, count, "name", name, name_len
+		assoc_get keys, values, value_lens, count, "value", value, value_len
 
-	app_did_receive_source_code wparam, s_server_buffer_data
-	return
+		app_did_receive_list_update_ok kind, object_id, index, name, value
+		return
+	}
 
-*l_on_list_update_ok
+	if method == "list_details_event" {
+		assoc_get_int keys, values, value_lens, count, "object_id", object_id
+		assoc_get keys, values, value_lens, count, "text", text, text_len
 
-	app_did_receive_list_update_ok s_server_buffer_data
-	return
+		app_did_receive_list_details_ok object_id, text
+		return
+	}
 
-*l_on_list_details_ok
-
-	app_did_receive_list_details_ok s_server_buffer_data
+	logmes strf("WARN: Unknown method(%s)", method)
 	return
 
 #global
 
 	app_init
+
+	onerror gosub *l_on_error
+	stop
+
+*l_on_error
+
+	dialog "error : " + err + ", wp = " + wparam + ", lp = " + lparam
+	end 1
