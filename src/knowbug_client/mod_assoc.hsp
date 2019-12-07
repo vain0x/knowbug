@@ -1,0 +1,131 @@
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
+// v0.1.0
+
+#ifndef included_mod_assoc_hsp
+#define included_mod_assoc_hsp
+
+// 文字列から文字列への連想配列を操作するモジュール
+//
+// %inst
+// キーは短い文字列でなければいけない。値は文字列ではなくバイナリでもよい。
+//
+// %note
+// mod_assoc.hsp を #include すること。
+#module m_assoc
+
+#define true 1
+#define false 0
+
+// データバッファの領域を確保する
+#deffunc local buf_expand var buf, int min_len
+
+	repeat 30 - 8, 8
+		if (1 << cnt) >= min_len {
+			memexpand buf, 1 << cnt
+			break
+		}
+	loop
+	return
+
+// データバッファにデータの一部を連結する
+#deffunc local buf_add_slice var buf, int buf_len, var data, int data_offset, int data_len
+
+	assert buf_len >= 0
+	assert data_offset >= 0
+	assert data_len >= 0
+
+	buf_expand buf, buf_len + data_len
+
+	memcpy buf, data, data_len, buf_len, data_offset
+	return data_len
+
+// 連想配列からキーの位置を探す
+//
+// %prm
+//
+// stat: キーの位置。なければマイナス。
+//
+// %inst
+// 新しく追加されたキーを優先するため、逆順で探す。
+#deffunc assoc_position_key array keys, array values, array value_lens, var count, str key, \
+	local i, local ok
+
+	i = count
+
+	repeat count
+		if keys(count - 1 - cnt) == key {
+			i = cnt
+			break
+		}
+	loop
+
+	// i == count なら -1 を返す。
+	// i < count ならキーの位置を返す。
+	return count - 1 - i
+
+// 連想配列にキーが含まれるか？
+#deffunc assoc_has array keys, array values, array value_lens, var count, str key
+
+	assoc_position_key keys, values, value_lens, count, key
+	return stat >= 0
+
+// 連想配列から値を取り出す
+#deffunc assoc_get array keys, array values, array value_lens, var count, str key, var value, var value_len, \
+	local i, local ok
+
+	value = ""
+	value_len = 0
+
+	repeat count
+		i = count - 1 - cnt
+		if keys(i) == key {
+			value = ""
+			buf_add_slice value, 0, values(i), 0, value_lens(i)
+			value_len = stat
+
+			ok = true
+			break
+		}
+	loop
+	return ok
+
+#deffunc assoc_get_int array keys, array values, array value_lens, var count, str key, var value, \
+	local str_value, local value_len, local ok
+
+	assoc_get keys, values, value_lens, count, key, str_value, value_len
+	if stat == false {
+		return false
+	}
+
+	value = int(str_value)
+	return true
+
+// 連想配列の要素の値を設定する
+//
+// %inst
+// すでに同じキーを持つ要素があるとき、値は上書きされる。
+#deffunc assoc_set array keys, array values, array value_lens, var count, str key, var value, var value_len
+
+	keys(count) = key
+
+	values(count) = ""
+	buf_add_slice values(count), 0, value, 0, value_len
+	value_lens(count) = stat
+
+	count++
+	return
+
+// 連想配列の要素の値を設定する
+#deffunc assoc_set_str array keys, array values, array value_lens, var count, str key, str value
+
+	keys(count) = key
+
+	values(count) = value
+	value_lens(count) = strlen(values(count))
+
+	count++
+	return
+
+#global
+
+#endif
