@@ -16,6 +16,7 @@
 #define char_lf 0x0a
 
 // data をエスケープした文字列を buf の末尾に書き込む
+// buf_len の値は書き込んだ長さだけ増加する。
 #deffunc local escape_str var data, int data_offset, int data_len, var buf, var buf_len, \
 	local i, local last, local c
 
@@ -55,6 +56,7 @@
 	return
 
 // エスケープされた文字列を元に戻したものを buf の末尾に書き込む
+// buf_len の値は書き込んだ長さだけ増加する。
 #deffunc local unescape_str var data, int data_offset, int data_len, var buf, var buf_len, \
 	local i, local last, local c
 
@@ -105,7 +107,7 @@
 // バッファにメッセージを書く
 //
 // %prm
-// keys, values, value_lens, count, buf, index
+// keys, values, value_lens, count, buf, buf_len
 //
 // array keys: メッセージに含めるキーのリストが格納されている配列変数
 // array values: メッセージに含める値のリストが格納されている配列変数
@@ -115,7 +117,7 @@
 // var buf_len: メッセージの書き込み先の位置を持つ変数
 //
 // %inst
-// buf の位置 index に knowbug protocol のメッセージを書き込む。
+// buf の位置 buf_len に knowbug protocol のメッセージを書き込む。
 // 詳細は knowbug リポジトリに含まれる knowbug-protocol.md を参照。
 //
 // knowbug protocol の規約上、keys(0) は "method" でなければならない。
@@ -154,13 +156,16 @@
 	buf_add_str buf, rewrite_index, strf("%8d", index - body_index)
 	return
 
-// バッファーにメッセージ断片を連結する
+// データバッファにメッセージ断片を連結する
+//
+// %inst
+// transfer_protocol_append を参照
 #deffunc knowbug_protocol_append var buf, var buf_len, var chunk, int chunk_len
 
 	transfer_protocol_append buf, buf_len, chunk, chunk_len
 	return
 
-// バッファーからメッセージを読み取る
+// データバッファからメッセージを読み取る
 //
 // %prm
 // buf, buf_len, keys, values, value_lens, count
@@ -175,13 +180,14 @@
 // stat: メッセージを取り出したら true
 //
 // %inst
-// buf に書き込まれているメッセージを1つ取り出して、その内容を keys, values に設定する。
+// buf に書き込まれているメッセージを1つ取り出して、その内容を keys, values, value_lens, count に設定する。
 //
-// メッセージが取り出されたメッセージは buf から取り除かれる。
+// 取り出されたメッセージは buf から取り除かれる。
 // 解釈できないメッセージが取り出された場合も、それは buf から取り除かれる。
 // buf が変更された場合、buf_len の値も適切に変更される。
 //
 // knowbug protocol の規約上、count >= 1 かつ keys(0) == "method" が保証される。
+// もしそうでなければ stat = false になる。
 #deffunc knowbug_protocol_parse var buf, var buf_len, array keys, array values, array value_lens, var count, \
 	local body_len, local line_count, local key_len
 

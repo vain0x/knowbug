@@ -1,7 +1,7 @@
-// mod_child_process の使用例
+// mod_child_process のサンプル
 // LICENSE: Unlicensed (PUBLIC DOMAIN)
 
-// 実行ファイルを作成して、コマンドラインから起動してください。
+// 試すには、実行ファイルを作成して、コマンドラインから起動すること。
 
 #runtime "hsp3cl"
 #packopt name "mod_child_process_example"

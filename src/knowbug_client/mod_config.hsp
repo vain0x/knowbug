@@ -1,5 +1,6 @@
 // 設定ファイル操作モジュール
 // LICENSE: PUBLIC DOMAIN
+// v0.1.0
 
 // - 文字コードは UTF-8 (BOM なし)
 // - 改行コードは LF または CRLF

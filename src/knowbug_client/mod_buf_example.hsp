@@ -1,3 +1,4 @@
+// mod_buf.hsp のサンプル
 // LICENSE: Unlicensed (PUBLIC DOMAIN)
 
 #include "hsp3utf.as"

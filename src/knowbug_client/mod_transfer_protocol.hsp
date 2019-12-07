@@ -7,8 +7,9 @@
 // メッセージ転送プロトコルのためのモジュール
 //
 // %inst
-// 転送プロトコル (transfer protocol) はデータをメッセージのリスト (ストリーム) として
-// 送受信するプロトコル (仮)。各メッセージは以下の形式。
+// 転送プロトコル (transfer protocol) は、
+// データをメッセージのリストとして送受信するプロトコル。(仮)
+// 各メッセージは以下の形式。
 //
 // Header-Key1: Header-Value1\r\n
 // Header-Key2: Header-Value2\r\n
@@ -18,7 +19,7 @@
 // メッセージは1つの Content-Length ヘッダーを含み、
 // その値を Body 部分の長さ (バイト単位) とする。
 //
-// Content-Length 以外のヘッダーや body の内容については特に規定しない。
+// Content-Length 以外のヘッダーや Body の内容については特に規定しない。
 //
 // %note
 // mod_transfer_protocol.hsp を #include すること。
@@ -43,7 +44,19 @@
 	loop
 	return
 
-// バッファーに送られてきたデータを連結する
+// データバッファに送られてきたデータを連結する
+//
+// %prm
+// var buf: データを連結する先の変数
+// var buf_len: buf の長さが格納されている変数
+// var chunk: 連結されるデータが格納されている変数
+// int chunk_len: 連結されるデータの長さ (バイト単位)
+//
+// %inst
+// 変数 buf の位置 buf_len に、変数 chunk の前から chunk_len バイトのデータを書き込む。
+// 書き込まれたデータの長さ分、buf_len の値が増加する。
+//
+// buf の領域が足りない場合は、自動で拡張される。
 #deffunc transfer_protocol_append var buf, var buf_len, var chunk, int chunk_len, \
 	local buf_cap
 
@@ -61,13 +74,36 @@
 	buf_len += chunk_len
 	return
 
-// バッファーにメッセージヘッダーを書き込む
+// データバッファにメッセージヘッダーを書き込む
+//
+// %prm
+// int body_len: body 部分の長さ (バイト単位)
+// var buf: データを格納する先の変数
+//
+// %inst
+// 変数 buf に、body 部分の長さが body_len であるメッセージのヘッダー部分を書き込む。
 #deffunc transfer_protocol_write_header int body_len, var buf
 
 	buf = "Content-Length: " + body_len + "\n\n"
 	return
 
-// バッファーから最初のメッセージを取り出す
+// データバッファからメッセージを取り出す
+//
+// %prm
+// buf, buf_len, body, body_len
+//
+// var buf: メッセージのリストが格納されている配列変数
+// var buf_len: buf の長さ (バイト数) を持つ変数
+// array body: メッセージの body 部分を格納する先の配列変数
+// var body_len: body の長さを格納する先の変数
+//
+// stat: メッセージを取り出したら true
+//
+// %inst
+// buf に書き込まれているメッセージを1つ取り出して、その body 部分を変数 body に書き込む。
+//
+// 取り出されたメッセージは buf から取り除かれる。
+// buf が変更された場合、buf_len の値も適切に変更される。
 #deffunc transfer_protocol_parse var buf, var buf_len, var body, var body_len, \
 	local index, local has_body, local line_len, \
 	local header_line, local header_key, local header_value

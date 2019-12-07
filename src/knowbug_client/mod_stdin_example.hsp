@@ -1,5 +1,8 @@
-// mod_stdin.hsp の使用例
+// mod_stdin.hsp のサンプル
 // LICENSE: Unlicensed (PUBLIC DOMAIN)
+
+// コンソールから実行すること。
+// 例: pwsh -c 'echo hello | ./mod_stdin_example.exe'
 
 #runtime "hsp3cl"
 

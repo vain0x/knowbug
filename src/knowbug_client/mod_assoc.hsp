@@ -7,7 +7,7 @@
 // 文字列から文字列への連想配列を操作するモジュール
 //
 // %inst
-// キーは短い文字列でなければいけない。値は文字列ではなくバイナリでもよい。
+// キーは短い文字列を想定している。値は文字列ではなくバイナリでもよい。
 //
 // %note
 // mod_assoc.hsp を #include すること。
@@ -42,17 +42,27 @@
 // 連想配列からキーの位置を探す
 //
 // %prm
+// keys, values, value_lens, count, key
 //
-// stat: キーの位置。なければマイナス。
+// array keys: 連想配列の各要素のキーを格納している配列変数
+// array values: 連想配列の各要素の値を格納している配列変数
+// array value_lens: values の各要素の長さを格納している配列変数
+// var count: 連想配列の要素数
+// str key: 探すキー
+//
+// stat: キーに対応する要素の位置。見つからなければマイナス。
 //
 // %inst
-// 新しく追加されたキーを優先するため、逆順で探す。
+// 連想配列のキーに対応する要素の位置を探す。
+//
+// 同じキーを持つ要素が複数あるときは、新しく追加されたものを優先するため、最後の位置を返す。
 #deffunc assoc_position_key array keys, array values, array value_lens, var count, str key, \
 	local i, local ok
 
 	i = count
 
 	repeat count
+		// 逆順で探す。
 		if keys(count - 1 - cnt) == key {
 			i = cnt
 			break
@@ -64,15 +74,48 @@
 	return count - 1 - i
 
 // 連想配列にキーが含まれるか？
+//
+// %prm
+// keys, values, value_lens, count, key
+//
+// array keys: 連想配列の各要素のキーを格納している配列変数
+// array values: 連想配列の各要素の値を格納している配列変数
+// array value_lens: values の各要素の長さを格納している配列変数
+// var count: 連想配列の要素数
+// str key: 探すキー
+//
+// stat: 要素が見つかったら true
+//
+// %inst
+// 連想配列に指定されたキーを持つ要素が含まれているか判定する。
 #deffunc assoc_has array keys, array values, array value_lens, var count, str key
 
 	assoc_position_key keys, values, value_lens, count, key
 	return stat >= 0
 
 // 連想配列から値を取り出す
+//
+// %prm
+// keys, values, value_lens, count, key, value, value_len
+//
+// array keys: 連想配列の各要素のキーを格納している配列変数
+// array values: 連想配列の各要素の値を格納している配列変数
+// array value_lens: values の各要素の長さを格納している配列変数
+// var count: 連想配列の要素数
+// str key: 探すキー
+// var value: 値を格納する先の変数
+// var value_len: 値の長さを格納する先の変数
+//
+// stat: 要素が見つかったら true
+//
+// %inst
+// 連想配列に指定されたキーを持つ要素を探し、その値を取り出す。
+//
+// 同じキーを持つ要素が複数あるときは、新しく追加されたものを優先するため、最後の要素の値を取り出す。
 #deffunc assoc_get array keys, array values, array value_lens, var count, str key, var value, var value_len, \
 	local i, local ok
 
+	// FIXME: assoc_position_key を使う。
 	value = ""
 	value_len = 0
 
@@ -89,6 +132,23 @@
 	loop
 	return ok
 
+// 連想配列から整数を取り出す
+//
+// %prm
+// keys, values, value_lens, count, key
+//
+// array keys: 連想配列の各要素のキーを格納している配列変数
+// array values: 連想配列の各要素の値を格納している配列変数
+// array value_lens: values の各要素の長さを格納している配列変数
+// var count: 連想配列の要素数
+// str key: 探すキー
+//
+// stat: 含まれていたら true
+//
+// %inst
+// 連想配列に指定されたキーを持つ要素を探し、その値を整数値として取り出す。
+//
+// 同じキーを持つ要素が複数あるときは、新しく追加されたものを優先するため、最後の要素の値を取り出す。
 #deffunc assoc_get_int array keys, array values, array value_lens, var count, str key, var value, \
 	local str_value, local value_len, local ok
 
@@ -102,9 +162,24 @@
 
 // 連想配列の要素の値を設定する
 //
+// %prm
+// keys, values, value_lens, count, key, value, value_len
+//
+// array keys: 連想配列の各要素のキーを格納している配列変数
+// array values: 連想配列の各要素の値を格納している配列変数
+// array value_lens: values の各要素の長さを格納している配列変数
+// var count: 連想配列の要素数
+// str key: 探すキー
+// var value: 設定する値が格納されている変数
+// var value_len: 設定する値の長さ
+//
 // %inst
-// すでに同じキーを持つ要素があるとき、値は上書きされる。
+// 連想配列に要素を追加して、指定されたキーに対応する値を設定する。
+//
+// 次にこのキーで要素を探すと、いま追加した要素が見つかる。
 #deffunc assoc_set array keys, array values, array value_lens, var count, str key, var value, var value_len
+
+	// FIXME: value_len は int
 
 	keys(count) = key
 
@@ -116,6 +191,21 @@
 	return
 
 // 連想配列の要素の値を設定する
+//
+// %prm
+// keys, values, value_lens, count, key, value
+//
+// array keys: 連想配列の各要素のキーを格納している配列変数
+// array values: 連想配列の各要素の値を格納している配列変数
+// array value_lens: values の各要素の長さを格納している配列変数
+// var count: 連想配列の要素数
+// str key: 探すキー
+// str value: 設定する値
+//
+// %inst
+// 連想配列に要素を追加して、指定されたキーに対応する値を設定する。
+//
+// 次にこのキーで要素を探すと、いま追加した要素が見つかる。
 #deffunc assoc_set_str array keys, array values, array value_lens, var count, str key, str value
 
 	keys(count) = key

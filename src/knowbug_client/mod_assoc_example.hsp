@@ -1,5 +1,5 @@
-// LICENSE: Unlicensed (PUBLIC DOMAIN)
 // mod_assoc.hsp のサンプル
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
 
 #include "hsp3utf.as"
 #include "mod_assoc.hsp"

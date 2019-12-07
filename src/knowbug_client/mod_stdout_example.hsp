@@ -1,8 +1,7 @@
-// mod_stdout.hsp の使用例
+// mod_stdout.hsp のサンプル
 // LICENSE: Unlicensed (PUBLIC DOMAIN)
 
-// #runtime "hsp3cl"
-#include "hsp3utf.as"
+#runtime "hsp3cl"
 
 #packopt name "mod_stdout_example"
 

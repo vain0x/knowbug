@@ -1,7 +1,15 @@
 // knowbug_client プロキシー
 // LICENSE: Unlicensed (PUBLIC DOMAIN)
 
-// knowbug_client.hsp をデバッグウィンドウ付きで実行する。
+// knowbug_client.hsp をデバッグ実行する。
+// また、標準入出力を中継する。
+
+// 開発版の knowbug がインストールされている HSP を使って knowbug_client をデバッグ実行すると、
+// そのデバッガーも knowbug_client を実行しようとして、無限にプロセスが起動してしまう。
+// これを避けるため、knowbug の開発用とは他の HSP のインストールディレクトリを使う。
+
+// knowbug_client_proxy.txt の1行目に knowbug_client.hsp への絶対パスを、
+// 2行目に HSP のインストールディレクトリ (KNOWBUG_CLIENT_HSP3_ROOT) を書いておくこと。
 
 #include "hsp3utf.as"
 #include "hspcmp.as"
