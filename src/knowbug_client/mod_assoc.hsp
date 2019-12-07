@@ -113,24 +113,18 @@
 //
 // 同じキーを持つ要素が複数あるときは、新しく追加されたものを優先するため、最後の要素の値を取り出す。
 #deffunc assoc_get array keys, array values, array value_lens, var count, str key, var value, var value_len, \
-	local i, local ok
+	local i
 
-	// FIXME: assoc_position_key を使う。
+	assoc_position_key keys, values, value_lens, count, key
+	i = stat
+	if i < 0 {
+		return false
+	}
+
 	value = ""
-	value_len = 0
-
-	repeat count
-		i = count - 1 - cnt
-		if keys(i) == key {
-			value = ""
-			buf_add_slice value, 0, values(i), 0, value_lens(i)
-			value_len = stat
-
-			ok = true
-			break
-		}
-	loop
-	return ok
+	buf_add_slice value, 0, values(i), 0, value_lens(i)
+	value_len = stat
+	return true
 
 // 連想配列から整数を取り出す
 //
