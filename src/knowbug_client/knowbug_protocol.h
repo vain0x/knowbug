@@ -12,7 +12,6 @@
 #define KMTS_FIRST                  (WM_USER + 1)
 // クライアントが起動したことをサーバーに伝える。
 // KMTC_HELLO_OK が返ってくる。
-// lparam: クライアントのウィンドウハンドル
 #define KMTS_HELLO                  (WM_USER + 1)
 // デバッグの終了をサーバーに要求する。
 #define KMTS_TERMINATE              (WM_USER + 2)
