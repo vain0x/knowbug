@@ -4,7 +4,7 @@
 #ifndef included_mod_assoc_hsp
 #define included_mod_assoc_hsp
 
-// 文字列から文字列への連想配列を操作するモジュール
+// 連想配列を操作するモジュール
 //
 // %inst
 // キーは短い文字列を想定している。値は文字列ではなくバイナリでもよい。
@@ -38,6 +38,13 @@
 
 	memcpy buf, data, data_len, buf_len, data_offset
 	return data_len
+
+// データバッファに1バイトを追加する
+#deffunc local buf_add_byte var buf, int buf_len, int byte
+
+	buf_expand buf, buf_len + 1
+	poke buf, buf_len, byte
+	return
 
 // 連想配列からキーの位置を探す
 //
@@ -124,6 +131,8 @@
 	value = ""
 	buf_add_slice value, 0, values(i), 0, value_lens(i)
 	value_len = stat
+
+	buf_add_byte value, value_len, 0
 	return true
 
 // 連想配列から整数を取り出す
