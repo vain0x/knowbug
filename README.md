@@ -42,6 +42,8 @@
 
 HSP のディレクトリに [knowbug.ini](./dist/knowbug.ini) を置いておくと、起動時に読み込まれます。具体的な設定は、設定ファイル内のコメントを参照してください。
 
+(注意: v2.0.0-beta4 から、`knowbug.ini` は使用されなくなりました。代わりに、[knowubg.conf](./dist/knowbug.conf) を使用してください。)
+
 ## アンインストール
 
 インストール時と同様に `knowbug_install.exe` で knowbug をインストールした HSP のディレクトリを指定し、 uninstall を選択してください。
