@@ -18,9 +18,9 @@
 #include "knowbug_app.h"
 #include "knowbug_server.h"
 
-#include "../knowbug_client/knowbug_protocol.h"
-
 class KnowbugServerImpl;
+
+static constexpr auto MEMORY_BUFFER_SIZE = std::size_t{ 1024 * 1024 };
 
 // -----------------------------------------------
 // バージョン

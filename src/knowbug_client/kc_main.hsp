@@ -7,9 +7,6 @@
 #define true 1
 #define false 0
 
-// C+ のヘッダファイルだが、HSP としても読めるようになっているので、include できる。
-#include "knowbug_protocol.h"
-
 #deffunc infra_connect_server
 
 	infra_init_globals
