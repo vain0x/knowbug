@@ -333,7 +333,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="knowbug_protocol.cpp" />
     <ClCompile Include="string_writer.cpp" />
+    <ClCompile Include="transfer_protocol.cpp" />
     <ClInclude Include="..\cppformat\cppformat\format.h" />
     <ClInclude Include="..\hspsdk\hsp3debug.h" />
     <ClInclude Include="..\hspsdk\hsp3plugin.h" />
@@ -363,6 +365,7 @@
     <ClInclude Include="hsx_types_fwd.h" />
     <ClInclude Include="hsx_var_metadata.h" />
     <ClInclude Include="hsx_slice.h" />
+    <ClInclude Include="knowbug_protocol.h" />
     <ClInclude Include="memory_view.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="platform.h" />
@@ -372,6 +375,7 @@
     <ClInclude Include="string_split.h" />
     <ClInclude Include="string_writer.h" />
     <ClInclude Include="test_suite.h" />
+    <ClInclude Include="transfer_protocol.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\cppformat\cppformat\format.cc">

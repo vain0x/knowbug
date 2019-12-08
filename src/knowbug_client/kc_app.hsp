@@ -6,8 +6,14 @@
 #include "hsp3utf.as"
 #include "kernel32.as"
 #include "user32.as"
+#include "mod_assoc.hsp"
+#include "mod_buf.hsp"
 #include "mod_hspish_font.hsp"
+#include "mod_knowbug_protocol.hsp"
 #include "mod_menu.hsp"
+#include "mod_stdin.hsp"
+#include "mod_stdout.hsp"
+#include "mod_transfer_protocol.hsp"
 #include "kc_config.hsp"
 
 // -----------------------------------------------
@@ -486,6 +492,8 @@
 *l_main_window_on_timer
 
 	if wparam == s_animation_timer_id {
+		infra_poll
+
 		app_log_edit_update
 	}
 	return
@@ -684,7 +692,7 @@
 	local lvitem, local os_text
 
 	notesel s_list_view_note
-	noteadd strf("%d,%s,%s", object_id, name, value), row_index
+	noteadd strf("%d;%s", object_id, name), row_index
 	noteunsel
 
 	sdim os_text, 0x1000
@@ -724,7 +732,7 @@
 	local os_text, local lvitem
 
 	notesel s_list_view_note
-	noteadd strf("%d,%s,%s", object_id, name, value), row_index, noteadd_set
+	noteadd strf("%d;%s", object_id, name), row_index, noteadd_set
 	noteunsel
 
 	sdim os_text, 0x1000
@@ -749,29 +757,26 @@
 	assert stat
 	return
 
-#deffunc app_list_view_update var text, \
-	local delta, local kind, local object_id_str, local object_id, \
-	local index_str, local index, local name, local value
+#deffunc app_list_view_update var kind, int object_id, int index, var name, var value
 
-	notesel text
-	repeat notemax
-		noteget delta, cnt
-		logmes delta
-		split delta, ",", kind, object_id_str, index_str, name, value
-		object_id = int(object_id_str)
-		index = int(index_str)
+	gsel s_main_window_id
 
-		if kind == "+" {
-			app_list_view_insert_row object_id, index, name, value
-		} else : if kind == "-" {
-			app_list_view_delete_row object_id, index
-		} else : if kind == "!" {
-			app_list_view_update_row object_id, index, name, value
-		} else {
-			logmes "unknown kind"
-		}
-	loop
-	noteunsel
+	if kind == "insert" {
+		app_list_view_insert_row object_id, index, name, value
+		return
+	}
+
+	if kind == "remove" {
+		app_list_view_delete_row object_id, index
+		return
+	}
+
+	if kind == "update" {
+		app_list_view_update_row object_id, index, name, value
+		return
+	}
+
+	logmes strf("WARN: Unknown kind(%s)", kind)
 	return
 
 #deffunc app_list_view_show_details int object_id
@@ -805,7 +810,7 @@
 	if column_index == 0 {
 		notesel s_list_view_note
 		noteget line_text, row_index
-		split   line_text, ",", object_id_str
+		split   line_text, ";", object_id_str
 		noteunsel
 
 		logmes "send_toggle_expand: " + object_id_str + " at " + row_index
@@ -815,7 +820,7 @@
 	if column_index == 1 {
 		notesel s_list_view_note
 		noteget line_text, row_index
-		split   line_text, ",", object_id_str
+		split   line_text, ";", object_id_str
 		noteunsel
 
 		app_list_view_show_details int(object_id_str)
@@ -1333,17 +1338,12 @@
 	app_log_edit_append text
 	return
 
-#deffunc app_did_receive_stopped int source_file_id, int line_index
+#deffunc app_did_receive_stopped
 
-	logmes strf("app_did_receive_stopped(%d, %d)", source_file_id, line_index)
+	logmes "app_did_receive_stopped"
 	s_debuggee_is_running = false
 
-	app_location_did_change source_file_id, line_index
-	infra_send_list_update
-
-	if s_current_object_id >= 1 {
-		app_list_view_show_details s_current_object_id
-	}
+	app_refresh
 	return
 
 #deffunc app_did_receive_location int source_file_id, int line_index
@@ -1375,14 +1375,14 @@
 	}
 	return
 
-#deffunc app_did_receive_list_update_ok var text
+#deffunc app_did_receive_list_update_ok var kind, int object_id, int index, var name, var value
 
-	logmes "app_did_receive_list_update_ok"
-	gsel s_main_window_id
-	app_list_view_update text
+	logmes strf("app_did_receive_list_update_ok (%s, id=%d, index=%d, name=%s, value=%s)", kind, object_id, index, name, value)
+
+	app_list_view_update kind, object_id, index, name, value
 	return
 
-#deffunc app_did_receive_list_details_ok var text
+#deffunc app_did_receive_list_details_ok int object_id, var text
 
 	app_details_window_set_text text
 	app_details_window_show

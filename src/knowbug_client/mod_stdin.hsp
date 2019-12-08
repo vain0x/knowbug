@@ -1,0 +1,101 @@
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
+
+#ifndef included_mod_stdin_hsp
+#define included_mod_stdin_hsp
+
+#include "kernel32.as"
+
+// 標準入力操作モジュール
+//
+// %note
+// Win32 API を使用するため、Windows 上でのみ動作する。
+#module m_stdin
+
+#define true 1
+#define false 0
+
+#define NULL                            0
+#define INVALID_HANDLE_VALUE            (-1)
+#define STD_INPUT_HANDLE                (-10)
+#define ERROR_BROKEN_PIPE               109
+#define ERROR_IO_PENDING                997
+#define WAIT_TIMEOUT                    0x102
+
+// 標準入力モジュールを初期化する
+//
+// %prm
+// stat: 成功したら true
+#deffunc stdin_init
+
+	if s_stdin_handle {
+		return true
+	}
+
+	GetStdHandle STD_INPUT_HANDLE
+	s_stdin_handle = stat
+
+	if s_stdin_handle != INVALID_HANDLE_VALUE && s_stdin_handle != NULL {
+		return true
+	}
+
+	logmes "標準入力のハンドルを取得できません。"
+	s_stdin_handle = 0
+	return false
+
+// 標準入力からデータを読み込む
+//
+// %prm
+// data, data_cap
+//
+// var data: 標準入力から読み取るデータを格納する変数
+// int data_cap: data に格納できるデータの長さの上限 (バイト単位、NULL 文字を含む)
+//
+// stat: 読み取ったデータの長さ (バイト単位、NULL 文字は含まない)。失敗したらマイナス
+//
+// %inst
+// 標準入力からデータを読み取る。
+// データが来ていないときは stat=0 になる。
+//
+// 変数 data はあらかじめ data_cap バイトのデータを格納できるように、
+// dim/sdim/memexpand などの命令で初期化しておくこと。
+//
+// 注意: 標準入力がリダイレクトされていないか、 *コンソールにつながっているとき* は失敗する。
+#deffunc stdin_read var data, int data_cap, \
+	local read_len
+
+	stdin_init
+	if stat == false {
+		return -1
+	}
+
+	assert data_cap >= 2
+
+	PeekNamedPipe s_stdin_handle, NULL, data_cap - 1, varptr(read_len), NULL, NULL
+	if stat == 0 {
+		GetLastError
+		logmes "PeekNamedPipe error=" + stat
+		return -1
+	}
+
+	if read_len == 0 {
+		return 0
+	}
+
+	ReadFile s_stdin_handle, varptr(data), data_cap - 1, varptr(read_len), NULL
+	if stat == 0 {
+		GetLastError
+		logmes "ReadFile error=" + stat
+		return -1
+	}
+
+	assert read_len >= 0
+	if read_len == 0 {
+		return 0
+	}
+
+	poke data, read_len, 0
+	return read_len
+
+#global
+
+#endif

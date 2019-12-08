@@ -1,0 +1,19 @@
+// mod_stdout.hsp のサンプル
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
+
+#runtime "hsp3cl"
+
+#packopt name "mod_stdout_example"
+
+#include "mod_stdout.hsp"
+
+	// write: 変数とデータサイズを指定
+	s_text = "hello\n"
+	stdout_write s_text, strlen(s_text)
+	assert stat
+
+	await 1000
+
+	// write_str: 文字列を指定
+	stdout_write_str "world\n"
+	assert stat

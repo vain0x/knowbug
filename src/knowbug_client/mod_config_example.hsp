@@ -1,4 +1,5 @@
-// mod_config の使用例
+// mod_config のサンプル
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
 
 #include "hsp3utf.as"
 #include "mod_config.hsp"

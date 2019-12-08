@@ -4,9 +4,11 @@
 #include <iostream>
 #include "../knowbug_core/hsp_objects_module_tree.h"
 #include "../knowbug_core/hsp_object_writer.h"
+#include "../knowbug_core/knowbug_protocol.h"
 #include "../knowbug_core/source_files.h"
 #include "../knowbug_core/string_split.h"
 #include "../knowbug_core/string_writer.h"
+#include "../knowbug_core/transfer_protocol.h"
 #include "test_runner.h"
 
 static void enable_utf_8() {
@@ -51,8 +53,10 @@ auto main() -> int {
 	string_writer_tests(tests);
 	module_tree_tests(tests);
 	hsp_object_writer_tests(tests);
+	knowbug_protocol_tests(tests);
 	source_files_tests(tests);
 	string_lines_tests(tests);
+	transfer_protocol_tests(tests);
 
 	auto success = runner.run();
 	return success ? EXIT_SUCCESS : EXIT_FAILURE;

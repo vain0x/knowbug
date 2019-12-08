@@ -11,15 +11,20 @@
 #include "../knowbug_core/hsp_object_writer.h"
 #include "../knowbug_core/hsp_objects.h"
 #include "../knowbug_core/hsx.h"
+#include "../knowbug_core/knowbug_protocol.h"
 #include "../knowbug_core/platform.h"
 #include "../knowbug_core/step_controller.h"
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
 #include "knowbug_server.h"
 
-#include "../knowbug_client/knowbug_protocol.h"
-
 class KnowbugServerImpl;
+
+static constexpr auto MEMORY_BUFFER_SIZE = std::size_t{ 1024 * 1024 };
+
+// -----------------------------------------------
+// バージョン
+// -----------------------------------------------
 
 static constexpr auto KNOWBUG_VERSION = u8"v2.0.0-beta3";
 
@@ -242,13 +247,13 @@ public:
 	static auto kind_to_string(Kind kind) -> Utf8StringView {
 		switch (kind) {
 		case Kind::Insert:
-			return as_utf8(u8"+");
+			return as_utf8(u8"insert");
 
 		case Kind::Remove:
-			return as_utf8(u8"-");
+			return as_utf8(u8"remove");
 
 		case Kind::Update:
-			return as_utf8(u8"!");
+			return as_utf8(u8"update");
 
 		default:
 			throw std::exception{};
@@ -319,20 +324,16 @@ public:
 		return index_;
 	}
 
-	auto write_to(StringWriter& w) {
-		static auto constexpr SPACES = u8"                ";
+	auto name() const -> Utf8String {
+		static constexpr auto SPACES = u8"                ";
 
-		w.cat(kind_to_string(kind_));
-		w.cat(u8",");
-		w.cat_size(object_id());
-		w.cat(u8",");
-		w.cat_size(index_);
-		w.cat(u8",");
-		w.cat(as_utf8(SPACES).substr(0, depth_ * 2));
-		w.cat(name_);
-		w.cat(u8",");
-		w.cat(value_);
-		w.cat_crlf();
+		auto name = Utf8String{ as_utf8(SPACES).substr(0, depth_ * 2) };
+		name += name_;
+		return name;
+	}
+
+	auto value() const -> Utf8StringView {
+		return value_;
 	}
 };
 
@@ -492,6 +493,17 @@ public:
 		expanded_[*path_opt] = !is_expanded(**path_opt);
 	}
 
+	auto expand(std::size_t object_id, bool expand) {
+		auto path_opt = object_id_to_path(object_id);
+		if (!path_opt) {
+			return;
+		}
+
+		if (is_expanded(**path_opt) != expand) {
+			toggle_expand(object_id);
+		}
+	}
+
 private:
 	void apply_delta(HspObjectListDelta const& delta, HspObjectList& new_list) {
 		switch (delta.kind()) {
@@ -562,46 +574,23 @@ using MemoryMappedFile = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
 
 using MemoryMappedFileView = std::unique_ptr<LPVOID, Win32UnmapViewOfFileFn>;
 
+using PipeHandle = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
+
 using ProcessHandle = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
 
 using ThreadHandle = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
 
 using WindowHandle = std::unique_ptr<HWND, Win32DestroyWindowFn>;
 
+class PipePair {
+public:
+	PipeHandle read_;
+	PipeHandle write_;
+};
+
 static void fail_with(OsStringView reason) {
 	MessageBox(HWND{}, to_owned(reason).data(), TEXT("knowbug"), MB_ICONWARNING);
 	exit(EXIT_FAILURE);
-}
-
-// -----------------------------------------------
-// メモリマップドファイル
-// -----------------------------------------------
-
-static auto create_memory_mapped_file(OsString const& name) -> MemoryMappedFile {
-	auto mapping_handle = CreateFileMapping(
-		INVALID_HANDLE_VALUE,
-		LPSECURITY_ATTRIBUTES{},
-		PAGE_READWRITE,
-		DWORD{},
-		(DWORD)MEMORY_BUFFER_SIZE,
-		name.data()
-	);
-	if (!mapping_handle) {
-		MessageBox(HWND{}, TEXT("デバッグウィンドウの初期化に失敗しました。(サーバーがデータ交換バッファーを作成できませんでした。)"), TEXT("knowbug"), MB_ICONERROR);
-		exit(EXIT_FAILURE);
-	}
-
-	return MemoryMappedFile{ mapping_handle };
-}
-
-static auto connect_memory_mapped_file(MemoryMappedFile const& mapping_handle) -> MemoryMappedFileView {
-	auto data = MapViewOfFile(mapping_handle.get(), FILE_MAP_ALL_ACCESS, 0, 0, MEMORY_BUFFER_SIZE);
-	if (!data) {
-		MessageBox(HWND{}, TEXT("デバッグウィンドウの初期化に失敗しました。(サーバーがデータ交換バッファーへのビューを作成できませんでした。)"), TEXT("knowbug"), MB_ICONERROR);
-		exit(EXIT_FAILURE);
-	}
-
-	return MemoryMappedFileView{ data };
 }
 
 // -----------------------------------------------
@@ -651,8 +640,41 @@ static auto create_hidden_window(HINSTANCE instance) -> WindowHandle {
 }
 
 // -----------------------------------------------
+// 標準入出力
+// -----------------------------------------------
+
+auto create_anonymous_pipe() -> std::optional<PipePair> {
+	auto security_attrs = SECURITY_ATTRIBUTES{ sizeof(SECURITY_ATTRIBUTES) };
+	security_attrs.bInheritHandle = TRUE;
+
+	auto r = HANDLE{};
+	auto w = HANDLE{};
+	if (!CreatePipe(&r, &w, &security_attrs, DWORD{})) {
+		return std::nullopt;
+	}
+
+	return PipePair{ PipeHandle{ r }, PipeHandle{ w } };
+}
+
+static constexpr auto PIPE_BUFFER_SIZE = std::size_t{ 0x10000 };
+
+static constexpr auto PIPE_MAX_INSTANCE_COUNT = std::size_t{ 1 };
+
+static constexpr auto PIPE_TIMEOUT_MILLIS = std::size_t{ 300 };
+
+// -----------------------------------------------
 // クライアントプロセス
 // -----------------------------------------------
+
+class KnowbugClientProcess {
+public:
+	PipeHandle stdin_read_;
+	PipeHandle stdin_write_;
+	PipeHandle stdout_read_;
+	PipeHandle stdout_write_;
+	ThreadHandle thread_handle_;
+	ProcessHandle process_handle_;
+};
 
 // FIXME: knowbug_config と重複
 static auto get_hsp_dir() -> OsString {
@@ -674,40 +696,72 @@ static auto get_hsp_dir() -> OsString {
 	return full_path;
 }
 
-static auto start_client_process(HWND server_hwnd) -> std::pair<ThreadHandle, ProcessHandle> {
+static auto start_client_process() -> std::optional<KnowbugClientProcess> {
+	// クライアントプロセスの起動コマンドラインを構成する。
 	auto hsp_dir = get_hsp_dir();
 	auto name = hsp_dir + TEXT("knowbug_client.exe");
 
-	auto server_hwnd_str = to_os(as_utf8(std::to_string((UINT_PTR)server_hwnd)));
-
 	auto cmdline = OsString{ TEXT("\"") };
 	cmdline += name;
-	cmdline += TEXT("\" ");
-	cmdline += server_hwnd_str;
+	cmdline += TEXT("\"");
 
-	auto si = STARTUPINFO{ sizeof(STARTUPINFO) };
-	auto pi = PROCESS_INFORMATION{};
+	// 標準入出力のためのパイプを作成する。
+	auto client_stdin_pipe_opt = create_anonymous_pipe();
+	if (!client_stdin_pipe_opt) {
+		return std::nullopt;
+	}
 
-	auto success = CreateProcess(
+	auto client_stdout_pipe_opt = create_anonymous_pipe();
+	if (!client_stdout_pipe_opt) {
+		return std::nullopt;
+	}
+
+	// クライアントプロセスとデータをやり取りするパイプが継承されないようにする。
+	// (標準入力への書き込みと、標準出力からの読み取り。)
+	if (!SetHandleInformation(client_stdin_pipe_opt->write_.get(), HANDLE_FLAG_INHERIT, DWORD{})) {
+		return std::nullopt;
+	}
+
+	if (!SetHandleInformation(client_stdout_pipe_opt->read_.get(), HANDLE_FLAG_INHERIT, DWORD{})) {
+		return std::nullopt;
+	}
+
+	// クライアントプロセスの標準入出力のリダイレクトを設定する。
+	auto startup_info = STARTUPINFO{ sizeof(STARTUPINFO) };
+	auto process_info = PROCESS_INFORMATION{};
+
+	startup_info.hStdInput = client_stdin_pipe_opt->read_.get();
+	startup_info.hStdOutput = client_stdout_pipe_opt->write_.get();
+	startup_info.hStdError = client_stdout_pipe_opt->write_.get();
+	startup_info.dwFlags |= STARTF_USESTDHANDLES;
+
+	// クライアントプロセスを起動する。
+	if (!CreateProcess(
 		LPCTSTR{},
 		cmdline.data(),
 		LPSECURITY_ATTRIBUTES{},
 		LPSECURITY_ATTRIBUTES{},
-		FALSE,
+		TRUE,
 		NORMAL_PRIORITY_CLASS,
 		LPTSTR{},
 		hsp_dir.data(),
-		&si,
-		&pi
-	);
-	if (!success) {
-		MessageBox(HWND{}, TEXT("デバッグウィンドウの初期化に失敗しました。(クライアントプロセスを起動できませんでした。)"), TEXT("knowbug"), MB_ICONERROR);
-		exit(EXIT_FAILURE);
+		&startup_info,
+		&process_info
+	)) {
+		return std::nullopt;
 	}
 
-	auto thread_handle = ThreadHandle{ pi.hThread };
-	auto process_handle = ProcessHandle{ pi.hProcess };
-	return std::make_pair(std::move(thread_handle), std::move(process_handle));
+	auto thread_handle = ThreadHandle{ process_info.hThread };
+	auto process_handle = ProcessHandle{ process_info.hProcess };
+
+	return KnowbugClientProcess{
+		std::move(client_stdin_pipe_opt->read_),
+		std::move(client_stdin_pipe_opt->write_),
+		std::move(client_stdout_pipe_opt->read_),
+		std::move(client_stdout_pipe_opt->write_),
+		std::move(thread_handle),
+		std::move(process_handle),
+	};
 }
 
 // -----------------------------------------------
@@ -767,27 +821,11 @@ class KnowbugServerImpl
 
 	bool started_;
 
-	OsString server_buffer_name_;
-
-	std::optional<MemoryMappedFile> server_buffer_opt_;
-
-	std::optional<MemoryMappedFileView> server_buffer_view_opt_;
-
-	OsString client_buffer_name_;
-
-	std::optional<MemoryMappedFile> client_buffer_opt_;
-
-	std::optional<MemoryMappedFileView> client_buffer_view_opt_;
-
 	std::optional<WindowHandle> hidden_window_opt_;
 
-	std::optional<HWND> client_hwnd_opt_;
+	std::optional<KnowbugClientProcess> client_process_opt_;
 
-	std::optional<ProcessHandle> client_process_opt_;
-
-	std::optional<ThreadHandle> client_thread_opt_;
-
-	std::vector<Msg> send_queue_;
+	std::optional<UINT_PTR> timer_opt_;
 
 	HspObjectListEntity object_list_entity_;
 
@@ -799,16 +837,7 @@ public:
 		, step_controller_(step_controller)
 		, started_(false)
 		, hidden_window_opt_()
-		, server_buffer_name_(TEXT("KnowbugServerBuffer"))
-		, server_buffer_opt_()
-		, server_buffer_view_opt_()
-		, client_buffer_name_(TEXT("KnowbugClientBuffer"))
-		, client_buffer_opt_()
-		, client_buffer_view_opt_()
-		, client_hwnd_opt_()
 		, client_process_opt_()
-		, client_thread_opt_()
-		, send_queue_()
 		, object_list_entity_()
 	{
 	}
@@ -821,46 +850,156 @@ public:
 
 		hidden_window_opt_ = create_hidden_window(instance_);
 
-		server_buffer_opt_ = create_memory_mapped_file(server_buffer_name_);
+		client_process_opt_ = start_client_process();
+		if (!client_process_opt_) {
+			MessageBox(hidden_window_opt_->get(), TEXT("デバッグウィンドウの初期化に失敗しました。(クライアントプロセスを起動できません。)"), TEXT("knowbug"), MB_ICONERROR);
+			return;
+		}
 
-		server_buffer_view_opt_ = connect_memory_mapped_file(*server_buffer_opt_);
-
-		client_buffer_opt_ = create_memory_mapped_file(client_buffer_name_);
-
-		client_buffer_view_opt_ = connect_memory_mapped_file(*client_buffer_opt_);
-
-		auto pair = start_client_process(hidden_window_opt_->get());
-		client_thread_opt_ = std::move(pair.first);
-		client_process_opt_ = std::move(pair.second);
+		timer_opt_ = SetTimer(hidden_window_opt_->get(), 1, 16, NULL);
 	}
 
 	void will_exit() override {
-		send(KMTC_SHUTDOWN);
+		if (hidden_window_opt_ && timer_opt_) {
+			if (!KillTimer(hidden_window_opt_->get(), *timer_opt_)) {
+				assert(false && "KillTimer");
+			}
+		}
+
+		send_terminated_event();
 	}
 
 	void logmes(HspStringView text) override {
-		send(KMTC_LOGMES, WPARAM{}, LPARAM{}, to_utf8(text));
+		auto utf8_text = to_utf8(text);
+		send_output_event(utf8_text);
 	}
 
 	void debuggee_did_stop() override {
-		send_location(KMTC_STOPPED);
+		send_stopped_event();
 	}
 
-	void client_did_hello(HWND client_hwnd) {
-		if (!client_hwnd) {
-			fail_with(TEXT("The client sent hwnd=NULL"));
+	void read_client_stdout() {
+		if (!client_process_opt_) {
+			return;
 		}
 
-		assert(!client_hwnd_opt_);
-		client_hwnd_opt_ = client_hwnd;
+		auto stdout_handle = client_process_opt_->stdout_read_.get();
 
-		send(KMTC_HELLO_OK, int{}, int{}, knowbug_version());
-
-		// キューに溜まっていたメッセージをすべて送る。
-		for (auto&& msg : send_queue_) {
-			send(msg.kind(), msg.wparam(), msg.lparam(), msg.text());
+		static auto s_buffer = Utf8String{};
+		if (s_buffer.size() == 0) {
+			s_buffer.resize(1024 * 1024);
 		}
-		send_queue_.clear();
+
+		auto peek_size = DWORD{};
+		auto total_size = DWORD{};
+		auto left_size = DWORD{};
+		if (!PeekNamedPipe(stdout_handle, s_buffer.data(), s_buffer.size(), &peek_size, &total_size, &left_size)) {
+			assert(false);
+			return;
+		}
+
+		if (peek_size == 0) {
+			return;
+		}
+
+		auto read_size = DWORD{};
+		if (!ReadFile(stdout_handle, s_buffer.data(), s_buffer.size(), &read_size, LPOVERLAPPED{})) {
+			assert(false);
+			return;
+		}
+
+		static auto s_data = Utf8String{};
+
+		auto chunk = Utf8StringView{ s_buffer.data(), (std::size_t)read_size };
+
+		s_data += chunk;
+
+		while (true) {
+			auto message_opt = knowbug_protocol_parse(s_data);
+			if (!message_opt) {
+				break;
+			}
+
+			client_did_send_something(*message_opt);
+		}
+	}
+
+	void client_did_send_something(KnowbugMessage const& message) {
+		auto&& method = message.method();
+		auto method_str = as_native(method);
+
+		if (method == as_utf8(u8"initialize_notification")) {
+			client_did_initialize();
+			return;
+		}
+
+		if (method == as_utf8(u8"terminate_notification")) {
+			client_did_terminate();
+			return;
+		}
+
+		if (method == as_utf8(u8"continue_notification")) {
+			client_did_step_continue();
+			return;
+		}
+
+		if (method == as_utf8(u8"pause_notification")) {
+			client_did_step_pause();
+			return;
+		}
+
+		if (method == as_utf8(u8"step_in_notification")) {
+			client_did_step_in();
+			return;
+		}
+
+		if (method == as_utf8(u8"step_over_notification")) {
+			client_did_step_over();
+			return;
+		}
+
+		if (method == as_utf8(u8"step_out_notification")) {
+			client_did_step_out();
+			return;
+		}
+
+		if (method == as_utf8(u8"location_notification")) {
+			client_did_location_update();
+			return;
+		}
+
+		if (method == as_utf8(u8"source_notification")) {
+			auto source_file_id = message.get_int(as_utf8(u8"source_file_id")).value_or(0);
+			client_did_source(source_file_id);
+			return;
+		}
+
+		if (method == as_utf8(u8"list_update_notification")) {
+			client_did_list_update();
+			return;
+		}
+
+		if (method == as_utf8(u8"list_toggle_expand_notification")) {
+			auto object_id = message.get_int(as_utf8(u8"object_id")).value_or(0);
+			client_did_list_toggle_expand(object_id);
+			return;
+		}
+
+		if (method == as_utf8(u8"list_details_notification")) {
+			auto object_id = message.get_int(as_utf8(u8"object_id")).value_or(0);
+			client_did_list_details(object_id);
+			return;
+		}
+
+		if (method.empty()) {
+			return;
+		}
+
+		assert(false && u8"unknown method");
+	}
+
+	void client_did_initialize() {
+		send_initialized_event();
 	}
 
 	void client_did_terminate() {
@@ -870,6 +1009,8 @@ public:
 	void client_did_step_continue() {
 		hsx::debug_do_set_mode(HSPDEBUG_RUN, debug_);
 		touch_all_windows();
+
+		send_continued_event();
 	}
 
 	void client_did_step_pause() {
@@ -880,73 +1021,59 @@ public:
 	void client_did_step_in() {
 		hsx::debug_do_set_mode(HSPDEBUG_STEPIN, debug_);
 		touch_all_windows();
+
+		send_continued_event();
 	}
 
 	void client_did_step_over() {
 		step_controller_.update(StepControl::new_step_over());
 		touch_all_windows();
+
+		send_continued_event();
 	}
 
 	void client_did_step_out() {
 		step_controller_.update(StepControl::new_step_out());
 		touch_all_windows();
+
+		send_continued_event();
 	}
 
 	void client_did_location_update() {
-		send_location(KMTC_LOCATION);
+		send_location_event();
 	}
 
-	void client_did_source(std::size_t source_file_id) {
-		if (auto full_path_opt = objects().source_file_to_full_path(source_file_id)) {
-			send(KMTC_SOURCE_PATH, (int)source_file_id, int{}, *full_path_opt);
+	void client_did_source(int source_file_id) {
+		if (source_file_id < 0) {
+			assert(false && u8"bad source_file_id");
+			return;
 		}
 
-		if (auto content_opt = objects().source_file_to_content(source_file_id)) {
-			send(KMTC_SOURCE_CODE, (int)source_file_id, int{}, *content_opt);
-		}
+		send_source_event((std::size_t)source_file_id);
 	}
 
 	void client_did_list_update() {
-		auto diff = object_list_entity_.update(objects());
-
-		auto string_writer = StringWriter{};
-		for (auto&& delta : diff) {
-			delta.write_to(string_writer);
-		}
-		auto text = string_writer.finish();
-
-		send(KMTC_LIST_UPDATE_OK, int{}, int{}, text);
+		send_list_updated_events();
 	}
 
 	void client_did_list_toggle_expand(int object_id) {
 		if (object_id < 0) {
-			OutputDebugString(TEXT("out of range"));
+			assert(false && u8"bad object_id");
 			return;
 		}
 
 		object_list_entity_.toggle_expand((std::size_t)object_id);
 
-		client_did_list_update();
+		send_list_updated_events();
 	}
 
 	void client_did_list_details(int object_id) {
 		if (object_id < 0) {
-			OutputDebugString(TEXT("out of range"));
+			assert(false && u8"bad object_id");
 			return;
 		}
 
-		auto&& path_opt = object_list_entity_.object_id_to_path((std::size_t)object_id);
-		if (!path_opt) {
-			// FIXME: 情報がない旨を伝える。
-			send(KMTC_LIST_DETAILS_OK, int{}, int{}, as_utf8(u8""));
-			return;
-		}
-
-		auto string_writer = StringWriter{};
-		HspObjectWriter{ objects(), string_writer }.write_table_form(**path_opt);
-		auto text = string_writer.finish();
-
-		send(KMTC_LIST_DETAILS_OK, object_id, int{}, text);
+		send_list_details_event((std::size_t)object_id);
 	}
 
 private:
@@ -954,43 +1081,152 @@ private:
 		return objects_;
 	}
 
-	void send(int kind, int wparam, int lparam, Utf8StringView text) {
+	void send_message(KnowbugMessage const& message) {
+		auto text = knowbug_protocol_serialize(message);
+
 		if (text.size() >= MEMORY_BUFFER_SIZE) {
 			// FIXME: ログ出力
-			assert(false);
+			assert(false && u8"too large to send");
 			return;
 		}
 
-		if (!client_hwnd_opt_ || !server_buffer_view_opt_) {
-			// 後で、接続が確立したときに送る。
-			send_queue_.push_back(Msg{ kind, wparam, lparam, Utf8String{ text } });
+		if (!client_process_opt_) {
 			return;
 		}
 
-		auto data = (Utf8Char*)server_buffer_view_opt_->get();
-		std::memcpy(data, text.data(), text.size());
-		data[text.size()] = Utf8Char{};
+		// クライアントの標準入力に流す。
+		auto handle = client_process_opt_->stdin_write_.get();
+		auto written_size = DWORD{};
 
-		SendMessage(*client_hwnd_opt_, kind, (WPARAM)wparam, (LPARAM)lparam);
+		if (!WriteFile(handle, text.data(), text.size(), &written_size, LPOVERLAPPED{})) {
+			assert(false && u8"WriteFile failed");
+			return;
+		}
+		assert(written_size == text.size());
 	}
 
-	void send(int kind, int wparam, int lparam) {
-		send(kind, (WPARAM)wparam, (LPARAM)lparam, Utf8StringView{});
+	void send_message(Utf8StringView method) {
+		auto message = KnowbugMessage::new_with_method(Utf8String{ method });
+		send_message(message);
 	}
 
-	void send(int kind) {
-		send(kind, WPARAM{}, LPARAM{}, Utf8StringView{});
+	void send_initialized_event() {
+		auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"initialized_event") });
+
+		message.insert(Utf8String{ as_utf8(u8"version") }, Utf8String{ as_utf8(KNOWBUG_VERSION) });
+
+		send_message(message);
 	}
 
-	void send_location(int kind) {
-		assert(kind == KMTC_STOPPED || kind == KMTC_LOCATION);
+	void send_terminated_event() {
+		send_message(as_utf8(u8"terminated_event"));
+	}
 
+	void send_continued_event() {
+		send_message(as_utf8(u8"continued_event"));
+	}
+
+	void send_stopped_event() {
+		send_message(as_utf8(u8"stopped_event"));
+	}
+
+	void send_location_event() {
 		objects().script_do_update_location();
 
-		auto file_id = objects().script_to_current_file().value_or(0);
+		auto source_file_id = objects().script_to_current_file().value_or(0);
 		auto line_index = objects().script_to_current_line();
 
-		send(kind, (int)file_id, (int)line_index);
+		auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"location_event") });
+
+		message.insert_int(Utf8String{ as_utf8(u8"source_file_id") }, (int)source_file_id);
+		message.insert_int(Utf8String{ as_utf8(u8"line_index") }, (int)line_index);
+
+		send_message(message);
+	}
+
+	void send_source_event(std::size_t source_file_id) {
+		auto full_path_opt = objects().source_file_to_full_path(source_file_id);
+		auto content_opt = objects().source_file_to_content(source_file_id);
+
+		auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"source_event") });
+
+		message.insert_int(Utf8String{ as_utf8(u8"source_file_id") }, (int)source_file_id);
+
+		if (full_path_opt) {
+			message.insert(Utf8String{ as_utf8(u8"source_path") }, Utf8String{ *full_path_opt });
+		}
+
+		if (content_opt) {
+			message.insert(Utf8String{ as_utf8(u8"source_code") }, Utf8String{ *content_opt });
+		}
+
+		send_message(message);
+	}
+
+	void send_list_updated_events() {
+		auto diff = object_list_entity_.update(objects());
+
+		for (auto i = std::size_t{}; i < diff.size(); i++) {
+			auto&& delta = diff[i];
+
+			auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"list_updated_event") });
+
+			message.insert(
+				Utf8String{ as_utf8(u8"kind") },
+				Utf8String{ HspObjectListDelta::kind_to_string(delta.kind()) }
+			);
+
+			message.insert_int(
+				Utf8String{ as_utf8(u8"object_id") },
+				(int)delta.object_id()
+			);
+
+			message.insert_int(
+				Utf8String{ as_utf8(u8"index") },
+				(int)delta.index()
+			);
+
+			message.insert(
+				Utf8String{ as_utf8(u8"name") },
+				delta.name()
+			);
+
+			message.insert(
+				Utf8String{ as_utf8(u8"value") },
+				Utf8String{ delta.value() }
+			);
+
+			send_message(message);
+		}
+	}
+
+	void send_list_details_event(std::size_t object_id) {
+		auto text_opt = std::optional<Utf8String>{};
+
+		auto&& path_opt = object_list_entity_.object_id_to_path(object_id);
+		if (path_opt) {
+			auto string_writer = StringWriter{};
+			HspObjectWriter{ objects(), string_writer }.write_table_form(**path_opt);
+			text_opt = string_writer.finish();
+		}
+
+		auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"list_details_event") });
+
+		message.insert_int(Utf8String{ as_utf8(u8"object_id") }, (int)object_id);
+
+		if (text_opt) {
+			message.insert(Utf8String{ as_utf8(u8"text") }, std::move(*text_opt));
+		}
+
+		send_message(message);
+	}
+
+	void send_output_event(Utf8String output) {
+		auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"output_event") });
+
+		message.insert(Utf8String{ as_utf8(u8"output") }, std::move(output));
+
+		send_message(message);
 	}
 
 	void touch_all_windows() {
@@ -1026,66 +1262,12 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 		PostQuitMessage(0);
 		break;
 
-	default:
-		if (KMTS_FIRST <= msg && msg <= KMTS_LAST) {
-			if (auto server = s_server.lock()) {
-				switch (msg) {
-				case KMTS_HELLO:
-					server->client_did_hello((HWND)lp);
-					break;
-
-				case KMTS_TERMINATE:
-					server->client_did_terminate();
-					break;
-
-				case KMTS_STEP_CONTINUE:
-					server->client_did_step_continue();
-					break;
-
-				case KMTS_STEP_PAUSE:
-					server->client_did_step_pause();
-					break;
-
-				case KMTS_STEP_IN:
-					server->client_did_step_in();
-					break;
-
-				case KMTS_STEP_OVER:
-					server->client_did_step_over();
-					break;
-
-				case KMTS_STEP_OUT:
-					server->client_did_step_out();
-					break;
-
-				case KMTS_LOCATION_UPDATE:
-					server->client_did_location_update();
-					break;
-
-				case KMTS_SOURCE:
-					server->client_did_source((std::size_t)wp);
-					break;
-
-				case KMTS_LIST_UPDATE:
-					server->client_did_list_update();
-					break;
-
-				case KMTS_LIST_TOGGLE_EXPAND:
-					server->client_did_list_toggle_expand((int)wp);
-					break;
-
-				case KMTS_LIST_DETAILS:
-					server->client_did_list_details((int)wp);
-					break;
-
-				default:
-					assert(false && u8"unknown msg from the client");
-					break;
-				}
-			}
-			return TRUE;
+	case WM_TIMER: {
+		if (auto server = s_server.lock()) {
+			server->read_client_stdout();
 		}
 		break;
+	}
 	}
 	return DefWindowProc(hwnd, msg, wp, lp);
 }

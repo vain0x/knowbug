@@ -1,0 +1,380 @@
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
+// v0.1.0
+
+#ifndef included_mod_child_process_hsp
+#define included_mod_child_process_hsp
+
+#include "kernel32.as"
+
+// サブプロセス作成モジュール
+//
+// %inst
+// 使い方は child_process_prepare を参照。
+//
+// %note
+// Win32 API を使用するため、Windows 上でのみ動作する。
+#module m_child_process
+
+#define true 1
+#define false 0
+
+#define NULL 0
+#define INVALID_HANDLE_VALUE (-1)
+#define HANDLE_FLAG_INHERIT 0x0001
+
+#define STARTF_USESTDHANDLES 0x00000100
+
+// 配列の要素番号
+#enum s_cp_zero = 0
+#enum s_cp_stdin_read_handle
+#enum s_cp_stdin_write_handle
+#enum s_cp_stdout_read_handle
+#enum s_cp_stdout_write_handle
+#enum s_cp_process_handle
+#enum s_cp_thread_handle
+#enum s_cp_max
+
+// 匿名パイプを作成する
+#deffunc local child_process_create_pipe var read_handle, var write_handle, \
+	local security_attrs
+
+	// SECURITY_ATTRIBUTES 構造体
+	dim security_attrs
+	security_attrs(0) = 3 * 4
+
+	// bInheritHandle: ハンドルをサブプロセスに継承可能にする。
+	security_attrs(2) = true
+
+	CreatePipe varptr(read_handle), varptr(write_handle), varptr(security_attrs), 0
+	return stat != 0
+
+// サブプロセスの起動の準備を行う
+//
+// %prm
+// inner
+//
+// array inner: サブプロセスを管理するための配列変数
+//
+// %inst
+// サブプロセスの起動の準備を行う。
+//
+// この次に、child_prcess_redirect_stdin などの命令を使って、
+// サブプロセスをどのように起動するかの設定を行う。
+//
+// その後、child_process_spawn によってサブプロセスを起動する。
+//
+// サブプロセスの終了を待機するには child_process_wait が使用できる。
+//
+// サブプロセスの終了後、必ず child_process_close を使って、
+// 配列 inner に確保されているリソースを解放すること。
+#deffunc child_process_prepare array inner
+
+	dim inner, s_cp_max
+	return
+
+// サブプロセスに関するリソースを解放する
+//
+// %prm
+//
+// array inner: サブプロセスを管理するための配列変数
+//
+// %inst
+// サブプロセスが終了した後、必ずこの命令を実行して、
+// 確保されているリソースを解放すること。
+#deffunc child_process_close array inner
+
+	child_process_do_close_handle inner(s_cp_process_handle)
+	child_process_do_close_handle inner(s_cp_thread_handle)
+	child_process_do_close_handle inner(s_cp_stdin_read_handle)
+	child_process_do_close_handle inner(s_cp_stdin_write_handle)
+	child_process_do_close_handle inner(s_cp_stdout_read_handle)
+	child_process_do_close_handle inner(s_cp_stdout_write_handle)
+	return
+
+#deffunc local child_process_do_close_handle var handle
+
+	if handle {
+		CloseHandle handle
+		handle = 0
+	}
+	return
+
+// サブプロセスの標準入力をリダイレクトする
+//
+// %prm
+// inner
+//
+// array inner: サブプロセスを管理するための配列変数
+//
+// stat: 成功したら true
+//
+// %inst
+// サブプロセスの標準入力をリダイレクトするための設定を行う。
+// この設定をしておくと、起動したサブプロセスの標準入力にデータを書き込める。(child_proecss_write_stdin)
+//
+// この命令はサブプロセスを起動する前に、最大1回だけ使用すること。
+#deffunc child_process_redirect_stdin array inner
+
+	if inner(s_cp_stdin_read_handle) {
+		return false
+	}
+
+	child_process_create_pipe inner(s_cp_stdin_read_handle), inner(s_cp_stdin_write_handle)
+	if stat == 0 {
+		logmes "サブプロセスの標準入力用のパイプを作成できません。"
+		inner(s_cp_stdin_read_handle) = 0
+		inner(s_cp_stdin_write_handle) = 0
+		return false
+	}
+
+	return true
+
+// サブプロセスの標準出力をリダイレクトする
+//
+// %prm
+// inner
+//
+// array inner: サブプロセスを管理するための配列変数
+//
+// stat: 成功したら true
+//
+// %inst
+// サブプロセスの標準出力をリダイレクトするための設定を行う。
+// この設定をしておくと、起動したサブプロセスの標準出力からデータを読み取れる。(child_proecss_read_stdout)
+//
+// この命令はサブプロセスを起動する前に、最大1回だけ使用すること。
+#deffunc child_process_redirect_stdout array inner
+
+	if inner(s_cp_stdout_read_handle) {
+		return false
+	}
+
+	child_process_create_pipe inner(s_cp_stdout_read_handle), inner(s_cp_stdout_write_handle)
+	if stat == 0 {
+		logmes "サブプロセスの標準出力用のパイプを作成できません。"
+		inner(s_cp_stdout_read_handle) = 0
+		inner(s_cp_stdout_write_handle) = 0
+		return false
+	}
+
+	return true
+
+// サブプロセスを起動する
+//
+// %prm
+// inner, cmdline
+//
+// array inner: サブプロセスを管理するための配列変数
+// str cmdline: サブプロセスを起動するコマンドライン
+//
+// stat: 成功したら true
+//
+// %inst
+// サブプロセスを起動する。
+#deffunc child_process_spawn array inner, str cmdline, \
+	local os_cmdline, local startup_info, local proc_info
+
+	if inner(s_cp_process_handle) {
+		logmes "サブプロセスは既に起動しています。"
+		return false
+	}
+
+	sdim os_cmdline, strlen(cmdline) * 2 + 2
+	cnvstow os_cmdline, cmdline
+
+	// 標準入力への書き込みのパイプは継承しない。
+	if inner(s_cp_stdin_write_handle) {
+		assert inner(s_cp_stdin_write_handle) != 0
+		SetHandleInformation inner(s_cp_stdin_write_handle), HANDLE_FLAG_INHERIT, 0
+		if stat == 0 {
+			logmes "サブプロセスの標準入力のパイプを構成できません。"
+			return false
+		}
+	}
+
+	// 標準出力からの読み込みのパイプは継承しない。
+	if inner(s_cp_stdout_read_handle) {
+		assert inner(s_cp_stdout_read_handle) != 0
+		SetHandleInformation inner(s_cp_stdout_read_handle), HANDLE_FLAG_INHERIT, 0
+		if stat == 0 {
+			logmes "サブプロセスの標準出力のパイプを構成できません。"
+			return false
+		}
+	}
+
+	// STARTUPINFOW
+	dim startup_info, 17 * 4
+	startup_info(0) = 17 * 4
+
+	// 標準入出力のリダイレクトを設定する。
+	if inner(s_cp_stdin_read_handle) {
+		startup_info(14) = inner(s_cp_stdin_read_handle)
+	}
+
+	if inner(s_cp_stdout_write_handle) {
+		startup_info(15) = inner(s_cp_stdout_write_handle)
+		startup_info(16) = inner(s_cp_stdout_write_handle) // FIXME: stderr
+	}
+
+	if inner(s_cp_stdin_read_handle) != 0 || inner(s_cp_stdout_write_handle) != 0 {
+		startup_info(11) |= STARTF_USESTDHANDLES
+	}
+
+	// PROCESS_INFORMATION
+	dim proc_info, 4 * 4
+
+	// 起動
+	CreateProcessW NULL, varptr(os_cmdline), NULL, NULL, true, 0, NULL, NULL, varptr(startup_info), varptr(proc_info)
+	if stat == 0 {
+		logmes "サブプロセスを起動できません。"
+		inner(s_cp_process_handle) = 0
+		inner(s_cp_thread_handle) = 0
+		return false
+	}
+
+	assert proc_info(0) != 0
+	inner(s_cp_process_handle) = proc_info(0)
+	inner(s_cp_thread_handle) = proc_info(1)
+
+	return true
+
+// サブプロセスの終了を待つ
+//
+// %prm
+// inner, timeout_millis
+//
+// array inner: サブプロセスを管理するための配列変数
+// int timeout_millis: タイムアウト時間 (ミリ秒)
+//
+// stat: 終了したら true、タイムアウトしたら false
+//
+// %inst
+// サブプロセスが終了するのを最大 timeout_millis ミリ秒間待機する。
+// 待機中にサブプロセスが終了した、あるいはすでに終了していたら true を返す。
+// 時間内に終了しなければ false を返す。
+#deffunc child_process_wait array inner, int timeout_millis
+
+	if inner(s_cp_process_handle) == 0 {
+		logmes "起動していないサブプロセスを待機できません。"
+		return true
+	}
+
+	WaitForSingleObject inner(s_cp_process_handle), timeout_millis
+	return stat == 0
+
+// サブプロセスの終了コードを取得する
+//
+// %prm
+// inner, exit_code
+//
+// array inner: サブプロセスを管理するための配列変数
+// var exit_code: 終了コードを格納する先の変数
+//
+// stat: 成功したら true
+//
+// %inst
+// サブプロセスの終了コードを取得する。サブプロセスが終了したことを確認した後に実行すること。
+#deffunc child_process_get_exit_code array inner, var exit_code
+
+	if inner(s_cp_process_handle) == 0 {
+		logmes "起動していないサブプロセスの終了コードを取得できません。"
+		return false
+	}
+
+	GetExitCodeProcess inner(s_cp_process_handle), varptr(exit_code)
+	return stat != 0
+
+// サブプロセスの標準入力に書き込む
+//
+// %prm
+// inner, data, data_len
+//
+// array inner: サブプロセスを管理するための配列変数
+// var data: 書き込むデータを格納している変数
+// int data_len: 書き込むデータの長さ (バイト単位)
+//
+// stat: 書き込んだデータの長さ (バイト単位)。失敗したらマイナス
+//
+// %inst
+// サブプロセスの標準入力にデータを書き込む。
+//
+// この命令は、サブプロセスを起動する前に child_process_redirect_stdin を使用して、
+// 成功するのを確認してから使うこと。
+#deffunc child_process_write_stdin array inner, var data, int data_len, \
+	local written_len
+
+	if inner(s_cp_stdin_write_handle) == 0 {
+		logmes "リダイレクトされていないサブプロセスの標準入力には書き込めません。"
+		return -1
+	}
+
+	assert data_len >= 0
+	if data_len <= 0 {
+		return 0
+	}
+
+	WriteFile inner(s_cp_stdin_write_handle), varptr(data), data_len, varptr(written_len), NULL
+	if stat == 0 {
+		GetLastError
+		logmes "WriteFile error=" + stat
+		return -1
+	}
+
+	return written_len
+
+// サブプロセスの標準出力を読み取る
+//
+// %prm
+// inner, data, data_cap
+//
+// array inner: サブプロセスを管理するための配列変数
+// var data: 読み取るデータを格納する先の変数
+// int data_cap: data が確保している領域の長さ (バイト単位)
+//
+// stat: 読み取ったデータの長さ (バイト単位)。失敗したらマイナス
+//
+// %inst
+// サブプロセスの標準出力からデータを読み取る。
+//
+// この命令は、サブプロセスを起動する前に child_process_redirect_stdout を使用して、
+// 成功するのを確認してから使うこと。
+#deffunc child_process_read_stdout array inner, var data, int data_cap, \
+	local read_len
+
+	if inner(s_cp_stdout_read_handle) == 0 {
+		logmes "リダイレクトされていないサブプロセスの標準出力は読み取れません。"
+		return -1
+	}
+
+	assert data_cap >= 2
+
+	PeekNamedPipe inner(s_cp_stdout_read_handle), NULL, data_cap - 1, varptr(read_len), NULL, NULL
+	if stat == 0 {
+		GetLastError
+		logmes "PeekNamedPipe error=" + stat
+		return -1
+	}
+
+	assert read_len >= 0
+	if read_len == 0 {
+		return 0
+	}
+
+	ReadFile inner(s_cp_stdout_read_handle), varptr(data), data_cap - 1, varptr(read_len), NULL
+	if stat == 0 {
+		GetLastError
+		mes "ReadFile error=" + stat
+		return -1
+	}
+
+	assert read_len >= 0
+	if read_len == 0 {
+		return 0
+	}
+
+	poke data, read_len, 0
+	return read_len
+
+#global
+
+#endif
