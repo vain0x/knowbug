@@ -389,7 +389,10 @@
 	}
 
 	app_main_window_on_exit
+
 	infra_send_terminate
+	await 10 * 16
+
 	end
 
 // -----------------------------------------------
