@@ -146,12 +146,13 @@
 // ヘルパー
 // -----------------------------------------------
 
-//#ifdef _DEBUG
-#define global debug_trace(%1) app_log_edit_append "TRACE: " + (%1)
-#define global debug_warn(%1) app_log_edit_append "WARN: " + (%1)
-//#else
-//#define global debug_trace(%1) :
-//#endif
+// #ifdef _DEBUG
+// #define global debug_trace(%1) app_log_edit_append "TRACE: " + (%1)
+// #define global debug_warn(%1) app_log_edit_append "WARN: " + (%1)
+// #else
+#define global debug_trace(%1) :
+#define global debug_warn(%1) :
+// #endif
 
 // -----------------------------------------------
 // アプリケーション
