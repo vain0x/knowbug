@@ -117,9 +117,6 @@
     <ClInclude Include="hsp_objects.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="hsp_object_tree.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="hsp_object_writer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -210,9 +207,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="hsp_objects.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="hsp_object_tree.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="hsp_object_writer.cpp">

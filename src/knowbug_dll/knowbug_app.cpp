@@ -4,7 +4,6 @@
 #include "../hspsdk/hsp3plugin.h"
 #include "../knowbug_core/encoding.h"
 #include "../knowbug_core/hsp_object_path.h"
-#include "../knowbug_core/hsp_object_tree.h"
 #include "../knowbug_core/hsp_object_writer.h"
 #include "../knowbug_core/hsp_objects.h"
 #include "../knowbug_core/hsp_wrap_call.h"
@@ -13,9 +12,7 @@
 #include "../knowbug_core/step_controller.h"
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
-#include "knowbug_config.h"
 #include "knowbug_server.h"
-#include "knowbug_view.h"
 
 class KnowbugAppImpl;
 
@@ -28,40 +25,45 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
 EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4);
 static void debugbye();
 
-static auto create_object_tree_observer(KnowbugAppImpl& app)->std::unique_ptr<HspObjectTreeObserver>;
-
 // -----------------------------------------------
 // KnowbugApp
 // -----------------------------------------------
+
+static auto get_hsp_dir() -> OsString {
+	// DLL の絶対パスを取得する。
+	auto buffer = std::array<TCHAR, MAX_PATH>{};
+	GetModuleFileName(GetModuleHandle(nullptr), buffer.data(), buffer.size());
+	auto full_path = OsString{ buffer.data() };
+
+	// ファイル名の部分を削除
+	while (!full_path.empty()) {
+		auto last = full_path[full_path.length() - 1];
+		if (last == TEXT('/') || last == TEXT('\\')) {
+			break;
+		}
+
+		full_path.pop_back();
+	}
+
+	return full_path;
+}
 
 class KnowbugAppImpl
 	: public KnowbugApp
 {
 	friend class HspObjectTreeObserverImpl;
 
-	std::unique_ptr<KnowbugConfig> config_;
 	std::unique_ptr<KnowbugStepController> step_controller_;
 	std::unique_ptr<HspObjects> objects_;
-	std::unique_ptr<HspObjectTree> object_tree_;
-	std::unique_ptr<KnowbugView> view_;
-
-	std::unique_ptr<HspObjectTreeObserver> object_tree_observer_;
 	std::shared_ptr<KnowbugServer> server_;
 
 public:
 	KnowbugAppImpl(
-		std::unique_ptr<KnowbugConfig> config,
 		std::unique_ptr<KnowbugStepController> step_controller,
-		std::unique_ptr<HspObjects> objects,
-		std::unique_ptr<HspObjectTree> object_tree,
-		std::unique_ptr<KnowbugView> view
+		std::unique_ptr<HspObjects> objects
 	)
-		: config_(std::move(config))
-		, step_controller_(std::move(step_controller))
+		: step_controller_(std::move(step_controller))
 		, objects_(std::move(objects))
-		, object_tree_(std::move(object_tree))
-		, view_(std::move(view))
-		, object_tree_observer_(create_object_tree_observer(*this))
 		, server_(KnowbugServer::create(*g_debug_opt, this->objects(), g_dll_instance, *step_controller_))
 	{
 	}
@@ -70,41 +72,18 @@ public:
 		return *objects_;
 	}
 
-	auto object_tree() const -> HspObjectTree const& {
-		return *object_tree_;
-	}
-
-	auto object_tree() -> HspObjectTree& {
-		return *object_tree_;
-	}
-
-	auto object_tree_observer() -> HspObjectTreeObserver& {
-		return *object_tree_observer_;
-	}
-
 	auto server() -> KnowbugServer& {
 		return *server_;
-	}
-
-	auto view() -> KnowbugView& override {
-		return *view_;
 	}
 
 	void initialize() {
 		objects().initialize();
 
-		object_tree().focus_root(object_tree_observer());
-		focus_global();
-
-		view().initialize();
 		server().start();
 	}
 
 	void will_exit() {
-		auto_save_log();
-
 		server().will_exit();
-		view().will_exit();
 	}
 
 	void did_hsp_pause() {
@@ -117,8 +96,6 @@ public:
 		}
 
 		server().debuggee_did_stop();
-
-		update_view();
 	}
 
 	void did_hsp_logmes(HspStringView const& text) {
@@ -126,158 +103,12 @@ public:
 
 		objects().log_do_append(to_utf8(text));
 		objects().log_do_append(as_utf8(u8"\r\n"));
-
-		if (log_is_selected()) {
-			view().update(objects(), object_tree());
-		}
-	}
-
-	void update_view() override {
-		objects().script_do_update_location();
-
-		update_call_stack();
-		update_current_node();
-
-		view().update_source_edit(to_os(objects().script_to_current_location_summary()));
-		view().update(objects(), object_tree());
 	}
 
 	void step_run(StepControl const& step_control) override {
 		step_controller_->update(step_control);
 	}
-
-	void add_object_text_to_log(HspObjectPath const& path) override {
-		// FIXME: 共通化
-		auto writer = StringWriter{};
-		HspObjectWriter{ objects(), writer }.write_table_form(path);
-		auto text = writer.finish();
-
-		objects().log_do_append(text);
-	}
-
-	void clear_log() override {
-		objects().log_do_clear();
-	}
-
-	auto do_save_log(OsStringView const& file_path) -> bool {
-		auto&& content = objects().log_to_content();
-
-		auto file_stream = std::ofstream{ file_path.data() };
-		file_stream.write(as_native(content).data(), content.size());
-		auto success = file_stream.good();
-
-		return success;
-	}
-
-	void save_log() override {
-		auto&& file_path_opt = view().select_save_log_file();
-		if (!file_path_opt) {
-			return;
-		}
-
-		auto success = do_save_log(*file_path_opt);
-		if (!success) {
-			view().notify_save_failure();
-		}
-	}
-
-	void auto_save_log() {
-		auto&& file_path = config_->log_path_;
-		if (file_path.empty()) {
-			return;
-		}
-
-		// NOTE: アプリの終了中なのでエラーを報告しない。
-		do_save_log(file_path);
-	}
-
-	void open_current_script_file() override {
-		auto full_path_opt = objects().script_to_full_path();
-		if (!full_path_opt) {
-			view().notify_open_file_failure();
-			return;
-		}
-
-		ShellExecute(nullptr, TEXT("open"), full_path_opt->data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
-	}
-
-	void open_config_file() override {
-		auto config_path = config_->config_path();
-
-		// ファイルが存在しなければ作る。
-		auto of = std::ofstream{ config_path, std::ios::app };
-
-		ShellExecute(nullptr, TEXT("open"), config_path.data(), nullptr, TEXT(""), SW_SHOWDEFAULT);
-	}
-
-	void open_knowbug_repository() override {
-		auto url = TEXT("https://github.com/vain0x/knowbug");
-		auto no_args = LPCTSTR{ nullptr };
-		auto current_directory = LPCTSTR{ nullptr };
-		ShellExecute(nullptr, TEXT("open"), url, no_args, current_directory, SW_SHOWDEFAULT);
-	}
-
-private:
-	auto log_is_selected() const -> bool {
-		auto&& path_opt = object_tree().current_path_opt();
-		if (!path_opt) {
-			return false;
-		}
-
-		return (*path_opt)->kind() == HspObjectKind::Log;
-	}
-
-	void object_node_did_create(std::size_t node_id, HspObjectTreeInsertMode mode) {
-		view().object_node_did_create(node_id, mode, objects(), object_tree());
-	}
-
-	void object_node_will_destroy(std::size_t node_id) {
-		view().object_node_will_destroy(node_id, object_tree());
-	}
-
-	void focus_global() {
-		auto global_path = objects().root_path().new_global_module(objects());
-		object_tree().focus_by_path(*global_path, object_tree_observer());
-	}
-
-	void update_call_stack() {
-		object_tree().focus_by_path(*objects().root_path().new_call_stack(), object_tree_observer());
-	}
-
-	void update_current_node() {
-		if (auto node_id_opt = view().current_node_id_opt()) {
-			object_tree().focus(*node_id_opt, object_tree_observer());
-		}
-	}
 };
-
-// -----------------------------------------------
-// HspObjectTreeObserver
-// -----------------------------------------------
-
-class HspObjectTreeObserverImpl
-	: public HspObjectTreeObserver
-{
-	KnowbugAppImpl& parent_;
-
-public:
-	HspObjectTreeObserverImpl(KnowbugAppImpl& parent)
-		: parent_(parent)
-	{
-	}
-
-	void did_create(std::size_t node_id, HspObjectTreeInsertMode mode) override {
-		parent_.object_node_did_create(node_id, mode);
-	}
-
-	void will_destroy(std::size_t node_id) override {
-		parent_.object_node_will_destroy(node_id);
-	}
-};
-
-auto create_object_tree_observer(KnowbugAppImpl& app) -> std::unique_ptr<HspObjectTreeObserver> {
-	return std::make_unique<HspObjectTreeObserverImpl>(app);
-}
 
 // -----------------------------------------------
 
@@ -313,28 +144,22 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 	g_debug_opt = debug;
 
-	auto config = KnowbugConfig::create();
-
 	auto step_controller = std::make_unique<KnowbugStepController>(debug);
+
+	auto common_dir = get_hsp_dir();
+	common_dir += TEXT("/common/");
 
 	// :thinking_face:
 	auto resolver = SourceFileResolver{ g_fs };
 	auto objects_builder = HspObjectsBuilder{};
-	resolver.add_known_dir(config->common_dir());
+	resolver.add_known_dir(std::move(common_dir));
 	objects_builder.read_debug_segment(resolver, ctx);
 	auto source_file_repository = std::make_unique<SourceFileRepository>(resolver.resolve());
 	auto objects = std::make_unique<HspObjects>(objects_builder.finish(debug, std::move(source_file_repository)));
 
-	auto object_tree = HspObjectTree::create(*objects);
-
-	auto view = KnowbugView::create(*config, g_dll_instance, *object_tree);
-
 	g_app = std::make_shared<KnowbugAppImpl>(
-		std::move(config),
 		std::move(step_controller),
-		std::move(objects),
-		std::move(object_tree),
-		std::move(view)
+		std::move(objects)
 	);
 
 	// 起動処理:

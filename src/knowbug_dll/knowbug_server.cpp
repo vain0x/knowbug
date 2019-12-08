@@ -676,7 +676,7 @@ public:
 	ProcessHandle process_handle_;
 };
 
-// FIXME: knowbug_config と重複
+// FIXME: knowbug_app と重複
 static auto get_hsp_dir() -> OsString {
 	// DLL の絶対パスを取得する。
 	auto buffer = std::array<TCHAR, MAX_PATH>{};

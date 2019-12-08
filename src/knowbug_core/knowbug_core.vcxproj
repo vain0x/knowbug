@@ -348,7 +348,6 @@
     <ClInclude Include="hsp_object_path.h" />
     <ClInclude Include="hsp_objects.h" />
     <ClInclude Include="hsp_object_path_fwd.h" />
-    <ClInclude Include="hsp_object_tree.h" />
     <ClInclude Include="hsp_object_writer.h" />
     <ClInclude Include="hsp_objects_module_tree.h" />
     <ClInclude Include="hsp_wrap_call.h" />
@@ -401,7 +400,6 @@
     <ClCompile Include="encoding.cpp" />
     <ClCompile Include="hsp_object_path.cpp" />
     <ClCompile Include="hsp_objects.cpp" />
-    <ClCompile Include="hsp_object_tree.cpp" />
     <ClCompile Include="hsp_object_writer.cpp" />
     <ClCompile Include="hsp_objects_module_tree.cpp" />
     <ClCompile Include="hsp_wrap_call.cpp" />
