@@ -299,11 +299,3 @@
 #global
 
 	app_init
-
-	onerror gosub *l_on_error
-	stop
-
-*l_on_error
-
-	dialog "error : " + err + ", wp = " + wparam + ", lp = " + lparam
-	end 1
