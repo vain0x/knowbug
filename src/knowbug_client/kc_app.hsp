@@ -1,4 +1,5 @@
 // アプリケーションのコア部分
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
 
 #packopt name "knowbug_client"
 #packopt hide 1

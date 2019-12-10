@@ -1,3 +1,5 @@
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
+
 #define global HSP3_MAKE_CLI 1
 
 #include "hsp3_make.hsp"

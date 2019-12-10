@@ -1,4 +1,5 @@
 // エントリーポイント
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
 
 #include "kc_app.hsp"
 

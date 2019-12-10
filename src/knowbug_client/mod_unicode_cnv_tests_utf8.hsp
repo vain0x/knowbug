@@ -1,4 +1,5 @@
 // mod_unicode_cnv のテスト。UTF-8 ランタイム版。
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
 
 #include "hsp3utf.as"
 #include "mod_unicode_cnv.hsp"

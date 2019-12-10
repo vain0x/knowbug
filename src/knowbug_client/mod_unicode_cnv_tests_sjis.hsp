@@ -1,4 +1,5 @@
 // mod_unicode_cnv のテスト。shift_jis ランタイム版。
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
 
 #include "mod_unicode_cnv.hsp"
 

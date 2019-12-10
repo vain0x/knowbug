@@ -1,4 +1,5 @@
 // Make hsp3 executables.
+// LICENSE: Unlicensed (PUBLIC DOMAIN)
 
 // USAGE: hsp3_make <src-name> <work-dir> <hsp-root>
 
