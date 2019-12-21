@@ -680,7 +680,7 @@ public:
 static auto get_hsp_dir() -> OsString {
 	// DLL の絶対パスを取得する。
 	auto buffer = std::array<TCHAR, MAX_PATH>{};
-	GetModuleFileName(GetModuleHandle(nullptr), buffer.data(), buffer.size());
+	GetModuleFileName(GetModuleHandle(nullptr), buffer.data(), (DWORD)buffer.size());
 	auto full_path = OsString{ buffer.data() };
 
 	// ファイル名の部分を削除
@@ -893,7 +893,7 @@ public:
 		auto peek_size = DWORD{};
 		auto total_size = DWORD{};
 		auto left_size = DWORD{};
-		if (!PeekNamedPipe(stdout_handle, s_buffer.data(), s_buffer.size(), &peek_size, &total_size, &left_size)) {
+		if (!PeekNamedPipe(stdout_handle, s_buffer.data(), (DWORD)s_buffer.size(), &peek_size, &total_size, &left_size)) {
 			assert(false);
 			return;
 		}
@@ -903,7 +903,7 @@ public:
 		}
 
 		auto read_size = DWORD{};
-		if (!ReadFile(stdout_handle, s_buffer.data(), s_buffer.size(), &read_size, LPOVERLAPPED{})) {
+		if (!ReadFile(stdout_handle, s_buffer.data(), (DWORD)s_buffer.size(), &read_size, LPOVERLAPPED{})) {
 			assert(false);
 			return;
 		}
@@ -1098,7 +1098,7 @@ private:
 		auto handle = client_process_opt_->stdin_write_.get();
 		auto written_size = DWORD{};
 
-		if (!WriteFile(handle, text.data(), text.size(), &written_size, LPOVERLAPPED{})) {
+		if (!WriteFile(handle, text.data(), (DWORD)text.size(), &written_size, LPOVERLAPPED{})) {
 			assert(false && u8"WriteFile failed");
 			return;
 		}

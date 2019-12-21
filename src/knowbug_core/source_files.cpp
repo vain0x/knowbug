@@ -73,7 +73,7 @@ static auto search_file_from_dir(
 	auto succeeded =
 		SearchPath(
 			base_dir_ptr, file_ref.data(), EXTENSION_PTR,
-			full_path_buf.size(), full_path_buf.data(), &file_name_ptr
+			(DWORD)full_path_buf.size(), full_path_buf.data(), &file_name_ptr
 		) != 0;
 	if (!succeeded) {
 		return std::nullopt;

@@ -32,7 +32,7 @@ static void debugbye();
 static auto get_hsp_dir() -> OsString {
 	// DLL の絶対パスを取得する。
 	auto buffer = std::array<TCHAR, MAX_PATH>{};
-	GetModuleFileName(GetModuleHandle(nullptr), buffer.data(), buffer.size());
+	GetModuleFileName(GetModuleHandle(nullptr), buffer.data(), (DWORD)buffer.size());
 	auto full_path = OsString{ buffer.data() };
 
 	// ファイル名の部分を削除

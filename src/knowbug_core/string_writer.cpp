@@ -220,7 +220,7 @@ void string_writer_tests(Tests& tests) {
 		[&](TestCaseContext& t) {
 			{
 				auto w = string_writer_new();
-				auto dead_beef = (void const*)0xdeadbeef;
+				auto dead_beef = (void const*)(UINT_PTR)0xdeadbeef;
 				w.cat_ptr(dead_beef);
 				if (!t.eq(as_view(w), as_utf8(u8"0xdeadbeef"))) {
 					return false;
