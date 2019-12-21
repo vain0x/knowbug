@@ -1055,6 +1055,11 @@
 	mesbox s_log_text, s_log_edit_width, s_log_edit_height, mesbox_readonly
 	s_log_edit_id = stat
 	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
+
+	app_config_get_str "log_auto_save_path", ""
+	if refstr != "" {
+		logmes "INFO: ログが自動的に保存されます。(file_name = " + refstr + ")"
+	}
 	return
 
 #deffunc app_log_edit_append str text, \
@@ -1099,6 +1104,25 @@
 		return
 	}
 	file_name = refstr
+
+	notesel s_log_text
+	notesave file_name
+	noteunsel
+	return
+
+#deffunc app_log_edit_on_exit
+
+	app_log_edit_auto_save
+	return
+
+#deffunc app_log_edit_auto_save onexit \
+	local file_name
+
+	app_config_get_str "log_auto_save_path", ""
+	file_name = refstr
+	if file_name == "" {
+		return
+	}
 
 	notesel s_log_text
 	notesave file_name
