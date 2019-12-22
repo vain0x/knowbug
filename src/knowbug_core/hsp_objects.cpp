@@ -1,9 +1,10 @@
 #include "pch.h"
 #include <sstream>
-#include "hsp_wrap_call.h"
-#include "hsp_objects_module_tree.h"
+#include "hsp_object_key.h"
 #include "hsp_object_path.h"
 #include "hsp_objects.h"
+#include "hsp_objects_module_tree.h"
+#include "hsp_wrap_call.h"
 #include "hsx.h"
 #include "hsx_debug_segment.h"
 #include "source_files.h"
@@ -628,6 +629,7 @@ HspObjects::HspObjects(HSP3DEBUG* debug, std::vector<Utf8String>&& var_names, st
 	, param_names_(std::move(param_names))
 	, wc_debugger_(std::move(wc_debugger))
 	, log_()
+	, object_service_(HspObjectService::create(debug_))
 {
 }
 
@@ -668,7 +670,7 @@ auto HspObjects::module_count() const->std::size_t {
 }
 
 auto HspObjects::module_to_name(std::size_t module_id) const -> Utf8StringView {
-	return modules_.at(module_id).name();
+	return object_service_->module_to_name(HspObjectKey::Module{ module_id }).value_or(as_utf8(u8"???"));
 }
 
 auto HspObjects::module_to_var_count(std::size_t module_id) const->std::size_t {

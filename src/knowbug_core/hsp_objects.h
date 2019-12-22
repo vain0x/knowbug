@@ -8,6 +8,7 @@
 #include "encoding.h"
 #include "hsx.h"
 #include "hsp_object_path_fwd.h"
+#include "hsp_object_service.h"
 #include "hsp_wrap_call.h"
 
 class SourceFileId;
@@ -40,6 +41,8 @@ private:
 	std::shared_ptr<WcDebugger> wc_debugger_;
 
 	Utf8String log_;
+
+	std::unique_ptr<HspObjectService> object_service_;
 
 public:
 	HspObjects(HSP3DEBUG* debug, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);

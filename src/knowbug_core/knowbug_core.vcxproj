@@ -333,6 +333,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="hsp_object_key.cpp" />
+    <ClCompile Include="hsp_object_service.cpp" />
     <ClCompile Include="knowbug_protocol.cpp" />
     <ClCompile Include="string_writer.cpp" />
     <ClCompile Include="transfer_protocol.cpp" />
@@ -345,9 +347,12 @@
     <ClInclude Include="..\hspsdk\win32gui\hspwnd_win.h" />
     <ClInclude Include="encoding.h" />
     <ClInclude Include="hash_code.h" />
+    <ClInclude Include="hsp_object_key.h" />
+    <ClInclude Include="hsp_object_key_fwd.h" />
     <ClInclude Include="hsp_object_path.h" />
     <ClInclude Include="hsp_objects.h" />
     <ClInclude Include="hsp_object_path_fwd.h" />
+    <ClInclude Include="hsp_object_service.h" />
     <ClInclude Include="hsp_object_writer.h" />
     <ClInclude Include="hsp_objects_module_tree.h" />
     <ClInclude Include="hsp_wrap_call.h" />
