@@ -32,17 +32,17 @@
 
 **この手順は省略可能です。**
 
-コールスタック (ユーザー定義命令の呼び出し履歴) の表示を行うには、追加のプラグイン (WrapCall) を読み込む必要があります。プラグインを読み込むには、`WrapCall.as` を `#include` してください。(これはデバッグ時にのみ動作します。)
+コールスタック (ユーザー定義命令の呼び出し履歴) の表示を行うには、追加のプラグイン (WrapCall) を読み込む必要があります。プラグインを読み込むには、`WrapCall.as` を `#addition` してください。(これはデバッグ時にのみ動作します。)
 
 ```hsp
-#include "WrapCall.as"
+#addition "WrapCall.as"
 ```
 
-ただし、UTF-8 版や 64 ビット版の HSP を使う場合は、`hsp3utf.as` や `hsp3_64.as` より **後に** WrapCall.as を include してください。
+ただし、UTF-8 版や 64 ビット版の HSP を使う場合は、`hsp3utf.as` や `hsp3_64.as` より **後に** WrapCall.as を #addition してください。
 
 ```hsp
 #include "hsp3utf.as"  // こっちが前
-#include "WrapCall.as" // こっちが後
+#addition "WrapCall.as" // こっちが後
 ```
 
 ### 設定ファイルのインストール
