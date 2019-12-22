@@ -60,6 +60,8 @@ HSP のディレクトリに [knowubg.conf](./dist/knowbug.conf) を置いてお
 ## 推奨環境
 
 - HSP 3.5
+    - HSP3.6 の正式版がまだリリースされていないため、64ビット版は既定では shift_jis になります。
+    - HSP3.6β1 以降の HSP にインストールする場合は、hsp3debug_64_hsp36.dll の名前を hsp3debug_64.dll に変更してからインストールしてください。
 - Windows 10
 
 ## 不具合報告など
