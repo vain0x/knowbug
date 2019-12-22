@@ -15,9 +15,9 @@
 
 ## 概要
 
-**knowbug** は、HSP3 用デバッグ・ウィンドウの非公式改造版です。
+**knowbug** は非公式の HSP3 用デバッグ・ウィンドウです。
 
-![スクリーンショット](./screenshots/static_variables.png)
+![スクリーンショット](./screenshots/demo.gif)
 
 主な機能としては以下があります。**[機能の詳細はこちらを参照](details.md)** してください。
 
@@ -49,9 +49,7 @@
 
 **この手順は省略可能です。**
 
-HSP のディレクトリに [knowbug.ini](./dist/knowbug.ini) を置いておくと、起動時に読み込まれます。具体的な設定は、設定ファイル内のコメントを参照してください。
-
-(注意: v2.0.0-beta4 から、`knowbug.ini` は使用されなくなりました。代わりに、[knowubg.conf](./dist/knowbug.conf) を使用してください。)
+HSP のディレクトリに [knowubg.conf](./dist/knowbug.conf) を置いておくと、起動時に読み込まれます。具体的な設定は、設定ファイル内のコメントを参照してください。
 
 ## アンインストール
 
@@ -62,6 +60,8 @@ HSP のディレクトリに [knowbug.ini](./dist/knowbug.ini) を置いてお�
 ## 推奨環境
 
 - HSP 3.5
+    - HSP3.6 の正式版がまだリリースされていないため、64ビット版は既定では shift_jis になります。
+    - HSP3.6β1 以降の HSP にインストールする場合は、hsp3debug_64_hsp36.dll の名前を hsp3debug_64.dll に変更してからインストールしてください。
 - Windows 10
 
 ## 不具合報告など
