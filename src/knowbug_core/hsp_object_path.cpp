@@ -113,10 +113,11 @@ auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
 	if (offset() >= n) {
 		return to_owned(as_utf8(u8"..."));
 	}
+	assert(n >= 1);
 
 	auto first_index = offset();
-	auto last_index = std::min(n, offset() + MAX_CHILD_COUNT - 1);
-	assert(first_index < last_index);
+	auto last_index = std::min(n - 1, offset() + MAX_CHILD_COUNT - 1);
+	assert(first_index <= last_index);
 
 	auto name = parent().child_at(first_index, objects)->name(objects);
 	auto last = parent().child_at(last_index, objects)->name(objects);
