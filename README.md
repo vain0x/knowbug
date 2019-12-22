@@ -15,9 +15,9 @@
 
 ## 概要
 
-**knowbug** は、HSP3 用デバッグ・ウィンドウの非公式改造版です。
+**knowbug** は非公式の HSP3 用デバッグ・ウィンドウです。
 
-![スクリーンショット](./screenshots/static_variables.png)
+![スクリーンショット](./screenshots/demo.gif)
 
 主な機能としては以下があります。**[機能の詳細はこちらを参照](details.md)** してください。
 
