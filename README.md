@@ -1,6 +1,6 @@
 # knowbug
 
-[![Build Status](https://dev.azure.com/vain0x/knowbug/_apis/build/status/vain0x.knowbug?branchName=master)](https://dev.azure.com/vain0x/knowbug/_build/latest?definitionId=1&branchName=master)
+[![Build Status](https://dev.azure.com/vain0x/knowbug/_apis/build/status/vain0x.knowbug?branchName=master)](https://dev.azure.com/vain0x/knowbug/_build/latest?definitionId=1&branchName=master) ([#91](https://github.com/vain0x/knowbug/issues/91))
 
 [最新版はこちら](https://github.com/vain0x/knowbug/releases/latest)
 
