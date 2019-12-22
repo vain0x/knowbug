@@ -662,11 +662,11 @@ auto HspObjects::type_to_name(hsx::HspType type) const->Utf8StringView {
 }
 
 auto HspObjects::module_global_id() const->std::size_t {
-	return GLOBAL_MODULE_ID;
+	return object_service_->module_global().module_id();
 }
 
 auto HspObjects::module_count() const->std::size_t {
-	return modules_.size();
+	return object_service_->module_count();
 }
 
 auto HspObjects::module_to_name(std::size_t module_id) const -> Utf8StringView {
@@ -674,11 +674,16 @@ auto HspObjects::module_to_name(std::size_t module_id) const -> Utf8StringView {
 }
 
 auto HspObjects::module_to_var_count(std::size_t module_id) const->std::size_t {
-	return modules_.at(module_id).var_ids().size();
+	return object_service_->module_to_static_var_count(HspObjectKey::Module{ module_id });
 }
 
 auto HspObjects::module_to_var_at(std::size_t module_id, std::size_t index) const->std::size_t {
-	return modules_.at(module_id).var_ids().at(index);
+	auto static_var_opt = object_service_->module_to_static_var_at(HspObjectKey::Module{ module_id }, index);
+	if (!static_var_opt) {
+		return 0;
+	}
+
+	return static_var_opt->static_var_id();
 }
 
 auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->Utf8String {
