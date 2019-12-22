@@ -2,7 +2,16 @@
 
 [![Build Status](https://dev.azure.com/vain0x/knowbug/_apis/build/status/vain0x.knowbug?branchName=master)](https://dev.azure.com/vain0x/knowbug/_build/latest?definitionId=1&branchName=master) ([#91](https://github.com/vain0x/knowbug/issues/91))
 
+**knowbug** は非公式の HSP3 用デバッグ・ウィンドウです。
+
 [最新版はこちら](https://github.com/vain0x/knowbug/releases/latest)
+
+![スクリーンショット](./screenshots/demo.gif)
+
+主な機能としては以下があります。**[機能の詳細はこちらを参照](details.md)** してください。
+
+- 多次元配列やモジュール変数の表示
+- ステップオーバーなどの拡張されたステップ実行
 
 > ## コラボレータ募集のお知らせ
 >
@@ -12,17 +21,6 @@
 > - 開発に参加したい人は何か issue/PR を開いてその旨を表明してください。コミットやリリースの権限を付与します。(リポジトリの移譲は行いません。)
 > - 何か困ったことがあれば @vain0x がサポートします。
 > - 報酬等はありません。
-
-## 概要
-
-**knowbug** は非公式の HSP3 用デバッグ・ウィンドウです。
-
-![スクリーンショット](./screenshots/demo.gif)
-
-主な機能としては以下があります。**[機能の詳細はこちらを参照](details.md)** してください。
-
-- 多次元配列やモジュール変数の表示
-- ステップオーバーなどの拡張されたステップ実行
 
 ## インストール
 
