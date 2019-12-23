@@ -676,6 +676,11 @@ auto HspObjects::module_to_var_count(std::size_t module_id) const->std::size_t {
 }
 
 auto HspObjects::module_to_var_at(std::size_t module_id, std::size_t index) const->std::size_t {
+	if (index >= modules_.at(module_id).var_ids().size()) {
+		// FIXME: とりあえずクラッシュしないようにする。
+		return 0;
+	}
+
 	return modules_.at(module_id).var_ids().at(index);
 }
 

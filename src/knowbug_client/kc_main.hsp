@@ -226,6 +226,7 @@
 		assoc_get keys, values, value_lens, count, "version", version, version_len
 		if stat == false {
 			version = "v?.?.?"
+			version_len = strlen(version)
 		}
 
 		app_did_receive_hello_ok version
@@ -239,6 +240,10 @@
 
 	if method == "output_event" {
 		assoc_get keys, values, value_lens, count, "output", output, output_len
+		if stat == false {
+			output = ""
+			output_len = 0
+		}
 
 		app_did_receive_logmes output
 		return
@@ -256,7 +261,16 @@
 
 	if method == "location_event" {
 		assoc_get_int keys, values, value_lens, count, "source_file_id", source_file_id
+		if stat == false {
+			logmes "WARN: source_file_id missing"
+			return
+		}
+
 		assoc_get_int keys, values, value_lens, count, "line_index", line_index
+		if stat == false {
+			logmes "WARN: line_index missing"
+			return
+		}
 
 		app_did_receive_location source_file_id, line_index
 		return
@@ -264,8 +278,22 @@
 
 	if method == "source_event" {
 		assoc_get_int keys, values, value_lens, count, "source_file_id", source_file_id
+		if stat == false {
+			logmes "WARN: source_file_id missing"
+			return
+		}
+
 		assoc_get keys, values, value_lens, count, "source_path", source_path, source_path_len
+		if stat == false {
+			source_path = ""
+			source_path_len = 0
+		}
+
 		assoc_get keys, values, value_lens, count, "source_code", source_code, source_code_len
+		if stat == false {
+			source_code = ""
+			source_code_len = 0
+		}
 
 		app_did_receive_source_path source_file_id, source_path
 		app_did_receive_source_code source_file_id, source_code
@@ -274,10 +302,34 @@
 
 	if method == "list_updated_event" {
 		assoc_get keys, values, value_lens, count, "kind", kind, kind_len
+		if stat == false {
+			logmes "WARN: kind missing"
+			return
+		}
+
 		assoc_get_int keys, values, value_lens, count, "object_id", object_id
+		if stat == false {
+			logmes "WARN: object_id missing"
+			return
+		}
+
 		assoc_get_int keys, values, value_lens, count, "index", index
+		if stat == false {
+			logmes "WARN: index missing"
+			return
+		}
+
 		assoc_get keys, values, value_lens, count, "name", name, name_len
+		if stat == false {
+			name = ""
+			name_len = 0
+		}
+
 		assoc_get keys, values, value_lens, count, "value", value, value_len
+		if stat == false {
+			value = ""
+			value_len = 0
+		}
 
 		app_did_receive_list_update_ok kind, object_id, index, name, value
 		return
@@ -285,7 +337,16 @@
 
 	if method == "list_details_event" {
 		assoc_get_int keys, values, value_lens, count, "object_id", object_id
+		if stat == false {
+			logmes "WARN: object_id missing"
+			return
+		}
+
 		assoc_get keys, values, value_lens, count, "text", text, text_len
+		if stat == false {
+			text = ""
+			text_len = 0
+		}
 
 		app_did_receive_list_details_ok object_id, text
 		return
