@@ -1312,6 +1312,12 @@
 
 *l_open_config
 
+	exist "knowbug.conf"
+	if strsize < 0 {
+		dialog "設定ファイルがありません。(設定ファイルに関しては、README を参照してください。)", dialog_warn
+		return
+	}
+
 	exec "knowbug.conf", exec_app
 	return
 
