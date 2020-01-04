@@ -627,7 +627,7 @@ static auto create_hidden_window(HINSTANCE instance) -> WindowHandle {
 		HWND{},
 		HMENU{},
 		instance,
-		LPARAM{}
+		LPVOID{}
 	);
 	if (!hwnd) {
 		MessageBox(HWND{}, TEXT("デバッグウィンドウの初期化に失敗しました。(サーバーウィンドウを作成に失敗しました。)"), TEXT("knowbug"), MB_ICONERROR);
