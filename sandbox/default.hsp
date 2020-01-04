@@ -134,6 +134,8 @@
 	newmod points, m_point, 40, 2
 	delmod points(0)
 
+	newcom ie, "InternetExplorer.Application"
+
 	repeat
 		logmes "hello " + cnt
 		await 170

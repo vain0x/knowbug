@@ -342,7 +342,7 @@ auto HspObjectPath::new_unknown() const -> std::shared_ptr<HspObjectPath const> 
 }
 
 auto HspObjectPath::as_unknown() const -> HspObjectPath::Unknown const& {
-	if (kind() != HspObjectKind::Flex) {
+	if (kind() != HspObjectKind::Unknown) {
 		assert(false && u8"Casting to unknown");
 		throw new std::bad_cast{};
 	}
