@@ -1,5 +1,5 @@
 // mod_stdin.hsp のサンプル
-// LICENSE: Unlicensed (PUBLIC DOMAIN)
+// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
 // コンソールから実行すること。
 // 例: pwsh -c 'echo hello | ./mod_stdin_example.exe'
