@@ -15,6 +15,7 @@
 #include "mod_stdin.hsp"
 #include "mod_stdout.hsp"
 #include "mod_transfer_protocol.hsp"
+#include "mod_unicode_cnv.hsp"
 #include "kc_config.hsp"
 
 // -----------------------------------------------
@@ -677,10 +678,10 @@
 	return
 
 #deffunc app_list_view_insert_column int column_index, str text, int column_width, \
-	local os_text_var, local lvcolumn, local mask
+	local text_var, local os_text_var, local os_text_len, local lvcolumn, local mask
 
-	sdim os_text_var, strlen(text) * 2 + 2
-	cnvstow os_text_var, text
+	text_var = text
+	unicode_cnv_from_utf8 text_var, strlen(text_var), os_text_var, os_text_len
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvcolumna
 	dim lvcolumn, 11
@@ -694,14 +695,14 @@
 	return
 
 #deffunc app_list_view_insert_row int object_id, int row_index, str name, str value, \
-	local lvitem, local os_text
+	local lvitem, local text, local os_text, local os_text_len
 
 	notesel s_list_view_note
 	noteadd strf("%d;%s", object_id, name), row_index
 	noteunsel
 
-	sdim os_text, 0x1000
-	cnvstow os_text, name
+	text = name
+	unicode_cnv_from_utf8 text, strlen(text), os_text, os_text_len
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvitema
 	dim lvitem, 15
@@ -712,7 +713,8 @@
 	sendmsg s_list_view_hwnd, LVM_INSERTITEMW, , varptr(lvitem)
 	assert stat == row_index
 
-	cnvstow os_text, value
+	text = value
+	unicode_cnv_from_utf8 text, strlen(text), os_text, os_text_len
 
 	dim lvitem, 15
 	lvitem(0) = LVIF_TEXT
@@ -734,14 +736,13 @@
 	return
 
 #deffunc app_list_view_update_row int object_id, int row_index, var name, var value, \
-	local os_text, local lvitem
+	local os_text, local os_text_len, local lvitem
 
 	notesel s_list_view_note
 	noteadd strf("%d;%s", object_id, name), row_index, noteadd_set
 	noteunsel
 
-	sdim os_text, 0x1000
-	cnvstow os_text, name
+	unicode_cnv_from_utf8 name, strlen(name), os_text, os_text_len
 
 	dim lvitem, 15
 	lvitem(0) = LVIF_TEXT
@@ -751,7 +752,7 @@
 	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 
-	cnvstow os_text, value
+	unicode_cnv_from_utf8 value, strlen(value), os_text, os_text_len
 
 	dim lvitem, 15
 	lvitem(0) = LVIF_TEXT
@@ -958,8 +959,9 @@
 	return
 
 #deffunc app_source_code_edit_update int source_file_id, int line_index, \
-	local text, local os_text, \
-	local source_path, local os_source_path, local source_path_exists, \
+	local text, local os_text, local os_text_len, \
+	local source_path, local source_path_exists, \
+	local os_source_path, local os_source_path_len, \
 	local text_updated, \
 	local start_index, local end_index, local current_line_index
 
@@ -971,9 +973,12 @@
 	if text_updated {
 		app_source_path_get source_file_id, source_path
 		source_path_exists = stat
+		if source_path_exists == false {
+			source_path = ""
+		}
 
-		sdim os_source_path, strlen(source_path) * 2 + 1
-		cnvstow os_source_path, source_path
+		unicode_cnv_from_utf8 source_path, strlen(source_path), os_source_path, os_source_path_len
+
 		SetWindowTextW s_source_path_edit_hwnd, varptr(os_source_path)
 
 		// 右端までスクロールするために、カーソルを末尾に移動させる。
@@ -985,8 +990,8 @@
 			text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
 		}
 
-		sdim os_text, strlen(text) * 2 + 1
-		cnvstow os_text, text
+		unicode_cnv_from_utf8 text, strlen(text), os_text, os_text_len
+
 		SetWindowTextW s_source_code_edit_hwnd, varptr(os_text)
 
 		s_current_source_file_id = source_file_id
