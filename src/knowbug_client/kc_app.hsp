@@ -972,7 +972,7 @@
 		app_source_path_get source_file_id, source_path
 		source_path_exists = stat
 
-		sdim os_source_path, strlen(source_path) * 2 + 1
+		sdim os_source_path, strlen(source_path) * 2 + 2
 		cnvstow os_source_path, source_path
 		SetWindowTextW s_source_path_edit_hwnd, varptr(os_source_path)
 
@@ -985,7 +985,7 @@
 			text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
 		}
 
-		sdim os_text, strlen(text) * 2 + 1
+		sdim os_text, strlen(text) * 2 + 2
 		cnvstow os_text, text
 		SetWindowTextW s_source_code_edit_hwnd, varptr(os_text)
 
