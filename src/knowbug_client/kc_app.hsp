@@ -221,6 +221,7 @@
 	// ソースファイル
 	sdim s_source_paths
 	sdim s_source_codes
+	dim s_source_is_requested
 	dim s_source_code_exists
 
 	// スクリプト
@@ -900,6 +901,24 @@
 	s_source_code_exists(source_file_id) = true
 	return
 
+// ソースファイルの情報をリクエスト済みの状態にする。
+// すでにリクエスト済みなら false を返す。
+// (多重リクエストを防止するため。)
+#defcfunc app_source_mark_as_requested int source_file_id
+
+	if source_file_id < 0 {
+		return false
+	}
+
+	if source_file_id < length(s_source_is_requested) {
+		if s_source_is_requested(source_file_id) {
+			return false
+		}
+	}
+
+	s_source_is_requested(source_file_id) = true
+	return true
+
 // ソースファイルIDに対応するソースコードを保持しているかを返す。
 #defcfunc app_source_code_exists int source_file_id
 
@@ -1440,7 +1459,7 @@
 
 #deffunc app_location_did_change int source_file_id, int line_index
 
-	if app_source_code_exists(source_file_id) == false {
+	if app_source_mark_as_requested(source_file_id) {
 		infra_send_source source_file_id
 	}
 
