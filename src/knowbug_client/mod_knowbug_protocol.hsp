@@ -73,7 +73,7 @@
 		}
 
 		c = peek(data, i)
-		if c == 0 || c == '\r' || c == char_lf {
+		if c == 0 {
 			gosub *l_unescape_commit
 			break
 		}
@@ -222,6 +222,10 @@
 
 		values(count) = ""
 		value_lens(count) = 0
+
+		// エスケープシーケンスを1つずつ展開すると遅いので、頻出のものは strrep で一括置換する。
+		strrep s_value, "\\x20", " "
+		strrep s_value, "\\x0d\\x0a", "\n"
 		unescape_str s_value, 0, strlen(s_value), values(count), value_lens(count)
 
 		count++
