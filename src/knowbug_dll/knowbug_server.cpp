@@ -26,7 +26,7 @@ static constexpr auto MEMORY_BUFFER_SIZE = std::size_t{ 1024 * 1024 };
 // バージョン
 // -----------------------------------------------
 
-static constexpr auto KNOWBUG_VERSION = u8"v2.0.2";
+static constexpr auto KNOWBUG_VERSION = u8"v2.0.3";
 
 #ifdef _M_X64
 static constexpr auto KNOWBUG_PLATFORM_SUFFIX = u8" (x64)";
