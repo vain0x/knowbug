@@ -58,7 +58,7 @@
 // エスケープされた文字列を元に戻したものを buf の末尾に書き込む
 // buf_len の値は書き込んだ長さだけ増加する。
 #deffunc local unescape_str var data, int data_offset, int data_len, var buf, var buf_len, \
-	local i, local last, local c
+	local i, local last, local c, local verbatim_len
 
 	assert data_offset >= 0
 	assert data_len >= 0
@@ -67,32 +67,30 @@
 	last = data_offset
 
 	repeat
-		if i >= data_offset + data_len {
+		verbatim_len = instr(data, i, "\\")
+
+		// エスケープシーケンスが処理する範囲内にないとき
+		if verbatim_len < 0 || i + verbatim_len + 4 > data_len {
+			i = data_len
 			gosub *l_unescape_commit
 			break
 		}
 
-		c = peek(data, i)
-		if c == 0 {
-			gosub *l_unescape_commit
-			break
-		}
+		// 次のエスケープシーケンスまでの間にある文字列をバッファにコピーする。
+		i += verbatim_len
+		gosub *l_unescape_commit
 
-		if c == '\\' && i + 4 <= data_len {
-			gosub *l_unescape_commit
+		assert data_offset <= i && i + 4 <= data_len
+		assert peek(data, i) == '\\'
+		assert peek(data, i + 1) == 'x'
 
-			assert peek(data, i + 1) == 'x'
-			c = int("$" + strmid(data, i + 2, 2))
+		c = int("$" + strmid(data, i + 2, 2))
 
-			buf_add_byte buf, buf_len, c
-			buf_len++
+		buf_add_byte buf, buf_len, c
+		buf_len++
 
-			i += 4
-			last = i
-			continue
-		}
-
-		i++
+		i += 4
+		last = i
 	loop
 
 	buf_add_byte buf, buf_len, 0
