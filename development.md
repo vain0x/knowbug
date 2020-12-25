@@ -4,7 +4,7 @@
 
 - Windows 10
 - [Git for Windows](https://gitforwindows.org/)
-- [PowerShell 6](https://github.com/PowerShell/PowerShell/releases/latest)
+- [PowerShell](https://github.com/PowerShell/PowerShell/releases/latest) (>= 6)
 - [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs)
     - C++ 開発用の機能をインストールしておく。
 
@@ -35,30 +35,25 @@ knowbug_tests プロジェクトを起動するとテストが実行され、一
 - スクリプトの実行中に Visual Studio の「プロセスにアタッチ」(Ctrl+Alt+P)で hsp3.exe を選ぶと knowbug 側のコードをトレース実行できて便利です。
 - knowbug の起動時にシフトキーを押しておくと、knowbug の開始時に停止するようになっていて、アタッチしやすくなります。
 
-## 環境変数
+## ビルドスクリプト
 
-`./scripts` にあるビルドスクリプトを使うには、以下の環境変数が必要です。(Win+Break → システムの詳細設定 → 環境変数 → 新規)
+`./scripts` にあるビルドスクリプトを使う場合は、以下の通り、一定の設定が必要です。
 
-- KNOWBUG_SERVER_HSP3_ROOT:
-    - [HSP のフルセット・アーカイブ版](http://hsp.tv/make/downlist.html)を新たに展開して、そのディレクトリへの絶対パスを指定する。
-    - サーバー (knowbug_dll) をデバッグするために使う。
-- KNOWBUG_CLIENT_HSP3_ROOT:
-    - HSP のフルセット・アーカイブ版を新たに展開して、そのディレクトリへの絶対パスを指定する。
-    - クライアント (knowbug_client) をデバッグするために使う。
-    - KNOWBUG_SERVER_HSP3_ROOT と同じにはできない。
-
-また、`MSBuild.exe` へのパスを通してください。(環境変数 Path に `MSBuild.exe` があるディレクトリへの絶対パスを追加してください。)
-
-- `MSBuild.exe` は、Visual Studio 2019 なら `"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\"` にあります。
+- 開発用に HSP3 をインストールしてください。
+    - `./scripts/dev-install-hsp3` で自動的にインストールできるはずです。
+    - bin/server と bin/client に配置されます。
+- `MSBuild.exe` へのパスを通してください。
+    - 環境変数 PATH に `MSBuild.exe` があるディレクトリへの絶対パスを追加してください。(環境変数の変更は Win+Break → システムの詳細設定 → 環境変数)
+    - `MSBuild.exe` は、Visual Studio 2019 なら `C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\` にあります。
 
 ## デバッグ版のインストール
 
 ビルドで生成される DLL を指すシンボリックリンクをインストールしておくと便利です。
 
-シンボリックリンクを手動で作成するのはめんどうなので、スクリプトを用意しています。PowerShell (pwsh) を開き、以下のスクリプトを実行してください。
+シンボリックリンクを手動で作成するのはめんどうなので、スクリプトを用意しています。管理者用の PowerShell (バージョン 6 以上の方) を開き、以下のスクリプトを実行してください。
 
 ```pwsh
-./scripts/install-dev.ps1
+./scripts/dev-install-link.ps1
 ```
 
 インストール先の環境でスクリプトをデバッグ実行するには `./scripts/run.ps1` が使用できます。`./scripts/run-default.ps1` は `./sandbox/default.hsp` を実行します。

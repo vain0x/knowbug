@@ -4,8 +4,8 @@
 # 使い方
 #   ./scripts/run <script> <runtime-name>
 
-$hspRoot = $env:KNOWBUG_SERVER_HSP3_ROOT
 $workDir = (get-item .).fullName
+$hspRoot = "$PWD/bin/server"
 
 $scriptName = (get-item $args[0]).fullName
 $runtimeName = $args[1]

@@ -4,19 +4,9 @@
 #      アプリをパイプの途中で実行するときは待機されるので、
 #      xxx.exe (GUIアプリ) が終了するのを待ちたいときは xxx.exe | out-null と書く。
 
-if (!$env:KNOWBUG_SERVER_HSP3_ROOT) {
-    write-error '環境変数 KNOWBUG_SERVER_HSP3_ROOT を設定してください。'
-    exit 1
-}
-
-if (!$env:KNOWBUG_CLIENT_HSP3_ROOT) {
-    write-error '環境変数 KNOWBUG_CLIENT_HSP3_ROOT を設定してください。'
-    exit 1
-}
-
 $workDir = (get-item .).fullName
-$serverHspRoot = (get-item $env:KNOWBUG_SERVER_HSP3_ROOT).fullName
-$clientHspRoot = (get-item $env:KNOWBUG_CLIENT_HSP3_ROOT).fullName
+$clientHspRoot = "$PWD/bin/client"
+$serverHspRoot = "$PWD/bin/server"
 
 ./scripts/hsp3-make.ps1
 if (!$?) {

@@ -1,13 +1,8 @@
 # hsp3_make.hsp をコンパイルする。
 # HSP スクリプトの実行ファイルを作成するためのスクリプト。
 
-if (!$env:KNOWBUG_CLIENT_HSP3_ROOT) {
-    write-error '環境変数 KNOWBUG_CLIENT_HSP3_ROOT を設定してください。'
-    exit 1
-}
-
 $workDir = (get-item .).fullName
-$clientHspRoot = (get-item $env:KNOWBUG_CLIENT_HSP3_ROOT).fullName
+$clientHspRoot = "$PWD/bin/client"
 
 # 実行ファイル生成用のスクリプトをコンパイルする。
 & "$clientHspRoot/hspcmp.exe" "--compath=$clientHspRoot/common/" "$workDir/scripts/hsp3_make_cli.hsp"
