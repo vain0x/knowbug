@@ -1,4 +1,4 @@
-* text=auto
+* text=auto eol=lf
 
 # linguist-language settings for HSP3
 *.hs linguist-language=HDL Help Source
