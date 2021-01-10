@@ -1,7 +1,5 @@
 # knowbug
 
-[![Build Status](https://dev.azure.com/vain0x/knowbug/_apis/build/status/vain0x.knowbug?branchName=master)](https://dev.azure.com/vain0x/knowbug/_build/latest?definitionId=1&branchName=master)
-
 **knowbug** は非公式の HSP3 用デバッグ・ウィンドウです。
 
 [最新版はこちら](https://github.com/vain0x/knowbug/releases/latest)
