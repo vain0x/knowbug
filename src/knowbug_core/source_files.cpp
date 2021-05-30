@@ -570,7 +570,7 @@ void source_files_tests(Tests& tests) {
 			return t.eq(as_native(*repository.file_to_content(file_id)), content)
 				&& t.eq(as_native(*repository.file_to_line_at(file_id, 0)), u8"main")
 				&& t.eq(as_native(*repository.file_to_line_at(file_id, 1)), u8"stop")
-				&& t.eq(as_native(*repository.file_to_line_at(file_id, 9999)), u8"");
+				&& t.eq(as_native(repository.file_to_line_at(file_id, 9999).value_or(as_utf8(u8""))), u8"");
 		});
 
 	suite.test(
