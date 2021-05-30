@@ -1,5 +1,5 @@
 // LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// v1.0.0
+// v1.1.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_buf>
 
 #ifndef included_mod_buf_hsp
 #define included_mod_buf_hsp
@@ -32,12 +32,9 @@
 // これにより、領域の再確保に伴う処理の実行回数が抑えられる。
 #deffunc buf_expand var buf, int min_len
 
-	repeat 30 - 8, 8
-		if (1 << cnt) >= min_len {
-			memexpand buf, 1 << cnt
-			break
-		}
-	loop
+	if varsize(buf) < min_len {
+		memexpand buf, limit(min_len, varsize(buf) * 2)
+	}
 	return
 
 // データバッファにデータの一部を連結する

@@ -1,5 +1,7 @@
-// mod_assoc.hsp のサンプル
 // LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+// v0.1.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_assoc>
+
+// mod_assoc.hsp のサンプル
 
 #include "hsp3utf.as"
 #include "mod_assoc.hsp"

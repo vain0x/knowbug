@@ -1,5 +1,5 @@
 // LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// v0.1.0
+// v0.2.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_assoc>
 
 #ifndef included_mod_assoc_hsp
 #define included_mod_assoc_hsp
@@ -19,12 +19,9 @@
 // データバッファの領域を確保する
 #deffunc local buf_expand var buf, int min_len
 
-	repeat 30 - 8, 8
-		if (1 << cnt) >= min_len {
-			memexpand buf, 1 << cnt
-			break
-		}
-	loop
+	if varsize(buf) < min_len {
+		memexpand buf, limit(min_len, varsize(buf) * 2)
+	}
 	return
 
 // データバッファにデータの一部を連結する

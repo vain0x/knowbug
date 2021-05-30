@@ -1,5 +1,7 @@
-// mod_buf.hsp のサンプル
 // LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+// v1.0.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_buf>
+
+// mod_buf.hsp のサンプル
 
 #include "hsp3utf.as"
 #include "mod_buf.hsp"

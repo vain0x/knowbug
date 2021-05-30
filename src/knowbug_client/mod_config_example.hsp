@@ -1,5 +1,7 @@
-// mod_config のサンプル
 // LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+// v0.1.0
+
+// mod_config のサンプル
 
 #include "hsp3utf.as"
 #include "mod_config.hsp"
@@ -19,4 +21,4 @@
 	assert keys(3) == "indented_key"
 	assert values(3) == "spaced  value"
 
-	logmes "finish"
+	mes "OK"
