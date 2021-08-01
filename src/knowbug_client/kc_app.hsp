@@ -144,6 +144,8 @@
 #define global SWP_NOSIZE        0x0001
 #define global SWP_NOMOVE        0x0002
 
+#define global SPI_GETWORKAREA   0x0030
+
 // -----------------------------------------------
 // ヘルパー
 // -----------------------------------------------
@@ -272,7 +274,8 @@
 
 	return
 
-#deffunc app_ui_layout_init
+#deffunc app_ui_layout_init \
+	local rect
 
 	app_config_get_int "ui_main_window_width", 640
 	s_main_window_width = limit(stat, 100, ginfo_dispx)
@@ -280,17 +283,22 @@
 	app_config_get_int "ui_main_window_height", 480
 	s_main_window_height = limit(stat, 100, ginfo_dispy)
 
-	app_config_get_int "ui_main_window_left", -640
+	dim rect, 4
+	SystemParametersInfo SPI_GETWORKAREA, 0, varptr(rect), 0
+
+	app_config_get_int "ui_main_window_left", -s_main_window_width
 	s_main_window_left = stat
 	if s_main_window_left < 0 {
-		s_main_window_left += ginfo_dispx - 4
+		s_main_window_left += ginfo_dispx
 	}
+	s_main_window_left = limit(s_main_window_left, rect(0), rect(2) - s_main_window_width)
 
-	app_config_get_int "ui_main_window_top", -480
+	app_config_get_int "ui_main_window_top", -s_main_window_height
 	s_main_window_top = stat
 	if s_main_window_top < 0 {
-		s_main_window_top += ginfo_dispy - 72 // FIXME: タスクバーの幅を取得
+		s_main_window_top += ginfo_dispy
 	}
+	s_main_window_top = limit(s_main_window_top, rect(1), rect(3) - s_main_window_height)
 
 	app_config_get_int "ui_details_window_height", 320
 	s_details_window_height = limit(stat, 80)
@@ -405,8 +413,10 @@
 
 #deffunc app_main_window_create
 
-	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height
+	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide
 	s_main_window_hwnd = hwnd
+
+	MoveWindow s_main_window_hwnd, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height, 1
 
 	title s_main_window_title + " [接続待ち]"
 
