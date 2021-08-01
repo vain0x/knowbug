@@ -73,7 +73,7 @@ knowbug_tests プロジェクトを起動するとテストが実行され、一
 
 ```pwsh
 ./scripts/build-all
-./scripts/pack
+./scripts/pack v2.0.0
 ```
 
 - パッケージを GitHub Releases にアップロードする。
