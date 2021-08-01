@@ -7,16 +7,18 @@ $ErrorActionPreference = 'Stop'
 # 定数など
 # ------------------------------------------------
 
-# HSP のダウンロード元とバージョン。 ([HSP3.6β4を公開しました - おにたま(オニオンソフト)のおぼえがき](https://www.onionsoft.net/wp/archives/3274)) (2020-11-18 閲覧)
+# HSP のダウンロード元とバージョン。 ([HSP3.6RC2を公開しました - おにたま(オニオンソフト)のおぼえがき](https://www.onionsoft.net/wp/archives/3473)) (2021-08-01 閲覧)
 
-$hsp3ZipUrl = 'https://www.onionsoft.net/wp/download/81/'
+$hsp3ZipUrl = 'https://www.onionsoft.net/hsp/file/hsp36rc2.zip'
+$hsp3ZipDir = 'hsp36' # zipを展開して作られるディレクトリ
 
 # 開発用の HSP をインストールする場所。
 $clientDir = "$PWD/bin/client"
 $serverDir = "$PWD/bin/server"
 
 # ZIP ファイルを置く場所。(バージョン番号 + 適当な数値)
-$hsp3Zip = "$PWD/tmp/hsp3-$((date).Ticks).zip"
+$n = ([System.DateTime]::Now).Ticks
+$hsp3Zip = "$PWD/tmp/hsp3-$n.zip"
 
 # ------------------------------------------------
 # 検査
@@ -57,7 +59,7 @@ function install_hsp3($name, $dest) {
     $shiftJis = [System.Text.Encoding]::GetEncoding(932)
     [System.IO.Compression.ZipFile]::ExtractToDirectory($hsp3Zip, "$PWD/tmp", $shiftJis)
 
-    mv "$PWD/tmp/hsp36beta" $dest
+    mv "$PWD/tmp/$hsp3ZipDir" $dest
 
     echo "INFO: $name をインストールしました。"
 }
