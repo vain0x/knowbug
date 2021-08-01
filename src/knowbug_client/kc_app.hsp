@@ -288,19 +288,17 @@
 
 	app_config_get_int "ui_main_window_left", -s_main_window_width
 	s_main_window_left = stat
-	if s_main_window_left >= 0 {
-		s_main_window_left += rect(0)
-	} else {
-		s_main_window_left += rect(2)
+	if s_main_window_left < 0 {
+		s_main_window_left += ginfo_dispx
 	}
+	s_main_window_left = limit(s_main_window_left, rect(0), rect(2) - s_main_window_width)
 
 	app_config_get_int "ui_main_window_top", -s_main_window_height
 	s_main_window_top = stat
-	if s_main_window_top >= 0 {
-		s_main_window_top += rect(1)
-	} else {
-		s_main_window_top += rect(3)
+	if s_main_window_top < 0 {
+		s_main_window_top += ginfo_dispy
 	}
+	s_main_window_top = limit(s_main_window_top, rect(1), rect(3) - s_main_window_height)
 
 	app_config_get_int "ui_details_window_height", 320
 	s_details_window_height = limit(stat, 80)
