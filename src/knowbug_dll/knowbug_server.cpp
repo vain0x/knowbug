@@ -264,6 +264,7 @@ private:
 	Kind kind_;
 	std::size_t object_id_;
 	std::size_t index_;
+	std::size_t count_;
 	std::size_t depth_;
 	Utf8String name_;
 	Utf8String value_;
@@ -273,6 +274,7 @@ public:
 		: kind_(kind)
 		, object_id_(object_id)
 		, index_(index)
+		, count_(0)
 		, depth_(depth)
 		, name_(std::move(name))
 		, value_(std::move(value))
@@ -290,8 +292,9 @@ public:
 		};
 	}
 
-	static auto new_remove(std::size_t object_id, std::size_t index) -> HspObjectListDelta {
-		return HspObjectListDelta{
+	static auto new_remove(std::size_t object_id, std::size_t index, std::size_t count) -> HspObjectListDelta {
+		assert(count >= 1);
+		auto delta = HspObjectListDelta{
 			Kind::Remove,
 			object_id,
 			index,
@@ -299,6 +302,8 @@ public:
 			Utf8String{},
 			Utf8String{}
 		};
+		delta.count_ = count;
+		return delta;
 	}
 
 	static auto new_update(std::size_t index, HspObjectListItem const& item) -> HspObjectListDelta {
@@ -324,6 +329,11 @@ public:
 		return index_;
 	}
 
+	auto count() const -> std::size_t {
+		assert(kind() == Kind::Remove);
+		return count_;
+	}
+
 	auto name() const -> Utf8String {
 		static constexpr auto SPACES = u8"                ";
 
@@ -335,6 +345,10 @@ public:
 	auto value() const -> Utf8StringView {
 		return value_;
 	}
+
+	auto with_count(std::size_t count) ->HspObjectListDelta {
+		return HspObjectListDelta::new_remove(object_id(), index(), count);
+	}
 };
 
 static auto diff_object_list(HspObjectList const& source, HspObjectList const& target, std::vector<HspObjectListDelta>& diff) {
@@ -343,6 +357,18 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 
 	auto target_done = std::vector<bool>{};
 	target_done.resize(target.size());
+
+	auto push_remove = [&](std::size_t object_id, std::size_t index) {
+		if (!diff.empty()) {
+			auto& last = diff.back();
+			if (last.kind() == HspObjectListDelta::Kind::Remove && last.index() == index) {
+				last = last.with_count(last.count() + 1);
+				return;
+			}
+		}
+
+		diff.push_back(HspObjectListDelta::new_remove(object_id, index, 1));
+	};
 
 	// FIXME: 高速化
 	for (auto si = std::size_t{}; si < source.size(); si++) {
@@ -369,7 +395,7 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 
 		while (si < source.size() || ti < target.size()) {
 			if (ti == target.size() || (si < source.size() && !source_done[si])) {
-				diff.push_back(HspObjectListDelta::new_remove(source[si].object_id(), ti));
+				push_remove(source[si].object_id(), ti);
 				si++;
 				continue;
 			}
@@ -398,35 +424,6 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 			assert(false && u8"パスの順番が入れ替わるケースは未実装。");
 			diff.clear();
 			break;
-		}
-	}
-
-	// 複数行の除去を下から上に行う。
-	// 同じ位置への除去が連続する区間を探し、下の行から上の行に向かって除去をするように書き換える。
-	{
-		auto l = std::size_t{};
-		while (l < diff.size()) {
-			auto r = l;
-			while (r < diff.size()
-				&& diff[r].kind() == HspObjectListDelta::Kind::Remove
-				&& (l == r || diff[r].index() == diff[r - 1].index())
-				) {
-				r++;
-			}
-
-			if (r - l >= 1) {
-				auto ti = diff[l].index() + 1;
-				for (auto i = r - 1; i > l;) {
-					i--;
-					diff[i] = HspObjectListDelta::new_remove(diff[i].object_id(), ti);
-					ti++;
-				}
-
-				l = r;
-				continue;
-			}
-
-			l++;
 		}
 	}
 }
@@ -1224,6 +1221,13 @@ private:
 				Utf8String{ as_utf8(u8"value") },
 				Utf8String{ delta.value() }
 			);
+
+			if (delta.kind() == HspObjectListDelta::Kind::Remove && delta.count() >= 2) {
+				message.insert_int(
+					Utf8String{ as_utf8(u8"count") },
+					(int)delta.count()
+				);
+			}
 
 			send_message(message);
 		}

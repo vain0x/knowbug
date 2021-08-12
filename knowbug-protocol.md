@@ -165,8 +165,10 @@ method = list_update_notification
 method = list_updated_event
 kind = <insert または remove または update>
 object_id = <オブジェクトID>
+index = <リスト上のインデックス>
 name = <オブジェクトの名前>
 value = <オブジェクトの値>
+count = <除去件数 (remove のときのみ)>
 ```
 
 クライアントはサーバーにオブジェクトリストの詳細さの変更を要求できる。
