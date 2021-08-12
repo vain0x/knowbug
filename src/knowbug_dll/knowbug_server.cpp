@@ -481,7 +481,7 @@ public:
 		}
 
 		auto item_opt = object_list_.find_by_object_id(object_id);
-		if(!item_opt) {
+		if (!item_opt) {
 			return;
 		}
 
@@ -597,7 +597,7 @@ static void fail_with(OsStringView reason) {
 // 隠しウィンドウ
 // -----------------------------------------------
 
-static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) -> LRESULT;
+static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)->LRESULT;
 
 static auto create_hidden_window(HINSTANCE instance) -> WindowHandle {
 	static auto constexpr CLASS_NAME = TEXT("KnowbugHiddenWindowClass");
