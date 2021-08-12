@@ -400,12 +400,20 @@
 		return
 	}
 
+	app_hide_all_windows
 	app_main_window_on_exit
 
 	infra_send_terminate
 	await 10 * 16
 
 	end
+
+#deffunc app_hide_all_windows
+
+	gsel s_help_window_id, gsel_hide
+	gsel s_details_window_id, gsel_hide
+	gsel s_main_window_id, gsel_hide
+	return
 
 // -----------------------------------------------
 // メインウィンドウ
@@ -1397,9 +1405,7 @@
 
 #deffunc app_did_receive_shutdown
 
-	gsel s_help_window_id, gsel_hide
-	gsel s_details_window_id, gsel_hide
-	gsel s_main_window_id, gsel_hide
+	app_hide_all_windows
 	end
 
 #deffunc app_did_receive_logmes var text
