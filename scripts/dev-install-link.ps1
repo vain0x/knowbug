@@ -39,6 +39,6 @@ function install($name, $config, $platform) {
 
 install 'hsp3debug.dll' 'Debug' 'Win32'
 install 'hsp3debug_u8.dll' 'DebugUtf8' 'Win32'
-install 'hsp3debug_64.dll' 'Debug' 'x64'
+install 'hsp3debug_64.dll' 'DebugUtf8' 'x64'
 
 echo 'INFO: knowbug のデバッグビルドを用意しました。'
