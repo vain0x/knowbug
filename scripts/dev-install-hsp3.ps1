@@ -7,9 +7,9 @@ $ErrorActionPreference = 'Stop'
 # 定数など
 # ------------------------------------------------
 
-# HSP のダウンロード元とバージョン。 ([HSP3.6RC2を公開しました - おにたま(オニオンソフト)のおぼえがき](https://www.onionsoft.net/wp/archives/3473)) (2021-08-01 閲覧)
+# HSP のダウンロード元とバージョン。 ([HSPダウンロード](https://hsp.tv/make/downlist.html)) (2021-08-12 閲覧)
 
-$hsp3ZipUrl = 'https://www.onionsoft.net/hsp/file/hsp36rc2.zip'
+$hsp3ZipUrl = 'https://www.onionsoft.net/hsp/file/hsp36.zip'
 $hsp3ZipDir = 'hsp36' # zipを展開して作られるディレクトリ
 
 # 開発用の HSP をインストールする場所。
