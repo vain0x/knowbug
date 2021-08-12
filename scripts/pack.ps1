@@ -27,7 +27,7 @@ $inclusions = @(
     @("$package/knowbug_install.exe", "$pwd/src/knowbug_install/knowbug_install.exe"),
     @("$package/hsp3debug.dll", "$pwd/src/target/knowbug_dll-Win32-Release/bin/hsp3debug.dll"),
     @("$package/hsp3debug_u8.dll", "$pwd/src/target/knowbug_dll-Win32-ReleaseUtf8/bin/hsp3debug_u8.dll"),
-    @("$package/hsp3debug_64.dll", "$pwd/src/target/knowbug_dll-x64-ReleaseUtf8/bin/knowbug_dll.dll"),
+    @("$package/hsp3debug_64.dll", "$pwd/src/target/knowbug_dll-x64-ReleaseUtf8/bin/hsp3debug_64.dll"),
     @("$package/knowbug_client.exe", "$pwd/src/knowbug_client/knowbug_client.exe")
 )
 
