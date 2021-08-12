@@ -208,7 +208,7 @@
 	local source_file_id, local line_index, \
 	local source_path, local source_path_len, \
 	local source_code, local source_code_len, \
-	local object_id, local index, \
+	local object_id, local index, local remove_count, \
 	local kind, local kind_len, \
 	local name, local name_len, \
 	local value, local value_len, \
@@ -319,6 +319,7 @@
 			return
 		}
 
+
 		assoc_get keys, values, value_lens, count, "name", name, name_len
 		if stat == false {
 			name = ""
@@ -331,7 +332,11 @@
 			value_len = 0
 		}
 
-		app_did_receive_list_update_ok kind, object_id, index, name, value
+		assoc_get_int keys, values, value_lens, count, "count", remove_count
+		if stat == false {
+			remove_count = 1
+		}
+		app_did_receive_list_update_ok kind, object_id, index, name, value, remove_count
 		return
 	}
 

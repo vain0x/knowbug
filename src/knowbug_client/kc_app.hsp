@@ -749,14 +749,18 @@
 	assert stat
 	return
 
-#deffunc app_list_view_delete_row int object_id, int row_index
+#deffunc app_list_view_delete_row int object_id, int row_index, int count
 
-	notesel s_list_view_note
-	notedel row_index
-	noteunsel
+	if count <= 0 : return
 
-	sendmsg s_list_view_hwnd, LVM_DELETEITEM, row_index
-	assert stat
+	repeat count
+		notesel s_list_view_note
+		notedel row_index + (count - cnt - 1)
+		noteunsel
+
+		sendmsg s_list_view_hwnd, LVM_DELETEITEM, row_index + (count - cnt - 1)
+		assert stat
+	loop
 	return
 
 #deffunc app_list_view_update_row int object_id, int row_index, var name, var value, \
@@ -787,7 +791,7 @@
 	assert stat
 	return
 
-#deffunc app_list_view_update var kind, int object_id, int index, var name, var value
+#deffunc app_list_view_update var kind, int object_id, int index, var name, var value, int count
 
 	gsel s_main_window_id
 
@@ -797,7 +801,7 @@
 	}
 
 	if kind == "remove" {
-		app_list_view_delete_row object_id, index
+		app_list_view_delete_row object_id, index, count
 		return
 	}
 
@@ -1462,11 +1466,11 @@
 	}
 	return
 
-#deffunc app_did_receive_list_update_ok var kind, int object_id, int index, var name, var value
+#deffunc app_did_receive_list_update_ok var kind, int object_id, int index, var name, var value, int count
 
-	logmes strf("app_did_receive_list_update_ok (%s, id=%d, index=%d, name=%s, value=%s)", kind, object_id, index, name, value)
+	logmes strf("app_did_receive_list_update_ok (%s, id=%d, index=%d, name=%s, value=%s, count=%d)", kind, object_id, index, name, value, count)
 
-	app_list_view_update kind, object_id, index, name, value
+	app_list_view_update kind, object_id, index, name, value, count
 	return
 
 #deffunc app_did_receive_list_details_ok int object_id, var text
