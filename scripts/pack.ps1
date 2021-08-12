@@ -1,8 +1,9 @@
 # パッケージを生成する。
-# 使い方: ./scripts/pack
+# 使い方: ./scripts/pack v2.0.0
 
-# バージョン番号
-$version = $env:APPVEYOR_BUILD_VERSION
+if ($args.length -ge 1) {
+    $version = $args[0]
+}
 if (!$version) {
     $version = "next"
 }
@@ -10,19 +11,25 @@ if (!$version) {
 # パッケージのファイル名
 $package = "knowbug-$version"
 
-# パッケージから除外されるファイル (package/ 以下)
+# パッケージから除外されるファイル (dist/ 以下)
 $exclusions = @(
     "hsptmp",
     "obj",
-    "install"
+    "start.ax",
+    "packfile"
 )
 
-# パッケージに含められるファイル (package/ 以外)
+# パッケージに含められるファイル (dist/ 以外)
 $inclusions = @(
+    @("$package/changes.md", "$pwd/changes.md"),
+    @("$package/LICENSE", "$pwd/LICENSE"),
+    @("$package/README.md", "$pwd/README.md"),
     @("$package/knowbug_install.exe", "$pwd/src/knowbug_install/knowbug_install.exe"),
-    @("$package/hsp3debug.dll", "$pwd/src/Win32/Release/hsp3debug.dll"),
-    @("$package/hsp3debug_u8.dll", "$pwd/src/Win32/ReleaseUtf8/hsp3debug_u8.dll"),
-    @("$package/hsp3debug_64.dll", "$pwd/src/x64/ReleaseUtf8/hsp3debug_64.dll")
+    @("$package/hsp3debug.dll", "$pwd/src/target/knowbug_dll-Win32-Release/bin/hsp3debug.dll"),
+    @("$package/hsp3debug_u8.dll", "$pwd/src/target/knowbug_dll-Win32-ReleaseUtf8/bin/hsp3debug_u8.dll"),
+    @("$package/hsp3debug_64.dll", "$pwd/src/target/knowbug_dll-x64-Release/bin/hsp3debug_64.dll"),
+    @("$package/hsp3debug_64.dll", "$pwd/src/target/knowbug_dll-x64-ReleaseUtf8/bin/knowbug_dll.dll"),
+    @("$package/knowbug_client.exe", "$pwd/src/knowbug_client/knowbug_client.exe")
 )
 
 if (test-path "$package.zip") {
@@ -31,24 +38,25 @@ if (test-path "$package.zip") {
 
 mkdir $package
 try {
-    copy -recurse package $package
-    copy changes.md $package/changes.md
-    copy README.md $package/README.md
-    copy LICENSE $package/LICENSE
+    # dist の中にある各ファイルをパッケージに含める。(dist/ ディレクトリ自体は含めない。)
+    copy -recurse dist/* $package
 
+    # 配布しないファイルを削除する。(ファイル名が一致するのものをすべて削除する。)
     foreach ($name in $exclusions) {
         remove-item -recurse -force "$package/**/$name"
     }
 
+    # dist の外にあるファイルをパッケージに含めるためにコピーする。
     foreach ($row in $inclusions) {
         $targetPath = $row[0]
         $sourcePath = $row[1]
         copy $sourcePath $targetPath
     }
 
-    compress-archive "$package/*" "$package.zip"
+    # パッケージを圧縮する。
+    compress-archive $package "$package.zip"
 
-    echo "HINT: 'expand-archive $package.zip' to expand"
+    echo "HINT: 'expand-archive $package.zip .' to expand"
     echo "Completed."
 } finally {
     rm -recurse -force $package

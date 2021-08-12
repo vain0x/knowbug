@@ -1,0 +1,74 @@
+// knowbug_protocol.hsp のサンプル
+// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+
+#include "hsp3utf.as"
+#include "mod_buf.hsp"
+#include "mod_knowbug_protocol.hsp"
+
+	sdim s_keys
+	sdim s_values
+	dim s_value_lens
+	s_count = 0
+
+	sdim s_buf
+	s_buf_len = 0
+
+	// method だけからなるメッセージのシリアライズ
+
+	s_keys(0) = "method"
+	s_values(0) = "initialize_notification"
+	s_value_lens(0) = strlen(s_values(0))
+	s_count = 1
+
+	knowbug_protocol_serialize s_keys, s_values, s_value_lens, s_count, s_buf, s_buf_len
+
+	buf_add_byte s_buf, s_buf_len, 0
+
+	assert s_buf == "Content-Length:       34\n\nmethod = initialize_notification\n"
+	assert s_buf_len == strlen(s_buf)
+
+	// エスケープが必要なデータを含むメッセージのシリアライズ
+
+	sdim s_buf
+	s_buf_len = 0
+
+	s_keys = "method", "data", "crlf"
+	s_values = "some_event", "yen = \"\\\"", "\n"
+	s_value_lens = strlen(s_values(0)), strlen(s_values(1)), strlen(s_values(2))
+	s_count = 3
+
+	knowbug_protocol_serialize s_keys, s_values, s_value_lens, s_count, s_buf, s_buf_len
+
+	buf_add_byte s_buf, s_buf_len, 0
+
+	assert s_buf == "Content-Length:       74\n\nmethod = some_event\ndata = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\ncrlf = \\x0d\\x0a\n"
+	assert s_buf_len == strlen(s_buf)
+
+	// メッセージのパース
+
+	sdim s_buf
+	s_buf_len = 0
+	s_count = 0
+
+	s_chunk = "Content-Length:       74\n\nmethod = some_event\ndata = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\ncrlf = \\x0d\\x0a\n"
+	s_chunk_len = strlen(s_chunk)
+
+	knowbug_protocol_append s_buf, s_buf_len, s_chunk, s_chunk_len
+
+	assert s_buf == s_chunk
+	assert s_buf_len == s_chunk_len
+
+	knowbug_protocol_parse s_buf, s_buf_len, s_keys, s_values, s_value_lens, s_count
+
+	assert stat
+	assert s_buf_len == 0
+
+	assert s_count == 3
+	assert s_keys(0) == "method"
+	assert s_values(0) == "some_event"
+	assert s_keys(1) == "data"
+	assert s_values(1) == "yen = \"\\\""
+	assert s_keys(2) == "crlf"
+	assert s_values(2) == "\n"
+
+	mes "OK"

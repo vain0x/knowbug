@@ -61,6 +61,7 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "cassert": "cpp",
-        "charconv": "cpp"
+        "charconv": "cpp",
+        "concepts": "cpp"
     }
 }

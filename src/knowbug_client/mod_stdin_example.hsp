@@ -1,0 +1,46 @@
+// mod_stdin.hsp のサンプル
+// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+
+// コンソールから実行すること。
+// 例: pwsh -c 'echo hello | ./mod_stdin_example.exe'
+
+#runtime "hsp3cl"
+
+#packopt name "mod_stdin_example"
+
+#include "mod_stdin.hsp"
+
+	// バッファを用意
+	s_name_cap = 1000
+	sdim s_name, s_name_cap
+
+	count = 2
+	repeat 2
+		mes "name?"
+
+		// データを読み取る
+		repeat
+			if cnt \ 100 == 0 {
+				mes "reading..."
+			}
+
+			stdin_read s_name, s_name_cap
+			if stat > 0 {
+				break
+			}
+
+			if stat < 0 {
+				GetLastError
+				mes "エラー: " + stat
+				end 1
+			}
+
+			await 16
+		loop
+
+		strrep s_name, "\n", ""
+		mes "Hello, " + s_name + "!"
+	loop
+
+	mes "OK"
+	end

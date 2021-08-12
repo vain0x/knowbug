@@ -1,0 +1,112 @@
+//　mod_menu のサンプル
+// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+
+#include "hsp3utf.as"
+#include "mod_menu.hsp"
+
+#define WM_CONTEXTMENU     0x007b
+#define WM_COMMAND         0x0111
+
+// メニュー項目を区別するための識別子を定義する。
+#enum s_menu_file_open_id = 1
+#enum s_menu_file_check_id
+#enum s_menu_file_quit_id
+#enum s_menu_help_id
+
+#enum s_popup_menu_copy_id
+#enum s_popup_menu_ok_id
+
+	// メニューを作成する。
+	gosub *l_make_popup_menu
+	gosub *l_make_menu_bar
+
+	// ウィンドウが右クリックされたときの処理を登録する。
+	oncmd gosub *l_on_context_menu, WM_CONTEXTMENU
+
+	// メニューバーのメニュー項目が選択されたときの処理を登録する。
+	oncmd gosub *l_on_command, WM_COMMAND
+	stop
+
+*l_make_popup_menu
+
+	// | コピー
+	// | ----
+	// | OK
+
+	menu_make_popup
+	s_popup_menu_handle = stat
+
+	menu_add_text s_popup_menu_handle, "コピー (&C)", s_popup_menu_copy_id
+
+	menu_add_sep s_popup_menu_handle
+
+	menu_add_text s_popup_menu_handle, "OK (& )", s_popup_menu_ok_id
+	return
+
+*l_make_menu_bar
+
+	// [ ファイル ]   [ ヘルプ ]
+	// | 開く
+	// | チェック
+	// | ----
+	// | 終了
+
+	menu_make_bar
+	s_menu_bar_handle = stat
+
+	menu_add_popup s_menu_bar_handle, "ファイル (&F)"
+	s_menu_bar_file_handle = stat
+
+	menu_add_text s_menu_bar_file_handle, "開く (&O)", s_menu_file_open_id
+
+	menu_add_text s_menu_bar_file_handle, "チェック (&C)", s_menu_file_check_id
+
+	menu_add_sep s_menu_bar_file_handle
+
+	menu_add_text s_menu_bar_file_handle, "終了 (&Q)", s_menu_file_quit_id
+
+	menu_add_text s_menu_bar_handle, "ヘルプ (&H)", s_menu_help_id
+
+	menu_redraw_bar
+	return
+
+*l_on_context_menu
+
+	menu_show_popup s_popup_menu_handle
+
+	if stat == s_popup_menu_copy_id {
+		dialog "コピーします。"
+		return
+	}
+
+	if stat == s_popup_menu_ok_id {
+		// OK.
+		return
+	}
+	return
+
+*l_on_command
+
+	// メニューバーの項目が選択されたときは lparam == 0 になる。
+	if lparam == 0 {
+		if wparam == s_menu_file_open_id {
+			dialog "ファイルを開きます。"
+			return
+		}
+
+		if wparam == s_menu_file_check_id {
+			s_is_checked = 1 - s_is_checked
+			menu_check_by_id s_menu_bar_file_handle, s_menu_file_check_id, s_is_checked
+			return
+		}
+
+		if wparam == s_menu_file_quit_id {
+			end
+		}
+
+		if wparam == s_menu_help_id {
+			dialog "ヘルプです。"
+			return
+		}
+	}
+	return

@@ -1,0 +1,126 @@
+// mod_child_process のサンプル
+// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+
+// 試すには、実行ファイルを作成して、コマンドラインから起動すること。
+
+#runtime "hsp3cl"
+#packopt name "mod_child_process_example"
+
+#include "mod_stdin.hsp"
+#include "mod_stdout.hsp"
+#include "mod_child_process.hsp"
+
+#define true 1
+#define false 0
+
+	s_stdin_data_cap = 0x1000
+	sdim s_stdin_data, s_stdin_data_cap
+
+	s_stdout_data_cap = 0x1000
+	sdim s_stdout_data, s_stdout_data_cap
+
+	mes dir_cmdline
+
+	if dir_cmdline == "--worker" {
+		gosub *l_worker
+	} else {
+		gosub *l_main
+	}
+	end
+
+*l_main
+
+	s_cmdline = "mod_child_process_example.exe --worker"
+	mes s_cmdline
+
+	child_process_prepare cp
+
+	child_process_redirect_stdin cp
+	if stat == false {
+		mes "redirect_stdin failed"
+		goto *l_error
+	}
+
+	child_process_redirect_stdout cp
+	if stat == false {
+		mes "redirect_stdout failed"
+		goto *l_error
+	}
+
+	child_process_spawn cp, s_cmdline
+	if stat == false {
+		mes "spawn failed"
+		goto *l_error
+	}
+
+	s_child_is_running = true
+
+	repeat
+		mes "[parent] サブプロセスを監視しています"
+
+		if cnt >= 2 {
+			s_stdin_data = "[parent] cnt = " + cnt + "\n"
+			child_process_write_stdin cp, s_stdin_data, strlen(s_stdin_data)
+		}
+
+		if s_child_is_running {
+			child_process_wait cp, 10
+			if stat {
+				mes "[parent] サブプロセスが終了しました"
+				s_child_is_running = false
+			}
+		}
+
+		child_process_read_stdout cp, s_stdout_data, s_stdout_data_cap
+		if stat < 0 {
+			mes "[parent] サブプロセスの標準出力を読めません"
+			break
+		}
+		if stat > 0 {
+			mes "[parent] サブプロセスが出力しました \"" + s_stdout_data + "\""
+		}
+
+		if s_child_is_running == false {
+			break
+		}
+		await 300
+	loop
+
+	child_process_get_exit_code cp, s_exit_code
+	mes "[parent] サブプロセスの終了コード " + s_exit_code
+
+	child_process_close cp
+
+	mes "OK"
+	return
+
+*l_worker
+
+	count = 10
+
+	repeat 1000
+		stdin_read s_stdin_data, s_stdin_data_cap
+		if stat < 0 {
+			mes "[child] 標準入力を読めません"
+			break
+		}
+		if stat > 0 {
+			stdout_write_str "[child] 親プロセスが出力しました \"" + s_stdin_data + "\"\n"
+			count--
+			if count == 0 {
+				break
+			}
+		}
+
+		await 16
+	loop
+
+	if count > 0 {
+		end 1
+	}
+	end
+
+*l_error
+
+	mes "error!"
+	end 1

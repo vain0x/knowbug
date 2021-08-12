@@ -2,7 +2,7 @@
 
 #include "hsx_types_fwd.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	// HSP のパラメータスタックへの参照。
 	// パラメータスタックは、コマンドの実引数、またはインスタンスのメンバ変数の実データが格納される領域。
 	class HspParamStack {

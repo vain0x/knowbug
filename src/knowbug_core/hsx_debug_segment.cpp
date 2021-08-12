@@ -2,7 +2,7 @@
 #include "hsx_debug_segment.h"
 #include "hsx_internals.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	// 次の16ビット (2バイト) を整数として読む。
 	static auto read_int16(unsigned char const* p) -> unsigned short {
 		return (int)*p | ((int)p[1] << 8);

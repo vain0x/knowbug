@@ -23,10 +23,10 @@ void traverse_module_tree(std::vector<Utf8String> const& var_names, ModuleTreeLi
 		for (auto vi = std::size_t{}; vi < var_names.size(); vi++) {
 			auto&& var_name = var_names[vi];
 
-			auto resolution_opt = var_name_to_scope_resolution(as_view(var_name));
+			auto resolution_opt = var_name_to_scope_resolution(var_name);
 			auto module_name = resolution_opt ? *resolution_opt : GLOBAL_MODULE_NAME;
 
-			tuples.emplace_back(module_name, as_view(var_name), vi);
+			tuples.emplace_back(module_name, var_name, vi);
 		}
 	}
 
@@ -59,16 +59,16 @@ void traverse_module_tree(std::vector<Utf8String> const& var_names, ModuleTreeLi
 class ModuleTreeWriter
 	: public ModuleTreeListener
 {
-	CStrWriter& writer_;
+	StringWriter& writer_;
 
 public:
-	ModuleTreeWriter(CStrWriter& writer)
+	ModuleTreeWriter(StringWriter& writer)
 		: writer_(writer)
 	{
 	}
 
 	void begin_module(Utf8StringView const& module_name) override {
-		writer_.catln(module_name);
+		writer_.cat_line(module_name);
 		writer_.indent();
 	}
 
@@ -79,8 +79,8 @@ public:
 	void add_var(std::size_t var_id, Utf8StringView const& var_name) override {
 		writer_.cat(var_name);
 		writer_.cat(as_utf8(u8" #"));
-		writer_.catSize(var_id);
-		writer_.catCrlf();
+		writer_.cat_size(var_id);
+		writer_.cat_crlf();
 	}
 };
 
@@ -108,7 +108,7 @@ void module_tree_tests(Tests& tests) {
 	suite.test(
 		u8"モジュールツリーを構築できる",
 		[&](TestCaseContext& t) {
-			auto w = CStrWriter{};
+			auto w = StringWriter{};
 			auto listener = ModuleTreeWriter{ w };
 			auto var_names = std::vector<Utf8String>{
 				to_owned(as_utf8(u8"s1@m1")),
@@ -123,14 +123,14 @@ void module_tree_tests(Tests& tests) {
 
 			auto expected = as_utf8(
 				u8"@\r\n"
-				u8"\tg1 #4\r\n"
-				u8"\tg2 #5\r\n"
+				u8"  g1 #4\r\n"
+				u8"  g2 #5\r\n"
 				u8"@m1\r\n"
-				u8"\ts1@m1 #0\r\n"
-				u8"\ts2@m1 #2\r\n"
+				u8"  s1@m1 #0\r\n"
+				u8"  s2@m1 #2\r\n"
 				u8"@m2\r\n"
-				u8"\tt1@m2 #3\r\n"
-				u8"\tt2@m2 #1\r\n"
+				u8"  t1@m2 #3\r\n"
+				u8"  t2@m2 #1\r\n"
 			);
 			return t.eq(as_view(w), expected);
 		});
@@ -138,7 +138,7 @@ void module_tree_tests(Tests& tests) {
 	suite.test(
 		u8"変数がないケース",
 		[&](TestCaseContext& t) {
-			auto w = CStrWriter{};
+			auto w = StringWriter{};
 			auto listener = ModuleTreeWriter{ w };
 
 			traverse_module_tree(std::vector<Utf8String>{}, listener);

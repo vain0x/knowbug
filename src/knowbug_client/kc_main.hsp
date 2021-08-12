@@ -1,0 +1,360 @@
+// エントリーポイント
+// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+
+#include "kc_app.hsp"
+
+#module m_infra
+
+#define true 1
+#define false 0
+
+#deffunc infra_connect_server
+
+	infra_init_globals
+
+	stdin_init
+	if stat == false {
+		logmes "WARN: stdin is not available"
+		return false
+	}
+	s_stdin_is_available = true
+
+	stdout_init
+	if stat == false {
+		logmes "WARN: stdout is not available"
+		return false
+	}
+	s_stdout_is_available = true
+	return true
+
+#deffunc infra_init_globals
+
+	s_stdin_buffer_len = 0
+	s_stdin_buffer_cap = 1024 * 1024 // 1 MB
+	sdim s_stdin_buffer, s_stdin_buffer_cap
+	return
+
+// サーバーからのメッセージを受信・処理する
+#deffunc infra_poll \
+	local chunk, local chunk_len, local chunk_cap, \
+	local keys, local values, local value_lens, local count
+
+	if s_stdin_is_available == false {
+		return
+	}
+
+	// 標準入力にデータが来ていたら読み取る。
+	chunk_cap = 1024 * 1024 // 1 MB
+	sdim chunk, chunk_cap
+
+	stdin_read chunk, chunk_cap
+	chunk_len = stat
+
+	if chunk_len < 0 {
+		logmes "WARN: stdin_read failed"
+		s_stdin_is_available = false
+		return
+	}
+
+	if chunk_len == 0 {
+		return
+	}
+
+	// 読み取ったデータをデータバッファに連結する。
+	knowbug_protocol_append s_stdin_buffer, s_stdin_buffer_len, chunk, chunk_len
+
+	// データバッファからメッセージを取り出す。
+	repeat
+		knowbug_protocol_parse s_stdin_buffer, s_stdin_buffer_len, keys, values, value_lens, count
+		if stat == false {
+			break
+		}
+
+		// 読み取ったメッセージを処理する。
+		infra_process_message keys, values, value_lens, count
+	loop
+	return
+
+// -----------------------------------------------
+// サーバーへのメッセージ
+// -----------------------------------------------
+
+// サーバーにメッセージを送る
+#deffunc infra_send_message array keys, array values, array value_lens, int count, \
+	local message, local message_len
+
+	if s_stdout_is_available == false {
+		return
+	}
+
+	sdim message
+	message_len = 0
+
+	knowbug_protocol_serialize keys, values, value_lens, count, message, message_len
+	logmes "send: " + message
+
+	stdout_write message, message_len
+	return
+
+#deffunc infra_send_hello \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "initialize_notification"
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_terminate \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "terminate_notification"
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_step_continue \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "continue_notification"
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_step_pause \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "pause_notification"
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_step_in \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "step_in_notification"
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_step_over \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "step_over_notification"
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_step_out \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "step_out_notification"
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_location_update \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "location_notification"
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_source int source_file_id, \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "source_notification"
+
+	assoc_set_str keys, values, value_lens, count, "source_file_id", str(source_file_id)
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_list_update \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "list_update_notification"
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_list_toggle_expand int object_id, \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "list_toggle_expand_notification"
+
+	assoc_set_str keys, values, value_lens, count, "object_id", str(object_id)
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+#deffunc infra_send_list_details int object_id, \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "list_details_notification"
+
+	assoc_set_str keys, values, value_lens, count, "object_id", str(object_id)
+
+	infra_send_message keys, values, value_lens, count
+	return
+
+// -----------------------------------------------
+// サーバーからのメッセージ
+// -----------------------------------------------
+
+// サーバーから来たメッセージを処理する
+#deffunc infra_process_message array keys, array values, array value_lens, var count, \
+	local method, local version, local version_len, local output, local output_len, \
+	local source_file_id, local line_index, \
+	local source_path, local source_path_len, \
+	local source_code, local source_code_len, \
+	local object_id, local index, \
+	local kind, local kind_len, \
+	local name, local name_len, \
+	local value, local value_len, \
+	local text, local text_len
+
+	assert count >= 1 && keys(0) == "method"
+	method = values(0)
+
+	logmes "receievd: "
+	repeat count
+		logmes "  " + keys(cnt) + " = " + values(cnt)
+	loop
+
+	if method == "initialized_event" {
+		assoc_get keys, values, value_lens, count, "version", version, version_len
+		if stat == false {
+			version = "v?.?.?"
+			version_len = strlen(version)
+		}
+
+		app_did_receive_hello_ok version
+		return
+	}
+
+	if method == "terminated_event" {
+		app_did_receive_shutdown
+		return
+	}
+
+	if method == "output_event" {
+		assoc_get keys, values, value_lens, count, "output", output, output_len
+		if stat == false {
+			output = ""
+			output_len = 0
+		}
+
+		app_did_receive_logmes output
+		return
+	}
+
+	if method == "continued_event" {
+		logmes "debuggee has continued to run"
+		return
+	}
+
+	if method == "stopped_event" {
+		app_did_receive_stopped
+		return
+	}
+
+	if method == "location_event" {
+		assoc_get_int keys, values, value_lens, count, "source_file_id", source_file_id
+		if stat == false {
+			logmes "WARN: source_file_id missing"
+			return
+		}
+
+		assoc_get_int keys, values, value_lens, count, "line_index", line_index
+		if stat == false {
+			logmes "WARN: line_index missing"
+			return
+		}
+
+		app_did_receive_location source_file_id, line_index
+		return
+	}
+
+	if method == "source_event" {
+		assoc_get_int keys, values, value_lens, count, "source_file_id", source_file_id
+		if stat == false {
+			logmes "WARN: source_file_id missing"
+			return
+		}
+
+		assoc_get keys, values, value_lens, count, "source_path", source_path, source_path_len
+		if stat == false {
+			source_path = ""
+			source_path_len = 0
+		}
+
+		assoc_get keys, values, value_lens, count, "source_code", source_code, source_code_len
+		if stat == false {
+			source_code = ""
+			source_code_len = 0
+		}
+
+		app_did_receive_source_path source_file_id, source_path
+		app_did_receive_source_code source_file_id, source_code
+		return
+	}
+
+	if method == "list_updated_event" {
+		assoc_get keys, values, value_lens, count, "kind", kind, kind_len
+		if stat == false {
+			logmes "WARN: kind missing"
+			return
+		}
+
+		assoc_get_int keys, values, value_lens, count, "object_id", object_id
+		if stat == false {
+			logmes "WARN: object_id missing"
+			return
+		}
+
+		assoc_get_int keys, values, value_lens, count, "index", index
+		if stat == false {
+			logmes "WARN: index missing"
+			return
+		}
+
+		assoc_get keys, values, value_lens, count, "name", name, name_len
+		if stat == false {
+			name = ""
+			name_len = 0
+		}
+
+		assoc_get keys, values, value_lens, count, "value", value, value_len
+		if stat == false {
+			value = ""
+			value_len = 0
+		}
+
+		app_did_receive_list_update_ok kind, object_id, index, name, value
+		return
+	}
+
+	if method == "list_details_event" {
+		assoc_get_int keys, values, value_lens, count, "object_id", object_id
+		if stat == false {
+			logmes "WARN: object_id missing"
+			return
+		}
+
+		assoc_get keys, values, value_lens, count, "text", text, text_len
+		if stat == false {
+			text = ""
+			text_len = 0
+		}
+
+		app_did_receive_list_details_ok object_id, text
+		return
+	}
+
+	logmes strf("WARN: Unknown method(%s)", method)
+	return
+
+#global
+
+	app_init

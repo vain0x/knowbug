@@ -1,0 +1,82 @@
+// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+// v1.0.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_buf>
+
+// mod_buf.hsp のサンプル
+
+#include "hsp3utf.as"
+#include "mod_buf.hsp"
+
+	sdim s_buf
+	s_buf_len = 0
+
+	// バッファに文字列を書き込む。
+	// バッファを文字列として読むには NULL 終端 (add_byte 0) が必要。
+	buf_add_str s_buf, s_buf_len, "Hello"
+	s_buf_len += stat
+
+	buf_add_byte s_buf, s_buf_len, 0
+
+	assert s_buf == "Hello"
+	assert s_buf_len == strlen(s_buf)
+
+	buf_add_str s_buf, s_buf_len, ", world!"
+	s_buf_len += stat
+
+	buf_add_byte s_buf, s_buf_len, 0
+
+	assert s_buf == "Hello, world!"
+	assert s_buf_len == strlen(s_buf)
+
+	// バッファに領域より大きいデータを書き込む。
+	// 領域が自動で再確保されるため、エラーにならない。
+	// NULL 終端は保証されない。
+	sdim s_buf
+	s_buf_len = 0
+
+	s_data = "0123456789"
+	repeat 4
+		s_data += s_data
+	loop
+	s_data_len = strlen(s_data)
+	assert s_data_len == 160
+
+	buf_add s_buf, s_buf_len, s_data, s_data_len
+	s_buf_len += stat
+
+	buf_add_byte s_buf, s_buf_len, 0
+
+	assert s_buf == s_data
+	assert s_buf_len == strlen(s_buf)
+
+	// データの一部を書き込む。
+	// memcpy の代わりに使える。
+	sdim s_buf
+	s_buf_len = 0
+
+	s_data = "0123456789"
+	buf_add_slice s_buf, s_buf_len, s_data, 1, 3
+	s_buf_len += stat
+
+	buf_add_slice s_buf, s_buf_len, s_data, 7, 2
+	s_buf_len += stat
+
+	buf_add_byte s_buf, s_buf_len, 0
+
+	assert s_buf == "12378"
+	assert s_buf_len == strlen(s_buf)
+
+	// 文字列を大量に連結する。
+	// 文字列の連結が十分に高速 (O(N) 時間) であることを検査している。
+	sdim s_buf
+	s_buf_len = 0
+
+	repeat 10000
+		buf_add s_buf, s_buf_len, s_data, s_data_len
+		s_buf_len += stat
+	loop
+
+	buf_add_byte s_buf, s_buf_len, 0
+
+	assert s_buf_len == s_data_len * 10000
+
+	mes "OK"

@@ -126,35 +126,43 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\bin\</OutDir>
+    <IntDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUtf8|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\obj\</IntDir>
+    <OutDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\bin\</OutDir>
+    <IntDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUtf8|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\bin\</OutDir>
+    <IntDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\obj\</IntDir>
+    <OutDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUtf8|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\obj\</IntDir>
+    <OutDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\bin\</OutDir>
+    <IntDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\obj\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUtf8|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\bin\</OutDir>
+    <IntDir>$(SolutionDir)target\$(ProjectName)-$(Platform)-$(Configuration)\obj\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -325,7 +333,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="knowbug_protocol.cpp" />
     <ClCompile Include="string_writer.cpp" />
+    <ClCompile Include="transfer_protocol.cpp" />
     <ClInclude Include="..\cppformat\cppformat\format.h" />
     <ClInclude Include="..\hspsdk\hsp3debug.h" />
     <ClInclude Include="..\hspsdk\hsp3plugin.h" />
@@ -334,12 +344,11 @@
     <ClInclude Include="..\hspsdk\hspwnd.h" />
     <ClInclude Include="..\hspsdk\win32gui\hspwnd_win.h" />
     <ClInclude Include="encoding.h" />
-    <ClInclude Include="HspObjectPath.h" />
-    <ClInclude Include="HspObjects.h" />
-    <ClInclude Include="HspObjectTree.h" />
-    <ClInclude Include="HspObjectWriter.h" />
-    <ClInclude Include="HspRuntime.h" />
-    <ClInclude Include="HspTypes.h" />
+    <ClInclude Include="hash_code.h" />
+    <ClInclude Include="hsp_object_path.h" />
+    <ClInclude Include="hsp_objects.h" />
+    <ClInclude Include="hsp_object_path_fwd.h" />
+    <ClInclude Include="hsp_object_writer.h" />
     <ClInclude Include="hsp_objects_module_tree.h" />
     <ClInclude Include="hsp_wrap_call.h" />
     <ClInclude Include="hsx_data.h" />
@@ -355,15 +364,17 @@
     <ClInclude Include="hsx_types_fwd.h" />
     <ClInclude Include="hsx_var_metadata.h" />
     <ClInclude Include="hsx_slice.h" />
+    <ClInclude Include="knowbug_protocol.h" />
     <ClInclude Include="memory_view.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="source_files.h" />
-    <ClInclude Include="StepController.h" />
+    <ClInclude Include="step_controller.h" />
     <ClInclude Include="string_format.h" />
     <ClInclude Include="string_split.h" />
     <ClInclude Include="string_writer.h" />
     <ClInclude Include="test_suite.h" />
+    <ClInclude Include="transfer_protocol.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\cppformat\cppformat\format.cc">
@@ -387,11 +398,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="encoding.cpp" />
-    <ClCompile Include="HspObjectPath.cpp" />
-    <ClCompile Include="HspObjects.cpp" />
-    <ClCompile Include="HspObjectTree.cpp" />
-    <ClCompile Include="HspObjectWriter.cpp" />
-    <ClCompile Include="HspRuntime.cpp" />
+    <ClCompile Include="hsp_object_path.cpp" />
+    <ClCompile Include="hsp_objects.cpp" />
+    <ClCompile Include="hsp_object_writer.cpp" />
     <ClCompile Include="hsp_objects_module_tree.cpp" />
     <ClCompile Include="hsp_wrap_call.cpp" />
     <ClCompile Include="hsx_data.cpp" />
@@ -415,7 +424,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseUtf8|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="source_files.cpp" />
-    <ClCompile Include="StepController.cpp" />
+    <ClCompile Include="step_controller.cpp" />
     <ClCompile Include="string_split.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

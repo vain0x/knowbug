@@ -4,8 +4,6 @@
 #include "hsx.h"
 #include "platform.h"
 
-namespace hsx = hsp_sdk_ext;
-
 static auto s_debugger = std::weak_ptr<WcDebugger>{};
 
 static auto s_last_id = std::size_t{};
@@ -95,7 +93,7 @@ auto wc_call_frame_get(WcCallFrameKey const& key) -> std::optional<std::referenc
 }
 
 // コールフレームの引数スタックを取得する。
-auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<HspParamStack> {
+auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<hsx::HspParamStack> {
 	// 注意: 必ずしもすべての呼び出しをフックできているとは限らない点に注意。
 	//
 	// 1. 例えば modinit の呼び出しはコールスタックに乗らない。
@@ -123,15 +121,16 @@ auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<Hs
 
 	// 引数スタックが存在するための条件
 	auto exists = next_sublev > prev_sublev;
+	if (!exists) {
+		return std::nullopt;
+	}
 
 	// 引数スタックが真正であるための条件
 	auto is_safe = next_sublev == prev_sublev + 1;
 
-	auto param_stack = exists ? next_param_stack : nullptr;
-
 	auto param_stack_size = hsx::struct_to_param_stack_size(struct_dat);
 
-	return std::make_optional<HspParamStack>(struct_dat, (void*)param_stack, param_stack_size, is_safe);
+	return std::make_optional<hsx::HspParamStack>(struct_dat, next_param_stack, param_stack_size, is_safe);
 }
 
 // ユーザ定義コマンドの処理をラッパーで置き換える

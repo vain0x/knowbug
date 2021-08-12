@@ -1,3 +1,11 @@
+// HSP SDK Extensions (hsx)
+//
+// 目的: HSP SDK の安全かつ抽象的な API を提供する。
+//
+// 理由: HSP ランタイムのデータ構造は性能や整合性のために設計されていて、
+//      代わりに安全性や抽象度が低いため。
+// (NULL 検査や範囲検査などがなくて安全でなく、ほしい情報のありかなどが抽象的でない。)
+
 #pragma once
 
 #include "hsx_data.h"
@@ -9,7 +17,7 @@
 #include "hsx_var_metadata.h"
 #include "memory_view.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	// HSP の文字列データ。
 	// 1. str 型はランタイムエンコーディング (shift_jis/utf-8) の文字列だけでなく、
 	// 他のエンコーディングの文字列や任意のバイナリを格納するのにも使われることがたまにある。
@@ -154,6 +162,9 @@ namespace hsp_sdk_ext {
 
 	// 配列の先頭要素のメモリブロックを得る。
 	extern auto pval_to_memory_block(PVal const* pval, HSPCTX const* ctx)->MemoryView;
+
+	// 配列が文字列型なら、そのデータへの参照を得る。
+	extern auto pval_to_str(PVal const* pval, HSPCTX const* ctx)->std::optional<HspStr>;
 
 	extern auto static_vars(HSPCTX const* ctx)->Slice<PVal>;
 

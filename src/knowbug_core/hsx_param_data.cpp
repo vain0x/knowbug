@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "hsx_internals.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	auto mp_var_to_pval(MPVarData const* mp_var) -> PVal const* {
 		assert(mp_var != nullptr);
 		assert(mp_var->pval != nullptr);

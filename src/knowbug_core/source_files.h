@@ -4,24 +4,77 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "encoding.h"
+#include "test_suite.h"
 
 class SourceFile;
 class SourceFileId;
 class SourceFileRepository;
 class SourceFileResolver;
 
+extern void source_files_tests(Tests& tests);
+
+// -----------------------------------------------
+// ファイルシステム
+// -----------------------------------------------
+
+// ファイルシステムへの操作を表す。
+// (ファイルシステムにアクセスすることなくファイル操作を行うコードをテストするための抽象化層。)
+class FileSystemApi {
+public:
+	class SearchFileResult {
+	public:
+		// ファイルが含まれるディレクトリへの絶対パス
+		OsString dir_path_;
+
+		// 見つかったファイルへの絶対パス
+		OsString full_path_;
+	};
+
+	virtual auto read_all_text(OsString const& file_path)->std::optional<std::string> = 0;
+
+	virtual auto search_file_from_dir(OsStringView file_name, OsStringView base_dir)->std::optional<SearchFileResult> = 0;
+
+	virtual auto search_file_from_current_dir(OsStringView file_name)->std::optional<SearchFileResult> = 0;
+};
+
+// FileSysetmApi を Windows のファイル操作 API を使って実装したもの。
+class WindowsFileSystemApi
+	: public FileSystemApi
+{
+public:
+	auto read_all_text(OsString const& file_path)->std::optional<std::string> override;
+
+	auto search_file_from_dir(OsStringView file_name, OsStringView base_dir)->std::optional<SearchFileResult> override;
+
+	auto search_file_from_current_dir(OsStringView file_name)->std::optional<SearchFileResult> override;
+};
+
 // ファイル参照名を絶対パスに対応付ける処理を担当する。
 class SourceFileResolver {
 	// ファイルを探す基準となるディレクトリの集合。
 	std::unordered_set<OsString> dirs_;
 
-	// 解決すべきファイル参照名の集合。
-	std::unordered_set<std::string> file_ref_names_;
+	// 解決すべきファイル参照名の集まり。
+	std::vector<std::string> file_ref_names_;
+
+	FileSystemApi& fs_;
 
 public:
+	explicit SourceFileResolver(FileSystemApi& fs)
+		: dirs_()
+		, file_ref_names_()
+		, fs_(fs)
+	{
+	}
+
+	// ファイルを探す基準となるディレクトリを登録する。
 	void add_known_dir(OsString&& dir);
 
+	// 解決すべきファイル参照名を登録する。(重複登録は無視される。)
 	void add_file_ref_name(std::string&& file_ref_name);
+
+	// 重複して登録されたファイル参照名を削除する。
+	void dedup();
 
 	auto resolve()->SourceFileRepository;
 };
@@ -71,6 +124,10 @@ public:
 	{
 	}
 
+	auto operator ==(SourceFileId other) const -> bool {
+		return id_ == other.id_;
+	}
+
 	auto id() const -> std::size_t {
 		return id_;
 	}
@@ -94,6 +151,9 @@ class SourceFile {
 
 	Utf8String full_path_as_utf8_;
 
+	// ソースファイルの内容を読むべきファイルの絶対パス。
+	std::optional<OsString> content_file_path_;
+
 	// ソースファイルの中身がロード済みなら true
 	bool loaded_;
 
@@ -104,17 +164,19 @@ class SourceFile {
 	// ソースファイルの中身を行ごとに分割し、字下げを取り除いたもの。
 	std::vector<Utf8StringView> lines_;
 
+	FileSystemApi& fs_;
+
 public:
-	explicit SourceFile(OsString&& full_path);
+	SourceFile(OsString&& full_path, FileSystemApi& fs);
 
 	// 絶対パス
 	auto full_path() const -> OsStringView {
-		return as_view(full_path_);
+		return full_path_;
 	}
 
 	// 絶対パス (UTF-8 エンコーディング)
 	auto full_path_as_utf8() const -> Utf8StringView {
-		return as_view(full_path_as_utf8_);
+		return full_path_as_utf8_;
 	}
 
 	// ソースファイルの中身を取得する。
@@ -122,6 +184,10 @@ public:
 
 	// ソースファイルの指定した行の文字列 (字下げを除く) を取得する。
 	auto line_at(std::size_t line_index)->std::optional<Utf8StringView>;
+
+	auto set_content_file_path(OsString&& content_file_path) {
+		content_file_path_ = std::move(content_file_path);
+	}
 
 private:
 	void load();

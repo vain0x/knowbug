@@ -6,63 +6,147 @@
 #include "source_files.h"
 #include "string_split.h"
 
+// 改行コードを CRLF に固定する。
+static auto normalize_lines(Utf8StringView text) -> Utf8String {
+	auto output = Utf8String{};
+	auto first = true;
+
+	for (auto&& line : StringLines{ text }) {
+		if (!std::exchange(first, false)) {
+			output += as_utf8(u8"\r\n");
+		}
+
+		output += line;
+	}
+
+	return output;
+}
+
+// タブ文字を置換する。
+// NOTE: タブの幅は計算していない。この処理は、ソースファイルを表示するエディットボックスのタブ幅を
+// 　     8から4に変更するのがめんどくさいので、手抜きのために行っている。
+static auto replace_tabs_with_spaces(Utf8StringView text) -> Utf8String {
+	auto output = Utf8String{};
+	auto l = std::size_t{};
+
+	while (true) {
+		auto r = text.find(Utf8Char{ u8'\t' }, l);
+		if (r == Utf8String::npos) {
+			output += text.substr(l);
+			break;
+		}
+
+		output += text.substr(l, r - l);
+		output += as_utf8(u8"    ");
+		l = r + 1;
+	}
+
+	return output;
+}
+
+// -----------------------------------------------
+// ファイルシステム
+// -----------------------------------------------
+
+static auto read_all_text(OsString const& file_path)->std::optional<std::string> {
+	auto ifs = std::ifstream{ file_path }; // NOTE: OsStringView に対応していない。
+	if (!ifs.is_open()) {
+		return std::nullopt;
+	}
+	return std::string{ std::istreambuf_iterator<char>{ ifs }, {} };
+}
+
 // 指定したディレクトリを基準として、指定した名前または相対パスのファイルを検索する。
 // 結果として、フルパスと、パス中のディレクトリの部分を返す。
-// use_current_dir=true のときは、指定したディレクトリではなく、カレントディレクトリで検索する。
+// base_dir_opt=nullopt のときは、カレントディレクトリで検索する。
 static auto search_file_from_dir(
 	OsStringView const& file_ref,
-	OsStringView const& base_dir,
-	bool use_current_dir,
-	OsString& out_dir_name,
-	OsString& out_full_path
-) -> bool {
+	std::optional<OsStringView> base_dir_opt
+) -> std::optional<FileSystemApi::SearchFileResult> {
+	static auto const EXTENSION_PTR = LPCTSTR{};
+	static auto const CURRENT_DIR = LPCTSTR{};
+
 	auto file_name_ptr = LPTSTR{};
 	auto full_path_buf = std::array<TCHAR, MAX_PATH>{};
 
-	auto base_dir_ptr = use_current_dir ? nullptr : base_dir.data();
+	auto base_dir_ptr = base_dir_opt ? base_dir_opt->data() : CURRENT_DIR;
 	auto succeeded =
 		SearchPath(
-			base_dir_ptr, file_ref.data(), /* lpExtenson = */ nullptr,
-			full_path_buf.size(), full_path_buf.data(), &file_name_ptr
+			base_dir_ptr, file_ref.data(), EXTENSION_PTR,
+			(DWORD)full_path_buf.size(), full_path_buf.data(), &file_name_ptr
 		) != 0;
 	if (!succeeded) {
-		return false;
+		return std::nullopt;
 	}
 
 	assert(full_path_buf.data() <= file_name_ptr && file_name_ptr <= full_path_buf.data() + full_path_buf.size());
 	auto dir_name = OsString{ full_path_buf.data(), file_name_ptr };
+	auto full_path = OsString{ full_path_buf.data() };
 
-	out_dir_name = std::move(dir_name);
-	out_full_path = OsString{ full_path_buf.data() };
-	return true;
+	return FileSystemApi::SearchFileResult{ std::move(dir_name), std::move(full_path) };
 }
 
-// 複数のディレクトリを基準としてファイルを探し、カレントディレクトリからも探す。
+// カレントディレクトリを基準としてファイルを探し、なければ指定された各ディレクトリから探す。
 template<typename TDirs>
 static auto search_file_from_dirs(
 	OsStringView const& file_ref,
 	TDirs const& dirs,
-	OsString& out_dir_name,
-	OsString& out_full_path
-) -> bool {
-	for (auto&& dir : dirs) {
-		auto ok = search_file_from_dir(
-			file_ref, as_view(dir), /* use_current_dir = */ false,
-			out_dir_name, out_full_path
-		);
-		if (!ok) {
-			continue;
+	FileSystemApi& api
+) -> std::optional<FileSystemApi::SearchFileResult> {
+	{
+		auto result_opt = api.search_file_from_current_dir(file_ref);
+		if (result_opt) {
+			return result_opt;
 		}
-
-		return true;
 	}
 
-	// カレントディレクトリから探す。
-	auto no_dir = as_os(TEXT(""));
-	return search_file_from_dir(
-		file_ref, no_dir, true,
-		out_dir_name, out_full_path
-	);
+	for (auto&& dir : dirs) {
+		auto result_opt = api.search_file_from_dir(file_ref, dir);
+		if (result_opt) {
+			return result_opt;
+		}
+	}
+
+	return std::nullopt;
+}
+
+auto WindowsFileSystemApi::read_all_text(OsString const& file_path)->std::optional<std::string> {
+	return ::read_all_text(file_path);
+}
+
+auto WindowsFileSystemApi::search_file_from_dir(OsStringView file_name, OsStringView base_dir)->std::optional<SearchFileResult> {
+	return ::search_file_from_dir(file_name, base_dir);
+}
+
+auto WindowsFileSystemApi::search_file_from_current_dir(OsStringView file_name)->std::optional<SearchFileResult> {
+	return ::search_file_from_dir(file_name, std::nullopt);
+}
+
+// -----------------------------------------------
+// hsptmp の解決
+// -----------------------------------------------
+
+// hsptmp に対応するファイル参照名を見つける。
+//
+// 解説:
+// スクリプトエディタで未保存の内容が、カレントディレクトリの hsptmp に保存されているはず。
+// 1. タブがファイルを開いているのではなく「無題」のとき、
+//    hsptmp に相当するファイル名は ??? (ファイル名なし) になっている。
+// 2. タブがファイルを開いているとき、hsptmp は「最初に出現する」ファイルに対応するはず。
+//    ただし、実行されたスクリプトより前に標準ヘッダファイル (hspdef.as など) が読まれるので、
+//    正確には「最後に hspdef.as が出現する行の次の行のファイル名」を見つけて hsptmp とみなす。
+// (この処理は HSP のコンパイラの実装に依存したものである。)
+static auto resolve_hsptmp(std::vector<std::string> const& file_ref_names) -> std::optional<std::string> {
+	// 逆順にループを回して hspdef.as が最後に出現する位置を探し、あればその次を返す。
+	for (auto i = file_ref_names.size(); i >= 1;) {
+		i--;
+
+		if (file_ref_names[i] == u8"hspdef.as" && i + 1 < file_ref_names.size()) {
+			return file_ref_names[i + 1];
+		}
+	}
+
+	return std::nullopt;
 }
 
 // -----------------------------------------------
@@ -74,17 +158,29 @@ void SourceFileResolver::add_known_dir(OsString&& dir) {
 }
 
 void SourceFileResolver::add_file_ref_name(std::string&& file_ref_name) {
-	file_ref_names_.emplace(std::move(file_ref_name));
+	file_ref_names_.push_back(std::move(file_ref_name));
+}
+
+void SourceFileResolver::dedup() {
+	// 注意: 解決処理の精度を上げるため、ファイル参照名の順番を維持する。
+
+	auto output = std::vector<std::string>{};
+	auto done = std::unordered_set<std::string>{};
+
+	for (auto&& file_ref_name : file_ref_names_) {
+		auto pair = done.insert(file_ref_name);
+		auto added = pair.second;
+		if (added) {
+			output.push_back(file_ref_name);
+		}
+	}
+
+	file_ref_names_ = std::move(output);
 }
 
 auto SourceFileResolver::resolve() -> SourceFileRepository {
 	// 未解決のファイル参照名の集合
 	auto file_ref_names = std::vector<std::pair<std::string, OsString>>{};
-
-	for (auto&& file_ref_name : std::move(file_ref_names_)) {
-		auto os_str = to_os(as_hsp(file_ref_name));
-		file_ref_names.emplace_back(std::move(file_ref_name), std::move(os_str));
-	}
 
 	// 絶対パス → ファイルID
 	auto full_path_map = std::unordered_map<OsString, SourceFileId>{};
@@ -105,7 +201,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		if (iter == full_path_map.end()) {
 			auto file_id = SourceFileId{ source_files.size() };
 			full_path_map.emplace(full_path, file_id);
-			source_files.emplace_back(to_owned(full_path));
+			source_files.emplace_back(to_owned(full_path), fs_);
 		}
 	};
 
@@ -114,20 +210,30 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		assert(!full_path_map.count(file_ref_name) && u8"解決済みのファイルには呼ばれないはず");
 
 		// ファイルシステムから探す。
-		OsString dir_name;
-		OsString full_path;
-		auto ok = search_file_from_dirs(file_ref_name, dirs_, dir_name, full_path);
-		if (!ok) {
+		auto result_opt = search_file_from_dirs(file_ref_name, dirs_, fs_);
+		if (!result_opt) {
 			return false;
 		}
 
 		// 見つかったディレクトリを検索対象に加える。
-		dirs_.emplace(std::move(dir_name));
+		dirs_.emplace(std::move(result_opt->dir_path_));
 
 		// メモ化する。
-		add(original, full_path);
+		add(original, result_opt->full_path_);
 		return true;
 	};
+
+	// hsptmp に対応するファイルを見つける。
+	// hsptmp の絶対パスを見つけておくため、ファイル参照名に hsptmp を追加する。
+	auto hsptmp_ref_name_opt = resolve_hsptmp(file_ref_names_);
+	add_file_ref_name(u8"hsptmp");
+
+	// ファイル参照名の重複を除去する。ついでに OsString に変換しておく。
+	dedup();
+	for (auto&& file_ref_name : file_ref_names_) {
+		auto os_str = to_os(as_hsp(file_ref_name));
+		file_ref_names.emplace_back(file_ref_name, std::move(os_str));
+	}
 
 	while (true) {
 		// ループ中に何か変化が起こったら false。
@@ -135,8 +241,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		auto stuck = true;
 
 		// 要素を削除する必要があるので後ろから前にループを回す。
-		auto i = file_ref_names.size();
-		while (i > 0) {
+		for (auto i = file_ref_names.size(); i >= 1;) {
 			i--;
 
 			auto ok = find(file_ref_names[i].first, file_ref_names[i].second);
@@ -145,7 +250,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 			}
 
 			// i 番目の要素を削除
-			std::iter_swap(&file_ref_names[i], &file_ref_names.back());
+			std::swap(file_ref_names[i], file_ref_names.back());
 			file_ref_names.pop_back();
 
 			stuck = false;
@@ -168,6 +273,19 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		file_map.emplace(pair.first, iter->second);
 	}
 
+	// hsptmp を解決する。
+	if (hsptmp_ref_name_opt) {
+		auto hsptmp_iter = file_map.find(u8"hsptmp");
+		if (hsptmp_iter != file_map.end()) {
+			auto hsptmp_full_path = source_files[hsptmp_iter->second.id()].full_path();
+
+			auto file_iter = file_map.find(*hsptmp_ref_name_opt);
+			if (file_iter != file_map.end()) {
+				source_files[file_iter->second.id()].set_content_file_path(OsString{ hsptmp_full_path });
+			}
+		}
+	}
+
 	return SourceFileRepository{ std::move(source_files), std::move(file_map) };
 }
 
@@ -177,7 +295,11 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 
 auto SourceFileRepository::file_ref_name_to_file_id(char const* file_ref_name) const->std::optional<SourceFileId> {
 	auto&& iter = file_map_.find(file_ref_name);
-	return std::make_optional(iter->second);
+	if (iter == file_map_.end()) {
+		return std::nullopt;
+	}
+
+	return iter->second;
 }
 
 auto SourceFileRepository::file_ref_name_to_full_path(char const* file_ref_name) const->std::optional<OsStringView> {
@@ -243,18 +365,15 @@ auto SourceFileRepository::file_to_line_at(SourceFileId const& file_id, std::siz
 	return source_files_[file_id.id()].line_at(line_index);
 }
 
-
-// NOTE: ifstream がファイル名に basic_string_view を受け取らないので、OsString への参照をもらう。
-static auto load_text_file(OsString const& file_path) -> Utf8String {
-	auto ifs = std::ifstream{ file_path };
-	if (!ifs.is_open()) {
+static auto load_text_file(OsString const& file_path, FileSystemApi& fs) -> Utf8String {
+	auto content_opt = fs.read_all_text(file_path);
+	if (!content_opt) {
 		// デバッグログなどに出力する？
 		return to_owned(as_utf8(u8""));
 	}
 
 	// NOTE: ソースコードの文字コードが HSP ランタイムの文字コードと同じとは限らない。
-	auto content = as_hsp(std::string{ std::istreambuf_iterator<char>{ ifs }, {} });
-	return to_utf8(content);
+	return to_utf8(as_hsp(std::move(*content_opt)));
 }
 
 static auto char_is_whitespace(Utf8Char c) -> bool {
@@ -281,12 +400,13 @@ static auto split_by_lines(Utf8StringView const& str) -> std::vector<Utf8StringV
 // SourceFile
 // -----------------------------------------------
 
-SourceFile::SourceFile(OsString&& full_path)
+SourceFile::SourceFile(OsString&& full_path, FileSystemApi& fs)
 	: full_path_(std::move(full_path))
 	, full_path_as_utf8_(to_utf8(full_path_))
 	, loaded_(false)
 	, content_()
 	, lines_()
+	, fs_(fs)
 {
 }
 
@@ -311,7 +431,169 @@ void SourceFile::load() {
 		return;
 	}
 
-	content_ = load_text_file(full_path_);
-	lines_ = split_by_lines(as_view(content_));
+	auto full_path = content_file_path_.value_or(full_path_);
+
+	content_ = replace_tabs_with_spaces(normalize_lines(load_text_file(full_path, fs_)));
+	lines_ = split_by_lines(content_);
 	loaded_ = true;
+}
+
+// -----------------------------------------------
+// テスト
+// -----------------------------------------------
+
+template<typename Char>
+static auto char_is_path_sep(Char c) -> bool {
+	return c == (Char)'/' || c == (Char)'\\';
+}
+
+// knowbug_config に同様のコードがあるのでまとめる
+static void path_drop_file_name(OsString& full_path) {
+	while (!full_path.empty()) {
+		auto last = full_path[full_path.length() - 1];
+		if (char_is_path_sep(last)) {
+			full_path.pop_back();
+			break;
+		}
+
+		full_path.pop_back();
+	}
+}
+
+class VirtualFileSystemApi
+	: public FileSystemApi
+{
+	std::unordered_map<OsString, std::string> files_;
+
+	OsString current_dir_;
+
+public:
+	void set_current_dir(OsString current_dir) {
+		current_dir_ = std::move(current_dir);
+	}
+
+	void add_file(OsString file_path, std::string content) {
+		files_[std::move(file_path)] = std::move(content);
+	}
+
+	auto read_all_text(OsString const& file_path)->std::optional<std::string> override {
+		auto iter = files_.find(file_path);
+		return iter != files_.end() ? std::make_optional(iter->second) : std::nullopt;
+	}
+
+	auto search_file_from_dir(OsStringView file_name, OsStringView base_dir)->std::optional<SearchFileResult> override {
+		auto starts_with = [](OsStringView str, OsStringView prefix) -> bool {
+			return str.size() >= prefix.size() && str.substr(0, prefix.size()) == prefix;
+		};
+
+		auto file_path = to_owned(base_dir);
+		file_path += TEXT("/");
+		file_path += file_name;
+
+		for (auto&& pair : files_) {
+			if (pair.first == file_path) {
+				auto dir_name = to_owned(file_path);
+				path_drop_file_name(dir_name);
+
+				return SearchFileResult{ dir_name, file_path };
+			}
+		}
+
+		return std::nullopt;
+	}
+
+	auto search_file_from_current_dir(OsStringView file_name)->std::optional<SearchFileResult> override {
+		return search_file_from_dir(file_name, current_dir_);
+	}
+};
+
+static auto create_file_system_for_testing() -> VirtualFileSystemApi {
+	auto fs = VirtualFileSystemApi{};
+	fs.set_current_dir(TEXT("/src"));
+
+	fs.add_file(TEXT("/hsp/common/hspdef.as"), u8"// hsp_def");
+	fs.add_file(TEXT("/hsp/common/awesome_plugin/awesome_plugin.hsp"), u8"// awesome_plugin");
+
+	fs.add_file(TEXT("/src/main.hsp"), u8"// main");
+	fs.add_file(TEXT("/src/awesome_lib/awesome_lib.hsp"), u8"// awesome_lib");
+
+	fs.add_file(TEXT("/src/not_included.txt"), u8"// not included");
+	return fs;
+}
+
+void source_files_tests(Tests& tests) {
+	auto&& suite = tests.suite(u8"source_files");
+
+	suite.test(
+		u8"ソースファイルを解決できる",
+		[&](TestCaseContext& t) {
+			auto fs = create_file_system_for_testing();
+
+			auto resolver = SourceFileResolver{ fs };
+			resolver.add_known_dir(to_owned(TEXT("/hsp/common")));
+
+			resolver.add_file_ref_name(u8"hspdef.as");
+			resolver.add_file_ref_name(u8"main.hsp");
+			resolver.add_file_ref_name(u8"awesome_plugin/awesome_plugin.hsp");
+			resolver.add_file_ref_name(u8"awesome_lib/awesome_lib.hsp");
+
+			auto repository = resolver.resolve();
+
+			if (!t.eq(repository.file_count(), 4)) {
+				return false;
+			}
+
+			if (!t.eq(repository.file_ref_name_to_file_id(u8"unknown_file_ref_name").has_value(), false)) {
+				return false;
+			}
+
+			return t.eq(to_utf8(*repository.file_ref_name_to_full_path(u8"main.hsp")), as_utf8(u8"/src/main.hsp"));
+		});
+
+	suite.test(
+		u8"ソースファイルの内容を取得できる",
+		[&](TestCaseContext& t) {
+			auto content =
+				u8"  main\r\n"
+				u8"  stop\r\n";
+
+			auto fs = create_file_system_for_testing();
+			fs.add_file(TEXT("/src/main.hsp"), content);
+
+			auto resolver = SourceFileResolver{ fs };
+			resolver.add_file_ref_name(u8"main.hsp");
+
+			auto repository = resolver.resolve();
+
+			auto file_id = *repository.file_ref_name_to_file_id(u8"main.hsp");
+
+			return t.eq(as_native(*repository.file_to_content(file_id)), content)
+				&& t.eq(as_native(*repository.file_to_line_at(file_id, 0)), u8"main")
+				&& t.eq(as_native(*repository.file_to_line_at(file_id, 1)), u8"stop")
+				&& t.eq(as_native(repository.file_to_line_at(file_id, 9999).value_or(as_utf8(u8""))), u8"");
+		});
+
+	suite.test(
+		u8"実行スクリプトファイルの内容を hsptmp から読む",
+		[&](TestCaseContext& t) {
+			auto fs = create_file_system_for_testing();
+
+			fs.add_file(TEXT("/src/main.hsp"), u8"saved script");
+			fs.add_file(TEXT("/src/hsptmp"), u8"run script");
+			fs.add_file(TEXT("/hsp/common/hsptmp"), u8"common の hsptmp は探さないでほしい");
+
+			auto resolver = SourceFileResolver{ fs };
+			resolver.add_known_dir(to_owned(TEXT("/hsp/common")));
+			resolver.add_file_ref_name(u8"hspdef.as");
+			resolver.add_file_ref_name(u8"userdef.as");
+			resolver.add_file_ref_name(u8"hspdef.as");
+			resolver.add_file_ref_name(u8"main.hsp");
+			resolver.add_file_ref_name(u8"other.hsp");
+
+			auto repository = resolver.resolve();
+			auto file_id = *repository.file_ref_name_to_file_id(u8"main.hsp");
+
+			return t.eq(as_native(*repository.file_to_content(file_id)), u8"run script")
+				&& t.eq(*repository.file_to_full_path(file_id), TEXT("/src/main.hsp"));
+		});
 }

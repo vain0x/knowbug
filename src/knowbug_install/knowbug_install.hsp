@@ -54,9 +54,9 @@
 	program_files_dir = "C:/Program Files (x86)"
 	knowbug_dir = dir_cur
 
-	asset_targets = "hsp3debug.dll", "hsp3debug_u8.dll", "hsp3debug_64.dll", "common/WrapCall.as"
-	asset_sources = "hsp3debug.dll", "hsp3debug_u8.dll", "hsp3debug_64.dll", "package/WrapCall.as"
-	asset_backups = true, true, true, false
+	asset_targets = "hsp3debug.dll", "hsp3debug_u8.dll", "hsp3debug_64.dll", "knowbug_client.exe", "common/WrapCall.as"
+	asset_sources = "hsp3debug.dll", "hsp3debug_u8.dll", "hsp3debug_64.dll", "knowbug_client.exe", "WrapCall.as"
+	asset_backups = true, true, true, false, false
 	asset_count = length(asset_sources)
 
 	// states

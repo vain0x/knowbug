@@ -1,8 +1,13 @@
 hsptmp
+hsp3_makefile
 obj
-package/sample/*.ax
-DebugUtf8
-ReleaseUtf8
+packfile
+start.ax
+sandbox/*.ax
+scripts/*.ax
+src/knowbug_install/*.ax
+src/knowbug_install/packfile
+target
 
 
 

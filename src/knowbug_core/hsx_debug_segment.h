@@ -3,7 +3,7 @@
 #include <optional>
 #include "hsx_types_fwd.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	// デバッグセグメントに埋め込まれた情報の種類
 	enum class DebugSegmentItemKind {
 		SourceFile,

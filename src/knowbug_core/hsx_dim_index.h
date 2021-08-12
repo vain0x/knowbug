@@ -1,9 +1,10 @@
 #pragma once
 
 #include <array>
+#include "hash_code.h"
 #include "hsx_types_fwd.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	// 多次元配列へのインデックス。(最大4次元)
 	// 多次元配列の要素の位置を表す。あるいは、次元数と要素数を表す。
 	class HspDimIndex {
@@ -41,6 +42,14 @@ namespace hsp_sdk_ext {
 			return dim() == other.dim() && indexes_ == other.indexes_;
 		}
 
+		auto hash() const -> std::size_t {
+			auto h = HashCode::from(dim_);
+			for (auto i : indexes_) {
+				h = h.combine(i);
+			}
+			return h.value();
+		}
+
 		// 次元数
 		auto dim() const -> std::size_t {
 			return dim_;
@@ -75,6 +84,15 @@ namespace hsp_sdk_ext {
 				count *= i;
 			}
 			return count;
+		}
+	};
+}
+
+namespace std {
+	template<>
+	struct hash<hsx::HspDimIndex> {
+		auto operator()(hsx::HspDimIndex const& value) -> std::size_t {
+			return value.hash();
 		}
 	};
 }

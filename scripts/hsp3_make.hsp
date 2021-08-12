@@ -1,0 +1,279 @@
+// Make hsp3 executables.
+// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+
+// USAGE: hsp3_make <src-name> <work-dir> <hsp-root>
+
+#ifdef HSP3_MAKE_CLI
+
+#runtime "hsp3cl"
+#packopt name "hsp3_make_cli"
+#packopt orgpath 1
+
+#else
+
+#packopt name "hsp3_make"
+#packopt hide 1
+#packopt orgpath 1
+
+#endif
+
+// -----------------------------------------------
+// HSP constants
+// -----------------------------------------------
+
+#define global dialog_warn 1
+#define global gsel_hide (-1)
+#define global gsel_show 1
+#define global mesbox_readonly 1
+#define global objmode_font 2
+
+// -----------------------------------------------
+// Windows constants
+// -----------------------------------------------
+
+#define global EXIT_FAILURE 1
+
+// -----------------------------------------------
+// App constants
+// -----------------------------------------------
+
+#define global s_default_window_id 0
+
+// -----------------------------------------------
+// Command line parser
+// -----------------------------------------------
+
+#module m_cmdline_parser
+
+#define true 1
+#define false 0
+
+// Parse a command line text.
+#deffunc cmdline_parser_parse str cmdline, \
+	local value
+
+	s_cmdline = cmdline
+	s_cmdline_len = strlen(s_cmdline)
+	s_index = 0
+
+	// positional arguments
+	sdim s_pos_texts
+	s_pos_count = 0
+
+	repeat
+		cmdline_parser_next value
+		if stat == false {
+			break
+		}
+
+		s_pos_texts(cnt) = value
+		s_pos_count++
+	loop
+	return
+
+// Parse next argument.
+#deffunc cmdline_parser_next var value, \
+	local ok, local c, local start, local in_quote
+
+	// Skip spaces.
+	repeat
+		if s_index >= s_cmdline_len {
+			break
+		}
+
+		c = peek(s_cmdline, s_index)
+		if c != ' ' {
+			break
+		}
+
+		s_index++
+	loop
+
+	ok = false
+	value = ""
+	in_quote = false
+	start = s_index
+
+	repeat
+		if s_index >= s_cmdline_len {
+			gosub *l_commit
+			break
+		}
+
+		c = peek(s_cmdline, s_index)
+		if c == ' ' && in_quote == false {
+			gosub *l_commit
+			break
+		}
+
+		if c == '"' {
+			gosub *l_commit
+			s_index++
+			start = s_index
+			in_quote = in_quote == false
+			ok = true
+			continue
+		}
+
+		s_index++
+	loop
+	return ok || peek(value) != 0
+
+*l_commit
+
+	value += strmid(s_cmdline, start, s_index - start)
+	return
+
+#defcfunc cmdline_parser_pos_count
+
+	return s_pos_count
+
+#defcfunc cmdline_parser_pos_get int index
+
+	return s_pos_texts(index)
+
+#global
+
+// -----------------------------------------------
+// Application
+// -----------------------------------------------
+
+#module m_app
+
+#include "hspcmp.as"
+
+#define true 1
+#define false 0
+
+#deffunc app_init
+
+	s_obj_name = "start.ax"
+	s_runtime_name = ""
+	s_runtime_dir = ""
+	s_compile_opts = 4 // 1: debug info, 4: utf-8 output
+	s_pp_opts = 4 | 32 // 4: make packfile, 32: utf-8 input
+	s_exit_code = EXIT_FAILURE
+
+	sdim s_src_name
+	sdim s_work_dir
+	sdim s_hsp_root
+	sdim s_error, 0x10000
+
+	onexit goto *l_on_exit
+
+	app_parse_cmdline
+	app_make
+	if stat == false {
+		app_fail
+	}
+	return
+
+#deffunc app_parse_cmdline
+
+	cmdline_parser_parse dir_cmdline
+	if cmdline_parser_pos_count() != 3 {
+		runtime_warn "Expected two arguments but given " + cmdline_parser_pos_count() + "; cmdline='" + dir_cmdline + "'"
+		end EXIT_FAILURE
+	}
+
+	s_src_name = cmdline_parser_pos_get(0)
+	s_work_dir = cmdline_parser_pos_get(1)
+	s_hsp_root = cmdline_parser_pos_get(2)
+	return
+
+#deffunc app_make
+
+	chdir s_work_dir
+
+	hsc_ini s_src_name
+	if stat {
+		hsc_getmes s_error
+		return false
+	}
+
+	hsc_objname s_obj_name
+	if stat {
+		hsc_getmes s_error
+		return false
+	}
+
+	hsc_compath s_hsp_root + "\\common\\"
+
+	// Compile to make object file.
+	hsc_comp s_compile_opts, s_pp_opts
+	if stat {
+		hsc_getmes s_error
+		return false
+	}
+
+	hsc3_getruntime s_runtime_name, s_obj_name
+	if s_runtime_name == "" {
+		s_runtime_name = "hsp3.exe"
+	}
+	if s_runtime_name == "hsp3.exe" {
+		s_runtime_dir = s_hsp_root + "\\"
+	} else {
+		s_runtime_dir = s_hsp_root + "\\runtime\\"
+	}
+
+	hsc3_make s_runtime_dir
+	if stat {
+		hsc_getmes s_error
+		return false
+	}
+	return true
+
+#deffunc app_fail
+
+	runtime_error s_error
+	stop
+
+*l_on_exit
+
+	end s_exit_code
+
+#global
+
+// -----------------------------------------------
+// Runtime
+// -----------------------------------------------
+
+#module m_runtime
+
+#ifdef HSP3_MAKE_CLI
+
+#deffunc runtime_warn str text
+
+	mes "WARN: " + text
+	return
+
+#deffunc runtime_error str text
+
+	mes "ERROR: " + text
+	return
+
+#else
+
+#deffunc runtime_warn str text
+
+	dialog text, 1
+	return
+
+#deffunc runtime_error str text, \
+	local error
+
+	error = text
+
+	title "hsp3_make"
+	font "MS Gothic", 12
+	objmode objmode_font
+	mesbox error, ginfo_winx, ginfo_winy, mesbox_readonly
+	gsel s_default_window_id, gsel_show
+	return
+
+#endif
+
+#global
+
+	app_init
+	end

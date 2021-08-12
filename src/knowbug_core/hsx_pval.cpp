@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "hsx_internals.h"
 
-namespace hsp_sdk_ext {
+namespace hsx {
 	auto pval_to_type(PVal const* pval) -> HspType {
 		assert(pval != nullptr);
 		return (HspType)pval->flag;
@@ -58,5 +58,9 @@ namespace hsp_sdk_ext {
 		}
 
 		return element_data_to_memory_block(pval, data_opt->ptr(), ctx);
+	}
+
+	auto pval_to_str(PVal const* pval, HSPCTX const* ctx)->std::optional<HspStr> {
+		return element_to_str(pval, 0, ctx);
 	}
 }

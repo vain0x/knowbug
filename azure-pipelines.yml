@@ -1,0 +1,60 @@
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/
+
+trigger:
+  branches:
+    include:
+    - '*'
+    exclude:
+    - 'w'
+    - 'w-*'
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+# Test:
+- task: MSBuild@1
+  inputs:
+    solution: 'src/knowbug_tests'
+    msbuildArchitecture: 'x64'
+    platform: 'Win32'
+    configuration: 'Debug'
+    msbuildArguments: '-t:build,run'
+
+- task: MSBuild@1
+  inputs:
+    solution: 'src/knowbug_tests'
+    msbuildArchitecture: 'x64'
+    platform: 'Win32'
+    configuration: 'DebugUtf8'
+    msbuildArguments: '-t:build,run'
+
+- task: MSBuild@1
+  inputs:
+    solution: 'src/knowbug_tests'
+    msbuildArchitecture: 'x64'
+    platform: 'x64'
+    configuration: 'Debug'
+    msbuildArguments: '-t:build,run'
+
+# Build:
+- task: MSBuild@1
+  inputs:
+    solution: 'src/knowbug.sln'
+    msbuildArchitecture: 'x64'
+    platform: 'x86'
+    configuration: 'Release'
+
+- task: MSBuild@1
+  inputs:
+    solution: 'src/knowbug.sln'
+    msbuildArchitecture: 'x64'
+    platform: 'x86'
+    configuration: 'ReleaseUtf8'
+
+- task: MSBuild@1
+  inputs:
+    solution: 'src/knowbug.sln'
+    msbuildArchitecture: 'x64'
+    platform: 'x64'
+    configuration: 'Release'

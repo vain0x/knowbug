@@ -1,0 +1,40 @@
+// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+// mod_hspish_font のサンプル
+
+// CHANGE ボタンを押すと OK ボタンのフォントが変わる。
+
+#include "mod_hspish_font.hsp"
+
+	no_refresh = 0
+
+	font "Yu Gothic Medium", 13, 1
+
+	mes "Current font"
+	mes "Wait..."
+
+	is_gothic = 0
+	button gosub "OK", *l_ok
+	button_hwnd = objinfo_hwnd(stat)
+
+	button gosub "CHANGE", *l_change
+
+	await 2000
+	gosub *l_change
+	stop
+
+*l_ok
+	return
+
+*l_change
+
+	is_gothic = (is_gothic == 0)
+
+	if is_gothic {
+		font_family = "MS Gothic"
+	} else {
+		font_family = "Meiryo"
+	}
+
+	hspish_font_set_object_font button_hwnd, font_family, 13, , no_refresh
+	mes "Button font changed"
+	return

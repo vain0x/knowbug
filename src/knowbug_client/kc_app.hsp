@@ -1,0 +1,1479 @@
+// アプリケーションのコア部分
+// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+
+#packopt name "knowbug_client"
+#packopt hide 1
+
+#include "hsp3utf.as"
+#include "kernel32.as"
+#include "user32.as"
+#include "mod_assoc.hsp"
+#include "mod_buf.hsp"
+#include "mod_hspish_font.hsp"
+#include "mod_knowbug_protocol.hsp"
+#include "mod_menu.hsp"
+#include "mod_stdin.hsp"
+#include "mod_stdout.hsp"
+#include "mod_transfer_protocol.hsp"
+#include "mod_unicode_cnv.hsp"
+#include "kc_config.hsp"
+
+// -----------------------------------------------
+// HSP の定数
+// -----------------------------------------------
+
+#define global dialog_warn      1
+#define global dialog_yesno     2
+#define global dialog_save      17
+
+#define global dialog_yes       6
+
+#define global exec_app         16
+
+#define global getpath_dir      32
+
+#define global gsel_hide        (-1)
+#define global gsel_show        1
+#define global gsel_top_most    2
+
+#define global mesbox_readonly  0
+
+#define global noteadd_set      1
+
+#define global objmode_font     2
+
+#define global strtrim_start    1
+#define global strtrim_end      2
+
+#define global char_lf          0x0a
+
+// -----------------------------------------------
+// Win32 API の定数
+// -----------------------------------------------
+
+#define global NULL             0
+
+#define global EXIT_FAILURE     1
+
+#define global FILE_MAP_WRITE   0x0002
+#define global FILE_MAP_READ    0x0004
+
+#define global VK_ESCAPE        0x1b
+
+#define global WS_HSCROLL       0x00100000
+#define global WS_VSCROLL       0x00200000
+#define global WS_BORDER        0x00800000
+#define global WS_VISIBLE       0x10000000
+#define global WS_CHILD         0x40000000
+
+#define global WM_SIZE          0x0005
+#define global WM_NOTIFY        0x004e
+#define global WM_CONTEXTMENU   0x007b
+#define global WM_COMMAND       0x0111
+#define global WM_TIMER         0x0113
+#define global WM_USER          0x0400
+
+#define global NM_CLICK         (-2)
+#define global NM_DBLCLK        (-3)
+#define global NM_RETURN        (-4)
+
+#define global ES_MULTILINE     0x0004
+#define global ES_AUTOVSCROLL   0x0040
+#define global ES_AUTOHSCROLL   0x0080
+#define global ES_NOHIDESEL     0x0100
+#define global ES_READONLY      0x0800
+
+#define global EM_GETSEL                    0x00b0
+#define global EM_SETSEL                    0x00b1
+#define global EM_LINESCROLL                0x00b6
+#define global EM_GETLINECOUNT              0x00ba
+#define global EM_LINEINDEX                 0x00bb
+#define global EM_GETFIRSTVISIBLELINE       0x00ce
+
+// リストビューを詳細表示する。
+#define global LVS_REPORT                   0x0001
+
+// リストビューのカラムヘッダーを表示しない。
+#define global LVS_NOCOLUMNHEADER           0x4000
+
+#define global LVS_EX_FULLROWSELECT         0x0020
+
+// リストビューのメッセージ
+// https://docs.microsoft.com/en-us/windows/win32/controls/bumper-list-view-control-reference-messages
+
+// 項目数を取得する。
+#define global LVM_GETITEMCOUNT             0x1004
+
+#define global LVM_FIRST                    0x1000
+#define global LVM_GETITEM                  0x1005
+#define global LVM_SETITEM                  0x1006
+#define global LVM_DELETEITEM               0x1008
+#define global LVM_DELETEALLITEMS           0x1009
+#define global LVM_HITTEST                  0x1012
+#define global LVM_INSERTCOLUMN             0x101b
+#define global LVM_SETTEXTCOLOR             0x1024
+#define global LVM_SETTEXTBKCOLOR           0x1026
+#define global LVM_SETCOLUMNWIDTH           (LVM_FIRST + 30)
+#define global LVM_SUBITEMHITTEST           (LVM_FIRST + 57)
+#define global LVM_SETEXTENDEDLISTVIEWSTYLE (LVM_FIRST + 54)
+#define global LVM_GETEXTENDEDLISTVIEWSTYLE (LVM_FIRST + 55)
+#define global LVM_SETITEMW                 (LVM_FIRST + 76)
+#define global LVM_INSERTITEMW              (LVM_FIRST + 77)
+#define global LVM_INSERTCOLUMNW            (LVM_FIRST + 97)
+
+#define global LBN_DBLCLK       2
+
+#define global LVCF_FMT         0x0001
+#define global LVCF_WIDTH       0x0002
+#define global LVCF_TEXT        0x0004
+#define global LVCF_SUBITEM     0x0008
+
+#define global LVIF_TEXT        0x0001
+#define global LVIF_IMAGE       0x0002
+#define global LVIF_PARAM       0x0004
+#define global LVIF_STATE       0x0008
+#define global LVIF_INDENT      0x0010
+
+#define global LVHT_ONITEMICON              0x00000002
+#define global LVHT_ONITEMLABEL             0x00000004
+#define global LVHT_ONITEMSTATEICON         0x00000008
+#define global LVHT_ONITEM                  (LVHT_ONITEMICON | LVHT_ONITEMLABEL | LVHT_ONITEMSTATEICON)
+
+#define global HWND_TOPMOST      (-1)
+#define global HWND_NOTOPMOST    (-2)
+#define global SWP_NOSIZE        0x0001
+#define global SWP_NOMOVE        0x0002
+
+#define global SPI_GETWORKAREA   0x0030
+
+// -----------------------------------------------
+// ヘルパー
+// -----------------------------------------------
+
+// #ifdef _DEBUG
+// #define global debug_trace(%1) app_log_edit_append "TRACE: " + (%1)
+// #define global debug_warn(%1) app_log_edit_append "WARN: " + (%1)
+// #else
+#define global debug_trace(%1) :
+#define global debug_warn(%1) :
+// #endif
+
+// -----------------------------------------------
+// アプリケーション
+// -----------------------------------------------
+
+#enum global s_default_window_id = 0
+#enum global s_main_window_id
+#enum global s_details_window_id
+#enum global s_help_window_id
+
+#enum global s_animation_timer_id = 1
+
+#enum global s_main_window_context_menu_ok_id = 1
+#enum global s_main_window_context_menu_top_most_id
+#enum global s_main_window_context_menu_log_clear_id
+#enum global s_main_window_context_menu_log_save_id
+
+#module m_app
+
+#define true 1
+#define false 0
+
+#define s_main_window_title "knowbug"
+#define s_details_window_title "knowbug details"
+#define s_help_window_title "knowbug help"
+
+#deffunc app_init
+
+	app_init_globals
+	app_config_load
+	app_ui_init
+
+	infra_connect_server
+	if stat == false {
+		app_did_disconnect
+		return
+	}
+
+	logmes "send hello"
+	infra_send_hello
+	return
+
+#deffunc app_init_globals
+
+	// サーバーと接続しているか？
+	s_connected = false
+
+	// デバッギが実行中か？
+	s_debuggee_is_running = true
+
+	// 詳細
+	sdim s_details_text
+
+	dim s_list_view_hwnd
+	sdim s_list_view_note
+	// 詳細を表示している項目の番号
+	s_current_object_id = -1
+
+	// logmes の出力結果
+	s_log_text_len = 0
+	s_log_text_cap = 0x100
+	sdim s_log_text, s_log_text_cap
+
+	// ソースファイル
+	sdim s_source_paths
+	sdim s_source_codes
+	dim s_source_is_requested
+	dim s_source_code_exists
+
+	// スクリプト
+	// 表示中のソースファイルID (なければ -1)
+	s_current_source_file_id = -1
+	// 表示中のソースファイルの表示時点でソースパスが存在したか
+	s_current_source_path_exists = false
+	// 表示中のソースファイルの表示時点でソースコードが存在したか
+	s_current_source_code_exists = false
+	// 表示している行番号 (最後に自動スクロールした時点での行番号。現在の行番号ではない。)
+	s_current_line_index = 0
+
+	sdim s_lf
+	poke s_lf, 0, char_lf
+	poke s_lf, 1, 0
+	return
+
+// -----------------------------------------------
+// UI
+// -----------------------------------------------
+
+#deffunc app_ui_init
+
+	gsel s_default_window_id, gsel_hide
+
+	app_ui_config_init
+	app_ui_layout_init
+	app_details_window_create
+	app_help_window_create
+	app_main_window_create
+
+	onkey gosub *l_on_key
+	onexit gosub *l_on_exit
+
+	app_main_window_show
+	return
+
+#deffunc app_ui_config_init
+
+	app_config_get_bool "ui_main_window_top_most", false
+	s_main_window_top_most = stat
+
+	app_config_get_str "ui_default_font_family", "MS Gothic"
+	s_default_font_family = refstr
+
+	app_config_get_int "ui_default_font_size", 13
+	s_default_font_size = limit(stat, 8, 100)
+
+	return
+
+#deffunc app_ui_layout_init \
+	local rect
+
+	app_config_get_int "ui_main_window_width", 640
+	s_main_window_width = limit(stat, 100, ginfo_dispx)
+
+	app_config_get_int "ui_main_window_height", 480
+	s_main_window_height = limit(stat, 100, ginfo_dispy)
+
+	dim rect, 4
+	SystemParametersInfo SPI_GETWORKAREA, 0, varptr(rect), 0
+
+	app_config_get_int "ui_main_window_left", -s_main_window_width
+	s_main_window_left = stat
+	if s_main_window_left < 0 {
+		s_main_window_left += ginfo_dispx
+	}
+	s_main_window_left = limit(s_main_window_left, rect(0), rect(2) - s_main_window_width)
+
+	app_config_get_int "ui_main_window_top", -s_main_window_height
+	s_main_window_top = stat
+	if s_main_window_top < 0 {
+		s_main_window_top += ginfo_dispy
+	}
+	s_main_window_top = limit(s_main_window_top, rect(1), rect(3) - s_main_window_height)
+
+	app_config_get_int "ui_details_window_height", 320
+	s_details_window_height = limit(stat, 80)
+
+	app_ui_layout_arrange
+	return
+
+// ウィンドウやコントロールの位置や大きさを計算する。
+#deffunc app_ui_layout_arrange \
+	local x
+
+	s_details_window_width = s_main_window_width
+	s_details_window_left = s_main_window_left
+	s_details_window_top = s_main_window_top - s_details_window_height - 32
+
+	s_margin = 4
+	s_step_button_width = 60
+	s_step_button_height = 24
+	s_help_button_width = 60
+	s_help_button_height = 24
+
+	s_footer_left = 0
+	s_footer_height = s_step_button_height
+	s_footer_top = s_main_window_height - s_margin - s_footer_height
+	s_footer_width = s_main_window_width
+
+	s_main_left = 0
+	s_main_top = 0
+	s_main_height = s_footer_top - s_margin
+	s_main_width = s_main_window_width
+
+	s_list_view_left = s_main_left
+	s_list_view_top = s_main_top
+	s_list_view_width = s_main_width / 2
+	s_list_view_height = s_main_height
+	s_list_view_name_column_width = (s_list_view_width - 20) / 2
+	s_list_view_value_column_width = (s_list_view_width - 20) / 2
+
+	s_source_path_button_width = 24
+	s_source_path_edit_height = 24
+
+	s_source_path_edit_left = s_list_view_width
+	s_source_path_edit_top = s_main_top
+	s_source_path_edit_width = s_main_width - s_list_view_width - s_source_path_button_width
+
+	s_source_path_button_left = s_source_path_edit_left + s_source_path_edit_width
+	s_source_path_button_height = s_source_path_edit_height
+	s_source_path_button_top = s_source_path_edit_top
+
+	s_source_code_edit_left = s_source_path_edit_left
+	s_source_code_edit_top = s_source_path_edit_top + s_source_path_edit_height
+	s_source_code_edit_width = s_source_path_edit_width
+	s_source_code_edit_height = s_main_height / 2 - s_source_path_edit_height
+
+	s_log_edit_left = s_list_view_width
+	s_log_edit_top = s_source_code_edit_top + s_source_code_edit_height
+	s_log_edit_width = s_main_width - s_list_view_width
+	s_log_edit_height = s_main_height - s_source_path_edit_height - s_source_code_edit_height
+
+	x = s_margin
+	s_step_continue_button_left = x
+	x += s_step_button_width + s_margin
+	s_step_pause_button_left = x
+	x += s_step_button_width + s_margin
+	s_step_in_button_left = x
+	x += s_step_button_width + s_margin
+	s_step_over_button_left = x
+	x += s_step_button_width + s_margin
+	s_step_out_button_left = x
+
+	x = s_footer_width
+	x -= s_help_button_width + s_margin
+	s_help_button_left = x
+	x -= s_help_button_width + s_margin
+	s_refresh_button_left = x
+	return
+
+*l_on_key
+
+	if ginfo_act == s_details_window_id {
+		if wparam == VK_ESCAPE {
+			app_details_window_hide
+			return
+		}
+	}
+
+	if ginfo_act == s_help_window_id {
+		if wparam == VK_ESCAPE {
+			app_help_window_hide
+			return
+		}
+	}
+	return
+
+*l_on_exit
+
+	if wparam != s_main_window_id {
+		gsel wparam, gsel_hide
+		return
+	}
+
+	app_main_window_on_exit
+
+	infra_send_terminate
+	await 10 * 16
+
+	end
+
+// -----------------------------------------------
+// メインウィンドウ
+// -----------------------------------------------
+
+#deffunc app_main_window_create
+
+	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide
+	s_main_window_hwnd = hwnd
+
+	MoveWindow s_main_window_hwnd, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height, 1
+
+	title s_main_window_title + " [接続待ち]"
+
+	hsvcolor , , 0xfc
+	boxf
+
+	font s_default_font_family, s_default_font_size
+	objmode objmode_font
+
+	app_list_view_create
+
+	app_source_code_edit_create
+
+	app_log_edit_create
+
+	// フッター
+	objsize s_step_button_width, s_step_button_height
+
+	pos s_step_continue_button_left, s_footer_top
+	button gosub "実行", *l_step_continue_button
+	s_step_continue_button_hwnd = objinfo_hwnd(stat)
+
+	pos s_step_pause_button_left, s_footer_top
+	button gosub "停止", *l_step_pause_button
+	s_step_pause_button_hwnd = objinfo_hwnd(stat)
+
+	pos s_step_in_button_left, s_footer_top
+	button gosub "次へ", *l_step_in_button
+	s_step_in_button_hwnd = objinfo_hwnd(stat)
+
+	pos s_step_over_button_left, s_footer_top
+	button gosub "次飛", *l_step_over_button
+	s_step_over_button_hwnd = objinfo_hwnd(stat)
+
+	pos s_step_out_button_left, s_footer_top
+	button gosub "脱出", *l_step_out_button
+	s_step_out_button_hwnd = objinfo_hwnd(stat)
+
+	objsize s_help_button_width, s_help_button_height
+
+	pos s_refresh_button_left, s_footer_top
+	button gosub "更新", *l_refresh_button
+	s_refresh_button_hwnd = objinfo_hwnd(stat)
+
+	pos s_help_button_left, s_footer_top
+	button gosub "？", *l_help_button
+	s_help_button_hwnd = objinfo_hwnd(stat)
+
+	// タイマー (60fps)
+	SetTimer hwnd, s_animation_timer_id, 1000 / 60, NULL
+	assert stat
+	if stat {
+		s_animation_timer_is_running = true
+	}
+
+	app_main_window_context_menu_create
+
+	oncmd gosub *l_main_window_on_size, WM_SIZE
+	oncmd gosub *l_main_window_on_notify, WM_NOTIFY
+	oncmd gosub *l_main_window_on_context_menu, WM_CONTEXTMENU
+	oncmd gosub *l_main_window_on_timer, WM_TIMER
+	return
+
+*l_main_window_on_size
+
+	gsel s_main_window_id
+	s_main_window_width = ginfo_winx
+	s_main_window_height = ginfo_winy
+	s_main_window_left = ginfo_wx1
+	s_main_window_top = ginfo_wy1
+
+	app_ui_layout_arrange
+	app_main_window_update_layout
+	return
+
+*l_main_window_on_notify
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/richedit/ns-richedit-nmhdr
+	dupptr s_nmhdr, lparam, 12
+	s_nmhdr_hwnd_from = s_nmhdr(0)
+	s_nmhdr_code = s_nmhdr(2)
+
+	if s_nmhdr_hwnd_from == s_list_view_hwnd {
+		if s_nmhdr_code == NM_CLICK {
+			app_list_view_did_click
+		}
+	}
+	return
+
+*l_main_window_on_timer
+
+	if wparam == s_animation_timer_id {
+		infra_poll
+
+		app_log_edit_update
+	}
+	return
+
+#deffunc app_main_window_on_exit
+
+	// タイマーを切る。
+	if s_animation_timer_is_running {
+		KillTimer s_main_window_hwnd, s_animation_timer_id
+		s_animation_timer_is_running = false
+	}
+	return
+
+#deffunc app_main_window_update_layout
+
+	MoveWindow s_list_view_hwnd, s_list_view_left, s_list_view_top, s_list_view_width, s_list_view_height, true
+	MoveWindow s_log_edit_hwnd, s_log_edit_left, s_log_edit_top, s_log_edit_width, s_log_edit_height, true
+	MoveWindow s_source_path_button_hwnd, s_source_path_button_left, s_source_path_button_top, s_source_path_button_width, s_source_path_button_height, true
+	MoveWindow s_source_path_edit_hwnd, s_source_path_edit_left, s_source_path_edit_top, s_source_path_edit_width, s_source_path_edit_height, true
+	MoveWindow s_source_code_edit_hwnd, s_source_code_edit_left, s_source_code_edit_top, s_source_code_edit_width, s_source_code_edit_height, true
+
+	MoveWindow s_step_continue_button_hwnd, s_step_continue_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
+	MoveWindow s_step_pause_button_hwnd, s_step_pause_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
+	MoveWindow s_step_in_button_hwnd, s_step_in_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
+	MoveWindow s_step_over_button_hwnd, s_step_over_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
+	MoveWindow s_step_out_button_hwnd, s_step_out_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
+	MoveWindow s_refresh_button_hwnd, s_refresh_button_left, s_footer_top, s_help_button_width, s_help_button_height, true
+	MoveWindow s_help_button_hwnd, s_help_button_left, s_footer_top, s_help_button_width, s_help_button_height, true
+
+	app_list_view_update_column_width
+
+	// 詳細ウィンドウも一緒に移動する。
+	gsel s_details_window_id
+	width s_details_window_width, s_details_window_height, s_details_window_left, s_details_window_top
+	return
+
+#deffunc app_main_window_show
+
+	gsel s_main_window_id, gsel_show
+
+	app_main_window_update_top_most
+	return
+
+#deffunc app_main_window_toggle_top_most
+
+	s_main_window_top_most ^= true
+
+	app_main_window_update_top_most
+	return
+
+#deffunc app_main_window_update_top_most
+
+	if s_main_window_top_most {
+		SetWindowPos s_main_window_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE
+	} else {
+		SetWindowPos s_main_window_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE
+	}
+
+	menu_check_by_id s_main_window_context_menu_handle, s_main_window_context_menu_top_most_id, s_main_window_top_most
+	return
+
+#deffunc app_main_window_context_menu_create \
+	local h
+
+	menu_make_popup
+	s_main_window_context_menu_handle = stat
+	h = stat
+
+	menu_add_text h, "OK (& )", s_main_window_context_menu_ok_id
+	menu_add_text h, "最前面 (&T)", s_main_window_context_menu_top_most_id
+	menu_add_sep h
+	menu_add_text h, "ログを消去する", s_main_window_context_menu_log_clear_id
+	menu_add_sep h
+	menu_add_text h, "ログを保存する (&L)", s_main_window_context_menu_log_save_id
+	return
+
+#deffunc app_main_window_context_menu_popup
+
+	gsel s_main_window_id, gsel_show
+	menu_show_popup s_main_window_context_menu_handle
+	if stat == s_main_window_context_menu_top_most_id {
+		app_main_window_toggle_top_most
+		return
+	}
+	if stat == s_main_window_context_menu_log_clear_id {
+		app_log_edit_clear
+		return
+	}
+	if stat == s_main_window_context_menu_log_save_id {
+		app_log_edit_save
+		return
+	}
+	return
+
+*l_main_window_on_context_menu
+
+	app_main_window_context_menu_popup
+	return
+
+// -----------------------------------------------
+// 詳細ウィンドウ
+// -----------------------------------------------
+
+#deffunc app_details_window_create
+
+	screen s_details_window_id, ginfo_dispx, ginfo_dispy, screen_hide | screen_tool, s_details_window_left, s_details_window_top, s_details_window_width, s_details_window_height
+
+	title s_details_window_title
+
+	font s_default_font_family, s_default_font_size
+	objmode objmode_font
+
+	mesbox s_details_text, s_details_window_width, s_details_window_height, mesbox_readonly
+	s_details_edit_id = stat
+	s_details_edit_hwnd = objinfo_hwnd(s_details_edit_id)
+
+	oncmd gosub *l_details_window_on_size, WM_SIZE
+	return
+
+#deffunc app_details_window_update_layout
+
+	MoveWindow s_details_edit_hwnd, 0, 0, s_details_window_width, s_details_window_height, true
+	return
+
+#deffunc app_details_window_set_text var text
+
+	gsel s_details_window_id
+	objprm s_details_edit_id, text
+	return
+
+#deffunc app_details_window_show
+
+	gsel s_details_window_id, gsel_show
+	return
+
+#deffunc app_details_window_hide
+
+	s_current_object_id = -1
+	gsel s_details_window_id, gsel_hide
+	gsel s_main_window_id, gsel_show
+	return
+
+*l_details_window_on_size
+
+	gsel s_details_window_id
+	s_details_window_width = ginfo_winx
+	s_details_window_height = ginfo_winy
+
+	app_details_window_update_layout
+	return
+
+// -----------------------------------------------
+// リストビュー
+// -----------------------------------------------
+
+#deffunc app_list_view_create \
+	local style, local style_ex, local lvs_ex
+
+	style = WS_VISIBLE | WS_CHILD | LVS_REPORT
+	style_ex = 0
+
+	pos s_list_view_left, s_list_view_top
+	winobj "SysListView32", "", style_ex, style, s_list_view_width, s_list_view_height
+	s_list_view_id = stat
+	s_list_view_hwnd = objinfo_hwnd(s_list_view_id)
+
+	// 拡張スタイルを適用する。
+	sendmsg s_list_view_hwnd, LVM_GETEXTENDEDLISTVIEWSTYLE
+	lvs_ex = stat | LVS_EX_FULLROWSELECT
+	sendmsg s_list_view_hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, lvs_ex
+
+	app_list_view_insert_column 0, "名前", s_list_view_name_column_width
+	app_list_view_insert_column 1, "値", s_list_view_value_column_width
+
+	hspish_font_set_object_font s_list_view_hwnd, s_default_font_family, s_default_font_size
+	return
+
+#deffunc app_list_view_insert_column int column_index, str text, int column_width, \
+	local text_var, local os_text_var, local os_text_len, local lvcolumn, local mask
+
+	text_var = text
+	unicode_cnv_from_utf8 text_var, strlen(text_var), os_text_var, os_text_len
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvcolumna
+	dim lvcolumn, 11
+	lvcolumn(0) = LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM
+	lvcolumn(2) = column_width
+	lvcolumn(3) = varptr(os_text_var)
+	lvcolumn(5) = column_index // ?
+
+	sendmsg s_list_view_hwnd, LVM_INSERTCOLUMNW, column_index, varptr(lvcolumn)
+	assert stat >= 0
+	return
+
+#deffunc app_list_view_insert_row int object_id, int row_index, str name, str value, \
+	local lvitem, local text, local os_text, local os_text_len
+
+	notesel s_list_view_note
+	noteadd strf("%d;%s", object_id, name), row_index
+	noteunsel
+
+	text = name
+	unicode_cnv_from_utf8 text, strlen(text), os_text, os_text_len
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvitema
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 0
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_view_hwnd, LVM_INSERTITEMW, , varptr(lvitem)
+	assert stat == row_index
+
+	text = value
+	unicode_cnv_from_utf8 text, strlen(text), os_text, os_text_len
+
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 1
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
+	assert stat
+	return
+
+#deffunc app_list_view_delete_row int object_id, int row_index
+
+	notesel s_list_view_note
+	notedel row_index
+	noteunsel
+
+	sendmsg s_list_view_hwnd, LVM_DELETEITEM, row_index
+	assert stat
+	return
+
+#deffunc app_list_view_update_row int object_id, int row_index, var name, var value, \
+	local os_text, local os_text_len, local lvitem
+
+	notesel s_list_view_note
+	noteadd strf("%d;%s", object_id, name), row_index, noteadd_set
+	noteunsel
+
+	unicode_cnv_from_utf8 name, strlen(name), os_text, os_text_len
+
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 0
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
+	assert stat
+
+	unicode_cnv_from_utf8 value, strlen(value), os_text, os_text_len
+
+	dim lvitem, 15
+	lvitem(0) = LVIF_TEXT
+	lvitem(1) = row_index
+	lvitem(2) = 1
+	lvitem(5) = varptr(os_text)
+	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
+	assert stat
+	return
+
+#deffunc app_list_view_update var kind, int object_id, int index, var name, var value
+
+	gsel s_main_window_id
+
+	if kind == "insert" {
+		app_list_view_insert_row object_id, index, name, value
+		return
+	}
+
+	if kind == "remove" {
+		app_list_view_delete_row object_id, index
+		return
+	}
+
+	if kind == "update" {
+		app_list_view_update_row object_id, index, name, value
+		return
+	}
+
+	logmes strf("WARN: Unknown kind(%s)", kind)
+	return
+
+#deffunc app_list_view_show_details int object_id
+
+	logmes "send_list_details: " + object_id
+
+	s_current_object_id = object_id
+	infra_send_list_details object_id
+	return
+
+#deffunc app_list_view_did_click \
+	local point, local lvhittestinfo, local row_index, local column_index, \
+	local line_text, local object_id_str
+
+	point = ginfo_mx, ginfo_my
+	ScreenToClient s_list_view_hwnd, varptr(point)
+	assert stat
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvhittestinfo
+	dim lvhittestinfo, 6
+	lvhittestinfo = point(0), point(1), LVHT_ONITEM
+	sendmsg s_list_view_hwnd, LVM_SUBITEMHITTEST, , varptr(lvhittestinfo)
+	assert stat >= 0
+
+	row_index = lvhittestinfo(3)
+	column_index = lvhittestinfo(4)
+	if row_index < 0 || column_index < 0 {
+		return
+	}
+
+	if column_index == 0 {
+		notesel s_list_view_note
+		noteget line_text, row_index
+		split   line_text, ";", object_id_str
+		noteunsel
+
+		logmes "send_toggle_expand: " + object_id_str + " at " + row_index
+		infra_send_list_toggle_expand int(object_id_str)
+		return
+	}
+	if column_index == 1 {
+		notesel s_list_view_note
+		noteget line_text, row_index
+		split   line_text, ";", object_id_str
+		noteunsel
+
+		app_list_view_show_details int(object_id_str)
+		return
+	}
+	return
+
+#deffunc app_list_view_update_column_width
+
+	// 名前
+	sendmsg s_list_view_hwnd, LVM_SETCOLUMNWIDTH, 0, s_list_view_name_column_width
+	// 値
+	sendmsg s_list_view_hwnd, LVM_SETCOLUMNWIDTH, 1, s_list_view_value_column_width
+	return
+
+// -----------------------------------------------
+// ソースファイル
+// -----------------------------------------------
+
+#defcfunc app_source_path_exists int source_file_id
+
+	if source_file_id < 0 || source_file_id >= length(s_source_paths) {
+		return false
+	}
+	return strlen(s_source_paths(source_file_id)) != 0
+
+#deffunc app_source_path_get int source_file_id, var full_path
+
+	if app_source_path_exists(source_file_id) == false {
+		full_path = ""
+		return false
+	}
+
+	full_path = s_source_paths(source_file_id)
+	return true
+
+#deffunc app_source_path_set int source_file_id, var full_path
+
+	if source_file_id < 0 {
+		debug_warn "ソースファイルIDは非負でなければいけません。"
+		return
+	}
+	if app_source_path_exists(source_file_id) {
+		debug_warn "同じソースパスを複数回ロードしました。"
+		return false
+	}
+	if strlen(full_path) == 0 {
+		debug_warn "ソースファイルの絶対パスが空です。"
+		return
+	}
+
+	logmes "app_source_path_set " + source_file_id + ": " + full_path
+
+	s_source_paths(source_file_id) = full_path
+	return
+
+#deffunc app_source_code_set int source_file_id, var text
+
+	if source_file_id < 0 {
+		debug_warn "ソースファイルIDは非負でなければいけません。"
+		return
+	}
+	if app_source_code_exists(source_file_id) {
+		debug_warn "同じソースファイルを複数回ロードしました。"
+		return
+	}
+
+	logmes "app_source_code_set " + source_file_id
+
+	s_source_codes(source_file_id) = text
+	s_source_code_exists(source_file_id) = true
+	return
+
+// ソースファイルの情報をリクエスト済みの状態にする。
+// すでにリクエスト済みなら false を返す。
+// (多重リクエストを防止するため。)
+#defcfunc app_source_mark_as_requested int source_file_id
+
+	if source_file_id < 0 {
+		return false
+	}
+
+	if source_file_id < length(s_source_is_requested) {
+		if s_source_is_requested(source_file_id) {
+			return false
+		}
+	}
+
+	s_source_is_requested(source_file_id) = true
+	return true
+
+// ソースファイルIDに対応するソースコードを保持しているかを返す。
+#defcfunc app_source_code_exists int source_file_id
+
+	if source_file_id < 0 || source_file_id >= length(s_source_code_exists) {
+		return false
+	}
+
+	return s_source_code_exists(source_file_id)
+
+// ソースコードのクローンをとる。成功したら true を返す。
+#deffunc app_source_code_dup int source_file_id, var text
+
+	if app_source_code_exists(source_file_id) == false {
+		return false
+	}
+
+	dup text, s_source_codes(source_file_id)
+	return true
+
+// -----------------------------------------------
+// スクリプトエディット
+// -----------------------------------------------
+
+#deffunc app_source_code_edit_create \
+	local style, local style_ex
+
+	// スクリプトパスエディット
+	style = WS_BORDER | WS_VISIBLE | WS_CHILD
+	style |= ES_AUTOHSCROLL | ES_READONLY
+	style_ex = 0
+
+	pos s_source_path_edit_left, s_source_path_edit_top
+	winobj "EDIT", "", style_ex, style, s_source_path_edit_width, s_source_path_edit_height
+	s_source_path_edit_id = stat
+	s_source_path_edit_hwnd = objinfo_hwnd(s_source_path_edit_id)
+
+	hspish_font_set_object_font s_source_path_edit_hwnd, s_default_font_family, s_default_font_size
+
+	// スクリプトパスボックス
+	pos s_source_path_button_left, s_source_path_button_top
+	objsize s_source_path_button_width,s_source_path_button_height
+	button gosub "開", *l_source_path_button_click
+	s_source_path_button_id = stat
+	s_source_path_button_hwnd = objinfo_hwnd(s_source_path_button_id)
+
+	// スクリプトエディット
+	style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD
+	style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
+	style_ex = 0
+
+	pos s_source_code_edit_left, s_source_code_edit_top
+	winobj "EDIT", "", style_ex, style, s_source_code_edit_width, s_source_code_edit_height
+	s_source_code_edit_id = stat
+	s_source_code_edit_hwnd = objinfo_hwnd(stat)
+
+	hspish_font_set_object_font s_source_code_edit_hwnd, s_default_font_family, s_default_font_size
+	return
+
+#deffunc app_source_code_edit_update int source_file_id, int line_index, \
+	local text, local os_text, local os_text_len, \
+	local source_path, local source_path_exists, \
+	local os_source_path, local os_source_path_len, \
+	local text_updated, \
+	local start_index, local end_index, local current_line_index
+
+	text_updated = s_current_source_file_id != source_file_id
+	text_updated |= s_current_source_path_exists != app_source_path_exists(source_file_id)
+	text_updated |= s_current_source_code_exists != app_source_code_exists(source_file_id)
+
+	// テキストを更新する。
+	if text_updated {
+		app_source_path_get source_file_id, source_path
+		source_path_exists = stat
+		if source_path_exists == false {
+			source_path = ""
+		}
+
+		unicode_cnv_from_utf8 source_path, strlen(source_path), os_source_path, os_source_path_len
+
+		SetWindowTextW s_source_path_edit_hwnd, varptr(os_source_path)
+
+		// 右端までスクロールするために、カーソルを末尾に移動させる。
+		sendmsg s_source_path_edit_hwnd, EM_SETSEL, 0x7fffffff, 0x7fffffff
+
+		// ソースコードがあれば取得し、なければその旨のメッセージを表示する。
+		app_source_code_dup source_file_id, text
+		if stat == false {
+			text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
+		}
+
+		unicode_cnv_from_utf8 text, strlen(text), os_text, os_text_len
+
+		SetWindowTextW s_source_code_edit_hwnd, varptr(os_text)
+
+		s_current_source_file_id = source_file_id
+		s_current_source_code_exists = app_source_code_exists(source_file_id)
+		text_updated = true
+	}
+
+	// 行を更新する。
+	if text_updated || s_current_line_index != line_index {
+		// 指定行の範囲をバイトインデックスとして求める。
+		sendmsg s_source_code_edit_hwnd, EM_LINEINDEX, line_index, NULL
+		start_index = stat
+
+		sendmsg s_source_code_edit_hwnd, EM_LINEINDEX, line_index + 1, NULL
+		end_index = stat
+
+		if start_index < 0 || end_index < 0 {
+			// 行番号が不正？
+			start_index = 0
+			end_index = 0
+		}
+
+		sendmsg s_source_code_edit_hwnd, EM_SETSEL, start_index, end_index
+
+		// 指定行の少し上にスクロールする。
+		sendmsg s_source_code_edit_hwnd, EM_GETFIRSTVISIBLELINE
+		current_line_index = stat
+		sendmsg s_source_code_edit_hwnd, EM_LINESCROLL, 0, limit(line_index - 3, 0) - current_line_index
+
+		s_current_line_index = line_index
+	}
+	return
+
+#deffunc app_source_path_button_click \
+	local source_path, local source_dir
+
+	// FIXME: ポップアップメニューを出す。スクリプトエディタや標準のエディタで開く選択肢もほしい。
+
+	app_source_path_get s_current_source_file_id, source_path
+	if stat == false {
+		return false
+	}
+
+	dialog "ソースファイルをエクスプローラーで開きますか？", dialog_yesno
+	if stat != dialog_yes {
+		return false
+	}
+
+	source_dir = getpath(source_path, getpath_dir)
+	chdir source_dir
+	exec "explorer /select," + source_path + "\""
+	return true
+
+*l_source_path_button_click
+
+	app_source_path_button_click
+	return
+
+// -----------------------------------------------
+// ログエディット
+// -----------------------------------------------
+
+#deffunc app_log_edit_create
+
+	pos s_log_edit_left, s_log_edit_top
+	mesbox s_log_text, s_log_edit_width, s_log_edit_height, mesbox_readonly
+	s_log_edit_id = stat
+	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
+
+	app_config_get_str "log_auto_save_path", ""
+	if refstr != "" {
+		logmes "INFO: ログが自動的に保存されます。(file_name = " + refstr + ")"
+	}
+	return
+
+#deffunc app_log_edit_append str text, \
+	local text_len
+
+	text_len = strlen(text)
+
+	if s_log_text_len + text_len + 2 >= 0x7fff {
+		// FIXME: ログが長すぎると mesbox がクラッシュするので連結しない。
+		return
+	}
+
+	// NOTE: 文字列を書き込む領域を確保して (memexpand)、
+	//       文字列の末尾に追加する文字列を書く (poke)。+= より遥かに速く文字列連結ができる。
+
+	if s_log_text_len + text_len + 2 >= s_log_text_cap {
+		s_log_text_cap += s_log_text_cap / 2 + text_len + 2 + 1
+		memexpand s_log_text, s_log_text_cap
+	}
+
+	poke s_log_text, s_log_text_len, text
+	s_log_text_len += text_len
+
+	poke s_log_text, s_log_text_len, "\n"
+	s_log_text_len += 2
+
+	s_log_is_dirty = true
+	return
+
+#deffunc app_log_edit_clear
+
+	s_log_text = ""
+	s_log_text_len = 0
+	s_log_is_dirty = true
+	return
+
+#deffunc app_log_edit_save \
+	local file_name
+
+	dialog "txt|log", dialog_save, "テキストファイル|ログファイル"
+	if stat == 0 {
+		return
+	}
+	file_name = refstr
+
+	notesel s_log_text
+	notesave file_name
+	noteunsel
+	return
+
+#deffunc app_log_edit_on_exit
+
+	app_log_edit_auto_save
+	return
+
+#deffunc app_log_edit_auto_save onexit \
+	local file_name
+
+	app_config_get_str "log_auto_save_path", ""
+	file_name = refstr
+	if file_name == "" {
+		return
+	}
+
+	notesel s_log_text
+	notesave file_name
+	noteunsel
+	return
+
+#deffunc app_log_edit_get_selection var start_index, var end_index
+
+	sendmsg s_log_edit_hwnd, EM_GETSEL, varptr(start_index), varptr(end_index)
+	return
+
+#defcfunc app_log_edit_get_scrolled_line
+
+	sendmsg s_log_edit_hwnd, EM_GETFIRSTVISIBLELINE
+	return stat
+
+#defcfunc app_log_edit_is_scrolled_to_bottom \
+	local current_line_index, local line_count
+
+	current_line_index = app_log_edit_get_scrolled_line()
+
+	sendmsg s_log_edit_hwnd, EM_GETLINECOUNT
+	line_count = stat
+
+	// スクロールが一番下にありそうかどうか判定する。
+	return line_count - current_line_index <= 25
+
+#deffunc app_log_edit_set_selection int start_index, int end_index
+
+	sendmsg s_log_edit_hwnd, EM_SETSEL, start_index, end_index
+	return
+
+#deffunc app_log_edit_scroll_to_line int line_index, \
+	local current_line_index
+
+	sendmsg s_log_edit_hwnd, EM_LINESCROLL, 0, line_index - current_line_index
+	return
+
+#deffunc app_log_edit_scroll_to_bottom
+
+	sendmsg s_log_edit_hwnd, EM_LINESCROLL, 0, 0x7fffffff
+	return
+
+#deffunc app_log_edit_update \
+	local at_bottom, local current_line_index, local start_index, local end_index
+
+	if s_log_is_dirty == false {
+		return
+	}
+	s_log_is_dirty = false
+
+	at_bottom = app_log_edit_is_scrolled_to_bottom()
+	current_line_index = app_log_edit_get_scrolled_line()
+	app_log_edit_get_selection start_index, end_index
+
+	sendmsg s_log_edit_hwnd, EM_GETFIRSTVISIBLELINE
+	current_line_index = stat
+
+	gsel s_main_window_id
+	objprm s_log_edit_id, s_log_text
+
+	if at_bottom {
+		app_log_edit_scroll_to_bottom
+	} else {
+		app_log_edit_scroll_to_line current_line_index
+	}
+	app_log_edit_set_selection start_index, end_index
+	return
+
+// -----------------------------------------------
+// ボタン
+// -----------------------------------------------
+
+#deffunc app_step_continue
+
+	logmes "app_step_continue"
+	infra_send_step_continue
+	return
+
+*l_step_continue_button
+
+	app_step_continue
+	return
+
+#deffunc app_step_pause
+
+	logmes "app_step_pause"
+	infra_send_step_pause
+	return
+
+*l_step_pause_button
+
+	app_step_pause
+	return
+
+#deffunc app_step_in
+
+	logmes "app_step_in"
+	infra_send_step_in
+	return
+
+*l_step_in_button
+
+	app_step_in
+	return
+
+#deffunc app_step_over
+
+	logmes "app_step_over"
+	infra_send_step_over
+	return
+
+*l_step_over_button
+
+	app_step_over
+	return
+
+#deffunc app_step_out
+
+	logmes "app_step_out"
+	infra_send_step_out
+	return
+
+*l_step_out_button
+
+	app_step_out
+	return
+
+#deffunc app_refresh
+
+	logmes "app_refresh"
+
+	infra_send_location_update
+	infra_send_list_update
+
+	if s_current_object_id >= 1 {
+		app_list_view_show_details s_current_object_id
+	}
+	return
+
+*l_refresh_button
+
+	app_refresh
+	return
+
+*l_help_button
+
+	app_help_window_show
+	return
+
+// -----------------------------------------------
+// ヘルプウィンドウ
+// -----------------------------------------------
+
+#deffunc app_help_window_create
+
+	s_help_window_width = 150 + 32 + 32
+	s_help_window_height = 16 + 36 + 24 + 8 + 24 + 16
+
+	screen s_help_window_id, s_help_window_width, s_help_window_height, screen_hide | screen_tool
+
+	title "knowbug ヘルプ"
+
+	hsvcolor , , 0xee
+	boxf
+	color
+
+	font "Yu Gothic Medium", 24
+
+	pos 32 + (150 - 120) / 2, 16
+	mes "KNOWBUG"
+
+	font "MS Gothic", 13
+	objmode objmode_font
+	objsize 150, 24, 24 + 8
+
+	pos 32, 16 + 36
+	button gosub "公式サイトを開く", *l_open_web_site_button
+
+	button gosub "設定ファイルを開く", *l_open_config
+	return
+
+*l_open_web_site_button
+
+	exec "https://github.com/vain0x/knowbug", exec_app
+	return
+
+*l_open_config
+
+	exist "knowbug.conf"
+	if strsize < 0 {
+		dialog "設定ファイルがありません。(設定ファイルに関しては、README を参照してください。)", dialog_warn
+		return
+	}
+
+	exec "knowbug.conf", exec_app
+	return
+
+#deffunc app_help_window_show \
+	local window_left, local window_top
+
+	gsel s_main_window_id
+	s_main_window_left = ginfo_wx1
+	s_main_window_top = ginfo_wy1
+
+	// メインウィンドウの中央に表示する。
+	window_left = s_main_window_left + (s_main_window_width - s_help_window_width) / 2
+	window_top = s_main_window_top + (s_main_window_height - s_help_window_height) / 2
+
+	gsel s_help_window_id
+	width , , window_left, window_top
+
+	gsel s_help_window_id, gsel_top_most
+	return
+
+#deffunc app_help_window_hide
+
+	gsel s_help_window_id, gsel_hide
+	gsel s_main_window_id, gsel_show
+	return
+
+// -----------------------------------------------
+// サーバーからのメッセージへの応答
+// -----------------------------------------------
+
+#deffunc app_did_receive_hello_ok var text
+
+	logmes "app_did_receive_hello_ok"
+
+	s_version = strtrim(text, strtrim_end)
+	s_connected = true
+
+	gsel s_main_window_id
+	title s_main_window_title + " " + s_version
+
+	app_refresh
+	return
+
+#deffunc app_did_receive_shutdown
+
+	gsel s_help_window_id, gsel_hide
+	gsel s_details_window_id, gsel_hide
+	gsel s_main_window_id, gsel_hide
+	end
+
+#deffunc app_did_receive_logmes var text
+
+	app_log_edit_append text
+	return
+
+#deffunc app_did_receive_stopped
+
+	logmes "app_did_receive_stopped"
+	s_debuggee_is_running = false
+
+	app_refresh
+	return
+
+#deffunc app_did_receive_location int source_file_id, int line_index
+
+	logmes strf("app_did_receive_location(%d, %d)", source_file_id, line_index)
+
+	app_location_did_change source_file_id, line_index
+	return
+
+#deffunc app_did_receive_source_path int source_file_id, var text
+
+	logmes strf("app_did_receive_source_path(%d)", source_file_id)
+	app_source_path_set source_file_id, text
+
+	// ソースコードが読み込まれたら表示に反映する。
+	if s_current_source_file_id == source_file_id {
+		app_source_code_edit_update source_file_id, s_current_line_index
+	}
+	return
+
+#deffunc app_did_receive_source_code int source_file_id, var text
+
+	logmes strf("app_did_receive_source_code(%d)", source_file_id)
+	app_source_code_set source_file_id, text
+
+	// ソースコードが読み込まれたら表示に反映する。
+	if s_current_source_file_id == source_file_id {
+		app_source_code_edit_update source_file_id, s_current_line_index
+	}
+	return
+
+#deffunc app_did_receive_list_update_ok var kind, int object_id, int index, var name, var value
+
+	logmes strf("app_did_receive_list_update_ok (%s, id=%d, index=%d, name=%s, value=%s)", kind, object_id, index, name, value)
+
+	app_list_view_update kind, object_id, index, name, value
+	return
+
+#deffunc app_did_receive_list_details_ok int object_id, var text
+
+	app_details_window_set_text text
+	app_details_window_show
+	return
+
+// -----------------------------------------------
+// その他
+// -----------------------------------------------
+
+#deffunc app_did_disconnect
+
+	gsel s_main_window_id
+	title s_main_window_title + " [接続なし]"
+	return
+
+#deffunc app_location_did_change int source_file_id, int line_index
+
+	if app_source_mark_as_requested(source_file_id) {
+		infra_send_source source_file_id
+	}
+
+	app_source_code_edit_update source_file_id, line_index
+	return
+
+#global
