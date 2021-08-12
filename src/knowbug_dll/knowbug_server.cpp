@@ -400,6 +400,35 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 			break;
 		}
 	}
+
+	// 複数行の除去を下から上に行う。
+	// 同じ位置への除去が連続する区間を探し、下の行から上の行に向かって除去をするように書き換える。
+	{
+		auto l = std::size_t{};
+		while (l < diff.size()) {
+			auto r = l;
+			while (r < diff.size()
+				&& diff[r].kind() == HspObjectListDelta::Kind::Remove
+				&& (l == r || diff[r].index() == diff[r - 1].index())
+				) {
+				r++;
+			}
+
+			if (r - l >= 1) {
+				auto ti = diff[l].index() + 1;
+				for (auto i = r - 1; i > l;) {
+					i--;
+					diff[i] = HspObjectListDelta::new_remove(diff[i].object_id(), ti);
+					ti++;
+				}
+
+				l = r;
+				continue;
+			}
+
+			l++;
+		}
+	}
 }
 
 class HspObjectListEntity
