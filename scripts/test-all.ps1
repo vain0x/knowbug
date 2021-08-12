@@ -29,4 +29,4 @@ function test($config, $platform) {
 
 test 'Debug' 'x86'
 test 'DebugUtf8' 'x86'
-test 'Debug' 'x64'
+test 'DebugUtf8' 'x64'

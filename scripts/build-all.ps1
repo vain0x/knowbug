@@ -25,8 +25,7 @@ if (!$?) {
 
 build 'Debug' 'x86'
 build 'DebugUtf8' 'x86'
-build 'Debug' 'x64'
+build 'DebugUtf8' 'x64'
 build 'Release' 'x86'
 build 'ReleaseUtf8' 'x86'
-build 'Release' 'x64'
 build 'ReleaseUtf8' 'x64'
