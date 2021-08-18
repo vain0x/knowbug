@@ -1,7 +1,7 @@
-// Make hsp3 executables.
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; Make hsp3 executables.
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
-// USAGE: hsp3_make <src-name> <work-dir> <hsp-root>
+; USAGE: hsp3_make <src-name> <work-dir> <hsp-root>
 
 #ifdef HSP3_MAKE_CLI
 
@@ -17,9 +17,9 @@
 
 #endif
 
-// -----------------------------------------------
-// HSP constants
-// -----------------------------------------------
+; ------------------------------------------------
+; HSP constants
+; ------------------------------------------------
 
 #define global dialog_warn 1
 #define global gsel_hide (-1)
@@ -27,28 +27,28 @@
 #define global mesbox_readonly 1
 #define global objmode_font 2
 
-// -----------------------------------------------
-// Windows constants
-// -----------------------------------------------
+; ------------------------------------------------
+; Windows constants
+; ------------------------------------------------
 
 #define global EXIT_FAILURE 1
 
-// -----------------------------------------------
-// App constants
-// -----------------------------------------------
+; ------------------------------------------------
+; App constants
+; ------------------------------------------------
 
 #define global s_default_window_id 0
 
-// -----------------------------------------------
-// Command line parser
-// -----------------------------------------------
+; ------------------------------------------------
+; Command line parser
+; ------------------------------------------------
 
 #module m_cmdline_parser
 
 #define true 1
 #define false 0
 
-// Parse a command line text.
+; Parse a command line text.
 #deffunc cmdline_parser_parse str cmdline, \
 	local value
 
@@ -56,7 +56,7 @@
 	s_cmdline_len = strlen(s_cmdline)
 	s_index = 0
 
-	// positional arguments
+	; positional arguments
 	sdim s_pos_texts
 	s_pos_count = 0
 
@@ -71,11 +71,11 @@
 	loop
 	return
 
-// Parse next argument.
+; Parse next argument.
 #deffunc cmdline_parser_next var value, \
 	local ok, local c, local start, local in_quote
 
-	// Skip spaces.
+	; Skip spaces.
 	repeat
 		if s_index >= s_cmdline_len {
 			break
@@ -134,9 +134,9 @@
 
 #global
 
-// -----------------------------------------------
-// Application
-// -----------------------------------------------
+; ------------------------------------------------
+; Application
+; ------------------------------------------------
 
 #module m_app
 
@@ -150,8 +150,8 @@
 	s_obj_name = "start.ax"
 	s_runtime_name = ""
 	s_runtime_dir = ""
-	s_compile_opts = 4 // 1: debug info, 4: utf-8 output
-	s_pp_opts = 4 | 32 // 4: make packfile, 32: utf-8 input
+	s_compile_opts = 4 ; 1: debug info, 4: utf-8 output
+	s_pp_opts = 4 | 32 ; 4: make packfile, 32: utf-8 input
 	s_exit_code = EXIT_FAILURE
 
 	sdim s_src_name
@@ -199,7 +199,7 @@
 
 	hsc_compath s_hsp_root + "\\common\\"
 
-	// Compile to make object file.
+	; Compile to make object file.
 	hsc_comp s_compile_opts, s_pp_opts
 	if stat {
 		hsc_getmes s_error
@@ -234,9 +234,9 @@
 
 #global
 
-// -----------------------------------------------
-// Runtime
-// -----------------------------------------------
+; ------------------------------------------------
+; Runtime
+; ------------------------------------------------
 
 #module m_runtime
 
