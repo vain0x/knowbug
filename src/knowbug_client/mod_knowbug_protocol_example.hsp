@@ -1,5 +1,5 @@
-// knowbug_protocol.hsp のサンプル
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; knowbug_protocol.hsp のサンプル
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
 #include "hsp3utf.as"
 #include "mod_buf.hsp"
@@ -13,7 +13,7 @@
 	sdim s_buf
 	s_buf_len = 0
 
-	// method だけからなるメッセージのシリアライズ
+	; method だけからなるメッセージのシリアライズ
 
 	s_keys(0) = "method"
 	s_values(0) = "initialize_notification"
@@ -27,7 +27,7 @@
 	assert s_buf == "Content-Length:       34\n\nmethod = initialize_notification\n"
 	assert s_buf_len == strlen(s_buf)
 
-	// エスケープが必要なデータを含むメッセージのシリアライズ
+	; エスケープが必要なデータを含むメッセージのシリアライズ
 
 	sdim s_buf
 	s_buf_len = 0
@@ -44,7 +44,7 @@
 	assert s_buf == "Content-Length:       74\n\nmethod = some_event\ndata = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\ncrlf = \\x0d\\x0a\n"
 	assert s_buf_len == strlen(s_buf)
 
-	// メッセージのパース
+	; メッセージのパース
 
 	sdim s_buf
 	s_buf_len = 0

@@ -1,7 +1,7 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// v0.1.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_assoc>
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; v0.1.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_assoc>
 
-// mod_assoc.hsp のサンプル
+; mod_assoc.hsp のサンプル
 
 #include "hsp3utf.as"
 #include "mod_assoc.hsp"
@@ -14,7 +14,7 @@
 	sdim s_value
 	dim s_value_len
 
-	// 値を追加する。
+	; 値を追加する。
 	assoc_set_str s_keys, s_values, s_value_lens, s_count, "hello", "world"
 
 	assert s_count == 1
@@ -23,7 +23,7 @@
 
 	assert s_count == 2
 
-	// 値を取り出す。
+	; 値を取り出す。
 	assoc_get s_keys, s_values, s_value_lens, s_count, "hello", s_value, s_value_len
 	assert stat
 	assert s_value == "world"

@@ -10,7 +10,7 @@
 #else
  #regcmd "_hsp3hpi_init_wrapcall@4", "hsp3debug.dll"
 #endif
-#endif //defined(__hsp64__)
+#endif ;defined(__hsp64__)
 
-#endif //defined(_DEBUG)
+#endif ;defined(_DEBUG)
 #endif

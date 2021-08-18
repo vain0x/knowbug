@@ -1,5 +1,5 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// v0.1.0
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; v0.1.0
 
 #ifndef included_mod_knowbug_protocol_hsp
 #define included_mod_knowbug_protocol_hsp
@@ -7,7 +7,7 @@
 #include "mod_buf.hsp"
 #include "mod_transfer_protocol.hsp"
 
-// knowbug のサーバーとクライアントの間の通信プロトコル (暫定版)
+; knowbug のサーバーとクライアントの間の通信プロトコル (暫定版)
 #module m_knowbug_protocol
 
 #define true 1
@@ -15,8 +15,8 @@
 
 #define char_lf 0x0a
 
-// data をエスケープした文字列を buf の末尾に書き込む
-// buf_len の値は書き込んだ長さだけ増加する。
+; data をエスケープした文字列を buf の末尾に書き込む
+; buf_len の値は書き込んだ長さだけ増加する。
 #deffunc local escape_str var data, int data_offset, int data_len, var buf, var buf_len, \
 	local i, local last, local c
 
@@ -55,8 +55,8 @@
 	buf_len += stat
 	return
 
-// エスケープされた文字列を元に戻したものを buf の末尾に書き込む
-// buf_len の値は書き込んだ長さだけ増加する。
+; エスケープされた文字列を元に戻したものを buf の末尾に書き込む
+; buf_len の値は書き込んだ長さだけ増加する。
 #deffunc local unescape_str var data, int data_offset, int data_len, var buf, var buf_len, \
 	local i, local last, local c, local verbatim_len
 
@@ -69,14 +69,14 @@
 	repeat
 		verbatim_len = instr(data, i, "\\")
 
-		// エスケープシーケンスが処理する範囲内にないとき
+		; エスケープシーケンスが処理する範囲内にないとき
 		if verbatim_len < 0 || i + verbatim_len + 4 > data_len {
 			i = data_len
 			gosub *l_unescape_commit
 			break
 		}
 
-		// 次のエスケープシーケンスまでの間にある文字列をバッファにコピーする。
+		; 次のエスケープシーケンスまでの間にある文字列をバッファにコピーする。
 		i += verbatim_len
 		gosub *l_unescape_commit
 
@@ -102,25 +102,25 @@
 	buf_len += stat
 	return
 
-// バッファにメッセージを書く
-//
-// %prm
-// keys, values, value_lens, count, buf, buf_len
-//
-// array keys: メッセージに含めるキーのリストが格納されている配列変数
-// array values: メッセージに含める値のリストが格納されている配列変数
-// array value_lens: values の長さが格納されている配列変数
-// int count: メッセージに含めるキーと値のペアの個数
-// var buf: メッセージを書き込む先の変数
-// var buf_len: メッセージの書き込み先の位置を持つ変数
-//
-// %inst
-// buf の位置 buf_len に knowbug protocol のメッセージを書き込む。
-// 詳細は knowbug リポジトリに含まれる knowbug-protocol.md を参照。
-//
-// knowbug protocol の規約上、keys(0) は "method" でなければならない。
-//
-// 実行後、変数 buf_len は書き込まれたメッセージの末尾の位置を指す。
+; バッファにメッセージを書く
+;
+; %prm
+; keys, values, value_lens, count, buf, buf_len
+;
+; array keys: メッセージに含めるキーのリストが格納されている配列変数
+; array values: メッセージに含める値のリストが格納されている配列変数
+; array value_lens: values の長さが格納されている配列変数
+; int count: メッセージに含めるキーと値のペアの個数
+; var buf: メッセージを書き込む先の変数
+; var buf_len: メッセージの書き込み先の位置を持つ変数
+;
+; %inst
+; buf の位置 buf_len に knowbug protocol のメッセージを書き込む。
+; 詳細は knowbug リポジトリに含まれる knowbug-protocol.md を参照。
+;
+; knowbug protocol の規約上、keys(0) は "method" でなければならない。
+;
+; 実行後、変数 buf_len は書き込まれたメッセージの末尾の位置を指す。
 #deffunc knowbug_protocol_serialize array keys, array values, array value_lens, int count, var buf, var index, \
 	local rewrite_index, local body_index
 
@@ -129,7 +129,7 @@
 	assert count >= 1
 	assert keys(0) == "method"
 
-	// ヘッダーを先に書く。値は後で埋める。
+	; ヘッダーを先に書く。値は後で埋める。
 	rewrite_index = index + strlen("Content-Length: ")
 
 	buf_add_str buf, index, "Content-Length:        0\n\n"
@@ -137,7 +137,7 @@
 
 	body_index = index
 
-	// ボディーを書く。
+	; ボディーを書く。
 	repeat count
 		escape_str keys(cnt), 0, strlen(keys(cnt)), buf, index
 
@@ -150,42 +150,42 @@
 		index += stat
 	loop
 
-	// Content-Length を設定する。
+	; Content-Length を設定する。
 	buf_add_str buf, rewrite_index, strf("%8d", index - body_index)
 	return
 
-// データバッファにメッセージ断片を連結する
-//
-// %inst
-// transfer_protocol_append を参照
+; データバッファにメッセージ断片を連結する
+;
+; %inst
+; transfer_protocol_append を参照
 #deffunc knowbug_protocol_append var buf, var buf_len, var chunk, int chunk_len
 
 	transfer_protocol_append buf, buf_len, chunk, chunk_len
 	return
 
-// データバッファからメッセージを読み取る
-//
-// %prm
-// buf, buf_len, keys, values, value_lens, count
-//
-// var buf: メッセージのリストが格納されている配列変数
-// var buf_len: buf の長さ (バイト数) を持つ変数
-// array keys: メッセージに含まれるキーのリストを格納する先の配列変数
-// array values: メッセージに含まれる値のリストを格納する先の配列変数
-// array value_lens: values の長さを格納する先の配列変数
-// var count: メッセージに含まれるキーと値のペアの個数を格納する先の変数
-//
-// stat: メッセージを取り出したら true
-//
-// %inst
-// buf に書き込まれているメッセージを1つ取り出して、その内容を keys, values, value_lens, count に設定する。
-//
-// 取り出されたメッセージは buf から取り除かれる。
-// 解釈できないメッセージが取り出された場合も、それは buf から取り除かれる。
-// buf が変更された場合、buf_len の値も適切に変更される。
-//
-// knowbug protocol の規約上、count >= 1 かつ keys(0) == "method" が保証される。
-// もしそうでなければ stat = false になる。
+; データバッファからメッセージを読み取る
+;
+; %prm
+; buf, buf_len, keys, values, value_lens, count
+;
+; var buf: メッセージのリストが格納されている配列変数
+; var buf_len: buf の長さ (バイト数) を持つ変数
+; array keys: メッセージに含まれるキーのリストを格納する先の配列変数
+; array values: メッセージに含まれる値のリストを格納する先の配列変数
+; array value_lens: values の長さを格納する先の配列変数
+; var count: メッセージに含まれるキーと値のペアの個数を格納する先の変数
+;
+; stat: メッセージを取り出したら true
+;
+; %inst
+; buf に書き込まれているメッセージを1つ取り出して、その内容を keys, values, value_lens, count に設定する。
+;
+; 取り出されたメッセージは buf から取り除かれる。
+; 解釈できないメッセージが取り出された場合も、それは buf から取り除かれる。
+; buf が変更された場合、buf_len の値も適切に変更される。
+;
+; knowbug protocol の規約上、count >= 1 かつ keys(0) == "method" が保証される。
+; もしそうでなければ stat = false になる。
 #deffunc knowbug_protocol_parse var buf, var buf_len, array keys, array values, array value_lens, var count, \
 	local body_len, local line_count, local key_len
 
@@ -221,7 +221,7 @@
 		values(count) = ""
 		value_lens(count) = 0
 
-		// エスケープシーケンスを1つずつ展開すると遅いので、頻出のものは strrep で一括置換する。
+		; エスケープシーケンスを1つずつ展開すると遅いので、頻出のものは strrep で一括置換する。
 		strrep s_value, "\\x20", " "
 		strrep s_value, "\\x0d\\x0a", "\n"
 		unescape_str s_value, 0, strlen(s_value), values(count), value_lens(count)
@@ -231,7 +231,7 @@
 
 	return count >= 1 && keys(0) == "method"
 
-// 文字列が true を表しているか？
+; 文字列が true を表しているか？
 #deffunc knowbug_protocol_is_true str value
 
 	return value == "true" || value == "yes" || value == "1"

@@ -1,14 +1,14 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
 #ifndef included_mod_stdin_hsp
 #define included_mod_stdin_hsp
 
 #include "kernel32.as"
 
-// 標準入力操作モジュール
-//
-// %note
-// Win32 API を使用するため、Windows 上でのみ動作する。
+; 標準入力操作モジュール
+;
+; %note
+; Win32 API を使用するため、Windows 上でのみ動作する。
 #module m_stdin
 
 #define true 1
@@ -21,10 +21,10 @@
 #define ERROR_IO_PENDING                997
 #define WAIT_TIMEOUT                    0x102
 
-// 標準入力モジュールを初期化する
-//
-// %prm
-// stat: 成功したら true
+; 標準入力モジュールを初期化する
+;
+; %prm
+; stat: 成功したら true
 #deffunc stdin_init
 
 	if s_stdin_handle {
@@ -42,24 +42,24 @@
 	s_stdin_handle = 0
 	return false
 
-// 標準入力からデータを読み込む
-//
-// %prm
-// data, data_cap
-//
-// var data: 標準入力から読み取るデータを格納する変数
-// int data_cap: data に格納できるデータの長さの上限 (バイト単位、NULL 文字を含む)
-//
-// stat: 読み取ったデータの長さ (バイト単位、NULL 文字は含まない)。失敗したらマイナス
-//
-// %inst
-// 標準入力からデータを読み取る。
-// データが来ていないときは stat=0 になる。
-//
-// 変数 data はあらかじめ data_cap バイトのデータを格納できるように、
-// dim/sdim/memexpand などの命令で初期化しておくこと。
-//
-// 注意: 標準入力がリダイレクトされていないか、 *コンソールにつながっているとき* は失敗する。
+; 標準入力からデータを読み込む
+;
+; %prm
+; data, data_cap
+;
+; var data: 標準入力から読み取るデータを格納する変数
+; int data_cap: data に格納できるデータの長さの上限 (バイト単位、NULL 文字を含む)
+;
+; stat: 読み取ったデータの長さ (バイト単位、NULL 文字は含まない)。失敗したらマイナス
+;
+; %inst
+; 標準入力からデータを読み取る。
+; データが来ていないときは stat=0 になる。
+;
+; 変数 data はあらかじめ data_cap バイトのデータを格納できるように、
+; dim/sdim/memexpand などの命令で初期化しておくこと。
+;
+; 注意: 標準入力がリダイレクトされていないか、 *コンソールにつながっているとき* は失敗する。
 #deffunc stdin_read var data, int data_cap, \
 	local read_len
 

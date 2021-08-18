@@ -1,9 +1,9 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// mod_unicode_cnv のテスト。shift_jis ランタイム版。
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; mod_unicode_cnv のテスト。shift_jis ランタイム版。
 
 #include "mod_unicode_cnv.hsp"
 
-	// 空の文字列。
+	; 空の文字列。
 	sjis_str = ""
 	sjis_len = strlen(sjis_str)
 
@@ -13,8 +13,8 @@
 	assert wpeek(os_str, 0) == 0
 	assert os_len == 0
 
-	// shift_jis → Unicode
-	sdim sjis_str // 「世界」(shift_jis)
+	; shift_jis → Unicode
+	sdim sjis_str ; 「世界」(shift_jis)
 	lpoke sjis_str, 0, 0x458aa290
 	sjis_len = strlen(sjis_str)
 
@@ -24,7 +24,7 @@
 	assert lpeek(os_str,0 ) == 0x754c4e16
 	assert os_len == 2
 
-	// Unicode → shift_jis
+	; Unicode → shift_jis
 	sdim sjis_str
 	sjis_len = -1
 

@@ -1,22 +1,22 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// v0.2.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_assoc>
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; v0.2.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_assoc>
 
 #ifndef included_mod_assoc_hsp
 #define included_mod_assoc_hsp
 
-// 連想配列を操作するモジュール
-//
-// %inst
-// キーは短い文字列を想定している。値は文字列ではなくバイナリでもよい。
-//
-// %note
-// mod_assoc.hsp を #include すること。
+; 連想配列を操作するモジュール
+;
+; %inst
+; キーは短い文字列を想定している。値は文字列ではなくバイナリでもよい。
+;
+; %note
+; mod_assoc.hsp を #include すること。
 #module m_assoc
 
 #define true 1
 #define false 0
 
-// データバッファの領域を確保する
+; データバッファの領域を確保する
 #deffunc local buf_expand var buf, int min_len
 
 	if varsize(buf) < min_len {
@@ -24,7 +24,7 @@
 	}
 	return
 
-// データバッファにデータの一部を連結する
+; データバッファにデータの一部を連結する
 #deffunc local buf_add_slice var buf, int buf_len, var data, int data_offset, int data_len
 
 	assert buf_len >= 0
@@ -36,86 +36,86 @@
 	memcpy buf, data, data_len, buf_len, data_offset
 	return data_len
 
-// データバッファに1バイトを追加する
+; データバッファに1バイトを追加する
 #deffunc local buf_add_byte var buf, int buf_len, int byte
 
 	buf_expand buf, buf_len + 1
 	poke buf, buf_len, byte
 	return
 
-// 連想配列からキーの位置を探す
-//
-// %prm
-// keys, values, value_lens, count, key
-//
-// array keys: 連想配列の各要素のキーを格納している配列変数
-// array values: 連想配列の各要素の値を格納している配列変数
-// array value_lens: values の各要素の長さを格納している配列変数
-// var count: 連想配列の要素数
-// str key: 探すキー
-//
-// stat: キーに対応する要素の位置。見つからなければマイナス。
-//
-// %inst
-// 連想配列のキーに対応する要素の位置を探す。
-//
-// 同じキーを持つ要素が複数あるときは、新しく追加されたものを優先するため、最後の位置を返す。
+; 連想配列からキーの位置を探す
+;
+; %prm
+; keys, values, value_lens, count, key
+;
+; array keys: 連想配列の各要素のキーを格納している配列変数
+; array values: 連想配列の各要素の値を格納している配列変数
+; array value_lens: values の各要素の長さを格納している配列変数
+; var count: 連想配列の要素数
+; str key: 探すキー
+;
+; stat: キーに対応する要素の位置。見つからなければマイナス。
+;
+; %inst
+; 連想配列のキーに対応する要素の位置を探す。
+;
+; 同じキーを持つ要素が複数あるときは、新しく追加されたものを優先するため、最後の位置を返す。
 #deffunc assoc_position_key array keys, array values, array value_lens, var count, str key, \
 	local i, local ok
 
 	i = count
 
 	repeat count
-		// 逆順で探す。
+		; 逆順で探す。
 		if keys(count - 1 - cnt) == key {
 			i = cnt
 			break
 		}
 	loop
 
-	// i == count なら -1 を返す。
-	// i < count ならキーの位置を返す。
+	; i == count なら -1 を返す。
+	; i < count ならキーの位置を返す。
 	return count - 1 - i
 
-// 連想配列にキーが含まれるか？
-//
-// %prm
-// keys, values, value_lens, count, key
-//
-// array keys: 連想配列の各要素のキーを格納している配列変数
-// array values: 連想配列の各要素の値を格納している配列変数
-// array value_lens: values の各要素の長さを格納している配列変数
-// var count: 連想配列の要素数
-// str key: 探すキー
-//
-// stat: 要素が見つかったら true
-//
-// %inst
-// 連想配列に指定されたキーを持つ要素が含まれているか判定する。
+; 連想配列にキーが含まれるか？
+;
+; %prm
+; keys, values, value_lens, count, key
+;
+; array keys: 連想配列の各要素のキーを格納している配列変数
+; array values: 連想配列の各要素の値を格納している配列変数
+; array value_lens: values の各要素の長さを格納している配列変数
+; var count: 連想配列の要素数
+; str key: 探すキー
+;
+; stat: 要素が見つかったら true
+;
+; %inst
+; 連想配列に指定されたキーを持つ要素が含まれているか判定する。
 #deffunc assoc_has array keys, array values, array value_lens, var count, str key
 
 	assoc_position_key keys, values, value_lens, count, key
 	return stat >= 0
 
-// 連想配列から値を取り出す
-//
-// %prm
-// keys, values, value_lens, count, key, value, value_len
-//
-// array keys: 連想配列の各要素のキーを格納している配列変数
-// array values: 連想配列の各要素の値を格納している配列変数
-// array value_lens: values の各要素の長さを格納している配列変数
-// var count: 連想配列の要素数
-// str key: 探すキー
-// var value: 値を格納する先の変数
-// var value_len: 値の長さを格納する先の変数
-//
-// stat: 要素が見つかったら true
-//
-// %inst
-// 連想配列に指定されたキーを持つ要素を探し、その値を取り出す。
-//
-// 同じキーを持つ要素が複数あるときは、新しく追加されたものを優先するため、最後の要素の値を取り出す。
+; 連想配列から値を取り出す
+;
+; %prm
+; keys, values, value_lens, count, key, value, value_len
+;
+; array keys: 連想配列の各要素のキーを格納している配列変数
+; array values: 連想配列の各要素の値を格納している配列変数
+; array value_lens: values の各要素の長さを格納している配列変数
+; var count: 連想配列の要素数
+; str key: 探すキー
+; var value: 値を格納する先の変数
+; var value_len: 値の長さを格納する先の変数
+;
+; stat: 要素が見つかったら true
+;
+; %inst
+; 連想配列に指定されたキーを持つ要素を探し、その値を取り出す。
+;
+; 同じキーを持つ要素が複数あるときは、新しく追加されたものを優先するため、最後の要素の値を取り出す。
 #deffunc assoc_get array keys, array values, array value_lens, var count, str key, var value, var value_len, \
 	local i
 
@@ -132,23 +132,23 @@
 	buf_add_byte value, value_len, 0
 	return true
 
-// 連想配列から整数を取り出す
-//
-// %prm
-// keys, values, value_lens, count, key
-//
-// array keys: 連想配列の各要素のキーを格納している配列変数
-// array values: 連想配列の各要素の値を格納している配列変数
-// array value_lens: values の各要素の長さを格納している配列変数
-// var count: 連想配列の要素数
-// str key: 探すキー
-//
-// stat: 含まれていたら true
-//
-// %inst
-// 連想配列に指定されたキーを持つ要素を探し、その値を整数値として取り出す。
-//
-// 同じキーを持つ要素が複数あるときは、新しく追加されたものを優先するため、最後の要素の値を取り出す。
+; 連想配列から整数を取り出す
+;
+; %prm
+; keys, values, value_lens, count, key
+;
+; array keys: 連想配列の各要素のキーを格納している配列変数
+; array values: 連想配列の各要素の値を格納している配列変数
+; array value_lens: values の各要素の長さを格納している配列変数
+; var count: 連想配列の要素数
+; str key: 探すキー
+;
+; stat: 含まれていたら true
+;
+; %inst
+; 連想配列に指定されたキーを持つ要素を探し、その値を整数値として取り出す。
+;
+; 同じキーを持つ要素が複数あるときは、新しく追加されたものを優先するため、最後の要素の値を取り出す。
 #deffunc assoc_get_int array keys, array values, array value_lens, var count, str key, var value, \
 	local str_value, local value_len, local ok
 
@@ -160,23 +160,23 @@
 	value = int(str_value)
 	return true
 
-// 連想配列の要素の値を設定する
-//
-// %prm
-// keys, values, value_lens, count, key, value, value_len
-//
-// array keys: 連想配列の各要素のキーを格納している配列変数
-// array values: 連想配列の各要素の値を格納している配列変数
-// array value_lens: values の各要素の長さを格納している配列変数
-// var count: 連想配列の要素数
-// str key: 探すキー
-// var value: 設定する値が格納されている変数
-// int value_len: 設定する値の長さ
-//
-// %inst
-// 連想配列に要素を追加して、指定されたキーに対応する値を設定する。
-//
-// 次にこのキーで要素を探すと、いま追加した要素が見つかる。
+; 連想配列の要素の値を設定する
+;
+; %prm
+; keys, values, value_lens, count, key, value, value_len
+;
+; array keys: 連想配列の各要素のキーを格納している配列変数
+; array values: 連想配列の各要素の値を格納している配列変数
+; array value_lens: values の各要素の長さを格納している配列変数
+; var count: 連想配列の要素数
+; str key: 探すキー
+; var value: 設定する値が格納されている変数
+; int value_len: 設定する値の長さ
+;
+; %inst
+; 連想配列に要素を追加して、指定されたキーに対応する値を設定する。
+;
+; 次にこのキーで要素を探すと、いま追加した要素が見つかる。
 #deffunc assoc_set array keys, array values, array value_lens, var count, str key, var value, int value_len
 
 	keys(count) = key
@@ -188,22 +188,22 @@
 	count++
 	return
 
-// 連想配列の要素の値を設定する
-//
-// %prm
-// keys, values, value_lens, count, key, value
-//
-// array keys: 連想配列の各要素のキーを格納している配列変数
-// array values: 連想配列の各要素の値を格納している配列変数
-// array value_lens: values の各要素の長さを格納している配列変数
-// var count: 連想配列の要素数
-// str key: 探すキー
-// str value: 設定する値
-//
-// %inst
-// 連想配列に要素を追加して、指定されたキーに対応する値を設定する。
-//
-// 次にこのキーで要素を探すと、いま追加した要素が見つかる。
+; 連想配列の要素の値を設定する
+;
+; %prm
+; keys, values, value_lens, count, key, value
+;
+; array keys: 連想配列の各要素のキーを格納している配列変数
+; array values: 連想配列の各要素の値を格納している配列変数
+; array value_lens: values の各要素の長さを格納している配列変数
+; var count: 連想配列の要素数
+; str key: 探すキー
+; str value: 設定する値
+;
+; %inst
+; 連想配列に要素を追加して、指定されたキーに対応する値を設定する。
+;
+; 次にこのキーで要素を探すと、いま追加した要素が見つかる。
 #deffunc assoc_set_str array keys, array values, array value_lens, var count, str key, str value
 
 	keys(count) = key

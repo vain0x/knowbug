@@ -1,7 +1,7 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// mod_hspish_font のサンプル
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; mod_hspish_font のサンプル
 
-// CHANGE ボタンを押すと OK ボタンのフォントが変わる。
+; CHANGE ボタンを押すと OK ボタンのフォントが変わる。
 
 #include "mod_hspish_font.hsp"
 

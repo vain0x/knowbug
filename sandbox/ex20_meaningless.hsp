@@ -1,4 +1,4 @@
-// knowbug デバッグ用適当サンプル
+; knowbug デバッグ用適当サンプル
 #include "hsp3utf.as"
 	randomize
 	

@@ -1,15 +1,15 @@
-// モジュール内やグローバルの静的変数
+; モジュール内やグローバルの静的変数
 #include "hsp3utf.as"
 #module counter_module
 
-// 呼び出すたびに1大きい値を返す関数
+; 呼び出すたびに1大きい値を返す関数
 #defcfunc countNext
 	c += 1
 	return c
 	
 #global
 
-	// 変数 c
+	; 変数 c
 	dim c, 5, 2
 	
 	repeat 5

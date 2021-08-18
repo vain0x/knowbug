@@ -1,14 +1,14 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
 #ifndef included_mod_stdout_hsp
 #define included_mod_stdout_hsp
 
 #include "kernel32.as"
 
-// 標準出力操作モジュール
-//
-// %note
-// Win32 API を使用するため、Windows 上でのみ動作する。
+; 標準出力操作モジュール
+;
+; %note
+; Win32 API を使用するため、Windows 上でのみ動作する。
 #module m_stdout
 
 #define true 1
@@ -18,10 +18,10 @@
 #define INVALID_HANDLE_VALUE            (-1)
 #define STD_OUTPUT_HANDLE               (-11)
 
-// 標準出力モジュールを初期化する
-//
-// %prm
-// stat: 成功したら true
+; 標準出力モジュールを初期化する
+;
+; %prm
+; stat: 成功したら true
 #deffunc stdout_init
 
 	if s_stdout_handle {
@@ -39,20 +39,20 @@
 	s_stdout_handle = 0
 	return false
 
-// 標準出力にデータを書き込む
-//
-// %prm
-// data, data_len
-//
-// var data: 書き込むデータが格納されている変数
-// int data_len: 書き込むデータの長さ (バイト単位)
-//
-// stat: 書き込まれたデータの長さ (バイト単位)。失敗時はマイナス
-//
-// %inst
-// 標準出力にデータを書き込む。
-//
-// NULL 文字や改行文字が付与されることはない。
+; 標準出力にデータを書き込む
+;
+; %prm
+; data, data_len
+;
+; var data: 書き込むデータが格納されている変数
+; int data_len: 書き込むデータの長さ (バイト単位)
+;
+; stat: 書き込まれたデータの長さ (バイト単位)。失敗時はマイナス
+;
+; %inst
+; 標準出力にデータを書き込む。
+;
+; NULL 文字や改行文字が付与されることはない。
 #deffunc stdout_write var data, int data_len, \
 	local written_len
 
@@ -75,17 +75,17 @@
 
 	return written_len
 
-// 標準出力に文字列を書き込む
-//
-// %prm
-// text
-//
-// str data: 書き込む文字列
-//
-// stat: 書き込まれたデータの長さ (バイト単位)。失敗時はマイナス
-//
-// %inst
-// 標準出力に文字列を書き込む。NULL 文字は除く。
+; 標準出力に文字列を書き込む
+;
+; %prm
+; text
+;
+; str data: 書き込む文字列
+;
+; stat: 書き込まれたデータの長さ (バイト単位)。失敗時はマイナス
+;
+; %inst
+; 標準出力に文字列を書き込む。NULL 文字は除く。
 #deffunc stdout_write_str str text, \
 	local data
 

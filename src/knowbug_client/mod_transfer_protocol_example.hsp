@@ -1,5 +1,5 @@
-// mod_transfer_protocol.hsp のサンプル
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; mod_transfer_protocol.hsp のサンプル
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
 #include "hsp3utf.as"
 #include "mod_transfer_protocol.hsp"
@@ -7,12 +7,12 @@
 	sdim s_buf, 10000
 	s_buf_len = 0
 
-	// テスト: メッセージの構築
+	; テスト: メッセージの構築
 
 	transfer_protocol_write_header 15, s_buf
 	assert s_buf == "Content-Length: 15\n\n"
 
-	// テスト: メッセージのパース
+	; テスト: メッセージのパース
 
 	s_buf = ""
 	s_buf_len = 0
@@ -33,7 +33,7 @@
 	assert s_chunk_len == 15
 	assert s_buf_len == 0
 
-	// テスト: 2つのメッセージが連結されたバッファーのパース
+	; テスト: 2つのメッセージが連結されたバッファーのパース
 
 	s_buf = ""
 	s_buf_len = 0

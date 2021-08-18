@@ -1,13 +1,13 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
 #ifndef included_mod_menu_hsp
 #define included_mod_menu_hsp
 
-// メニューバー・ポップアップメニューのモジュール
-//
-// %note
-// mod_menu.hsp を #include すること。
-// Win32 API を使用するため、Windows 上でのみ動作する。
+; メニューバー・ポップアップメニューのモジュール
+;
+; %note
+; mod_menu.hsp を #include すること。
+; Win32 API を使用するため、Windows 上でのみ動作する。
 #module m_menu
 
 #uselib "user32.dll"
@@ -44,17 +44,17 @@
 	s_menu_handle_count = 0
 	return
 
-// 現在のウィンドウにメニューバーを追加する
-//
-// %prm
-// other_window_handle
-//
-// int other_window_handle (hwnd): メニューバーを追加する対象のウィンドウ (省略可)
-//
-// stat: メニューバーのハンドル
-//
-// %inst
-// メニューバーを変更した場合は、その後 menu_redraw_bar を呼ぶこと。
+; 現在のウィンドウにメニューバーを追加する
+;
+; %prm
+; other_window_handle
+;
+; int other_window_handle (hwnd): メニューバーを追加する対象のウィンドウ (省略可)
+;
+; stat: メニューバーのハンドル
+;
+; %inst
+; メニューバーを変更した場合は、その後 menu_redraw_bar を呼ぶこと。
 #deffunc menu_make_bar int other_window_handle, \
 	local window_handle, local menu_handle
 
@@ -71,12 +71,12 @@
 	assert stat
 	return menu_handle
 
-// 現在のウィンドウのメニューバーを再描画する
-//
-// %prm
-// other_window_handle
-//
-// int other_window_handle (hwnd): メニューバーを再描画する対象のウィンドウ (省略可)
+; 現在のウィンドウのメニューバーを再描画する
+;
+; %prm
+; other_window_handle
+;
+; int other_window_handle (hwnd): メニューバーを再描画する対象のウィンドウ (省略可)
 #deffunc menu_redraw_bar int other_window_handle, \
 	local window_handle
 
@@ -89,12 +89,12 @@
 	assert stat
 	return
 
-// ポップアップメニューを作成する
-//
-// %inst
-// 他のメニューやメニューバーに属さないポップアップメニューを新しく作る。
-//
-// サブメニューを作成する場合は、これではなく menu_add_popup を使用すること。
+; ポップアップメニューを作成する
+;
+; %inst
+; 他のメニューやメニューバーに属さないポップアップメニューを新しく作る。
+;
+; サブメニューを作成する場合は、これではなく menu_add_popup を使用すること。
 #deffunc menu_make_popup \
 	local menu_handle
 
@@ -102,36 +102,36 @@
 	assert stat
 	menu_handle = stat
 
-	// ポップアップメニューのルートは破棄しなければいけない。
+	; ポップアップメニューのルートは破棄しなければいけない。
 	s_menu_handles(s_menu_handle_count) = menu_handle
 	s_menu_handle_count++
 
 	return menu_handle
 
-// メニューに区切り線 (----) を追加する
-//
-// %prm
-// menu_handle
-//
-// int menu_handle: メニュー項目を追加する対象のメニュー
+; メニューに区切り線 (----) を追加する
+;
+; %prm
+; menu_handle
+;
+; int menu_handle: メニュー項目を追加する対象のメニュー
 #deffunc menu_add_sep int menu_handle
 
 	AppendMenu menu_handle, MF_SEPARATOR, NULL, NULL
 	return
 
-// メニューにテキスト項目を追加する
-//
-// %prm
-// menu_handle, label, item_id
-//
-// int menu_handle: メニュー項目を追加する対象のメニュー
-// str label: メニュー項目に表示するテキスト
-// int item_id: メニュー項目の識別子
-//
-// %inst
-// item_id は 1 以上の適当な整数を指定する。
-// ただし、複数のメニュー項目に同じ item_id を使うことはできない。
-// この値は WM_COMMAND などでメニュー項目を指すときに使われる。
+; メニューにテキスト項目を追加する
+;
+; %prm
+; menu_handle, label, item_id
+;
+; int menu_handle: メニュー項目を追加する対象のメニュー
+; str label: メニュー項目に表示するテキスト
+; int item_id: メニュー項目の識別子
+;
+; %inst
+; item_id は 1 以上の適当な整数を指定する。
+; ただし、複数のメニュー項目に同じ item_id を使うことはできない。
+; この値は WM_COMMAND などでメニュー項目を指すときに使われる。
 #deffunc menu_add_text int menu_handle, str label, int item_id
 
 	assert item_id
@@ -140,15 +140,15 @@
 	assert stat
 	return
 
-// サブメニューを持つメニュー項目を追加する
-//
-// %prm
-// menu_handle, label
-//
-// int menu_handle: メニュー項目を追加する対象のメニュー
-// str label: メニュー項目に表示するテキスト
-//
-// stat: サブメニューのハンドル
+; サブメニューを持つメニュー項目を追加する
+;
+; %prm
+; menu_handle, label
+;
+; int menu_handle: メニュー項目を追加する対象のメニュー
+; str label: メニュー項目に表示するテキスト
+;
+; stat: サブメニューのハンドル
 #deffunc menu_add_popup int menu_handle, str label, \
 	local submenu_handle
 
@@ -159,14 +159,14 @@
 	AppendMenu menu_handle, MF_POPUP, submenu_handle, label
 	return submenu_handle
 
-// メニュー項目にチェックをつけるか、チェックを外す
-//
-// %prm
-// menu_handle, item_id, is_checked
-//
-// int menu_handle: メニュー項目を追加する対象のメニュー
-// int item_id: メニュー項目の識別子
-// int is_checked: チェックをつけるか
+; メニュー項目にチェックをつけるか、チェックを外す
+;
+; %prm
+; menu_handle, item_id, is_checked
+;
+; int menu_handle: メニュー項目を追加する対象のメニュー
+; int item_id: メニュー項目の識別子
+; int is_checked: チェックをつけるか
 #deffunc menu_check_by_id int menu_handle, int item_id, int is_checked, \
 	local flag
 
@@ -179,15 +179,15 @@
 	CheckMenuItem menu_handle, item_id, flag
 	return
 
-// ポップアップメニューを表示する
-//
-// %prm
-// menu_handle, other_window_handle
-//
-// int menu_handle: 表示するメニュー
-// int window_handle (hwnd): メニューからの通知を受け取るウィンドウ (省略可)
-//
-// stat: 選択されたメニュー項目の識別子。選択されなければ 0。
+; ポップアップメニューを表示する
+;
+; %prm
+; menu_handle, other_window_handle
+;
+; int menu_handle: 表示するメニュー
+; int window_handle (hwnd): メニューからの通知を受け取るウィンドウ (省略可)
+;
+; stat: 選択されたメニュー項目の識別子。選択されなければ 0。
 #deffunc menu_show_popup int menu_handle, int other_window_handle, \
 	local window_handle
 

@@ -1,5 +1,5 @@
-// エントリーポイント
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; エントリーポイント
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
 #include "kc_app.hsp"
 
@@ -30,11 +30,11 @@
 #deffunc infra_init_globals
 
 	s_stdin_buffer_len = 0
-	s_stdin_buffer_cap = 1024 * 1024 // 1 MB
+	s_stdin_buffer_cap = 1024 * 1024 ; 1 MB
 	sdim s_stdin_buffer, s_stdin_buffer_cap
 	return
 
-// サーバーからのメッセージを受信・処理する
+; サーバーからのメッセージを受信・処理する
 #deffunc infra_poll \
 	local chunk, local chunk_len, local chunk_cap, \
 	local keys, local values, local value_lens, local count
@@ -43,8 +43,8 @@
 		return
 	}
 
-	// 標準入力にデータが来ていたら読み取る。
-	chunk_cap = 1024 * 1024 // 1 MB
+	; 標準入力にデータが来ていたら読み取る。
+	chunk_cap = 1024 * 1024 ; 1 MB
 	sdim chunk, chunk_cap
 
 	stdin_read chunk, chunk_cap
@@ -60,26 +60,26 @@
 		return
 	}
 
-	// 読み取ったデータをデータバッファに連結する。
+	; 読み取ったデータをデータバッファに連結する。
 	knowbug_protocol_append s_stdin_buffer, s_stdin_buffer_len, chunk, chunk_len
 
-	// データバッファからメッセージを取り出す。
+	; データバッファからメッセージを取り出す。
 	repeat
 		knowbug_protocol_parse s_stdin_buffer, s_stdin_buffer_len, keys, values, value_lens, count
 		if stat == false {
 			break
 		}
 
-		// 読み取ったメッセージを処理する。
+		; 読み取ったメッセージを処理する。
 		infra_process_message keys, values, value_lens, count
 	loop
 	return
 
-// -----------------------------------------------
-// サーバーへのメッセージ
-// -----------------------------------------------
+; ------------------------------------------------
+; サーバーへのメッセージ
+; ------------------------------------------------
 
-// サーバーにメッセージを送る
+; サーバーにメッセージを送る
 #deffunc infra_send_message array keys, array values, array value_lens, int count, \
 	local message, local message_len
 
@@ -198,11 +198,11 @@
 	infra_send_message keys, values, value_lens, count
 	return
 
-// -----------------------------------------------
-// サーバーからのメッセージ
-// -----------------------------------------------
+; ------------------------------------------------
+; サーバーからのメッセージ
+; ------------------------------------------------
 
-// サーバーから来たメッセージを処理する
+; サーバーから来たメッセージを処理する
 #deffunc infra_process_message array keys, array values, array value_lens, var count, \
 	local method, local version, local version_len, local output, local output_len, \
 	local source_file_id, local line_index, \

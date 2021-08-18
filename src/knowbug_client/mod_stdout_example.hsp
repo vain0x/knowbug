@@ -1,5 +1,5 @@
-// mod_stdout.hsp のサンプル
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; mod_stdout.hsp のサンプル
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
 #runtime "hsp3cl"
 
@@ -7,13 +7,13 @@
 
 #include "mod_stdout.hsp"
 
-	// write: 変数とデータサイズを指定
+	; write: 変数とデータサイズを指定
 	s_text = "hello\n"
 	stdout_write s_text, strlen(s_text)
 	assert stat
 
 	await 1000
 
-	// write_str: 文字列を指定
+	; write_str: 文字列を指定
 	stdout_write_str "world\n"
 	assert stat

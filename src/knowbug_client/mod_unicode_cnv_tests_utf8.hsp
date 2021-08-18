@@ -1,10 +1,10 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// mod_unicode_cnv のテスト。UTF-8 ランタイム版。
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; mod_unicode_cnv のテスト。UTF-8 ランタイム版。
 
 #include "hsp3utf.as"
 #include "mod_unicode_cnv.hsp"
 
-	// 空の文字列。
+	; 空の文字列。
 	utf8_str = ""
 	utf8_len = strlen(utf8_str)
 
@@ -14,8 +14,8 @@
 	assert wpeek(os_str, 0) == 0
 	assert os_len == 0
 
-	// UTF-8 → Unicode
-	sdim utf8_str // 「你好」
+	; UTF-8 → Unicode
+	sdim utf8_str ; 「你好」
 	lpoke utf8_str, 0, 0xe5a0bde4
 	lpoke utf8_str, 4, 0x0000bda5
 	utf8_len = strlen(utf8_str)
@@ -26,7 +26,7 @@
 	assert lpeek(os_str, 0) == 0x597d4f60
 	assert os_len == 2
 
-	// Unicode → UTF-8
+	; Unicode → UTF-8
 	sdim utf8_str
 	utf8_len = -1
 

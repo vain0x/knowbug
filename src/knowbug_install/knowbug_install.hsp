@@ -1,4 +1,4 @@
-//! knowbug installer
+;! knowbug installer
 
 #packopt name "knowbug_install"
 #packopt hide 1
@@ -31,7 +31,7 @@
 *l_elevate
 
 #ifndef _debug
-	// Run as administrator.
+	; Run as administrator.
 
 	lock_file_name = ".lock"
 	lock_file_content = 0
@@ -59,7 +59,7 @@
 	asset_backups = true, true, true, false, false
 	asset_count = length(asset_sources)
 
-	// states
+	; states
 
 	hsp_dir_found = false
 	hsp_dir = ""
@@ -71,7 +71,7 @@
 
 	force_update = true
 
-	// result of dirlist
+	; result of dirlist
 	sdim dir_name_list
 	dir_name_count = 0
 
@@ -92,30 +92,30 @@
 	install_button_width = (window_width - margin * 3) / 2
 	window_height = margin * 3 + object_height * 2
 
-	// background
+	; background
 
 	syscolor syscolor_surface
 	boxf
 
-	// font
+	; font
 
 	font "Yu Gothic UI", 12
 	objmode objmode_font
 
-	// combobox (candidate selector)
+	; combobox (candidate selector)
 
 	pos margin, margin
 	objsize combo_width, object_height
 	combox candidate_index, combo_dropdown_height, candidate_list
 	combox_id = stat
 
-	// `...` button (add candidate)
+	; `...` button (add candidate)
 
 	pos margin + combo_width + margin, margin
 	objsize dot_button_width, object_height
 	button gosub "...", *l_add_candidate
 
-	// install buttons
+	; install buttons
 
 	objsize install_button_width, object_height
 
@@ -127,7 +127,7 @@
 	button gosub "uninstall", *l_uninstall
 	uninstall_button_id = stat
 
-	// window
+	; window
 
 	width window_width, window_height
 
@@ -148,7 +148,7 @@
 	force_update = false
 	candidate_index_prev = candidate_index
 
-	// hsp dir
+	; hsp dir
 
 	if candidate_index >= 0 {
 		notesel candidate_list
@@ -159,7 +159,7 @@
 		hsp_dir_found = false
 	}
 
-	// installed?
+	; installed?
 
 	if hsp_dir_found {
 		exist hsp_dir + "/hsp3debug.dll.orig"
@@ -168,7 +168,7 @@
 		installed = false
 	}
 
-	// can install?
+	; can install?
 
 	if hsp_dir_found && installed == false {
 		exist hsp_dir + "/hsp3debug.dll"
@@ -177,7 +177,7 @@
 		can_install = false
 	}
 
-	// update install button status
+	; update install button status
 
 	objenable install_button_id, can_install
 	objenable uninstall_button_id, installed
@@ -246,7 +246,7 @@
 		return
 	}
 
-	// backup
+	; backup
 
 	repeat asset_count
 		if asset_backups(cnt) == false {
@@ -262,7 +262,7 @@
 		}
 	loop
 
-	// delete
+	; delete
 
 	repeat asset_count
 		target_path = hsp_dir + "/" + asset_targets(cnt)
@@ -273,7 +273,7 @@
 		}
 	loop
 
-	// copy
+	; copy
 
 	repeat asset_count
 		source_path = knowbug_dir + "/" + asset_sources(cnt)
@@ -293,7 +293,7 @@
 		return
 	}
 
-	// delete
+	; delete
 
 	repeat asset_count
 		target_path = hsp_dir + "/" + asset_targets(cnt)
@@ -304,7 +304,7 @@
 		}
 	loop
 
-	// restore
+	; restore
 
 	repeat asset_count
 		if asset_backups(cnt) == false {
@@ -320,7 +320,7 @@
 		}
 	loop
 
-	// delete (backup)
+	; delete (backup)
 
 	repeat asset_count
 		if asset_backups(cnt) == false {

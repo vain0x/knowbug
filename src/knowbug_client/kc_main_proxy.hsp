@@ -1,15 +1,15 @@
-// knowbug_client プロキシー
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; knowbug_client プロキシー
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
-// knowbug_client.hsp をデバッグ実行する。
-// また、標準入出力を中継する。
+; knowbug_client.hsp をデバッグ実行する。
+; また、標準入出力を中継する。
 
-// 開発版の knowbug がインストールされている HSP を使って knowbug_client をデバッグ実行すると、
-// そのデバッガーも knowbug_client を実行しようとして、無限にプロセスが起動してしまう。
-// これを避けるため、knowbug の開発用とは他の HSP のインストールディレクトリを使う。
+; 開発版の knowbug がインストールされている HSP を使って knowbug_client をデバッグ実行すると、
+; そのデバッガーも knowbug_client を実行しようとして、無限にプロセスが起動してしまう。
+; これを避けるため、knowbug の開発用とは他の HSP のインストールディレクトリを使う。
 
-// knowbug_client_proxy.txt の1行目に knowbug_client.hsp への絶対パスを、
-// 2行目に HSP のインストールディレクトリ (KNOWBUG_CLIENT_HSP3_ROOT) を書いておくこと。
+; knowbug_client_proxy.txt の1行目に knowbug_client.hsp への絶対パスを、
+; 2行目に HSP のインストールディレクトリ (KNOWBUG_CLIENT_HSP3_ROOT) を書いておくこと。
 
 #include "hsp3utf.as"
 #include "hspcmp.as"
@@ -43,23 +43,23 @@
 
 	s_runtime_name = ""
 
-	// 1: デバッグ情報を埋め込む, 4: utf-8 input
+	; 1: デバッグ情報を埋め込む, 4: utf-8 input
 	s_compile_opts = 1 | 4
 
-	// 32: utf-8 output
+	; 32: utf-8 output
 	s_pp_opts = 32
 
-	// 1: デバッグウィンドウ表示
+	; 1: デバッグウィンドウ表示
 	s_debug_mode = 1
 
 	sdim s_config
 	sdim s_src_name
 	sdim s_hsp_root
 
-	s_stdout_cap = 8 * 1024 * 1024 // 8 MB
+	s_stdout_cap = 8 * 1024 * 1024 ; 8 MB
 	sdim s_stdout_data, s_stdout_cap
 
-	s_stdin_cap = 8 * 1024 * 1024 // 8 MB
+	s_stdin_cap = 8 * 1024 * 1024 ; 8 MB
 	sdim s_stdin_data, s_stdin_cap
 
 	onexit gosub *l_on_exit
@@ -177,10 +177,10 @@
 			s_child_is_running = stat == false
 		}
 
-		// 標準入力を転送する。
+		; 標準入力を転送する。
 		gosub *l_forward_stdin
 
-		// 標準出力を転送する。
+		; 標準出力を転送する。
 		gosub *l_forward_stdout
 
 		if s_child_is_running == false && s_stdin_is_available == false {

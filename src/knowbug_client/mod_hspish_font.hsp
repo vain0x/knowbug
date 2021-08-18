@@ -1,14 +1,14 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// v1.0.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_hspish_font>
-// 参考: http://chokuto.ifdef.jp/urawaza/setfont.html
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; v1.0.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_hspish_font>
+; 参考: http://chokuto.ifdef.jp/urawaza/setfont.html
 
 #ifndef included_mod_hspish_font_hsp
 #define included_mod_hspish_font_hsp
 
-// font 命令と同様の方法でフォントオブジェクトを作成するモジュール
-//
-// %note
-// Win32 API を使用するため、Windows 上でのみ動作する。
+; font 命令と同様の方法でフォントオブジェクトを作成するモジュール
+;
+; %note
+; Win32 API を使用するため、Windows 上でのみ動作する。
 #module m_hspish_font
 
 #uselib "gdi32.dll"
@@ -18,7 +18,7 @@
 
 #define NULL 0
 
-	// 警告対策
+	; 警告対策
 	s_font_handle_count = 0
 	dim s_font_handles
 
@@ -37,8 +37,8 @@
 	s_font_handle_count = 0
 	return
 
-// 現在の LOGFONT 構造体を指定した配列にコピーする
-// (内部用)
+; 現在の LOGFONT 構造体を指定した配列にコピーする
+; (内部用)
 #deffunc hspish_font_get_logfont array logfont, \
 	local bmscr
 
@@ -47,8 +47,8 @@
 	GetObject bmscr(38), 60, varptr(logfont)
 	return
 
-// 現在のフォントに指定されたパラメーターを逆算する
-// (内部用)
+; 現在のフォントに指定されたパラメーターを逆算する
+; (内部用)
 #deffunc hspish_font_get_font_parameters var font_family, var font_size, var font_style, \
 	local logfont
 
@@ -62,34 +62,34 @@
 
 	font_size = (logfont(0) ^ 0xffffffff) + 1
 
-	font_style  = (logfont(4) >= 700)               << 0 // bold
-	font_style |= (logfont(5) & 0x000000ff != 0)    << 1 // italic
-	font_style |= (logfont(5) & 0x0000ff00 != 0)    << 2 // underline
-	font_style |= (logfont(5) & 0x00ff0000 != 0)    << 3 // strike
-	font_style |= (logfont(6) & 0x00040000 != 0)    << 4 // anti-alias
+	font_style  = (logfont(4) >= 700)               << 0 ; bold
+	font_style |= (logfont(5) & 0x000000ff != 0)    << 1 ; italic
+	font_style |= (logfont(5) & 0x0000ff00 != 0)    << 2 ; underline
+	font_style |= (logfont(5) & 0x00ff0000 != 0)    << 3 ; strike
+	font_style |= (logfont(6) & 0x00040000 != 0)    << 4 ; anti-alias
 	return
 
-// フォントオブジェクトを作成する
-//
-// %prm
-// font_family, font_size, font_style
-//
-// str font_family: フォント名
-// int font_size: フォントサイズ
-// int font_style: フォントのスタイル
-//
-// stat: フォントハンドル (失敗したら 0)
-//
-// %inst
-// パラメーターは font 命令と同様。
+; フォントオブジェクトを作成する
+;
+; %prm
+; font_family, font_size, font_style
+;
+; str font_family: フォント名
+; int font_size: フォントサイズ
+; int font_style: フォントのスタイル
+;
+; stat: フォントハンドル (失敗したら 0)
+;
+; %inst
+; パラメーターは font 命令と同様。
 #deffunc hspish_font_create_font_handle str font_family, int font_size, int font_style, \
 	local logfont, local font_handle, \
 	local prev_family, local prev_size, local prev_style
 
-	// 現在のフォント設定をバックアップする。
+	; 現在のフォント設定をバックアップする。
 	hspish_font_get_font_parameters prev_family, prev_size, prev_style
 
-	// 新しいフォントを作成する。
+	; 新しいフォントを作成する。
 	font font_family, font_size, font_style
 	hspish_font_get_logfont logfont
 	CreateFontIndirect varptr(logfont)
@@ -99,29 +99,29 @@
 		hspish_font_delete_on_exit font_handle
 	}
 
-	// フォントの設定を戻す。
+	; フォントの設定を戻す。
 	font prev_family, prev_size, prev_style
 	return font_handle
 
-// 指定したオブジェクトにフォントを設定する
-//
-// %inst
-// object_hwnd, font_family, font_size, font_style, no_refresh
-//
-// int object_hwnd: オブジェクトのハンドル
-// str font_family: フォント名
-// int font_size: フォントサイズ
-// int font_style: フォントのスタイル (省略可)
-// int no_refresh: 更新しない？ (省略可)
-//
-// stat: フォントのハンドル (失敗したら 0)
-//
-// %inst
-// object_hwnd は objinfo_hwnd(オブジェクトID) で取得できる。
-//
-// font_family, font_size, font_style は font 命令の引数と同じ。
-//
-// no_refresh を 1 にするとオブジェクトの再描画を抑制する。(通常は省略して OK。)
+; 指定したオブジェクトにフォントを設定する
+;
+; %inst
+; object_hwnd, font_family, font_size, font_style, no_refresh
+;
+; int object_hwnd: オブジェクトのハンドル
+; str font_family: フォント名
+; int font_size: フォントサイズ
+; int font_style: フォントのスタイル (省略可)
+; int no_refresh: 更新しない？ (省略可)
+;
+; stat: フォントのハンドル (失敗したら 0)
+;
+; %inst
+; object_hwnd は objinfo_hwnd(オブジェクトID) で取得できる。
+;
+; font_family, font_size, font_style は font 命令の引数と同じ。
+;
+; no_refresh を 1 にするとオブジェクトの再描画を抑制する。(通常は省略して OK。)
 #deffunc hspish_font_set_object_font int object_hwnd, str font_family, int font_size, int font_style, int no_refresh, \
 	local font_handle
 
@@ -129,7 +129,7 @@
 	font_handle = stat
 
 	if font_handle != NULL {
-		// WM_SETFONT
+		; WM_SETFONT
 		sendmsg object_hwnd, 0x0030, font_handle, no_refresh == 0
 	}
 

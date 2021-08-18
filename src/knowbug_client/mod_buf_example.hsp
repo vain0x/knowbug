@@ -1,7 +1,7 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// v1.0.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_buf>
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; v1.0.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_buf>
 
-// mod_buf.hsp のサンプル
+; mod_buf.hsp のサンプル
 
 #include "hsp3utf.as"
 #include "mod_buf.hsp"
@@ -9,8 +9,8 @@
 	sdim s_buf
 	s_buf_len = 0
 
-	// バッファに文字列を書き込む。
-	// バッファを文字列として読むには NULL 終端 (add_byte 0) が必要。
+	; バッファに文字列を書き込む。
+	; バッファを文字列として読むには NULL 終端 (add_byte 0) が必要。
 	buf_add_str s_buf, s_buf_len, "Hello"
 	s_buf_len += stat
 
@@ -27,9 +27,9 @@
 	assert s_buf == "Hello, world!"
 	assert s_buf_len == strlen(s_buf)
 
-	// バッファに領域より大きいデータを書き込む。
-	// 領域が自動で再確保されるため、エラーにならない。
-	// NULL 終端は保証されない。
+	; バッファに領域より大きいデータを書き込む。
+	; 領域が自動で再確保されるため、エラーにならない。
+	; NULL 終端は保証されない。
 	sdim s_buf
 	s_buf_len = 0
 
@@ -48,8 +48,8 @@
 	assert s_buf == s_data
 	assert s_buf_len == strlen(s_buf)
 
-	// データの一部を書き込む。
-	// memcpy の代わりに使える。
+	; データの一部を書き込む。
+	; memcpy の代わりに使える。
 	sdim s_buf
 	s_buf_len = 0
 
@@ -65,8 +65,8 @@
 	assert s_buf == "12378"
 	assert s_buf_len == strlen(s_buf)
 
-	// 文字列を大量に連結する。
-	// 文字列の連結が十分に高速 (O(N) 時間) であることを検査している。
+	; 文字列を大量に連結する。
+	; 文字列の連結が十分に高速 (O(N) 時間) であることを検査している。
 	sdim s_buf
 	s_buf_len = 0
 

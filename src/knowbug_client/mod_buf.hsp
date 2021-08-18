@@ -1,35 +1,35 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// v1.1.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_buf>
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; v1.1.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_buf>
 
 #ifndef included_mod_buf_hsp
 #define included_mod_buf_hsp
 
-// データバッファ操作モジュール
-//
-// %inst
-// memcpy や poke などのメモリ操作命令と同様に、
-// str 型の変数をメモリバッファとして操作する命令を提供する。
-// ただし、メモリ領域は必要に応じて自動で拡張される。
-//
-// %note
-// mod_buf.hsp を #include すること。
+; データバッファ操作モジュール
+;
+; %inst
+; memcpy や poke などのメモリ操作命令と同様に、
+; str 型の変数をメモリバッファとして操作する命令を提供する。
+; ただし、メモリ領域は必要に応じて自動で拡張される。
+;
+; %note
+; mod_buf.hsp を #include すること。
 #module m_buf
 
-// データバッファの領域を拡張する
-//
-// %prm
-// buf, min_len
-//
-// var buf
-// int min_len: 拡張された領域の最小の長さ (バイト単位)
-//
-// %inst
-// str 型の変数 buf の領域を、少なくとも min_len バイト以上に拡張する。
-//
-// すでに領域が min_len バイト以上なら、何も起こらない。
-//
-// 領域が拡張される場合、memexpand と違って、min_len バイトより多く拡張されることがある。
-// これにより、領域の再確保に伴う処理の実行回数が抑えられる。
+; データバッファの領域を拡張する
+;
+; %prm
+; buf, min_len
+;
+; var buf
+; int min_len: 拡張された領域の最小の長さ (バイト単位)
+;
+; %inst
+; str 型の変数 buf の領域を、少なくとも min_len バイト以上に拡張する。
+;
+; すでに領域が min_len バイト以上なら、何も起こらない。
+;
+; 領域が拡張される場合、memexpand と違って、min_len バイトより多く拡張されることがある。
+; これにより、領域の再確保に伴う処理の実行回数が抑えられる。
 #deffunc buf_expand var buf, int min_len
 
 	if varsize(buf) < min_len {
@@ -37,23 +37,23 @@
 	}
 	return
 
-// データバッファにデータの一部を連結する
-//
-// %prm
-// buf, buf_len, data, data_offset, data_len
-//
-// var buf: データを連結する先の変数
-// int buf_len: データを書き込む buf 上の位置
-// var data: 連結するデータを格納している変数
-// int data_offset: 連結するデータの開始位置
-// int data_len: 連結するデータの長さ (バイト単位)
-//
-// stat: 連結されたデータの長さ (バイト単位) (data_len に等しい)
-//
-// %inst
-// 変数 buf の位置 buf_len に、data の位置 data_offset から長さ data_len に含まれるデータを書き込む。
-//
-// memcpy と違って、buf の領域が足りない場合は自動で拡張される。
+; データバッファにデータの一部を連結する
+;
+; %prm
+; buf, buf_len, data, data_offset, data_len
+;
+; var buf: データを連結する先の変数
+; int buf_len: データを書き込む buf 上の位置
+; var data: 連結するデータを格納している変数
+; int data_offset: 連結するデータの開始位置
+; int data_len: 連結するデータの長さ (バイト単位)
+;
+; stat: 連結されたデータの長さ (バイト単位) (data_len に等しい)
+;
+; %inst
+; 変数 buf の位置 buf_len に、data の位置 data_offset から長さ data_len に含まれるデータを書き込む。
+;
+; memcpy と違って、buf の領域が足りない場合は自動で拡張される。
 #deffunc buf_add_slice var buf, int buf_len, var data, int data_offset, int data_len
 
 	assert buf_len >= 0
@@ -65,21 +65,21 @@
 	memcpy buf, data, data_len, buf_len, data_offset
 	return data_len
 
-// データバッファに1バイトを連結する
-//
-// %prm
-// buf, buf_len, byte
-//
-// var buf: データを連結する先の変数
-// int buf_len: データを書き込む buf 上の位置
-// int byte: 追加する値
-//
-// stat: 1
-//
-// %inst
-// 変数 buf の位置 buf_len に、byte の値を書き込む。
-//
-// poke と違って、buf の領域が足りない場合は自動で拡張される。
+; データバッファに1バイトを連結する
+;
+; %prm
+; buf, buf_len, byte
+;
+; var buf: データを連結する先の変数
+; int buf_len: データを書き込む buf 上の位置
+; int byte: 追加する値
+;
+; stat: 1
+;
+; %inst
+; 変数 buf の位置 buf_len に、byte の値を書き込む。
+;
+; poke と違って、buf の領域が足りない場合は自動で拡張される。
 #deffunc buf_add_byte var buf, int buf_len, int byte
 
 	assert buf_len >= 0
@@ -89,42 +89,42 @@
 	poke buf, buf_len, byte
 	return 1
 
-// データバッファにデータを連結する
-//
-// %prm
-// buf, buf_len, data, data_len
-//
-// var buf: データを連結する先の変数
-// int buf_len: データを書き込む buf 上の位置
-// var data: 連結するデータを格納している変数
-// int data_len: 連結するデータの長さ (バイト単位)
-//
-// stat: 連結されたデータの長さ (バイト単位) (data_len に等しい)
-//
-// %inst
-// 変数 buf の位置 buf_len に、data の前から data_len バイトに含まれるデータを書き込む。
-//
-// memcpy と違って、buf の領域が足りない場合は自動で拡張される。
+; データバッファにデータを連結する
+;
+; %prm
+; buf, buf_len, data, data_len
+;
+; var buf: データを連結する先の変数
+; int buf_len: データを書き込む buf 上の位置
+; var data: 連結するデータを格納している変数
+; int data_len: 連結するデータの長さ (バイト単位)
+;
+; stat: 連結されたデータの長さ (バイト単位) (data_len に等しい)
+;
+; %inst
+; 変数 buf の位置 buf_len に、data の前から data_len バイトに含まれるデータを書き込む。
+;
+; memcpy と違って、buf の領域が足りない場合は自動で拡張される。
 #deffunc buf_add var buf, int buf_len, var data, int data_len
 
 	buf_add_slice buf, buf_len, data, 0, data_len
 	return stat
 
-// データバッファに文字列を連結する
-//
-// %prm
-// buf, buf_len, text
-//
-// var buf: データを連結する先の変数
-// int buf_len: データを書き込む buf 上の位置
-// str text: 連結する文字列
-//
-// stat: text の長さ (バイト単位、NULL 文字は除く)
-//
-// %inst
-// 変数 buf の位置 buf_len に文字列 text を書き込む。
-//
-// poke と違って、buf の領域が足りない場合は自動で拡張される。
+; データバッファに文字列を連結する
+;
+; %prm
+; buf, buf_len, text
+;
+; var buf: データを連結する先の変数
+; int buf_len: データを書き込む buf 上の位置
+; str text: 連結する文字列
+;
+; stat: text の長さ (バイト単位、NULL 文字は除く)
+;
+; %inst
+; 変数 buf の位置 buf_len に文字列 text を書き込む。
+;
+; poke と違って、buf の領域が足りない場合は自動で拡張される。
 #deffunc buf_add_str var buf, int buf_len, str text, \
 	local local_text
 

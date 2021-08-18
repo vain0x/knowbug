@@ -1,36 +1,36 @@
-// LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
-// v0.1.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_config>
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; v0.1.0 <https://github.com/vain0x/hsp3-modules/tree/main/mod_config>
 
 #ifndef included_mod_config_hsp
 #define included_mod_config_hsp
 
-// 設定ファイル操作モジュール
-//
-// - 文字コードは UTF-8 (BOM なし)
-// - 改行コードは LF または CRLF
-// - '#' で始まる行や、'=' を含まない行は無視する。
-// - 雑実装
+; 設定ファイル操作モジュール
+;
+; - 文字コードは UTF-8 (BOM なし)
+; - 改行コードは LF または CRLF
+; - '#' で始まる行や、'=' を含まない行は無視する。
+; - 雑実装
 #module m_config
 
 #define true 1
 #define false 0
 
-// 設定ファイルをロードする
-//
-// %prm
-// file_name, keys, values
-//
-// str file_name: ロードするファイル名
-// array keys: キーが格納される配列変数
-// array values: 値が格納される配列変数
-//
-// stat: キーと値の個数 または -1
-//
-// %inst
-// 設定ファイルをロードして、キーと値のペアを配列 keys, values に格納し、
-// その件数を stat に設定する。
-//
-// ファイルが存在しなければ stat < 0 になる。
+; 設定ファイルをロードする
+;
+; %prm
+; file_name, keys, values
+;
+; str file_name: ロードするファイル名
+; array keys: キーが格納される配列変数
+; array values: 値が格納される配列変数
+;
+; stat: キーと値の個数 または -1
+;
+; %inst
+; 設定ファイルをロードして、キーと値のペアを配列 keys, values に格納し、
+; その件数を stat に設定する。
+;
+; ファイルが存在しなければ stat < 0 になる。
 #deffunc config_load str file_name, array keys, array values, \
 	local text, local text_len, local lf
 
@@ -43,8 +43,8 @@
 	sdim text, text_len + 1
 	bload file_name, text, text_len
 
-	// 改行コードを CRLF に統一する。
-	// FIXME: 根本原因は LF をサポートしていない noteget なので、そっちを直す。
+	; 改行コードを CRLF に統一する。
+	; FIXME: 根本原因は LF をサポートしていない noteget なので、そっちを直す。
 	sdim lf
 	poke lf, 0, 0x0a
 	strrep text, "\n", lf

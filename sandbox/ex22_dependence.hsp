@@ -1,7 +1,7 @@
-// knowbug sample
+; knowbug sample
 #include "hsp3utf.as"
-// 依存関係
-// 要するに呼び出しの順番と sublev
+; 依存関係
+; 要するに呼び出しの順番と sublev
 
 #define global ctype dbgpair(%1,%2) \
 	({"(%1,%2) = ("} + (%1) + ", " + (%2) + ")")
