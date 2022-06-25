@@ -60,6 +60,10 @@ knowbug のリリースの一覧は以下を参照してください。(pre-rele
 
 - [Releases](https://github.com/vain0x/knowbug/releases)
 
+## 開発
+
+開発者向けのドキュメントは [docs/dev](docs/dev) を参照
+
 ## 関連リンク
 
 - OpenHSP <http://dev.onionsoft.net/trac>
