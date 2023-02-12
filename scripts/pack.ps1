@@ -21,7 +21,7 @@ $exclusions = @(
 
 # パッケージに含められるファイル (dist/ 以外)
 $inclusions = @(
-    @("$package/changes.md", "$pwd/changes.md"),
+    @("$package/CHANGELOG.md", "$pwd/CHANGELOG.md"),
     @("$package/LICENSE", "$pwd/LICENSE"),
     @("$package/README.md", "$pwd/README.md"),
     @("$package/knowbug_install.exe", "$pwd/src/knowbug_install/knowbug_install.exe"),
