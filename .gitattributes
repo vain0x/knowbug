@@ -4,3 +4,9 @@
 *.hs linguist-language=HDL Help Source
 *.hsp linguist-language=HSP3
 *.as linguist-language=HSP3
+
+
+
+# <https://github.com/github/linguist#vendored-code>
+cppformat/          linguist-vendored
+hspsdk/             linguist-vendored
