@@ -52,7 +52,7 @@ namespace hsx {
 	auto pval_to_memory_block(PVal const* pval, HSPCTX const* ctx) -> MemoryView {
 		assert(pval != nullptr);
 
-		auto&& data_opt = pval_to_data(pval, ctx);
+		auto data_opt = pval_to_data(pval, ctx);
 		if (!data_opt) {
 			return MemoryView{};
 		}

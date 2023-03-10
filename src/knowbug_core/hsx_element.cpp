@@ -8,7 +8,7 @@ namespace hsx {
 			return std::nullopt;
 		}
 
-		auto&& lengths = pval_to_lengths(pval);
+		auto lengths = pval_to_lengths(pval);
 
 		// E.g. lengths=(2, 3), aptr=5, indexes=(1, 2)
 		auto indexes = std::array<std::size_t, HspDimIndex::MAX_DIM>{};
@@ -22,7 +22,7 @@ namespace hsx {
 	}
 
 	auto element_to_aptr(PVal const* pval, HspDimIndex const& indexes) -> std::optional<std::size_t> {
-		auto&& lengths = pval_to_lengths(pval);
+		auto lengths = pval_to_lengths(pval);
 
 		auto unit = std::size_t{ 1 };
 		auto aptr = std::size_t{};
@@ -59,7 +59,7 @@ namespace hsx {
 	auto element_to_memory_block(PVal const* pval, std::size_t aptr, HSPCTX const* ctx) -> MemoryView {
 		assert(pval != nullptr);
 
-		auto&& data_opt = element_to_data(pval, aptr, ctx);
+		auto data_opt = element_to_data(pval, aptr, ctx);
 		if (!data_opt) {
 			return MemoryView{};
 		}
@@ -70,7 +70,7 @@ namespace hsx {
 	auto element_to_str(PVal const* pval, std::size_t aptr, HSPCTX const* ctx) -> std::optional<HspStr> {
 		assert(pval != nullptr);
 
-		auto&& memory = element_to_memory_block(pval, aptr, ctx);
+		auto memory = element_to_memory_block(pval, aptr, ctx);
 		return Slice<char>{ (char const*)memory.data(), memory.size() };
 	}
 }

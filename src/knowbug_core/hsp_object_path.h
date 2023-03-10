@@ -399,7 +399,7 @@ public:
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
-		auto&& o = other.as_param();
+		auto& o = other.as_param();
 		return param_type() == o.param_type() && param_index() == o.param_index();
 	}
 
@@ -896,7 +896,7 @@ public:
 		// 逆順
 		auto index = child_count(objects) - 1 - child_index;
 
-		auto&& key_opt = objects.call_stack_path_to_call_frame_key_at(*this, index);
+		auto key_opt = objects.call_stack_path_to_call_frame_key_at(*this, index);
 		if (!key_opt) {
 			assert(false && u8"コールフレームを取得できません");
 			return new_unavailable(to_owned(as_utf8(u8"コールフレームを取得できません")));
@@ -955,7 +955,7 @@ public:
 	}
 
 	auto child_at(std::size_t child_index, HspObjects& objects) const -> std::shared_ptr<HspObjectPath const> override {
-		auto&& child_opt = objects.call_frame_path_to_child_at(*this, child_index);
+		auto child_opt = objects.call_frame_path_to_child_at(*this, child_index);
 		if (!child_opt) {
 			return new_unavailable(to_owned(as_utf8(u8"エラーが発生するおそれがあるため、この引数は表示されません")));
 		}
@@ -964,7 +964,7 @@ public:
 	}
 
 	auto name(HspObjects& objects) const -> Utf8String override {
-		auto&& name_opt = objects.call_frame_path_to_name(*this);
+		auto name_opt = objects.call_frame_path_to_name(*this);
 		if (!name_opt) {
 			return to_owned(as_utf8(u8"???"));
 		}

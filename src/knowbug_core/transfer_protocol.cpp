@@ -103,7 +103,7 @@ auto transfer_protocol_parse(Utf8String& body, Utf8String& buffer) -> bool {
 }
 
 void transfer_protocol_tests(Tests& tests) {
-	auto&& suite = tests.suite(u8"transfer_protocol");
+	auto& suite = tests.suite(u8"transfer_protocol");
 
 	suite.test(
 		u8"中途半端なケースとぴったりのケース",

@@ -175,7 +175,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 		full_paths.emplace(file_ref_name, full_path);
 
 		// 対応するソースファイルがなければ追加する。
-		auto&& iter = full_path_map.find(full_path);
+		auto iter = full_path_map.find(full_path);
 		if (iter == full_path_map.end()) {
 			auto file_id = SourceFileId{ source_files.size() };
 			full_path_map.emplace(full_path, file_id);
@@ -242,7 +242,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 	// ファイル参照名 → ファイルID
 	auto file_map = std::unordered_map<std::string, SourceFileId>{};
 	for (auto&& pair : full_paths) {
-		auto&& iter = full_path_map.find(pair.second);
+		auto iter = full_path_map.find(pair.second);
 		if (iter == full_path_map.end()) {
 			assert(false);
 			continue;
@@ -272,7 +272,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 // -----------------------------------------------
 
 auto SourceFileRepository::file_ref_name_to_file_id(char const* file_ref_name) const->std::optional<SourceFileId> {
-	auto&& iter = file_map_.find(file_ref_name);
+	auto iter = file_map_.find(file_ref_name);
 	if (iter == file_map_.end()) {
 		return std::nullopt;
 	}
@@ -500,7 +500,7 @@ static auto create_file_system_for_testing() -> VirtualFileSystemApi {
 }
 
 void source_files_tests(Tests& tests) {
-	auto&& suite = tests.suite(u8"source_files");
+	auto& suite = tests.suite(u8"source_files");
 
 	suite.test(
 		u8"ソースファイルを解決できる",

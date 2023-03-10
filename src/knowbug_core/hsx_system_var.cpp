@@ -91,7 +91,7 @@ namespace hsx {
 			return data_from_int(system_var_strsize(ctx));
 
 		case HspSystemVarKind::Thismod: {
-			auto&& mp_mod_var_opt = system_var_thismod(ctx);
+			auto mp_mod_var_opt = system_var_thismod(ctx);
 			if (!mp_mod_var_opt) {
 				return std::nullopt;
 			}

@@ -84,7 +84,7 @@ auto wc_call_frame_get(WcCallFrameKey const& key) -> std::optional<std::referenc
 		return std::nullopt;
 	}
 
-	auto&& call_frame_ref = std::ref(s_call_stack.at(key.depth()));
+	auto call_frame_ref = std::ref(s_call_stack.at(key.depth()));
 	if (call_frame_ref.get().call_frame_id() != key.call_frame_id()) {
 		return std::nullopt;
 	}

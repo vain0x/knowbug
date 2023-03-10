@@ -11,7 +11,7 @@ namespace hsx {
 			return std::nullopt;
 		}
 
-		auto&& param_opt = struct_to_params(param_stack.struct_dat(), ctx).get(param_index);
+		auto param_opt = struct_to_params(param_stack.struct_dat(), ctx).get(param_index);
 		if (!param_opt) {
 			return std::nullopt;
 		}

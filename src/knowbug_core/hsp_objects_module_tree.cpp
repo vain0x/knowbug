@@ -21,7 +21,7 @@ void traverse_module_tree(std::vector<Utf8String> const& var_names, ModuleTreeLi
 
 	{
 		for (auto vi = std::size_t{}; vi < var_names.size(); vi++) {
-			auto&& var_name = var_names[vi];
+			auto const& var_name = var_names[vi];
 
 			auto resolution_opt = var_name_to_scope_resolution(var_name);
 			auto module_name = resolution_opt ? *resolution_opt : GLOBAL_MODULE_NAME;
@@ -38,8 +38,8 @@ void traverse_module_tree(std::vector<Utf8String> const& var_names, ModuleTreeLi
 		listener.begin_module(current_module_name);
 
 		for (auto&& t : tuples) {
-			auto module_name_ref = std::get<0>(t);
-			auto var_name_ref = std::get<1>(t);
+			auto const& module_name_ref = std::get<0>(t);
+			auto const& var_name_ref = std::get<1>(t);
 			auto vi = std::get<2>(t);
 
 			if (module_name_ref != current_module_name) {

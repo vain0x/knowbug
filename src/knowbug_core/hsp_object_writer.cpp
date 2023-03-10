@@ -41,7 +41,7 @@ static auto str_to_string(hsx::HspStr const& str) -> std::optional<std::string_v
 }
 
 static auto str_to_utf8(hsx::HspStr const& str) -> std::optional<Utf8String> {
-	auto&& string_opt = str_to_string(str);
+	auto string_opt = str_to_string(str);
 	if (!string_opt) {
 		return std::nullopt;
 	}
@@ -54,13 +54,13 @@ static bool string_is_multiline(std::string_view const& str) {
 }
 
 static bool str_is_compact(hsx::HspStr const& str) {
-	auto&& string_opt = str_to_string(str);
+	auto string_opt = str_to_string(str);
 	return string_opt && string_opt->size() < 64 && !string_is_multiline(*string_opt);
 }
 
 // 文字列をリテラル形式で書く。
 static void write_string_as_literal(StringWriter& w, hsx::HspStr const& str) {
-	auto&& string_opt = str_to_string(str);
+	auto string_opt = str_to_string(str);
 	if (!string_opt) {
 		w.cat(u8"<バイナリ>");
 		return;
@@ -188,7 +188,7 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 
 	case HspObjectKind::Flex:
 		{
-			auto&& is_nullmod_opt = path.as_flex().is_nullmod(objects);
+			auto is_nullmod_opt = path.as_flex().is_nullmod(objects);
 			return !is_nullmod_opt || *is_nullmod_opt;
 		}
 
@@ -413,8 +413,8 @@ HspObjectWriterImpl::TableForm::TableForm(HspObjects& objects, StringWriter& wri
 }
 
 void HspObjectWriterImpl::TableForm::write_name(HspObjectPath const& path) {
-	auto&& o = objects();
-	auto&& w = writer();
+	auto& o = objects();
+	auto& w = writer();
 
 	w.cat(u8"[");
 	w.cat(path.name(o));
@@ -435,8 +435,8 @@ void HspObjectWriterImpl::TableForm::accept(std::optional<std::shared_ptr<HspObj
 }
 
 void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
-	auto&& o = objects();
-	auto&& w = writer();
+	auto& o = objects();
+	auto& w = writer();
 
 	if (path.visual_child_count(o) == 0) {
 		write_name(path);
@@ -447,7 +447,7 @@ void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
 	write_name(path);
 	to_block_form().accept_children(path);
 
-	auto&& memory_view_opt = path.memory_view(o);
+	auto memory_view_opt = path.memory_view(o);
 	if (memory_view_opt) {
 		w.cat_crlf();
 		w.cat_memory_dump(memory_view_opt->data(), memory_view_opt->size());
@@ -456,8 +456,8 @@ void HspObjectWriterImpl::TableForm::accept_default(HspObjectPath const& path) {
 }
 
 void HspObjectWriterImpl::TableForm::accept_children(HspObjectPath const& path) {
-	auto&& w = writer();
-	auto&& o = objects();
+	auto& w = writer();
+	auto& o = objects();
 
 	auto child_count = path.visual_child_count(o);
 	for (auto i = std::size_t{}; i < child_count; i++) {
@@ -472,11 +472,11 @@ void HspObjectWriterImpl::TableForm::on_ellipsis(HspObjectPath::Ellipsis const& 
 }
 
 void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar const& path) {
-	auto&& o = objects();
-	auto&& w = writer();
+	auto& o = objects();
+	auto& w = writer();
 
-	auto&& type_name = path.type_name(o);
-	auto&& metadata = path.metadata(o);
+	auto type_name = path.type_name(o);
+	auto metadata = path.metadata(o);
 
 	// 変数に関する情報
 	write_name(path);
@@ -493,13 +493,13 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 }
 
 void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) {
-	auto&& o = objects();
-	auto&& w = writer();
+	auto& o = objects();
+	auto& w = writer();
 
-	if (auto && metadata_opt = path.var_metadata(o)) {
-		auto&& metadata = *metadata_opt;
-		auto&& type_name = o.type_to_name(metadata.type());
-		auto&& name = path.name(o);
+	if (auto metadata_opt = path.var_metadata(o)) {
+		auto const& metadata = *metadata_opt;
+		auto type_name = o.type_to_name(metadata.type());
+		auto name = path.name(o);
 
 		write_name(path);
 		write_var_metadata_on_table(w, type_name, metadata);
@@ -517,13 +517,13 @@ void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) 
 }
 
 void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame const& path) {
-	auto&& o = objects();
-	auto&& w = writer();
+	auto& o = objects();
+	auto& w = writer();
 
-	auto&& signature_opt = path.signature(o);
-	auto&& full_path_opt = path.full_path(o);
-	auto&& line_index_opt = path.line_index(o);
-	auto&& memory_view_opt = path.memory_view(o);
+	auto signature_opt = path.signature(o);
+	auto full_path_opt = path.full_path(o);
+	auto line_index_opt = path.line_index(o);
+	auto memory_view_opt = path.memory_view(o);
 
 	write_name(path);
 
@@ -550,14 +550,14 @@ void HspObjectWriterImpl::TableForm::on_call_frame(HspObjectPath::CallFrame cons
 }
 
 void HspObjectWriterImpl::TableForm::on_general(HspObjectPath::General const& path) {
-	auto&& content = path.content(objects());
+	auto content = path.content(objects());
 
 	write_name(path);
 	writer().cat(content);
 }
 
 void HspObjectWriterImpl::TableForm::on_log(HspObjectPath::Log const& path) {
-	auto&& content = path.content(objects());
+	auto content = path.content(objects());
 	assert((content.empty() || (char)content.back() == '\n') && u8"Log must be end with line break");
 
 	write_name(path);
@@ -565,7 +565,7 @@ void HspObjectWriterImpl::TableForm::on_log(HspObjectPath::Log const& path) {
 }
 
 void HspObjectWriterImpl::TableForm::on_script(HspObjectPath::Script const& path) {
-	auto&& content = path.content(objects());
+	auto content = path.content(objects());
 
 	// NOTE: 行番号がズレないようにスクリプト以外を描画しない。
 	// write_name(path);
@@ -574,8 +574,8 @@ void HspObjectWriterImpl::TableForm::on_script(HspObjectPath::Script const& path
 }
 
 void HspObjectWriterImpl::TableForm::on_unavailable(HspObjectPath::Unavailable const& path) {
-	auto&& w = writer();
-	auto&& reason = path.reason();
+	auto& w = writer();
+	auto reason = path.reason();
 
 	write_name(path);
 	w.cat(u8"理由: ");
@@ -613,8 +613,8 @@ void HspObjectWriterImpl::BlockForm::accept_default(HspObjectPath const& path) {
 }
 
 void HspObjectWriterImpl::BlockForm::accept_children(HspObjectPath const& path) {
-	auto&& w = writer();
-	auto&& o = objects();
+	auto& w = writer();
+	auto& o = objects();
 
 	auto child_count = path.visual_child_count(o);
 	for (auto i = std::size_t{}; i < child_count; i++) {
@@ -629,17 +629,17 @@ void HspObjectWriterImpl::BlockForm::on_ellipsis(HspObjectPath::Ellipsis const& 
 }
 
 void HspObjectWriterImpl::BlockForm::on_module(HspObjectPath::Module const& path) {
-	auto&& name = path.name(objects());
+	auto name = path.name(objects());
 
 	// (入れ子の)モジュールは名前だけ表示しておく
 	writer().cat_line(name.data());
 }
 
 void HspObjectWriterImpl::BlockForm::on_static_var(HspObjectPath::StaticVar const& path) {
-	auto&& o = objects();
-	auto&& w = writer();
+	auto& o = objects();
+	auto& w = writer();
 
-	auto&& name = path.name(o);
+	auto name = path.name(o);
 	auto short_name = var_name_to_bare_ident(name);
 
 	w.cat(short_name);
@@ -656,9 +656,9 @@ void HspObjectWriterImpl::BlockForm::on_label(HspObjectPath::Label const& path) 
 }
 
 void HspObjectWriterImpl::BlockForm::on_str(HspObjectPath::Str const& path) {
-	auto&& w = writer();
-	auto&& str = path.value(objects());
-	auto&& text_opt = str_to_string(str);
+	auto& w = writer();
+	auto str = path.value(objects());
+	auto text_opt = str_to_string(str);
 
 	if (!text_opt) {
 		w.cat_line(u8"<バイナリ>");
@@ -670,24 +670,24 @@ void HspObjectWriterImpl::BlockForm::on_str(HspObjectPath::Str const& path) {
 }
 
 void HspObjectWriterImpl::BlockForm::on_double(HspObjectPath::Double const& path) {
-	auto&& w = writer();
+	auto& w = writer();
 	auto value = path.value(objects());
 
 	w.cat_line(strf("%.16f", value));
 }
 
 void HspObjectWriterImpl::BlockForm::on_int(HspObjectPath::Int const& path) {
-	auto&& w = writer();
+	auto& w = writer();
 	auto value = path.value(objects());
 
 	w.cat_line(strf("%-10d (0x%08X)", value, value));
 }
 
 void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
-	auto&& w = writer();
-	auto&& o = objects();
+	auto& w = writer();
+	auto& o = objects();
 
-	auto&& is_nullmod_opt = path.is_nullmod(o);
+	auto is_nullmod_opt = path.is_nullmod(o);
 	if (!is_nullmod_opt) {
 		w.cat_line(u8"<unavailable>");
 		return;
@@ -698,8 +698,8 @@ void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
 		return;
 	}
 
-	auto&& module_name = path.module_name(o);
-	auto&& is_clone_opt = path.is_clone(o);
+	auto module_name = path.module_name(o);
+	auto is_clone_opt = path.is_clone(o);
 
 	w.cat(u8".module = ");
 	write_flex_module_name(w, module_name, is_clone_opt);
@@ -714,9 +714,9 @@ void HspObjectWriterImpl::BlockForm::on_unknown(HspObjectPath::Unknown const& pa
 }
 
 void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path) {
-	auto&& w = writer();
-	auto&& o = objects();
-	auto&& name = path.name(o);
+	auto& w = writer();
+	auto& o = objects();
+	auto name = path.name(o);
 
 	auto child_count = path.visual_child_count(o);
 	if (child_count == 0) {
@@ -724,7 +724,7 @@ void HspObjectWriterImpl::BlockForm::add_name_children(HspObjectPath const& path
 		return;
 	}
 
-	auto&& first_child_opt = path.visual_child_at(0, o);
+	auto first_child_opt = path.visual_child_at(0, o);
 	assert(first_child_opt);
 	if (child_count == 1 && first_child_opt && object_path_is_compact(**first_child_opt, o)) {
 		w.cat(name.data());
@@ -778,8 +778,8 @@ void HspObjectWriterImpl::FlowForm::accept(std::optional<std::shared_ptr<HspObje
 }
 
 void HspObjectWriterImpl::FlowForm::accept_children(HspObjectPath const& path) {
-	auto&& w = writer();
-	auto&& o = objects();
+	auto& w = writer();
+	auto& o = objects();
 
 	auto child_count = path.visual_child_count(o);
 	for (auto i = std::size_t{}; i < child_count; i++) {
@@ -800,9 +800,9 @@ void HspObjectWriterImpl::FlowForm::on_ellipsis(HspObjectPath::Ellipsis const& p
 }
 
 void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const& path) {
-	auto&& w = writer();
+	auto& w = writer();
 	auto type = path.type(objects());
-	auto&& type_name = objects().type_to_name(type);
+	auto type_name = objects().type_to_name(type);
 	auto child_count = path.visual_child_count(objects());
 
 	if (!path.is_array(objects())) {
@@ -820,15 +820,15 @@ void HspObjectWriterImpl::FlowForm::on_static_var(HspObjectPath::StaticVar const
 }
 
 void HspObjectWriterImpl::FlowForm::on_label(HspObjectPath::Label const& path) {
-	auto&& o = objects();
-	auto&& w = writer();
+	auto& o = objects();
+	auto& w = writer();
 
 	if (path.is_null(o)) {
 		w.cat(u8"<null-label>");
 		return;
 	}
 
-	if (auto&& name_opt = path.static_label_name(o)) {
+	if (auto name_opt = path.static_label_name(o)) {
 		w.cat(u8"*");
 		w.cat(*name_opt);
 		return;
@@ -838,7 +838,7 @@ void HspObjectWriterImpl::FlowForm::on_label(HspObjectPath::Label const& path) {
 }
 
 void HspObjectWriterImpl::FlowForm::on_str(HspObjectPath::Str const& path) {
-	auto&& value = path.value(objects());
+	auto value = path.value(objects());
 
 	write_string_as_literal(writer(), value);
 }
@@ -852,10 +852,10 @@ void HspObjectWriterImpl::FlowForm::on_int(HspObjectPath::Int const& path) {
 }
 
 void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
-	auto&& w = writer();
-	auto&& o = objects();
+	auto& w = writer();
+	auto& o = objects();
 
-	auto&& is_nullmod_opt = path.is_nullmod(o);
+	auto is_nullmod_opt = path.is_nullmod(o);
 	if (!is_nullmod_opt) {
 		w.cat(u8"<unavailable>");
 		return;
@@ -866,13 +866,13 @@ void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
 		return;
 	}
 
-	auto&& module_name = path.module_name(o);
-	auto&& is_clone_opt = path.is_clone(o);
+	auto module_name = path.module_name(o);
+	auto is_clone_opt = path.is_clone(o);
 	write_flex_module_name(w, module_name, is_clone_opt);
 	w.cat(u8"{");
 
 	for (auto i = std::size_t{}; i < path.visual_child_count(o); i++) {
-		auto&& child_path = path.visual_child_at(i, o);
+		auto child_path = path.visual_child_at(i, o);
 
 		if (i != 0) {
 			w.cat(u8", ");
@@ -919,9 +919,9 @@ void HspObjectWriter::write_flow_form(HspObjectPath const& path) {
 // -----------------------------------------------
 
 static void write_string_as_literal_tests(Tests& tests) {
-	auto&& suite = tests.suite(u8"write_string_as_literal");
+	auto& suite = tests.suite(u8"write_string_as_literal");
 
-	auto write = [&](auto&& str) {
+	auto write = [&](Utf8StringView str) {
 		auto w = StringWriter{};
 		write_string_as_literal(w, hsx::Slice<char>{ (char const*)str.data(), str.size() });
 		return w.finish();
@@ -950,9 +950,9 @@ static void write_string_as_literal_tests(Tests& tests) {
 }
 
 static void write_array_type_tests(Tests& tests) {
-	auto&& suite = tests.suite(u8"write_array_type");
+	auto& suite = tests.suite(u8"write_array_type");
 
-	auto write = [&](auto&& type_name, auto&& var_mode, auto&& lengths) {
+	auto write = [&](Utf8StringView type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
 		auto w = StringWriter{};
 		write_array_type(w, type_name, var_mode, lengths);
 		return w.finish();
@@ -987,11 +987,11 @@ static void write_array_type_tests(Tests& tests) {
 }
 
 static void write_source_location_tests(Tests& tests) {
-	auto&& suite = tests.suite(u8"write_source_location");
+	auto& suite = tests.suite(u8"write_source_location");
 
-	auto write = [&](auto&& ...args) {
+	auto write = [&](std::optional<Utf8StringView> file_name_opt, std::optional<size_t> line_index_opt) {
 		auto w = StringWriter{};
-		write_source_location(w, args...);
+		write_source_location(w, file_name_opt, line_index_opt);
 		return w.finish();
 	};
 

@@ -156,7 +156,7 @@ public:
 
 		auto sibling_count = parent().child_count(objects);
 		for (auto i = std::size_t{}; i < sibling_count; i++) {
-			auto&& sibling = parent().child_at(i, objects);
+			auto sibling = parent().child_at(i, objects);
 			if (equals(*sibling)) {
 				return true;
 			}

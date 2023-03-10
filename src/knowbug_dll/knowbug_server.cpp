@@ -410,8 +410,8 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 			assert(source_done[si] && target_done[ti]);
 
 			if (source[si].object_id() == target[ti].object_id()) {
-				auto&& s = source[si];
-				auto&& t = target[ti];
+				auto& s = source[si];
+				auto& t = target[ti];
 				if (!s.equals(t)) {
 					diff.push_back(HspObjectListDelta::new_update(ti, target[ti]));
 				}
@@ -951,7 +951,7 @@ public:
 	}
 
 	void client_did_send_something(KnowbugMessage const& message) {
-		auto&& method = message.method();
+		auto method = message.method();
 		auto method_str = as_native(method);
 
 		if (method == as_utf8(u8"initialize_notification")) {
@@ -1193,7 +1193,7 @@ private:
 		auto diff = object_list_entity_.update(objects());
 
 		for (auto i = std::size_t{}; i < diff.size(); i++) {
-			auto&& delta = diff[i];
+			auto const& delta = diff[i];
 
 			auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"list_updated_event") });
 
@@ -1236,7 +1236,7 @@ private:
 	void send_list_details_event(std::size_t object_id) {
 		auto text_opt = std::optional<Utf8String>{};
 
-		auto&& path_opt = object_list_entity_.object_id_to_path(object_id);
+		auto path_opt = object_list_entity_.object_id_to_path(object_id);
 		if (path_opt) {
 			auto string_writer = StringWriter{};
 			HspObjectWriter{ objects(), string_writer }.write_table_form(**path_opt);

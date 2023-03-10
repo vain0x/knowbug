@@ -20,7 +20,7 @@ namespace hsx {
 	}
 
 	auto flex_to_struct(FlexValue const* flex, HSPCTX const* ctx)->std::optional<STRUCTDAT const*> {
-		auto&& struct_tag_opt = flex_to_struct_tag(flex, ctx);
+		auto struct_tag_opt = flex_to_struct_tag(flex, ctx);
 		if (!struct_tag_opt) {
 			return std::nullopt;
 		}
@@ -31,7 +31,7 @@ namespace hsx {
 	auto flex_to_member_count(FlexValue const* flex, HSPCTX const* ctx) -> std::size_t {
 		assert(flex != nullptr);
 
-		auto&& struct_opt = flex_to_struct(flex, ctx);
+		auto struct_opt = flex_to_struct(flex, ctx);
 		if (!struct_opt) {
 			return 0;
 		}
@@ -56,12 +56,12 @@ namespace hsx {
 		// 先頭の STRUCT_TAG を除いて数える。
 		auto param_index = member_index + 1;
 
-		auto&& param_stack_opt = flex_to_param_stack(flex, ctx);
+		auto param_stack_opt = flex_to_param_stack(flex, ctx);
 		if (!param_stack_opt) {
 			return std::nullopt;
 		}
 
-		auto&& param_data_opt = param_stack_to_param_data(*param_stack_opt, param_index, ctx);
+		auto param_data_opt = param_stack_to_param_data(*param_stack_opt, param_index, ctx);
 		if (!param_data_opt) {
 			assert(false && u8"Invalid member_index");
 			return std::nullopt;
@@ -71,7 +71,7 @@ namespace hsx {
 	}
 
 	auto flex_to_param_stack(FlexValue const* flex, HSPCTX const* ctx) -> std::optional<HspParamStack> {
-		auto&& struct_opt = flex_to_struct(flex, ctx);
+		auto struct_opt = flex_to_struct(flex, ctx);
 		if (!struct_opt) {
 			return std::nullopt;
 		}

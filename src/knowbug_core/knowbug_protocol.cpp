@@ -153,7 +153,7 @@ auto knowbug_protocol_serialize(KnowbugMessage const& message) -> Utf8String {
 }
 
 void knowbug_protocol_tests(Tests& tests) {
-	auto&& suite = tests.suite(u8"knowbug_protocol");
+	auto& suite = tests.suite(u8"knowbug_protocol");
 
 	suite.test(
 		u8"basic",

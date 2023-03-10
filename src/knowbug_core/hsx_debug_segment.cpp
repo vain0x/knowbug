@@ -106,7 +106,7 @@ namespace hsx {
 				auto line_number = (int)read_int16(d + di_);
 				di_ += 2;
 
-				auto&& file_ref_name_opt = data_segment_to_str(ds_index, ctx_);
+				auto file_ref_name_opt = data_segment_to_str(ds_index, ctx_);
 				if (!file_ref_name_opt) {
 					continue;
 				}
@@ -128,8 +128,8 @@ namespace hsx {
 				auto index = (int)read_int16(d + di_);
 				di_ += 2;
 
-				auto&& kind_opt = ident_kind_to_item_kind(ident_kind_);
-				auto&& name_opt = data_segment_to_str(ds_index, ctx_);
+				auto kind_opt = ident_kind_to_item_kind(ident_kind_);
+				auto name_opt = data_segment_to_str(ds_index, ctx_);
 				if (!kind_opt || !name_opt) {
 					continue;
 				}

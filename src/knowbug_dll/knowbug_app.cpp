@@ -164,7 +164,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 	// 起動処理:
 
-	if (auto&& app = g_app) {
+	if (auto app = std::shared_ptr{ g_app }) {
 		app->initialize();
 	}
 
@@ -174,14 +174,14 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	auto kind = (hsx::DebugNoticeKind)p2;
 
-	if (auto&& app_opt = g_app) {
+	if (auto app = std::shared_ptr{ g_app }) {
 		switch (kind) {
 		case hsx::DebugNoticeKind::Stop:
-			app_opt->did_hsp_pause();
+			app->did_hsp_pause();
 			break;
 
 		case hsx::DebugNoticeKind::Logmes:
-			app_opt->did_hsp_logmes(as_hsp(ctx->stmp));
+			app->did_hsp_logmes(as_hsp(ctx->stmp));
 			break;
 		}
 	}
@@ -189,8 +189,8 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4) {
 }
 
 void debugbye() {
-	if (auto&& app_opt = g_app) {
-		app_opt->will_exit();
+	if (auto app = std::shared_ptr{ g_app }) {
+		app->will_exit();
 	}
 
 	g_app.reset();
