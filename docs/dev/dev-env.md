@@ -7,8 +7,8 @@ OS: Windows 10
 以下をインストールしていると仮定します
 
 - [Git for Windows](https://gitforwindows.org/)
-- [PowerShell](https://github.com/PowerShell/PowerShell/releases/latest) (>= 6)
-- [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs)
+- [PowerShell](https://github.com/PowerShell/PowerShell/releases/latest) (>= 7)
+- [Visual Studio 2022 Community](https://visualstudio.microsoft.com/vs)
     - C++ 開発用の機能をインストールしておく
 
 ## ソリューション
@@ -47,20 +47,19 @@ knowbug_tests プロジェクトを起動するとテストが実行され、一
     - bin/server と bin/client に配置されます。
 - `MSBuild.exe` へのパスを通してください。
     - 環境変数 PATH に `MSBuild.exe` があるディレクトリへの絶対パスを追加してください。(環境変数の変更は Win+Break → システムの詳細設定 → 環境変数)
-    - `MSBuild.exe` は、Visual Studio 2019 なら `C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\` にあります。
+    - `MSBuild.exe` は、Visual Studio 2022 なら `C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Current\Bin\` にあります。
 
 ## デバッグ版のインストール
 
 ビルドで生成される DLL を指すシンボリックリンクをインストールしておくと便利です。
 
-シンボリックリンクを手動で作成するのはめんどうなので、スクリプトを用意しています。管理者用の PowerShell (バージョン 6 以上の方) を開き、以下のスクリプトを実行してください。
+シンボリックリンクを手動で作成するのはめんどうなので、スクリプトを用意しています。管理者用の PowerShell (バージョン 7 以上の方) を開き、以下のスクリプトを実行してください。
 
 ```pwsh
 ./scripts/dev-install-link.ps1
 ```
 
 インストール先の環境でスクリプトをデバッグ実行するには `./scripts/run.ps1` が使用できます。`./scripts/run-default.ps1` は `./sandbox/default.hsp` を実行します。
-
 
 ```pwsh
 ./scripts/run-default.ps1
