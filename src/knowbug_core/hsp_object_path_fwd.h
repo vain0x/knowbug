@@ -131,7 +131,7 @@ public:
 	virtual auto visual_child_at(std::size_t child_index, HspObjects& objects) const->std::optional<std::shared_ptr<HspObjectPath const>>;
 
 	// FIXME: 名前のないノードのときはどうする？
-	virtual auto name(HspObjects& objects) const->Utf8String = 0;
+	virtual auto name(HspObjects& objects) const->std::u8string = 0;
 
 	virtual bool is_array(HspObjects& objects) const {
 		return false;
@@ -257,7 +257,7 @@ protected:
 	auto new_script() const->std::shared_ptr<HspObjectPath const>;
 
 public:
-	auto new_unavailable(Utf8String&& reason) const->std::shared_ptr<HspObjectPath const>;
+	auto new_unavailable(std::u8string&& reason) const->std::shared_ptr<HspObjectPath const>;
 };
 
 static auto operator ==(HspObjectPath const& first, HspObjectPath const& second) -> bool {

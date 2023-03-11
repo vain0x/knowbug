@@ -6,7 +6,7 @@
 
 static auto const GLOBAL_MODULE_NAME = as_utf8(u8"@");
 
-static auto var_name_to_scope_resolution(Utf8StringView const& var_name) -> std::optional<Utf8StringView> {
+static auto var_name_to_scope_resolution(std::u8string_view const& var_name) -> std::optional<std::u8string_view> {
 	auto ptr = std::strchr(as_native(var_name).data(), '@');
 	if (!ptr) {
 		return std::nullopt;
@@ -15,9 +15,9 @@ static auto var_name_to_scope_resolution(Utf8StringView const& var_name) -> std:
 	return std::make_optional(as_utf8(ptr));
 }
 
-void traverse_module_tree(std::vector<Utf8String> const& var_names, ModuleTreeListener& listener) {
+void traverse_module_tree(std::vector<std::u8string> const& var_names, ModuleTreeListener& listener) {
 	// モジュール名、変数名、変数IDの組
-	auto tuples = std::vector<std::tuple<Utf8StringView, Utf8StringView, std::size_t>>{};
+	auto tuples = std::vector<std::tuple<std::u8string_view, std::u8string_view, std::size_t>>{};
 
 	{
 		for (auto vi = std::size_t{}; vi < var_names.size(); vi++) {
@@ -67,7 +67,7 @@ public:
 	{
 	}
 
-	void begin_module(Utf8StringView const& module_name) override {
+	void begin_module(std::u8string_view const& module_name) override {
 		writer_.cat_line(module_name);
 		writer_.indent();
 	}
@@ -76,7 +76,7 @@ public:
 		writer_.unindent();
 	}
 
-	void add_var(std::size_t var_id, Utf8StringView const& var_name) override {
+	void add_var(std::size_t var_id, std::u8string_view const& var_name) override {
 		writer_.cat(var_name);
 		writer_.cat(u8" #");
 		writer_.cat_size(var_id);
@@ -110,7 +110,7 @@ void module_tree_tests(Tests& tests) {
 		[&](TestCaseContext& t) {
 			auto w = StringWriter{};
 			auto listener = ModuleTreeWriter{ w };
-			auto var_names = std::vector<Utf8String>{
+			auto var_names = std::vector<std::u8string>{
 				to_owned(u8"s1@m1"),
 				to_owned(u8"t2@m2"),
 				to_owned(u8"s2@m1"),
@@ -141,7 +141,7 @@ void module_tree_tests(Tests& tests) {
 			auto w = StringWriter{};
 			auto listener = ModuleTreeWriter{ w };
 
-			traverse_module_tree(std::vector<Utf8String>{}, listener);
+			traverse_module_tree(std::vector<std::u8string>{}, listener);
 			return t.eq(as_view(w), u8"@\r\n");
 		});
 }

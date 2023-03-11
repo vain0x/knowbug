@@ -10,7 +10,7 @@
 // 文字列を構築するためのもの。
 // 自動的な字下げと文字数制限の機能を持つ。
 class StringWriter {
-	Utf8String buf_;
+	std::u8string buf_;
 
 	// 字下げの深さ
 	std::size_t depth_;
@@ -31,7 +31,7 @@ public:
 		return depth_ * 2;
 	}
 
-	auto as_view() const->Utf8StringView;
+	auto as_view() const->std::u8string_view;
 
 	void cat(std::string_view const& str) {
 		cat(as_utf8(str));
@@ -41,11 +41,11 @@ public:
 		cat_line(as_utf8(str));
 	}
 
-	void cat(Utf8StringView str) {
+	void cat(std::u8string_view str) {
 		cat_by_lines(str);
 	}
 
-	void cat_line(Utf8StringView str) {
+	void cat_line(std::u8string_view str) {
 		cat(str);
 		cat_crlf();
 	}
@@ -70,17 +70,17 @@ public:
 	// すでに書き込まれた文字列には影響しない。
 	void set_limit(std::size_t limit);
 
-	auto finish() -> Utf8String&&;
+	auto finish() -> std::u8string&&;
 
 private:
-	void cat_by_lines(Utf8StringView str);
+	void cat_by_lines(std::u8string_view str);
 
-	void cat_limited(Utf8StringView str);
+	void cat_limited(std::u8string_view str);
 
 	void cat_memory_dump_impl(void const* data, std::size_t size);
 };
 
-inline static auto as_view(StringWriter const& writer) -> Utf8StringView {
+inline static auto as_view(StringWriter const& writer) -> std::u8string_view {
 	return writer.as_view();
 }
 

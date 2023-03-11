@@ -3,11 +3,11 @@
 #include "knowbug_protocol.h"
 #include "test_suite.h"
 
-static auto char_is_space(Utf8Char c) -> bool {
+static auto char_is_space(char8_t c) -> bool {
 	return c == u8' ' || c == u8'\t';
 }
 
-static auto skip_spaces(Utf8StringView str, std::size_t start_index) -> std::size_t {
+static auto skip_spaces(std::u8string_view str, std::size_t start_index) -> std::size_t {
 	auto i = start_index;
 	while (i < str.size() && char_is_space(str[i])) {
 		i++;
@@ -15,7 +15,7 @@ static auto skip_spaces(Utf8StringView str, std::size_t start_index) -> std::siz
 	return i;
 }
 
-static auto skip_others(Utf8StringView str, std::size_t start_index, Utf8Char c) -> std::size_t {
+static auto skip_others(std::u8string_view str, std::size_t start_index, char8_t c) -> std::size_t {
 	auto i = start_index;
 	while (i < str.size() && str[i] != c && str[i] != u8'\r') {
 		i++;
@@ -23,7 +23,7 @@ static auto skip_others(Utf8StringView str, std::size_t start_index, Utf8Char c)
 	return i;
 }
 
-auto transfer_protocol_parse(Utf8String& body, Utf8String& buffer) -> bool {
+auto transfer_protocol_parse(std::u8string& body, std::u8string& buffer) -> bool {
 	auto index = std::size_t{};
 	auto content_length_opt = std::optional<std::size_t>{};
 	auto has_body = false;
@@ -63,8 +63,8 @@ auto transfer_protocol_parse(Utf8String& body, Utf8String& buffer) -> bool {
 		index = value_end + 2;
 
 		// ヘッダーを解釈する。
-		auto header_key = Utf8StringView{ buffer.data() + key_start, key_end - key_start };
-		auto header_value = Utf8StringView{ buffer.data() + value_start, value_end - value_start };
+		auto header_key = std::u8string_view{ buffer.data() + key_start, key_end - key_start };
+		auto header_value = std::u8string_view{ buffer.data() + value_start, value_end - value_start };
 
 		if (header_key == u8"Content-Length") {
 			content_length_opt = (std::size_t)std::atoll(as_native(header_value).data());
@@ -90,7 +90,7 @@ auto transfer_protocol_parse(Utf8String& body, Utf8String& buffer) -> bool {
 		return false;
 	}
 
-	body = Utf8StringView{ buffer.data() + index, *content_length_opt };
+	body = std::u8string_view{ buffer.data() + index, *content_length_opt };
 
 	// バッファーを詰める。
 	auto rest_size = buffer.size() - (index + body.size());
@@ -108,8 +108,8 @@ void transfer_protocol_tests(Tests& tests) {
 	suite.test(
 		u8"中途半端なケースとぴったりのケース",
 		[](TestCaseContext& t) {
-			auto buffer = Utf8String{};
-			auto body = Utf8String{};
+			auto buffer = std::u8string{};
+			auto body = std::u8string{};
 
 			auto success = transfer_protocol_parse(body, buffer);
 			if (!t.eq(success, false)) {
@@ -144,8 +144,8 @@ void transfer_protocol_tests(Tests& tests) {
 	suite.test(
 		u8"2つのメッセージが連結されたバッファーのパース",
 		[](TestCaseContext& t) {
-			auto buffer = Utf8String{ u8"Content-Length: 15\r\n\r\nHello, world!\r\nContent-Length: 11\r\n\r\nGood bye!\r\n" };
-			auto body = Utf8String{};
+			auto buffer = std::u8string{ u8"Content-Length: 15\r\n\r\nHello, world!\r\nContent-Length: 11\r\n\r\nGood bye!\r\n" };
+			auto body = std::u8string{};
 
 			auto success = transfer_protocol_parse(body, buffer);
 			if (!t.eq(success, true)

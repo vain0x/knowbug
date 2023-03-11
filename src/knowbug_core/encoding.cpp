@@ -10,19 +10,19 @@ static auto const CP_SJIS = 932;
 
 #ifdef HSP3_UTF8
 
-static auto cast_from_hsp(HspStringView const& source) -> Utf8StringView const& {
-	return (Utf8StringView const&)source;
+static auto cast_from_hsp(HspStringView const& source) -> std::u8string_view const& {
+	return (std::u8string_view const&)source;
 }
 
-static auto cast_from_hsp(HspString&& source) -> Utf8String&& {
-	return (Utf8String&&)source;
+static auto cast_from_hsp(HspString&& source) -> std::u8string&& {
+	return (std::u8string&&)source;
 }
 
-static auto cast_to_hsp(Utf8StringView const& source) -> HspStringView const& {
+static auto cast_to_hsp(std::u8string_view const& source) -> HspStringView const& {
 	return (HspStringView const&)source;
 }
 
-static auto cast_to_hsp(Utf8String&& source) -> HspString&& {
+static auto cast_to_hsp(std::u8string&& source) -> HspString&& {
 	return (HspString&&)source;
 }
 
@@ -73,10 +73,10 @@ static auto fail_convert_to_sjis_str() -> SjisString {
 	return SjisString{ as_sjis(u8"<invalid string>") };
 }
 
-static auto fail_convert_to_utf8_str() -> Utf8String {
+static auto fail_convert_to_utf8_str() -> std::u8string {
 	// FIXME: エラーログ？
 	assert(false && u8"can't convert to utf-8");
-	return Utf8String{ u8"<文字列を解釈できません>" };
+	return std::u8string{ u8"<文字列を解釈できません>" };
 }
 
 // 参考: https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-multibytetowidechar
@@ -107,7 +107,7 @@ static auto sjis_to_os_str(SjisChar const* sjis_str, std::size_t ansi_str_len) -
 	return os_str;
 }
 
-static auto utf8_to_os_str(Utf8Char const* utf8_str, std::size_t utf8_str_len) -> OsString {
+static auto utf8_to_os_str(char8_t const* utf8_str, std::size_t utf8_str_len) -> OsString {
 	assert(utf8_str != nullptr);
 
 	if (utf8_str_len == 0) {
@@ -158,11 +158,11 @@ static auto os_to_sjis_str(LPCTSTR os_str, std::size_t os_str_len) -> SjisString
 	return sjis_str;
 }
 
-static auto os_to_utf8_str(LPCTSTR os_str, std::size_t os_str_len) -> Utf8String {
+static auto os_to_utf8_str(LPCTSTR os_str, std::size_t os_str_len) -> std::u8string {
 	assert(os_str != nullptr);
 
 	if (os_str_len == 0) {
-		return Utf8String{};
+		return std::u8string{};
 	}
 
 	auto len = WideCharToMultiByte(CP_UTF8, 0, os_str, (int)os_str_len, nullptr, 0, nullptr, nullptr);
@@ -171,7 +171,7 @@ static auto os_to_utf8_str(LPCTSTR os_str, std::size_t os_str_len) -> Utf8String
 	}
 	assert(len > 0);
 
-	auto utf8_str = Utf8String{};
+	auto utf8_str = std::u8string{};
 	utf8_str.resize(len);
 
 	auto result = WideCharToMultiByte(CP_UTF8, 0, os_str, (int)os_str_len, (char*)utf8_str.data(), len, nullptr, nullptr);
@@ -183,19 +183,19 @@ static auto os_to_utf8_str(LPCTSTR os_str, std::size_t os_str_len) -> Utf8String
 	return utf8_str;
 }
 
-auto ascii_as_utf8(char const* source) -> Utf8StringView {
+auto ascii_as_utf8(char const* source) -> std::u8string_view {
 	assert(string_is_ascii(source));
-	return Utf8StringView{ (Utf8Char const*)source };
+	return std::u8string_view{ (char8_t const*)source };
 }
 
-auto ascii_as_utf8(std::string&& source) -> Utf8String {
+auto ascii_as_utf8(std::string&& source) -> std::u8string {
 	assert(string_is_ascii(source.data()));
-	return Utf8String{ (Utf8String&&)source };
+	return std::u8string{ (std::u8string&&)source };
 }
 
-auto ascii_to_utf8(std::string const& source) -> Utf8String {
+auto ascii_to_utf8(std::string const& source) -> std::u8string {
 	assert(string_is_ascii(source.data()));
-	return Utf8String{ (Utf8String const&)source };
+	return std::u8string{ (std::u8string const&)source };
 }
 
 auto as_hsp(char const* str) -> HspStringView {
@@ -234,7 +234,7 @@ auto to_hsp(SjisStringView source) -> HspString {
 #endif
 }
 
-auto to_hsp(Utf8StringView source) -> HspString {
+auto to_hsp(std::u8string_view source) -> HspString {
 #ifdef HSP3_UTF8
 	return cast_to_hsp(to_owned(source));
 #else
@@ -270,7 +270,7 @@ auto to_sjis(OsStringView source) -> SjisString {
 	return os_to_sjis_str(source.data(), source.size());
 }
 
-auto to_sjis(Utf8StringView source) -> SjisString {
+auto to_sjis(std::u8string_view source) -> SjisString {
 	return to_sjis(to_os(source));
 }
 
@@ -282,27 +282,27 @@ auto to_os(SjisStringView source) -> OsString {
 	return sjis_to_os_str(source.data(), source.size());
 }
 
-auto to_os(Utf8StringView source) -> OsString {
+auto to_os(std::u8string_view source) -> OsString {
 	return utf8_to_os_str(source.data(), source.size());
 }
 
-auto as_utf8(char const* str) -> Utf8StringView {
-	return Utf8StringView{ (Utf8Char const*)str };
+auto as_utf8(char const* str) -> std::u8string_view {
+	return std::u8string_view{ (char8_t const*)str };
 }
 
-auto as_utf8(char8_t const* str) -> Utf8StringView {
-	return Utf8StringView{ (Utf8Char const*)str };
+auto as_utf8(char8_t const* str) -> std::u8string_view {
+	return std::u8string_view{ (char8_t const*)str };
 }
 
-auto as_utf8(std::string_view str) -> Utf8StringView {
-	return Utf8StringView{ (Utf8StringView const&)str };
+auto as_utf8(std::string_view str) -> std::u8string_view {
+	return std::u8string_view{ (std::u8string_view const&)str };
 }
 
-auto as_utf8(std::string&& source) -> Utf8String {
-	return Utf8String{ (Utf8String&&)source };
+auto as_utf8(std::string&& source) -> std::u8string {
+	return std::u8string{ (std::u8string&&)source };
 }
 
-auto to_utf8(HspStringView source) -> Utf8String {
+auto to_utf8(HspStringView source) -> std::u8string {
 #ifdef HSP3_UTF8
 	return to_owned(cast_from_hsp(source));
 #else
@@ -310,10 +310,10 @@ auto to_utf8(HspStringView source) -> Utf8String {
 #endif
 }
 
-auto to_utf8(OsStringView source) -> Utf8String {
+auto to_utf8(OsStringView source) -> std::u8string {
 	return os_to_utf8_str(source.data(), source.size());
 }
 
-auto to_utf8(SjisStringView source) -> Utf8String {
+auto to_utf8(SjisStringView source) -> std::u8string {
 	return to_utf8(to_os(source));
 }

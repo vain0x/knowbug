@@ -26,7 +26,7 @@ static auto const MISSING_FILE_CONTENT = to_owned(u8"ファイルが見つかり
 
 static auto const MISSING_FILE_LINE = to_owned(u8"???");
 
-auto indexes_to_string(hsx::HspDimIndex const& indexes) -> Utf8String {
+auto indexes_to_string(hsx::HspDimIndex const& indexes) -> std::u8string {
 	auto ss = std::stringstream{};
 	ss << '(';
 	for (auto i = std::size_t{}; i < indexes.dim(); ++i) {
@@ -39,15 +39,15 @@ auto indexes_to_string(hsx::HspDimIndex const& indexes) -> Utf8String {
 	return as_utf8(ss.str());
 }
 
-auto var_name_to_bare_ident(Utf8StringView const& str) -> Utf8StringView {
+auto var_name_to_bare_ident(std::u8string_view const& str) -> std::u8string_view {
 	auto atmark = str.find(u8'@');
-	return atmark != Utf8String::npos
+	return atmark != std::u8string::npos
 		? str.substr(0, atmark)
 		: str;
 }
 
 // 変数をモジュールごとに分類する。
-static auto group_vars_by_module(std::vector<Utf8String> const& var_names) -> std::vector<HspObjects::Module> {
+static auto group_vars_by_module(std::vector<std::u8string> const& var_names) -> std::vector<HspObjects::Module> {
 	class ModuleTreeBuilder
 		: public ModuleTreeListener
 	{
@@ -59,14 +59,14 @@ static auto group_vars_by_module(std::vector<Utf8String> const& var_names) -> st
 		{
 		}
 
-		void begin_module(Utf8StringView const& module_name) override {
+		void begin_module(std::u8string_view const& module_name) override {
 			modules_.emplace_back(HspObjects::Module{ to_owned(module_name) });
 		}
 
 		void end_module() override {
 		}
 
-		void add_var(std::size_t var_id, Utf8StringView const& var_name) override {
+		void add_var(std::size_t var_id, std::u8string_view const& var_name) override {
 			modules_.back().add_var(var_id);
 		}
 	};
@@ -92,7 +92,7 @@ static auto create_type_datas() -> std::vector<HspObjects::TypeData> {
 	return types;
 }
 
-static auto create_general_content(HSP3DEBUG* debug) -> Utf8String {
+static auto create_general_content(HSP3DEBUG* debug) -> std::u8string {
 	auto buffer = std::stringstream{};
 
 	auto general_info = hsx::debug_to_general_info(debug);
@@ -618,7 +618,7 @@ public:
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HSP3DEBUG* debug, std::vector<Utf8String>&& var_names, std::vector<HspObjects::Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger)
+HspObjects::HspObjects(HSP3DEBUG* debug, std::vector<std::u8string>&& var_names, std::vector<HspObjects::Module>&& modules, std::unordered_map<hsx::HspLabel, std::u8string>&& label_names, std::unordered_map<STRUCTPRM const*, std::u8string>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger)
 	: debug_(debug)
 	, source_file_repository_(std::move(source_file_repository))
 	, root_path_(std::make_shared<HspObjectPath::Root>())
@@ -652,7 +652,7 @@ auto HspObjects::path_to_memory_view(HspObjectPath const& path) const->std::opti
 	return (::path_to_memory_view(path, MIN_DEPTH, context()));
 }
 
-auto HspObjects::type_to_name(hsx::HspType type) const->Utf8StringView {
+auto HspObjects::type_to_name(hsx::HspType type) const->std::u8string_view {
 	auto type_id = (std::size_t)type;
 	if (!(1 <= type_id && type_id < types_.size())) {
 		return types_[0].name();
@@ -668,7 +668,7 @@ auto HspObjects::module_count() const->std::size_t {
 	return modules_.size();
 }
 
-auto HspObjects::module_to_name(std::size_t module_id) const -> Utf8StringView {
+auto HspObjects::module_to_name(std::size_t module_id) const -> std::u8string_view {
 	return modules_.at(module_id).name();
 }
 
@@ -685,7 +685,7 @@ auto HspObjects::module_to_var_at(std::size_t module_id, std::size_t index) cons
 	return modules_.at(module_id).var_ids().at(index);
 }
 
-auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->Utf8String {
+auto HspObjects::static_var_path_to_name(HspObjectPath::StaticVar const& path)->std::u8string {
 	if (path.static_var_id() >= var_names_.size()) {
 		return to_owned(u8"???");
 	}
@@ -783,7 +783,7 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 	}
 }
 
-auto HspObjects::element_path_to_name(HspObjectPath::Element const& path) const -> Utf8String {
+auto HspObjects::element_path_to_name(HspObjectPath::Element const& path) const -> std::u8string {
 	return indexes_to_string(path.indexes());
 }
 
@@ -875,7 +875,7 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 	}
 }
 
-auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> Utf8String {
+auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> std::u8string {
 	auto param_data_opt = param_path_to_param_data(path, MIN_DEPTH, context());
 	if (!param_data_opt) {
 		return to_owned(u8"<unavailable>");
@@ -908,7 +908,7 @@ bool HspObjects::label_path_is_null(HspObjectPath::Label const& path) const {
 	return *label_opt == nullptr;
 }
 
-auto HspObjects::label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<Utf8String> {
+auto HspObjects::label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<std::u8string> {
 	auto label_opt = label_path_to_value(path, context());
 	if (!label_opt) {
 		return std::nullopt;
@@ -1000,7 +1000,7 @@ auto HspObjects::flex_path_is_clone(HspObjectPath::Flex const& path) -> std::opt
 	return std::make_optional(hsx::flex_is_clone(*flex_opt));
 }
 
-auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String {
+auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> std::u8string {
 	auto flex_opt = flex_path_to_value(path, MIN_DEPTH, context());
 	if (!flex_opt || hsx::flex_is_nullmod(*flex_opt)) {
 		return to_owned(u8"null");
@@ -1072,7 +1072,7 @@ auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& pat
 	}
 }
 
-auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> Utf8String {
+auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::u8string {
 	switch (path.system_var_kind()) {
 	case hsx::HspSystemVarKind::Cnt:
 		return to_owned(u8"cnt");
@@ -1124,7 +1124,7 @@ auto HspObjects::call_stack_path_to_call_frame_key_at(HspObjectPath::CallStack c
 	return wc_call_frame_key_at(call_frame_index);
 }
 
-auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String> {
+auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<std::u8string> {
 	auto call_frame_opt = wc_call_frame_get(path.key());
 	if (!call_frame_opt) {
 		return std::nullopt;
@@ -1163,7 +1163,7 @@ auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& pat
 	return std::make_optional(path.new_param(param_type, param_data_opt->param_index()));
 }
 
-auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<Utf8StringView>> {
+auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<std::u8string_view>> {
 	auto call_frame_opt = wc_call_frame_get(path.key());
 	if (!call_frame_opt) {
 		return std::nullopt;
@@ -1171,7 +1171,7 @@ auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& pa
 
 	auto params = hsx::struct_to_params(call_frame_opt->get().struct_dat(), context());
 
-	auto names = std::vector<Utf8StringView>{};
+	auto names = std::vector<std::u8string_view>{};
 	for (auto&& param : params) {
 		auto name = hsx::param_type_to_name(hsx::param_to_type(&param)).value_or("???");
 		names.emplace_back(as_utf8(name));
@@ -1180,7 +1180,7 @@ auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& pa
 	return std::make_optional(std::move(names));
 }
 
-auto HspObjects::call_frame_path_to_full_path(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8StringView> {
+auto HspObjects::call_frame_path_to_full_path(HspObjectPath::CallFrame const& path) const -> std::optional<std::u8string_view> {
 	auto call_frame_opt = wc_call_frame_get(path.key());
 	if (!call_frame_opt) {
 		return std::nullopt;
@@ -1209,15 +1209,15 @@ auto HspObjects::call_frame_path_to_line_index(HspObjectPath::CallFrame const& p
 	return std::make_optional(call_frame_opt->get().line_index());
 }
 
-auto HspObjects::general_to_content() -> Utf8String {
+auto HspObjects::general_to_content() -> std::u8string {
 	return create_general_content(debug());
 }
 
-auto HspObjects::log_to_content() const -> Utf8StringView {
+auto HspObjects::log_to_content() const -> std::u8string_view {
 	return log_;
 }
 
-void HspObjects::log_do_append(Utf8StringView const& text) {
+void HspObjects::log_do_append(std::u8string_view const& text) {
 	log_ += text;
 }
 
@@ -1234,7 +1234,7 @@ auto HspObjects::script_to_full_path() const -> std::optional<OsStringView> {
 	return source_file_repository_->file_ref_name_to_full_path(*file_ref_name_opt);
 }
 
-auto HspObjects::script_to_content() const -> Utf8StringView {
+auto HspObjects::script_to_content() const -> std::u8string_view {
 	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or("");
 	return source_file_repository_->file_ref_name_to_content(file_ref_name).value_or(MISSING_FILE_CONTENT);
 }
@@ -1253,7 +1253,7 @@ auto HspObjects::script_to_current_line() const -> std::size_t {
 	return hsx::debug_to_line_index(debug());
 }
 
-auto HspObjects::script_to_current_location_summary() const -> Utf8String {
+auto HspObjects::script_to_current_location_summary() const -> std::u8string {
 	// FIXME: 長すぎるときは切る
 	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or("hsptmp");
 	auto line_index = script_to_current_line();
@@ -1269,11 +1269,11 @@ void HspObjects::script_do_update_location() {
 	hsx::debug_do_update_location(debug());
 }
 
-auto HspObjects::source_file_to_full_path(std::size_t source_file_id) const->std::optional<Utf8StringView> {
+auto HspObjects::source_file_to_full_path(std::size_t source_file_id) const->std::optional<std::u8string_view> {
 	return source_file_repository_->file_to_full_path_as_utf8(SourceFileId{ source_file_id });
 }
 
-auto HspObjects::source_file_to_content(std::size_t source_file_id) const->std::optional<Utf8StringView> {
+auto HspObjects::source_file_to_content(std::size_t source_file_id) const->std::optional<std::u8string_view> {
 	return source_file_repository_->file_to_content(SourceFileId{ source_file_id });
 }
 
@@ -1285,7 +1285,7 @@ auto HspObjects::context() const -> HSPCTX const* {
 // HspObjects::Module
 // -----------------------------------------------
 
-HspObjects::Module::Module(Utf8String&& name)
+HspObjects::Module::Module(std::u8string&& name)
 	: name_(std::move(name))
 	, var_ids_()
 {
@@ -1299,7 +1299,7 @@ void HspObjects::Module::add_var(std::size_t static_var_id) {
 // HspObjects::TypeData
 // -----------------------------------------------
 
-HspObjects::TypeData::TypeData(Utf8String&& name)
+HspObjects::TypeData::TypeData(std::u8string&& name)
 	: name_(std::move(name))
 {
 }

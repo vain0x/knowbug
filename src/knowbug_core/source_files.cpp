@@ -7,8 +7,8 @@
 #include "string_split.h"
 
 // 改行コードを CRLF に固定する。
-static auto normalize_lines(Utf8StringView text) -> Utf8String {
-	auto output = Utf8String{};
+static auto normalize_lines(std::u8string_view text) -> std::u8string {
+	auto output = std::u8string{};
 	auto first = true;
 
 	for (auto&& line : StringLines{ text }) {
@@ -289,7 +289,7 @@ auto SourceFileRepository::file_ref_name_to_full_path(char const* file_ref_name)
 	return file_to_full_path(*file_id_opt);
 }
 
-auto SourceFileRepository::file_ref_name_to_content(char const* file_ref_name)->std::optional<Utf8StringView> {
+auto SourceFileRepository::file_ref_name_to_content(char const* file_ref_name)->std::optional<std::u8string_view> {
 	auto file_id_opt = file_ref_name_to_file_id(file_ref_name);
 	if (!file_id_opt) {
 		return std::nullopt;
@@ -298,7 +298,7 @@ auto SourceFileRepository::file_ref_name_to_content(char const* file_ref_name)->
 	return file_to_content(*file_id_opt);
 }
 
-auto SourceFileRepository::file_ref_name_to_line_at(char const* file_ref_name, std::size_t line_index)->std::optional<Utf8StringView> {
+auto SourceFileRepository::file_ref_name_to_line_at(char const* file_ref_name, std::size_t line_index)->std::optional<std::u8string_view> {
 	auto file_id_opt = file_ref_name_to_file_id(file_ref_name);
 	if (!file_id_opt) {
 		return std::nullopt;
@@ -316,7 +316,7 @@ auto SourceFileRepository::file_to_full_path(SourceFileId const& file_id) const-
 	return std::make_optional(source_files_[file_id.id()].full_path());
 }
 
-auto SourceFileRepository::file_to_full_path_as_utf8(SourceFileId const& file_id) const->std::optional<Utf8StringView> {
+auto SourceFileRepository::file_to_full_path_as_utf8(SourceFileId const& file_id) const->std::optional<std::u8string_view> {
 	if (file_id.id() >= source_files_.size()) {
 		assert(false && u8"unknown source file id");
 		return std::nullopt;
@@ -325,7 +325,7 @@ auto SourceFileRepository::file_to_full_path_as_utf8(SourceFileId const& file_id
 	return std::make_optional(source_files_[file_id.id()].full_path_as_utf8());
 }
 
-auto SourceFileRepository::file_to_content(SourceFileId const& file_id) -> std::optional<Utf8StringView> {
+auto SourceFileRepository::file_to_content(SourceFileId const& file_id) -> std::optional<std::u8string_view> {
 	if (file_id.id() >= source_files_.size()) {
 		assert(false && u8"unknown source file id");
 		return std::nullopt;
@@ -334,7 +334,7 @@ auto SourceFileRepository::file_to_content(SourceFileId const& file_id) -> std::
 	return std::make_optional(source_files_[file_id.id()].content());
 }
 
-auto SourceFileRepository::file_to_line_at(SourceFileId const& file_id, std::size_t line_index) -> std::optional<Utf8StringView> {
+auto SourceFileRepository::file_to_line_at(SourceFileId const& file_id, std::size_t line_index) -> std::optional<std::u8string_view> {
 	if (file_id.id() >= source_files_.size()) {
 		assert(false && u8"unknown source file id");
 		return std::nullopt;
@@ -343,7 +343,7 @@ auto SourceFileRepository::file_to_line_at(SourceFileId const& file_id, std::siz
 	return source_files_[file_id.id()].line_at(line_index);
 }
 
-static auto load_text_file(OsString const& file_path, FileSystemApi& fs) -> Utf8String {
+static auto load_text_file(OsString const& file_path, FileSystemApi& fs) -> std::u8string {
 	auto content_opt = fs.read_all_text(file_path);
 	if (!content_opt) {
 		// デバッグログなどに出力する？
@@ -354,13 +354,13 @@ static auto load_text_file(OsString const& file_path, FileSystemApi& fs) -> Utf8
 	return to_utf8(as_hsp(std::move(*content_opt)));
 }
 
-static auto char_is_whitespace(Utf8Char c) -> bool {
+static auto char_is_whitespace(char8_t c) -> bool {
 	return c == u8' ' || c == u8'\t';
 }
 
 // 行ごとに分割する。ただし各行の字下げは除外する。
-static auto split_by_lines(Utf8StringView const& str) -> std::vector<Utf8StringView> {
-	auto lines = std::vector<Utf8StringView>{};
+static auto split_by_lines(std::u8string_view const& str) -> std::vector<std::u8string_view> {
+	auto lines = std::vector<std::u8string_view>{};
 
 	for (auto&& line : StringLines{ str }) {
 		auto i = std::size_t{};
@@ -388,13 +388,13 @@ SourceFile::SourceFile(OsString&& full_path, FileSystemApi& fs)
 {
 }
 
-auto SourceFile::content() -> Utf8StringView {
+auto SourceFile::content() -> std::u8string_view {
 	load();
 
 	return content_;
 }
 
-auto SourceFile::line_at(std::size_t line_index) -> std::optional<Utf8StringView> {
+auto SourceFile::line_at(std::size_t line_index) -> std::optional<std::u8string_view> {
 	load();
 
 	if (line_index >= lines_.size()) {

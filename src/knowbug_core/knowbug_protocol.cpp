@@ -6,11 +6,11 @@
 #include "test_suite.h"
 #include "transfer_protocol.h"
 
-static auto char_is_space(Utf8Char c) -> bool {
+static auto char_is_space(char8_t c) -> bool {
 	return c == u8' ' || c == u8'\t';
 }
 
-static auto string_trim_start(Utf8StringView str) -> Utf8StringView {
+static auto string_trim_start(std::u8string_view str) -> std::u8string_view {
 	auto i = std::size_t{};
 	while (i < str.size() && char_is_space(str[i])) {
 		i++;
@@ -18,7 +18,7 @@ static auto string_trim_start(Utf8StringView str) -> Utf8StringView {
 	return str.substr(i);
 }
 
-static auto string_trim_end(Utf8StringView str) -> Utf8StringView {
+static auto string_trim_end(std::u8string_view str) -> std::u8string_view {
 	auto len = str.size();
 	while (len >= 1 && char_is_space(str[len - 1])) {
 		len--;
@@ -26,11 +26,11 @@ static auto string_trim_end(Utf8StringView str) -> Utf8StringView {
 	return str.substr(0, len);
 }
 
-static auto string_trim(Utf8StringView str) -> Utf8StringView {
+static auto string_trim(std::u8string_view str) -> std::u8string_view {
 	return string_trim_start(string_trim_end(str));
 }
 
-static auto parse_hex_digit(Utf8Char c) -> std::size_t {
+static auto parse_hex_digit(char8_t c) -> std::size_t {
 	if (u8'0' <= c && c <= u8'9') {
 		return (std::size_t)(c - u8'0');
 	}
@@ -47,8 +47,8 @@ static auto parse_hex_digit(Utf8Char c) -> std::size_t {
 	return std::size_t{};
 }
 
-static auto escape(Utf8StringView str) -> Utf8String {
-	auto output = Utf8String{};
+static auto escape(std::u8string_view str) -> std::u8string {
+	auto output = std::u8string{};
 
 	auto i = std::size_t{};
 	auto last = i;
@@ -70,8 +70,8 @@ static auto escape(Utf8StringView str) -> Utf8String {
 	return output;
 }
 
-static auto unescape(Utf8StringView str) -> Utf8String {
-	auto output = Utf8String{};
+static auto unescape(std::u8string_view str) -> std::u8string {
+	auto output = std::u8string{};
 
 	auto i = std::size_t{};
 	auto last = i;
@@ -85,7 +85,7 @@ static auto unescape(Utf8StringView str) -> Utf8String {
 			auto x1 = parse_hex_digit(str[i + 2]);
 			auto x2 = parse_hex_digit(str[i + 3]);
 
-			auto c = (Utf8Char)((x1 * 16) | x2);
+			auto c = (char8_t)((x1 * 16) | x2);
 			output.push_back(c);
 
 			i += 4;
@@ -100,8 +100,8 @@ static auto unescape(Utf8StringView str) -> Utf8String {
 	return output;
 }
 
-auto knowbug_protocol_parse(Utf8String& buffer)->std::optional<KnowbugMessage> {
-	auto body = Utf8String{};
+auto knowbug_protocol_parse(std::u8string& buffer)->std::optional<KnowbugMessage> {
+	auto body = std::u8string{};
 
 	if (!transfer_protocol_parse(body, buffer)) {
 		return std::nullopt;
@@ -109,20 +109,20 @@ auto knowbug_protocol_parse(Utf8String& buffer)->std::optional<KnowbugMessage> {
 
 	auto message = KnowbugMessage{};
 
-	for (auto&& line : StringLines<Utf8Char>{ body }) {
+	for (auto&& line : StringLines<char8_t>{ body }) {
 		auto trimmed_line = string_trim(line);
 		if (trimmed_line.empty()) {
 			continue;
 		}
 
 		auto colon = trimmed_line.find(u8'=');
-		if (colon == Utf8String::npos) {
+		if (colon == std::u8string::npos) {
 			assert(false && u8"missing = in line");
 			continue;
 		}
 
-		auto key = Utf8String{ string_trim(trimmed_line.substr(0, colon)) };
-		auto value = Utf8String{ string_trim(trimmed_line.substr(colon + 1)) };
+		auto key = std::u8string{ string_trim(trimmed_line.substr(0, colon)) };
+		auto value = std::u8string{ string_trim(trimmed_line.substr(colon + 1)) };
 
 		message.insert(unescape(key), unescape(value));
 	}
@@ -135,8 +135,8 @@ auto knowbug_protocol_parse(Utf8String& buffer)->std::optional<KnowbugMessage> {
 	return message;
 }
 
-auto knowbug_protocol_serialize(KnowbugMessage const& message) -> Utf8String {
-	auto body = Utf8String{};
+auto knowbug_protocol_serialize(KnowbugMessage const& message) -> std::u8string {
+	auto body = std::u8string{};
 	for (auto&& pair : message) {
 		body += escape(pair.first);
 		body += u8" = ";
@@ -144,7 +144,7 @@ auto knowbug_protocol_serialize(KnowbugMessage const& message) -> Utf8String {
 		body += u8"\r\n";
 	}
 
-	auto output = Utf8String{};
+	auto output = std::u8string{};
 	output += u8"Content-Length: ";
 	output += as_utf8(std::to_string(body.size()));
 	output += u8"\r\n\r\n";
@@ -160,18 +160,18 @@ void knowbug_protocol_tests(Tests& tests) {
 		[](TestCaseContext& t) {
 			auto message = KnowbugMessage{};
 			message.insert(
-				Utf8String{ u8"method" },
-				Utf8String{ u8"foo_event" }
+				std::u8string{ u8"method" },
+				std::u8string{ u8"foo_event" }
 			);
 
 			message.insert(
-				Utf8String{ u8"assignment" },
-				Utf8String{ u8"yen = \"\\\"" }
+				std::u8string{ u8"assignment" },
+				std::u8string{ u8"yen = \"\\\"" }
 			);
 
 			message.insert(
-				Utf8String{ u8"crlf" },
-				Utf8String{ u8"\r\n" }
+				std::u8string{ u8"crlf" },
+				std::u8string{ u8"\r\n" }
 			);
 
 			auto output = knowbug_protocol_serialize(message);
@@ -186,7 +186,7 @@ void knowbug_protocol_tests(Tests& tests) {
 	suite.test(
 		u8"basic",
 		[](TestCaseContext& t) {
-			auto buffer = Utf8String{ u8"Content-Length: 79\r\n\r\nmethod = foo_event\r\nassignment = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\r\ncrlf = \\x0d\\x0a\r\n" };
+			auto buffer = std::u8string{ u8"Content-Length: 79\r\n\r\nmethod = foo_event\r\nassignment = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\r\ncrlf = \\x0d\\x0a\r\n" };
 			auto message_opt = knowbug_protocol_parse(buffer);
 
 			auto method = as_native(message_opt->method());

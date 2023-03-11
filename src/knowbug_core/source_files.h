@@ -101,17 +101,17 @@ public:
 
 	auto file_ref_name_to_full_path(char const* file_ref_name) const->std::optional<OsStringView>;
 
-	auto file_ref_name_to_content(char const* file_ref_name)->std::optional<Utf8StringView>;
+	auto file_ref_name_to_content(char const* file_ref_name)->std::optional<std::u8string_view>;
 
-	auto file_ref_name_to_line_at(char const* file_ref_name, std::size_t line_index)->std::optional<Utf8StringView>;
+	auto file_ref_name_to_line_at(char const* file_ref_name, std::size_t line_index)->std::optional<std::u8string_view>;
 
 	auto file_to_full_path(SourceFileId const& file_id) const->std::optional<OsStringView>;
 
-	auto file_to_full_path_as_utf8(SourceFileId const& file_id) const->std::optional<Utf8StringView>;
+	auto file_to_full_path_as_utf8(SourceFileId const& file_id) const->std::optional<std::u8string_view>;
 
-	auto file_to_content(SourceFileId const& file_id)->std::optional<Utf8StringView>;
+	auto file_to_content(SourceFileId const& file_id)->std::optional<std::u8string_view>;
 
-	auto file_to_line_at(SourceFileId const& file_id, std::size_t line_index)->std::optional<Utf8StringView>;
+	auto file_to_line_at(SourceFileId const& file_id, std::size_t line_index)->std::optional<std::u8string_view>;
 };
 
 // ソースファイルの管理番号
@@ -136,11 +136,11 @@ public:
 		return files.file_to_full_path(*this);
 	}
 
-	auto content(SourceFileRepository& files) const -> std::optional<Utf8StringView> {
+	auto content(SourceFileRepository& files) const -> std::optional<std::u8string_view> {
 		return files.file_to_content(*this);
 	}
 
-	auto line_at(std::size_t line_index, SourceFileRepository& files) const -> std::optional<Utf8StringView> {
+	auto line_at(std::size_t line_index, SourceFileRepository& files) const -> std::optional<std::u8string_view> {
 		return files.file_to_line_at(*this, line_index);
 	}
 };
@@ -149,7 +149,7 @@ public:
 class SourceFile {
 	OsString full_path_;
 
-	Utf8String full_path_as_utf8_;
+	std::u8string full_path_as_utf8_;
 
 	// ソースファイルの内容を読むべきファイルの絶対パス。
 	std::optional<OsString> content_file_path_;
@@ -159,10 +159,10 @@ class SourceFile {
 
 	// ソースファイルの中身。loaded_=true のときだけ有効。
 	// 最初に参照される際にロードする。
-	Utf8String content_;
+	std::u8string content_;
 
 	// ソースファイルの中身を行ごとに分割し、字下げを取り除いたもの。
-	std::vector<Utf8StringView> lines_;
+	std::vector<std::u8string_view> lines_;
 
 	FileSystemApi& fs_;
 
@@ -175,15 +175,15 @@ public:
 	}
 
 	// 絶対パス (UTF-8 エンコーディング)
-	auto full_path_as_utf8() const -> Utf8StringView {
+	auto full_path_as_utf8() const -> std::u8string_view {
 		return full_path_as_utf8_;
 	}
 
 	// ソースファイルの中身を取得する。
-	auto content()->Utf8StringView;
+	auto content()->std::u8string_view;
 
 	// ソースファイルの指定した行の文字列 (字下げを除く) を取得する。
-	auto line_at(std::size_t line_index)->std::optional<Utf8StringView>;
+	auto line_at(std::size_t line_index)->std::optional<std::u8string_view>;
 
 	auto set_content_file_path(OsString&& content_file_path) {
 		content_file_path_ = std::move(content_file_path);

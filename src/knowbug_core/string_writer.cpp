@@ -22,11 +22,11 @@ auto StringWriter::is_full() const -> bool {
 	return limit_ == 0;
 }
 
-auto StringWriter::as_view() const -> Utf8StringView {
+auto StringWriter::as_view() const -> std::u8string_view {
 	return buf_;
 }
 
-auto StringWriter::finish() -> Utf8String&& {
+auto StringWriter::finish() -> std::u8string&& {
 	return std::move(buf_);
 }
 
@@ -51,7 +51,7 @@ void StringWriter::set_limit(std::size_t limit) {
 
 // バッファの末尾に文字列を追加する。
 // 文字列制限が上限に達したら打ち切る。
-void StringWriter::cat_limited(Utf8StringView str) {
+void StringWriter::cat_limited(std::u8string_view str) {
 	if (is_full()) {
 		return;
 	}
@@ -75,7 +75,7 @@ void StringWriter::cat_limited(Utf8StringView str) {
 
 // バッファの末尾に文字列を追加する。
 // 行ごとに分割して適切に字下げを挿入する。
-void StringWriter::cat_by_lines(Utf8StringView str) {
+void StringWriter::cat_by_lines(std::u8string_view str) {
 	auto first = true;
 
 	for (auto&& line : StringLines{ str }) {
@@ -248,7 +248,7 @@ void string_writer_tests(Tests& tests) {
 			auto t2 = as_utf8(u8"わかよたれそつねならむ");
 			auto size = t1.size() + 1 + t2.size() + 2;
 
-			auto buf = std::vector<Utf8Char>{};
+			auto buf = std::vector<char8_t>{};
 			buf.resize(size, u8'\0');
 			std::copy(t1.begin(), t1.end(), &buf[0]);
 			std::copy(t2.begin(), t2.end(), &buf[t1.size() + 1]);
