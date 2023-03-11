@@ -17,7 +17,7 @@ namespace hsx {
 
 	auto debug_to_file_ref_name(HSP3DEBUG const* debug) -> std::optional<char const*> {
 		auto file_ref_name = debug->fname;
-		if (file_ref_name == nullptr || std::strcmp(file_ref_name, u8"???") == 0) {
+		if (file_ref_name == nullptr || std::strcmp(file_ref_name, "???") == 0) {
 			return std::nullopt;
 		}
 		return std::make_optional(file_ref_name);

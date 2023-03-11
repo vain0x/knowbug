@@ -379,6 +379,7 @@
     <ClInclude Include="string_writer.h" />
     <ClInclude Include="test_suite.h" />
     <ClInclude Include="transfer_protocol.h" />
+    <ClInclude Include="utf8_ostream.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\cppformat\cppformat\format.cc">

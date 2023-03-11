@@ -76,7 +76,7 @@ static auto fail_convert_to_sjis_str() -> SjisString {
 static auto fail_convert_to_utf8_str() -> Utf8String {
 	// FIXME: エラーログ？
 	assert(false && u8"can't convert to utf-8");
-	return Utf8String{ as_utf8(u8"<文字列を解釈できません>") };
+	return Utf8String{ u8"<文字列を解釈できません>" };
 }
 
 // 参考: https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-multibytetowidechar
@@ -246,6 +246,10 @@ auto as_sjis(char const* str) -> SjisStringView {
 	return SjisStringView{ (SjisChar const*)str };
 }
 
+auto as_sjis(char8_t const* str) -> SjisStringView {
+	return SjisStringView{ (SjisChar const*)str };
+}
+
 auto as_sjis(std::string_view str) -> SjisStringView {
 	return SjisStringView{ (SjisStringView const&)str };
 }
@@ -283,6 +287,10 @@ auto to_os(Utf8StringView source) -> OsString {
 }
 
 auto as_utf8(char const* str) -> Utf8StringView {
+	return Utf8StringView{ (Utf8Char const*)str };
+}
+
+auto as_utf8(char8_t const* str) -> Utf8StringView {
 	return Utf8StringView{ (Utf8Char const*)str };
 }
 

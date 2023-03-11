@@ -62,11 +62,8 @@ enum class SjisChar
 };
 
 // UTF-8 エンコーディングされた文字列の要素 (バイト)
-// NOTE: char8_t が存在しなかった時代のため
-enum class Utf8Char
-	: char
-{
-};
+// NOTE: char8_t が存在しなかったバージョンでは enum class として定義されていた。今後、char8_t を使うように書き換えてよい
+using Utf8Char = char8_t;
 
 // HSP ランタイムが使うエンコーディングの文字列。
 using HspString = std::basic_string<HspChar>;
@@ -89,56 +86,44 @@ using SjisString = std::basic_string<SjisChar>;
 using SjisStringView = std::basic_string_view<SjisChar>;
 
 // UTF-8 でエンコーディングされた文字列。
-using Utf8String = std::basic_string<Utf8Char>;
+using Utf8String = std::u8string;
 
 // UTF-8 文字列への参照。
-using Utf8StringView = std::basic_string_view<Utf8Char>;
+using Utf8StringView = std::u8string_view;
 
 // ASCII 文字列を UTF-8 エンコーディングとみなす。
 extern auto ascii_as_utf8(char const* source) -> Utf8StringView;
 
 extern auto ascii_as_utf8(std::string&& source) -> Utf8String;
-
 extern auto ascii_to_utf8(std::string const& source) -> Utf8String;
 
 extern auto as_hsp(char const* str) -> HspStringView;
-
 extern auto as_hsp(std::string_view str) -> HspStringView;
-
 extern auto as_hsp(std::string&& str) -> HspString;
 
 extern auto to_hsp(OsStringView source) -> HspString;
-
 extern auto to_hsp(SjisStringView source) -> HspString;
-
 extern auto to_hsp(Utf8StringView source) -> HspString;
 
 extern auto to_os(HspStringView source) -> OsString;
-
 extern auto to_os(SjisStringView source) -> OsString;
-
 extern auto to_os(Utf8StringView source) -> OsString;
 
 extern auto as_sjis(char const* str) -> SjisStringView;
-
+extern auto as_sjis(char8_t const* str) -> SjisStringView;
 extern auto as_sjis(std::string_view str) -> SjisStringView;
-
 extern auto as_sjis(std::string&& source) -> SjisString;
 
 extern auto to_sjis(HspStringView source) -> SjisString;
-
 extern auto to_sjis(OsStringView source) -> SjisString;
-
 extern auto to_sjis(Utf8StringView source) -> SjisString;
 
 extern auto as_utf8(char const* str) -> Utf8StringView;
-
+extern auto as_utf8(char8_t const* str) -> Utf8StringView;
 extern auto as_utf8(std::string_view str) -> Utf8StringView;
-
 extern auto as_utf8(std::string&& source) -> Utf8String;
 
 extern auto to_utf8(HspStringView source) -> Utf8String;
-
 extern auto to_utf8(OsStringView source) -> Utf8String;
 
 extern auto to_utf8(SjisStringView source) -> Utf8String;
@@ -183,6 +168,23 @@ static auto as_native(Utf8StringView source) -> std::string_view {
 
 static auto as_native(Utf8String&& source) -> std::string {
 	return std::string{ (std::string&&)source };
+}
+
+// UTF-8 文字列の比較演算子を定義する。
+static inline auto operator ==(Utf8String const& l, char8_t const* r) -> bool {
+	return std::u8string_view{ l } == std::u8string_view{ r };
+}
+
+static inline auto operator !=(Utf8String const& l, char8_t const* r) -> bool {
+	return !(l == r);
+}
+
+static auto operator ==(Utf8StringView l, char8_t const* r) -> bool {
+	return l == std::u8string_view{ r };
+}
+
+static auto operator !=(Utf8StringView l, char8_t const* r) -> bool {
+	return !(l == r);
 }
 
 // 文字列をストリームに出力する。

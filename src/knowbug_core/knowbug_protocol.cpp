@@ -7,7 +7,7 @@
 #include "transfer_protocol.h"
 
 static auto char_is_space(Utf8Char c) -> bool {
-	return c == Utf8Char{ u8' ' } || c == Utf8Char{ u8'\t' };
+	return c == u8' ' || c == u8'\t';
 }
 
 static auto string_trim_start(Utf8StringView str) -> Utf8StringView {
@@ -31,16 +31,16 @@ static auto string_trim(Utf8StringView str) -> Utf8StringView {
 }
 
 static auto parse_hex_digit(Utf8Char c) -> std::size_t {
-	if (Utf8Char{ u8'0' } <= c && c <= Utf8Char{ u8'9' }) {
-		return (std::size_t)((char)c - u8'0');
+	if (u8'0' <= c && c <= u8'9') {
+		return (std::size_t)(c - u8'0');
 	}
 
-	if (Utf8Char{ u8'A' } <= c && c <= Utf8Char{ u8'F' }) {
-		return (std::size_t)((char)c - u8'A' + 10);
+	if (u8'A' <= c && c <= u8'F') {
+		return (std::size_t)(c - u8'A' + 10);
 	}
 
-	if (Utf8Char{ u8'a' } <= c && c <= Utf8Char{ u8'f' }) {
-		return (std::size_t)((char)c - u8'a' + 10);
+	if (u8'a' <= c && c <= u8'f') {
+		return (std::size_t)(c - u8'a' + 10);
 	}
 
 	assert(false && u8"not hex digit");
@@ -54,11 +54,11 @@ static auto escape(Utf8StringView str) -> Utf8String {
 	auto last = i;
 
 	while (i < str.size()) {
-		auto c = (char)str[i];
+		auto c = str[i];
 		if (c == u8'\0' || c == u8'\t' || c == u8'\r' || c == u8'\n' || c == u8' '
 			|| c == u8'=' || c == u8'"' || c == u8'\\') {
 			output += str.substr(last, i - last);
-			output += as_utf8(strf("\\x%02x", c));
+			output += strf(u8"\\x%02x", (std::uint8_t)c);
 			i++;
 			last = i;
 			continue;
@@ -76,11 +76,11 @@ static auto unescape(Utf8StringView str) -> Utf8String {
 	auto i = std::size_t{};
 	auto last = i;
 
-	while (i < str.size() && str[i] != Utf8Char{ u8'\0' }) {
-		if (str[i] == Utf8Char{ u8'\\' } && i + 4 <= str.size()) {
+	while (i < str.size() && str[i] != u8'\0') {
+		if (str[i] == u8'\\' && i + 4 <= str.size()) {
 			output += str.substr(last, i - last);
 
-			assert(str[i + 1] == Utf8Char{ u8'x' });
+			assert(str[i + 1] == u8'x');
 
 			auto x1 = parse_hex_digit(str[i + 2]);
 			auto x2 = parse_hex_digit(str[i + 3]);
@@ -115,7 +115,7 @@ auto knowbug_protocol_parse(Utf8String& buffer)->std::optional<KnowbugMessage> {
 			continue;
 		}
 
-		auto colon = trimmed_line.find(Utf8Char{ u8'=' });
+		auto colon = trimmed_line.find(u8'=');
 		if (colon == Utf8String::npos) {
 			assert(false && u8"missing = in line");
 			continue;
@@ -127,7 +127,7 @@ auto knowbug_protocol_parse(Utf8String& buffer)->std::optional<KnowbugMessage> {
 		message.insert(unescape(key), unescape(value));
 	}
 
-	if (message.size() == 0 || !message.get(as_utf8(u8"method"))) {
+	if (message.size() == 0 || !message.get(u8"method")) {
 		assert(false && u8"missing method key");
 		return std::nullopt;
 	}
@@ -139,15 +139,15 @@ auto knowbug_protocol_serialize(KnowbugMessage const& message) -> Utf8String {
 	auto body = Utf8String{};
 	for (auto&& pair : message) {
 		body += escape(pair.first);
-		body += as_utf8(u8" = ");
+		body += u8" = ";
 		body += escape(pair.second);
-		body += as_utf8(u8"\r\n");
+		body += u8"\r\n";
 	}
 
 	auto output = Utf8String{};
-	output += as_utf8(u8"Content-Length: ");
+	output += u8"Content-Length: ";
 	output += as_utf8(std::to_string(body.size()));
-	output += as_utf8(u8"\r\n\r\n");
+	output += u8"\r\n\r\n";
 	output += body;
 	return output;
 }
@@ -160,18 +160,18 @@ void knowbug_protocol_tests(Tests& tests) {
 		[](TestCaseContext& t) {
 			auto message = KnowbugMessage{};
 			message.insert(
-				Utf8String{ as_utf8(u8"method") },
-				Utf8String{ as_utf8(u8"foo_event") }
+				Utf8String{ u8"method" },
+				Utf8String{ u8"foo_event" }
 			);
 
 			message.insert(
-				Utf8String{ as_utf8(u8"assignment") },
-				Utf8String{ as_utf8(u8"yen = \"\\\"") }
+				Utf8String{ u8"assignment" },
+				Utf8String{ u8"yen = \"\\\"" }
 			);
 
 			message.insert(
-				Utf8String{ as_utf8(u8"crlf") },
-				Utf8String{ as_utf8(u8"\r\n") }
+				Utf8String{ u8"crlf" },
+				Utf8String{ u8"\r\n" }
 			);
 
 			auto output = knowbug_protocol_serialize(message);
@@ -179,23 +179,23 @@ void knowbug_protocol_tests(Tests& tests) {
 
 			return t.eq(
 				output,
-				as_utf8(u8"Content-Length: 79\r\n\r\nmethod = foo_event\r\nassignment = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\r\ncrlf = \\x0d\\x0a\r\n")
+				u8"Content-Length: 79\r\n\r\nmethod = foo_event\r\nassignment = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\r\ncrlf = \\x0d\\x0a\r\n"
 			);
 		});
 
 	suite.test(
 		u8"basic",
 		[](TestCaseContext& t) {
-			auto buffer = Utf8String{ as_utf8(u8"Content-Length: 79\r\n\r\nmethod = foo_event\r\nassignment = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\r\ncrlf = \\x0d\\x0a\r\n") };
+			auto buffer = Utf8String{ u8"Content-Length: 79\r\n\r\nmethod = foo_event\r\nassignment = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\r\ncrlf = \\x0d\\x0a\r\n" };
 			auto message_opt = knowbug_protocol_parse(buffer);
 
 			auto method = as_native(message_opt->method());
-			auto assignment = as_native(*message_opt->get(as_utf8(u8"assignment")));
+			auto assignment = as_native(*message_opt->get(u8"assignment"));
 
 			return t.eq(message_opt.has_value(), true)
 				&& t.eq(message_opt->size(), 3)
-				&& t.eq(message_opt->method(), as_utf8(u8"foo_event"))
-				&& t.eq(*message_opt->get(as_utf8(u8"assignment")), as_utf8(u8"yen = \"\\\""))
-				&& t.eq(*message_opt->get(as_utf8(u8"crlf")), as_utf8(u8"\r\n"));
+				&& t.eq(message_opt->method(), u8"foo_event")
+				&& t.eq(*message_opt->get(u8"assignment"), u8"yen = \"\\\"")
+				&& t.eq(*message_opt->get(u8"crlf"), u8"\r\n");
 		});
 }

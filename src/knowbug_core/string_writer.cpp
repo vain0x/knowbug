@@ -127,11 +127,11 @@ void StringWriter::cat_memory_dump_impl(void const* data, std::size_t size) {
 }
 
 void StringWriter::cat_size(std::size_t size) {
-	cat(strf("%d", size));
+	cat(strf(u8"%d", size));
 }
 
 void StringWriter::cat_ptr(void const* ptr) {
-	cat(strf("%p", ptr));
+	cat(strf(u8"%p", ptr));
 }
 
 void StringWriter::cat_memory_dump(void const* data, std::size_t data_size) {
@@ -249,7 +249,7 @@ void string_writer_tests(Tests& tests) {
 			auto size = t1.size() + 1 + t2.size() + 2;
 
 			auto buf = std::vector<Utf8Char>{};
-			buf.resize(size, Utf8Char{});
+			buf.resize(size, u8'\0');
 			std::copy(t1.begin(), t1.end(), &buf[0]);
 			std::copy(t2.begin(), t2.end(), &buf[t1.size() + 1]);
 

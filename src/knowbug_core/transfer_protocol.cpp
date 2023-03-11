@@ -4,7 +4,7 @@
 #include "test_suite.h"
 
 static auto char_is_space(Utf8Char c) -> bool {
-	return c == Utf8Char{ u8' ' } || c == Utf8Char{ u8'\t' };
+	return c == u8' ' || c == u8'\t';
 }
 
 static auto skip_spaces(Utf8StringView str, std::size_t start_index) -> std::size_t {
@@ -17,7 +17,7 @@ static auto skip_spaces(Utf8StringView str, std::size_t start_index) -> std::siz
 
 static auto skip_others(Utf8StringView str, std::size_t start_index, Utf8Char c) -> std::size_t {
 	auto i = start_index;
-	while (i < str.size() && str[i] != c && str[i] != Utf8Char{ u8'\r' }) {
+	while (i < str.size() && str[i] != c && str[i] != u8'\r') {
 		i++;
 	}
 	return i;
@@ -30,7 +30,7 @@ auto transfer_protocol_parse(Utf8String& body, Utf8String& buffer) -> bool {
 
 	while (index < buffer.size()) {
 		auto key_start = skip_spaces(buffer.data(), index);
-		auto key_end = skip_others(buffer.data(), key_start, Utf8Char{ u8':' });
+		auto key_end = skip_others(buffer.data(), key_start, u8':');
 
 		assert(index <= key_start);
 		assert(key_start <= key_end);
@@ -44,12 +44,12 @@ auto transfer_protocol_parse(Utf8String& body, Utf8String& buffer) -> bool {
 		}
 
 		// ':' の前までしかデータが来ていないとき
-		if (key_end == buffer.size() || buffer[key_end] == Utf8Char{ u8'\r' }) {
+		if (key_end == buffer.size() || buffer[key_end] == u8'\r') {
 			break;
 		}
 
 		auto value_start = skip_spaces(buffer.data(), key_end + 1);
-		auto value_end = skip_others(buffer.data(), value_start, Utf8Char{ u8'\r' });
+		auto value_end = skip_others(buffer.data(), value_start, u8'\r');
 
 		assert(key_end < value_start);
 		assert(value_start <= value_end);
@@ -66,8 +66,8 @@ auto transfer_protocol_parse(Utf8String& body, Utf8String& buffer) -> bool {
 		auto header_key = Utf8StringView{ buffer.data() + key_start, key_end - key_start };
 		auto header_value = Utf8StringView{ buffer.data() + value_start, value_end - value_start };
 
-		if (header_key == as_utf8("Content-Length")) {
-			content_length_opt = (std::size_t)std::atoll(as_native(Utf8String{ header_value }).data());
+		if (header_key == u8"Content-Length") {
+			content_length_opt = (std::size_t)std::atoll(as_native(header_value).data());
 			continue;
 		}
 
@@ -116,25 +116,25 @@ void transfer_protocol_tests(Tests& tests) {
 				return false;
 			}
 
-			buffer += as_utf8(u8"Content-Length");
+			buffer += u8"Content-Length";
 			success = transfer_protocol_parse(body, buffer);
 			if (!t.eq(success, false)) {
 				return false;
 			}
 
-			buffer += as_utf8(u8": 15\r\n");
+			buffer += u8": 15\r\n";
 			success = transfer_protocol_parse(body, buffer);
 			if (!t.eq(success, false)) {
 				return false;
 			}
 
-			buffer += as_utf8(u8"\r\nHello, ");
+			buffer += u8"\r\nHello, ";
 			success = transfer_protocol_parse(body, buffer);
 			if (!t.eq(success, false)) {
 				return false;
 			}
 
-			buffer += as_utf8(u8"world!\r\n");
+			buffer += u8"world!\r\n";
 			success = transfer_protocol_parse(body, buffer);
 			return t.eq(success, true)
 				&& t.eq(body, as_utf8(u8"Hello, world!\r\n"))
@@ -144,7 +144,7 @@ void transfer_protocol_tests(Tests& tests) {
 	suite.test(
 		u8"2つのメッセージが連結されたバッファーのパース",
 		[](TestCaseContext& t) {
-			auto buffer = Utf8String{ as_utf8(u8"Content-Length: 15\r\n\r\nHello, world!\r\nContent-Length: 11\r\n\r\nGood bye!\r\n") };
+			auto buffer = Utf8String{ u8"Content-Length: 15\r\n\r\nHello, world!\r\nContent-Length: 11\r\n\r\nGood bye!\r\n" };
 			auto body = Utf8String{};
 
 			auto success = transfer_protocol_parse(body, buffer);

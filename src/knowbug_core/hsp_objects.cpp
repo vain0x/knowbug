@@ -31,7 +31,7 @@ auto indexes_to_string(hsx::HspDimIndex const& indexes) -> Utf8String {
 	ss << '(';
 	for (auto i = std::size_t{}; i < indexes.dim(); ++i) {
 		if (i != 0) {
-			ss << u8", ";
+			ss << ", ";
 		}
 		ss << indexes[i];
 	}
@@ -40,7 +40,7 @@ auto indexes_to_string(hsx::HspDimIndex const& indexes) -> Utf8String {
 }
 
 auto var_name_to_bare_ident(Utf8StringView const& str) -> Utf8StringView {
-	auto atmark = str.find(Utf8Char{ '@' });
+	auto atmark = str.find(u8'@');
 	return atmark != Utf8String::npos
 		? str.substr(0, atmark)
 		: str;
@@ -82,21 +82,22 @@ static auto group_vars_by_module(std::vector<Utf8String> const& var_names) -> st
 
 static auto create_type_datas() -> std::vector<HspObjects::TypeData> {
 	auto types = std::vector<HspObjects::TypeData>{};
-	types.emplace_back(ascii_to_utf8(u8"unknown"));
-	types.emplace_back(ascii_to_utf8(u8"label"));
-	types.emplace_back(ascii_to_utf8(u8"str"));
-	types.emplace_back(ascii_to_utf8(u8"double"));
-	types.emplace_back(ascii_to_utf8(u8"int"));
-	types.emplace_back(ascii_to_utf8(u8"struct"));
-	types.emplace_back(ascii_to_utf8(u8"comobj"));
+	types.emplace_back(u8"unknown");
+	types.emplace_back(u8"label");
+	types.emplace_back(u8"str");
+	types.emplace_back(u8"double");
+	types.emplace_back(u8"int");
+	types.emplace_back(u8"struct");
+	types.emplace_back(u8"comobj");
 	return types;
 }
 
 static auto create_general_content(HSP3DEBUG* debug) -> Utf8String {
 	auto buffer = std::stringstream{};
 
-	auto str = hsx::debug_to_general_info(debug);
-	auto lines = StringLines{ std::string_view{ str.get() } }.iter();
+	auto general_info = hsx::debug_to_general_info(debug);
+	auto general_info_utf8 = to_utf8(as_hsp(general_info.get()));
+	auto lines = StringLines{ std::u8string_view{ general_info_utf8 } }.iter();
 
 	while (true) {
 		auto key_opt = lines.next();
@@ -109,8 +110,8 @@ static auto create_general_content(HSP3DEBUG* debug) -> Utf8String {
 			break;
 		}
 
-		buffer << *key_opt << u8" = ";
-		buffer << *value_opt << u8"\r\n";
+		buffer << as_native(*key_opt) << " = ";
+		buffer << as_native(*value_opt) << "\r\n";
 	}
 
 	// 拡張内容の追加
@@ -122,18 +123,18 @@ static auto create_general_content(HSP3DEBUG* debug) -> Utf8String {
 			// color
 			auto color_ref = COLORREF{ bmscr->color };
 			buffer
-				<< u8"color = ("
-				<< (int)GetRValue(color_ref) << u8", "
-				<< (int)GetGValue(color_ref) << u8", "
-				<< (int)GetBValue(color_ref) << u8")\r\n";
+				<< "color = ("
+				<< (int)GetRValue(color_ref) << ", "
+				<< (int)GetGValue(color_ref) << ", "
+				<< (int)GetBValue(color_ref) << ")\r\n";
 
 			// pos
 			auto point = POINT{ bmscr->cx, bmscr->cy };
-			buffer << u8"pos = (" << point.x << u8", " << point.y << u8")\r\n";
+			buffer << "pos = (" << point.x << ", " << point.y << ")\r\n";
 		}
 	}
 
-	return to_utf8(as_hsp(buffer.str()));
+	return as_utf8(buffer.str());
 }
 
 static auto path_to_visual_child_count_default(HspObjectPath const& path, HspObjects& objects) -> std::size_t {
@@ -356,7 +357,7 @@ static auto var_path_to_child_at(HspObjectPath const& path, std::size_t child_in
 	auto pval_opt = path_to_pval(path, MIN_DEPTH, ctx);
 	if (!pval_opt || child_index >= var_path_to_child_count(path, ctx)) {
 		assert(false && u8"Invalid var path child index");
-		throw new std::out_of_range{ u8"child_index" };
+		throw new std::out_of_range{ "child_index" };
 	}
 
 	auto pval = *pval_opt;
@@ -870,7 +871,7 @@ auto HspObjects::param_path_to_child_at(HspObjectPath::Param const& path, std::s
 
 	default:
 		assert(false && u8"Invalid param path child index");
-		throw new std::out_of_range{ u8"child_index" };
+		throw new std::out_of_range{ "child_index" };
 	}
 }
 
@@ -968,7 +969,7 @@ auto HspObjects::flex_path_to_child_at(HspObjectPath::Flex const& path, std::siz
 	auto flex_opt = flex_path_to_value(path, MIN_DEPTH, context());
 	if (!flex_opt || hsx::flex_is_nullmod(*flex_opt)) {
 		assert(false && u8"Invalid flex path child index");
-		throw new std::out_of_range{ u8"child_index" };
+		throw new std::out_of_range{ "child_index" };
 	}
 
 	auto param_data_opt = hsx::flex_to_member(*flex_opt, index, context());
@@ -1130,8 +1131,8 @@ auto HspObjects::call_frame_path_to_name(HspObjectPath::CallFrame const& path) c
 	}
 
 	auto struct_dat = call_frame_opt->get().struct_dat();
-	auto name = hsx::struct_to_name(struct_dat, context());
-	return to_utf8(as_hsp(name.value_or(u8"???")));
+	auto name_opt = hsx::struct_to_name(struct_dat, context());
+	return to_utf8(as_hsp(name_opt.value_or("???")));
 }
 
 auto HspObjects::call_frame_path_is_alive(HspObjectPath::CallFrame const& path) const -> bool {
@@ -1172,7 +1173,7 @@ auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& pa
 
 	auto names = std::vector<Utf8StringView>{};
 	for (auto&& param : params) {
-		auto name = hsx::param_type_to_name(hsx::param_to_type(&param)).value_or(u8"???");
+		auto name = hsx::param_type_to_name(hsx::param_to_type(&param)).value_or("???");
 		names.emplace_back(as_utf8(name));
 	}
 
@@ -1234,12 +1235,12 @@ auto HspObjects::script_to_full_path() const -> std::optional<OsStringView> {
 }
 
 auto HspObjects::script_to_content() const -> Utf8StringView {
-	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or(u8"");
+	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or("");
 	return source_file_repository_->file_ref_name_to_content(file_ref_name).value_or(MISSING_FILE_CONTENT);
 }
 
 auto HspObjects::script_to_current_file() const -> std::optional<std::size_t> {
-	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or(u8"hsptmp");
+	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or("hsptmp");
 	auto source_file_id_opt = source_file_repository_->file_ref_name_to_file_id(file_ref_name);
 	if (!source_file_id_opt) {
 		return std::nullopt;
@@ -1254,12 +1255,12 @@ auto HspObjects::script_to_current_line() const -> std::size_t {
 
 auto HspObjects::script_to_current_location_summary() const -> Utf8String {
 	// FIXME: 長すぎるときは切る
-	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or(u8"hsptmp");
+	auto file_ref_name = hsx::debug_to_file_ref_name(debug()).value_or("hsptmp");
 	auto line_index = script_to_current_line();
 	auto line = source_file_repository_->file_ref_name_to_line_at(file_ref_name, line_index).value_or(MISSING_FILE_LINE);
 
 	auto text = std::stringstream{};
-	text << u8"#" << (line_index + 1) << u8" " << file_ref_name << u8"\r\n";
+	text << "#" << (line_index + 1) << " " << file_ref_name << "\r\n";
 	text << as_native(line);
 	return as_utf8(text.str());
 }

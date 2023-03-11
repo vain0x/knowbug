@@ -13,7 +13,7 @@ static auto normalize_lines(Utf8StringView text) -> Utf8String {
 
 	for (auto&& line : StringLines{ text }) {
 		if (!std::exchange(first, false)) {
-			output += as_utf8(u8"\r\n");
+			output += u8"\r\n";
 		}
 
 		output += line;
@@ -119,7 +119,7 @@ static auto resolve_hsptmp(std::vector<std::string> const& file_ref_names) -> st
 	for (auto i = file_ref_names.size(); i >= 1;) {
 		i--;
 
-		if (file_ref_names[i] == u8"hspdef.as" && i + 1 < file_ref_names.size()) {
+		if (file_ref_names[i] == "hspdef.as" && i + 1 < file_ref_names.size()) {
 			return file_ref_names[i + 1];
 		}
 	}
@@ -204,7 +204,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 	// hsptmp に対応するファイルを見つける。
 	// hsptmp の絶対パスを見つけておくため、ファイル参照名に hsptmp を追加する。
 	auto hsptmp_ref_name_opt = resolve_hsptmp(file_ref_names_);
-	add_file_ref_name(u8"hsptmp");
+	add_file_ref_name("hsptmp");
 
 	// ファイル参照名の重複を除去する。ついでに OsString に変換しておく。
 	dedup();
@@ -253,7 +253,7 @@ auto SourceFileResolver::resolve() -> SourceFileRepository {
 
 	// hsptmp を解決する。
 	if (hsptmp_ref_name_opt) {
-		auto hsptmp_iter = file_map.find(u8"hsptmp");
+		auto hsptmp_iter = file_map.find("hsptmp");
 		if (hsptmp_iter != file_map.end()) {
 			auto hsptmp_full_path = source_files[hsptmp_iter->second.id()].full_path();
 
@@ -355,7 +355,7 @@ static auto load_text_file(OsString const& file_path, FileSystemApi& fs) -> Utf8
 }
 
 static auto char_is_whitespace(Utf8Char c) -> bool {
-	return c == Utf8Char{ ' ' } || c == Utf8Char{ '\t' };
+	return c == u8' ' || c == u8'\t';
 }
 
 // 行ごとに分割する。ただし各行の字下げは除外する。
@@ -489,13 +489,13 @@ static auto create_file_system_for_testing() -> VirtualFileSystemApi {
 	auto fs = VirtualFileSystemApi{};
 	fs.set_current_dir(TEXT("/src"));
 
-	fs.add_file(TEXT("/hsp/common/hspdef.as"), u8"// hsp_def");
-	fs.add_file(TEXT("/hsp/common/awesome_plugin/awesome_plugin.hsp"), u8"// awesome_plugin");
+	fs.add_file(TEXT("/hsp/common/hspdef.as"), "// hsp_def");
+	fs.add_file(TEXT("/hsp/common/awesome_plugin/awesome_plugin.hsp"), "// awesome_plugin");
 
-	fs.add_file(TEXT("/src/main.hsp"), u8"// main");
-	fs.add_file(TEXT("/src/awesome_lib/awesome_lib.hsp"), u8"// awesome_lib");
+	fs.add_file(TEXT("/src/main.hsp"), "// main");
+	fs.add_file(TEXT("/src/awesome_lib/awesome_lib.hsp"), "// awesome_lib");
 
-	fs.add_file(TEXT("/src/not_included.txt"), u8"// not included");
+	fs.add_file(TEXT("/src/not_included.txt"), "// not included");
 	return fs;
 }
 
@@ -510,10 +510,10 @@ void source_files_tests(Tests& tests) {
 			auto resolver = SourceFileResolver{ fs };
 			resolver.add_known_dir(to_owned(TEXT("/hsp/common")));
 
-			resolver.add_file_ref_name(u8"hspdef.as");
-			resolver.add_file_ref_name(u8"main.hsp");
-			resolver.add_file_ref_name(u8"awesome_plugin/awesome_plugin.hsp");
-			resolver.add_file_ref_name(u8"awesome_lib/awesome_lib.hsp");
+			resolver.add_file_ref_name("hspdef.as");
+			resolver.add_file_ref_name("main.hsp");
+			resolver.add_file_ref_name("awesome_plugin/awesome_plugin.hsp");
+			resolver.add_file_ref_name("awesome_lib/awesome_lib.hsp");
 
 			auto repository = resolver.resolve();
 
@@ -521,34 +521,34 @@ void source_files_tests(Tests& tests) {
 				return false;
 			}
 
-			if (!t.eq(repository.file_ref_name_to_file_id(u8"unknown_file_ref_name").has_value(), false)) {
+			if (!t.eq(repository.file_ref_name_to_file_id("unknown_file_ref_name").has_value(), false)) {
 				return false;
 			}
 
-			return t.eq(to_utf8(*repository.file_ref_name_to_full_path(u8"main.hsp")), as_utf8(u8"/src/main.hsp"));
+			return t.eq(to_utf8(*repository.file_ref_name_to_full_path("main.hsp")), u8"/src/main.hsp");
 		});
 
 	suite.test(
 		u8"ソースファイルの内容を取得できる",
 		[&](TestCaseContext& t) {
 			auto content =
-				u8"  main\r\n"
-				u8"  stop\r\n";
+				"  main\r\n"
+				"  stop\r\n";
 
 			auto fs = create_file_system_for_testing();
 			fs.add_file(TEXT("/src/main.hsp"), content);
 
 			auto resolver = SourceFileResolver{ fs };
-			resolver.add_file_ref_name(u8"main.hsp");
+			resolver.add_file_ref_name("main.hsp");
 
 			auto repository = resolver.resolve();
 
-			auto file_id = *repository.file_ref_name_to_file_id(u8"main.hsp");
+			auto const& file_id = *repository.file_ref_name_to_file_id("main.hsp");
 
 			return t.eq(as_native(*repository.file_to_content(file_id)), content)
-				&& t.eq(as_native(*repository.file_to_line_at(file_id, 0)), u8"main")
-				&& t.eq(as_native(*repository.file_to_line_at(file_id, 1)), u8"stop")
-				&& t.eq(as_native(repository.file_to_line_at(file_id, 9999).value_or(as_utf8(u8""))), u8"");
+				&& t.eq(as_native(*repository.file_to_line_at(file_id, 0)), "main")
+				&& t.eq(as_native(*repository.file_to_line_at(file_id, 1)), "stop")
+				&& t.eq(as_native(repository.file_to_line_at(file_id, 9999).value_or(as_utf8(u8""))), "");
 		});
 
 	suite.test(
@@ -556,22 +556,22 @@ void source_files_tests(Tests& tests) {
 		[&](TestCaseContext& t) {
 			auto fs = create_file_system_for_testing();
 
-			fs.add_file(TEXT("/src/main.hsp"), u8"saved script");
-			fs.add_file(TEXT("/src/hsptmp"), u8"run script");
-			fs.add_file(TEXT("/hsp/common/hsptmp"), u8"common の hsptmp は探さないでほしい");
+			fs.add_file(TEXT("/src/main.hsp"), "saved script");
+			fs.add_file(TEXT("/src/hsptmp"), "run script");
+			fs.add_file(TEXT("/hsp/common/hsptmp"), "should not be found"); // common の hsptmp は探さないでほしい
 
 			auto resolver = SourceFileResolver{ fs };
 			resolver.add_known_dir(to_owned(TEXT("/hsp/common")));
-			resolver.add_file_ref_name(u8"hspdef.as");
-			resolver.add_file_ref_name(u8"userdef.as");
-			resolver.add_file_ref_name(u8"hspdef.as");
-			resolver.add_file_ref_name(u8"main.hsp");
-			resolver.add_file_ref_name(u8"other.hsp");
+			resolver.add_file_ref_name("hspdef.as");
+			resolver.add_file_ref_name("userdef.as");
+			resolver.add_file_ref_name("hspdef.as");
+			resolver.add_file_ref_name("main.hsp");
+			resolver.add_file_ref_name("other.hsp");
 
 			auto repository = resolver.resolve();
-			auto file_id = *repository.file_ref_name_to_file_id(u8"main.hsp");
+			auto const& file_id = *repository.file_ref_name_to_file_id("main.hsp");
 
-			return t.eq(as_native(*repository.file_to_content(file_id)), u8"run script")
+			return t.eq(as_native(*repository.file_to_content(file_id)), "run script")
 				&& t.eq(*repository.file_to_full_path(file_id), TEXT("/src/main.hsp"));
 		});
 }
