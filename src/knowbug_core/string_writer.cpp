@@ -22,11 +22,11 @@ auto StringWriter::is_full() const -> bool {
 	return limit_ == 0;
 }
 
-auto StringWriter::as_view() const -> Utf8StringView {
+auto StringWriter::as_view() const -> std::u8string_view {
 	return buf_;
 }
 
-auto StringWriter::finish() -> Utf8String&& {
+auto StringWriter::finish() -> std::u8string&& {
 	return std::move(buf_);
 }
 
@@ -51,7 +51,7 @@ void StringWriter::set_limit(std::size_t limit) {
 
 // バッファの末尾に文字列を追加する。
 // 文字列制限が上限に達したら打ち切る。
-void StringWriter::cat_limited(Utf8StringView str) {
+void StringWriter::cat_limited(std::u8string_view str) {
 	if (is_full()) {
 		return;
 	}
@@ -75,7 +75,7 @@ void StringWriter::cat_limited(Utf8StringView str) {
 
 // バッファの末尾に文字列を追加する。
 // 行ごとに分割して適切に字下げを挿入する。
-void StringWriter::cat_by_lines(Utf8StringView str) {
+void StringWriter::cat_by_lines(std::u8string_view str) {
 	auto first = true;
 
 	for (auto&& line : StringLines{ str }) {
@@ -84,7 +84,7 @@ void StringWriter::cat_by_lines(Utf8StringView str) {
 		}
 
 		if (!first) {
-			cat_limited(as_utf8(u8"\r\n"));
+			cat_limited(u8"\r\n");
 			head_ = true;
 		}
 		first = false;
@@ -95,7 +95,7 @@ void StringWriter::cat_by_lines(Utf8StringView str) {
 
 		if (head_) {
 			for (auto i = std::size_t{}; i < depth_; i++) {
-				cat_limited(as_utf8(u8"  "));
+				cat_limited(u8"  ");
 			}
 			head_ = false;
 		}
@@ -127,11 +127,11 @@ void StringWriter::cat_memory_dump_impl(void const* data, std::size_t size) {
 }
 
 void StringWriter::cat_size(std::size_t size) {
-	cat(strf("%d", size));
+	cat(strf(u8"%d", size));
 }
 
 void StringWriter::cat_ptr(void const* ptr) {
-	cat(strf("%p", ptr));
+	cat(strf(u8"%p", ptr));
 }
 
 void StringWriter::cat_memory_dump(void const* data, std::size_t data_size) {
@@ -168,13 +168,13 @@ void string_writer_tests(Tests& tests) {
 			auto w = string_writer_new();
 			w.set_limit(20);
 
-			w.cat(as_utf8(u8"0123456789<長すぎる部分は省略されます>"));
-			if (!t.eq(as_view(w), as_utf8(u8"0123456789(too long)"))) {
+			w.cat(u8"0123456789<長すぎる部分は省略されます>");
+			if (!t.eq(as_view(w), u8"0123456789(too long)")) {
 				return false;
 			}
 
 			// これ以上の追記は無意味。
-			w.cat(as_utf8(u8"add"));
+			w.cat(u8"add");
 			if (!t.eq(as_view(w).size(), 20)) {
 				return false;
 			}
@@ -191,18 +191,18 @@ void string_writer_tests(Tests& tests) {
 		u8"適切に字下げできる",
 		[&](TestCaseContext& t) {
 			auto w = string_writer_new();
-			w.cat_line(as_utf8(u8"親"));
+			w.cat_line(u8"親");
 			w.indent();
 
-			w.cat_line(as_utf8(u8"兄"));
+			w.cat_line(u8"兄");
 			w.indent();
-			w.cat_line(as_utf8(u8"甥"));
+			w.cat_line(u8"甥");
 			w.unindent();
 
-			w.cat_line(as_utf8(u8"本人"));
+			w.cat_line(u8"本人");
 			w.indent();
 			// 途中に改行があっても字下げされる。(LF は CRLF に置き換わる。)
-			w.cat_line(as_utf8(u8"長男\n長女"));
+			w.cat_line(u8"長男\n長女");
 
 			auto expected = as_utf8(
 				u8"親\r\n"
@@ -222,7 +222,7 @@ void string_writer_tests(Tests& tests) {
 				auto w = string_writer_new();
 				auto dead_beef = (void const*)(UINT_PTR)0xdeadbeef;
 				w.cat_ptr(dead_beef);
-				if (!t.eq(as_view(w), as_utf8(u8"0xdeadbeef"))) {
+				if (!t.eq(as_view(w), u8"0xdeadbeef")) {
 					return false;
 				}
 			}
@@ -231,7 +231,7 @@ void string_writer_tests(Tests& tests) {
 				auto w = string_writer_new();
 				w.cat_ptr(nullptr);
 				// <nullptr> とか 0x0000 とかでも可
-				if (!t.eq(as_view(w), as_utf8(u8"(nil)"))) {
+				if (!t.eq(as_view(w), u8"(nil)")) {
 					return false;
 				}
 			}
@@ -248,8 +248,8 @@ void string_writer_tests(Tests& tests) {
 			auto t2 = as_utf8(u8"わかよたれそつねならむ");
 			auto size = t1.size() + 1 + t2.size() + 2;
 
-			auto buf = std::vector<Utf8Char>{};
-			buf.resize(size, Utf8Char{});
+			auto buf = std::vector<char8_t>{};
+			buf.resize(size, u8'\0');
 			std::copy(t1.begin(), t1.end(), &buf[0]);
 			std::copy(t2.begin(), t2.end(), &buf[t1.size() + 1]);
 

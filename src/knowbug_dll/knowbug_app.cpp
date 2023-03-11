@@ -102,7 +102,7 @@ public:
 		server().logmes(text);
 
 		objects().log_do_append(to_utf8(text));
-		objects().log_do_append(as_utf8(u8"\r\n"));
+		objects().log_do_append(u8"\r\n");
 	}
 
 	void step_run(StepControl const& step_control) override {

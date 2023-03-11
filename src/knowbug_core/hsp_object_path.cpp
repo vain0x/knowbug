@@ -48,7 +48,7 @@ auto HspObjectPath::as_root() const -> HspObjectPath::Root const& {
 	return *(HspObjectPath::Root const*)this;
 }
 
-auto HspObjectPath::Root::name(HspObjects& objects) const -> Utf8String {
+auto HspObjectPath::Root::name(HspObjects& objects) const -> std::u8string {
 	return to_owned(g_root_name);
 }
 
@@ -102,16 +102,16 @@ auto HspObjectPath::Group::child_at(std::size_t child_index, HspObjects& objects
 	auto n = parent().child_count(objects);
 	auto i = offset() + child_index;
 	if (i >= n) {
-		return new_unavailable(to_owned(as_utf8(u8"out of range")));
+		return new_unavailable(to_owned(u8"out of range"));
 	}
 
 	return parent().child_at(i, objects);
 }
 
-auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
+auto HspObjectPath::Group::name(HspObjects& objects) const->std::u8string {
 	auto n = parent().child_count(objects);
 	if (offset() >= n) {
-		return to_owned(as_utf8(u8"..."));
+		return to_owned(u8"...");
 	}
 	assert(n >= 1);
 
@@ -122,7 +122,7 @@ auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
 	auto name = parent().child_at(first_index, objects)->name(objects);
 	auto last = parent().child_at(last_index, objects)->name(objects);
 
-	name += as_utf8(u8"...");
+	name += u8"...";
 	name += last;
 	return name;
 }
@@ -152,8 +152,8 @@ auto HspObjectPath::Ellipsis::child_at(std::size_t child_index, HspObjects& obje
 	throw std::exception{};
 }
 
-auto HspObjectPath::Ellipsis::name(HspObjects& objects) const->Utf8String {
-	return to_owned(as_utf8(u8"..."));
+auto HspObjectPath::Ellipsis::name(HspObjects& objects) const->std::u8string {
+	return to_owned(u8"...");
 }
 
 // -----------------------------------------------
@@ -492,7 +492,7 @@ auto HspObjectPath::as_script() const -> HspObjectPath::Script const& {
 // 利用不能
 // -----------------------------------------------
 
-auto HspObjectPath::new_unavailable(Utf8String&& reason) const -> std::shared_ptr<HspObjectPath const> {
+auto HspObjectPath::new_unavailable(std::u8string&& reason) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::Unavailable>(self(), std::move(reason));
 }
 

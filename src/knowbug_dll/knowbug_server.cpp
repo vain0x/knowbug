@@ -40,10 +40,10 @@ static constexpr auto KNOWBUG_ENCODING_SUFFIX = u8" (UTF-8)";
 static constexpr auto KNOWBUG_ENCODING_SUFFIX = u8"";
 #endif
 
-static auto knowbug_version() -> Utf8String {
-	auto suffix = Utf8String{ as_utf8(KNOWBUG_VERSION) };
-	suffix += as_utf8(KNOWBUG_PLATFORM_SUFFIX);
-	suffix += as_utf8(KNOWBUG_ENCODING_SUFFIX);
+static auto knowbug_version() -> std::u8string {
+	auto suffix = std::u8string{ KNOWBUG_VERSION };
+	suffix += KNOWBUG_PLATFORM_SUFFIX;
+	suffix += KNOWBUG_ENCODING_SUFFIX;
 	return suffix;
 }
 
@@ -66,12 +66,12 @@ public:
 class HspObjectListItem {
 	std::size_t object_id_;
 	std::size_t depth_;
-	Utf8String name_;
-	Utf8String value_;
+	std::u8string name_;
+	std::u8string value_;
 	std::size_t child_count_;
 
 public:
-	HspObjectListItem(std::size_t object_id, std::size_t depth, Utf8String name, Utf8String value, std::size_t child_count)
+	HspObjectListItem(std::size_t object_id, std::size_t depth, std::u8string name, std::u8string value, std::size_t child_count)
 		: object_id_(object_id)
 		, depth_(depth)
 		, name_(std::move(name))
@@ -88,11 +88,11 @@ public:
 		return depth_;
 	}
 
-	auto name() const ->Utf8StringView {
+	auto name() const ->std::u8string_view {
 		return name_;
 	}
 
-	auto value() const ->Utf8StringView {
+	auto value() const ->std::u8string_view {
 		return value_;
 	}
 
@@ -209,9 +209,9 @@ private:
 		auto name = path.name(objects());
 		auto item_count = path.visual_child_count(objects());
 
-		auto value = Utf8String{ as_utf8(u8"(") };
+		auto value = std::u8string{ u8"(" };
 		value += as_utf8(std::to_string(item_count));
-		value += as_utf8(u8"):");
+		value += u8"):";
 
 		auto object_id = id_provider_.path_to_object_id(path);
 		object_list_.add_item(HspObjectListItem{ object_id, depth_, name, value, item_count });
@@ -244,16 +244,16 @@ public:
 		Update,
 	};
 
-	static auto kind_to_string(Kind kind) -> Utf8StringView {
+	static auto kind_to_string(Kind kind) -> std::u8string_view {
 		switch (kind) {
 		case Kind::Insert:
-			return as_utf8(u8"insert");
+			return u8"insert";
 
 		case Kind::Remove:
-			return as_utf8(u8"remove");
+			return u8"remove";
 
 		case Kind::Update:
-			return as_utf8(u8"update");
+			return u8"update";
 
 		default:
 			throw std::exception{};
@@ -266,11 +266,11 @@ private:
 	std::size_t index_;
 	std::size_t count_;
 	std::size_t depth_;
-	Utf8String name_;
-	Utf8String value_;
+	std::u8string name_;
+	std::u8string value_;
 
 public:
-	HspObjectListDelta(Kind kind, std::size_t object_id, std::size_t index, std::size_t depth, Utf8String name, Utf8String value)
+	HspObjectListDelta(Kind kind, std::size_t object_id, std::size_t index, std::size_t depth, std::u8string name, std::u8string value)
 		: kind_(kind)
 		, object_id_(object_id)
 		, index_(index)
@@ -287,8 +287,8 @@ public:
 			item.object_id(),
 			index,
 			item.depth(),
-			Utf8String{ item.name() },
-			Utf8String{ item.value() }
+			std::u8string{ item.name() },
+			std::u8string{ item.value() }
 		};
 	}
 
@@ -299,8 +299,8 @@ public:
 			object_id,
 			index,
 			std::size_t{},
-			Utf8String{},
-			Utf8String{}
+			std::u8string{},
+			std::u8string{}
 		};
 		delta.count_ = count;
 		return delta;
@@ -312,8 +312,8 @@ public:
 			item.object_id(),
 			index,
 			item.depth(),
-			Utf8String{ item.name() },
-			Utf8String{ item.value() }
+			std::u8string{ item.name() },
+			std::u8string{ item.value() }
 		};
 	}
 
@@ -334,15 +334,15 @@ public:
 		return count_;
 	}
 
-	auto name() const -> Utf8String {
+	auto name() const -> std::u8string {
 		static constexpr auto SPACES = u8"                ";
 
-		auto name = Utf8String{ as_utf8(SPACES).substr(0, depth_ * 2) };
+		auto name = std::u8string{ as_utf8(SPACES).substr(0, depth_ * 2) };
 		name += name_;
 		return name;
 	}
 
-	auto value() const -> Utf8StringView {
+	auto value() const -> std::u8string_view {
 		return value_;
 	}
 
@@ -798,10 +798,10 @@ class Msg {
 	int kind_;
 	int wparam_;
 	int lparam_;
-	Utf8String text_;
+	std::u8string text_;
 
 public:
-	Msg(int kind, int wparam, int lparam, Utf8String text)
+	Msg(int kind, int wparam, int lparam, std::u8string text)
 		: kind_(kind)
 		, wparam_(wparam)
 		, lparam_(lparam)
@@ -821,7 +821,7 @@ public:
 		return lparam_;
 	}
 
-	auto text() const -> Utf8StringView {
+	auto text() const -> std::u8string_view {
 		return text_;
 	}
 };
@@ -911,7 +911,7 @@ public:
 
 		auto stdout_handle = client_process_opt_->stdout_read_.get();
 
-		static auto s_buffer = Utf8String{};
+		static auto s_buffer = std::u8string{};
 		if (s_buffer.size() == 0) {
 			s_buffer.resize(1024 * 1024);
 		}
@@ -934,9 +934,9 @@ public:
 			return;
 		}
 
-		static auto s_data = Utf8String{};
+		static auto s_data = std::u8string{};
 
-		auto chunk = Utf8StringView{ s_buffer.data(), (std::size_t)read_size };
+		auto chunk = std::u8string_view{ s_buffer.data(), (std::size_t)read_size };
 
 		s_data += chunk;
 
@@ -954,65 +954,65 @@ public:
 		auto method = message.method();
 		auto method_str = as_native(method);
 
-		if (method == as_utf8(u8"initialize_notification")) {
+		if (method == u8"initialize_notification") {
 			client_did_initialize();
 			return;
 		}
 
-		if (method == as_utf8(u8"terminate_notification")) {
+		if (method == u8"terminate_notification") {
 			client_did_terminate();
 			return;
 		}
 
-		if (method == as_utf8(u8"continue_notification")) {
+		if (method == u8"continue_notification") {
 			client_did_step_continue();
 			return;
 		}
 
-		if (method == as_utf8(u8"pause_notification")) {
+		if (method == u8"pause_notification") {
 			client_did_step_pause();
 			return;
 		}
 
-		if (method == as_utf8(u8"step_in_notification")) {
+		if (method == u8"step_in_notification") {
 			client_did_step_in();
 			return;
 		}
 
-		if (method == as_utf8(u8"step_over_notification")) {
+		if (method == u8"step_over_notification") {
 			client_did_step_over();
 			return;
 		}
 
-		if (method == as_utf8(u8"step_out_notification")) {
+		if (method == u8"step_out_notification") {
 			client_did_step_out();
 			return;
 		}
 
-		if (method == as_utf8(u8"location_notification")) {
+		if (method == u8"location_notification") {
 			client_did_location_update();
 			return;
 		}
 
-		if (method == as_utf8(u8"source_notification")) {
-			auto source_file_id = message.get_int(as_utf8(u8"source_file_id")).value_or(0);
+		if (method == u8"source_notification") {
+			auto source_file_id = message.get_int(u8"source_file_id").value_or(0);
 			client_did_source(source_file_id);
 			return;
 		}
 
-		if (method == as_utf8(u8"list_update_notification")) {
+		if (method == u8"list_update_notification") {
 			client_did_list_update();
 			return;
 		}
 
-		if (method == as_utf8(u8"list_toggle_expand_notification")) {
-			auto object_id = message.get_int(as_utf8(u8"object_id")).value_or(0);
+		if (method == u8"list_toggle_expand_notification") {
+			auto object_id = message.get_int(u8"object_id").value_or(0);
 			client_did_list_toggle_expand(object_id);
 			return;
 		}
 
-		if (method == as_utf8(u8"list_details_notification")) {
-			auto object_id = message.get_int(as_utf8(u8"object_id")).value_or(0);
+		if (method == u8"list_details_notification") {
+			auto object_id = message.get_int(u8"object_id").value_or(0);
 			client_did_list_details(object_id);
 			return;
 		}
@@ -1131,29 +1131,29 @@ private:
 		assert(written_size == text.size());
 	}
 
-	void send_message(Utf8StringView method) {
-		auto message = KnowbugMessage::new_with_method(Utf8String{ method });
+	void send_message(std::u8string_view method) {
+		auto message = KnowbugMessage::new_with_method(std::u8string{ method });
 		send_message(message);
 	}
 
 	void send_initialized_event() {
-		auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"initialized_event") });
+		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"initialized_event" });
 
-		message.insert(Utf8String{ as_utf8(u8"version") }, Utf8String{ as_utf8(KNOWBUG_VERSION) });
+		message.insert(std::u8string{ u8"version" }, std::u8string{ as_utf8(KNOWBUG_VERSION) });
 
 		send_message(message);
 	}
 
 	void send_terminated_event() {
-		send_message(as_utf8(u8"terminated_event"));
+		send_message(u8"terminated_event");
 	}
 
 	void send_continued_event() {
-		send_message(as_utf8(u8"continued_event"));
+		send_message(u8"continued_event");
 	}
 
 	void send_stopped_event() {
-		send_message(as_utf8(u8"stopped_event"));
+		send_message(u8"stopped_event");
 	}
 
 	void send_location_event() {
@@ -1162,10 +1162,10 @@ private:
 		auto source_file_id = objects().script_to_current_file().value_or(0);
 		auto line_index = objects().script_to_current_line();
 
-		auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"location_event") });
+		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"location_event" });
 
-		message.insert_int(Utf8String{ as_utf8(u8"source_file_id") }, (int)source_file_id);
-		message.insert_int(Utf8String{ as_utf8(u8"line_index") }, (int)line_index);
+		message.insert_int(std::u8string{ u8"source_file_id" }, (int)source_file_id);
+		message.insert_int(std::u8string{ u8"line_index" }, (int)line_index);
 
 		send_message(message);
 	}
@@ -1174,16 +1174,16 @@ private:
 		auto full_path_opt = objects().source_file_to_full_path(source_file_id);
 		auto content_opt = objects().source_file_to_content(source_file_id);
 
-		auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"source_event") });
+		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"source_event" });
 
-		message.insert_int(Utf8String{ as_utf8(u8"source_file_id") }, (int)source_file_id);
+		message.insert_int(std::u8string{ u8"source_file_id" }, (int)source_file_id);
 
 		if (full_path_opt) {
-			message.insert(Utf8String{ as_utf8(u8"source_path") }, Utf8String{ *full_path_opt });
+			message.insert(std::u8string{ u8"source_path" }, std::u8string{ *full_path_opt });
 		}
 
 		if (content_opt) {
-			message.insert(Utf8String{ as_utf8(u8"source_code") }, Utf8String{ *content_opt });
+			message.insert(std::u8string{ u8"source_code" }, std::u8string{ *content_opt });
 		}
 
 		send_message(message);
@@ -1195,36 +1195,36 @@ private:
 		for (auto i = std::size_t{}; i < diff.size(); i++) {
 			auto const& delta = diff[i];
 
-			auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"list_updated_event") });
+			auto message = KnowbugMessage::new_with_method(std::u8string{ u8"list_updated_event" });
 
 			message.insert(
-				Utf8String{ as_utf8(u8"kind") },
-				Utf8String{ HspObjectListDelta::kind_to_string(delta.kind()) }
+				std::u8string{ u8"kind" },
+				std::u8string{ HspObjectListDelta::kind_to_string(delta.kind()) }
 			);
 
 			message.insert_int(
-				Utf8String{ as_utf8(u8"object_id") },
+				std::u8string{ u8"object_id" },
 				(int)delta.object_id()
 			);
 
 			message.insert_int(
-				Utf8String{ as_utf8(u8"index") },
+				std::u8string{ u8"index" },
 				(int)delta.index()
 			);
 
 			message.insert(
-				Utf8String{ as_utf8(u8"name") },
+				std::u8string{ u8"name" },
 				delta.name()
 			);
 
 			message.insert(
-				Utf8String{ as_utf8(u8"value") },
-				Utf8String{ delta.value() }
+				std::u8string{ u8"value" },
+				std::u8string{ delta.value() }
 			);
 
 			if (delta.kind() == HspObjectListDelta::Kind::Remove && delta.count() >= 2) {
 				message.insert_int(
-					Utf8String{ as_utf8(u8"count") },
+					std::u8string{ u8"count" },
 					(int)delta.count()
 				);
 			}
@@ -1234,7 +1234,7 @@ private:
 	}
 
 	void send_list_details_event(std::size_t object_id) {
-		auto text_opt = std::optional<Utf8String>{};
+		auto text_opt = std::optional<std::u8string>{};
 
 		auto path_opt = object_list_entity_.object_id_to_path(object_id);
 		if (path_opt) {
@@ -1243,21 +1243,21 @@ private:
 			text_opt = string_writer.finish();
 		}
 
-		auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"list_details_event") });
+		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"list_details_event" });
 
-		message.insert_int(Utf8String{ as_utf8(u8"object_id") }, (int)object_id);
+		message.insert_int(std::u8string{ u8"object_id" }, (int)object_id);
 
 		if (text_opt) {
-			message.insert(Utf8String{ as_utf8(u8"text") }, std::move(*text_opt));
+			message.insert(std::u8string{ u8"text" }, std::move(*text_opt));
 		}
 
 		send_message(message);
 	}
 
-	void send_output_event(Utf8String output) {
-		auto message = KnowbugMessage::new_with_method(Utf8String{ as_utf8(u8"output_event") });
+	void send_output_event(std::u8string output) {
+		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"output_event" });
 
-		message.insert(Utf8String{ as_utf8(u8"output") }, std::move(output));
+		message.insert(std::u8string{ u8"output" }, std::move(output));
 
 		send_message(message);
 	}

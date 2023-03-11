@@ -31,18 +31,18 @@ private:
 
 	std::shared_ptr<HspObjectPath const> root_path_;
 
-	std::vector<Utf8String> var_names_;
+	std::vector<std::u8string> var_names_;
 	std::vector<Module> modules_;
 	std::vector<TypeData> types_;
-	std::unordered_map<hsx::HspLabel, Utf8String> label_names_;
-	std::unordered_map<STRUCTPRM const*, Utf8String> param_names_;
+	std::unordered_map<hsx::HspLabel, std::u8string> label_names_;
+	std::unordered_map<STRUCTPRM const*, std::u8string> param_names_;
 
 	std::shared_ptr<WcDebugger> wc_debugger_;
 
-	Utf8String log_;
+	std::u8string log_;
 
 public:
-	HspObjects(HSP3DEBUG* debug, std::vector<Utf8String>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, Utf8String>&& label_names, std::unordered_map<STRUCTPRM const*, Utf8String>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);
+	HspObjects(HSP3DEBUG* debug, std::vector<std::u8string>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, std::u8string>&& label_names, std::unordered_map<STRUCTPRM const*, std::u8string>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);
 
 	void initialize();
 
@@ -54,19 +54,19 @@ public:
 
 	auto path_to_memory_view(HspObjectPath const& path) const->std::optional<MemoryView>;
 
-	auto type_to_name(hsx::HspType type) const->Utf8StringView;
+	auto type_to_name(hsx::HspType type) const->std::u8string_view;
 
 	auto module_global_id() const->std::size_t;
 
 	auto module_count() const->std::size_t;
 
-	auto module_to_name(std::size_t module_id) const->Utf8StringView;
+	auto module_to_name(std::size_t module_id) const->std::u8string_view;
 
 	auto module_to_var_count(std::size_t module_id) const->std::size_t;
 
 	auto module_to_var_at(std::size_t module_id, std::size_t index) const->std::size_t;
 
-	auto static_var_path_to_name(HspObjectPath::StaticVar const& path)->Utf8String;
+	auto static_var_path_to_name(HspObjectPath::StaticVar const& path)->std::u8string;
 
 	bool static_var_path_is_array(HspObjectPath::StaticVar const& path);
 
@@ -88,19 +88,19 @@ public:
 
 	auto element_path_to_child_at(HspObjectPath::Element const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
 
-	auto element_path_to_name(HspObjectPath::Element const& path) const->Utf8String;
+	auto element_path_to_name(HspObjectPath::Element const& path) const->std::u8string;
 
 	auto param_path_to_child_count(HspObjectPath::Param const& path) const -> std::size_t;
 
 	auto param_path_to_child_at(HspObjectPath::Param const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
 
-	auto param_path_to_name(HspObjectPath::Param const& path) const -> Utf8String;
+	auto param_path_to_name(HspObjectPath::Param const& path) const -> std::u8string;
 
 	auto param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<hsx::HspVarMetadata>;
 
 	bool label_path_is_null(HspObjectPath::Label const& path) const;
 
-	auto label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<Utf8String>;
+	auto label_path_to_static_label_name(HspObjectPath::Label const& path) const -> std::optional<std::u8string>;
 
 	auto label_path_to_static_label_id(HspObjectPath::Label const& path) const -> std::optional<std::size_t>;
 
@@ -118,19 +118,19 @@ public:
 
 	auto flex_path_is_clone(HspObjectPath::Flex const& path)->std::optional<bool>;
 
-	auto flex_path_to_module_name(HspObjectPath::Flex const& path) -> Utf8String;
+	auto flex_path_to_module_name(HspObjectPath::Flex const& path) -> std::u8string;
 
 	auto system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t;
 
 	auto system_var_path_to_child_at(HspObjectPath::SystemVar const& path, std::size_t child_index) const -> std::shared_ptr<HspObjectPath const>;
 
-	auto system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> Utf8String;
+	auto system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::u8string;
 
 	auto call_stack_path_to_call_frame_count(HspObjectPath::CallStack const& path) const -> std::size_t;
 
 	auto call_stack_path_to_call_frame_key_at(HspObjectPath::CallStack const& path, std::size_t call_frame_index) const -> std::optional<WcCallFrameKey>;
 
-	auto call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8String>;
+	auto call_frame_path_to_name(HspObjectPath::CallFrame const& path) const -> std::optional<std::u8string>;
 
 	auto call_frame_path_is_alive(HspObjectPath::CallFrame const& path) const -> bool;
 
@@ -138,37 +138,37 @@ public:
 
 	auto call_frame_path_to_child_at(HspObjectPath::CallFrame const& path, std::size_t child_index) const -> std::optional<std::shared_ptr<HspObjectPath const>>;
 
-	auto call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<Utf8StringView>>;
+	auto call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<std::u8string_view>>;
 
-	auto call_frame_path_to_full_path(HspObjectPath::CallFrame const& path) const -> std::optional<Utf8StringView>;
+	auto call_frame_path_to_full_path(HspObjectPath::CallFrame const& path) const -> std::optional<std::u8string_view>;
 
 	auto call_frame_path_to_line_index(HspObjectPath::CallFrame const& path) const -> std::optional<std::size_t>;
 
-	auto general_to_content() -> Utf8String;
+	auto general_to_content() -> std::u8string;
 
-	auto log_to_content() const -> Utf8StringView;
+	auto log_to_content() const -> std::u8string_view;
 
 	// ログに追記する。末尾の改行文字は追加されない。
-	void log_do_append(Utf8StringView const& text);
+	void log_do_append(std::u8string_view text);
 
 	void log_do_clear();
 
 	auto script_to_full_path() const -> std::optional<OsStringView>;
 
-	auto script_to_content() const -> Utf8StringView;
+	auto script_to_content() const -> std::u8string_view;
 
 	auto script_to_current_file() const->std::optional<std::size_t>;
 
 	auto script_to_current_line() const -> std::size_t;
 
-	auto script_to_current_location_summary() const->Utf8String;
+	auto script_to_current_location_summary() const->std::u8string;
 
 	// :thinking_face:
 	void script_do_update_location();
 
-	auto source_file_to_full_path(std::size_t source_file_id) const->std::optional<Utf8StringView>;
+	auto source_file_to_full_path(std::size_t source_file_id) const->std::optional<std::u8string_view>;
 
-	auto source_file_to_content(std::size_t source_file_id) const->std::optional<Utf8StringView>;
+	auto source_file_to_content(std::size_t source_file_id) const->std::optional<std::u8string_view>;
 
 private:
 	auto debug() -> HSP3DEBUG* {
@@ -183,15 +183,15 @@ private:
 
 public:
 	class Module {
-		Utf8String name_;
+		std::u8string name_;
 
 		// モジュールに含まれる静的変数のIDのリスト。変数名について昇順。
 		std::vector<std::size_t> var_ids_;
 
 	public:
-		Module(Utf8String&& name);
+		Module(std::u8string&& name);
 
-		auto name() const->Utf8StringView {
+		auto name() const->std::u8string_view {
 			return name_;
 		}
 
@@ -204,22 +204,22 @@ public:
 };
 
 class HspObjects::TypeData {
-	Utf8String name_;
+	std::u8string name_;
 
 public:
-	explicit TypeData(Utf8String&& name);
+	explicit TypeData(std::u8string&& name);
 
-	auto name() const -> Utf8StringView {
+	auto name() const -> std::u8string_view {
 		return name_;
 	}
 };
 
 class HspObjectsBuilder {
-	std::vector<Utf8String> var_names_;
+	std::vector<std::u8string> var_names_;
 
-	std::unordered_map<hsx::HspLabel, Utf8String> label_names_;
+	std::unordered_map<hsx::HspLabel, std::u8string> label_names_;
 
-	std::unordered_map<STRUCTPRM const*, Utf8String> param_names_;
+	std::unordered_map<STRUCTPRM const*, std::u8string> param_names_;
 
 public:
 	void add_var_name(char const* var_name);
@@ -235,6 +235,6 @@ public:
 
 // 迷子
 
-extern auto indexes_to_string(hsx::HspDimIndex const& indexes)->Utf8String;
+extern auto indexes_to_string(hsx::HspDimIndex const& indexes)->std::u8string;
 
-extern auto var_name_to_bare_ident(Utf8StringView const& name)->Utf8StringView;
+extern auto var_name_to_bare_ident(std::u8string_view name)->std::u8string_view;

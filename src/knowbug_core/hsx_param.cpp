@@ -19,30 +19,30 @@ namespace hsx {
 	auto param_type_to_name(HspParamType param_type) -> std::optional<char const*> {
 		switch (param_type) {
 		case MPTYPE_LABEL:
-			return u8"label";
+			return "label";
 
 		case MPTYPE_DNUM:
-			return u8"double";
+			return "double";
 
 		case MPTYPE_LOCALSTRING:
-			return u8"str";
+			return "str";
 
 		case MPTYPE_INUM:
-			return u8"int";
+			return "int";
 
 		case MPTYPE_SINGLEVAR:
-			return u8"var";
+			return "var";
 
 		case MPTYPE_ARRAYVAR:
-			return u8"array";
+			return "array";
 
 		case MPTYPE_LOCALVAR:
-			return u8"local";
+			return "local";
 
 		case MPTYPE_MODULEVAR:
 		case MPTYPE_IMODULEVAR:
 		case MPTYPE_TMODULEVAR:
-			return u8"modvar";
+			return "modvar";
 
 		default:
 			return std::nullopt;

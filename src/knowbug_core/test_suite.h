@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "./utf8_ostream.h"
 
 class TestCase;
 class TestCaseContext;
@@ -18,22 +19,22 @@ using TestBodyFun = std::function<bool(TestCaseContext& t)>;
 
 // テストケース。表明を行うために実行される関数に名前をつけたもの。
 class TestCase {
-	std::string title_;
+	std::u8string title_;
 	TestBodyFun body_;
 
 public:
-	TestCase(std::string&& title, TestBodyFun&& body)
+	TestCase(std::u8string&& title, TestBodyFun&& body)
 		: title_(std::move(title))
 		, body_(std::move(body))
 	{
 	}
 
-	auto title() const -> std::string_view {
+	auto title() const -> std::u8string_view {
 		return title_;
 	}
 
-	auto title_contains(std::string_view const& filter) const -> bool {
-		return title().find(filter) != std::string::npos;
+	auto title_contains(std::u8string_view filter) const -> bool {
+		return title().find(filter) != std::u8string::npos;
 	}
 
 	auto body() const -> TestBodyFun const& {
@@ -43,21 +44,21 @@ public:
 
 // テストスイート。テストケースをグループ化するもの。
 class TestSuite {
-	std::string title_;
+	std::u8string title_;
 	std::vector<TestCase> cases_;
 
 public:
-	TestSuite(std::string&& title)
+	TestSuite(std::u8string&& title)
 		: title_(std::move(title))
 		, cases_()
 	{
 	}
 
-	auto title() const -> std::string_view {
+	auto title() const -> std::u8string_view {
 		return title_;
 	}
 
-	auto title_contains(std::string_view const& filter) const -> bool {
+	auto title_contains(std::u8string_view filter) const -> bool {
 		return title().find(filter) != std::string::npos;
 	}
 
@@ -67,8 +68,8 @@ public:
 
 	// テストケースを宣言する。
 	// 使い方: `suite.test(u8"タイトル", [&](TestCaseContext& t) { ..; return true; })`
-	void test(char const* title, TestBodyFun body) {
-		cases_.emplace_back(std::string{ title }, std::move(body));
+	void test(std::u8string_view title, TestBodyFun body) {
+		cases_.emplace_back(std::u8string{ title }, std::move(body));
 	}
 };
 
@@ -90,15 +91,15 @@ public:
 
 	// テストスイートを宣言する。
 	// 使い方: `auto& suite = tests.suite(u8"タイトル"); suite.test(..); ..`
-	auto suite(char const* title) -> TestSuite& {
-		return suites_.emplace_back(std::string{ title });
+	auto suite(std::u8string_view title) -> TestSuite& {
+		return suites_.emplace_back(std::u8string{ title });
 	}
 };
 
 // 実行中のテストケースからテストランナーへのインターフェイス。
 class TestCaseContext {
 public:
-	using WriteFun = std::function<void(std::ostream&)>;
+	using WriteFun = std::function<void(Utf8OStream&)>;
 
 	TestCaseContext() {
 	}
@@ -106,7 +107,7 @@ public:
 	virtual ~TestCaseContext() {
 	}
 
-	virtual auto output() -> std::ostream& = 0;
+	virtual auto output() & -> Utf8OStream & = 0;
 
 	// 表明に成功したときに呼ばれる。
 	virtual void did_pass() = 0;
@@ -121,10 +122,10 @@ public:
 	auto eq(T&& actual, U&& expected) -> bool {
 		if (actual != expected) {
 			did_mismatch(
-				[&](std::ostream& out) {
+				[&](Utf8OStream& out) {
 					out << actual;
 				},
-				[&](std::ostream& out) {
+				[&](Utf8OStream& out) {
 					out << expected;
 				});
 			return false;
@@ -136,10 +137,7 @@ public:
 
 	// コピー・ムーブともに禁止。
 	TestCaseContext(TestCaseContext const& other) = delete;
-
 	TestCaseContext(TestCaseContext&& other) = delete;
-
 	auto operator =(TestCaseContext const& other)->TestCaseContext & = delete;
-
 	auto operator =(TestCaseContext&& other)->TestCaseContext & = delete;
 };

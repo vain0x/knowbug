@@ -5,6 +5,7 @@
 #include <cassert>
 #include <sstream>
 #include "../knowbug_core/test_suite.h"
+#include "../knowbug_core/utf8_ostream.h"
 
 class TestRunner;
 class TestCaseRunnerImpl;
@@ -17,7 +18,7 @@ class TestRunner {
 	std::size_t skip_count_;
 
 	// 実行するテストを絞り込むための文字列
-	std::string filter_;
+	std::u8string filter_;
 
 	Tests tests_;
 
@@ -36,7 +37,7 @@ public:
 	}
 
 	// 指定された名前を含むテストスイートやテストケースだけ実行するように設定する。
-	void only(std::string&& filter) {
+	void only(std::u8string filter) {
 		filter_ = std::move(filter);
 	}
 
@@ -80,17 +81,17 @@ class TestCaseRunner
 
 	std::size_t assert_count_;
 
-	std::ostream& output_;
+	Utf8OStream& output_;
 
 public:
-	TestCaseRunner(TestCase const& test_case, std::ostream& output)
+	TestCaseRunner(TestCase const& test_case, Utf8OStream& output)
 		: case_(test_case)
 		, assert_count_()
 		, output_(output)
 	{
 	}
 
-	auto output()->std::ostream & override {
+	auto output() & -> Utf8OStream & override {
 		return output_;
 	}
 
@@ -106,7 +107,7 @@ public:
 		write_expected(output());
 		output() << std::endl;
 
-		std::cout << u8"    ✘ 実際の値: ";
+		output() << u8"    ✘ 実際の値: ";
 		write_actual(output());
 		output() << std::endl;
 

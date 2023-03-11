@@ -9,15 +9,15 @@
 class Tests;
 
 class KnowbugMessage {
-	using Pair = std::pair<Utf8String, Utf8String>;
+	using Pair = std::pair<std::u8string, std::u8string>;
 	using Assoc = std::vector<Pair>;
 
 	Assoc assoc_;
 
 public:
-	static auto new_with_method(Utf8String method) -> KnowbugMessage {
+	static auto new_with_method(std::u8string method) -> KnowbugMessage {
 		auto it = KnowbugMessage{};
-		it.insert(Utf8String{ as_utf8(u8"method") }, std::move(method));
+		it.insert(std::u8string{ u8"method" }, std::move(method));
 		return it;
 	}
 
@@ -25,16 +25,16 @@ public:
 		return assoc_.size();
 	}
 
-	auto method() const->Utf8StringView {
+	auto method() const->std::u8string_view {
 		if (assoc_.empty()) {
 			assert(false && u8"missing method");
-			return as_utf8(u8"NO_METHOD");
+			return u8"NO_METHOD";
 		}
 
 		return assoc_[0].second;
 	}
 
-	auto get(Utf8StringView key) const->std::optional<Utf8StringView> {
+	auto get(std::u8string_view key) const->std::optional<std::u8string_view> {
 		for (auto&& pair : assoc_) {
 			if (pair.first == key) {
 				return pair.second;
@@ -44,7 +44,7 @@ public:
 		return std::nullopt;
 	}
 
-	auto get_int(Utf8StringView key) const->std::optional<int> {
+	auto get_int(std::u8string_view key) const->std::optional<int> {
 		auto value_opt = get(key);
 		if (!value_opt) {
 			return std::nullopt;
@@ -53,27 +53,27 @@ public:
 		return std::atol(as_native(*value_opt).data());
 	}
 
-	auto get_bool(Utf8StringView key) const->std::optional<bool> {
+	auto get_bool(std::u8string_view key) const->std::optional<bool> {
 		auto value_opt = get(key);
 		if (!value_opt) {
 			return std::nullopt;
 		}
 
-		return *value_opt == as_utf8(u8"true")
-			|| *value_opt == as_utf8(u8"yes")
-			|| *value_opt == as_utf8(u8"0");
+		return *value_opt == u8"true"
+			|| *value_opt == u8"yes"
+			|| *value_opt == u8"0";
 	}
 
-	void insert(Utf8String key, Utf8String value) {
+	void insert(std::u8string key, std::u8string value) {
 		assoc_.push_back(Pair{ std::move(key),std::move(value) });
 	}
 
-	void insert_int(Utf8String key, int value) {
+	void insert_int(std::u8string key, int value) {
 		insert(std::move(key), as_utf8(std::to_string(value)));
 	}
 
-	void insert_bool(Utf8String key, bool value) {
-		insert(std::move(key), Utf8String{ as_utf8(value ? u8"true" : u8"false") });
+	void insert_bool(std::u8string key, bool value) {
+		insert(std::move(key), std::u8string{ value ? u8"true" : u8"false" });
 	}
 
 	auto begin() const -> Assoc::const_iterator {
@@ -87,9 +87,9 @@ public:
 
 // バッファーからメッセージを取り出す。
 // 取り出したら true を返し、バッファーからメッセージを取り除き、ボディー部分を解析したデータを body にコピーする。
-extern auto knowbug_protocol_parse(Utf8String& buffer) -> std::optional<KnowbugMessage>;
+extern auto knowbug_protocol_parse(std::u8string& buffer) -> std::optional<KnowbugMessage>;
 
 // メッセージを構築する。
-extern auto knowbug_protocol_serialize(KnowbugMessage const& message)->Utf8String;
+extern auto knowbug_protocol_serialize(KnowbugMessage const& message)->std::u8string;
 
 extern void knowbug_protocol_tests(Tests& tests);

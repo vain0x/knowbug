@@ -20,11 +20,11 @@ static auto char_need_escape(char b) -> bool {
 	return b == '\t' || b == '\r' || b == '\n' || b == '\\' || b == '"';
 }
 
-static auto string_need_escape(Utf8StringView const& str) -> bool {
+static auto string_need_escape(std::u8string_view str) -> bool {
 	return std::any_of(
 		str.begin(),
 		str.end(),
-		[](Utf8Char c) {
+		[](char8_t c) {
 			return char_need_escape((char)c);
 		});
 }
@@ -40,7 +40,7 @@ static auto str_to_string(hsx::HspStr const& str) -> std::optional<std::string_v
 	return std::string_view{ str.begin(), count };
 }
 
-static auto str_to_utf8(hsx::HspStr const& str) -> std::optional<Utf8String> {
+static auto str_to_utf8(hsx::HspStr const& str) -> std::optional<std::u8string> {
 	auto string_opt = str_to_string(str);
 	if (!string_opt) {
 		return std::nullopt;
@@ -49,7 +49,7 @@ static auto str_to_utf8(hsx::HspStr const& str) -> std::optional<Utf8String> {
 	return to_utf8(as_hsp(*string_opt));
 }
 
-static bool string_is_multiline(std::string_view const& str) {
+static bool string_is_multiline(std::string_view str) {
 	return std::find(str.begin(), str.end(), '\n') != str.end();
 }
 
@@ -129,7 +129,7 @@ static void write_var_mode(StringWriter& writer, hsx::HspVarMode var_mode) {
 	}
 }
 
-static void write_array_type(StringWriter& writer, Utf8StringView const& type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
+static void write_array_type(StringWriter& writer, std::u8string_view type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
 	// 例: int(2, 3) (6 in total) (dup)
 
 	writer.cat(type_name);
@@ -156,7 +156,7 @@ static void write_array_type(StringWriter& writer, Utf8StringView const& type_na
 	write_var_mode(writer, var_mode);
 }
 
-static auto write_var_metadata_on_table(StringWriter& w, Utf8StringView const& type_name, hsx::HspVarMetadata const& metadata) {
+static auto write_var_metadata_on_table(StringWriter& w, std::u8string_view type_name, hsx::HspVarMetadata const& metadata) {
 	w.cat(u8"変数型: ");
 	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
 	w.cat_crlf();
@@ -197,7 +197,7 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 	}
 }
 
-static void write_flex_module_name(StringWriter& w, Utf8StringView const& module_name, std::optional<bool> is_clone_opt) {
+static void write_flex_module_name(StringWriter& w, std::u8string_view module_name, std::optional<bool> is_clone_opt) {
 	w.cat(module_name);
 
 	// クローンなら印をつける。
@@ -208,7 +208,7 @@ static void write_flex_module_name(StringWriter& w, Utf8StringView const& module
 	}
 }
 
-static void write_signature(StringWriter& w, std::vector<Utf8StringView> const& param_type_names) {
+static void write_signature(StringWriter& w, std::vector<std::u8string_view> const& param_type_names) {
 	// FIXME: 命令ならカッコなし、関数ならカッコあり？
 
 	w.cat(u8"(");
@@ -226,7 +226,7 @@ static void write_signature(StringWriter& w, std::vector<Utf8StringView> const& 
 
 static void write_source_location(
 	StringWriter& w,
-	std::optional<Utf8StringView> const& file_name_opt,
+	std::optional<std::u8string_view> const& file_name_opt,
 	std::optional<std::size_t> const& line_index_opt
 ) {
 	// 例: #12 hoge.hsp
@@ -673,14 +673,14 @@ void HspObjectWriterImpl::BlockForm::on_double(HspObjectPath::Double const& path
 	auto& w = writer();
 	auto value = path.value(objects());
 
-	w.cat_line(strf("%.16f", value));
+	w.cat_line(strf(u8"%.16f", value));
 }
 
 void HspObjectWriterImpl::BlockForm::on_int(HspObjectPath::Int const& path) {
 	auto& w = writer();
 	auto value = path.value(objects());
 
-	w.cat_line(strf("%-10d (0x%08X)", value, value));
+	w.cat_line(strf(u8"%-10d (0x%08X)", value, value));
 }
 
 void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
@@ -844,11 +844,11 @@ void HspObjectWriterImpl::FlowForm::on_str(HspObjectPath::Str const& path) {
 }
 
 void HspObjectWriterImpl::FlowForm::on_double(HspObjectPath::Double const& path) {
-	writer().cat(strf("%f", path.value(objects())));
+	writer().cat(strf(u8"%f", path.value(objects())));
 }
 
 void HspObjectWriterImpl::FlowForm::on_int(HspObjectPath::Int const& path) {
-	writer().cat(strf("%d", path.value(objects())));
+	writer().cat(strf(u8"%d", path.value(objects())));
 }
 
 void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {
@@ -921,7 +921,7 @@ void HspObjectWriter::write_flow_form(HspObjectPath const& path) {
 static void write_string_as_literal_tests(Tests& tests) {
 	auto& suite = tests.suite(u8"write_string_as_literal");
 
-	auto write = [&](Utf8StringView str) {
+	auto write = [&](std::u8string_view str) {
 		auto w = StringWriter{};
 		write_string_as_literal(w, hsx::Slice<char>{ (char const*)str.data(), str.size() });
 		return w.finish();
@@ -930,29 +930,29 @@ static void write_string_as_literal_tests(Tests& tests) {
 	suite.test(
 		u8"エスケープなし",
 		[&](TestCaseContext& t) {
-			return t.eq(write(as_utf8(u8"Hello, world!")), as_utf8(u8"\"Hello, world!\""));
+			return t.eq(write(u8"Hello, world!"), u8"\"Hello, world!\"");
 		});
 
 	suite.test(
 		u8"エスケープあり",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"\\1234:\r\n\tThe \"One Two Three Four\" festival.")),
-				as_utf8(u8"\"\\\\1234:\\n\\tThe \\\"One Two Three Four\\\" festival.\"")
+				write(u8"\\1234:\r\n\tThe \"One Two Three Four\" festival."),
+				u8"\"\\\\1234:\\n\\tThe \\\"One Two Three Four\\\" festival.\""
 			);
 		});
 
 	suite.test(
 		u8"バイナリ",
 		[&](TestCaseContext& t) {
-			return t.eq(write(as_utf8("\x01\x02\x03")), as_utf8(u8"<バイナリ>"));
+			return t.eq(write(as_utf8("\x01\x02\x03")), u8"<バイナリ>");
 		});
 }
 
 static void write_array_type_tests(Tests& tests) {
 	auto& suite = tests.suite(u8"write_array_type");
 
-	auto write = [&](Utf8StringView type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
+	auto write = [&](std::u8string_view type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
 		auto w = StringWriter{};
 		write_array_type(w, type_name, var_mode, lengths);
 		return w.finish();
@@ -962,8 +962,8 @@ static void write_array_type_tests(Tests& tests) {
 		u8"1次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"int"), hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 1, { 3 } }),
-				as_utf8(u8"int(3)")
+				write(u8"int", hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 1, { 3 } }),
+				u8"int(3)"
 			);
 		});
 
@@ -971,8 +971,8 @@ static void write_array_type_tests(Tests& tests) {
 		u8"2次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"str"), hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 2, { 2, 3 } }),
-				as_utf8(u8"str(2, 3) (6 in total)")
+				write(u8"str", hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 2, { 2, 3 } }),
+				u8"str(2, 3) (6 in total)"
 			);
 		});
 
@@ -980,8 +980,8 @@ static void write_array_type_tests(Tests& tests) {
 		u8"クローン変数",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"int"), hsx::HspVarMode::Clone, hsx::HspDimIndex{ 1, { 4 } }),
-				as_utf8(u8"int(4) (dup)")
+				write(u8"int", hsx::HspVarMode::Clone, hsx::HspDimIndex{ 1, { 4 } }),
+				u8"int(4) (dup)"
 			);
 		});
 }
@@ -989,7 +989,7 @@ static void write_array_type_tests(Tests& tests) {
 static void write_source_location_tests(Tests& tests) {
 	auto& suite = tests.suite(u8"write_source_location");
 
-	auto write = [&](std::optional<Utf8StringView> file_name_opt, std::optional<size_t> line_index_opt) {
+	auto write = [&](std::optional<std::u8string_view> file_name_opt, std::optional<size_t> line_index_opt) {
 		auto w = StringWriter{};
 		write_source_location(w, file_name_opt, line_index_opt);
 		return w.finish();
@@ -999,20 +999,20 @@ static void write_source_location_tests(Tests& tests) {
 		u8"ファイル名と行番号があるケース",
 		[&](TestCaseContext& t) {
 			auto actual = write(
-				std::make_optional(as_utf8(u8"foo.hsp")),
+				std::make_optional(u8"foo.hsp"),
 				std::make_optional(std::size_t{ 42 })
 			);
-			return t.eq(actual, as_utf8(u8"#43 foo.hsp"));
+			return t.eq(actual, u8"#43 foo.hsp");
 		});
 
 	suite.test(
 		u8"行番号がないケース",
 		[&](TestCaseContext& t) {
 			auto actual = write(
-				std::make_optional(as_utf8(u8"foo.hsp")),
+				std::make_optional(u8"foo.hsp"),
 				std::nullopt
 			);
-			return t.eq(actual, as_utf8(u8"foo.hsp"));
+			return t.eq(actual, u8"foo.hsp");
 		});
 
 	suite.test(
@@ -1022,7 +1022,7 @@ static void write_source_location_tests(Tests& tests) {
 				std::nullopt,
 				std::make_optional(std::size_t{ 42 })
 			);
-			return t.eq(actual, as_utf8(u8"#43 ???"));
+			return t.eq(actual, u8"#43 ???");
 		});
 
 	suite.test(
@@ -1032,7 +1032,7 @@ static void write_source_location_tests(Tests& tests) {
 				std::nullopt,
 				std::nullopt
 			);
-			return t.eq(actual, as_utf8(u8"???"));
+			return t.eq(actual, u8"???");
 		});
 }
 

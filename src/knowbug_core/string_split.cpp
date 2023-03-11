@@ -19,11 +19,11 @@ void string_lines_tests(Tests& tests) {
 				return false;
 			}
 
-			if (!t.eq(lines.at(0), as_utf8(u8"いろはにほへと"))) {
+			if (!t.eq(lines.at(0), u8"いろはにほへと")) {
 				return false;
 			}
 
-			if (!t.eq(lines.at(1), as_utf8(u8"ちりぬるを"))) {
+			if (!t.eq(lines.at(1), u8"ちりぬるを")) {
 				return false;
 			}
 
@@ -39,7 +39,7 @@ void string_lines_tests(Tests& tests) {
 		[&](TestCaseContext& t) {
 			auto lines = StringLines{ as_utf8(u8"いろはにほへと") }.to_vector();
 			return t.eq(lines.size(), 1)
-				&& t.eq(lines.at(0), as_utf8("いろはにほへと"));
+				&& t.eq(lines.at(0), u8"いろはにほへと");
 		});
 
 	suite.test(

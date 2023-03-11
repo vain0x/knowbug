@@ -7,12 +7,12 @@
 
 namespace {
 
-// alias
+// 書式指定で文字列を作る。
 template<typename... Args>
-auto strf(char const* format, Args&&... args)
-	-> std::string
+auto strf(char8_t const* format, Args&&... args)
+	-> std::u8string
 {
-	return fmt::sprintf(format, std::forward<Args>(args)...);
+	return as_utf8(fmt::sprintf((char const *)format, std::forward<Args>(args)...));
 }
 
 } //namespace
