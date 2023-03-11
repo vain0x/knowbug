@@ -137,7 +137,7 @@ void transfer_protocol_tests(Tests& tests) {
 			buffer += u8"world!\r\n";
 			success = transfer_protocol_parse(body, buffer);
 			return t.eq(success, true)
-				&& t.eq(body, as_utf8(u8"Hello, world!\r\n"))
+				&& t.eq(body, u8"Hello, world!\r\n")
 				&& t.eq(buffer.empty(), true);
 		});
 
@@ -149,14 +149,14 @@ void transfer_protocol_tests(Tests& tests) {
 
 			auto success = transfer_protocol_parse(body, buffer);
 			if (!t.eq(success, true)
-				|| !t.eq(body, as_utf8(u8"Hello, world!\r\n"))
+				|| !t.eq(body, u8"Hello, world!\r\n")
 				|| !t.eq(buffer.empty(), false)) {
 				return false;
 			}
 
 			success = transfer_protocol_parse(body, buffer);
 			return t.eq(success, true)
-				&& t.eq(body, as_utf8(u8"Good bye!\r\n"))
+				&& t.eq(body, u8"Good bye!\r\n")
 				&& t.eq(buffer.empty(), true);
 		});
 }

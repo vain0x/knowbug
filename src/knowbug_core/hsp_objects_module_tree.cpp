@@ -78,7 +78,7 @@ public:
 
 	void add_var(std::size_t var_id, Utf8StringView const& var_name) override {
 		writer_.cat(var_name);
-		writer_.cat(as_utf8(u8" #"));
+		writer_.cat(u8" #");
 		writer_.cat_size(var_id);
 		writer_.cat_crlf();
 	}
@@ -90,15 +90,15 @@ void module_tree_tests(Tests& tests) {
 	suite.test(
 		u8"スコープ解決の部分を取得できる",
 		[&](TestCaseContext& t) {
-			if (!t.eq(*var_name_to_scope_resolution(as_utf8(u8"foo@bar")), as_utf8(u8"@bar"))) {
+			if (!t.eq(*var_name_to_scope_resolution(u8"foo@bar"), u8"@bar")) {
 				return false;
 			}
 
-			if (!t.eq(*var_name_to_scope_resolution(as_utf8(u8"foo@")), as_utf8(u8"@"))) {
+			if (!t.eq(*var_name_to_scope_resolution(u8"foo@"), u8"@")) {
 				return false;
 			}
 
-			if (!t.eq(var_name_to_scope_resolution(as_utf8(u8"foo")) == std::nullopt, true)) {
+			if (!t.eq(var_name_to_scope_resolution(u8"foo") == std::nullopt, true)) {
 				return false;
 			}
 
@@ -111,12 +111,12 @@ void module_tree_tests(Tests& tests) {
 			auto w = StringWriter{};
 			auto listener = ModuleTreeWriter{ w };
 			auto var_names = std::vector<Utf8String>{
-				to_owned(as_utf8(u8"s1@m1")),
-				to_owned(as_utf8(u8"t2@m2")),
-				to_owned(as_utf8(u8"s2@m1")),
-				to_owned(as_utf8(u8"t1@m2")),
-				to_owned(as_utf8(u8"g1")),
-				to_owned(as_utf8(u8"g2"))
+				to_owned(u8"s1@m1"),
+				to_owned(u8"t2@m2"),
+				to_owned(u8"s2@m1"),
+				to_owned(u8"t1@m2"),
+				to_owned(u8"g1"),
+				to_owned(u8"g2")
 			};
 
 			traverse_module_tree(var_names, listener);
@@ -142,6 +142,6 @@ void module_tree_tests(Tests& tests) {
 			auto listener = ModuleTreeWriter{ w };
 
 			traverse_module_tree(std::vector<Utf8String>{}, listener);
-			return t.eq(as_view(w), as_utf8(u8"@\r\n"));
+			return t.eq(as_view(w), u8"@\r\n");
 		});
 }

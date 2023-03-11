@@ -17,7 +17,7 @@ class KnowbugMessage {
 public:
 	static auto new_with_method(Utf8String method) -> KnowbugMessage {
 		auto it = KnowbugMessage{};
-		it.insert(Utf8String{ as_utf8(u8"method") }, std::move(method));
+		it.insert(Utf8String{ u8"method" }, std::move(method));
 		return it;
 	}
 
@@ -28,7 +28,7 @@ public:
 	auto method() const->Utf8StringView {
 		if (assoc_.empty()) {
 			assert(false && u8"missing method");
-			return as_utf8(u8"NO_METHOD");
+			return u8"NO_METHOD";
 		}
 
 		return assoc_[0].second;
@@ -59,9 +59,9 @@ public:
 			return std::nullopt;
 		}
 
-		return *value_opt == as_utf8(u8"true")
-			|| *value_opt == as_utf8(u8"yes")
-			|| *value_opt == as_utf8(u8"0");
+		return *value_opt == u8"true"
+			|| *value_opt == u8"yes"
+			|| *value_opt == u8"0";
 	}
 
 	void insert(Utf8String key, Utf8String value) {
@@ -73,7 +73,7 @@ public:
 	}
 
 	void insert_bool(Utf8String key, bool value) {
-		insert(std::move(key), Utf8String{ as_utf8(value ? u8"true" : u8"false") });
+		insert(std::move(key), Utf8String{ value ? u8"true" : u8"false" });
 	}
 
 	auto begin() const -> Assoc::const_iterator {

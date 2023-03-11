@@ -347,7 +347,7 @@ static auto load_text_file(OsString const& file_path, FileSystemApi& fs) -> Utf8
 	auto content_opt = fs.read_all_text(file_path);
 	if (!content_opt) {
 		// デバッグログなどに出力する？
-		return to_owned(as_utf8(u8""));
+		return to_owned(u8"");
 	}
 
 	// NOTE: ソースコードの文字コードが HSP ランタイムの文字コードと同じとは限らない。

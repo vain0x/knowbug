@@ -930,22 +930,22 @@ static void write_string_as_literal_tests(Tests& tests) {
 	suite.test(
 		u8"エスケープなし",
 		[&](TestCaseContext& t) {
-			return t.eq(write(as_utf8(u8"Hello, world!")), as_utf8(u8"\"Hello, world!\""));
+			return t.eq(write(u8"Hello, world!"), u8"\"Hello, world!\"");
 		});
 
 	suite.test(
 		u8"エスケープあり",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"\\1234:\r\n\tThe \"One Two Three Four\" festival.")),
-				as_utf8(u8"\"\\\\1234:\\n\\tThe \\\"One Two Three Four\\\" festival.\"")
+				write(u8"\\1234:\r\n\tThe \"One Two Three Four\" festival."),
+				u8"\"\\\\1234:\\n\\tThe \\\"One Two Three Four\\\" festival.\""
 			);
 		});
 
 	suite.test(
 		u8"バイナリ",
 		[&](TestCaseContext& t) {
-			return t.eq(write(as_utf8("\x01\x02\x03")), as_utf8(u8"<バイナリ>"));
+			return t.eq(write(as_utf8("\x01\x02\x03")), u8"<バイナリ>");
 		});
 }
 
@@ -962,8 +962,8 @@ static void write_array_type_tests(Tests& tests) {
 		u8"1次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"int"), hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 1, { 3 } }),
-				as_utf8(u8"int(3)")
+				write(u8"int", hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 1, { 3 } }),
+				u8"int(3)"
 			);
 		});
 
@@ -971,8 +971,8 @@ static void write_array_type_tests(Tests& tests) {
 		u8"2次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"str"), hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 2, { 2, 3 } }),
-				as_utf8(u8"str(2, 3) (6 in total)")
+				write(u8"str", hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 2, { 2, 3 } }),
+				u8"str(2, 3) (6 in total)"
 			);
 		});
 
@@ -980,8 +980,8 @@ static void write_array_type_tests(Tests& tests) {
 		u8"クローン変数",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(as_utf8(u8"int"), hsx::HspVarMode::Clone, hsx::HspDimIndex{ 1, { 4 } }),
-				as_utf8(u8"int(4) (dup)")
+				write(u8"int", hsx::HspVarMode::Clone, hsx::HspDimIndex{ 1, { 4 } }),
+				u8"int(4) (dup)"
 			);
 		});
 }
@@ -999,20 +999,20 @@ static void write_source_location_tests(Tests& tests) {
 		u8"ファイル名と行番号があるケース",
 		[&](TestCaseContext& t) {
 			auto actual = write(
-				std::make_optional(as_utf8(u8"foo.hsp")),
+				std::make_optional(u8"foo.hsp"),
 				std::make_optional(std::size_t{ 42 })
 			);
-			return t.eq(actual, as_utf8(u8"#43 foo.hsp"));
+			return t.eq(actual, u8"#43 foo.hsp");
 		});
 
 	suite.test(
 		u8"行番号がないケース",
 		[&](TestCaseContext& t) {
 			auto actual = write(
-				std::make_optional(as_utf8(u8"foo.hsp")),
+				std::make_optional(u8"foo.hsp"),
 				std::nullopt
 			);
-			return t.eq(actual, as_utf8(u8"foo.hsp"));
+			return t.eq(actual, u8"foo.hsp");
 		});
 
 	suite.test(
@@ -1022,7 +1022,7 @@ static void write_source_location_tests(Tests& tests) {
 				std::nullopt,
 				std::make_optional(std::size_t{ 42 })
 			);
-			return t.eq(actual, as_utf8(u8"#43 ???"));
+			return t.eq(actual, u8"#43 ???");
 		});
 
 	suite.test(
@@ -1032,7 +1032,7 @@ static void write_source_location_tests(Tests& tests) {
 				std::nullopt,
 				std::nullopt
 			);
-			return t.eq(actual, as_utf8(u8"???"));
+			return t.eq(actual, u8"???");
 		});
 }
 

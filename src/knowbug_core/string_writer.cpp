@@ -84,7 +84,7 @@ void StringWriter::cat_by_lines(Utf8StringView str) {
 		}
 
 		if (!first) {
-			cat_limited(as_utf8(u8"\r\n"));
+			cat_limited(u8"\r\n");
 			head_ = true;
 		}
 		first = false;
@@ -95,7 +95,7 @@ void StringWriter::cat_by_lines(Utf8StringView str) {
 
 		if (head_) {
 			for (auto i = std::size_t{}; i < depth_; i++) {
-				cat_limited(as_utf8(u8"  "));
+				cat_limited(u8"  ");
 			}
 			head_ = false;
 		}
@@ -168,13 +168,13 @@ void string_writer_tests(Tests& tests) {
 			auto w = string_writer_new();
 			w.set_limit(20);
 
-			w.cat(as_utf8(u8"0123456789<長すぎる部分は省略されます>"));
-			if (!t.eq(as_view(w), as_utf8(u8"0123456789(too long)"))) {
+			w.cat(u8"0123456789<長すぎる部分は省略されます>");
+			if (!t.eq(as_view(w), u8"0123456789(too long)")) {
 				return false;
 			}
 
 			// これ以上の追記は無意味。
-			w.cat(as_utf8(u8"add"));
+			w.cat(u8"add");
 			if (!t.eq(as_view(w).size(), 20)) {
 				return false;
 			}
@@ -191,18 +191,18 @@ void string_writer_tests(Tests& tests) {
 		u8"適切に字下げできる",
 		[&](TestCaseContext& t) {
 			auto w = string_writer_new();
-			w.cat_line(as_utf8(u8"親"));
+			w.cat_line(u8"親");
 			w.indent();
 
-			w.cat_line(as_utf8(u8"兄"));
+			w.cat_line(u8"兄");
 			w.indent();
-			w.cat_line(as_utf8(u8"甥"));
+			w.cat_line(u8"甥");
 			w.unindent();
 
-			w.cat_line(as_utf8(u8"本人"));
+			w.cat_line(u8"本人");
 			w.indent();
 			// 途中に改行があっても字下げされる。(LF は CRLF に置き換わる。)
-			w.cat_line(as_utf8(u8"長男\n長女"));
+			w.cat_line(u8"長男\n長女");
 
 			auto expected = as_utf8(
 				u8"親\r\n"
@@ -222,7 +222,7 @@ void string_writer_tests(Tests& tests) {
 				auto w = string_writer_new();
 				auto dead_beef = (void const*)(UINT_PTR)0xdeadbeef;
 				w.cat_ptr(dead_beef);
-				if (!t.eq(as_view(w), as_utf8(u8"0xdeadbeef"))) {
+				if (!t.eq(as_view(w), u8"0xdeadbeef")) {
 					return false;
 				}
 			}
@@ -231,7 +231,7 @@ void string_writer_tests(Tests& tests) {
 				auto w = string_writer_new();
 				w.cat_ptr(nullptr);
 				// <nullptr> とか 0x0000 とかでも可
-				if (!t.eq(as_view(w), as_utf8(u8"(nil)"))) {
+				if (!t.eq(as_view(w), u8"(nil)")) {
 					return false;
 				}
 			}

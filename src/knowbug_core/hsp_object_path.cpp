@@ -102,7 +102,7 @@ auto HspObjectPath::Group::child_at(std::size_t child_index, HspObjects& objects
 	auto n = parent().child_count(objects);
 	auto i = offset() + child_index;
 	if (i >= n) {
-		return new_unavailable(to_owned(as_utf8(u8"out of range")));
+		return new_unavailable(to_owned(u8"out of range"));
 	}
 
 	return parent().child_at(i, objects);
@@ -111,7 +111,7 @@ auto HspObjectPath::Group::child_at(std::size_t child_index, HspObjects& objects
 auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
 	auto n = parent().child_count(objects);
 	if (offset() >= n) {
-		return to_owned(as_utf8(u8"..."));
+		return to_owned(u8"...");
 	}
 	assert(n >= 1);
 
@@ -122,7 +122,7 @@ auto HspObjectPath::Group::name(HspObjects& objects) const->Utf8String {
 	auto name = parent().child_at(first_index, objects)->name(objects);
 	auto last = parent().child_at(last_index, objects)->name(objects);
 
-	name += as_utf8(u8"...");
+	name += u8"...";
 	name += last;
 	return name;
 }
@@ -153,7 +153,7 @@ auto HspObjectPath::Ellipsis::child_at(std::size_t child_index, HspObjects& obje
 }
 
 auto HspObjectPath::Ellipsis::name(HspObjects& objects) const->Utf8String {
-	return to_owned(as_utf8(u8"..."));
+	return to_owned(u8"...");
 }
 
 // -----------------------------------------------
