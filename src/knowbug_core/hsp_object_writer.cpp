@@ -49,7 +49,7 @@ static auto str_to_utf8(hsx::HspStr const& str) -> std::optional<std::u8string> 
 	return to_utf8(as_hsp(*string_opt));
 }
 
-static bool string_is_multiline(std::string_view const& str) {
+static bool string_is_multiline(std::string_view str) {
 	return std::find(str.begin(), str.end(), '\n') != str.end();
 }
 
@@ -129,7 +129,7 @@ static void write_var_mode(StringWriter& writer, hsx::HspVarMode var_mode) {
 	}
 }
 
-static void write_array_type(StringWriter& writer, std::u8string_view const& type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
+static void write_array_type(StringWriter& writer, std::u8string_view type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
 	// 例: int(2, 3) (6 in total) (dup)
 
 	writer.cat(type_name);
@@ -156,7 +156,7 @@ static void write_array_type(StringWriter& writer, std::u8string_view const& typ
 	write_var_mode(writer, var_mode);
 }
 
-static auto write_var_metadata_on_table(StringWriter& w, std::u8string_view const& type_name, hsx::HspVarMetadata const& metadata) {
+static auto write_var_metadata_on_table(StringWriter& w, std::u8string_view type_name, hsx::HspVarMetadata const& metadata) {
 	w.cat(u8"変数型: ");
 	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
 	w.cat_crlf();
@@ -197,7 +197,7 @@ static bool object_path_is_compact(HspObjectPath const& path, HspObjects& object
 	}
 }
 
-static void write_flex_module_name(StringWriter& w, std::u8string_view const& module_name, std::optional<bool> is_clone_opt) {
+static void write_flex_module_name(StringWriter& w, std::u8string_view module_name, std::optional<bool> is_clone_opt) {
 	w.cat(module_name);
 
 	// クローンなら印をつける。

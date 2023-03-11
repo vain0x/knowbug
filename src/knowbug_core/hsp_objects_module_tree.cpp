@@ -6,7 +6,7 @@
 
 static auto const GLOBAL_MODULE_NAME = as_utf8(u8"@");
 
-static auto var_name_to_scope_resolution(std::u8string_view const& var_name) -> std::optional<std::u8string_view> {
+static auto var_name_to_scope_resolution(std::u8string_view var_name) -> std::optional<std::u8string_view> {
 	auto ptr = std::strchr(as_native(var_name).data(), '@');
 	if (!ptr) {
 		return std::nullopt;
@@ -67,7 +67,7 @@ public:
 	{
 	}
 
-	void begin_module(std::u8string_view const& module_name) override {
+	void begin_module(std::u8string_view module_name) override {
 		writer_.cat_line(module_name);
 		writer_.indent();
 	}
@@ -76,7 +76,7 @@ public:
 		writer_.unindent();
 	}
 
-	void add_var(std::size_t var_id, std::u8string_view const& var_name) override {
+	void add_var(std::size_t var_id, std::u8string_view var_name) override {
 		writer_.cat(var_name);
 		writer_.cat(u8" #");
 		writer_.cat_size(var_id);

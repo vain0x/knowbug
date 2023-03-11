@@ -359,7 +359,7 @@ static auto char_is_whitespace(char8_t c) -> bool {
 }
 
 // 行ごとに分割する。ただし各行の字下げは除外する。
-static auto split_by_lines(std::u8string_view const& str) -> std::vector<std::u8string_view> {
+static auto split_by_lines(std::u8string_view str) -> std::vector<std::u8string_view> {
 	auto lines = std::vector<std::u8string_view>{};
 
 	for (auto&& line : StringLines{ str }) {

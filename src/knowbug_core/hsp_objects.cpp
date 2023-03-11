@@ -39,7 +39,7 @@ auto indexes_to_string(hsx::HspDimIndex const& indexes) -> std::u8string {
 	return as_utf8(ss.str());
 }
 
-auto var_name_to_bare_ident(std::u8string_view const& str) -> std::u8string_view {
+auto var_name_to_bare_ident(std::u8string_view str) -> std::u8string_view {
 	auto atmark = str.find(u8'@');
 	return atmark != std::u8string::npos
 		? str.substr(0, atmark)
@@ -59,14 +59,14 @@ static auto group_vars_by_module(std::vector<std::u8string> const& var_names) ->
 		{
 		}
 
-		void begin_module(std::u8string_view const& module_name) override {
+		void begin_module(std::u8string_view module_name) override {
 			modules_.emplace_back(HspObjects::Module{ to_owned(module_name) });
 		}
 
 		void end_module() override {
 		}
 
-		void add_var(std::size_t var_id, std::u8string_view const& var_name) override {
+		void add_var(std::size_t var_id, std::u8string_view var_name) override {
 			modules_.back().add_var(var_id);
 		}
 	};
@@ -1217,7 +1217,7 @@ auto HspObjects::log_to_content() const -> std::u8string_view {
 	return log_;
 }
 
-void HspObjects::log_do_append(std::u8string_view const& text) {
+void HspObjects::log_do_append(std::u8string_view text) {
 	log_ += text;
 }
 

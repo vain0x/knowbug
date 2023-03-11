@@ -33,11 +33,11 @@ public:
 
 	auto as_view() const->std::u8string_view;
 
-	void cat(std::string_view const& str) {
+	void cat(std::string_view str) {
 		cat(as_utf8(str));
 	}
 
-	void cat_line(std::string_view const& str) {
+	void cat_line(std::string_view str) {
 		cat_line(as_utf8(str));
 	}
 

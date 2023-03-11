@@ -1093,7 +1093,7 @@ public:
 		return objects.log_to_content();
 	}
 
-	void append(std::u8string_view const& text, HspObjects& objects) const {
+	void append(std::u8string_view text, HspObjects& objects) const {
 		objects.log_do_append(text);
 	}
 

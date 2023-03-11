@@ -149,7 +149,7 @@ public:
 	auto log_to_content() const -> std::u8string_view;
 
 	// ログに追記する。末尾の改行文字は追加されない。
-	void log_do_append(std::u8string_view const& text);
+	void log_do_append(std::u8string_view text);
 
 	void log_do_clear();
 
@@ -237,4 +237,4 @@ public:
 
 extern auto indexes_to_string(hsx::HspDimIndex const& indexes)->std::u8string;
 
-extern auto var_name_to_bare_ident(std::u8string_view const& name)->std::u8string_view;
+extern auto var_name_to_bare_ident(std::u8string_view name)->std::u8string_view;
