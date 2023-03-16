@@ -33,15 +33,12 @@
 #define ctype char_is_space(%1 = char) \
 	((%1) == ' ' || (%1) == '\t' || (%1) == '\r' || (%1) == char_lf)
 
-; 2^n のメモリサイズで領域を拡張する
+; データバッファの領域を拡張する (mod_buf.hsp を参照)
 #deffunc local powerful_memexpand var buf, int min_len
 
-	repeat 30 - 8, 8
-		if (1 << cnt) >= min_len {
-			memexpand buf, 1 << cnt
-			break
-		}
-	loop
+	if varsize(buf) < min_len {
+		memexpand buf, limit(min_len, varsize(buf) * 2)
+	}
 	return
 
 ; データバッファに送られてきたデータを連結する
