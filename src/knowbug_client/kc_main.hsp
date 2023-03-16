@@ -91,7 +91,7 @@
 	message_len = 0
 
 	knowbug_protocol_serialize keys, values, value_lens, count, message, message_len
-	logmes "send: " + message
+	logmes "send: " + strmid(message, 0, message_len)
 
 	stdout_write message, message_len
 	return
@@ -217,9 +217,9 @@
 	assert count >= 1 && keys(0) == "method"
 	method = values(0)
 
-	logmes "receievd: "
+	logmes "received:"
 	repeat count
-		logmes "  " + keys(cnt) + " = " + values(cnt)
+		logmes "  " + keys(cnt) + " = " + strmid(values(cnt), 0, value_lens(cnt))
 	loop
 
 	if method == "initialized_event" {
