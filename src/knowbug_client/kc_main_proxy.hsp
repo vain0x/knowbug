@@ -167,25 +167,39 @@
 
 	s_child_is_running = true
 	s_stdin_is_available = true
+	s_stdin_changed = false
 	s_stdout_is_available = true
+	s_stdout_changed = false
 
 	repeat
-		await 4
+		; 標準入出力をサブプロセスに転送する
+		; (転送処理が発生している間は await しない)
+		if s_stdin_is_available {
+			s_stdin_changed = false
+			s_stdout_changed = false
 
+			; 標準入力を転送する。
+			gosub *l_forward_stdin
+
+			; 標準出力を転送する。
+			gosub *l_forward_stdout
+
+			if s_stdin_changed || s_stdout_changed {
+				continue
+			}
+		}
+
+		; サブプロセスの終了を監視する
 		if s_child_is_running {
 			child_process_wait s_cp, 4
 			s_child_is_running = stat == false
 		}
 
-		; 標準入力を転送する。
-		gosub *l_forward_stdin
-
-		; 標準出力を転送する。
-		gosub *l_forward_stdout
-
 		if s_child_is_running == false && s_stdin_is_available == false {
 			break
 		}
+
+		await 100
 	loop
 
 	child_process_close s_cp
@@ -218,6 +232,7 @@
 		return
 	}
 
+	s_stdin_changed = true
 	return
 
 *l_forward_stdout
@@ -246,6 +261,7 @@
 		return
 	}
 
+	s_stdout_changed = true
 	return
 
 *l_fail
