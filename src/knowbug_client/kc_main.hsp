@@ -86,7 +86,7 @@
 
 	if s_server_hwnd {
 		; 0x8001: WM_APP + 1
-		PostMessage s_server_hwnd, 0x8001, 0, 0
+		sendmsg s_server_hwnd, 0x8001, 0, 0
 	}
 	return
 

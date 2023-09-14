@@ -833,7 +833,7 @@ public:
 
 static auto s_server = std::weak_ptr<KnowbugServerImpl>{};
 
-static void WINAPI on_wait_handle_signal(void* context, BOOLEAN timeout);
+// static void WINAPI on_wait_handle_signal(void* context, BOOLEAN timeout);
 
 class KnowbugServerImpl
 	: public KnowbugServer
@@ -985,11 +985,11 @@ public:
 		register_wait_for_client();
 	}
 
-	void poll_self() {
-		if (hidden_window_opt_.has_value()) {
-			PostMessage(hidden_window_opt_->get(), WM_APP + 1, 0, 0);
-		}
-	}
+	// void poll_self() {
+	// 	if (hidden_window_opt_.has_value()) {
+	// 		PostMessage(hidden_window_opt_->get(), WM_APP + 1, 0, 0);
+	// 	}
+	// }
 
 	void client_did_send_something(KnowbugMessage const& message) {
 		auto method = message.method();
@@ -1183,13 +1183,13 @@ private:
 		}
 		assert(written_size == text.size());
 
-		if (!FlushFileBuffers(handle)) {
-			assert(false && u8"FlushFileBuffers");
-			return;
-		}
+		// if (!FlushFileBuffers(handle)) {
+		// 	assert(false && u8"FlushFileBuffers");
+		// 	return;
+		// }
 
 		if (client_hwnd_opt_) {
-			PostMessage(*client_hwnd_opt_, WM_APP + 1, 0, 0);
+			SendMessage(*client_hwnd_opt_, WM_APP + 1, 0, 0);
 		}
 	}
 
@@ -1380,7 +1380,7 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 	return DefWindowProc(hwnd, msg, wp, lp);
 }
 
-static void WINAPI on_wait_handle_signal(void* context, BOOLEAN timeout) {
-	auto& server = *(KnowbugServerImpl*)context;
-	server.poll_self();
-}
+// static void WINAPI on_wait_handle_signal(void* context, BOOLEAN timeout) {
+// 	auto& server = *(KnowbugServerImpl*)context;
+// 	server.poll_self();
+// }
