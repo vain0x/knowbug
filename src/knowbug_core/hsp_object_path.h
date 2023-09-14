@@ -399,7 +399,7 @@ public:
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
-		auto& o = other.as_param();
+		auto const& o = other.as_param();
 		return param_type() == o.param_type() && param_index() == o.param_index();
 	}
 

@@ -410,8 +410,8 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 			assert(source_done[si] && target_done[ti]);
 
 			if (source[si].object_id() == target[ti].object_id()) {
-				auto& s = source[si];
-				auto& t = target[ti];
+				auto const& s = source[si];
+				auto const& t = target[ti];
 				if (!s.equals(t)) {
 					diff.push_back(HspObjectListDelta::new_update(ti, target[ti]));
 				}
