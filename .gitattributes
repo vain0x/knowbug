@@ -8,5 +8,7 @@
 
 
 # <https://github.com/github/linguist#vendored-code>
-cppformat/          linguist-vendored
 hspsdk/             linguist-vendored
+
+# (削除済み)
+cppformat/          linguist-vendored

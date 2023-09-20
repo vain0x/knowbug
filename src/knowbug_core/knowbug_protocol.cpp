@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "encoding.h"
 #include "knowbug_protocol.h"
-#include "string_format.h"
 #include "string_split.h"
 #include "test_suite.h"
 #include "transfer_protocol.h"

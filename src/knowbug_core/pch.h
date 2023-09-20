@@ -27,7 +27,6 @@
 
 #include "platform.h"
 
-#include "../cppformat/cppformat/format.h"
 #include "../hspsdk/hsp3plugin.h"
 
 #endif //PCH_H

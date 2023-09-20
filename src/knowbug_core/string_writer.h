@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 #include "encoding.h"
-#include "string_format.h"
 #include "test_suite.h"
 
 // 文字列を構築するためのもの。
