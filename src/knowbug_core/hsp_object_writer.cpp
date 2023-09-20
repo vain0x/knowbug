@@ -673,14 +673,18 @@ void HspObjectWriterImpl::BlockForm::on_double(HspObjectPath::Double const& path
 	auto& w = writer();
 	auto value = path.value(objects());
 
-	w.cat_line(strf(u8"%.16f", value));
+	char temp[32] = "";
+	sprintf_s(temp, "%.16f", value);
+	w.cat_line(ascii_as_utf8(temp));
 }
 
 void HspObjectWriterImpl::BlockForm::on_int(HspObjectPath::Int const& path) {
 	auto& w = writer();
 	auto value = path.value(objects());
 
-	w.cat_line(strf(u8"%-10d (0x%08X)", value, value));
+	char temp[32] = "";
+	sprintf_s(temp, "%-10d (0x%08X)", value, value);
+	w.cat_line(ascii_as_utf8(temp));
 }
 
 void HspObjectWriterImpl::BlockForm::on_flex(HspObjectPath::Flex const& path) {
@@ -844,11 +848,19 @@ void HspObjectWriterImpl::FlowForm::on_str(HspObjectPath::Str const& path) {
 }
 
 void HspObjectWriterImpl::FlowForm::on_double(HspObjectPath::Double const& path) {
-	writer().cat(strf(u8"%f", path.value(objects())));
+	auto value = path.value(objects());
+
+	char temp[32] = "";
+	sprintf_s(temp, "%f", value);
+	writer().cat(ascii_as_utf8(temp));
 }
 
 void HspObjectWriterImpl::FlowForm::on_int(HspObjectPath::Int const& path) {
-	writer().cat(strf(u8"%d", path.value(objects())));
+	auto value = path.value(objects());
+
+	char temp[32] = "";
+	sprintf_s(temp, "%d", value);
+	writer().cat(ascii_as_utf8(temp));
 }
 
 void HspObjectWriterImpl::FlowForm::on_flex(HspObjectPath::Flex const& path) {

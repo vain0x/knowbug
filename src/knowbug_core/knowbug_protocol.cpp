@@ -49,6 +49,7 @@ static auto parse_hex_digit(char8_t c) -> std::size_t {
 
 static auto escape(std::u8string_view str) -> std::u8string {
 	auto output = std::u8string{};
+	char temp[8] = "";
 
 	auto i = std::size_t{};
 	auto last = i;
@@ -58,7 +59,8 @@ static auto escape(std::u8string_view str) -> std::u8string {
 		if (c == u8'\0' || c == u8'\t' || c == u8'\r' || c == u8'\n' || c == u8' '
 			|| c == u8'=' || c == u8'"' || c == u8'\\') {
 			output += str.substr(last, i - last);
-			output += strf(u8"\\x%02x", (std::uint8_t)c);
+			sprintf_s(temp, "\\x%02x", (std::uint8_t)c);
+			output += ascii_as_utf8(temp);
 			i++;
 			last = i;
 			continue;
