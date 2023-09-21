@@ -16,9 +16,6 @@
     <Filter Include="hspsdk">
       <UniqueIdentifier>{6c970a63-f2d2-4bd1-8719-24ce1c35b494}</UniqueIdentifier>
     </Filter>
-    <Filter Include="cppformat">
-      <UniqueIdentifier>{40c096fd-f36c-4948-abb7-8e10ea98b2a4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="hspsdk\win32gui">
       <UniqueIdentifier>{a52c5b5e-7dcd-4c75-8181-631970be012f}</UniqueIdentifier>
     </Filter>
@@ -29,9 +26,6 @@
   <ItemGroup>
     <ClInclude Include="pch.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\cppformat\cppformat\format.h">
-      <Filter>cppformat</Filter>
     </ClInclude>
     <ClInclude Include="..\hspsdk\hsp3debug.h">
       <Filter>hspsdk</Filter>
@@ -105,9 +99,6 @@
     <ClInclude Include="hsx_debug_segment.h">
       <Filter>hsp-sdk-ext</Filter>
     </ClInclude>
-    <ClInclude Include="string_format.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="string_writer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -142,9 +133,6 @@
   <ItemGroup>
     <ClCompile Include="pch.cpp">
       <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\cppformat\cppformat\format.cc">
-      <Filter>cppformat</Filter>
     </ClCompile>
     <ClCompile Include="..\hspsdk\hsp3plugin.cpp">
       <Filter>hspsdk</Filter>

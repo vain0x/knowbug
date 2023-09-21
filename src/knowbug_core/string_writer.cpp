@@ -110,28 +110,53 @@ void StringWriter::cat_memory_dump_impl(void const* data, std::size_t size) {
 
 	auto mem = static_cast<unsigned char const*>(data);
 	auto idx = std::size_t{};
+	auto row = std::string{};
 	while (idx < size) {
 		if (idx != 0) {
 			cat_crlf();
 		}
 
-		auto row = fmt::MemoryWriter{};
-		row << fmt::pad(fmt::hexu(idx), 4, '0');
+		row.clear();
+
+		// インデックス
+		{
+			char temp[8] = "";
+			sprintf_s(temp, "%04X", (unsigned int)idx);
+			row += temp;
+		}
+
 		auto i = std::size_t{};
 		while (i < BYTE_COUNT_PER_LINE && idx < size) {
-			row << ' ' << fmt::pad(fmt::hexu(mem[idx]), 2, '0');
+			row += ' ';
+			// バイト
+			{
+				char temp[8] = "";
+				sprintf_s(temp, "%02X", (unsigned int)mem[idx]);
+				row += temp;
+			}
 			i++; idx++;
 		}
-		cat(row.data());
+		cat(as_utf8(row));
 	}
 }
 
 void StringWriter::cat_size(std::size_t size) {
-	cat(strf(u8"%d", size));
+	char temp[16] = "";
+	sprintf_s(temp, "%lld", (long long int)size);
+	cat(ascii_as_utf8(temp));
 }
 
+// ポインタのアドレスを書き込む
+// (小文字の16進数で、32ビット環境では8桁、64ビット環境では16桁。例: `0x0123cdef`)
 void StringWriter::cat_ptr(void const* ptr) {
-	cat(strf(u8"%p", ptr));
+	char temp[32] = "";
+	auto len = sprintf_s(temp, "%p", ptr);
+	for (auto i = 0; i < len; i++) {
+		temp[i] = std::tolower(temp[i]);
+	}
+
+	cat(u8"0x");
+	cat(ascii_as_utf8(temp));
 }
 
 void StringWriter::cat_memory_dump(void const* data, std::size_t data_size) {
@@ -142,7 +167,11 @@ void StringWriter::cat_memory_dump(void const* data, std::size_t data_size) {
 
 	auto dump_size = data_size;
 	if (dump_size > max_size) {
-		cat_line(strf(u8"全%d[byte]の内、%d[byte]のみダンプします。", data_size, max_size));
+		cat(u8"全");
+		cat_size(data_size);
+		cat(u8"[byte]の内、");
+		cat_size(max_size);
+		cat_line(u8"[byte]のみダンプします。");
 		dump_size = max_size;
 	}
 
@@ -218,11 +247,23 @@ void string_writer_tests(Tests& tests) {
 	suite.test(
 		u8"ポインタを文字列化できる",
 		[&](TestCaseContext& t) {
+			// ポインタの桁数は対象のプラットフォームによって異なる
+#ifdef _M_X64
+			// 64bitの場合
+			auto expected_db = u8"0x00000000deadbeef";
+			auto expected_nil = u8"0x0000000000000000";
+#else
+			// 32bitの場合
+			auto expected_db = u8"0xdeadbeef";
+			auto expected_nil = u8"0x00000000";
+#endif
+
 			{
 				auto w = string_writer_new();
 				auto dead_beef = (void const*)(UINT_PTR)0xdeadbeef;
 				w.cat_ptr(dead_beef);
-				if (!t.eq(as_view(w), u8"0xdeadbeef")) {
+
+				if (!t.eq(as_view(w), expected_db)) {
 					return false;
 				}
 			}
@@ -230,8 +271,8 @@ void string_writer_tests(Tests& tests) {
 			{
 				auto w = string_writer_new();
 				w.cat_ptr(nullptr);
-				// <nullptr> とか 0x0000 とかでも可
-				if (!t.eq(as_view(w), u8"(nil)")) {
+				// <nullptr> とか (nil) とかでも可
+				if (!t.eq(as_view(w), expected_nil)) {
 					return false;
 				}
 			}

@@ -340,7 +340,6 @@
     <ClCompile Include="knowbug_protocol.cpp" />
     <ClCompile Include="string_writer.cpp" />
     <ClCompile Include="transfer_protocol.cpp" />
-    <ClInclude Include="..\cppformat\cppformat\format.h" />
     <ClInclude Include="..\hspsdk\hsp3debug.h" />
     <ClInclude Include="..\hspsdk\hsp3plugin.h" />
     <ClInclude Include="..\hspsdk\hsp3struct.h" />
@@ -374,7 +373,6 @@
     <ClInclude Include="platform.h" />
     <ClInclude Include="source_files.h" />
     <ClInclude Include="step_controller.h" />
-    <ClInclude Include="string_format.h" />
     <ClInclude Include="string_split.h" />
     <ClInclude Include="string_writer.h" />
     <ClInclude Include="test_suite.h" />
@@ -382,16 +380,6 @@
     <ClInclude Include="utf8_ostream.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\cppformat\cppformat\format.cc">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseUtf8|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugUtf8|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseUtf8|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugUtf8|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\hspsdk\hsp3plugin.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseUtf8|Win32'">NotUsing</PrecompiledHeader>

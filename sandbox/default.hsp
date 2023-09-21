@@ -122,6 +122,8 @@
 
 	x_str = "hello", "world!"
 
+	sdim large_buf, 0x8000
+
 #module
 
 #deffunc f int a
