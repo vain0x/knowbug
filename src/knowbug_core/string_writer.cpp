@@ -147,9 +147,9 @@ void StringWriter::cat_size(std::size_t size) {
 }
 
 // ポインタのアドレスを書き込む
-// (小文字16進数8桁, e.g. `0x0123cdef`)
+// (小文字の16進数で、32ビット環境では8桁、64ビット環境では16桁。例: `0x0123cdef`)
 void StringWriter::cat_ptr(void const* ptr) {
-	char temp[16] = "";
+	char temp[32] = "";
 	auto len = sprintf_s(temp, "%p", ptr);
 	for (auto i = 0; i < len; i++) {
 		temp[i] = std::tolower(temp[i]);
@@ -247,11 +247,23 @@ void string_writer_tests(Tests& tests) {
 	suite.test(
 		u8"ポインタを文字列化できる",
 		[&](TestCaseContext& t) {
+			// ポインタの桁数は対象のプラットフォームによって異なる
+#ifdef _M_X64
+			// 64bitの場合
+			auto expected_db = u8"0x00000000deadbeef";
+			auto expected_nil = u8"0x0000000000000000";
+#else
+			// 32bitの場合
+			auto expected_db = u8"0xdeadbeef";
+			auto expected_nil = u8"0x00000000";
+#endif
+
 			{
 				auto w = string_writer_new();
 				auto dead_beef = (void const*)(UINT_PTR)0xdeadbeef;
 				w.cat_ptr(dead_beef);
-				if (!t.eq(as_view(w), u8"0xdeadbeef")) {
+
+				if (!t.eq(as_view(w), expected_db)) {
 					return false;
 				}
 			}
@@ -260,7 +272,7 @@ void string_writer_tests(Tests& tests) {
 				auto w = string_writer_new();
 				w.cat_ptr(nullptr);
 				// <nullptr> とか (nil) とかでも可
-				if (!t.eq(as_view(w), u8"0x00000000")) {
+				if (!t.eq(as_view(w), expected_nil)) {
 					return false;
 				}
 			}
