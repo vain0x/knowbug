@@ -4,6 +4,8 @@
 # 使い方
 #   ./scripts/run <script> <runtime-name>
 
+# (<runtime-name> は hsp3, hsp3utf8, hsp3_64 のいずれか)
+
 $workDir = (get-item .).fullName
 $hspRoot = "$PWD/bin/server"
 
@@ -25,10 +27,10 @@ if (!$scriptName) {
 
 if ($runtimeName -eq "hsp3") {
     $compilerArgs = @("-d", "-w")
-} elseif ($runtimeName -eq "hsp3utf") {
+} elseif ($runtimeName -eq "hsp3utf" -or $runtimeName -eq "hsp3_64") {
     $compilerArgs = @("-d", "-w", "-i", "-u")
 } else {
-    write-error "ランタイムが不明です。hsp3 か hsp3utf を指定してください。"
+    write-error "ランタイムが不明です。hsp3, hsp3utf, hsp3_64 のいずれかを指定してください。"
     exit 1
 }
 
