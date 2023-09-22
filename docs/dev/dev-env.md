@@ -20,7 +20,7 @@ OS: Windows 10
         - Debug は knowbug 自体のデバッグ用。
         - Release は配布用。
         - shift_jis ランタイム用
-    - DebugUtf8/ReleseUtf8
+    - DebugUtf8/ReleaseUtf8
         - UTF-8 ランタイム用
 - プラットフォーム
     - x86/x64
