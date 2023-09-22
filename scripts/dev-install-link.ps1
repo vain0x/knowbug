@@ -16,7 +16,7 @@ if (!(test-path $serverDir)) {
 
 function install($name, $config, $platform) {
     $dest = "$serverDir/$name"
-    $src = "$PWD/src/target/knowbug_dll-$platform-$config/bin/$name"
+    $src = "$PWD/src/knowbug_dll/$config/$platform/$name"
 
     # 対象のファイルがなければ作成する。(存在しないファイルへのリンクは作成できないため。)
     mkdir -force ([System.IO.Path]::GetDirectoryName($src))

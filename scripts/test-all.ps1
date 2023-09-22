@@ -20,7 +20,7 @@ function test($config, $platform) {
         $platform = 'Win32'
     }
 
-    & "./src/target/knowbug_tests-$platform-$config/bin/knowbug_tests.exe"
+    & "./src/knowbug_tests/bin/$config/$platform/knowbug_tests.exe"
     if (!$?) {
         write-error 'テストに失敗しました。'
         exit 1

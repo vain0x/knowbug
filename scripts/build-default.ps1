@@ -14,7 +14,7 @@ if (!$?) {
     exit 1
 }
 
-& './src/target/knowbug_tests-Win32-DebugUtf8/bin/knowbug_tests.exe'
+& './src/knowbug_tests/bin/DebugUtf8/Win32/knowbug_tests.exe'
 if (!$?) {
     write-error 'テストに失敗しました。'
     exit 1

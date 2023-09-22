@@ -8,7 +8,11 @@ sandbox/*.ax
 scripts/*.ax
 src/knowbug_install/*.ax
 src/knowbug_install/packfile
-target
+
+
+
+# (いまは使われていない)
+target/
 
 
 
