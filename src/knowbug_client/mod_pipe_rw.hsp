@@ -1,0 +1,190 @@
+; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
+; v0.1.0
+
+#ifndef included_mod_pipe_rw_hsp
+#define included_mod_pipe_rw_hsp
+
+#include "kernel32.as"
+
+; パイプの読み書きを行うためのモジュール
+;
+; Win32 API の CreateFile, ReadFile, WriteFile 関数を使って名前付きパイプへの接続・データ送受信を行う機能を提供します。
+;
+; %note
+; Win32 API を使うため、Windows 上でのみ動作します。
+#module m_pipe_rw
+
+#define true 1
+#define false 0
+
+#define NULL                            0
+#define INVALID_HANDLE_VALUE            (-1)
+; #define ERROR_BROKEN_PIPE               109
+; #define ERROR_IO_PENDING                997
+
+#define GENERIC_READ 0x80000000
+#define GENERIC_WRITE 0x40000000
+#define OPEN_EXISTING 3
+#define FILE_ATTRIBUTE_NORMAL 0x80
+
+; 終了時の処理を行う (自動で呼ばれる)
+#deffunc local pipe_rw_onexit onexit
+
+	repeat s_handle_count
+		if s_handles(cnt) {
+			CloseHandle s_handles(cnt)
+		}
+	loop
+	s_handle_count = 0
+	return
+
+; パイプを読み取り用に開く
+;
+; %prm
+; fname
+;
+; str fname: パイプ名
+; stat: パイプID。失敗した場合は -1 が返されます
+#deffunc pipe_rw_open_read str fname, \
+	local h_pipe
+
+	; (filename, access, share, security, disposition, flags, template)
+	CreateFileA fname, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+	h_pipe = stat
+	if h_pipe == INVALID_HANDLE_VALUE {
+		logmes "WARN: CreateFile failed"
+		return -1
+	}
+
+	s_handles(s_handle_count) = h_pipe
+	s_handle_count++
+	return s_handle_count - 1
+
+; パイプを読み書き用に開く
+;
+; %prm
+; str fname: パイプ名
+; stat: パイプID。失敗した場合は -1 が返されます
+#deffunc pipe_rw_open_write str fname, \
+	local h_pipe
+
+	; (filename, access, share, security, disposition, flags, template)
+	CreateFileA fname, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
+	h_pipe = stat
+	if h_pipe == INVALID_HANDLE_VALUE {
+		logmes "WARN: CreateFile failed"
+		return -1
+	}
+
+	s_handles(s_handle_count) = h_pipe
+	s_handle_count++
+	return s_handle_count - 1
+
+; パイプから読み取る
+;
+; %prm
+; pipe_id, buf, size
+;
+; int pipe_id: パイプID
+; var buf: データを書き込む変数
+; int size: 読み取るデータのサイズ (バイト単位, NULlを含む)
+;
+; stat: 成功したら size、失敗したら -1
+;
+; %inst
+; パイプからデータを読み取ります。
+;
+; パイプは pipe_rw_open_read で開かれている必要があります。
+;
+; 読み取ったデータは変数 buf に書き込まれます。
+; 読み取ったサイズが stat で返されます。
+; また、データの後にNULバイトが追加されます。
+; この1バイトは stat に含まれません。
+;
+; 変数 buf はあらかじめ size バイトのデータを格納できるように、
+; sdim、memexpand などの命令で初期化しておいてください。
+;
+; この命令はデータが来るのを待機しません。
+; データがまだ来ていない場合、命令はすぐに終了し、stat == 0 になります。
+#deffunc pipe_rw_read int pipe_id, var buf, int size, \
+	local read_len
+
+	assert size >= 2
+	assert varsize(buf) >= size
+
+	if pipe_id < 0 || pipe_id >= s_handle_count {
+		logmes "ERROR: pipe_id が不正です: " + pipe_id
+		assert
+		return -1
+	}
+
+	PeekNamedPipe s_handles(pipe_id), NULL, 0, NULL, varptr(read_len), NULL
+	if stat == 0 {
+		GetLastError
+		logmes "PeekNamedPipe error=" + stat
+		assert
+		return -1
+	}
+
+	if read_len == 0 {
+		return 0
+	}
+
+	ReadFile s_handles(pipe_id), varptr(buf), size - 1, varptr(read_len), NULL
+	if stat == 0 {
+		GetLastError
+		logmes "ReadFile error=" + stat
+		assert
+		return -1
+	}
+
+	assert read_len >= 0
+	if read_len == 0 {
+		return 0
+	}
+
+	poke buf, read_len, 0
+	return read_len
+
+; パイプに書き込む
+;
+; %prm
+; pipe_id, buf, size
+;
+; int pipe_id: パイプID
+; var buf: 書き込むデータが格納されている変数
+; int size = 0～: 読み取るデータのサイズ (バイト単位)
+;
+; stat: 成功したら size、失敗したら -1
+;
+; %inst
+; パイプにデータを書き込みます。
+;
+; パイプは pipe_rw_open_write で開かれている必要があります。
+;
+; 変数 buf にはあらかじめ size バイト以上のデータがセットされている必要があります。
+; サイズが足りない場合、意図しない動作が発生するおそれがあるため、注意してください。
+#deffunc pipe_rw_write int pipe_id, var buf, int size, \
+	local written_len
+
+	assert size >= 0
+
+	if pipe_id < 0 || pipe_id >= s_handle_count {
+		logmes "ERROR: pipe_id が不正です: " + pipe_id
+		assert
+		return -1
+	}
+
+	WriteFile s_handles(pipe_id), varptr(buf), size, varptr(written_len), NULL
+	if stat == 0 {
+		GetLastError
+		logmes "WriteFile error=" + stat
+		assert
+		return -1
+	}
+
+	return size
+
+#global
+
+#endif

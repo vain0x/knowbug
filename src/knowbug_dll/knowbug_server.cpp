@@ -669,24 +669,30 @@ static auto create_hidden_window(HINSTANCE instance) -> WindowHandle {
 // 標準入出力
 // -----------------------------------------------
 
-auto create_anonymous_pipe() -> std::optional<PipePair> {
+static constexpr auto PIPE_BUFFER_SIZE = DWORD{ 0x8000 };
+
+// 名前付きパイプの名前を生成する
+static auto compute_pipe_name(char const* prefix) -> OsString {
+	auto pid = GetCurrentProcessId();
+
+	char buf[128];
+	auto len = sprintf_s(buf, "\\\\.\\pipe\\LOCAL\\KNOWBUG_PIPE_%s_%u", prefix, (unsigned)pid);
+	return to_os(std::u8string_view{(char8_t const*)buf, (size_t)len});
+}
+
+// 名前付きパイプを作る (`CreateNamedPipe` のラッパー。ハンドルは自動でクローズされる)
+static auto create_named_pipe(OsStringView name) -> std::optional<PipeHandle> {
 	auto security_attrs = SECURITY_ATTRIBUTES{ sizeof(SECURITY_ATTRIBUTES) };
 	security_attrs.bInheritHandle = TRUE;
 
-	auto r = HANDLE{};
-	auto w = HANDLE{};
-	if (!CreatePipe(&r, &w, &security_attrs, DWORD{})) {
+	auto h_pipe = CreateNamedPipe(name.data(), PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE, 1, PIPE_BUFFER_SIZE, PIPE_BUFFER_SIZE, 0, &security_attrs);
+	if (h_pipe == INVALID_HANDLE_VALUE) {
+		OutputDebugString(_T("CreateNamedPipe failed"));
 		return std::nullopt;
 	}
-
-	return PipePair{ PipeHandle{ r }, PipeHandle{ w } };
+	assert(h_pipe != NULL);
+	return PipeHandle{ h_pipe };
 }
-
-static constexpr auto PIPE_BUFFER_SIZE = std::size_t{ 0x10000 };
-
-static constexpr auto PIPE_MAX_INSTANCE_COUNT = std::size_t{ 1 };
-
-static constexpr auto PIPE_TIMEOUT_MILLIS = std::size_t{ 300 };
 
 // -----------------------------------------------
 // クライアントプロセス
@@ -694,10 +700,8 @@ static constexpr auto PIPE_TIMEOUT_MILLIS = std::size_t{ 300 };
 
 class KnowbugClientProcess {
 public:
-	PipeHandle stdin_read_;
-	PipeHandle stdin_write_;
-	PipeHandle stdout_read_;
-	PipeHandle stdout_write_;
+	PipeHandle input_pipe_;
+	PipeHandle output_pipe_;
 	ThreadHandle thread_handle_;
 	ProcessHandle process_handle_;
 };
@@ -731,34 +735,28 @@ static auto start_client_process() -> std::optional<KnowbugClientProcess> {
 	cmdline += name;
 	cmdline += TEXT("\"");
 
-	// 標準入出力のためのパイプを作成する。
-	auto client_stdin_pipe_opt = create_anonymous_pipe();
-	if (!client_stdin_pipe_opt) {
+	// クライアントとの通信用のパイプを作成する。
+	// (input: サーバーからクライアントへ、output: クライアントからサーバーへ)
+	auto input_pipe_name = compute_pipe_name("input");
+	auto output_pipe_name = compute_pipe_name("output");
+	auto input_pipe_opt = create_named_pipe(input_pipe_name);
+	auto output_pipe_opt = create_named_pipe(output_pipe_name);
+	if (!input_pipe_opt || !output_pipe_opt) {
 		return std::nullopt;
 	}
 
-	auto client_stdout_pipe_opt = create_anonymous_pipe();
-	if (!client_stdout_pipe_opt) {
-		return std::nullopt;
-	}
-
-	// クライアントプロセスとデータをやり取りするパイプが継承されないようにする。
-	// (標準入力への書き込みと、標準出力からの読み取り。)
-	if (!SetHandleInformation(client_stdin_pipe_opt->write_.get(), HANDLE_FLAG_INHERIT, DWORD{})) {
-		return std::nullopt;
-	}
-
-	if (!SetHandleInformation(client_stdout_pipe_opt->read_.get(), HANDLE_FLAG_INHERIT, DWORD{})) {
-		return std::nullopt;
-	}
+	cmdline += TEXT(" --input=");
+	cmdline += input_pipe_name;
+	cmdline += TEXT(" --output=");
+	cmdline += output_pipe_name;
 
 	// クライアントプロセスの標準入出力のリダイレクトを設定する。
 	auto startup_info = STARTUPINFO{ sizeof(STARTUPINFO) };
 	auto process_info = PROCESS_INFORMATION{};
 
-	startup_info.hStdInput = client_stdin_pipe_opt->read_.get();
-	startup_info.hStdOutput = client_stdout_pipe_opt->write_.get();
-	startup_info.hStdError = client_stdout_pipe_opt->write_.get();
+	startup_info.hStdInput = input_pipe_opt->get();
+	startup_info.hStdOutput = output_pipe_opt->get();
+	startup_info.hStdError = output_pipe_opt->get();
 	startup_info.dwFlags |= STARTF_USESTDHANDLES;
 
 	// クライアントプロセスを起動する。
@@ -781,10 +779,8 @@ static auto start_client_process() -> std::optional<KnowbugClientProcess> {
 	auto process_handle = ProcessHandle{ process_info.hProcess };
 
 	return KnowbugClientProcess{
-		std::move(client_stdin_pipe_opt->read_),
-		std::move(client_stdin_pipe_opt->write_),
-		std::move(client_stdout_pipe_opt->read_),
-		std::move(client_stdout_pipe_opt->write_),
+		std::move(input_pipe_opt).value(),
+		std::move(output_pipe_opt).value(),
 		std::move(thread_handle),
 		std::move(process_handle),
 	};
@@ -850,6 +846,8 @@ class KnowbugServerImpl
 	std::optional<WindowHandle> hidden_window_opt_;
 
 	std::optional<KnowbugClientProcess> client_process_opt_;
+	bool input_connected_;
+	bool output_connected_;
 
 	std::optional<UINT_PTR> timer_opt_;
 
@@ -864,6 +862,8 @@ public:
 		, started_(false)
 		, hidden_window_opt_()
 		, client_process_opt_()
+		, input_connected_(false)
+		, output_connected_(false)
 		, object_list_entity_()
 	{
 	}
@@ -909,7 +909,38 @@ public:
 			return;
 		}
 
-		auto stdout_handle = client_process_opt_->stdout_read_.get();
+		auto h_pipe = client_process_opt_->output_pipe_.get();
+
+		if (!output_connected_) {
+			// クライアントプロセスがパイプに接続するのを待つ
+			//auto h_process = client_process_opt_->process_handle_.get();
+			//auto exit_code = DWORD{};
+			//if (!GetExitCodeProcess(h_process, &exit_code)) {
+			//	client_process_opt_.reset();
+			//	assert(false && "GetExitCodeProcess");
+			//	return;
+			//}
+
+			//auto alive = exit_code == STILL_ACTIVE;
+			//if (!alive) {
+			//	client_process_opt_.reset();
+			//	OutputDebugString(_T("Client already exited.\n"));
+			//	return;
+			//}
+
+			// `ConnectNamedPipe` は相手がパイプを開くのを待機する
+			// すでにパイプが開かれている場合、特定のエラーコードで「失敗」するが、接続は確立している
+			OutputDebugString(_T("Waiting for output connected\n"));
+			if (!ConnectNamedPipe(h_pipe, NULL)) {
+				auto err = GetLastError();
+				if (err != ERROR_PIPE_CONNECTED) {
+					client_process_opt_.reset();
+					assert(false && "ConnectNamedPipe");
+					return;
+				}
+			}
+			output_connected_ = true;
+		}
 
 		static auto s_buffer = std::u8string{};
 		if (s_buffer.size() == 0) {
@@ -918,8 +949,12 @@ public:
 
 		auto total_size = DWORD{};
 		// (pipe, buf, bufSize, bytesRead, total, left)
-		if (!PeekNamedPipe(stdout_handle, nullptr, 0, nullptr, &total_size, nullptr)) {
-			assert(false);
+		if (!PeekNamedPipe(h_pipe, nullptr, 0, nullptr, &total_size, nullptr)) {
+			auto err = GetLastError();
+			client_process_opt_.reset();
+			if (err != ERROR_BROKEN_PIPE) {
+				assert(false && "PeekNamedPipe");
+			}
 			return;
 		}
 
@@ -928,8 +963,12 @@ public:
 		}
 
 		auto read_size = DWORD{};
-		if (!ReadFile(stdout_handle, s_buffer.data(), (DWORD)s_buffer.size(), &read_size, LPOVERLAPPED{})) {
-			assert(false);
+		if (!ReadFile(h_pipe, s_buffer.data(), (DWORD)s_buffer.size(), &read_size, LPOVERLAPPED{})) {
+			auto err = GetLastError();
+			client_process_opt_.reset();
+			if (err != ERROR_BROKEN_PIPE) {
+				assert(false && "ReadFile");
+			}
 			return;
 		}
 
@@ -1120,11 +1159,42 @@ private:
 		}
 
 		// クライアントの標準入力に流す。
-		auto handle = client_process_opt_->stdin_write_.get();
-		auto written_size = DWORD{};
+		auto h_pipe = client_process_opt_->input_pipe_.get();
 
-		if (!WriteFile(handle, text.data(), (DWORD)text.size(), &written_size, LPOVERLAPPED{})) {
-			assert(false && u8"WriteFile failed");
+		if (!input_connected_) {
+			//auto h_process = client_process_opt_->process_handle_.get();
+			//auto exit_code = DWORD{};
+			//if (!GetExitCodeProcess(h_process, &exit_code)) {
+			//	client_process_opt_.reset();
+			//	assert(false && "GetExitCodeProcess");
+			//	return;
+			//}
+
+			//auto alive = exit_code == STILL_ACTIVE;
+			//if (!alive) {
+			//	client_process_opt_.reset();
+			//	OutputDebugString(_T("Client already exited.\n"));
+			//	return;
+			//}
+
+			OutputDebugString(_T("Waiting for input connected\n"));
+			if (!ConnectNamedPipe(h_pipe, NULL)) {
+				auto err = GetLastError();
+				if (err != ERROR_PIPE_CONNECTED) {
+					client_process_opt_.reset();
+					assert(false && "ConnectNamedPipe");
+					return;
+				}
+			}
+			input_connected_ = true;
+		}
+
+		auto written_size = DWORD{};
+		if (!WriteFile(h_pipe, text.data(), (DWORD)text.size(), &written_size, LPOVERLAPPED{})) {
+			auto err = GetLastError();
+			if (err != ERROR_BROKEN_PIPE) {
+				assert(false && u8"WriteFile");
+			}
 			return;
 		}
 		assert(written_size == text.size());
