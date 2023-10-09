@@ -348,7 +348,7 @@
 
 	assert data_cap >= 2
 
-	PeekNamedPipe inner(s_cp_stdout_read_handle), NULL, data_cap - 1, varptr(read_len), NULL, NULL
+	PeekNamedPipe inner(s_cp_stdout_read_handle), NULL, 0, NULL, varptr(read_len), NULL
 	if stat == 0 {
 		GetLastError
 		logmes "PeekNamedPipe error=" + stat
@@ -363,7 +363,7 @@
 	ReadFile inner(s_cp_stdout_read_handle), varptr(data), data_cap - 1, varptr(read_len), NULL
 	if stat == 0 {
 		GetLastError
-		mes "ReadFile error=" + stat
+		logmes "ReadFile error=" + stat
 		return -1
 	}
 

@@ -70,7 +70,7 @@
 
 	assert data_cap >= 2
 
-	PeekNamedPipe s_stdin_handle, NULL, data_cap - 1, varptr(read_len), NULL, NULL
+	PeekNamedPipe s_stdin_handle, NULL, 0, NULL, varptr(read_len), NULL
 	if stat == 0 {
 		GetLastError
 		logmes "PeekNamedPipe error=" + stat

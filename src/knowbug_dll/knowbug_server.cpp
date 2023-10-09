@@ -916,15 +916,14 @@ public:
 			s_buffer.resize(1024 * 1024);
 		}
 
-		auto peek_size = DWORD{};
 		auto total_size = DWORD{};
-		auto left_size = DWORD{};
-		if (!PeekNamedPipe(stdout_handle, s_buffer.data(), (DWORD)s_buffer.size(), &peek_size, &total_size, &left_size)) {
+		// (pipe, buf, bufSize, bytesRead, total, left)
+		if (!PeekNamedPipe(stdout_handle, nullptr, 0, nullptr, &total_size, nullptr)) {
 			assert(false);
 			return;
 		}
 
-		if (peek_size == 0) {
+		if (total_size == 0) {
 			return;
 		}
 
