@@ -58,27 +58,13 @@
 		return false
 	}
 	s_output_available = true
-
-	; stdin_init
-	; if stat == false {
-	; 	logmes "WARN: stdin is not available"
-	; 	return false
-	; }
-	; s_stdin_is_available = true
-
-	; stdout_init
-	; if stat == false {
-	; 	logmes "WARN: stdout is not available"
-	; 	return false
-	; }
-	; s_stdout_is_available = true
 	return true
 
 #deffunc infra_init_globals
 
-	s_stdin_buffer_len = 0
-	s_stdin_buffer_cap = 1024 * 1024 ; 1 MB
-	sdim s_stdin_buffer, s_stdin_buffer_cap
+	s_input_buffer_len = 0
+	s_input_buffer_cap = 1024 * 1024 ; 1 MB
+	sdim s_input_buffer, s_input_buffer_cap
 	return
 
 ; サーバーからのメッセージを受信・処理する
@@ -86,9 +72,6 @@
 	local chunk, local chunk_len, local chunk_cap, \
 	local keys, local values, local value_lens, local count
 
-	; if s_stdin_is_available == false {
-	; 	return
-	; }
 	if s_input_available == false {
 		return
 	}
@@ -97,13 +80,10 @@
 	chunk_cap = 1024 * 1024 ; 1 MB
 	sdim chunk, chunk_cap
 
-	; stdin_read chunk, chunk_cap
 	pipe_rw_read s_input_pipe_id, chunk, chunk_cap
 	chunk_len = stat
 
 	if chunk_len < 0 {
-		; logmes "WARN: stdin_read failed"
-		; s_stdin_is_available = false
 		logmes "WARN: pipe_rw_read failed"
 		s_input_available = false
 		return
@@ -114,11 +94,11 @@
 	}
 
 	; 読み取ったデータをデータバッファに連結する。
-	knowbug_protocol_append s_stdin_buffer, s_stdin_buffer_len, chunk, chunk_len
+	knowbug_protocol_append s_input_buffer, s_input_buffer_len, chunk, chunk_len
 
 	; データバッファからメッセージを取り出す。
 	repeat
-		knowbug_protocol_parse s_stdin_buffer, s_stdin_buffer_len, keys, values, value_lens, count
+		knowbug_protocol_parse s_input_buffer, s_input_buffer_len, keys, values, value_lens, count
 		if stat == false {
 			break
 		}
@@ -136,9 +116,6 @@
 #deffunc infra_send_message array keys, array values, array value_lens, int count, \
 	local message, local message_len
 
-	; if s_stdout_is_available == false {
-	; 	return
-	; }
 	if s_output_available == false {
 		return
 	}
@@ -149,10 +126,9 @@
 	knowbug_protocol_serialize keys, values, value_lens, count, message, message_len
 	logmes "send: " + strmid(message, 0, message_len)
 
-	; stdout_write message, message_len
 	pipe_rw_write s_output_pipe_id, message, message_len
 	if stat < 0 {
-		logmes "WARN: write failed"
+		logmes "WARN: pipe_rw_write failed"
 		s_output_available = false
 	}
 	return

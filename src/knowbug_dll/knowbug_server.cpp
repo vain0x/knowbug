@@ -666,7 +666,7 @@ static auto create_hidden_window(HINSTANCE instance) -> WindowHandle {
 }
 
 // -----------------------------------------------
-// 標準入出力
+// 名前付きパイプ
 // -----------------------------------------------
 
 static constexpr auto PIPE_BUFFER_SIZE = DWORD{ 0x8000 };
@@ -750,14 +750,8 @@ static auto start_client_process() -> std::optional<KnowbugClientProcess> {
 	cmdline += TEXT(" --output=");
 	cmdline += output_pipe_name;
 
-	// クライアントプロセスの標準入出力のリダイレクトを設定する。
 	auto startup_info = STARTUPINFO{ sizeof(STARTUPINFO) };
 	auto process_info = PROCESS_INFORMATION{};
-
-	startup_info.hStdInput = input_pipe_opt->get();
-	startup_info.hStdOutput = output_pipe_opt->get();
-	startup_info.hStdError = output_pipe_opt->get();
-	startup_info.dwFlags |= STARTF_USESTDHANDLES;
 
 	// クライアントプロセスを起動する。
 	if (!CreateProcess(
@@ -860,7 +854,7 @@ public:
 		, instance_(instance)
 		, step_controller_(step_controller)
 		, started_(false)
-		, hidden_window_opt_()
+, hidden_window_opt_()
 		, client_process_opt_()
 		, input_connected_(false)
 		, output_connected_(false)
@@ -886,7 +880,7 @@ public:
 	}
 
 	void will_exit() override {
-		if (hidden_window_opt_ && timer_opt_) {
+if (hidden_window_opt_ && timer_opt_) {
 			if (!KillTimer(hidden_window_opt_->get(), *timer_opt_)) {
 				assert(false && "KillTimer");
 			}
@@ -904,7 +898,7 @@ public:
 		send_stopped_event();
 	}
 
-	void read_client_stdout() {
+	void read_client_output() {
 		if (!client_process_opt_) {
 			return;
 		}
@@ -912,24 +906,9 @@ public:
 		auto h_pipe = client_process_opt_->output_pipe_.get();
 
 		if (!output_connected_) {
-			// クライアントプロセスがパイプに接続するのを待つ
-			//auto h_process = client_process_opt_->process_handle_.get();
-			//auto exit_code = DWORD{};
-			//if (!GetExitCodeProcess(h_process, &exit_code)) {
-			//	client_process_opt_.reset();
-			//	assert(false && "GetExitCodeProcess");
-			//	return;
-			//}
-
-			//auto alive = exit_code == STILL_ACTIVE;
-			//if (!alive) {
-			//	client_process_opt_.reset();
-			//	OutputDebugString(_T("Client already exited.\n"));
-			//	return;
-			//}
-
-			// `ConnectNamedPipe` は相手がパイプを開くのを待機する
-			// すでにパイプが開かれている場合、特定のエラーコードで「失敗」するが、接続は確立している
+			// クライアントプロセスがパイプに接続するのを待つ。
+			// (`ConnectNamedPipe` は相手がパイプを開くのを待機する。
+			//  すでにパイプが開かれている場合、特定のエラーコードで「失敗」するが、接続は確立している。)
 			OutputDebugString(_T("Waiting for output connected\n"));
 			if (!ConnectNamedPipe(h_pipe, NULL)) {
 				auto err = GetLastError();
@@ -1162,21 +1141,7 @@ private:
 		auto h_pipe = client_process_opt_->input_pipe_.get();
 
 		if (!input_connected_) {
-			//auto h_process = client_process_opt_->process_handle_.get();
-			//auto exit_code = DWORD{};
-			//if (!GetExitCodeProcess(h_process, &exit_code)) {
-			//	client_process_opt_.reset();
-			//	assert(false && "GetExitCodeProcess");
-			//	return;
-			//}
-
-			//auto alive = exit_code == STILL_ACTIVE;
-			//if (!alive) {
-			//	client_process_opt_.reset();
-			//	OutputDebugString(_T("Client already exited.\n"));
-			//	return;
-			//}
-
+			// (クライアントによる接続を待つ。output_pipe_と同様)
 			OutputDebugString(_T("Waiting for input connected\n"));
 			if (!ConnectNamedPipe(h_pipe, NULL)) {
 				auto err = GetLastError();
@@ -1366,7 +1331,7 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 
 	case WM_TIMER: {
 		if (auto server = s_server.lock()) {
-			server->read_client_stdout();
+			server->read_client_output();
 		}
 		break;
 	}
