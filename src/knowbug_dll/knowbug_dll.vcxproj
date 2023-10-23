@@ -339,11 +339,13 @@
   <ItemGroup>
     <ClInclude Include="knowbug_app.h" />
     <ClInclude Include="knowbug_server.h" />
+    <ClInclude Include="logger.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="knowbug_app.cpp" />
     <ClCompile Include="knowbug_server.cpp" />
+    <ClCompile Include="logger.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugUtf8|Win32'">Create</PrecompiledHeader>

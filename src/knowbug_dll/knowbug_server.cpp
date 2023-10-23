@@ -18,6 +18,8 @@
 #include "knowbug_app.h"
 #include "knowbug_server.h"
 
+#include "logger.h"
+
 class KnowbugServerImpl;
 
 static constexpr auto MEMORY_BUFFER_SIZE = std::size_t{ 1024 * 1024 };
@@ -727,6 +729,8 @@ static auto get_hsp_dir() -> OsString {
 }
 
 static auto start_client_process() -> std::optional<KnowbugClientProcess> {
+	knowbug::debugf(u8"start_client_process");
+
 	// クライアントプロセスの起動コマンドラインを構成する。
 	auto hsp_dir = get_hsp_dir();
 	auto name = hsp_dir + TEXT("knowbug_client.exe");
@@ -766,6 +770,7 @@ static auto start_client_process() -> std::optional<KnowbugClientProcess> {
 		&startup_info,
 		&process_info
 	)) {
+		knowbug::debugf(u8"CreateProcess failed err=%d", GetLastError());
 		return std::nullopt;
 	}
 

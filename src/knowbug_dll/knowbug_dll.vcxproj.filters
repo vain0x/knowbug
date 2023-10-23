@@ -24,6 +24,9 @@
     <ClInclude Include="knowbug_server.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="logger.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -34,6 +37,9 @@
     </ClCompile>
     <ClCompile Include="knowbug_server.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="logger.cpp">
+      <Filter>ヘッダー ファイル</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

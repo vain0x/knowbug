@@ -4,9 +4,9 @@
 // ただし、ここに一覧表示されているファイルは、ビルド間でいずれかが更新されると、すべてが再コンパイルされます。
 // 頻繁に更新するファイルをここに追加しないでください。追加すると、パフォーマンス上の利点がなくなります。
 
-#ifndef PCH_H
-#define PCH_H
+#ifndef KNOWBUG_DLL_PCH_H
+#define KNOWBUG_DLL_PCH_H
 
 #include "../knowbug_core/pch.h"
 
-#endif //PCH_H
+#endif //KNOWBUG_DLL_PCH_H
