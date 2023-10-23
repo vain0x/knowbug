@@ -1157,9 +1157,10 @@ private:
 		auto written_size = DWORD{};
 		if (!WriteFile(h_pipe, text.data(), (DWORD)text.size(), &written_size, LPOVERLAPPED{})) {
 			auto err = GetLastError();
-			if (err != ERROR_BROKEN_PIPE) {
+			if (err != ERROR_BROKEN_PIPE && err != ERROR_NO_DATA) {
 				assert(false && u8"WriteFile");
 			}
+			input_connected_ = false;
 			return;
 		}
 		assert(written_size == text.size());
