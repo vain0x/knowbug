@@ -1,4 +1,5 @@
 #include "pch.h"
+
 #include <array>
 #include <memory>
 #include <deque>
@@ -17,6 +18,7 @@
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
 #include "knowbug_server.h"
+#include "logger.h"
 
 class KnowbugServerImpl;
 
@@ -766,6 +768,7 @@ static auto start_client_process() -> std::optional<KnowbugClientProcess> {
 		&startup_info,
 		&process_info
 	)) {
+		debugf(u8"CreateProcess failed err=%d", GetLastError());
 		return std::nullopt;
 	}
 
