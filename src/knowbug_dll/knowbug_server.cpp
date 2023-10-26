@@ -845,6 +845,9 @@ class KnowbugServerImpl
 	std::optional<KnowbugClientProcess> client_process_opt_;
 	bool input_connected_;
 	bool output_connected_;
+	bool client_ready_;
+	std::u8string pending_logmes_;
+	int pending_runmode_;
 
 	std::optional<UINT_PTR> timer_opt_;
 
@@ -857,10 +860,13 @@ public:
 		, instance_(instance)
 		, step_controller_(step_controller)
 		, started_(false)
-, hidden_window_opt_()
+		, hidden_window_opt_()
 		, client_process_opt_()
 		, input_connected_(false)
 		, output_connected_(false)
+		, client_ready_(false)
+		, pending_logmes_()
+		, pending_runmode_(HSPDEBUG_RUN)
 		, object_list_entity_()
 	{
 	}
@@ -883,7 +889,7 @@ public:
 	}
 
 	void will_exit() override {
-if (hidden_window_opt_ && timer_opt_) {
+		if (hidden_window_opt_ && timer_opt_) {
 			if (!KillTimer(hidden_window_opt_->get(), *timer_opt_)) {
 				assert(false && "KillTimer");
 			}
@@ -894,10 +900,24 @@ if (hidden_window_opt_ && timer_opt_) {
 
 	void logmes(HspStringView text) override {
 		auto utf8_text = to_utf8(text);
+
+		if (!client_ready_) {
+			if (!pending_logmes_.empty()) {
+				pending_logmes_ += u8"\r\n";
+			}
+			pending_logmes_ += utf8_text;
+			return;
+		}
+
 		send_output_event(utf8_text);
 	}
 
 	void debuggee_did_stop() override {
+		if (!client_ready_) {
+			pending_runmode_ = HSPDEBUG_STOP;
+			return;
+		}
+
 		send_stopped_event();
 	}
 
@@ -1045,7 +1065,16 @@ if (hidden_window_opt_ && timer_opt_) {
 	}
 
 	void client_did_initialize() {
+		client_ready_ = true;
 		send_initialized_event();
+
+		// クライアントとの接続が確立する前にランタイムから受け取っていたイベントを伝える
+		if (pending_runmode_ != HSPDEBUG_RUN) {
+			send_stopped_event();
+		}
+		if (!pending_logmes_.empty()) {
+			send_output_event(std::exchange(pending_logmes_, u8""));
+		}
 	}
 
 	void client_did_terminate() {
