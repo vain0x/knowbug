@@ -48,7 +48,10 @@ version = v1.0.0\r\n
 
 ```
 method = initialize_notification
+client_hwnd = <hwnd>
 ```
+
+ほかのすべてのメッセージについて、クライアントから initialize_notification を受け取った後にのみ、サーバーはクライアントにメッセージを送ってよい。
 
 これを受信したサーバーは以下のメッセージを送る。サーバーのバージョン番号を含めてよい。
 
@@ -59,7 +62,7 @@ version = v1.0.0
 
 ## 終了
 
-任意のタイミングで、サーバーはクライアントにデバッグの終了を通知できる。
+サーバーはクライアントにデバッグの終了を通知できる。
 
 ```
 method = terminated_event

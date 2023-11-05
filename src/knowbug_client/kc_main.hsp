@@ -8,104 +8,69 @@
 #define true 1
 #define false 0
 
+; サーバーとの接続を確立する
+; (サーバーのウィンドウハンドルをコマンドライン経由で受け取る。サーバーへのメッセージを送るときは、このハンドルに送る)
 #deffunc infra_connect_server \
-	local cmdline, local args, local input_pipe, local output_pipe, local found
+	local cmdline, local args, local server_hwnd_arg
 
-	infra_init_globals
+	sdim s_input_buf, 0x8000
 
 	; コマンドラインを解析する
 	;
-	;   --input=name   パイプ名 (クライアントからサーバーへ)
-	;   --output=name   パイプ名 (サーバーからクライアントへ)
+	;   --server-hwnd=<hwnd>  サーバー側にある hidden_window のウィンドウハンドル
 	cmdline = dir_cmdline
 	split cmdline, " ", args
 	logmes "cmdline = " + cmdline
-	input_pipe = ""
-	output_pipe = ""
+	server_hwnd_arg = ""
 	repeat length(args)
-		if strmid(args(cnt), 0, 8) == "--input=" {
-			input_pipe = strmid(args(cnt), 8, 0xFFFF)
-			continue
-		}
-		if strmid(args(cnt), 0, 9) == "--output=" {
-			output_pipe = strmid(args(cnt), 9, 0xFFFF)
+		if strmid(args(cnt), 0, 14) == "--server-hwnd=" {
+			server_hwnd_arg = strmid(args(cnt), 14, 0xFFFF)
 			continue
 		}
 	loop
 
-	if input_pipe == "" {
-		logmes "WARN: --input 引数が未指定です"
-		return false
-	}
-	if output_pipe == "" {
-		logmes "WARN: --output 引数が未指定です"
+	if server_hwnd_arg == "" {
+		logmes "WARN: --server-hwnd 引数が未指定です"
 		return false
 	}
 
-	; 名前付きパイプを開く
-	pipe_rw_open_read input_pipe
-	s_input_pipe_id = stat
-	if s_input_pipe_id < 0 {
-		logmes "WARN: input_pipe を開けません"
-		return false
-	}
-	s_input_available = true
-
-	pipe_rw_open_write output_pipe
-	s_output_pipe_id = stat
-	if s_output_pipe_id < 0 {
-		logmes "WARN: output_pipe を開けません"
-		return false
-	}
-	s_output_available = true
+	s_server_hwnd = int(server_hwnd_arg)
 	return true
 
-#deffunc infra_init_globals
+#deffunc infra_poll
 
-	s_input_buffer_len = 0
-	s_input_buffer_cap = 1024 * 1024 ; 1 MB
-	sdim s_input_buffer, s_input_buffer_cap
+	; TODO: タイマーを消す
 	return
 
 ; サーバーからのメッセージを受信・処理する
-#deffunc infra_poll \
-	local chunk, local chunk_len, local chunk_cap, \
+#deffunc infra_handle_server_message int p_copydata, \
+	local copydata, local message_buf, local message_len, local local_buf, \
 	local keys, local values, local value_lens, local count
 
-	if s_input_available == false {
-		return
+	; p_copydata: COPYDATASTRUCT const*
+	;   (1): cbData: データの長さ (byte単位)
+	;   (2): lpData: データへのポインタ
+	dupptr copydata, p_copydata, 4 * 3
+	message_len = copydata(1)
+	; 文字列型 (2: vartype("str")) でエイリアスを作る
+	dupptr message_buf, copydata(2), message_len, 2
+
+	; データを自前のバッファーにコピーする
+	; (WM_COPYDATA の内部データを直接書き換えないため)
+	if varsize(s_input_buf) <= message_len {
+		memexpand s_input_buf, message_len + message_len / 2 + 1
 	}
+	memcpy s_input_buf, message_buf, message_len
+	poke s_input_buf, message_len, 0
 
-	; 標準入力にデータが来ていたら読み取る。
-	chunk_cap = 1024 * 1024 ; 1 MB
-	sdim chunk, chunk_cap
+	; データバッファからメッセージを取り出す
+	; (メッセージをちょうど1つ取り出せる)
+	knowbug_protocol_parse s_input_buf, message_len, keys, values, value_lens, count
+	assert stat
+	assert message_len == 0
 
-	pipe_rw_read s_input_pipe_id, chunk, chunk_cap
-	chunk_len = stat
-
-	if chunk_len < 0 {
-		logmes "WARN: pipe_rw_read failed"
-		s_input_available = false
-		return
-	}
-
-	if chunk_len == 0 {
-		return
-	}
-
-	; 読み取ったデータをデータバッファに連結する。
-	knowbug_protocol_append s_input_buffer, s_input_buffer_len, chunk, chunk_len
-
-	; データバッファからメッセージを取り出す。
-	repeat
-		knowbug_protocol_parse s_input_buffer, s_input_buffer_len, keys, values, value_lens, count
-		if stat == false {
-			break
-		}
-
-		; 読み取ったメッセージを処理する。
-		infra_process_message keys, values, value_lens, count
-	loop
+	; 読み取ったメッセージを処理する。
+	infra_process_message keys, values, value_lens, count
 	return
 
 ; ------------------------------------------------
@@ -114,9 +79,9 @@
 
 ; サーバーにメッセージを送る
 #deffunc infra_send_message array keys, array values, array value_lens, int count, \
-	local message, local message_len
+	local message, local message_len, local copydata
 
-	if s_output_available == false {
+	if s_server_hwnd == 0 {
 		return
 	}
 
@@ -126,17 +91,18 @@
 	knowbug_protocol_serialize keys, values, value_lens, count, message, message_len
 	logmes "send: " + strmid(message, 0, message_len)
 
-	pipe_rw_write s_output_pipe_id, message, message_len
-	if stat < 0 {
-		logmes "WARN: pipe_rw_write failed"
-		s_output_available = false
-	}
+	; COPYDATASTRUCT {dwData, cbData, lpData}
+	dim copydata, 4 * 3
+	copydata = 0, message_len, varptr(message)
+
+	sendmsg s_server_hwnd, WM_COPYDATA, 0, varptr(copydata)
 	return
 
-#deffunc infra_send_hello \
+#deffunc infra_send_hello int client_hwnd, \
 	local keys, local values, local value_lens, local count
 
 	assoc_set_str keys, values, value_lens, count, "method", "initialize_notification"
+	assoc_set_str keys, values, value_lens, count, "client_hwnd", str(client_hwnd)
 
 	infra_send_message keys, values, value_lens, count
 	return
@@ -355,7 +321,6 @@
 			logmes "WARN: index missing"
 			return
 		}
-
 
 		assoc_get keys, values, value_lens, count, "name", name, name_len
 		if stat == false {
