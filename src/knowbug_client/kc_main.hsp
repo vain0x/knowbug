@@ -37,11 +37,6 @@
 	s_server_hwnd = int(server_hwnd_arg)
 	return true
 
-#deffunc infra_poll
-
-	; TODO: タイマーを消す
-	return
-
 ; サーバーからのメッセージを受信・処理する
 #deffunc infra_handle_server_message int p_copydata, \
 	local copydata, local message_buf, local message_len, local local_buf, \

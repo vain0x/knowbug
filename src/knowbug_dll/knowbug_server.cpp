@@ -808,8 +808,6 @@ class KnowbugServerImpl
 	std::u8string pending_logmes_;
 	int pending_runmode_;
 
-	std::optional<UINT_PTR> timer_opt_;
-
 	HspObjectListEntity object_list_entity_;
 
 public:
@@ -843,17 +841,9 @@ public:
 			MessageBox(hidden_window_opt_->get(), TEXT("デバッグウィンドウの初期化に失敗しました。(クライアントプロセスを起動できません。)"), TEXT("knowbug"), MB_ICONERROR);
 			return;
 		}
-
-		// timer_opt_ = SetTimer(hidden_window_opt_->get(), 1, 16, NULL);
 	}
 
 	void will_exit() override {
-		if (hidden_window_opt_ && timer_opt_) {
-			if (!KillTimer(hidden_window_opt_->get(), *timer_opt_)) {
-				assert(false && "KillTimer");
-			}
-		}
-
 		send_terminated_event();
 	}
 
@@ -890,10 +880,6 @@ public:
 		assert(client_message_buf_.empty());
 
 		client_did_send_something(*message_opt);
-	}
-
-	void read_client_output() {
-		// TODO: タイマーを消す
 	}
 
 	void client_did_send_something(KnowbugMessage const& message) {
@@ -1255,12 +1241,6 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 
 		if (auto server = s_server.lock()) {
 			server->handle_client_message(text);
-		}
-		break;
-	}
-	case WM_TIMER: {
-		if (auto server = s_server.lock()) {
-			server->read_client_output();
 		}
 		break;
 	}
