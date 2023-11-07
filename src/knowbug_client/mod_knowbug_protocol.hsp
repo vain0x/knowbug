@@ -5,7 +5,6 @@
 #define included_mod_knowbug_protocol_hsp
 
 #include "mod_buf.hsp"
-#include "mod_transfer_protocol.hsp"
 
 ; knowbug のサーバーとクライアントの間の通信プロトコル (暫定版)
 #module m_knowbug_protocol
@@ -121,23 +120,13 @@
 ; knowbug protocol の規約上、keys(0) は "method" でなければならない。
 ;
 ; 実行後、変数 buf_len は書き込まれたメッセージの末尾の位置を指す。
-#deffunc knowbug_protocol_serialize array keys, array values, array value_lens, int count, var buf, var index, \
-	local rewrite_index, local body_index
+#deffunc knowbug_protocol_serialize array keys, array values, array value_lens, int count, var buf, var index
 
 	assert length(keys) >= count
 	assert length(values) >= count
 	assert count >= 1
 	assert keys(0) == "method"
 
-	; ヘッダーを先に書く。値は後で埋める。
-	rewrite_index = index + strlen("Content-Length: ")
-
-	buf_add_str buf, index, "Content-Length:        0\n\n"
-	index += stat
-
-	body_index = index
-
-	; ボディーを書く。
 	repeat count
 		escape_str keys(cnt), 0, strlen(keys(cnt)), buf, index
 
@@ -149,27 +138,41 @@
 		buf_add_str buf, index, "\n"
 		index += stat
 	loop
-
-	; Content-Length を設定する。
-	buf_add_str buf, rewrite_index, strf("%8d", index - body_index)
 	return
 
 ; データバッファにメッセージ断片を連結する
 ;
+; %prm
+; var buf: データを連結する先の変数
+; var buf_len: buf の長さが格納されている変数
+; var chunk: 連結されるデータが格納されている変数
+; int chunk_len: 連結されるデータの長さ (バイト単位)
+;
 ; %inst
-; transfer_protocol_append を参照
+; 変数 buf の位置 buf_len に、変数 chunk の前から chunk_len バイトのデータを書き込む。
+; 書き込まれたデータの長さ分、buf_len の値が増加する。
+;
+; buf の領域が足りない場合は、自動で拡張される。
 #deffunc knowbug_protocol_append var buf, var buf_len, var chunk, int chunk_len
 
-	transfer_protocol_append buf, buf_len, chunk, chunk_len
+	assert buf_len >= 0
+	assert chunk_len >= 0
+
+	if chunk_len <= 0 {
+		return
+	}
+
+	buf_add buf, buf_len, chunk, chunk_len
+	buf_len += chunk_len
 	return
 
-; データバッファからメッセージを読み取る
+; メッセージを解析する
 ;
 ; %prm
 ; buf, buf_len, keys, values, value_lens, count
 ;
-; var buf: メッセージのリストが格納されている配列変数
-; var buf_len: buf の長さ (バイト数) を持つ変数
+; var buf: メッセージが格納されている文字列型変数
+; int buf_len: buf の長さ (バイト数)
 ; array keys: メッセージに含まれるキーのリストを格納する先の配列変数
 ; array values: メッセージに含まれる値のリストを格納する先の配列変数
 ; array value_lens: values の長さを格納する先の配列変数
@@ -178,16 +181,12 @@
 ; stat: メッセージを取り出したら true
 ;
 ; %inst
-; buf に書き込まれているメッセージを1つ取り出して、その内容を keys, values, value_lens, count に設定する。
-;
-; 取り出されたメッセージは buf から取り除かれる。
-; 解釈できないメッセージが取り出された場合も、それは buf から取り除かれる。
-; buf が変更された場合、buf_len の値も適切に変更される。
+; buf に書き込まれているメッセージを解析して、その内容を keys, values, value_lens, count に設定する。
 ;
 ; knowbug protocol の規約上、count >= 1 かつ keys(0) == "method" が保証される。
 ; もしそうでなければ stat = false になる。
-#deffunc knowbug_protocol_parse var buf, var buf_len, array keys, array values, array value_lens, var count, \
-	local body_len, local line_count, local key_len
+#deffunc knowbug_protocol_parse var buf, int buf_len, array keys, array values, array value_lens, var count, \
+	local line_count, local key_len
 
 	s_body_buf = ""
 	s_lines = ""
@@ -195,10 +194,12 @@
 	s_value = ""
 	count = 0
 
-	transfer_protocol_parse buf, buf_len, s_body_buf, body_len
-	if stat == false {
-		return false
+	if varsize(s_body_buf) <= buf_len {
+		memexpand s_body_buf, limit(buf_len + 1, varsize(s_body_buf) * 2, 0x7fffffff)
 	}
+
+	memcpy s_body_buf, buf, buf_len
+	poke s_body_buf, buf_len, 0
 
 	split s_body_buf, "\n", s_lines
 	line_count = stat

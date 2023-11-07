@@ -871,15 +871,9 @@ public:
 	}
 
 	void handle_client_message(std::u8string_view text) {
-		client_message_buf_.clear();
-		client_message_buf_ += text;
-		auto message_opt = knowbug_protocol_parse(client_message_buf_);
-
-		// (メッセージをちょうど1つ取り出せる)
-		assert(message_opt);
-		assert(client_message_buf_.empty());
-
-		client_did_send_something(*message_opt);
+		if (auto message_opt = knowbug_protocol_parse(text)){
+			client_did_send_something(*message_opt);
+		}
 	}
 
 	void client_did_send_something(KnowbugMessage const& message) {

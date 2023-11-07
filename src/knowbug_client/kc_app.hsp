@@ -12,7 +12,6 @@
 #include "mod_hspish_font.hsp"
 #include "mod_knowbug_protocol.hsp"
 #include "mod_menu.hsp"
-#include "mod_transfer_protocol.hsp"
 #include "mod_unicode_cnv.hsp"
 #include "kc_config.hsp"
 

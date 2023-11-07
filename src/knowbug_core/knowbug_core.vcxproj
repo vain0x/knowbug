@@ -339,7 +339,6 @@
   <ItemGroup>
     <ClCompile Include="knowbug_protocol.cpp" />
     <ClCompile Include="string_writer.cpp" />
-    <ClCompile Include="transfer_protocol.cpp" />
     <ClInclude Include="..\hspsdk\hsp3debug.h" />
     <ClInclude Include="..\hspsdk\hsp3plugin.h" />
     <ClInclude Include="..\hspsdk\hsp3struct.h" />
@@ -376,7 +375,6 @@
     <ClInclude Include="string_split.h" />
     <ClInclude Include="string_writer.h" />
     <ClInclude Include="test_suite.h" />
-    <ClInclude Include="transfer_protocol.h" />
     <ClInclude Include="utf8_ostream.h" />
   </ItemGroup>
   <ItemGroup>

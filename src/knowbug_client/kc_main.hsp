@@ -62,7 +62,6 @@
 	; (メッセージをちょうど1つ取り出せる)
 	knowbug_protocol_parse s_input_buf, message_len, keys, values, value_lens, count
 	assert stat
-	assert message_len == 0
 
 	; 読み取ったメッセージを処理する。
 	infra_process_message keys, values, value_lens, count
