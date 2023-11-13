@@ -6,21 +6,16 @@
 #runtime "hsp3cl"
 #packopt name "mod_child_process_example"
 
-#include "mod_stdin.hsp"
-#include "mod_stdout.hsp"
 #include "mod_child_process.hsp"
 
 #define true 1
 #define false 0
 
-	s_stdin_data_cap = 0x1000
-	sdim s_stdin_data, s_stdin_data_cap
+	; UTF-8文字列を出力したとき文字化けしないようにする
+	SetConsoleOutputCP 65001  ; (CP_UTF8)
 
-	s_stdout_data_cap = 0x1000
-	sdim s_stdout_data, s_stdout_data_cap
-
-	mes dir_cmdline
-
+	; このプログラムは、これ自身を `--worker` という引数つきで、このプログラム自身を起動します。
+	; その場合、ワーカープロセス
 	if dir_cmdline == "--worker" {
 		gosub *l_worker
 	} else {
@@ -28,25 +23,16 @@
 	}
 	end
 
+; ================================================
+
 *l_main
 
-	s_cmdline = "mod_child_process_example.exe --worker"
-	mes s_cmdline
+	s_cmdline = "./mod_child_process_example.exe --worker"
 
-	child_process_prepare cp
-
-	child_process_redirect_stdin cp
-	if stat == false {
-		mes "redirect_stdin failed"
-		goto *l_error
-	}
-
-	child_process_redirect_stdout cp
-	if stat == false {
-		mes "redirect_stdout failed"
-		goto *l_error
-	}
-
+	; サブプロセスを起動します。
+	; (サンプルのためにサブプロセスを用意するのは手間なので、
+	;  この実行ファイル自身がサンプルアプリとして機能するようになっています。
+	;  `--worker` 引数つきで起動された場合、適当な処理を行って終了します。)
 	child_process_spawn cp, s_cmdline
 	if stat == false {
 		mes "spawn failed"
@@ -56,28 +42,14 @@
 	s_child_is_running = true
 
 	repeat
-		mes "[parent] サブプロセスを監視しています"
-
-		if cnt >= 2 {
-			s_stdin_data = "[parent] cnt = " + cnt + "\n"
-			child_process_write_stdin cp, s_stdin_data, strlen(s_stdin_data)
-		}
+		writeln "[parent] サブプロセスを待機しています..."
 
 		if s_child_is_running {
-			child_process_wait cp, 10
+			child_process_wait cp, 1  ; 1ms だけ待つ
 			if stat {
-				mes "[parent] サブプロセスが終了しました"
+				writeln "[parent] サブプロセスが終了しました"
 				s_child_is_running = false
 			}
-		}
-
-		child_process_read_stdout cp, s_stdout_data, s_stdout_data_cap
-		if stat < 0 {
-			mes "[parent] サブプロセスの標準出力を読めません"
-			break
-		}
-		if stat > 0 {
-			mes "[parent] サブプロセスが出力しました \"" + s_stdout_data + "\""
 		}
 
 		if s_child_is_running == false {
@@ -87,40 +59,53 @@
 	loop
 
 	child_process_get_exit_code cp, s_exit_code
-	mes "[parent] サブプロセスの終了コード " + s_exit_code
+	mes "[parent] exit_code = " + s_exit_code
 
 	child_process_close cp
 
 	mes "OK"
 	return
 
+; 適当にカウントダウンして終了します。
 *l_worker
 
-	count = 10
+	mes "[worker] dir_cmdline = \"" + dir_cmdline + "\""
 
-	repeat 1000
-		stdin_read s_stdin_data, s_stdin_data_cap
-		if stat < 0 {
-			mes "[child] 標準入力を読めません"
-			break
-		}
-		if stat > 0 {
-			stdout_write_str "[child] 親プロセスが出力しました \"" + s_stdin_data + "\"\n"
-			count--
-			if count == 0 {
-				break
-			}
-		}
-
-		await 16
+	repeat 10, 1
+		mes "[worker] cnt = " + cnt
+		wait 20
 	loop
-
-	if count > 0 {
-		end 1
-	}
 	end
 
 *l_error
 
 	mes "error!"
 	end 1
+
+
+
+#module
+
+; from kernel32.as
+#uselib "kernel32.dll"
+#func GetStdHandle "GetStdHandle" sptr
+#func WriteFile "WriteFile" sptr,sptr,sptr,sptr,sptr
+
+; 文字列を標準出力に書き込む
+;
+; 事前に SetConsoleOutputCP をしておく必要がある。
+; mes命令でUTF-8文字列を出すとなぜか文字化けしてしまああう。(理由はよく分からない)
+#deffunc writeln str text, \
+	local h_stdout, local text_var
+
+	; 標準出力のファイルハンドルを取得する
+	GetStdHandle -11 ; STD_OUTPUT_HANDLE
+	h_stdout = stat
+
+	text_var = text
+	text_var += "\n"
+
+	WriteFile h_stdout, varptr(text_var), strlen(text_var), 0, 0
+	return
+
+#global

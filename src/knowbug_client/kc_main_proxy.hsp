@@ -2,7 +2,6 @@
 ; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
 ; knowbug_client.hsp をデバッグ実行する。
-; また、標準入出力を中継する。
 
 ; 開発版の knowbug がインストールされている HSP を使って knowbug_client をデバッグ実行すると、
 ; そのデバッガーも knowbug_client を実行しようとして、無限にプロセスが起動してしまう。
@@ -15,8 +14,6 @@
 #include "hspcmp.as"
 #include "hspext.as"
 #include "mod_child_process.hsp"
-#include "mod_stdin.hsp"
-#include "mod_stdout.hsp"
 
 #packopt name "knowbug_client_proxy"
 #packopt hide 1
@@ -56,28 +53,10 @@
 	sdim s_src_name
 	sdim s_hsp_root
 
-	s_stdout_cap = 8 * 1024 * 1024 ; 8 MB
-	sdim s_stdout_data, s_stdout_cap
-
-	s_stdin_cap = 8 * 1024 * 1024 ; 8 MB
-	sdim s_stdin_data, s_stdin_cap
-
 	onexit gosub *l_on_exit
 
 	gosub *l_load_config
 	if stat == false {
-		goto *l_fail
-	}
-
-	stdin_init
-	if stat == false {
-		s_error = "stdin_init failed"
-		goto *l_fail
-	}
-
-	stdout_init
-	if stat == false {
-		s_error = "stdout_init failed"
 		goto *l_fail
 	}
 
@@ -145,124 +124,16 @@
 
 	s_cmdline = "\"" + s_runtime_path + "\" " + s_obj_name + " " + dir_cmdline
 
-	child_process_prepare s_cp
-
-	child_process_redirect_stdin s_cp
-	if stat == false {
-		s_error = "redirect_stdin failed"
-		return false
-	}
-
-	child_process_redirect_stdout s_cp
-	if stat == false {
-		s_error = "redirect_stdout failed"
-		return false
-	}
-
+	dim s_cp
 	child_process_spawn s_cp, s_cmdline
 	if stat == false {
 		s_error = "spawn failed"
 		return false
 	}
 
-	s_child_is_running = true
-	s_stdin_is_available = true
-	s_stdin_changed = false
-	s_stdout_is_available = true
-	s_stdout_changed = false
-
-	repeat
-		; 標準入出力をサブプロセスに転送する
-		; (転送処理が発生している間は await しない)
-		if s_stdin_is_available {
-			s_stdin_changed = false
-			s_stdout_changed = false
-
-			; 標準入力を転送する。
-			gosub *l_forward_stdin
-
-			; 標準出力を転送する。
-			gosub *l_forward_stdout
-
-			if s_stdin_changed || s_stdout_changed {
-				continue
-			}
-		}
-
-		; サブプロセスの終了を監視する
-		if s_child_is_running {
-			child_process_wait s_cp, 4
-			s_child_is_running = stat == false
-		}
-
-		if s_child_is_running == false && s_stdin_is_available == false {
-			break
-		}
-
-		await 100
-	loop
-
+	child_process_wait s_cp, -1 ; infinite
 	child_process_close s_cp
-
 	return s_error == ""
-
-*l_forward_stdin
-
-	if s_stdin_is_available == false {
-		return
-	}
-
-	stdin_read s_stdin_data, s_stdin_cap
-	s_stdin_len = stat
-
-	if s_stdin_len < 0 {
-		logmes "WARN: STDIN stopped"
-		s_stdin_is_available = false
-		return
-	}
-
-	if s_stdin_len == 0 {
-		return
-	}
-
-	child_process_write_stdin s_cp, s_stdin_data, s_stdin_len
-	if stat < 0 {
-		logmes "WARN: STDIN stopped"
-		s_stdin_is_available = false
-		return
-	}
-
-	s_stdin_changed = true
-	return
-
-*l_forward_stdout
-
-	if s_stdout_is_available == false {
-		return
-	}
-
-	child_process_read_stdout s_cp, s_stdout_data, s_stdout_cap
-	s_stdout_len = stat
-
-	if s_stdout_len < 0 {
-		logmes "WARN: STDOUT stopped"
-		s_stdout_is_available = false
-		return
-	}
-
-	if s_stdout_len == 0 {
-		return
-	}
-
-	stdout_write s_stdout_data, s_stdout_len
-	if stat < 0 {
-		logmes "WARN: STDOUT stopped"
-		s_stdout_is_available = false
-		return
-	}
-
-	s_stdout_changed = true
-	return
 
 *l_fail
 

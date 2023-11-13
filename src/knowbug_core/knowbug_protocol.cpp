@@ -3,7 +3,6 @@
 #include "knowbug_protocol.h"
 #include "string_split.h"
 #include "test_suite.h"
-#include "transfer_protocol.h"
 
 static auto char_is_space(char8_t c) -> bool {
 	return c == u8' ' || c == u8'\t';
@@ -101,13 +100,7 @@ static auto unescape(std::u8string_view str) -> std::u8string {
 	return output;
 }
 
-auto knowbug_protocol_parse(std::u8string& buffer)->std::optional<KnowbugMessage> {
-	auto body = std::u8string{};
-
-	if (!transfer_protocol_parse(body, buffer)) {
-		return std::nullopt;
-	}
-
+auto knowbug_protocol_parse(std::u8string_view body)->std::optional<KnowbugMessage> {
 	auto message = KnowbugMessage{};
 
 	for (auto&& line : StringLines<char8_t>{ body }) {
@@ -144,13 +137,7 @@ auto knowbug_protocol_serialize(KnowbugMessage const& message) -> std::u8string 
 		body += escape(pair.second);
 		body += u8"\r\n";
 	}
-
-	auto output = std::u8string{};
-	output += u8"Content-Length: ";
-	output += as_utf8(std::to_string(body.size()));
-	output += u8"\r\n\r\n";
-	output += body;
-	return output;
+	return body;
 }
 
 void knowbug_protocol_tests(Tests& tests) {
@@ -180,14 +167,14 @@ void knowbug_protocol_tests(Tests& tests) {
 
 			return t.eq(
 				output,
-				u8"Content-Length: 79\r\n\r\nmethod = foo_event\r\nassignment = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\r\ncrlf = \\x0d\\x0a\r\n"
+				u8"method = foo_event\r\nassignment = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\r\ncrlf = \\x0d\\x0a\r\n"
 			);
 		});
 
 	suite.test(
 		u8"basic",
 		[](TestCaseContext& t) {
-			auto buffer = std::u8string{ u8"Content-Length: 79\r\n\r\nmethod = foo_event\r\nassignment = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\r\ncrlf = \\x0d\\x0a\r\n" };
+			auto buffer = std::u8string{ u8"method = foo_event\r\nassignment = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\r\ncrlf = \\x0d\\x0a\r\n" };
 			auto message_opt = knowbug_protocol_parse(buffer);
 
 			auto method = as_native(message_opt->method());

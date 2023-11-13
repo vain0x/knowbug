@@ -1,4 +1,5 @@
 #include "pch.h"
+
 #include <array>
 #include <memory>
 #include <deque>
@@ -17,6 +18,7 @@
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
 #include "knowbug_server.h"
+#include "logger.h"
 
 class KnowbugServerImpl;
 
@@ -666,38 +668,11 @@ static auto create_hidden_window(HINSTANCE instance) -> WindowHandle {
 }
 
 // -----------------------------------------------
-// 標準入出力
-// -----------------------------------------------
-
-auto create_anonymous_pipe() -> std::optional<PipePair> {
-	auto security_attrs = SECURITY_ATTRIBUTES{ sizeof(SECURITY_ATTRIBUTES) };
-	security_attrs.bInheritHandle = TRUE;
-
-	auto r = HANDLE{};
-	auto w = HANDLE{};
-	if (!CreatePipe(&r, &w, &security_attrs, DWORD{})) {
-		return std::nullopt;
-	}
-
-	return PipePair{ PipeHandle{ r }, PipeHandle{ w } };
-}
-
-static constexpr auto PIPE_BUFFER_SIZE = std::size_t{ 0x10000 };
-
-static constexpr auto PIPE_MAX_INSTANCE_COUNT = std::size_t{ 1 };
-
-static constexpr auto PIPE_TIMEOUT_MILLIS = std::size_t{ 300 };
-
-// -----------------------------------------------
 // クライアントプロセス
 // -----------------------------------------------
 
 class KnowbugClientProcess {
 public:
-	PipeHandle stdin_read_;
-	PipeHandle stdin_write_;
-	PipeHandle stdout_read_;
-	PipeHandle stdout_write_;
 	ThreadHandle thread_handle_;
 	ProcessHandle process_handle_;
 };
@@ -722,7 +697,7 @@ static auto get_hsp_dir() -> OsString {
 	return full_path;
 }
 
-static auto start_client_process() -> std::optional<KnowbugClientProcess> {
+static auto start_client_process(HWND server_hwnd) -> std::optional<KnowbugClientProcess> {
 	// クライアントプロセスの起動コマンドラインを構成する。
 	auto hsp_dir = get_hsp_dir();
 	auto name = hsp_dir + TEXT("knowbug_client.exe");
@@ -731,35 +706,15 @@ static auto start_client_process() -> std::optional<KnowbugClientProcess> {
 	cmdline += name;
 	cmdline += TEXT("\"");
 
-	// 標準入出力のためのパイプを作成する。
-	auto client_stdin_pipe_opt = create_anonymous_pipe();
-	if (!client_stdin_pipe_opt) {
-		return std::nullopt;
+	{
+		char buf[64] = "";
+		sprintf_s(buf, "%d", (std::uintptr_t)server_hwnd);
+		cmdline += _T(" --server-hwnd=");
+		cmdline += to_os(ascii_as_utf8(buf));
 	}
 
-	auto client_stdout_pipe_opt = create_anonymous_pipe();
-	if (!client_stdout_pipe_opt) {
-		return std::nullopt;
-	}
-
-	// クライアントプロセスとデータをやり取りするパイプが継承されないようにする。
-	// (標準入力への書き込みと、標準出力からの読み取り。)
-	if (!SetHandleInformation(client_stdin_pipe_opt->write_.get(), HANDLE_FLAG_INHERIT, DWORD{})) {
-		return std::nullopt;
-	}
-
-	if (!SetHandleInformation(client_stdout_pipe_opt->read_.get(), HANDLE_FLAG_INHERIT, DWORD{})) {
-		return std::nullopt;
-	}
-
-	// クライアントプロセスの標準入出力のリダイレクトを設定する。
 	auto startup_info = STARTUPINFO{ sizeof(STARTUPINFO) };
 	auto process_info = PROCESS_INFORMATION{};
-
-	startup_info.hStdInput = client_stdin_pipe_opt->read_.get();
-	startup_info.hStdOutput = client_stdout_pipe_opt->write_.get();
-	startup_info.hStdError = client_stdout_pipe_opt->write_.get();
-	startup_info.dwFlags |= STARTF_USESTDHANDLES;
 
 	// クライアントプロセスを起動する。
 	if (!CreateProcess(
@@ -774,6 +729,7 @@ static auto start_client_process() -> std::optional<KnowbugClientProcess> {
 		&startup_info,
 		&process_info
 	)) {
+		debugf(u8"CreateProcess failed err=%d", GetLastError());
 		return std::nullopt;
 	}
 
@@ -781,10 +737,6 @@ static auto start_client_process() -> std::optional<KnowbugClientProcess> {
 	auto process_handle = ProcessHandle{ process_info.hProcess };
 
 	return KnowbugClientProcess{
-		std::move(client_stdin_pipe_opt->read_),
-		std::move(client_stdin_pipe_opt->write_),
-		std::move(client_stdout_pipe_opt->read_),
-		std::move(client_stdout_pipe_opt->write_),
 		std::move(thread_handle),
 		std::move(process_handle),
 	};
@@ -850,8 +802,11 @@ class KnowbugServerImpl
 	std::optional<WindowHandle> hidden_window_opt_;
 
 	std::optional<KnowbugClientProcess> client_process_opt_;
-
-	std::optional<UINT_PTR> timer_opt_;
+	bool client_ready_;
+	HWND client_hwnd_;
+	std::u8string client_message_buf_;
+	std::u8string pending_logmes_;
+	int pending_runmode_;
 
 	HspObjectListEntity object_list_entity_;
 
@@ -864,6 +819,11 @@ public:
 		, started_(false)
 		, hidden_window_opt_()
 		, client_process_opt_()
+		, client_ready_(false)
+		, client_hwnd_()
+		, client_message_buf_()
+		, pending_logmes_()
+		, pending_runmode_(HSPDEBUG_RUN)
 		, object_list_entity_()
 	{
 	}
@@ -876,76 +836,42 @@ public:
 
 		hidden_window_opt_ = create_hidden_window(instance_);
 
-		client_process_opt_ = start_client_process();
+		client_process_opt_ = start_client_process(hidden_window_opt_->get());
 		if (!client_process_opt_) {
 			MessageBox(hidden_window_opt_->get(), TEXT("デバッグウィンドウの初期化に失敗しました。(クライアントプロセスを起動できません。)"), TEXT("knowbug"), MB_ICONERROR);
 			return;
 		}
-
-		timer_opt_ = SetTimer(hidden_window_opt_->get(), 1, 16, NULL);
 	}
 
 	void will_exit() override {
-		if (hidden_window_opt_ && timer_opt_) {
-			if (!KillTimer(hidden_window_opt_->get(), *timer_opt_)) {
-				assert(false && "KillTimer");
-			}
-		}
-
 		send_terminated_event();
 	}
 
 	void logmes(HspStringView text) override {
 		auto utf8_text = to_utf8(text);
+
+		if (!client_ready_) {
+			if (!pending_logmes_.empty()) {
+				pending_logmes_ += u8"\r\n";
+			}
+			pending_logmes_ += utf8_text;
+			return;
+		}
+
 		send_output_event(utf8_text);
 	}
 
 	void debuggee_did_stop() override {
+		if (!client_ready_) {
+			pending_runmode_ = HSPDEBUG_STOP;
+			return;
+		}
+
 		send_stopped_event();
 	}
 
-	void read_client_stdout() {
-		if (!client_process_opt_) {
-			return;
-		}
-
-		auto stdout_handle = client_process_opt_->stdout_read_.get();
-
-		static auto s_buffer = std::u8string{};
-		if (s_buffer.size() == 0) {
-			s_buffer.resize(1024 * 1024);
-		}
-
-		auto peek_size = DWORD{};
-		auto total_size = DWORD{};
-		auto left_size = DWORD{};
-		if (!PeekNamedPipe(stdout_handle, s_buffer.data(), (DWORD)s_buffer.size(), &peek_size, &total_size, &left_size)) {
-			assert(false);
-			return;
-		}
-
-		if (peek_size == 0) {
-			return;
-		}
-
-		auto read_size = DWORD{};
-		if (!ReadFile(stdout_handle, s_buffer.data(), (DWORD)s_buffer.size(), &read_size, LPOVERLAPPED{})) {
-			assert(false);
-			return;
-		}
-
-		static auto s_data = std::u8string{};
-
-		auto chunk = std::u8string_view{ s_buffer.data(), (std::size_t)read_size };
-
-		s_data += chunk;
-
-		while (true) {
-			auto message_opt = knowbug_protocol_parse(s_data);
-			if (!message_opt) {
-				break;
-			}
-
+	void handle_client_message(std::u8string_view text) {
+		if (auto message_opt = knowbug_protocol_parse(text)){
 			client_did_send_something(*message_opt);
 		}
 	}
@@ -955,7 +881,8 @@ public:
 		auto method_str = as_native(method);
 
 		if (method == u8"initialize_notification") {
-			client_did_initialize();
+			auto client_hwnd = (HWND)message.get_int(u8"client_hwnd").value_or(0);
+			client_did_initialize(client_hwnd);
 			return;
 		}
 
@@ -1024,8 +951,18 @@ public:
 		assert(false && u8"unknown method");
 	}
 
-	void client_did_initialize() {
+	void client_did_initialize(HWND client_hwnd) {
+		client_ready_ = true;
+		client_hwnd_ = client_hwnd;
 		send_initialized_event();
+
+		// クライアントとの接続が確立する前にランタイムから受け取っていたイベントを伝える
+		if (pending_runmode_ != HSPDEBUG_RUN) {
+			send_stopped_event();
+		}
+		if (!pending_logmes_.empty()) {
+			send_output_event(std::exchange(pending_logmes_, u8""));
+		}
 	}
 
 	void client_did_terminate() {
@@ -1108,27 +1045,21 @@ private:
 	}
 
 	void send_message(KnowbugMessage const& message) {
+		// この関数はクライアントからの初期化通知が来た後にのみ呼ばれる
+		assert(client_ready_);
+
+		if (!client_hwnd_) return;
+
+		// クライアントが終了していたら送らない
+		if (!client_process_opt_) return;
+
+		debugf(u8"send_message '%s'", message.method().data());
+
 		auto text = knowbug_protocol_serialize(message);
-
-		if (text.size() >= MEMORY_BUFFER_SIZE) {
-			// FIXME: ログ出力
-			assert(false && u8"too large to send");
-			return;
-		}
-
-		if (!client_process_opt_) {
-			return;
-		}
-
-		// クライアントの標準入力に流す。
-		auto handle = client_process_opt_->stdin_write_.get();
-		auto written_size = DWORD{};
-
-		if (!WriteFile(handle, text.data(), (DWORD)text.size(), &written_size, LPOVERLAPPED{})) {
-			assert(false && u8"WriteFile failed");
-			return;
-		}
-		assert(written_size == text.size());
+		auto copydata = COPYDATASTRUCT{};
+		copydata.cbData = text.size();
+		copydata.lpData = text.data();
+		SendMessage(client_hwnd_, WM_COPYDATA, 0, (LPARAM)&copydata);
 	}
 
 	void send_message(std::u8string_view method) {
@@ -1295,9 +1226,15 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 		PostQuitMessage(0);
 		break;
 
-	case WM_TIMER: {
+	case WM_COPYDATA: {
+		// データにクライアントからのメッセージが含まれている
+		assert(lp);
+		auto copydata = (COPYDATASTRUCT const *)lp;
+		assert(copydata->cbData < (DWORD)INT32_MAX);
+		auto text = std::u8string_view{(char8_t const*)copydata->lpData, copydata->cbData};
+
 		if (auto server = s_server.lock()) {
-			server->read_client_stdout();
+			server->handle_client_message(text);
 		}
 		break;
 	}

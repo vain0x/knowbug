@@ -85,9 +85,8 @@ public:
 	}
 };
 
-// バッファーからメッセージを取り出す。
-// 取り出したら true を返し、バッファーからメッセージを取り除き、ボディー部分を解析したデータを body にコピーする。
-extern auto knowbug_protocol_parse(std::u8string& buffer) -> std::optional<KnowbugMessage>;
+// メッセージを解析する。
+extern auto knowbug_protocol_parse(std::u8string_view body) -> std::optional<KnowbugMessage>;
 
 // メッセージを構築する。
 extern auto knowbug_protocol_serialize(KnowbugMessage const& message)->std::u8string;

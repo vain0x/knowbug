@@ -24,7 +24,7 @@
 
 	buf_add_byte s_buf, s_buf_len, 0
 
-	assert s_buf == "Content-Length:       34\n\nmethod = initialize_notification\n"
+	assert s_buf == "method = initialize_notification\n"
 	assert s_buf_len == strlen(s_buf)
 
 	; エスケープが必要なデータを含むメッセージのシリアライズ
@@ -41,27 +41,19 @@
 
 	buf_add_byte s_buf, s_buf_len, 0
 
-	assert s_buf == "Content-Length:       74\n\nmethod = some_event\ndata = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\ncrlf = \\x0d\\x0a\n"
+	assert s_buf == "method = some_event\ndata = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\ncrlf = \\x0d\\x0a\n"
 	assert s_buf_len == strlen(s_buf)
 
 	; メッセージのパース
 
-	sdim s_buf
-	s_buf_len = 0
 	s_count = 0
 
-	s_chunk = "Content-Length:       74\n\nmethod = some_event\ndata = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\ncrlf = \\x0d\\x0a\n"
-	s_chunk_len = strlen(s_chunk)
-
-	knowbug_protocol_append s_buf, s_buf_len, s_chunk, s_chunk_len
-
-	assert s_buf == s_chunk
-	assert s_buf_len == s_chunk_len
+	s_buf = "method = some_event\ndata = yen\\x20\\x3d\\x20\\x22\\x5c\\x22\ncrlf = \\x0d\\x0a\n"
+	s_buf_len = strlen(s_buf)
 
 	knowbug_protocol_parse s_buf, s_buf_len, s_keys, s_values, s_value_lens, s_count
 
 	assert stat
-	assert s_buf_len == 0
 
 	assert s_count == 3
 	assert s_keys(0) == "method"

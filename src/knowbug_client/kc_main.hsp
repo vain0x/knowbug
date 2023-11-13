@@ -8,71 +8,63 @@
 #define true 1
 #define false 0
 
-#deffunc infra_connect_server
+; サーバーとの接続を確立する
+; (サーバーのウィンドウハンドルをコマンドライン経由で受け取る。サーバーへのメッセージを送るときは、このハンドルに送る)
+#deffunc infra_connect_server \
+	local cmdline, local args, local server_hwnd_arg
 
-	infra_init_globals
+	sdim s_input_buf, 0x8000
 
-	stdin_init
-	if stat == false {
-		logmes "WARN: stdin is not available"
+	; コマンドラインを解析する
+	;
+	;   --server-hwnd=<hwnd>  サーバー側にある hidden_window のウィンドウハンドル
+	cmdline = dir_cmdline
+	split cmdline, " ", args
+	logmes "cmdline = " + cmdline
+	server_hwnd_arg = ""
+	repeat length(args)
+		if strmid(args(cnt), 0, 14) == "--server-hwnd=" {
+			server_hwnd_arg = strmid(args(cnt), 14, 0xFFFF)
+			continue
+		}
+	loop
+
+	if server_hwnd_arg == "" {
+		logmes "WARN: --server-hwnd 引数が未指定です"
 		return false
 	}
-	s_stdin_is_available = true
 
-	stdout_init
-	if stat == false {
-		logmes "WARN: stdout is not available"
-		return false
-	}
-	s_stdout_is_available = true
+	s_server_hwnd = int(server_hwnd_arg)
 	return true
 
-#deffunc infra_init_globals
-
-	s_stdin_buffer_len = 0
-	s_stdin_buffer_cap = 1024 * 1024 ; 1 MB
-	sdim s_stdin_buffer, s_stdin_buffer_cap
-	return
-
 ; サーバーからのメッセージを受信・処理する
-#deffunc infra_poll \
-	local chunk, local chunk_len, local chunk_cap, \
+#deffunc infra_handle_server_message int p_copydata, \
+	local copydata, local message_buf, local message_len, local local_buf, \
 	local keys, local values, local value_lens, local count
 
-	if s_stdin_is_available == false {
-		return
+	; p_copydata: COPYDATASTRUCT const*
+	;   (1): cbData: データの長さ (byte単位)
+	;   (2): lpData: データへのポインタ
+	dupptr copydata, p_copydata, 4 * 3
+	message_len = copydata(1)
+	; 文字列型 (2: vartype("str")) でエイリアスを作る
+	dupptr message_buf, copydata(2), message_len, 2
+
+	; データを自前のバッファーにコピーする
+	; (WM_COPYDATA の内部データを直接書き換えないため)
+	if varsize(s_input_buf) <= message_len {
+		memexpand s_input_buf, message_len + message_len / 2 + 1
 	}
+	memcpy s_input_buf, message_buf, message_len
+	poke s_input_buf, message_len, 0
 
-	; 標準入力にデータが来ていたら読み取る。
-	chunk_cap = 1024 * 1024 ; 1 MB
-	sdim chunk, chunk_cap
+	; データバッファからメッセージを取り出す
+	; (メッセージをちょうど1つ取り出せる)
+	knowbug_protocol_parse s_input_buf, message_len, keys, values, value_lens, count
+	assert stat
 
-	stdin_read chunk, chunk_cap
-	chunk_len = stat
-
-	if chunk_len < 0 {
-		logmes "WARN: stdin_read failed"
-		s_stdin_is_available = false
-		return
-	}
-
-	if chunk_len == 0 {
-		return
-	}
-
-	; 読み取ったデータをデータバッファに連結する。
-	knowbug_protocol_append s_stdin_buffer, s_stdin_buffer_len, chunk, chunk_len
-
-	; データバッファからメッセージを取り出す。
-	repeat
-		knowbug_protocol_parse s_stdin_buffer, s_stdin_buffer_len, keys, values, value_lens, count
-		if stat == false {
-			break
-		}
-
-		; 読み取ったメッセージを処理する。
-		infra_process_message keys, values, value_lens, count
-	loop
+	; 読み取ったメッセージを処理する。
+	infra_process_message keys, values, value_lens, count
 	return
 
 ; ------------------------------------------------
@@ -81,9 +73,9 @@
 
 ; サーバーにメッセージを送る
 #deffunc infra_send_message array keys, array values, array value_lens, int count, \
-	local message, local message_len
+	local message, local message_len, local copydata
 
-	if s_stdout_is_available == false {
+	if s_server_hwnd == 0 {
 		return
 	}
 
@@ -93,13 +85,18 @@
 	knowbug_protocol_serialize keys, values, value_lens, count, message, message_len
 	logmes "send: " + strmid(message, 0, message_len)
 
-	stdout_write message, message_len
+	; COPYDATASTRUCT {dwData, cbData, lpData}
+	dim copydata, 4 * 3
+	copydata = 0, message_len, varptr(message)
+
+	sendmsg s_server_hwnd, WM_COPYDATA, 0, varptr(copydata)
 	return
 
-#deffunc infra_send_hello \
+#deffunc infra_send_hello int client_hwnd, \
 	local keys, local values, local value_lens, local count
 
 	assoc_set_str keys, values, value_lens, count, "method", "initialize_notification"
+	assoc_set_str keys, values, value_lens, count, "client_hwnd", str(client_hwnd)
 
 	infra_send_message keys, values, value_lens, count
 	return
@@ -318,7 +315,6 @@
 			logmes "WARN: index missing"
 			return
 		}
-
 
 		assoc_get keys, values, value_lens, count, "name", name, name_len
 		if stat == false {

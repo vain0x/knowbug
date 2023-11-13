@@ -13,26 +13,16 @@
 
 ## 凡例
 
-サーバーとクライアントは互いに以下の形式のメッセージを送ることで通信する。改行は CRLF で、ここでは \r\n で明示している。(mod_transfer_protocol.hsp を参照)
-
-```
-Content-Length: <ボディー部の長さ>\r\n
-\r\n
-<ボディー部>
-```
+サーバーとクライアントは互いに以下の形式のメッセージを送ることで通信する。(mod_transfer_protocol.hsp を参照)
 
 例:
 
 ```
-Content-Length: 44\r\n
-\r\n
-method = initialized_event\r\n
-version = v1.0.0\r\n
+method = initialized_event
+version = v1.0.0
 ```
 
-ボディー部はメッセージによって異なる。
-
-- 上記の例のような conf 形式を使う。
+- メッセージは conf のような形式を使う。
     - 改行区切り
     - 各行は「キー = 値」の形式
     - (将来的には JSON にしたい。)
@@ -48,7 +38,10 @@ version = v1.0.0\r\n
 
 ```
 method = initialize_notification
+client_hwnd = <hwnd>
 ```
+
+ほかのすべてのメッセージについて、クライアントから initialize_notification を受け取った後にのみ、サーバーはクライアントにメッセージを送ってよい。
 
 これを受信したサーバーは以下のメッセージを送る。サーバーのバージョン番号を含めてよい。
 
@@ -59,7 +52,7 @@ version = v1.0.0
 
 ## 終了
 
-任意のタイミングで、サーバーはクライアントにデバッグの終了を通知できる。
+サーバーはクライアントにデバッグの終了を通知できる。
 
 ```
 method = terminated_event
