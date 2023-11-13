@@ -1,11 +1,7 @@
 #!/bin/pwsh
 
-./scripts/build-default.ps1
-if (!$?) {
-    exit 1
-}
+$ErrorActionPreference = 'Stop'
 
+./scripts/build-client.ps1
+./scripts/build-default.ps1
 ./scripts/run-default.ps1
-if (!$?) {
-    exit 1
-}

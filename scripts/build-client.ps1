@@ -21,13 +21,7 @@ if (!$?) {
     exit 1
 }
 
-# アイコンを変更する。
-# 参考: http://dev.onionsoft.net/trac/openhsp/browser/trunk/tools/win32/hsed3_footy2/PackIconResource.cpp
-cmd /c "`"$clientHspRoot/iconins.exe`" -e`"$workDir/src/knowbug_client/knowbug_client.exe`" -i`"$workDir/src/knowbug_client/knowbug_client.ico`""
-if (!$?) {
-    write-error 'knowbug_client のアイコン変更に失敗しました。'
-    exit 1
-}
+echo 'knowbug_client の実行ファイルを生成しました。'
 
 # プロキシをビルドする。
 & "$clientHspRoot/hsp3_make.exe" "$workDir/src/knowbug_client/kc_main_proxy.hsp" "$workDir/src/knowbug_client" $clientHspRoot | out-null
@@ -43,3 +37,5 @@ echo $clientHspRoot >>$proxyConfigPath
 
 # プロキシを配置する。
 copy-item -force "$workDir/src/knowbug_client/knowbug_client_proxy.exe" "$serverHspRoot/knowbug_client.exe"
+
+echo 'knowbug_client_proxy の実行ファイルを作成しました。'

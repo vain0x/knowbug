@@ -23,6 +23,11 @@ if (!$?) {
     exit 1
 }
 
+./scripts/set-client-icon
+if (!$?) {
+    exit 1
+}
+
 build 'Debug' 'x86'
 build 'DebugUtf8' 'x86'
 build 'DebugUtf8' 'x64'
