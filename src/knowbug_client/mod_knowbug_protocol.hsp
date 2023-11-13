@@ -140,32 +140,6 @@
 	loop
 	return
 
-; データバッファにメッセージ断片を連結する
-;
-; %prm
-; var buf: データを連結する先の変数
-; var buf_len: buf の長さが格納されている変数
-; var chunk: 連結されるデータが格納されている変数
-; int chunk_len: 連結されるデータの長さ (バイト単位)
-;
-; %inst
-; 変数 buf の位置 buf_len に、変数 chunk の前から chunk_len バイトのデータを書き込む。
-; 書き込まれたデータの長さ分、buf_len の値が増加する。
-;
-; buf の領域が足りない場合は、自動で拡張される。
-#deffunc knowbug_protocol_append var buf, var buf_len, var chunk, int chunk_len
-
-	assert buf_len >= 0
-	assert chunk_len >= 0
-
-	if chunk_len <= 0 {
-		return
-	}
-
-	buf_add buf, buf_len, chunk, chunk_len
-	buf_len += chunk_len
-	return
-
 ; メッセージを解析する
 ;
 ; %prm
