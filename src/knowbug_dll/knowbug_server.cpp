@@ -707,8 +707,10 @@ static auto start_client_process(HWND server_hwnd) -> std::optional<KnowbugClien
 	cmdline += TEXT("\"");
 
 	{
+		// OK: HWNDの値はintで表現できる
+		// (https://learn.microsoft.com/ja-jp/windows/win32/winprog64/interprocess-communication)
 		char buf[64] = "";
-		sprintf_s(buf, "%d", (std::uintptr_t)server_hwnd);
+		sprintf_s(buf, "%d", (int)(std::uintptr_t)server_hwnd);
 		cmdline += _T(" --server-hwnd=");
 		cmdline += to_os(ascii_as_utf8(buf));
 	}
@@ -881,7 +883,7 @@ public:
 		auto method_str = as_native(method);
 
 		if (method == u8"initialize_notification") {
-			auto client_hwnd = (HWND)message.get_int(u8"client_hwnd").value_or(0);
+			auto client_hwnd = (HWND)(std::uintptr_t)message.get_int(u8"client_hwnd").value_or(0);
 			client_did_initialize(client_hwnd);
 			return;
 		}
@@ -1057,7 +1059,7 @@ private:
 
 		auto text = knowbug_protocol_serialize(message);
 		auto copydata = COPYDATASTRUCT{};
-		copydata.cbData = text.size();
+		copydata.cbData = (DWORD)text.size();
 		copydata.lpData = text.data();
 		SendMessage(client_hwnd_, WM_COPYDATA, 0, (LPARAM)&copydata);
 	}
