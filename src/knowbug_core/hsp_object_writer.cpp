@@ -497,7 +497,7 @@ void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) 
 	auto& w = writer();
 
 	if (auto metadata_opt = path.var_metadata(o)) {
-		auto const& metadata = *metadata_opt;
+		auto metadata = *metadata_opt;
 		auto type_name = o.type_to_name(metadata.type());
 		auto name = path.name(o);
 

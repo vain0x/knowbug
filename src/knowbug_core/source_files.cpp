@@ -543,7 +543,7 @@ void source_files_tests(Tests& tests) {
 
 			auto repository = resolver.resolve();
 
-			auto const& file_id = *repository.file_ref_name_to_file_id("main.hsp");
+			auto file_id = *repository.file_ref_name_to_file_id("main.hsp");
 
 			return t.eq(as_native(*repository.file_to_content(file_id)), content)
 				&& t.eq(as_native(*repository.file_to_line_at(file_id, 0)), "main")
@@ -569,7 +569,7 @@ void source_files_tests(Tests& tests) {
 			resolver.add_file_ref_name("other.hsp");
 
 			auto repository = resolver.resolve();
-			auto const& file_id = *repository.file_ref_name_to_file_id("main.hsp");
+			auto file_id = *repository.file_ref_name_to_file_id("main.hsp");
 
 			return t.eq(as_native(*repository.file_to_content(file_id)), "run script")
 				&& t.eq(*repository.file_to_full_path(file_id), TEXT("/src/main.hsp"));

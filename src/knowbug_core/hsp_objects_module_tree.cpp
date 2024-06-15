@@ -38,8 +38,8 @@ void traverse_module_tree(std::vector<std::u8string> const& var_names, ModuleTre
 		listener.begin_module(current_module_name);
 
 		for (auto&& t : tuples) {
-			auto const& module_name_ref = std::get<0>(t);
-			auto const& var_name_ref = std::get<1>(t);
+			auto module_name_ref = std::get<0>(t);
+			auto var_name_ref = std::get<1>(t);
 			auto vi = std::get<2>(t);
 
 			if (module_name_ref != current_module_name) {

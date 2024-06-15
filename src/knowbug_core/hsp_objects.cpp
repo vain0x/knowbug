@@ -190,7 +190,7 @@ static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HSPCTX co
 			if (!param_data_opt) {
 				return std::nullopt;
 			}
-			auto const& param_data = *param_data_opt;
+			auto param_data = *param_data_opt;
 
 			switch (hsx::param_data_to_type(param_data)) {
 			case MPTYPE_LOCALVAR:
