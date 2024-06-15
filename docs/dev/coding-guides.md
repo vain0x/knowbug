@@ -4,11 +4,6 @@
 
 ## C++
 
-### 資料
-
-- [江添亮のC++入門](https://ezoeryou.github.io/cpp-intro/)
-- [C++日本語リファレンス](https://cpprefjp.github.io/)
-
 ### 名前付け
 
 - マクロ: `SCREAMING_CASE`
@@ -38,19 +33,3 @@
 - 命令・関数: `xxx_yyy`
     - ただし `xxx` はモジュール名とします。
     - 例えばファイル `mod_foo.hsp` に含まれるモジュール `m_foo` の中に定義される関数は `foo_yyy` のような名前になります。
-
----
-
-## さらに細かいこと: C++
-
-- `auto&&` などの基本的な使い分け
-    - `auto&&`: (ユニバーサル参照)
-        - range-based-for (`for (auto&& item : iter)`)
-    - `auto const&`: (const左辺値参照)
-        - `T const&` を返す関数の返り値をローカル変数に束縛するとき
-        - ローカル変数の一部(メンバや配列要素)を別のローカル変数に束縛するとき、かつそれを変更しないとき (例 `auto const& item = array[i]; f(item);`)
-    - `auto&`: (変更可能な左辺値参照)
-        - `T&` を返す関数の返り値をローカル変数に束縛するとき (例 `auto& w = writer()`)
-        - ローカル変数の一部(メンバや配列要素)を別のローカル変数に束縛するとき、かつそれを変更するとき (例 `auto& item = array[i]; item++`)
-    - `auto`: (値をコピーして受け取る)
-        - たいていはこれでOK
