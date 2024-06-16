@@ -810,6 +810,14 @@ class KnowbugServerImpl
 	std::u8string pending_logmes_;
 	int pending_runmode_;
 
+	// クライアントからの停止・ステップ要求で未解決のもの
+	//
+	// HACK: 停止が要求されてから実際にHSPランタイムが停止状態になるまでの間に
+	//       logmes 命令が実行された場合、runmode が上書きされることがある。
+	//       その対処として、logmes の実行後にこのサーバー自身にメッセージをポストし、
+	//       そのメッセージの解決時に要求されている runmode を再設定する)
+	std::optional<int> requested_mode_;
+
 	HspObjectListEntity object_list_entity_;
 
 public:
@@ -826,6 +834,7 @@ public:
 		, client_message_buf_()
 		, pending_logmes_()
 		, pending_runmode_(HSPDEBUG_RUN)
+		, requested_mode_()
 		, object_list_entity_()
 	{
 	}
@@ -861,6 +870,11 @@ public:
 		}
 
 		send_output_event(utf8_text);
+
+		// (requested_mode_ の説明を参照)
+		if (requested_mode_.has_value() && hidden_window_opt_) {
+			PostMessage(hidden_window_opt_->get(), WM_APP, 0, 0);
+		}
 	}
 
 	void debuggee_did_stop() override {
@@ -868,6 +882,8 @@ public:
 			pending_runmode_ = HSPDEBUG_STOP;
 			return;
 		}
+
+		requested_mode_ = std::nullopt;
 
 		send_stopped_event();
 	}
@@ -979,6 +995,7 @@ public:
 	}
 
 	void client_did_step_pause() {
+		requested_mode_ = (int)HSPDEBUG_STOP;
 		hsx::debug_do_set_mode(HSPDEBUG_STOP, debug_);
 		touch_all_windows();
 	}
@@ -1039,6 +1056,13 @@ public:
 		}
 
 		send_list_details_event((std::size_t)object_id);
+	}
+
+	void handle_after_logmes() {
+		if (requested_mode_.has_value()) {
+			hsx::debug_do_set_mode(requested_mode_.value(), debug_);
+			touch_all_windows();
+		}
 	}
 
 private:
@@ -1237,6 +1261,14 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 
 		if (auto server = s_server.lock()) {
 			server->handle_client_message(text);
+		}
+		break;
+	}
+	case WM_APP:
+	{
+		// (このメッセージはサーバー自身によって送信される)
+		if (auto server = s_server.lock()) {
+			server->handle_after_logmes();
 		}
 		break;
 	}
