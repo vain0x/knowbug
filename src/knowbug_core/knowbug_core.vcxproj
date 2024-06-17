@@ -337,6 +337,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="knowbug_model.cpp" />
     <ClCompile Include="knowbug_protocol.cpp" />
     <ClCompile Include="string_writer.cpp" />
     <ClInclude Include="..\hspsdk\hsp3debug.h" />
@@ -366,6 +367,7 @@
     <ClInclude Include="hsx_types_fwd.h" />
     <ClInclude Include="hsx_var_metadata.h" />
     <ClInclude Include="hsx_slice.h" />
+    <ClInclude Include="knowbug_model.h" />
     <ClInclude Include="knowbug_protocol.h" />
     <ClInclude Include="memory_view.h" />
     <ClInclude Include="pch.h" />

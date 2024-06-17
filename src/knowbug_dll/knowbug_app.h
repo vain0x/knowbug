@@ -15,7 +15,7 @@ public:
 
 	virtual void will_exit() = 0;
 
-	virtual auto objects()->HspObjects & = 0;
+	//virtual auto objects()->HspObjects & = 0;
 
-	virtual void step_run(StepControl const& step_control) = 0;
+	//void step_run(StepControl const& step_control) = 0;
 };

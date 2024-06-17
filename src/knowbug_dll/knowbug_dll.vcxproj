@@ -343,6 +343,7 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="dll_main.cpp" />
     <ClCompile Include="knowbug_app.cpp" />
     <ClCompile Include="knowbug_server.cpp" />
     <ClCompile Include="logger.cpp" />

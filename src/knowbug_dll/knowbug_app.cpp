@@ -21,8 +21,10 @@ static auto g_dll_instance = HINSTANCE{};
 static auto g_debug_opt = std::optional<HSP3DEBUG*>{};
 
 // ランタイムとの通信
-EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
-EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4);
+//EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
+//EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4);
+BOOL _debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
+BOOL _debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4);
 static void debugbye();
 
 // -----------------------------------------------
@@ -105,9 +107,9 @@ public:
 		objects().log_do_append(u8"\r\n");
 	}
 
-	void step_run(StepControl const& step_control) override {
-		step_controller_->update(step_control);
-	}
+	//void step_run(StepControl const& step_control) override {
+	//	step_controller_->update(step_control);
+	//}
 };
 
 // -----------------------------------------------
@@ -118,7 +120,7 @@ auto KnowbugApp::instance() -> std::shared_ptr<KnowbugApp> {
 	return g_app;
 }
 
-BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) {
+BOOL WINAPI _DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) {
 	switch ( fdwReason ) {
 		case DLL_PROCESS_ATTACH: {
 			g_dll_instance = hInstance;
@@ -134,7 +136,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) {
 	return TRUE;
 }
 
-EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
+BOOL _debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	auto debug = p1;
 
 	// グローバル変数の初期化:
@@ -171,7 +173,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	return 0;
 }
 
-EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4) {
+BOOL _debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	auto kind = (hsx::DebugNoticeKind)p2;
 
 	if (auto app = std::shared_ptr{ g_app }) {
