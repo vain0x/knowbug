@@ -1,0 +1,155 @@
+; SPDX-License-Header: CC0-1.0
+; knowbug build tool
+
+#packopt name "build_tool"
+#packopt hide 1
+
+#include "hspcmp.as"
+#include "hspext.as"
+#include "kernel32.as"
+
+#const NULL 0
+#const WM_NULL 0
+#const wid_main 2
+
+
+
+	gsel , -1 ; hide default window
+
+	; State
+
+	s_work_dir = dir_cur
+	s_hsp_root = dir_exe
+
+	s_knowbug_dir = s_work_dir
+	suffix = "\\scripts"
+	; remove suffix
+	if strmid(s_knowbug_dir, -1, strlen(suffix)) == suffix {
+		s_knowbug_dir = strmid(s_knowbug_dir, 0, strlen(s_knowbug_dir) - strlen(suffix))
+	}
+
+	s_count = 0
+
+	; UI
+
+	screen wid_main, 480, 320, screen_hide
+	title "knowbug build tool"
+
+	font "Meiryo", 11
+	objmode objmode_usefont
+
+	objsize 100, 25
+
+	pos 5, 5
+	button gosub "Make client", *on_make_click
+
+	;pos 5, 45
+	;button gosub "BuildAll", *on_build_all_click
+
+	pos 0, ginfo_winy - 40
+	s_status_mes = ""
+	mesbox s_status_mes, ginfo_winx, 40, 0 ; readonly
+	oid_status_mesbox = stat
+
+	onexit gosub *on_exit
+
+	gsel wid_main, 1
+	stop
+
+
+
+*on_exit
+
+	if iparam == 0 && wparam != wid_main {
+		gsel 0, -1  ; -1: hide	
+		return
+	}
+
+	onexit 0 ; off
+	end
+
+
+
+*on_make_click
+
+	logmes "Make"
+
+	s_count++
+
+	gosub *do_build
+
+	if s_success {
+		gsel wid_main
+		s_status_mes = strf("Success. (%d)", s_count)
+		objprm oid_status_mesbox, s_status_mes
+		return
+	}
+
+	gsel wid_main
+	s_status_mes = strf("Failed. (%d)", s_count)
+	objprm oid_status_mesbox, s_status_mes
+
+	gsel 0
+	title "knowbug build_client error"
+	font "MS Gothic", 12
+	objmode objmode_usefont
+	mesbox s_error, ginfo_winx, ginfo_winy, 0
+	gsel 0, 1 ; 1: show
+	gsel wid_main
+	return
+
+
+
+*do_build
+
+	s_obj_name = "start.ax"
+	s_runtime_name = ""
+	s_runtime_dir = ""
+	s_compile_opts = 4 ; 1: debug info, 4: utf-8 output
+	s_pp_opts = 4 | 32 ; 4: make packfile, 32: utf-8 input
+
+	s_success = 0
+	sdim s_error, 0x10000
+
+	chdir s_knowbug_dir + "/src/knowbug_client"
+
+	s_src_name = s_knowbug_dir + "/src/knowbug_client/kc_main.hsp"
+	hsc_ini s_src_name
+	if stat {
+		hsc_getmes s_error
+		return
+	}
+
+	hsc_objname s_obj_name
+	if stat {
+		hsc_getmes s_error
+		return
+	}
+
+	hsc_compath s_hsp_root + "\\common\\"
+
+	hsc_comp s_compile_opts, s_pp_opts
+	if stat {
+		hsc_getmes s_error
+		return
+	}
+
+	hsc3_getruntime s_runtime_name, s_obj_name
+	if s_runtime_name == "" {
+		s_runtime_name = "hsp3.exe"
+	}
+	if s_runtime_name == "hsp3.exe" {
+		s_runtime_dir = s_hsp_root + "\\"
+	} else {
+		s_runtime_dir = s_hsp_root + "\\runtime\\"
+	}
+
+	hsc3_make s_runtime_dir
+	if stat {
+		hsc_getmes s_error
+		return
+	}
+
+	hsc_getmes s_error
+	s_success = 1
+	return
