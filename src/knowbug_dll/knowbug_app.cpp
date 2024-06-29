@@ -172,15 +172,13 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 }
 
 EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4) {
-	auto kind = (hsx::DebugNoticeKind)p2;
-
 	if (auto app = std::shared_ptr{ g_app }) {
-		switch (kind) {
-		case hsx::DebugNoticeKind::Stop:
+		switch (p2) {
+		case HSX_DEBUG_NOTICE_STOP:
 			app->did_hsp_pause();
 			break;
 
-		case hsx::DebugNoticeKind::Logmes:
+		case HSX_DEBUG_NOTICE_LOGMES:
 			app->did_hsp_logmes(as_hsp(ctx->stmp));
 			break;
 		}

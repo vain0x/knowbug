@@ -93,19 +93,19 @@ typedef enum HsxSysvarKind {
 	HSX_SYSVAR_THISMOD,
 } HsxSysvarKind;
 
+// デバッグウィンドウへの通知の種類
+typedef enum HsxDebugNotice {
+	// assert, stop やステップ実行の完了などにより、HSP スクリプトの実行が一時停止したとき
+	HSX_DEBUG_NOTICE_STOP = 0,
+
+	// logmes 命令が実行されたとき。ログの内容は ctx->stmp にある。
+	HSX_DEBUG_NOTICE_LOGMES = 1,
+} HsxDebugNotice;
+
 namespace hsx {
 	class HspData;
 	class HspDimIndex;
 	class HspParamData;
 	class HspParamStack;
 	class HspVarMetadata;
-
-	// デバッグウィンドウへの通知の種類
-	enum class DebugNoticeKind {
-		// assert, stop やステップ実行の完了などにより、HSP スクリプトの実行が一時停止したとき
-		Stop = 0,
-
-		// logmes 命令が実行されたとき。ログの内容は ctx->stmp にある。
-		Logmes = 1,
-	};
 }
