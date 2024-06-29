@@ -454,7 +454,7 @@ static auto double_path_to_value(HspObjectPath::Double const& path, HSPCTX const
 	return hsx::data_to_double(*data_opt);
 }
 
-static auto int_path_to_value(HspObjectPath::Int const& path, HSPCTX const* ctx) -> std::optional<hsx::HspInt> {
+static auto int_path_to_value(HspObjectPath::Int const& path, HSPCTX const* ctx) -> std::optional<HsxInt> {
 	auto data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
 	if (!data_opt) {
 		assert(false && u8"int の親は data を生成できるはず");
@@ -952,8 +952,8 @@ auto HspObjects::double_path_to_value(HspObjectPath::Double const& path) const -
 	return (::double_path_to_value(path, context())).value_or(0.0);
 }
 
-auto HspObjects::int_path_to_value(HspObjectPath::Int const& path) const -> hsx::HspInt {
-	return (::int_path_to_value(path, context())).value_or(hsx::HspInt{});
+auto HspObjects::int_path_to_value(HspObjectPath::Int const& path) const -> HsxInt {
+	return (::int_path_to_value(path, context())).value_or(0);
 }
 
 auto HspObjects::flex_path_to_child_count(HspObjectPath::Flex const& path)->std::size_t {

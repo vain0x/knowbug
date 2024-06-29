@@ -72,7 +72,7 @@ namespace hsx {
 		return MemoryView{ data, (std::size_t)buffer_size };
 	}
 
-	static auto data_from_int_opt(std::optional<HspInt const*> ptr_opt)->std::optional<HspData> {
+	static auto data_from_int_opt(std::optional<HsxInt const*> ptr_opt)->std::optional<HspData> {
 		if (!ptr_opt) {
 			return std::nullopt;
 		}

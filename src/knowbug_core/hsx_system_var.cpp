@@ -4,34 +4,34 @@
 #undef stat
 
 namespace hsx {
-	auto system_var_cnt(HSPCTX const* ctx) -> std::optional<HspInt const*> {
+	auto system_var_cnt(HSPCTX const* ctx) -> std::optional<HsxInt const*> {
 		auto looplev = *system_var_looplev(ctx);
 		// FIXME: looplev=0 のとき nullopt?
 		return std::make_optional(&ctx->mem_loop[looplev].cnt);
 	}
 
-	auto system_var_err(HSPCTX const* ctx) -> HspInt const* {
-		static_assert(sizeof(ctx->err) == sizeof(HspInt), u8"HSPERROR は int のはず");
-		return UNSAFE((HspInt const*)(&ctx->err));
+	auto system_var_err(HSPCTX const* ctx) -> HsxInt const* {
+		static_assert(sizeof(ctx->err) == sizeof(HsxInt), u8"HSPERROR は int のはず");
+		return UNSAFE((HsxInt const*)(&ctx->err));
 	}
 
-	auto system_var_iparam(HSPCTX const* ctx) -> HspInt const* {
+	auto system_var_iparam(HSPCTX const* ctx) -> HsxInt const* {
 		return &ctx->iparam;
 	}
 
-	auto system_var_wparam(HSPCTX const* ctx) -> HspInt const* {
+	auto system_var_wparam(HSPCTX const* ctx) -> HsxInt const* {
 		return &ctx->wparam;
 	}
 
-	auto system_var_lparam(HSPCTX const* ctx) -> HspInt const* {
+	auto system_var_lparam(HSPCTX const* ctx) -> HsxInt const* {
 		return &ctx->lparam;
 	}
 
-	auto system_var_looplev(HSPCTX const* ctx) -> HspInt const* {
+	auto system_var_looplev(HSPCTX const* ctx) -> HsxInt const* {
 		return &ctx->looplev;
 	}
 
-	auto system_var_sublev(HSPCTX const* ctx) -> HspInt const* {
+	auto system_var_sublev(HSPCTX const* ctx) -> HsxInt const* {
 		return &ctx->sublev;
 	}
 
@@ -43,11 +43,11 @@ namespace hsx {
 		return &ctx->refdval;
 	}
 
-	auto system_var_stat(HSPCTX const* ctx) -> HspInt const* {
+	auto system_var_stat(HSPCTX const* ctx) -> HsxInt const* {
 		return &ctx->stat;
 	}
 
-	auto system_var_strsize(HSPCTX const* ctx) -> HspInt const* {
+	auto system_var_strsize(HSPCTX const* ctx) -> HsxInt const* {
 		return &ctx->strsize;
 	}
 

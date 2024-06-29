@@ -14,7 +14,7 @@ namespace hsx {
 		return HspData{ HspType::Double, (PDAT const*)ptr };
 	}
 
-	auto data_from_int(HspInt const* ptr) -> HspData {
+	auto data_from_int(HsxInt const* ptr) -> HspData {
 		return HspData{ HspType::Int, (PDAT const*)ptr };
 	}
 
@@ -43,11 +43,11 @@ namespace hsx {
 		return std::make_optional(UNSAFE(*(HsxDouble const*)data.ptr()));
 	}
 
-	auto data_to_int(HspData const& data)->std::optional<HspInt> {
+	auto data_to_int(HspData const& data)->std::optional<HsxInt> {
 		if (data.type() != HspType::Int) {
 			return std::nullopt;
 		}
-		return std::make_optional(UNSAFE(*(HspInt const*)data.ptr()));
+		return std::make_optional(UNSAFE(*(HsxInt const*)data.ptr()));
 	}
 
 	auto data_to_flex(HspData const& data)->std::optional<FlexValue const*> {

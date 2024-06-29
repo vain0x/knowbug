@@ -636,7 +636,7 @@ public:
 		return to_owned(u8"int");
 	}
 
-	auto value(HspObjects& objects) const -> hsx::HspInt {
+	auto value(HspObjects& objects) const -> HsxInt {
 		return objects.int_path_to_value(*this);
 	}
 };

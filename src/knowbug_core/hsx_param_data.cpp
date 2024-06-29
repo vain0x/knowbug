@@ -91,7 +91,7 @@ namespace hsx {
 			return std::make_optional(data_from_double(ptr));
 		}
 		case MPTYPE_INUM: {
-			auto ptr = UNSAFE((HspInt const*)param_data.ptr());
+			auto ptr = UNSAFE((HsxInt const*)param_data.ptr());
 			return std::make_optional(data_from_int(ptr));
 		}
 		default:

@@ -24,7 +24,7 @@ namespace hsx {
 
 	extern auto data_from_double(HsxDouble const* ptr)->HspData;
 
-	extern auto data_from_int(HspInt const* ptr)->HspData;
+	extern auto data_from_int(HsxInt const* ptr)->HspData;
 
 	extern auto data_from_flex(FlexValue const* ptr)->HspData;
 
@@ -34,7 +34,7 @@ namespace hsx {
 
 	extern auto data_to_double(HspData const& data)->std::optional<HsxDouble>;
 
-	extern auto data_to_int(HspData const& data)->std::optional<HspInt>;
+	extern auto data_to_int(HspData const& data)->std::optional<HsxInt>;
 
 	extern auto data_to_flex(HspData const& data)->std::optional<FlexValue const*>;
 
@@ -187,27 +187,27 @@ namespace hsx {
 	extern auto struct_to_param_stack_size(STRUCTDAT const* struct_dat)->std::size_t;
 
 	// システム変数 `cnt` の実体ポインタを得る。
-	extern auto system_var_cnt(HSPCTX const* ctx)->std::optional<HspInt const*>;
+	extern auto system_var_cnt(HSPCTX const* ctx)->std::optional<HsxInt const*>;
 
-	extern auto system_var_err(HSPCTX const* ctx)->HspInt const*;
+	extern auto system_var_err(HSPCTX const* ctx)->HsxInt const*;
 
-	extern auto system_var_iparam(HSPCTX const* ctx)->HspInt const*;
+	extern auto system_var_iparam(HSPCTX const* ctx)->HsxInt const*;
 
-	extern auto system_var_wparam(HSPCTX const* ctx)->HspInt const*;
+	extern auto system_var_wparam(HSPCTX const* ctx)->HsxInt const*;
 
-	extern auto system_var_lparam(HSPCTX const* ctx)->HspInt const*;
+	extern auto system_var_lparam(HSPCTX const* ctx)->HsxInt const*;
 
-	extern auto system_var_looplev(HSPCTX const* ctx)->HspInt const*;
+	extern auto system_var_looplev(HSPCTX const* ctx)->HsxInt const*;
 
-	extern auto system_var_sublev(HSPCTX const* ctx)->HspInt const*;
+	extern auto system_var_sublev(HSPCTX const* ctx)->HsxInt const*;
 
 	extern auto system_var_refstr(HSPCTX const* ctx)->HsxStrSpan;
 
 	extern auto system_var_refdval(HSPCTX const* ctx)->HsxDouble const*;
 
-	extern auto system_var_stat(HSPCTX const* ctx)->HspInt const*;
+	extern auto system_var_stat(HSPCTX const* ctx)->HsxInt const*;
 
-	extern auto system_var_strsize(HSPCTX const* ctx)->HspInt const*;
+	extern auto system_var_strsize(HSPCTX const* ctx)->HsxInt const*;
 
 	extern auto system_var_thismod(HSPCTX const* ctx)->std::optional<MPModVarData const*>;
 

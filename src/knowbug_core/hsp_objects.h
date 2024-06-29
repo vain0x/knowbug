@@ -108,7 +108,7 @@ public:
 
 	auto double_path_to_value(HspObjectPath::Double const& path) const->HsxDouble;
 
-	auto int_path_to_value(HspObjectPath::Int const& path) const->hsx::HspInt;
+	auto int_path_to_value(HspObjectPath::Int const& path) const->HsxInt;
 
 	auto flex_path_to_child_count(HspObjectPath::Flex const& path)->std::size_t;
 

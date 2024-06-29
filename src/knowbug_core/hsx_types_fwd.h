@@ -54,14 +54,15 @@ typedef struct HsxStrSpan {
 // HSP の double 型の値
 typedef double HsxDouble;
 
+// HSP の int 型の値
+typedef int HsxInt;
+
 namespace hsx {
 	class HspData;
 	class HspDimIndex;
 	class HspParamData;
 	class HspParamStack;
 	class HspVarMetadata;
-
-	using HspInt = std::int32_t;
 
 	// 引数の種類
 	// MPTYPE_*
