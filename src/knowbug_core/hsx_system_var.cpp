@@ -35,8 +35,8 @@ namespace hsx {
 		return &ctx->sublev;
 	}
 
-	auto system_var_refstr(HSPCTX const* ctx) -> Slice<char> {
-		return Slice<char>{ ctx->refstr, HSPCTX_REFSTR_MAX };
+	auto system_var_refstr(HSPCTX const* ctx) -> HsxStrSpan {
+		return HsxStrSpan{ ctx->refstr, HSPCTX_REFSTR_MAX };
 	}
 
 	auto system_var_refdval(HSPCTX const* ctx) -> HspDouble const* {
@@ -79,7 +79,7 @@ namespace hsx {
 			return data_from_int(system_var_sublev(ctx));
 
 		case HspSystemVarKind::Refstr:
-			return data_from_str(system_var_refstr(ctx).data());
+			return data_from_str(system_var_refstr(ctx).data);
 
 		case HspSystemVarKind::Refdval:
 			return data_from_double(system_var_refdval(ctx));

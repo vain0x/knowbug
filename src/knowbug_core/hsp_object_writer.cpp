@@ -29,18 +29,19 @@ static auto string_need_escape(std::u8string_view str) -> bool {
 		});
 }
 
-static auto str_to_string(hsx::HspStr const& str) -> std::optional<std::string_view> {
-	auto end = std::find(str.begin(), str.end(), '\0');
+static auto str_to_string(HsxStrSpan str) -> std::optional<std::string_view> {
+	auto begin = str.data;
+	auto end = std::find(begin, str.data + str.size, '\0');
 
-	if (!std::all_of(str.begin(), end, char_can_print)) {
+	if (!std::all_of(begin, end, char_can_print)) {
 		return std::nullopt;
 	}
 
-	auto count = (std::size_t)(end - str.begin());
-	return std::string_view{ str.begin(), count };
+	auto count = (std::size_t)(end - begin);
+	return std::string_view{ begin, count };
 }
 
-static auto str_to_utf8(hsx::HspStr const& str) -> std::optional<std::u8string> {
+static auto str_to_utf8(HsxStrSpan str) -> std::optional<std::u8string> {
 	auto string_opt = str_to_string(str);
 	if (!string_opt) {
 		return std::nullopt;
@@ -53,13 +54,13 @@ static bool string_is_multiline(std::string_view str) {
 	return std::find(str.begin(), str.end(), '\n') != str.end();
 }
 
-static bool str_is_compact(hsx::HspStr const& str) {
+static bool str_is_compact(HsxStrSpan str) {
 	auto string_opt = str_to_string(str);
 	return string_opt && string_opt->size() < 64 && !string_is_multiline(*string_opt);
 }
 
 // 文字列をリテラル形式で書く。
-static void write_string_as_literal(StringWriter& w, hsx::HspStr const& str) {
+static void write_string_as_literal(StringWriter& w, HsxStrSpan str) {
 	auto string_opt = str_to_string(str);
 	if (!string_opt) {
 		w.cat(u8"<バイナリ>");
@@ -935,7 +936,7 @@ static void write_string_as_literal_tests(Tests& tests) {
 
 	auto write = [&](std::u8string_view str) {
 		auto w = StringWriter{};
-		write_string_as_literal(w, hsx::Slice<char>{ (char const*)str.data(), str.size() });
+		write_string_as_literal(w, HsxStrSpan{ (char const*)str.data(), str.size() });
 		return w.finish();
 	};
 

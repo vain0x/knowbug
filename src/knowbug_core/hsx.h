@@ -18,17 +18,9 @@
 #include "memory_view.h"
 
 namespace hsx {
-	// HSP の文字列データ。
-	// 1. str 型はランタイムエンコーディング (shift_jis/utf-8) の文字列だけでなく、
-	// 他のエンコーディングの文字列や任意のバイナリを格納するのにも使われることがたまにある。
-	// 特に、null 終端とは限らない点に注意。std::strlen などの null 終端を前提とする関数に渡してはいけない。
-	// 2. 変数や refstr に由来する文字列データはバッファサイズが容易に取得できる。
-	// str 引数の文字列データはバッファサイズを取得できないが、null 終端が保証されている。
-	using HspStr = Slice<char>;
-
 	extern auto data_from_label(HsxLabel const* ptr)->HspData;
 
-	extern auto data_from_str(char const* ptr)->HspData;
+	extern auto data_from_str(HsxStrPtr ptr)->HspData;
 
 	extern auto data_from_double(HspDouble const* ptr)->HspData;
 
@@ -63,7 +55,7 @@ namespace hsx {
 	extern auto element_to_memory_block(PVal const* pval, std::size_t aptr, HSPCTX const* ctx)->MemoryView;
 
 	// 配列要素が文字列型なら、そのデータへの参照を得る。
-	extern auto element_to_str(PVal const* pval, std::size_t aptr, HSPCTX const* ctx)->std::optional<HspStr>;
+	extern auto element_to_str(PVal const* pval, std::size_t aptr, HSPCTX const* ctx)->std::optional<HsxStrSpan>;
 
 	// フレックスが null か？
 	// dimtype で作られた newmod されていない要素や、delmod された要素は null である。
@@ -134,7 +126,7 @@ namespace hsx {
 	extern auto param_data_to_data(HspParamData const& param_data)->std::optional<HspData>;
 
 	// 引数データが指している文字列データを得る。
-	extern auto param_data_to_str(HspParamData const& param_data)->std::optional<HspStr>;
+	extern auto param_data_to_str(HspParamData const& param_data)->std::optional<HsxStrSpan>;
 
 	// 引数スタックに含まれる引数データの個数を得る。
 	extern auto param_stack_to_param_data_count(HspParamStack const& param_stack)->std::size_t;
@@ -164,7 +156,7 @@ namespace hsx {
 	extern auto pval_to_memory_block(PVal const* pval, HSPCTX const* ctx)->MemoryView;
 
 	// 配列が文字列型なら、そのデータへの参照を得る。
-	extern auto pval_to_str(PVal const* pval, HSPCTX const* ctx)->std::optional<HspStr>;
+	extern auto pval_to_str(PVal const* pval, HSPCTX const* ctx)->std::optional<HsxStrSpan>;
 
 	extern auto static_vars(HSPCTX const* ctx)->Slice<PVal>;
 
@@ -209,7 +201,7 @@ namespace hsx {
 
 	extern auto system_var_sublev(HSPCTX const* ctx)->HspInt const*;
 
-	extern auto system_var_refstr(HSPCTX const* ctx)->HspStr;
+	extern auto system_var_refstr(HSPCTX const* ctx)->HsxStrSpan;
 
 	extern auto system_var_refdval(HSPCTX const* ctx)->HspDouble const*;
 

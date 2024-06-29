@@ -67,10 +67,10 @@ namespace hsx {
 		return element_data_to_memory_block(pval, data_opt->ptr(), ctx);
 	}
 
-	auto element_to_str(PVal const* pval, std::size_t aptr, HSPCTX const* ctx) -> std::optional<HspStr> {
+	auto element_to_str(PVal const* pval, std::size_t aptr, HSPCTX const* ctx) -> std::optional<HsxStrSpan> {
 		assert(pval != nullptr);
 
 		auto memory = element_to_memory_block(pval, aptr, ctx);
-		return Slice<char>{ (char const*)memory.data(), memory.size() };
+		return HsxStrSpan{ (char const*)memory.data(), memory.size() };
 	}
 }

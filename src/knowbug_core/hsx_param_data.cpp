@@ -99,7 +99,7 @@ namespace hsx {
 		}
 	}
 
-	auto param_data_to_str(HspParamData const& param_data) -> std::optional<HspStr> {
+	auto param_data_to_str(HspParamData const& param_data) -> std::optional<HsxStrSpan> {
 		if (!param_data.safety()) {
 			return std::nullopt;
 		}
@@ -116,7 +116,7 @@ namespace hsx {
 			// FIXME: 値は不変なので、文字数はキャッシュできる。キャッシュを削除するタイミングが微妙。
 			auto size = std::strlen(str) + 1;
 
-			return std::make_optional(Slice<char>{ str, size });
+			return std::make_optional(HsxStrSpan{ str, size });
 		}
 		default:
 			return std::nullopt;

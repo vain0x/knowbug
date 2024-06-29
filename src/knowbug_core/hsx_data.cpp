@@ -6,7 +6,7 @@ namespace hsx {
 		return HspData{ HspType::Label, (PDAT const*)ptr };
 	}
 
-	auto data_from_str(char const* ptr) -> HspData {
+	auto data_from_str(HsxStrPtr ptr) -> HspData {
 		return HspData{ HspType::Str, (PDAT const*)ptr };
 	}
 

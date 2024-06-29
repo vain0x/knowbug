@@ -24,6 +24,33 @@ typedef int HsxObjectTemp;
 // code segment (CS) 領域内へのポインタ (有効) または nullptr (無効)
 typedef const HsxCodeUnit* HsxLabel;
 
+// HSP の str 型の値
+//
+// - (エンコーディングの注意)
+//    str 型はランタイムのエンコーディング (shift_jis/utf-8) の文字列だけでなく、
+//    ほかのエンコーディングの文字列や任意のバイナリを格納するのにも使われることがある
+// - (NULL終端の注意)
+//    HSPやC言語の文字列データは末尾にヌル文字 (特殊な1バイトの文字) があり、
+//    そこが文字列の終端を表すという慣習がある。しかし常にNULL終端が保障されているわけではない
+//    特に、std::strlen などのNULL終端を前提とする関数に、NULL終端でないデータを渡してはいけない
+// - (バッファサイズの注意)
+//    変数や refstr に由来する文字列データはそのバッファサイズを容易に取得できる
+//    一方、str 引数の文字列データはバッファサイズを取得できないが、NULL終端が保証されている
+typedef const char* HsxStrPtr;
+
+// HSP の str 型の値 (サイズつき)
+typedef struct HsxStrSpan {
+	// 文字列データの先頭へのポインタ
+	const char* data;
+
+	// データ領域のサイズ
+	//
+	// - 変数や配列要素の場合、メモリブロックのサイズ (GetBlockSizeのbufsize)
+	// - refstr の場合、メモリ領域のサイズ
+	// - str パラメータの場合、NULL終端までのサイズ
+	size_t size;
+} HsxStrSpan;
+
 namespace hsx {
 	class HspData;
 	class HspDimIndex;

@@ -284,7 +284,7 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX co
 	}
 }
 
-static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::Slice<char>> {
+static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HsxStrSpan> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -440,7 +440,7 @@ static auto label_path_to_value(HspObjectPath::Label const& path, HSPCTX const* 
 	return hsx::data_to_label(*data_opt);
 }
 
-static auto str_path_to_value(HspObjectPath::Str const& path, HSPCTX const* ctx) -> std::optional<hsx::HspStr> {
+static auto str_path_to_value(HspObjectPath::Str const& path, HSPCTX const* ctx) -> std::optional<HsxStrSpan> {
 	return path_to_str(path.parent(), MIN_DEPTH, ctx);
 }
 
@@ -944,8 +944,8 @@ auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path)
 	return std::nullopt;
 }
 
-auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> hsx::HspStr {
-	return (::str_path_to_value(path, context())).value_or(hsx::Slice<char>{});
+auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> HsxStrSpan {
+	return (::str_path_to_value(path, context())).value_or(HsxStrSpan{ "", 0 });
 }
 
 auto HspObjects::double_path_to_value(HspObjectPath::Double const& path) const->hsx::HspDouble {

@@ -60,7 +60,7 @@ namespace hsx {
 		return element_data_to_memory_block(pval, data_opt->ptr(), ctx);
 	}
 
-	auto pval_to_str(PVal const* pval, HSPCTX const* ctx)->std::optional<HspStr> {
+	auto pval_to_str(PVal const* pval, HSPCTX const* ctx)->std::optional<HsxStrSpan> {
 		return element_to_str(pval, 0, ctx);
 	}
 }

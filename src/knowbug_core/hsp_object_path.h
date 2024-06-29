@@ -538,7 +538,7 @@ public:
 		return to_owned(u8"str");
 	}
 
-	auto value(HspObjects& objects) const -> hsx::HspStr {
+	auto value(HspObjects& objects) const -> HsxStrSpan {
 		return objects.str_path_to_value(*this);
 	}
 };
