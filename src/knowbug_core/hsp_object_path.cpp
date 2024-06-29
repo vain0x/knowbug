@@ -235,7 +235,7 @@ auto HspObjectPath::as_element() const -> HspObjectPath::Element const& {
 // 引数
 // -----------------------------------------------
 
-auto HspObjectPath::new_param(hsx::HspParamType param_type, std::size_t param_index) const -> std::shared_ptr<HspObjectPath const> {
+auto HspObjectPath::new_param(HsxMptype param_type, std::size_t param_index) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::Param>(self(), param_type, param_index);
 }
 

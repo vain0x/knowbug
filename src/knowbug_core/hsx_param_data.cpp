@@ -29,8 +29,8 @@ namespace hsx {
 		return (std::size_t)mp_mod_var->aptr;
 	}
 
-	auto param_data_to_type(HspParamData const& param_data) -> HspParamType {
-		return (HspParamType)param_data.param()->mptype;
+	auto param_data_to_type(HspParamData const& param_data) -> HsxMptype {
+		return param_data.param()->mptype;
 	}
 
 	auto param_data_to_pval(HspParamData const& param_data) -> std::optional<PVal const*> {
@@ -49,7 +49,7 @@ namespace hsx {
 		return std::make_optional(UNSAFE((MPVarData const*)param_data.ptr()));
 	}
 
-	auto param_data_to_mp_mod_var(HspParamType type, void const* data)->std::optional<MPModVarData const*> {
+	auto param_data_to_mp_mod_var(HsxMptype type, void const* data)->std::optional<MPModVarData const*> {
 		if (type != MPTYPE_MODULEVAR && type != MPTYPE_IMODULEVAR && type != MPTYPE_TMODULEVAR) {
 			return std::nullopt;
 		}

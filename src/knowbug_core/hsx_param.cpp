@@ -7,8 +7,8 @@ namespace hsx {
 		return Slice<STRUCTPRM>{ ctx->mem_minfo, size };
 	}
 
-	auto param_to_type(STRUCTPRM const* param)->HspParamType {
-		return (HspParamType)param->mptype;
+	auto param_to_type(STRUCTPRM const* param)->HsxMptype {
+		return param->mptype;
 	}
 
 	auto param_to_struct(STRUCTPRM const* param, HSPCTX const* ctx)->std::optional<STRUCTDAT const*> {
@@ -16,7 +16,7 @@ namespace hsx {
 		return structs(ctx).get(struct_index);
 	}
 
-	auto param_type_to_name(HspParamType param_type) -> std::optional<char const*> {
+	auto param_type_to_name(HsxMptype param_type) -> std::optional<char const*> {
 		switch (param_type) {
 		case MPTYPE_LABEL:
 			return "label";

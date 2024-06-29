@@ -377,7 +377,7 @@ class HspObjectPath::Param final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	hsx::HspParamType param_type_;
+	HsxMptype param_type_;
 	std::size_t param_index_;
 
 public:
@@ -387,7 +387,7 @@ public:
 	using HspObjectPath::new_double;
 	using HspObjectPath::new_int;
 
-	Param(std::shared_ptr<HspObjectPath const> parent, hsx::HspParamType param_type, std::size_t param_index)
+	Param(std::shared_ptr<HspObjectPath const> parent, HsxMptype param_type, std::size_t param_index)
 		: parent_(std::move(parent))
 		, param_type_(param_type)
 		, param_index_(param_index)
@@ -423,7 +423,7 @@ public:
 		return objects.param_path_to_name(*this);
 	}
 
-	auto param_type() const -> hsx::HspParamType {
+	auto param_type() const -> HsxMptype {
 		return param_type_;
 	}
 

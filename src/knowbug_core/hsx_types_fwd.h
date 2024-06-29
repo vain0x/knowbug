@@ -70,16 +70,17 @@ typedef short HsxVartype;
 // - CLONE: dup などで作られたクローン変数の状態
 typedef short HsxVarMode;
 
+// #deffunc や #func などのパラメーターの種類
+//
+// - 定数 MPTYPE_* の値が入る
+typedef int HsxMptype;
+
 namespace hsx {
 	class HspData;
 	class HspDimIndex;
 	class HspParamData;
 	class HspParamStack;
 	class HspVarMetadata;
-
-	// 引数の種類
-	// MPTYPE_*
-	using HspParamType = int;
 
 	// システム変数の種類。
 	// 順番は名前順、ただし類似したものは近くに集める。
