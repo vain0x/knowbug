@@ -360,7 +360,6 @@
     <ClCompile Include="hsx_debug_segment.cpp" />
     <ClCompile Include="hsx_element.cpp" />
     <ClInclude Include="hsx_internals.h" />
-    <ClInclude Include="hsx_param_stack.h" />
     <ClInclude Include="hsx_types_fwd.h" />
     <ClInclude Include="hsx_var_metadata.h" />
     <ClInclude Include="hsx_slice.h" />

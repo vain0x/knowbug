@@ -19,7 +19,7 @@ extern auto wc_call_frame_key_at(std::size_t index) -> std::optional<WcCallFrame
 
 extern auto wc_call_frame_get(WcCallFrameKey const& key) -> std::optional<std::reference_wrapper<WcCallFrame>>;
 
-extern auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<hsx::HspParamStack>;
+extern auto wc_call_frame_to_param_stack(WcCallFrameKey const& key) -> std::optional<HsxParamStack>;
 
 // ユーザー定義コマンドの呼び出し情報の識別子
 class WcCallFrameKey {

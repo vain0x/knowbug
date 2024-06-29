@@ -478,7 +478,7 @@ static auto flex_path_to_value(HspObjectPath::Flex const& path, std::size_t dept
 	return hsx::data_to_flex(*data_opt);
 }
 
-static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::HspParamStack> {
+static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HsxParamStack> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -518,8 +518,8 @@ static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size
 	return hsx::param_stack_to_param_data(*param_stack_opt, path.param_index(), ctx);
 }
 
-static auto param_stack_to_memory_view(hsx::HspParamStack const& param_stack) -> MemoryView {
-	return MemoryView{ param_stack.ptr(), param_stack.size() };
+static auto param_stack_to_memory_view(HsxParamStack const& param_stack) -> MemoryView {
+	return MemoryView{ param_stack.stack_ptr, param_stack.stack_size };
 }
 
 static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<MemoryView> {
@@ -563,7 +563,7 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, HS
 	case HspObjectKind::CallFrame:
 	{
 		auto param_stack_opt = path_to_param_stack(path, MIN_DEPTH, ctx);
-		if (!param_stack_opt || !param_stack_opt->safety()) {
+		if (!param_stack_opt || !param_stack_opt->safety) {
 			return std::nullopt;
 		}
 

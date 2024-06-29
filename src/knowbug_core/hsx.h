@@ -9,7 +9,6 @@
 #pragma once
 
 #include "hsx_dim_index.h"
-#include "hsx_param_stack.h"
 #include "hsx_slice.h"
 #include "hsx_types_fwd.h"
 #include "hsx_var_metadata.h"
@@ -75,7 +74,7 @@ namespace hsx {
 	// FIXME: ローカル変数なので PVal* を返す方がよいかもしれない
 	extern auto flex_to_member(FlexValue const* flex, std::size_t member_index, HSPCTX const* ctx)->std::optional<HsxParamData>;
 
-	extern auto flex_to_param_stack(FlexValue const* flex, HSPCTX const* ctx)->std::optional<HspParamStack>;
+	extern auto flex_to_param_stack(FlexValue const* flex, HSPCTX const* ctx)->std::optional<HsxParamStack>;
 
 	// var/array 引数に渡された配列要素の PVal を得る。
 	extern auto mp_var_to_pval(MPVarData const* mp_var)->PVal const*;
@@ -127,9 +126,9 @@ namespace hsx {
 	extern auto param_data_to_str(HsxParamData const& param_data)->std::optional<HsxStrSpan>;
 
 	// 引数スタックに含まれる引数データの個数を得る。
-	extern auto param_stack_to_param_data_count(HspParamStack const& param_stack)->std::size_t;
+	extern auto param_stack_to_param_data_count(HsxParamStack const& param_stack)->std::size_t;
 
-	extern auto param_stack_to_param_data(HspParamStack const& param_stack, std::size_t param_index, HSPCTX const* ctx)->std::optional<HsxParamData>;
+	extern auto param_stack_to_param_data(HsxParamStack const& param_stack, std::size_t param_index, HSPCTX const* ctx)->std::optional<HsxParamData>;
 
 	// 引数タイプの名称を得る。(一部のみ。sptr など、#func のものは未対応。)
 	extern auto param_type_to_name(HsxMptype param_type)->std::optional<char const*>;

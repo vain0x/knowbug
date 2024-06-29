@@ -72,9 +72,6 @@
     <ClInclude Include="hsx_dim_index.h">
       <Filter>hsp-sdk-ext</Filter>
     </ClInclude>
-    <ClInclude Include="hsx_param_stack.h">
-      <Filter>hsp-sdk-ext</Filter>
-    </ClInclude>
     <ClInclude Include="hsx_types_fwd.h">
       <Filter>hsp-sdk-ext</Filter>
     </ClInclude>

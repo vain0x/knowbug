@@ -121,8 +121,20 @@ typedef struct HsxParamData {
 	bool safety;
 } HsxParamData;
 
+// HSP のパラメータスタックへの参照
+//
+// パラメータスタックは、コマンドの実引数、またはインスタンスのメンバ変数の実データが格納される領域
+typedef struct HsxParamStack {
+	const STRUCTDAT* struct_dat;
+
+	const void* stack_ptr;
+	size_t stack_size;
+
+	// データの読み取りが安全か
+	bool safety;
+} HsxParamStack;
+
 namespace hsx {
 	class HspDimIndex;
-	class HspParamStack;
 	class HspVarMetadata;
 }

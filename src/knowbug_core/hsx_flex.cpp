@@ -70,7 +70,7 @@ namespace hsx {
 		return *param_data_opt;
 	}
 
-	auto flex_to_param_stack(FlexValue const* flex, HSPCTX const* ctx) -> std::optional<HspParamStack> {
+	auto flex_to_param_stack(FlexValue const* flex, HSPCTX const* ctx) -> std::optional<HsxParamStack> {
 		auto struct_opt = flex_to_struct(flex, ctx);
 		if (!struct_opt) {
 			return std::nullopt;
@@ -78,6 +78,6 @@ namespace hsx {
 
 		auto size = struct_to_param_stack_size(*struct_opt);
 		auto safe = true;
-		return std::make_optional<HspParamStack>(*struct_opt, flex->ptr, size, safe);
+		return std::make_optional<HsxParamStack>(*struct_opt, flex->ptr, size, safe);
 	}
 }
