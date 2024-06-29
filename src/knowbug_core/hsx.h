@@ -139,7 +139,8 @@ namespace hsx {
 	// (`PVal::flag`)
 	extern auto pval_to_type(PVal const* pval)->HsxVartype;
 
-	extern auto pval_to_varmode(PVal const* pval)->HspVarMode;
+	// (`PVal::mode`)
+	extern auto pval_to_varmode(PVal const* pval)->HsxVarMode;
 
 	// 配列の各次元の長さを得る。
 	extern auto pval_to_lengths(PVal const* pval)->HspDimIndex;

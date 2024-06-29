@@ -7,9 +7,9 @@ namespace hsx {
 		return pval->flag;
 	}
 
-	auto pval_to_varmode(PVal const* pval) -> HspVarMode {
+	auto pval_to_varmode(PVal const* pval) -> HsxVarMode {
 		assert(pval != nullptr);
-		return (HspVarMode)pval->mode;
+		return pval->mode;
 	}
 
 	auto pval_to_lengths(PVal const* pval) -> HspDimIndex {

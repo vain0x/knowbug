@@ -64,6 +64,12 @@ typedef int HsxInt;
 // - HSP の vartype 関数の値
 typedef short HsxVartype;
 
+// 変数モード
+//
+// - 定数 HSPVAR_MODE_* の値が入る
+// - CLONE: dup などで作られたクローン変数の状態
+typedef short HsxVarMode;
+
 namespace hsx {
 	class HspData;
 	class HspDimIndex;
@@ -74,13 +80,6 @@ namespace hsx {
 	// 引数の種類
 	// MPTYPE_*
 	using HspParamType = int;
-
-	// HSP の変数のモード
-	enum class HspVarMode {
-		None = HSPVAR_MODE_NONE,
-		Alloc = HSPVAR_MODE_MALLOC,
-		Clone = HSPVAR_MODE_CLONE,
-	};
 
 	// システム変数の種類。
 	// 順番は名前順、ただし類似したものは近くに集める。

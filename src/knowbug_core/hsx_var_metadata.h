@@ -8,7 +8,7 @@ namespace hsx {
 	class HspVarMetadata {
 	public:
 		HsxVartype type_;
-		HspVarMode mode_;
+		HsxVarMode mode_;
 		HspDimIndex lengths_;
 		std::size_t element_size_;
 		std::size_t data_size_;
@@ -22,7 +22,7 @@ namespace hsx {
 			return type_;
 		}
 
-		auto mode() const -> HspVarMode {
+		auto mode() const -> HsxVarMode {
 			return mode_;
 		}
 
@@ -57,7 +57,7 @@ namespace hsx {
 		static auto none() -> HspVarMetadata {
 			return HspVarMetadata{
 				HSPVAR_FLAG_NONE,
-				HspVarMode::None,
+				HSPVAR_MODE_NONE,
 				HspDimIndex::one(),
 				0,
 				0,
