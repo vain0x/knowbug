@@ -22,7 +22,7 @@ namespace hsx {
 
 	extern auto data_from_str(HsxStrPtr ptr)->HspData;
 
-	extern auto data_from_double(HspDouble const* ptr)->HspData;
+	extern auto data_from_double(HsxDouble const* ptr)->HspData;
 
 	extern auto data_from_int(HspInt const* ptr)->HspData;
 
@@ -32,7 +32,7 @@ namespace hsx {
 
 	extern auto data_to_str(HspData const& data)->std::optional<char const*>;
 
-	extern auto data_to_double(HspData const& data)->std::optional<HspDouble>;
+	extern auto data_to_double(HspData const& data)->std::optional<HsxDouble>;
 
 	extern auto data_to_int(HspData const& data)->std::optional<HspInt>;
 
@@ -203,7 +203,7 @@ namespace hsx {
 
 	extern auto system_var_refstr(HSPCTX const* ctx)->HsxStrSpan;
 
-	extern auto system_var_refdval(HSPCTX const* ctx)->HspDouble const*;
+	extern auto system_var_refdval(HSPCTX const* ctx)->HsxDouble const*;
 
 	extern auto system_var_stat(HSPCTX const* ctx)->HspInt const*;
 

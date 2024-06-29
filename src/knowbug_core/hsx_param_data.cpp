@@ -87,7 +87,7 @@ namespace hsx {
 			return std::make_optional(data_from_str(str));
 		}
 		case MPTYPE_DNUM: {
-			auto ptr = UNSAFE((HspDouble const*)param_data.ptr());
+			auto ptr = UNSAFE((HsxDouble const*)param_data.ptr());
 			return std::make_optional(data_from_double(ptr));
 		}
 		case MPTYPE_INUM: {

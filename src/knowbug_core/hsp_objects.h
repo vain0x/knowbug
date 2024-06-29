@@ -106,7 +106,7 @@ public:
 
 	auto str_path_to_value(HspObjectPath::Str const& path) const->HsxStrSpan;
 
-	auto double_path_to_value(HspObjectPath::Double const& path) const->hsx::HspDouble;
+	auto double_path_to_value(HspObjectPath::Double const& path) const->HsxDouble;
 
 	auto int_path_to_value(HspObjectPath::Int const& path) const->hsx::HspInt;
 

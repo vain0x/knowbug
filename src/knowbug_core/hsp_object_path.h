@@ -587,7 +587,7 @@ public:
 		return to_owned(u8"double");
 	}
 
-	auto value(HspObjects& objects) const -> hsx::HspDouble {
+	auto value(HspObjects& objects) const -> HsxDouble {
 		return objects.double_path_to_value(*this);
 	}
 };

@@ -39,7 +39,7 @@ namespace hsx {
 		return HsxStrSpan{ ctx->refstr, HSPCTX_REFSTR_MAX };
 	}
 
-	auto system_var_refdval(HSPCTX const* ctx) -> HspDouble const* {
+	auto system_var_refdval(HSPCTX const* ctx) -> HsxDouble const* {
 		return &ctx->refdval;
 	}
 

@@ -444,7 +444,7 @@ static auto str_path_to_value(HspObjectPath::Str const& path, HSPCTX const* ctx)
 	return path_to_str(path.parent(), MIN_DEPTH, ctx);
 }
 
-static auto double_path_to_value(HspObjectPath::Double const& path, HSPCTX const* ctx) -> std::optional<hsx::HspDouble> {
+static auto double_path_to_value(HspObjectPath::Double const& path, HSPCTX const* ctx) -> std::optional<HsxDouble> {
 	auto data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
 	if (!data_opt) {
 		assert(false && u8"double の親は data を生成できるはず");
@@ -948,8 +948,8 @@ auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> HsxS
 	return (::str_path_to_value(path, context())).value_or(HsxStrSpan{ "", 0 });
 }
 
-auto HspObjects::double_path_to_value(HspObjectPath::Double const& path) const->hsx::HspDouble {
-	return (::double_path_to_value(path, context())).value_or(hsx::HspDouble{});
+auto HspObjects::double_path_to_value(HspObjectPath::Double const& path) const -> HsxDouble {
+	return (::double_path_to_value(path, context())).value_or(0.0);
 }
 
 auto HspObjects::int_path_to_value(HspObjectPath::Int const& path) const -> hsx::HspInt {

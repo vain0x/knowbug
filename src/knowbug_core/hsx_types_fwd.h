@@ -51,14 +51,15 @@ typedef struct HsxStrSpan {
 	size_t size;
 } HsxStrSpan;
 
+// HSP の double 型の値
+typedef double HsxDouble;
+
 namespace hsx {
 	class HspData;
 	class HspDimIndex;
 	class HspParamData;
 	class HspParamStack;
 	class HspVarMetadata;
-
-	using HspDouble = double;
 
 	using HspInt = std::int32_t;
 

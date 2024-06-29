@@ -10,7 +10,7 @@ namespace hsx {
 		return HspData{ HspType::Str, (PDAT const*)ptr };
 	}
 
-	auto data_from_double(HspDouble const* ptr) -> HspData {
+	auto data_from_double(HsxDouble const* ptr) -> HspData {
 		return HspData{ HspType::Double, (PDAT const*)ptr };
 	}
 
@@ -36,11 +36,11 @@ namespace hsx {
 		return std::make_optional(UNSAFE((char const*)data.ptr()));
 	}
 
-	auto data_to_double(HspData const& data)->std::optional<HspDouble> {
+	auto data_to_double(HspData const& data)->std::optional<HsxDouble> {
 		if (data.type() != HspType::Double) {
 			return std::nullopt;
 		}
-		return std::make_optional(UNSAFE(*(HspDouble const*)data.ptr()));
+		return std::make_optional(UNSAFE(*(HsxDouble const*)data.ptr()));
 	}
 
 	auto data_to_int(HspData const& data)->std::optional<HspInt> {
