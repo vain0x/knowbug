@@ -54,7 +54,7 @@ public:
 
 	auto path_to_memory_view(HspObjectPath const& path) const->std::optional<MemoryView>;
 
-	auto type_to_name(hsx::HspType type) const->std::u8string_view;
+	auto type_to_name(HsxVartype type) const->std::u8string_view;
 
 	auto module_global_id() const->std::size_t;
 
@@ -70,7 +70,7 @@ public:
 
 	bool static_var_path_is_array(HspObjectPath::StaticVar const& path);
 
-	auto static_var_path_to_type(HspObjectPath::StaticVar const& path)->hsx::HspType;
+	auto static_var_path_to_type(HspObjectPath::StaticVar const& path)->HsxVartype;
 
 	auto static_var_path_to_child_count(HspObjectPath::StaticVar const& path) const->std::size_t;
 

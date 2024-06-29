@@ -289,7 +289,7 @@ public:
 		return static_var_id_;
 	}
 
-	auto type(HspObjects& objects) const -> hsx::HspType {
+	auto type(HspObjects& objects) const -> HsxVartype {
 		return objects.static_var_path_to_type(*this);
 	}
 

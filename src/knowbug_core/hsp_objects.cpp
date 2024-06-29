@@ -652,7 +652,7 @@ auto HspObjects::path_to_memory_view(HspObjectPath const& path) const->std::opti
 	return (::path_to_memory_view(path, MIN_DEPTH, context()));
 }
 
-auto HspObjects::type_to_name(hsx::HspType type) const->std::u8string_view {
+auto HspObjects::type_to_name(HsxVartype type) const->std::u8string_view {
 	auto type_id = (std::size_t)type;
 	if (!(1 <= type_id && type_id < types_.size())) {
 		return types_[0].name();
@@ -703,11 +703,11 @@ bool HspObjects::static_var_path_is_array(HspObjectPath::StaticVar const& path) 
 	return hsx::pval_is_standard_array(*pval_opt, context());
 }
 
-auto HspObjects::static_var_path_to_type(HspObjectPath::StaticVar const& path)->hsx::HspType {
+auto HspObjects::static_var_path_to_type(HspObjectPath::StaticVar const& path)->HsxVartype {
 	auto pval_opt = hsx::static_var_to_pval(path.static_var_id(), context());
 	if (!pval_opt) {
 		assert(false && u8"静的変数の pval はとれるべき");
-		return hsx::HspType::None;
+		return HSPVAR_FLAG_NONE;
 	}
 
 	return hsx::pval_to_type(*pval_opt);
@@ -763,19 +763,19 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 
 	auto type = hsx::pval_to_type(*pval_opt);
 	switch (type) {
-	case hsx::HspType::Label:
+	case HSPVAR_FLAG_LABEL:
 		return path.new_label();
 
-	case hsx::HspType::Str:
+	case HSPVAR_FLAG_STR:
 		return path.new_str();
 
-	case hsx::HspType::Double:
+	case HSPVAR_FLAG_DOUBLE:
 		return path.new_double();
 
-	case hsx::HspType::Int:
+	case HSPVAR_FLAG_INT:
 		return path.new_int();
 
-	case hsx::HspType::Struct:
+	case HSPVAR_FLAG_STRUCT:
 		return path.new_flex();
 
 	default:

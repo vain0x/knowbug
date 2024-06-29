@@ -2,9 +2,9 @@
 #include "hsx_internals.h"
 
 namespace hsx {
-	auto pval_to_type(PVal const* pval) -> HspType {
+	auto pval_to_type(PVal const* pval) -> HsxVartype {
 		assert(pval != nullptr);
-		return (HspType)pval->flag;
+		return pval->flag;
 	}
 
 	auto pval_to_varmode(PVal const* pval) -> HspVarMode {

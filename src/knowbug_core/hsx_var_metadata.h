@@ -7,7 +7,7 @@ namespace hsx {
 	// HSP の変数に関連するメタデータの詰め合わせ
 	class HspVarMetadata {
 	public:
-		HspType type_;
+		HsxVartype type_;
 		HspVarMode mode_;
 		HspDimIndex lengths_;
 		std::size_t element_size_;
@@ -18,7 +18,7 @@ namespace hsx {
 		void const* block_ptr_;
 
 	public:
-		auto type() const -> HspType {
+		auto type() const -> HsxVartype {
 			return type_;
 		}
 
@@ -56,7 +56,7 @@ namespace hsx {
 
 		static auto none() -> HspVarMetadata {
 			return HspVarMetadata{
-				HspType::None,
+				HSPVAR_FLAG_NONE,
 				HspVarMode::None,
 				HspDimIndex::one(),
 				0,

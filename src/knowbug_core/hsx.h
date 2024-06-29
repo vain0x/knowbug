@@ -136,7 +136,8 @@ namespace hsx {
 	// 引数タイプの名称を得る。(一部のみ。sptr など、#func のものは未対応。)
 	extern auto param_type_to_name(HspParamType param_type)->std::optional<char const*>;
 
-	extern auto pval_to_type(PVal const* pval)->HspType;
+	// (`PVal::flag`)
+	extern auto pval_to_type(PVal const* pval)->HsxVartype;
 
 	extern auto pval_to_varmode(PVal const* pval)->HspVarMode;
 

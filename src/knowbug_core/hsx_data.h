@@ -6,21 +6,21 @@ namespace hsx {
 	// HSP の変数が持つデータへのポインタ
 	// FIXME: size を持たせる？
 	class HspData {
-		HspType type_;
+		HsxVartype type_;
 
 		// label, double, int, struct: 変数が持つバッファの一部へのポインタ
 		// str: 文字列自身へのポインタ
 		PDAT const* ptr_;
 
 	public:
-		HspData(HspType type, PDAT const* ptr)
+		HspData(HsxVartype type, PDAT const* ptr)
 			: type_(type)
 			, ptr_(ptr)
 		{
-			assert(type == HspType::None || ptr != nullptr);
+			assert(type == HSPVAR_FLAG_NONE || ptr != nullptr);
 		}
 
-		auto type() const -> HspType {
+		auto type() const -> HsxVartype {
 			return type_;
 		}
 

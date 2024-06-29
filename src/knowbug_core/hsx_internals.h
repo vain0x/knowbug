@@ -32,15 +32,15 @@ namespace hsx {
 		return exinfo(const_cast<HSPCTX*>(ctx));
 	}
 
-	static auto vartype_to_int(HspType vartype)->int {
+	static auto vartype_to_int(HsxVartype vartype)->int {
 		return (int)vartype;
 	}
 
-	static auto vartype_from_int(int vartype)->HspType {
-		return (HspType)vartype;
+	static auto vartype_from_int(int vartype)->HsxVartype {
+		return (HsxVartype)vartype;
 	}
 
-	static auto vartype_to_varproc(HspType vartype, HSPCTX const* ctx)->HspVarProc* {
+	static auto vartype_to_varproc(HsxVartype vartype, HSPCTX const* ctx)->HspVarProc* {
 		// FIXME: vartype の範囲検査 (ランタイム側は範囲検査しない)
 		return exinfo(ctx)->HspFunc_getproc(vartype_to_int(vartype));
 	}

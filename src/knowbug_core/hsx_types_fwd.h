@@ -57,6 +57,13 @@ typedef double HsxDouble;
 // HSP の int 型の値
 typedef int HsxInt;
 
+// 変数の型の番号
+//
+// - 定数 HSPVAR_FLAG_* の値が入る
+//-  HspVarProc::flag や PVal::flag などに格納されている
+// - HSP の vartype 関数の値
+typedef short HsxVartype;
+
 namespace hsx {
 	class HspData;
 	class HspDimIndex;
@@ -67,18 +74,6 @@ namespace hsx {
 	// 引数の種類
 	// MPTYPE_*
 	using HspParamType = int;
-
-	// HSP の変数が持つデータの型
-	// FIXME: HspVarType に改名
-	enum class HspType {
-		None = HSPVAR_FLAG_NONE,
-		Label = HSPVAR_FLAG_LABEL,
-		Str = HSPVAR_FLAG_STR,
-		Double = HSPVAR_FLAG_DOUBLE,
-		Int = HSPVAR_FLAG_INT,
-		Struct = HSPVAR_FLAG_STRUCT,
-		Comstruct = HSPVAR_FLAG_COMSTRUCT,
-	};
 
 	// HSP の変数のモード
 	enum class HspVarMode {
