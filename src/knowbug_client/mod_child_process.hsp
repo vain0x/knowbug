@@ -55,7 +55,7 @@
 ;
 ; child_process_wait 命令によってサブプロセスの終了を待機できます。
 ;
-; そのサブプロセスを利用しなくなったとき、child_proecss_close 命令を使って、この命令が確保したリソースを解放してください。
+; そのサブプロセスを利用しなくなったとき、child_process_close 命令を使って、この命令が確保したリソースを解放してください。
 #deffunc child_process_spawn array inner, str cmdline, \
 	local os_cmdline, local startup_info, local proc_info
 
