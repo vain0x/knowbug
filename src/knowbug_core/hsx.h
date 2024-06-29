@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "hsx_data.h"
 #include "hsx_dim_index.h"
 #include "hsx_param_data.h"
 #include "hsx_param_stack.h"
@@ -18,25 +17,25 @@
 #include "memory_view.h"
 
 namespace hsx {
-	extern auto data_from_label(HsxLabel const* ptr)->HspData;
+	extern auto data_from_label(HsxLabel const* ptr)->HsxData;
 
-	extern auto data_from_str(HsxStrPtr ptr)->HspData;
+	extern auto data_from_str(HsxStrPtr ptr)->HsxData;
 
-	extern auto data_from_double(HsxDouble const* ptr)->HspData;
+	extern auto data_from_double(HsxDouble const* ptr)->HsxData;
 
-	extern auto data_from_int(HsxInt const* ptr)->HspData;
+	extern auto data_from_int(HsxInt const* ptr)->HsxData;
 
-	extern auto data_from_flex(FlexValue const* ptr)->HspData;
+	extern auto data_from_flex(FlexValue const* ptr)->HsxData;
 
-	extern auto data_to_label(HspData const& data)->std::optional<HsxLabel>;
+	extern auto data_to_label(HsxData const& data)->std::optional<HsxLabel>;
 
-	extern auto data_to_str(HspData const& data)->std::optional<char const*>;
+	extern auto data_to_str(HsxData const& data)->std::optional<char const*>;
 
-	extern auto data_to_double(HspData const& data)->std::optional<HsxDouble>;
+	extern auto data_to_double(HsxData const& data)->std::optional<HsxDouble>;
 
-	extern auto data_to_int(HspData const& data)->std::optional<HsxInt>;
+	extern auto data_to_int(HsxData const& data)->std::optional<HsxInt>;
 
-	extern auto data_to_flex(HspData const& data)->std::optional<FlexValue const*>;
+	extern auto data_to_flex(HsxData const& data)->std::optional<FlexValue const*>;
 
 	// APTR が指している要素に対応する、配列の添字を計算する。
 	// 範囲外を指しているときは nullopt。
@@ -48,7 +47,7 @@ namespace hsx {
 
 	// 配列要素の実体ポインタを得る。
 	// FIXME: 配列の書き換えを伴うので、const を外した方がいい？
-	extern auto element_to_data(PVal const* pval, std::size_t aptr, HSPCTX const* ctx)->std::optional<HspData>;
+	extern auto element_to_data(PVal const* pval, std::size_t aptr, HSPCTX const* ctx)->std::optional<HsxData>;
 
 	// 配列要素のメモリブロックを得る。
 	// 範囲外のときは空のメモリブロックが返る。
@@ -123,7 +122,7 @@ namespace hsx {
 	extern auto param_data_to_mp_mod_var(HsxMptype param_type, void const* data)->std::optional<MPModVarData const*>;
 
 	// 引数データが指している配列の先頭要素や、配列要素、リテラルから、データの実体ポインタを得る。
-	extern auto param_data_to_data(HspParamData const& param_data)->std::optional<HspData>;
+	extern auto param_data_to_data(HspParamData const& param_data)->std::optional<HsxData>;
 
 	// 引数データが指している文字列データを得る。
 	extern auto param_data_to_str(HspParamData const& param_data)->std::optional<HsxStrSpan>;
@@ -152,7 +151,7 @@ namespace hsx {
 	extern auto pval_is_standard_array(PVal const* pval, HSPCTX const* ctx)->bool;
 
 	// 配列の先頭要素の実体ポインタを得る。
-	extern auto pval_to_data(PVal const* pval, HSPCTX const* ctx)->std::optional<HspData>;
+	extern auto pval_to_data(PVal const* pval, HSPCTX const* ctx)->std::optional<HsxData>;
 
 	// 配列の先頭要素のメモリブロックを得る。
 	extern auto pval_to_memory_block(PVal const* pval, HSPCTX const* ctx)->MemoryView;
@@ -213,7 +212,7 @@ namespace hsx {
 
 	extern auto system_var_thismod(HSPCTX const* ctx)->std::optional<MPModVarData const*>;
 
-	extern auto system_var_to_data(HsxSysvarKind system_var_kind, HSPCTX const* ctx)->std::optional<HspData>;
+	extern auto system_var_to_data(HsxSysvarKind system_var_kind, HSPCTX const* ctx)->std::optional<HsxData>;
 
 	extern auto debug_to_context(HSP3DEBUG const* debug)->HSPCTX const*;
 

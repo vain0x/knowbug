@@ -69,9 +69,6 @@
     <ClInclude Include="source_files.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="hsx_data.h">
-      <Filter>hsp-sdk-ext</Filter>
-    </ClInclude>
     <ClInclude Include="hsx_dim_index.h">
       <Filter>hsp-sdk-ext</Filter>
     </ClInclude>

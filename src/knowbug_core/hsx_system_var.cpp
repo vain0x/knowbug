@@ -55,7 +55,7 @@ namespace hsx {
 		return param_data_to_mp_mod_var(MPTYPE_MODULEVAR, ctx->prmstack);
 	}
 
-	auto system_var_to_data(HsxSysvarKind system_var_kind, HSPCTX const* ctx) -> std::optional<HspData> {
+	auto system_var_to_data(HsxSysvarKind system_var_kind, HSPCTX const* ctx) -> std::optional<HsxData> {
 		switch (system_var_kind) {
 		case HSX_SYSVAR_CNT:
 			return data_from_int_opt(system_var_cnt(ctx));

@@ -68,7 +68,7 @@ namespace hsx {
 		return param_data_to_mp_mod_var(type, data);
 	}
 
-	auto param_data_to_data(HspParamData const& param_data) -> std::optional<HspData> {
+	auto param_data_to_data(HspParamData const& param_data) -> std::optional<HsxData> {
 		if (!param_data.safety()) {
 			return std::nullopt;
 		}

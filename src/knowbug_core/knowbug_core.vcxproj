@@ -353,7 +353,6 @@
     <ClInclude Include="hsp_object_writer.h" />
     <ClInclude Include="hsp_objects_module_tree.h" />
     <ClInclude Include="hsp_wrap_call.h" />
-    <ClInclude Include="hsx_data.h" />
     <ClInclude Include="hsx_debug_segment.h" />
     <ClInclude Include="hsx_dim_index.h" />
     <ClInclude Include="hsx.h" />

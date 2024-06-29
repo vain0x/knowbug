@@ -45,7 +45,7 @@ namespace hsx {
 		return varproc_does_support(varproc, HSPVAR_SUPPORT_FIXEDARRAY | HSPVAR_SUPPORT_FLEXARRAY);
 	}
 
-	auto pval_to_data(PVal const* pval, HSPCTX const* ctx) -> std::optional<HspData> {
+	auto pval_to_data(PVal const* pval, HSPCTX const* ctx) -> std::optional<HsxData> {
 		return element_to_data(pval, 0, ctx);
 	}
 
@@ -57,7 +57,7 @@ namespace hsx {
 			return MemoryView{};
 		}
 
-		return element_data_to_memory_block(pval, data_opt->ptr(), ctx);
+		return element_data_to_memory_block(pval, data_opt->pdat, ctx);
 	}
 
 	auto pval_to_str(PVal const* pval, HSPCTX const* ctx)->std::optional<HsxStrSpan> {

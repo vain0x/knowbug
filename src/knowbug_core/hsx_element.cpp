@@ -38,7 +38,7 @@ namespace hsx {
 		return std::make_optional(aptr);
 	}
 
-	auto element_to_data(PVal const* pval, std::size_t aptr, HSPCTX const* ctx) -> std::optional<HspData> {
+	auto element_to_data(PVal const* pval, std::size_t aptr, HSPCTX const* ctx) -> std::optional<HsxData> {
 		auto count = pval_to_element_count(pval);
 		if (aptr >= count) {
 			return std::nullopt;
@@ -53,7 +53,7 @@ namespace hsx {
 		auto pdat = pval_to_varproc(pval, ctx)->GetPtr(pval_mut);
 		pval_mut->offset = offset;
 
-		return std::make_optional(HspData{ vartype, pdat });
+		return std::make_optional(HsxData{ vartype, pdat });
 	}
 
 	auto element_to_memory_block(PVal const* pval, std::size_t aptr, HSPCTX const* ctx) -> MemoryView {
@@ -64,7 +64,7 @@ namespace hsx {
 			return MemoryView{};
 		}
 
-		return element_data_to_memory_block(pval, data_opt->ptr(), ctx);
+		return element_data_to_memory_block(pval, data_opt->pdat, ctx);
 	}
 
 	auto element_to_str(PVal const* pval, std::size_t aptr, HSPCTX const* ctx) -> std::optional<HsxStrSpan> {

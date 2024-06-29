@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "hsx_data.h"
 #include "hsx_internals.h"
 
 namespace hsx {

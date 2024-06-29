@@ -102,8 +102,16 @@ typedef enum HsxDebugNotice {
 	HSX_DEBUG_NOTICE_LOGMES = 1,
 } HsxDebugNotice;
 
+// HSP の変数が持つデータへのポインタ
+typedef struct HsxData {
+	HsxVartype vartype;
+
+	// label, double, int, struct: 変数が持つバッファの一部へのポインタ
+	// str: 文字列自身へのポインタ
+	const PDAT* pdat;
+} HsxData;
+
 namespace hsx {
-	class HspData;
 	class HspDimIndex;
 	class HspParamData;
 	class HspParamStack;

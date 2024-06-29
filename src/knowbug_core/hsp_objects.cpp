@@ -224,7 +224,7 @@ static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HSPCTX co
 	}
 }
 
-static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::HspData> {
+static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HsxData> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
