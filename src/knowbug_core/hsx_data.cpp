@@ -2,7 +2,7 @@
 #include "hsx_internals.h"
 
 namespace hsx {
-	auto data_from_label(HspLabel const* ptr) -> HspData {
+	auto data_from_label(HsxLabel const* ptr) -> HspData {
 		return HspData{ HspType::Label, (PDAT const*)ptr };
 	}
 
@@ -22,11 +22,11 @@ namespace hsx {
 		return HspData{ HspType::Struct, (PDAT const*)flex };
 	}
 
-	auto data_to_label(HspData const& data)->std::optional<HspLabel> {
+	auto data_to_label(HspData const& data)->std::optional<HsxLabel> {
 		if (data.type() != HspType::Label) {
 			return std::nullopt;
 		}
-		return std::make_optional(UNSAFE(*(HspLabel const*)data.ptr()));
+		return std::make_optional(UNSAFE(*(HsxLabel const*)data.ptr()));
 	}
 
 	auto data_to_str(HspData const& data)->std::optional<char const*> {

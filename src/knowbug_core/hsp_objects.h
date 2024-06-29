@@ -34,7 +34,7 @@ private:
 	std::vector<std::u8string> var_names_;
 	std::vector<Module> modules_;
 	std::vector<TypeData> types_;
-	std::unordered_map<hsx::HspLabel, std::u8string> label_names_;
+	std::unordered_map<HsxLabel, std::u8string> label_names_;
 	std::unordered_map<STRUCTPRM const*, std::u8string> param_names_;
 
 	std::shared_ptr<WcDebugger> wc_debugger_;
@@ -42,7 +42,7 @@ private:
 	std::u8string log_;
 
 public:
-	HspObjects(HSP3DEBUG* debug, std::vector<std::u8string>&& var_names, std::vector<Module>&& modules, std::unordered_map<hsx::HspLabel, std::u8string>&& label_names, std::unordered_map<STRUCTPRM const*, std::u8string>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);
+	HspObjects(HSP3DEBUG* debug, std::vector<std::u8string>&& var_names, std::vector<Module>&& modules, std::unordered_map<HsxLabel, std::u8string>&& label_names, std::unordered_map<STRUCTPRM const*, std::u8string>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger);
 
 	void initialize();
 
@@ -217,7 +217,7 @@ public:
 class HspObjectsBuilder {
 	std::vector<std::u8string> var_names_;
 
-	std::unordered_map<hsx::HspLabel, std::u8string> label_names_;
+	std::unordered_map<HsxLabel, std::u8string> label_names_;
 
 	std::unordered_map<STRUCTPRM const*, std::u8string> param_names_;
 

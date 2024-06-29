@@ -12,7 +12,7 @@ namespace hsx {
 		return object_temps(ctx).size();
 	}
 
-	auto object_temp_to_label(std::size_t ot_index, HSPCTX const* ctx) -> std::optional<HspLabel> {
+	auto object_temp_to_label(std::size_t ot_index, HSPCTX const* ctx) -> std::optional<HsxLabel> {
 		auto offset_opt = object_temps(ctx).get(ot_index);
 		if (!offset_opt) {
 			return std::nullopt;

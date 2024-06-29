@@ -26,7 +26,7 @@ namespace hsx {
 	// str 引数の文字列データはバッファサイズを取得できないが、null 終端が保証されている。
 	using HspStr = Slice<char>;
 
-	extern auto data_from_label(HspLabel const* ptr)->HspData;
+	extern auto data_from_label(HsxLabel const* ptr)->HspData;
 
 	extern auto data_from_str(char const* ptr)->HspData;
 
@@ -36,7 +36,7 @@ namespace hsx {
 
 	extern auto data_from_flex(FlexValue const* ptr)->HspData;
 
-	extern auto data_to_label(HspData const& data)->std::optional<HspLabel>;
+	extern auto data_to_label(HspData const& data)->std::optional<HsxLabel>;
 
 	extern auto data_to_str(HspData const& data)->std::optional<char const*>;
 
@@ -107,7 +107,7 @@ namespace hsx {
 	extern auto object_temp_count(HSPCTX const* ctx)->std::size_t;
 
 	// オブジェクトテンポラリ領域の要素からラベル値を生成する。
-	extern auto object_temp_to_label(std::size_t ot_index, HSPCTX const* ctx)->std::optional<HspLabel>;
+	extern auto object_temp_to_label(std::size_t ot_index, HSPCTX const* ctx)->std::optional<HsxLabel>;
 
 	extern auto params(HSPCTX const* ctx)->Slice<STRUCTPRM>;
 

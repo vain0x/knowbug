@@ -75,7 +75,7 @@ namespace hsx {
 
 		switch (param_data_to_type(param_data)) {
 		case MPTYPE_LABEL: {
-			auto ptr = UNSAFE((HspLabel const*)param_data.ptr());
+			auto ptr = UNSAFE((HsxLabel const*)param_data.ptr());
 			return std::make_optional(data_from_label(ptr));
 		}
 		case MPTYPE_LOCALSTRING: {

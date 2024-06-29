@@ -19,16 +19,17 @@ typedef unsigned short HsxCodeUnit;
 // code segment (CS) 領域のオフセットという形で、コードの位置を表す
 typedef int HsxObjectTemp;
 
+// HSP のラベル型の値
+//
+// code segment (CS) 領域内へのポインタ (有効) または nullptr (無効)
+typedef const HsxCodeUnit* HsxLabel;
+
 namespace hsx {
 	class HspData;
 	class HspDimIndex;
 	class HspParamData;
 	class HspParamStack;
 	class HspVarMetadata;
-
-	// ラベル (ランタイムにおけるラベルの表現)。
-	// code segment 内へのポインタ (有効) または nullptr (無効)。
-	using HspLabel = HsxCodeUnit const*;
 
 	using HspDouble = double;
 
