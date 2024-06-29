@@ -66,7 +66,7 @@ namespace hsx {
 
 		// コードセグメント上の位置。
 		// ソースファイル位置とコード位置の対応を取るために使う。
-		HspCodeUnit const* cs_;
+		HsxCodeUnit const* cs_;
 
 	public:
 		explicit DebugSegmentReader(HSPCTX const* ctx);
