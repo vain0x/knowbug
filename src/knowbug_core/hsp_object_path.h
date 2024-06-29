@@ -798,7 +798,7 @@ class HspObjectPath::SystemVar final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	hsx::HspSystemVarKind system_var_kind_;
+	HsxSysvarKind system_var_kind_;
 
 public:
 	using HspObjectPath::new_str;
@@ -806,7 +806,7 @@ public:
 	using HspObjectPath::new_int;
 	using HspObjectPath::new_flex;
 
-	SystemVar(std::shared_ptr<HspObjectPath const> parent, hsx::HspSystemVarKind system_var_kind)
+	SystemVar(std::shared_ptr<HspObjectPath const> parent, HsxSysvarKind system_var_kind)
 		: parent_(std::move(parent))
 		, system_var_kind_(system_var_kind)
 	{
@@ -844,7 +844,7 @@ public:
 		return objects.system_var_path_to_name(*this);
 	}
 
-	auto system_var_kind() const -> hsx::HspSystemVarKind {
+	auto system_var_kind() const -> HsxSysvarKind {
 		return system_var_kind_;
 	}
 };

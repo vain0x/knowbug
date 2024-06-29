@@ -55,42 +55,42 @@ namespace hsx {
 		return param_data_to_mp_mod_var(MPTYPE_MODULEVAR, ctx->prmstack);
 	}
 
-	auto system_var_to_data(HspSystemVarKind system_var_kind, HSPCTX const* ctx) -> std::optional<HspData> {
+	auto system_var_to_data(HsxSysvarKind system_var_kind, HSPCTX const* ctx) -> std::optional<HspData> {
 		switch (system_var_kind) {
-		case HspSystemVarKind::Cnt:
+		case HSX_SYSVAR_CNT:
 			return data_from_int_opt(system_var_cnt(ctx));
 
-		case HspSystemVarKind::Err:
+		case HSX_SYSVAR_ERR:
 			return data_from_int(system_var_err(ctx));
 
-		case HspSystemVarKind::IParam:
+		case HSX_SYSVAR_IPARAM:
 			return data_from_int(system_var_iparam(ctx));
 
-		case HspSystemVarKind::WParam:
+		case HSX_SYSVAR_WPARAM:
 			return data_from_int(system_var_wparam(ctx));
 
-		case HspSystemVarKind::LParam:
+		case HSX_SYSVAR_LPARAM:
 			return data_from_int(system_var_lparam(ctx));
 
-		case HspSystemVarKind::LoopLev:
+		case HSX_SYSVAR_LOOPLEV:
 			return data_from_int(system_var_looplev(ctx));
 
-		case HspSystemVarKind::SubLev:
+		case HSX_SYSVAR_SUBLEV:
 			return data_from_int(system_var_sublev(ctx));
 
-		case HspSystemVarKind::Refstr:
+		case HSX_SYSVAR_REFSTR:
 			return data_from_str(system_var_refstr(ctx).data);
 
-		case HspSystemVarKind::Refdval:
+		case HSX_SYSVAR_REFDVAL:
 			return data_from_double(system_var_refdval(ctx));
 
-		case HspSystemVarKind::Stat:
+		case HSX_SYSVAR_STAT:
 			return data_from_int(system_var_stat(ctx));
 
-		case HspSystemVarKind::StrSize:
+		case HSX_SYSVAR_STRSIZE:
 			return data_from_int(system_var_strsize(ctx));
 
-		case HspSystemVarKind::Thismod: {
+		case HSX_SYSVAR_THISMOD: {
 			auto mp_mod_var_opt = system_var_thismod(ctx);
 			if (!mp_mod_var_opt) {
 				return std::nullopt;
@@ -101,7 +101,7 @@ namespace hsx {
 			return element_to_data(pval, aptr, ctx);
 		}
 		default:
-			assert(false && u8"Invalid HspSystemVarKind");
+			assert(false && u8"Invalid HsxSysvarKind");
 			return std::nullopt;
 		}
 	}

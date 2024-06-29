@@ -332,7 +332,7 @@ static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX con
 		return hsx::param_data_to_str(*param_data_opt);
 	}
 	case HspObjectKind::SystemVar: {
-		if (path.as_system_var().system_var_kind() != hsx::HspSystemVarKind::Refstr) {
+		if (path.as_system_var().system_var_kind() != HSX_SYSVAR_REFSTR) {
 			return std::nullopt;
 		}
 		return hsx::system_var_refstr(ctx);
@@ -1023,21 +1023,21 @@ auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> st
 
 auto HspObjects::system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t {
 	switch (path.system_var_kind()) {
-	case hsx::HspSystemVarKind::Cnt:
-	case hsx::HspSystemVarKind::Err:
-	case hsx::HspSystemVarKind::IParam:
-	case hsx::HspSystemVarKind::WParam:
-	case hsx::HspSystemVarKind::LParam:
-	case hsx::HspSystemVarKind::LoopLev:
-	case hsx::HspSystemVarKind::SubLev:
-	case hsx::HspSystemVarKind::Refstr:
-	case hsx::HspSystemVarKind::Refdval:
-	case hsx::HspSystemVarKind::Stat:
-	case hsx::HspSystemVarKind::StrSize:
-	case hsx::HspSystemVarKind::Thismod:
+	case HSX_SYSVAR_CNT:
+	case HSX_SYSVAR_ERR:
+	case HSX_SYSVAR_IPARAM:
+	case HSX_SYSVAR_WPARAM:
+	case HSX_SYSVAR_LPARAM:
+	case HSX_SYSVAR_LOOPLEV:
+	case HSX_SYSVAR_SUBLEV:
+	case HSX_SYSVAR_REFSTR:
+	case HSX_SYSVAR_REFDVAL:
+	case HSX_SYSVAR_STAT:
+	case HSX_SYSVAR_STRSIZE:
+	case HSX_SYSVAR_THISMOD:
 		return 1;
 	default:
-		assert(false && u8"Unknown HspSystemVarKind");
+		assert(false && u8"Unknown HsxSysvarKind");
 		throw std::exception{};
 	}
 }
@@ -1046,72 +1046,72 @@ auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& pat
 	assert(child_index < system_var_path_to_child_count(path));
 
 	switch (path.system_var_kind()) {
-	case hsx::HspSystemVarKind::Cnt:
-	case hsx::HspSystemVarKind::Err:
-	case hsx::HspSystemVarKind::IParam:
-	case hsx::HspSystemVarKind::WParam:
-	case hsx::HspSystemVarKind::LParam:
-	case hsx::HspSystemVarKind::LoopLev:
-	case hsx::HspSystemVarKind::SubLev:
-	case hsx::HspSystemVarKind::Stat:
-	case hsx::HspSystemVarKind::StrSize:
+	case HSX_SYSVAR_CNT:
+	case HSX_SYSVAR_ERR:
+	case HSX_SYSVAR_IPARAM:
+	case HSX_SYSVAR_WPARAM:
+	case HSX_SYSVAR_LPARAM:
+	case HSX_SYSVAR_LOOPLEV:
+	case HSX_SYSVAR_SUBLEV:
+	case HSX_SYSVAR_STAT:
+	case HSX_SYSVAR_STRSIZE:
 		return path.new_int();
 
-	case hsx::HspSystemVarKind::Refstr:
+	case HSX_SYSVAR_REFSTR:
 		return path.new_str();
 
-	case hsx::HspSystemVarKind::Refdval:
+	case HSX_SYSVAR_REFDVAL:
 		return path.new_double();
 
-	case hsx::HspSystemVarKind::Thismod:
+	case HSX_SYSVAR_THISMOD:
 		return path.new_flex();
 
 	default:
-		assert(false && u8"Unknown HspSystemVarKind");
+		assert(false && u8"Unknown HsxSysvarKind");
 		throw std::exception{};
 	}
 }
 
 auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::u8string {
 	switch (path.system_var_kind()) {
-	case hsx::HspSystemVarKind::Cnt:
+	case HSX_SYSVAR_CNT:
 		return to_owned(u8"cnt");
 
-	case hsx::HspSystemVarKind::Err:
+	case HSX_SYSVAR_ERR:
 		return to_owned(u8"err");
 
-	case hsx::HspSystemVarKind::IParam:
+	case HSX_SYSVAR_IPARAM:
 		return to_owned(u8"iparam");
 
-	case hsx::HspSystemVarKind::WParam:
+	case HSX_SYSVAR_WPARAM:
 		return to_owned((u8"wparam"));
 
-	case hsx::HspSystemVarKind::LParam:
+	case HSX_SYSVAR_LPARAM:
 		return to_owned(u8"lparam");
 
-	case hsx::HspSystemVarKind::LoopLev:
+	case HSX_SYSVAR_LOOPLEV:
 		return to_owned(u8"looplev");
 
-	case hsx::HspSystemVarKind::SubLev:
+	case HSX_SYSVAR_SUBLEV:
 		return to_owned(u8"sublev");
 
-	case hsx::HspSystemVarKind::Refstr:
+	case HSX_SYSVAR_REFSTR:
 		return to_owned(u8"refstr");
 
-	case hsx::HspSystemVarKind::Refdval:
+	case HSX_SYSVAR_REFDVAL:
 		return to_owned(u8"refdval");
 
-	case hsx::HspSystemVarKind::Stat:
+	case HSX_SYSVAR_STAT:
 		return to_owned(u8"stat");
 
-	case hsx::HspSystemVarKind::StrSize:
+	case HSX_SYSVAR_STRSIZE:
 		return to_owned(u8"strsize");
 
-	case hsx::HspSystemVarKind::Thismod:
+	case HSX_SYSVAR_THISMOD:
 		return to_owned(u8"thismod");
 
 	default:
-		assert(false && u8"Invalid HspSystemVarKind");
+		assert(false && u8"Invalid HsxSysvarKind");
 		throw std::exception{};
 	}
 }

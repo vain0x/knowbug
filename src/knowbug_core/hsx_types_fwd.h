@@ -75,29 +75,30 @@ typedef short HsxVarMode;
 // - 定数 MPTYPE_* の値が入る
 typedef int HsxMptype;
 
+// システム変数の番号
+//
+// - 順番は名前順、ただし類似したものは近くに集める
+typedef enum HsxSysvarKind {
+	HSX_SYSVAR_CNT = 1,
+	HSX_SYSVAR_ERR,
+	HSX_SYSVAR_IPARAM,
+	HSX_SYSVAR_WPARAM,
+	HSX_SYSVAR_LPARAM,
+	HSX_SYSVAR_LOOPLEV,
+	HSX_SYSVAR_SUBLEV,
+	HSX_SYSVAR_REFSTR,
+	HSX_SYSVAR_REFDVAL,
+	HSX_SYSVAR_STAT,
+	HSX_SYSVAR_STRSIZE,
+	HSX_SYSVAR_THISMOD,
+} HsxSysvarKind;
+
 namespace hsx {
 	class HspData;
 	class HspDimIndex;
 	class HspParamData;
 	class HspParamStack;
 	class HspVarMetadata;
-
-	// システム変数の種類。
-	// 順番は名前順、ただし類似したものは近くに集める。
-	enum class HspSystemVarKind {
-		Cnt = 1,
-		Err,
-		IParam,
-		WParam,
-		LParam,
-		LoopLev,
-		SubLev,
-		Refstr,
-		Refdval,
-		Stat,
-		StrSize,
-		Thismod,
-	};
 
 	// デバッグウィンドウへの通知の種類
 	enum class DebugNoticeKind {

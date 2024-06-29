@@ -213,7 +213,7 @@ namespace hsx {
 
 	extern auto system_var_thismod(HSPCTX const* ctx)->std::optional<MPModVarData const*>;
 
-	extern auto system_var_to_data(HspSystemVarKind system_var_kind, HSPCTX const* ctx)->std::optional<HspData>;
+	extern auto system_var_to_data(HsxSysvarKind system_var_kind, HSPCTX const* ctx)->std::optional<HspData>;
 
 	extern auto debug_to_context(HSP3DEBUG const* debug)->HSPCTX const*;
 
