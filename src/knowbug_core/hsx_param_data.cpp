@@ -29,24 +29,24 @@ namespace hsx {
 		return (std::size_t)mp_mod_var->aptr;
 	}
 
-	auto param_data_to_type(HspParamData const& param_data) -> HsxMptype {
-		return param_data.param()->mptype;
+	auto param_data_to_type(HsxParamData const& param_data) -> HsxMptype {
+		return param_data.param->mptype;
 	}
 
-	auto param_data_to_pval(HspParamData const& param_data) -> std::optional<PVal const*> {
+	auto param_data_to_pval(HsxParamData const& param_data) -> std::optional<PVal const*> {
 		auto type = param_data_to_type(param_data);
 		if (type != MPTYPE_LOCALVAR) {
 			return std::nullopt;
 		}
-		return std::make_optional(UNSAFE((PVal const*)param_data.ptr()));
+		return std::make_optional(UNSAFE((PVal const*)param_data.param_ptr));
 	}
 
-	auto param_data_to_mp_var(HspParamData const& param_data) -> std::optional<MPVarData const*> {
+	auto param_data_to_mp_var(HsxParamData const& param_data) -> std::optional<MPVarData const*> {
 		auto type = param_data_to_type(param_data);
 		if (type != MPTYPE_SINGLEVAR && type != MPTYPE_ARRAYVAR) {
 			return std::nullopt;
 		}
-		return std::make_optional(UNSAFE((MPVarData const*)param_data.ptr()));
+		return std::make_optional(UNSAFE((MPVarData const*)param_data.param_ptr));
 	}
 
 	auto param_data_to_mp_mod_var(HsxMptype type, void const* data)->std::optional<MPModVarData const*> {
@@ -62,24 +62,24 @@ namespace hsx {
 		return std::make_optional(mp_mod_var);
 	}
 
-	auto param_data_to_mp_mod_var(HspParamData const& param_data) -> std::optional<MPModVarData const*> {
+	auto param_data_to_mp_mod_var(HsxParamData const& param_data) -> std::optional<MPModVarData const*> {
 		auto type = param_data_to_type(param_data);
-		auto data = param_data.ptr();
+		auto data = param_data.param_ptr;
 		return param_data_to_mp_mod_var(type, data);
 	}
 
-	auto param_data_to_data(HspParamData const& param_data) -> std::optional<HsxData> {
-		if (!param_data.safety()) {
+	auto param_data_to_data(HsxParamData const& param_data) -> std::optional<HsxData> {
+		if (!param_data.safety) {
 			return std::nullopt;
 		}
 
 		switch (param_data_to_type(param_data)) {
 		case MPTYPE_LABEL: {
-			auto ptr = UNSAFE((HsxLabel const*)param_data.ptr());
+			auto ptr = UNSAFE((HsxLabel const*)param_data.param_ptr);
 			return std::make_optional(data_from_label(ptr));
 		}
 		case MPTYPE_LOCALSTRING: {
-			auto str = UNSAFE(*(char const**)param_data.ptr());
+			auto str = UNSAFE(*(char const**)param_data.param_ptr);
 			if (!str) {
 				assert(false && u8"str param must not be null");
 				return std::nullopt;
@@ -87,11 +87,11 @@ namespace hsx {
 			return std::make_optional(data_from_str(str));
 		}
 		case MPTYPE_DNUM: {
-			auto ptr = UNSAFE((HsxDouble const*)param_data.ptr());
+			auto ptr = UNSAFE((HsxDouble const*)param_data.param_ptr);
 			return std::make_optional(data_from_double(ptr));
 		}
 		case MPTYPE_INUM: {
-			auto ptr = UNSAFE((HsxInt const*)param_data.ptr());
+			auto ptr = UNSAFE((HsxInt const*)param_data.param_ptr);
 			return std::make_optional(data_from_int(ptr));
 		}
 		default:
@@ -99,14 +99,14 @@ namespace hsx {
 		}
 	}
 
-	auto param_data_to_str(HspParamData const& param_data) -> std::optional<HsxStrSpan> {
-		if (!param_data.safety()) {
+	auto param_data_to_str(HsxParamData const& param_data) -> std::optional<HsxStrSpan> {
+		if (!param_data.safety) {
 			return std::nullopt;
 		}
 
 		switch (param_data_to_type(param_data)) {
 		case MPTYPE_LOCALSTRING: {
-			auto str = UNSAFE(*(char const**)param_data.ptr());
+			auto str = UNSAFE(*(char const**)param_data.param_ptr);
 			if (!str) {
 				assert(false && u8"str param must not be null");
 				return std::nullopt;

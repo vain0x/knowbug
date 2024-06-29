@@ -111,9 +111,18 @@ typedef struct HsxData {
 	const PDAT* pdat;
 } HsxData;
 
+// HSP のパラメーターデータへのポインタ
+typedef struct HsxParamData {
+	const STRUCTPRM* param;
+	size_t param_index;
+	const void* param_ptr;
+
+	// データの読み取りが安全か
+	bool safety;
+} HsxParamData;
+
 namespace hsx {
 	class HspDimIndex;
-	class HspParamData;
 	class HspParamStack;
 	class HspVarMetadata;
 }

@@ -18,7 +18,7 @@ static auto const MAX_DEPTH = std::size_t{ 32 };
 // ビジュアルツリーの子要素数の最大値
 static constexpr auto MAX_VISUAL_CHILD_COUNT = HspObjectPath::Group::MAX_CHILD_COUNT;
 
-static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::HspParamData>;
+static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HsxParamData>;
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
 
@@ -263,7 +263,7 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX co
 		}
 
 		// FIXME: 場当たり的
-		if (hsx::param_to_type(param_data_opt->param()) == MPTYPE_LOCALVAR) {
+		if (hsx::param_to_type(param_data_opt->param) == MPTYPE_LOCALVAR) {
 			auto pval_opt = hsx::param_data_to_pval(*param_data_opt);
 			if (!pval_opt) {
 				return std::nullopt;
@@ -320,7 +320,7 @@ static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX con
 		}
 
 		// FIXME: 場当たり的
-		if (hsx::param_to_type(param_data_opt->param()) == MPTYPE_LOCALVAR) {
+		if (hsx::param_to_type(param_data_opt->param) == MPTYPE_LOCALVAR) {
 			auto pval_opt = hsx::param_data_to_pval(*param_data_opt);
 			if (!pval_opt) {
 				return std::nullopt;
@@ -502,7 +502,7 @@ static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, HS
 	}
 }
 
-static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::HspParamData> {
+static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HsxParamData> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -881,17 +881,17 @@ auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> s
 		return to_owned(u8"<unavailable>");
 	}
 
-	auto iter = param_names_.find(param_data_opt->param());
+	auto iter = param_names_.find(param_data_opt->param);
 	if (iter != param_names_.end()) {
 		return iter->second;
 	}
 
-	auto type = hsx::param_to_type(param_data_opt->param());
+	auto type = hsx::param_to_type(param_data_opt->param);
 	if (type == MPTYPE_MODULEVAR || type == MPTYPE_IMODULEVAR || type == MPTYPE_TMODULEVAR) {
 		return to_owned(u8"thismod");
 	}
 
-	return indexes_to_string(hsx::HspDimIndex{ 1, { param_data_opt->param_index() } });
+	return indexes_to_string(hsx::HspDimIndex{ 1, { param_data_opt->param_index } });
 }
 
 auto HspObjects::param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<hsx::HspVarMetadata> {
@@ -978,7 +978,7 @@ auto HspObjects::flex_path_to_child_at(HspObjectPath::Flex const& path, std::siz
 	}
 
 	auto param_type = hsx::param_data_to_type(*param_data_opt);
-	auto param_index = param_data_opt->param_index();
+	auto param_index = param_data_opt->param_index;
 	return path.new_param(param_type, param_index);
 }
 
@@ -1160,7 +1160,7 @@ auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& pat
 	}
 
 	auto param_type = hsx::param_data_to_type(*param_data_opt);
-	return std::make_optional(path.new_param(param_type, param_data_opt->param_index()));
+	return std::make_optional(path.new_param(param_type, param_data_opt->param_index));
 }
 
 auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<std::u8string_view>> {

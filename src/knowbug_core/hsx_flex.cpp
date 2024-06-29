@@ -46,7 +46,7 @@ namespace hsx {
 		return param_count - 1;
 	}
 
-	auto flex_to_member(FlexValue const* flex, std::size_t member_index, HSPCTX const* ctx) -> std::optional<HspParamData> {
+	auto flex_to_member(FlexValue const* flex, std::size_t member_index, HSPCTX const* ctx) -> std::optional<HsxParamData> {
 		auto member_count = flex_to_member_count(flex, ctx);
 		if (member_index >= member_count) {
 			assert(false && u8"Invalid member_index");

@@ -9,7 +9,6 @@
 #pragma once
 
 #include "hsx_dim_index.h"
-#include "hsx_param_data.h"
 #include "hsx_param_stack.h"
 #include "hsx_slice.h"
 #include "hsx_types_fwd.h"
@@ -74,7 +73,7 @@ namespace hsx {
 	extern auto flex_to_member_count(FlexValue const* flex, HSPCTX const* ctx)->std::size_t;
 
 	// FIXME: ローカル変数なので PVal* を返す方がよいかもしれない
-	extern auto flex_to_member(FlexValue const* flex, std::size_t member_index, HSPCTX const* ctx)->std::optional<HspParamData>;
+	extern auto flex_to_member(FlexValue const* flex, std::size_t member_index, HSPCTX const* ctx)->std::optional<HsxParamData>;
 
 	extern auto flex_to_param_stack(FlexValue const* flex, HSPCTX const* ctx)->std::optional<HspParamStack>;
 
@@ -107,30 +106,30 @@ namespace hsx {
 	// この引数を所有する struct を得る。
 	extern auto param_to_struct(STRUCTPRM const* param, HSPCTX const* ctx)->std::optional<STRUCTDAT const*>;
 
-	extern auto param_data_to_type(HspParamData const& param_data)->HsxMptype;
+	extern auto param_data_to_type(HsxParamData const& param_data)->HsxMptype;
 
 	// 引数データが配列や配列要素を指しているなら、その PVal を得る。
-	extern auto param_data_to_pval(HspParamData const& param_data)->std::optional<PVal const*>;
+	extern auto param_data_to_pval(HsxParamData const& param_data)->std::optional<PVal const*>;
 
 	// var/array 引数の詳細を得る。
-	extern auto param_data_to_mp_var(HspParamData const& param_data)->std::optional<MPVarData const*>;
+	extern auto param_data_to_mp_var(HsxParamData const& param_data)->std::optional<MPVarData const*>;
 
 	// thismod 引数の詳細を得る。
-	extern auto param_data_to_mp_mod_var(HspParamData const& param_data)->std::optional<MPModVarData const*>;
+	extern auto param_data_to_mp_mod_var(HsxParamData const& param_data)->std::optional<MPModVarData const*>;
 
 	// thismod 引数の詳細を得る。
 	extern auto param_data_to_mp_mod_var(HsxMptype param_type, void const* data)->std::optional<MPModVarData const*>;
 
 	// 引数データが指している配列の先頭要素や、配列要素、リテラルから、データの実体ポインタを得る。
-	extern auto param_data_to_data(HspParamData const& param_data)->std::optional<HsxData>;
+	extern auto param_data_to_data(HsxParamData const& param_data)->std::optional<HsxData>;
 
 	// 引数データが指している文字列データを得る。
-	extern auto param_data_to_str(HspParamData const& param_data)->std::optional<HsxStrSpan>;
+	extern auto param_data_to_str(HsxParamData const& param_data)->std::optional<HsxStrSpan>;
 
 	// 引数スタックに含まれる引数データの個数を得る。
 	extern auto param_stack_to_param_data_count(HspParamStack const& param_stack)->std::size_t;
 
-	extern auto param_stack_to_param_data(HspParamStack const& param_stack, std::size_t param_index, HSPCTX const* ctx)->std::optional<HspParamData>;
+	extern auto param_stack_to_param_data(HspParamStack const& param_stack, std::size_t param_index, HSPCTX const* ctx)->std::optional<HsxParamData>;
 
 	// 引数タイプの名称を得る。(一部のみ。sptr など、#func のものは未対応。)
 	extern auto param_type_to_name(HsxMptype param_type)->std::optional<char const*>;
