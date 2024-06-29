@@ -15,16 +15,16 @@
 // code segment (CS) 領域のデータ
 typedef unsigned short HsxCodeUnit;
 
+// オブジェクトテンポラリ (ラベルのこと)
+// code segment (CS) 領域のオフセットという形で、コードの位置を表す
+typedef int HsxObjectTemp;
+
 namespace hsx {
 	class HspData;
 	class HspDimIndex;
 	class HspParamData;
 	class HspParamStack;
 	class HspVarMetadata;
-
-	// オブジェクトテンポラリ (ラベルのこと)
-	// code segment (CS) 領域のオフセットという形で、コードの位置を表す。
-	using HspObjectTemp = std::int32_t;
 
 	// ラベル (ランタイムにおけるラベルの表現)。
 	// code segment 内へのポインタ (有効) または nullptr (無効)。

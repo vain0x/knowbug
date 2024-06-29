@@ -3,9 +3,9 @@
 #include "hsx_internals.h"
 
 namespace hsx {
-	auto object_temps(HSPCTX const* ctx) -> Slice<HspObjectTemp> {
-		auto size = (std::size_t)std::max(0, ctx->hsphed->max_ot) / sizeof(HspObjectTemp);
-		return Slice<HspObjectTemp>{ ctx->mem_ot, size };
+	auto object_temps(HSPCTX const* ctx) -> Slice<HsxObjectTemp> {
+		auto size = (std::size_t)std::max(0, ctx->hsphed->max_ot) / sizeof(HsxObjectTemp);
+		return Slice<HsxObjectTemp>{ ctx->mem_ot, size };
 	}
 
 	auto object_temp_count(HSPCTX const* ctx) -> std::size_t {

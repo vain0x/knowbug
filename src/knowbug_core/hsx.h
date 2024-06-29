@@ -101,7 +101,7 @@ namespace hsx {
 	// 注意: APTR は範囲外を指す可能性がある。
 	extern auto mp_mod_var_to_aptr(MPModVarData const* mp_mod_var)->std::size_t;
 
-	extern auto object_temps(HSPCTX const* ctx)->Slice<HspObjectTemp>;
+	extern auto object_temps(HSPCTX const* ctx)->Slice<HsxObjectTemp>;
 
 	// オブジェクトテンポラリ領域に格納されているラベルの個数を得る。
 	extern auto object_temp_count(HSPCTX const* ctx)->std::size_t;
