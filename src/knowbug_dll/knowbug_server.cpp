@@ -962,6 +962,13 @@ public:
 			return;
 		}
 
+		if (method == u8"evaluate_notification") {
+			auto req_id = (std::size_t)message.get_int(u8"req_id").value_or(0);
+			auto expr = message.get(u8"expr").value_or(u8"");
+			client_did_evaluate(req_id, expr);
+			return;
+		}
+
 		if (method.empty()) {
 			return;
 		}
@@ -1056,6 +1063,62 @@ public:
 		}
 
 		send_list_details_event((std::size_t)object_id);
+	}
+
+	void client_did_evaluate(int req_id, std::u8string_view expr) {
+		// expr: variable name
+
+		struct Item {
+			std::shared_ptr<HspObjectPath const> path;
+			int cost;
+		};
+
+		auto const& root = objects().root_path();
+		auto stack = std::vector<Item>();
+		stack.push_back(Item{ root.shared_from_this(), 1 });
+
+		auto found = std::optional<std::shared_ptr<HspObjectPath const>>{};
+		while (!stack.empty()) {
+			auto cur = stack.back();
+			if (cur.path->name(objects()) == expr) {
+				found = cur.path;
+				break;
+			}
+
+			stack.pop_back();
+
+			auto count = cur.path->child_count(objects());
+			if (count == 0 || cur.cost >= 10000 / count) continue;
+
+			for (auto i = count; i >= 1;) {
+				i--;
+				stack.push_back(Item { cur.path->child_at(i, objects()), cur.cost * 2 });
+			}
+		}
+
+		if (!found) {
+			debugf(u8"expr '%s' not found", expr);
+			auto message = KnowbugMessage::new_with_method(u8"evaluated_event");
+			message.insert_bool(u8"success", false);
+			message.insert_int(u8"req_id", req_id);
+			message.insert(u8"value", u8"(Cannot evaluate)");
+			send_message(message);
+			return;
+		}
+
+		assert(found.has_value() && *found);
+
+		auto value_path = *found;
+		auto value_writer = StringWriter{};
+		HspObjectWriter{ objects(), value_writer }.write_flow_form(*value_path);
+		auto value = value_writer.finish();
+
+		auto message = KnowbugMessage::new_with_method(u8"evaluated_event");
+		message.insert_bool(u8"success", true);
+		message.insert_int(u8"req_id", req_id);
+		message.insert(u8"value", std::move(value));
+		message.insert_int(u8"type", (int)value_path->kind());
+		send_message(message);
 	}
 
 	void handle_after_logmes() {

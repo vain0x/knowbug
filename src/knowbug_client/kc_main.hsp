@@ -195,6 +195,17 @@
 	infra_send_message keys, values, value_lens, count
 	return
 
+#deffunc infra_send_evaluate int req_id, str expr, \
+	local keys, local values, local value_lens, local count
+
+	assoc_set_str keys, values, value_lens, count, "method", "evaluate_notification"
+
+	assoc_set_str keys, values, value_lens, count, "req_id", str(req_id)
+	assoc_set_str keys, values, value_lens, count, "expr", str(expr)
+
+	infra_send_message keys, values, value_lens, count
+	return
+
 ; ------------------------------------------------
 ; サーバーからのメッセージ
 ; ------------------------------------------------
@@ -209,7 +220,10 @@
 	local kind, local kind_len, \
 	local name, local name_len, \
 	local value, local value_len, \
-	local text, local text_len
+	local text, local text_len, \
+	local req_id, \
+	local success, local success_len, \
+	local type, local type_len
 
 	assert count >= 1 && keys(0) == "method"
 	method = values(0)
@@ -350,6 +364,35 @@
 		}
 
 		app_did_receive_list_details_ok object_id, text
+		return
+	}
+
+	if method == "evaluated_event" {
+		assoc_get_int keys, values, value_lens, count, "req_id", req_id
+		if stat == false {
+			logmes "WARN: req_id missing"
+			return
+		}
+
+		assoc_get keys, values, value_lens, count, "success", success, success_len
+		if stat == false {
+			success = ""
+			success_len = 0
+		}
+
+		assoc_get keys, values, value_lens, count, "value", value, value_len
+		if stat == false {
+			value = ""
+			value_len = 0
+		}
+
+		assoc_get keys, values, value_lens, count, "type", type, type_len
+		if stat == false {
+			type = ""
+			type_len = 0
+		}
+
+		app_did_receive_evaluated success == "true", value, type
 		return
 	}
 

@@ -238,3 +238,7 @@ public:
 extern auto indexes_to_string(hsx::HspDimIndex const& indexes)->std::u8string;
 
 extern auto var_name_to_bare_ident(std::u8string_view name)->std::u8string_view;
+
+// 実験
+
+

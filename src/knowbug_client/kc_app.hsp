@@ -163,6 +163,7 @@
 #enum global s_default_window_id = 0
 #enum global s_main_window_id
 #enum global s_details_window_id
+#enum global s_other_window_id
 #enum global s_help_window_id
 
 #enum global s_main_window_context_menu_ok_id = 1
@@ -177,6 +178,7 @@
 
 #define s_main_window_title "knowbug"
 #define s_details_window_title "knowbug details"
+#define s_other_window_title "knowbug other"
 #define s_help_window_title "knowbug help"
 
 #deffunc app_init
@@ -232,6 +234,9 @@
 	; 表示している行番号 (最後に自動スクロールした時点での行番号。現在の行番号ではない。)
 	s_current_line_index = 0
 
+	; その他
+	s_other_expr = "mat"
+
 	sdim s_lf
 	poke s_lf, 0, char_lf
 	poke s_lf, 1, 0
@@ -248,6 +253,7 @@
 	app_ui_config_init
 	app_ui_layout_init
 	app_details_window_create
+	app_other_window_create
 	app_help_window_create
 	app_main_window_create
 
@@ -255,6 +261,7 @@
 	onexit gosub *l_on_exit
 
 	app_main_window_show
+	app_other_window_show ; (debug)
 	return
 
 #deffunc app_ui_config_init
@@ -381,6 +388,13 @@
 		}
 	}
 
+	if ginfo_act == s_other_window_id {
+		if wparam == VK_ESCAPE {
+			app_other_window_hide
+			return
+		}
+	}
+
 	if ginfo_act == s_help_window_id {
 		if wparam == VK_ESCAPE {
 			app_help_window_hide
@@ -407,6 +421,7 @@
 
 	gsel s_help_window_id, gsel_hide
 	gsel s_details_window_id, gsel_hide
+	gsel s_other_window_id, gsel_hide
 	gsel s_main_window_id, gsel_hide
 	return
 
@@ -648,6 +663,54 @@
 	s_details_window_height = ginfo_winy
 
 	app_details_window_update_layout
+	return
+
+; ------------------------------------------------
+; その他ウィンドウ
+; ------------------------------------------------
+
+; その他の機能を提供するための領域
+
+#deffunc app_other_window_create \
+	local tabstops
+
+	s_other_window_width = 480
+	s_other_window_height = 320
+	screen s_other_window_id, s_other_window_width, s_other_window_height, screen_hide | screen_tool
+
+	title s_other_window_title
+
+	font s_default_font_family, s_default_font_size
+	objmode objmode_font
+
+	pos 0, 10
+	mesbox s_other_expr, s_other_window_width, 100 ; read-write
+	s_other_expr_edit_id = stat
+	s_other_expr_edit_hwnd = objinfo_hwnd(s_other_expr_edit_id)
+
+	pos 0, 120
+	s_other_output = ""
+	mesbox s_other_output, s_other_window_width, 100, mesbox_readonly
+	s_other_output_id = stat
+	s_other_output_hwnd = objinfo_hwnd(s_other_output_id)
+	return
+
+#deffunc app_other_window_show
+
+	gsel s_other_window_id, gsel_show
+	return
+
+#deffunc app_other_window_hide
+
+	s_current_object_id = -1
+	gsel s_other_window_id, gsel_hide
+	gsel s_main_window_id, gsel_show
+	return
+
+#deffunc app_did_receive_evaluated int success, var value, var type
+
+	gsel s_other_window_id
+	objprm s_other_output_id, value
 	return
 
 ; ------------------------------------------------
@@ -1291,6 +1354,9 @@
 
 	infra_send_location_update
 	infra_send_list_update
+
+	s_req_id++
+	infra_send_evaluate s_req_id, s_other_expr
 
 	if s_current_object_id >= 1 {
 		app_list_view_show_details s_current_object_id

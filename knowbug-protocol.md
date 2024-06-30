@@ -188,6 +188,56 @@ object_id = <オブジェクトID>
 text = <テキスト(UTF-8)>
 ```
 
+## 個別データのリクエスト
+
+### 式の評価
+
+リクエスト:
+
+```
+method = evaluation_notification
+req_id = <数値>
+expr = <式(UTF-8)>
+```
+
+レスポンス:
+
+```
+method = evaluated_event
+req_id = <数値>
+success = <成功したらtrue、失敗したらfalse>
+value = <成功なら値を表現するテキスト>
+type = <成功なら型を表現するテキストまたは空文字列>
+```
+
+### モジュール・静的変数
+
+```
+method = objects_update_notification
+object_id = <オブジェクトID>
+object_type = <オブジェクトの種類>
+```
+
+サーバーは可能なら以下の応答を返す。
+
+```
+method = objects_updated_event
+data_count = <データ件数>
+
+module_count = <モジュールの個数>
+static_variable_count = <静的変数の個数>
+```
+
+加えて、サーバーはモジュールや静的変数のデータを好きな数だけ送る。
+
+```
+method = object_details_updated_event
+object_id = <オブジェクトID>
+object_type = <オブジェクト種類>
+name = <モジュール名(UTF-8)>
+value = <テキスト(UTF-8)>
+```
+
 ## ログ
 
 サーバーはデバッギーやサーバー自身が生成したログをクライアントに送信できる。
