@@ -1,7 +1,6 @@
 #pragma once
 
 #include "hsx_types_fwd.h"
-#include "hsx_dim_index.h"
 
 namespace hsx {
 	// HSP の変数に関連するメタデータの詰め合わせ
@@ -9,7 +8,7 @@ namespace hsx {
 	public:
 		HsxVartype type_;
 		HsxVarMode mode_;
-		HspDimIndex lengths_;
+		HsxIndexes lengths_;
 		std::size_t element_size_;
 		std::size_t data_size_;
 		std::size_t block_size_;
@@ -26,7 +25,7 @@ namespace hsx {
 			return mode_;
 		}
 
-		auto lengths() const -> HspDimIndex const& {
+		auto lengths() const -> HsxIndexes {
 			return lengths_;
 		}
 
@@ -58,7 +57,7 @@ namespace hsx {
 			return HspVarMetadata{
 				HSPVAR_FLAG_NONE,
 				HSPVAR_MODE_NONE,
-				HspDimIndex::one(),
+				HsxIndexes{ 1, { 1, 0, 0, 0 } },
 				0,
 				0,
 				0,

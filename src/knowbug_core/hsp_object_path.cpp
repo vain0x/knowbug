@@ -219,7 +219,7 @@ auto HspObjectPath::as_static_var() const -> HspObjectPath::StaticVar const& {
 // 配列要素
 // -----------------------------------------------
 
-auto HspObjectPath::new_element(hsx::HspDimIndex const& indexes) const -> std::shared_ptr<HspObjectPath const> {
+auto HspObjectPath::new_element(HsxIndexes indexes) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::Element>(self(), indexes);
 }
 

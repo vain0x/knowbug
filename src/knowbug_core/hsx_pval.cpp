@@ -12,27 +12,28 @@ namespace hsx {
 		return pval->mode;
 	}
 
-	auto pval_to_lengths(PVal const* pval) -> HspDimIndex {
+	auto pval_to_lengths(PVal const* pval) -> HsxIndexes {
 		assert(pval != nullptr);
 
-		auto lengths = std::array<std::size_t, HspDimIndex::MAX_DIM>{};
-		auto i = std::size_t{};
+		auto lengths = HsxIndexes{ HSX_MAX_DIM, { 1, 0, 0, 0 } };
+		auto d = std::size_t{};
 
-		while (i < HspDimIndex::MAX_DIM) {
-			lengths[i] = pval->len[i + 1];
+		while (d < HSX_MAX_DIM) {
+			lengths.data[d] = pval->len[d + 1];
 
-			if (i >= 1 && lengths[i] == 0) {
+			if (d >= 1 && lengths.data[d] == 0) {
 				break;
 			}
 
-			i++;
+			d++;
 		}
 
-		return HspDimIndex{ i, lengths };
+		lengths.dim = d;
+		return lengths;
 	}
 
 	auto pval_to_element_count(PVal const* pval) -> std::size_t {
-		return pval_to_lengths(pval).size();
+		return hsx_indexes_get_total(pval_to_lengths(pval));
 	}
 
 	auto pval_is_standard_array(PVal const* pval, HSPCTX const* ctx) -> bool {

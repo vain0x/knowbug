@@ -130,27 +130,27 @@ static void write_var_mode(StringWriter& writer, HsxVarMode var_mode) {
 	}
 }
 
-static void write_array_type(StringWriter& writer, std::u8string_view type_name, HsxVarMode var_mode, hsx::HspDimIndex const& lengths) {
+static void write_array_type(StringWriter& writer, std::u8string_view type_name, HsxVarMode var_mode, HsxIndexes lengths) {
 	// 例: int(2, 3) (6 in total) (dup)
 
 	writer.cat(type_name);
 
-	if (lengths.dim() == 1) {
+	if (lengths.dim == 1) {
 		// (%d)
 		writer.cat(u8"(");
-		writer.cat_size(lengths.at(0));
+		writer.cat_size(lengths.data[0]);
 		writer.cat(u8")");
 	} else {
 		// (%d, %d, ..) (%d in total)
 		writer.cat(u8"(");
-		for (auto i = std::size_t{}; i < lengths.dim(); i++) {
+		for (auto i = std::size_t{}; i < lengths.dim; i++) {
 			if (i != 0) {
 				writer.cat(u8", ");
 			}
-			writer.cat_size(lengths.at(i));
+			writer.cat_size(lengths.data[i]);
 		}
 		writer.cat(u8") (");
-		writer.cat_size(lengths.size());
+		writer.cat_size(hsx_indexes_get_total(lengths));
 		writer.cat(u8" in total)");
 	}
 
@@ -965,7 +965,7 @@ static void write_string_as_literal_tests(Tests& tests) {
 static void write_array_type_tests(Tests& tests) {
 	auto& suite = tests.suite(u8"write_array_type");
 
-	auto write = [&](std::u8string_view type_name, HsxVarMode var_mode, hsx::HspDimIndex const& lengths) {
+	auto write = [&](std::u8string_view type_name, HsxVarMode var_mode, HsxIndexes lengths) {
 		auto w = StringWriter{};
 		write_array_type(w, type_name, var_mode, lengths);
 		return w.finish();
@@ -975,7 +975,7 @@ static void write_array_type_tests(Tests& tests) {
 		u8"1次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(u8"int", HSPVAR_MODE_MALLOC, hsx::HspDimIndex{ 1, { 3 } }),
+				write(u8"int", HSPVAR_MODE_MALLOC, HsxIndexes{ 1, { 3 } }),
 				u8"int(3)"
 			);
 		});
@@ -984,7 +984,7 @@ static void write_array_type_tests(Tests& tests) {
 		u8"2次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(u8"str", HSPVAR_MODE_MALLOC, hsx::HspDimIndex{ 2, { 2, 3 } }),
+				write(u8"str", HSPVAR_MODE_MALLOC, HsxIndexes{ 2, { 2, 3 } }),
 				u8"str(2, 3) (6 in total)"
 			);
 		});
@@ -993,7 +993,7 @@ static void write_array_type_tests(Tests& tests) {
 		u8"クローン変数",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(u8"int", HSPVAR_MODE_CLONE, hsx::HspDimIndex{ 1, { 4 } }),
+				write(u8"int", HSPVAR_MODE_CLONE, HsxIndexes{ 1, { 4 } }),
 				u8"int(4) (dup)"
 			);
 		});

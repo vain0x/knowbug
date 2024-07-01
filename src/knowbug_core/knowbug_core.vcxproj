@@ -354,11 +354,11 @@
     <ClInclude Include="hsp_objects_module_tree.h" />
     <ClInclude Include="hsp_wrap_call.h" />
     <ClInclude Include="hsx_debug_segment.h" />
-    <ClInclude Include="hsx_dim_index.h" />
     <ClInclude Include="hsx.h" />
     <ClCompile Include="hsx_debug.cpp" />
     <ClCompile Include="hsx_debug_segment.cpp" />
     <ClCompile Include="hsx_element.cpp" />
+    <ClCompile Include="hsx_indexes.cpp" />
     <ClInclude Include="hsx_internals.h" />
     <ClInclude Include="hsx_types_fwd.h" />
     <ClInclude Include="hsx_var_metadata.h" />

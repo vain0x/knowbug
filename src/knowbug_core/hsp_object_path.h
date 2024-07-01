@@ -297,7 +297,7 @@ public:
 		return objects.type_to_name(type(objects));
 	}
 
-	auto lengths(HspObjects& objects) const -> hsx::HspDimIndex {
+	auto lengths(HspObjects& objects) const -> HsxIndexes {
 		return metadata(objects).lengths();
 	}
 
@@ -315,7 +315,7 @@ class HspObjectPath::Element final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	hsx::HspDimIndex indexes_;
+	HsxIndexes indexes_;
 
 public:
 	using HspObjectPath::new_label;
@@ -325,7 +325,7 @@ public:
 	using HspObjectPath::new_flex;
 	using HspObjectPath::new_unknown;
 
-	Element(std::shared_ptr<HspObjectPath const> parent, hsx::HspDimIndex const& indexes)
+	Element(std::shared_ptr<HspObjectPath const> parent, HsxIndexes indexes)
 		: parent_(std::move(parent))
 		, indexes_(indexes)
 	{
@@ -336,11 +336,11 @@ public:
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
-		return indexes() == other.as_element().indexes();
+		return hsx_indexes_equals(indexes(), other.as_element().indexes());
 	}
 
 	auto do_hash() const -> std::size_t override {
-		return indexes().hash();
+		return hsx_indexes_hash(indexes());
 	}
 
 	auto is_alive(HspObjects& objects) const -> bool override {
@@ -363,7 +363,7 @@ public:
 		return objects.element_path_to_name(*this);
 	}
 
-	auto indexes() const -> hsx::HspDimIndex const& {
+	auto indexes() const -> HsxIndexes {
 		return indexes_;
 	}
 };

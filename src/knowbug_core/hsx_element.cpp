@@ -2,7 +2,7 @@
 #include "hsx_internals.h"
 
 namespace hsx {
-	auto element_to_indexes(PVal const* pval, std::size_t aptr) -> std::optional<HspDimIndex> {
+	auto element_to_indexes(PVal const* pval, std::size_t aptr) -> std::optional<HsxIndexes> {
 		auto count = pval_to_element_count(pval);
 		if (aptr >= count) {
 			return std::nullopt;
@@ -11,28 +11,28 @@ namespace hsx {
 		auto lengths = pval_to_lengths(pval);
 
 		// E.g. lengths=(2, 3), aptr=5, indexes=(1, 2)
-		auto indexes = std::array<std::size_t, HspDimIndex::MAX_DIM>{};
+		auto indexes = HsxIndexes{ lengths.dim, { 1, 0, 0, 0 } };
 
-		for (auto i = std::size_t{}; i < lengths.dim(); i++) {
-			indexes[i] = aptr % lengths[i];
-			aptr /= lengths[i];
+		for (auto i = std::size_t{}; i < lengths.dim; i++) {
+			indexes.data[i] = aptr % lengths.data[i];
+			aptr /= lengths.data[i];
 		}
 
-		return std::make_optional(HspDimIndex{ lengths.dim(), indexes });
+		return std::make_optional(indexes);
 	}
 
-	auto element_to_aptr(PVal const* pval, HspDimIndex const& indexes) -> std::optional<std::size_t> {
+	auto element_to_aptr(PVal const* pval, HsxIndexes indexes) -> std::optional<std::size_t> {
 		auto lengths = pval_to_lengths(pval);
 
 		auto unit = std::size_t{ 1 };
 		auto aptr = std::size_t{};
-		for (auto i = std::size_t{}; i < lengths.dim(); i++) {
-			if (indexes[i] >= lengths[i]) {
+		for (auto i = std::size_t{}; i < lengths.dim; i++) {
+			if (indexes.data[i] >= lengths.data[i]) {
 				return std::nullopt;
 			}
 
-			aptr += indexes[i] * unit;
-			unit *= lengths[i];
+			aptr += indexes.data[i] * unit;
+			unit *= lengths.data[i];
 		}
 
 		return std::make_optional(aptr);

@@ -220,7 +220,7 @@ protected:
 	auto new_static_var(std::size_t static_var_id) const->std::shared_ptr<HspObjectPath const>;
 
 public:
-	auto new_element(hsx::HspDimIndex const& indexes) const->std::shared_ptr<HspObjectPath const>;
+	auto new_element(HsxIndexes indexes) const->std::shared_ptr<HspObjectPath const>;
 
 protected:
 	// param_index: 親要素の何番目の引数か

@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "hsx_dim_index.h"
 #include "hsx_slice.h"
 #include "hsx_types_fwd.h"
 #include "hsx_var_metadata.h"
@@ -37,11 +36,11 @@ namespace hsx {
 
 	// APTR が指している要素に対応する、配列の添字を計算する。
 	// 範囲外を指しているときは nullopt。
-	extern auto element_to_indexes(PVal const* pval, std::size_t aptr)->std::optional<HspDimIndex>;
+	extern auto element_to_indexes(PVal const* pval, std::size_t aptr)->std::optional<HsxIndexes>;
 
 	// 配列の指定した要素を指す APTR を計算する。
 	// 範囲外を指しているときは nullopt。
-	extern auto element_to_aptr(PVal const* pval, HspDimIndex const& indexes)->std::optional<std::size_t>;
+	extern auto element_to_aptr(PVal const* pval, HsxIndexes indexes)->std::optional<std::size_t>;
 
 	// 配列要素の実体ポインタを得る。
 	// FIXME: 配列の書き換えを伴うので、const を外した方がいい？
@@ -140,7 +139,7 @@ namespace hsx {
 	extern auto pval_to_varmode(PVal const* pval)->HsxVarMode;
 
 	// 配列の各次元の長さを得る。
-	extern auto pval_to_lengths(PVal const* pval)->HspDimIndex;
+	extern auto pval_to_lengths(PVal const* pval)->HsxIndexes;
 
 	// 配列の総要素数を得る。
 	extern auto pval_to_element_count(PVal const* pval)->std::size_t;
@@ -236,3 +235,11 @@ namespace hsx {
 	// フォーマット: `name1\nname2\n...\n` (改行区切り)
 	extern auto debug_to_static_var_names(HSP3DEBUG* debug)->std::unique_ptr<char, void(*)(char*)>;
 }
+
+// C言語風のAPI (#89)
+
+extern bool hsx_indexes_equals(HsxIndexes first, HsxIndexes second);
+
+extern size_t hsx_indexes_hash(HsxIndexes indexes);
+
+extern size_t hsx_indexes_get_total(HsxIndexes indexes);

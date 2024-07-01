@@ -134,7 +134,28 @@ typedef struct HsxParamStack {
 	bool safety;
 } HsxParamStack;
 
+enum HsxConstants {
+	// HSP の多次元配列の最大の次元数
+	HSX_MAX_DIM = 4,
+};
+
+// HSP の多次元配列 (最大4次元) への添字
+//
+// 配列変数への添字の値の集まりを表す
+// または配列変数の次元ごとの長さの集まりを表す
+//
+// 例:
+//      `a(i)` → `dim = 1, data = { i, 0, 0, 0 }`
+//      `a(i, j, k, h)` → `dim = 4, data = { i, j, k, h }`
+//      `dim a, w, h` → `dim = 2, data = { w, h, 0, 0 }`
+typedef struct HsxIndexes {
+	// 次元数 (1～4)
+	size_t dim;
+
+	// 次元ごとの添字の値、あるいは次元ごとの長さ
+	size_t data[HSX_MAX_DIM];
+} HsxIndexes;
+
 namespace hsx {
-	class HspDimIndex;
 	class HspVarMetadata;
 }

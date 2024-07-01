@@ -26,14 +26,14 @@ static auto const MISSING_FILE_CONTENT = to_owned(u8"ファイルが見つかり
 
 static auto const MISSING_FILE_LINE = to_owned(u8"???");
 
-auto indexes_to_string(hsx::HspDimIndex const& indexes) -> std::u8string {
+auto indexes_to_string(HsxIndexes indexes) -> std::u8string {
 	auto ss = std::stringstream{};
 	ss << '(';
-	for (auto i = std::size_t{}; i < indexes.dim(); ++i) {
+	for (auto i = std::size_t{}; i < indexes.dim; ++i) {
 		if (i != 0) {
 			ss << ", ";
 		}
-		ss << indexes[i];
+		ss << indexes.data[i];
 	}
 	ss << ')';
 	return as_utf8(ss.str());
@@ -891,7 +891,7 @@ auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> s
 		return to_owned(u8"thismod");
 	}
 
-	return indexes_to_string(hsx::HspDimIndex{ 1, { param_data_opt->param_index } });
+	return indexes_to_string(HsxIndexes{ 1, { param_data_opt->param_index } });
 }
 
 auto HspObjects::param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<hsx::HspVarMetadata> {
