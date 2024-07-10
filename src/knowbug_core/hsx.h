@@ -10,7 +10,6 @@
 
 #include "hsx_slice.h"
 #include "hsx_types_fwd.h"
-#include "hsx_var_metadata.h"
 #include "memory_view.h"
 
 namespace hsx {
@@ -243,3 +242,7 @@ extern bool hsx_indexes_equals(HsxIndexes first, HsxIndexes second);
 extern size_t hsx_indexes_hash(HsxIndexes indexes);
 
 extern size_t hsx_indexes_get_total(HsxIndexes indexes);
+
+extern HsxVarMetadata hsx_var_metadata_none();
+
+extern HsxVarMetadata hsx_pval_to_var_metadata(PVal const* pval, HSPCTX const* ctx);

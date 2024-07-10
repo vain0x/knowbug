@@ -157,21 +157,21 @@ static void write_array_type(StringWriter& writer, std::u8string_view type_name,
 	write_var_mode(writer, var_mode);
 }
 
-static auto write_var_metadata_on_table(StringWriter& w, std::u8string_view type_name, hsx::HspVarMetadata const& metadata) {
+static auto write_var_metadata_on_table(StringWriter& w, std::u8string_view type_name, HsxVarMetadata const& metadata) {
 	w.cat(u8"変数型: ");
-	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
+	write_array_type(w, type_name, metadata.varmode, metadata.lengths);
 	w.cat_crlf();
 
 	w.cat(u8"アドレス: ");
-	w.cat_ptr(metadata.data_ptr());
+	w.cat_ptr(metadata.data_ptr);
 	w.cat(u8", ");
-	w.cat_ptr(metadata.master_ptr());
+	w.cat_ptr(metadata.master_ptr);
 	w.cat_crlf();
 
 	w.cat(u8"サイズ: ");
-	w.cat_size(metadata.data_size());
+	w.cat_size(metadata.data_size);
 	w.cat(u8" / ");
-	w.cat_size(metadata.block_size());
+	w.cat_size(metadata.block_size);
 	w.cat(u8" [byte]");
 	w.cat_crlf();
 }
@@ -477,7 +477,7 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	auto& w = writer();
 
 	auto type_name = path.type_name(o);
-	auto metadata = path.metadata(o);
+	auto metadata = path.metadata(o).value_or(hsx_var_metadata_none());
 
 	// 変数に関する情報
 	write_name(path);
@@ -490,7 +490,7 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	w.cat_crlf();
 
 	// メモリダンプ
-	w.cat_memory_dump(metadata.block_ptr(), metadata.block_size());
+	w.cat_memory_dump(metadata.block_ptr, metadata.block_size);
 }
 
 void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) {
@@ -499,7 +499,7 @@ void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) 
 
 	if (auto metadata_opt = path.var_metadata(o)) {
 		auto metadata = *metadata_opt;
-		auto type_name = o.type_to_name(metadata.type());
+		auto type_name = o.type_to_name(metadata.vartype);
 		auto name = path.name(o);
 
 		write_name(path);
@@ -509,7 +509,7 @@ void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) 
 		to_block_form().accept_children(path);
 		w.cat_crlf();
 
-		w.cat_memory_dump(metadata.block_ptr(), metadata.block_size());
+		w.cat_memory_dump(metadata.block_ptr, metadata.block_size);
 		w.cat_crlf();
 		return;
 	}

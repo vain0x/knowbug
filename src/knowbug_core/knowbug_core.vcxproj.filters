@@ -72,9 +72,6 @@
     <ClInclude Include="hsx_types_fwd.h">
       <Filter>hsp-sdk-ext</Filter>
     </ClInclude>
-    <ClInclude Include="hsx_var_metadata.h">
-      <Filter>hsp-sdk-ext</Filter>
-    </ClInclude>
     <ClInclude Include="hsx.h">
       <Filter>hsp-sdk-ext</Filter>
     </ClInclude>

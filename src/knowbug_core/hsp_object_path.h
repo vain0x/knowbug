@@ -297,11 +297,7 @@ public:
 		return objects.type_to_name(type(objects));
 	}
 
-	auto lengths(HspObjects& objects) const -> HsxIndexes {
-		return metadata(objects).lengths();
-	}
-
-	auto metadata(HspObjects& objects) const -> hsx::HspVarMetadata {
+	auto metadata(HspObjects& objects) const -> std::optional<HsxVarMetadata> {
 		return objects.static_var_path_to_metadata(*this);
 	}
 };
@@ -431,7 +427,7 @@ public:
 		return param_index_;
 	}
 
-	auto var_metadata(HspObjects& objects) const->std::optional<hsx::HspVarMetadata> {
+	auto var_metadata(HspObjects& objects) const->std::optional<HsxVarMetadata> {
 		return objects.param_path_to_var_metadata(*this);
 	}
 };

@@ -408,26 +408,13 @@ static auto var_path_to_visual_child_at(HspObjectPath const& path, std::size_t c
 	return path_to_visual_child_at_default(path, child_index, objects);
 }
 
-static auto var_path_to_metadata(HspObjectPath const& path, HSPCTX const* ctx) -> std::optional<hsx::HspVarMetadata> {
+static auto var_path_to_metadata(HspObjectPath const& path, HSPCTX const* ctx) -> std::optional<HsxVarMetadata> {
 	auto pval_opt = path_to_pval(path, MIN_DEPTH, ctx);
 	if (!pval_opt) {
 		return std::nullopt;
 	}
 	auto pval = *pval_opt;
-
-	auto block_memory = hsx::pval_to_memory_block(pval, ctx);
-
-	auto metadata = hsx::HspVarMetadata{};
-	metadata.type_ = hsx::pval_to_type(pval);
-	metadata.mode_ = hsx::pval_to_varmode(pval);
-	metadata.lengths_ = hsx::pval_to_lengths(pval);
-	metadata.element_size_ = hsx::pval_to_element_count(pval);
-	metadata.data_size_ = pval->size; // FIXME: hsx を使う
-	metadata.block_size_ = block_memory.size();
-	metadata.data_ptr_ = pval->pt;
-	metadata.master_ptr_ = pval->master;
-	metadata.block_ptr_ = block_memory.data();
-	return metadata;
+	return hsx_pval_to_var_metadata(pval, ctx);
 }
 
 static auto label_path_to_value(HspObjectPath::Label const& path, HSPCTX const* ctx) -> std::optional<HsxLabel> {
@@ -729,8 +716,8 @@ auto HspObjects::static_var_path_to_visual_child_at(HspObjectPath::StaticVar con
 	return var_path_to_visual_child_at(path, child_index, context(), *this);
 }
 
-auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> hsx::HspVarMetadata {
-	return var_path_to_metadata(path, context()).value_or(hsx::HspVarMetadata::none());
+auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> std::optional<HsxVarMetadata> {
+	return var_path_to_metadata(path, context());
 }
 
 auto HspObjects::element_path_is_alive(HspObjectPath::Element const& path) const -> bool {
@@ -894,7 +881,7 @@ auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> s
 	return indexes_to_string(HsxIndexes{ 1, { param_data_opt->param_index } });
 }
 
-auto HspObjects::param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<hsx::HspVarMetadata> {
+auto HspObjects::param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<HsxVarMetadata> {
 	// FIXME: var/modvar 引数なら指定された要素に関するメモリダンプを表示したい (要素数 1、メモリダンプはその要素の範囲のみ)
 	return var_path_to_metadata(path, context());
 }

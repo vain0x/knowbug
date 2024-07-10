@@ -65,3 +65,31 @@ namespace hsx {
 		return element_to_str(pval, 0, ctx);
 	}
 }
+
+HsxVarMetadata hsx_var_metadata_none() {
+	return HsxVarMetadata{
+		HSPVAR_FLAG_NONE,
+		HSPVAR_MODE_NONE,
+		HsxIndexes{ 1, { 1, 0, 0, 0 } },
+		0,
+		nullptr,
+		nullptr,
+		nullptr,
+		0,
+	};
+}
+
+HsxVarMetadata hsx_pval_to_var_metadata(PVal const* pval, HSPCTX const* ctx) {
+	auto block_memory = hsx::pval_to_memory_block(pval, ctx);
+
+	auto metadata = HsxVarMetadata{};
+	metadata.vartype = hsx::pval_to_type(pval);
+	metadata.varmode = hsx::pval_to_varmode(pval);
+	metadata.lengths = hsx::pval_to_lengths(pval);
+	metadata.data_size = pval->size;
+	metadata.data_ptr = pval->pt;
+	metadata.master_ptr = pval->master;
+	metadata.block_ptr = block_memory.data();
+	metadata.block_size = block_memory.size();
+	return metadata;
+}

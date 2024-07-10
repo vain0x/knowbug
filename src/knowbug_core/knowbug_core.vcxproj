@@ -361,7 +361,6 @@
     <ClCompile Include="hsx_indexes.cpp" />
     <ClInclude Include="hsx_internals.h" />
     <ClInclude Include="hsx_types_fwd.h" />
-    <ClInclude Include="hsx_var_metadata.h" />
     <ClInclude Include="hsx_slice.h" />
     <ClInclude Include="knowbug_protocol.h" />
     <ClInclude Include="memory_view.h" />

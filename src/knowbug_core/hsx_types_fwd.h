@@ -156,6 +156,24 @@ typedef struct HsxIndexes {
 	size_t data[HSX_MAX_DIM];
 } HsxIndexes;
 
-namespace hsx {
-	class HspVarMetadata;
-}
+// HSP の変数の管理データを集めたもの
+typedef struct HsxVarMetadata {
+	HsxVartype vartype;
+	HsxVarMode varmode;
+
+	// (`PVal::len[1], ..., PVal::len[4]`)
+	HsxIndexes lengths;
+
+	// (`PVal::size`)
+	size_t data_size;
+
+	// (`PVal::pt`)
+	const void* data_ptr;
+
+	// (`PVal::master`)
+	const void* master_ptr;
+
+	// 変数データのメモリブロックへのポインタとサイズ (`HspVarProc::GetBlockSize`)
+	const void* block_ptr;
+	size_t block_size;
+} HsxVarMetadata;

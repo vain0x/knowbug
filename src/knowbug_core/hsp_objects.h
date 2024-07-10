@@ -80,7 +80,7 @@ public:
 
 	auto static_var_path_to_visual_child_at(HspObjectPath::StaticVar const& path, std::size_t child_index)->std::optional<std::shared_ptr<HspObjectPath const>>;
 
-	auto static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> hsx::HspVarMetadata;
+	auto static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> std::optional<HsxVarMetadata>;
 
 	auto element_path_is_alive(HspObjectPath::Element const& path) const->bool;
 
@@ -96,7 +96,7 @@ public:
 
 	auto param_path_to_name(HspObjectPath::Param const& path) const -> std::u8string;
 
-	auto param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<hsx::HspVarMetadata>;
+	auto param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<HsxVarMetadata>;
 
 	bool label_path_is_null(HspObjectPath::Label const& path) const;
 
