@@ -1,9 +1,7 @@
-//! hsp_sdk_ext で使用する型を定義する。
+//! hsx (hsp_sdk_ext) で使用する型を定義する。
 
 #pragma once
 
-#include <cassert>
-#include <cstdint>
 #include "../hspsdk/hsp3debug.h"
 #include "../hspsdk/hsp3struct.h"
 #include "../hspsdk/hspvar_core.h"
