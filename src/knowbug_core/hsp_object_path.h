@@ -289,7 +289,7 @@ public:
 		return static_var_id_;
 	}
 
-	auto type(HspObjects& objects) const -> hsx::HspType {
+	auto type(HspObjects& objects) const -> HsxVartype {
 		return objects.static_var_path_to_type(*this);
 	}
 
@@ -297,11 +297,7 @@ public:
 		return objects.type_to_name(type(objects));
 	}
 
-	auto lengths(HspObjects& objects) const -> hsx::HspDimIndex {
-		return metadata(objects).lengths();
-	}
-
-	auto metadata(HspObjects& objects) const -> hsx::HspVarMetadata {
+	auto metadata(HspObjects& objects) const -> std::optional<HsxVarMetadata> {
 		return objects.static_var_path_to_metadata(*this);
 	}
 };
@@ -315,7 +311,7 @@ class HspObjectPath::Element final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	hsx::HspDimIndex indexes_;
+	HsxIndexes indexes_;
 
 public:
 	using HspObjectPath::new_label;
@@ -325,7 +321,7 @@ public:
 	using HspObjectPath::new_flex;
 	using HspObjectPath::new_unknown;
 
-	Element(std::shared_ptr<HspObjectPath const> parent, hsx::HspDimIndex const& indexes)
+	Element(std::shared_ptr<HspObjectPath const> parent, HsxIndexes indexes)
 		: parent_(std::move(parent))
 		, indexes_(indexes)
 	{
@@ -336,11 +332,11 @@ public:
 	}
 
 	bool does_equal(HspObjectPath const& other) const override {
-		return indexes() == other.as_element().indexes();
+		return hsx_indexes_equals(indexes(), other.as_element().indexes());
 	}
 
 	auto do_hash() const -> std::size_t override {
-		return indexes().hash();
+		return hsx_indexes_hash(indexes());
 	}
 
 	auto is_alive(HspObjects& objects) const -> bool override {
@@ -363,7 +359,7 @@ public:
 		return objects.element_path_to_name(*this);
 	}
 
-	auto indexes() const -> hsx::HspDimIndex const& {
+	auto indexes() const -> HsxIndexes {
 		return indexes_;
 	}
 };
@@ -377,7 +373,7 @@ class HspObjectPath::Param final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	hsx::HspParamType param_type_;
+	HsxMptype param_type_;
 	std::size_t param_index_;
 
 public:
@@ -387,7 +383,7 @@ public:
 	using HspObjectPath::new_double;
 	using HspObjectPath::new_int;
 
-	Param(std::shared_ptr<HspObjectPath const> parent, hsx::HspParamType param_type, std::size_t param_index)
+	Param(std::shared_ptr<HspObjectPath const> parent, HsxMptype param_type, std::size_t param_index)
 		: parent_(std::move(parent))
 		, param_type_(param_type)
 		, param_index_(param_index)
@@ -423,7 +419,7 @@ public:
 		return objects.param_path_to_name(*this);
 	}
 
-	auto param_type() const -> hsx::HspParamType {
+	auto param_type() const -> HsxMptype {
 		return param_type_;
 	}
 
@@ -431,7 +427,7 @@ public:
 		return param_index_;
 	}
 
-	auto var_metadata(HspObjects& objects) const->std::optional<hsx::HspVarMetadata> {
+	auto var_metadata(HspObjects& objects) const->std::optional<HsxVarMetadata> {
 		return objects.param_path_to_var_metadata(*this);
 	}
 };
@@ -538,7 +534,7 @@ public:
 		return to_owned(u8"str");
 	}
 
-	auto value(HspObjects& objects) const -> hsx::HspStr {
+	auto value(HspObjects& objects) const -> HsxStrSpan {
 		return objects.str_path_to_value(*this);
 	}
 };
@@ -587,7 +583,7 @@ public:
 		return to_owned(u8"double");
 	}
 
-	auto value(HspObjects& objects) const -> hsx::HspDouble {
+	auto value(HspObjects& objects) const -> HsxDouble {
 		return objects.double_path_to_value(*this);
 	}
 };
@@ -636,7 +632,7 @@ public:
 		return to_owned(u8"int");
 	}
 
-	auto value(HspObjects& objects) const -> hsx::HspInt {
+	auto value(HspObjects& objects) const -> HsxInt {
 		return objects.int_path_to_value(*this);
 	}
 };
@@ -798,7 +794,7 @@ class HspObjectPath::SystemVar final
 {
 	std::shared_ptr<HspObjectPath const> parent_;
 
-	hsx::HspSystemVarKind system_var_kind_;
+	HsxSysvarKind system_var_kind_;
 
 public:
 	using HspObjectPath::new_str;
@@ -806,7 +802,7 @@ public:
 	using HspObjectPath::new_int;
 	using HspObjectPath::new_flex;
 
-	SystemVar(std::shared_ptr<HspObjectPath const> parent, hsx::HspSystemVarKind system_var_kind)
+	SystemVar(std::shared_ptr<HspObjectPath const> parent, HsxSysvarKind system_var_kind)
 		: parent_(std::move(parent))
 		, system_var_kind_(system_var_kind)
 	{
@@ -844,7 +840,7 @@ public:
 		return objects.system_var_path_to_name(*this);
 	}
 
-	auto system_var_kind() const -> hsx::HspSystemVarKind {
+	auto system_var_kind() const -> HsxSysvarKind {
 		return system_var_kind_;
 	}
 };

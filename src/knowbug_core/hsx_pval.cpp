@@ -2,37 +2,38 @@
 #include "hsx_internals.h"
 
 namespace hsx {
-	auto pval_to_type(PVal const* pval) -> HspType {
+	auto pval_to_type(PVal const* pval) -> HsxVartype {
 		assert(pval != nullptr);
-		return (HspType)pval->flag;
+		return pval->flag;
 	}
 
-	auto pval_to_varmode(PVal const* pval) -> HspVarMode {
+	auto pval_to_varmode(PVal const* pval) -> HsxVarMode {
 		assert(pval != nullptr);
-		return (HspVarMode)pval->mode;
+		return pval->mode;
 	}
 
-	auto pval_to_lengths(PVal const* pval) -> HspDimIndex {
+	auto pval_to_lengths(PVal const* pval) -> HsxIndexes {
 		assert(pval != nullptr);
 
-		auto lengths = std::array<std::size_t, HspDimIndex::MAX_DIM>{};
-		auto i = std::size_t{};
+		auto lengths = HsxIndexes{ HSX_MAX_DIM, { 1, 0, 0, 0 } };
+		auto d = std::size_t{};
 
-		while (i < HspDimIndex::MAX_DIM) {
-			lengths[i] = pval->len[i + 1];
+		while (d < HSX_MAX_DIM) {
+			lengths.data[d] = pval->len[d + 1];
 
-			if (i >= 1 && lengths[i] == 0) {
+			if (d >= 1 && lengths.data[d] == 0) {
 				break;
 			}
 
-			i++;
+			d++;
 		}
 
-		return HspDimIndex{ i, lengths };
+		lengths.dim = d;
+		return lengths;
 	}
 
 	auto pval_to_element_count(PVal const* pval) -> std::size_t {
-		return pval_to_lengths(pval).size();
+		return hsx_indexes_get_total(pval_to_lengths(pval));
 	}
 
 	auto pval_is_standard_array(PVal const* pval, HSPCTX const* ctx) -> bool {
@@ -45,7 +46,7 @@ namespace hsx {
 		return varproc_does_support(varproc, HSPVAR_SUPPORT_FIXEDARRAY | HSPVAR_SUPPORT_FLEXARRAY);
 	}
 
-	auto pval_to_data(PVal const* pval, HSPCTX const* ctx) -> std::optional<HspData> {
+	auto pval_to_data(PVal const* pval, HSPCTX const* ctx) -> std::optional<HsxData> {
 		return element_to_data(pval, 0, ctx);
 	}
 
@@ -57,10 +58,38 @@ namespace hsx {
 			return MemoryView{};
 		}
 
-		return element_data_to_memory_block(pval, data_opt->ptr(), ctx);
+		return element_data_to_memory_block(pval, data_opt->pdat, ctx);
 	}
 
-	auto pval_to_str(PVal const* pval, HSPCTX const* ctx)->std::optional<HspStr> {
+	auto pval_to_str(PVal const* pval, HSPCTX const* ctx)->std::optional<HsxStrSpan> {
 		return element_to_str(pval, 0, ctx);
 	}
+}
+
+HsxVarMetadata hsx_var_metadata_none() {
+	return HsxVarMetadata{
+		HSPVAR_FLAG_NONE,
+		HSPVAR_MODE_NONE,
+		HsxIndexes{ 1, { 1, 0, 0, 0 } },
+		0,
+		nullptr,
+		nullptr,
+		nullptr,
+		0,
+	};
+}
+
+HsxVarMetadata hsx_pval_to_var_metadata(PVal const* pval, HSPCTX const* ctx) {
+	auto block_memory = hsx::pval_to_memory_block(pval, ctx);
+
+	auto metadata = HsxVarMetadata{};
+	metadata.vartype = hsx::pval_to_type(pval);
+	metadata.varmode = hsx::pval_to_varmode(pval);
+	metadata.lengths = hsx::pval_to_lengths(pval);
+	metadata.data_size = pval->size;
+	metadata.data_ptr = pval->pt;
+	metadata.master_ptr = pval->master;
+	metadata.block_ptr = block_memory.data();
+	metadata.block_size = block_memory.size();
+	return metadata;
 }

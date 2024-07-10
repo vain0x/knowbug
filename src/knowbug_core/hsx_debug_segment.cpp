@@ -13,7 +13,7 @@ namespace hsx {
 		return (int)*p | ((int)p[1] << 8) | ((int)p[2] << 16);
 	}
 
-	static auto code_segment_data(HSPCTX const* ctx) -> HspCodeUnit const* {
+	static auto code_segment_data(HSPCTX const* ctx) -> HsxCodeUnit const* {
 		return ctx->mem_mcs;
 	}
 

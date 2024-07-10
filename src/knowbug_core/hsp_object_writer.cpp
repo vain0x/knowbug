@@ -29,18 +29,19 @@ static auto string_need_escape(std::u8string_view str) -> bool {
 		});
 }
 
-static auto str_to_string(hsx::HspStr const& str) -> std::optional<std::string_view> {
-	auto end = std::find(str.begin(), str.end(), '\0');
+static auto str_to_string(HsxStrSpan str) -> std::optional<std::string_view> {
+	auto begin = str.data;
+	auto end = std::find(begin, str.data + str.size, '\0');
 
-	if (!std::all_of(str.begin(), end, char_can_print)) {
+	if (!std::all_of(begin, end, char_can_print)) {
 		return std::nullopt;
 	}
 
-	auto count = (std::size_t)(end - str.begin());
-	return std::string_view{ str.begin(), count };
+	auto count = (std::size_t)(end - begin);
+	return std::string_view{ begin, count };
 }
 
-static auto str_to_utf8(hsx::HspStr const& str) -> std::optional<std::u8string> {
+static auto str_to_utf8(HsxStrSpan str) -> std::optional<std::u8string> {
 	auto string_opt = str_to_string(str);
 	if (!string_opt) {
 		return std::nullopt;
@@ -53,13 +54,13 @@ static bool string_is_multiline(std::string_view str) {
 	return std::find(str.begin(), str.end(), '\n') != str.end();
 }
 
-static bool str_is_compact(hsx::HspStr const& str) {
+static bool str_is_compact(HsxStrSpan str) {
 	auto string_opt = str_to_string(str);
 	return string_opt && string_opt->size() < 64 && !string_is_multiline(*string_opt);
 }
 
 // 文字列をリテラル形式で書く。
-static void write_string_as_literal(StringWriter& w, hsx::HspStr const& str) {
+static void write_string_as_literal(StringWriter& w, HsxStrSpan str) {
 	auto string_opt = str_to_string(str);
 	if (!string_opt) {
 		w.cat(u8"<バイナリ>");
@@ -113,14 +114,14 @@ static void write_string_as_literal(StringWriter& w, hsx::HspStr const& str) {
 	w.cat(u8"\"");
 }
 
-static void write_var_mode(StringWriter& writer, hsx::HspVarMode var_mode) {
+static void write_var_mode(StringWriter& writer, HsxVarMode var_mode) {
 	switch (var_mode) {
-	case hsx::HspVarMode::None:
+	case HSPVAR_MODE_NONE:
 		writer.cat(u8" (empty)");
 		break;
-	case hsx::HspVarMode::Alloc:
+	case HSPVAR_MODE_MALLOC:
 		break;
-	case hsx::HspVarMode::Clone:
+	case HSPVAR_MODE_CLONE:
 		writer.cat(u8" (dup)");
 		break;
 	default:
@@ -129,48 +130,48 @@ static void write_var_mode(StringWriter& writer, hsx::HspVarMode var_mode) {
 	}
 }
 
-static void write_array_type(StringWriter& writer, std::u8string_view type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
+static void write_array_type(StringWriter& writer, std::u8string_view type_name, HsxVarMode var_mode, HsxIndexes lengths) {
 	// 例: int(2, 3) (6 in total) (dup)
 
 	writer.cat(type_name);
 
-	if (lengths.dim() == 1) {
+	if (lengths.dim == 1) {
 		// (%d)
 		writer.cat(u8"(");
-		writer.cat_size(lengths.at(0));
+		writer.cat_size(lengths.data[0]);
 		writer.cat(u8")");
 	} else {
 		// (%d, %d, ..) (%d in total)
 		writer.cat(u8"(");
-		for (auto i = std::size_t{}; i < lengths.dim(); i++) {
+		for (auto i = std::size_t{}; i < lengths.dim; i++) {
 			if (i != 0) {
 				writer.cat(u8", ");
 			}
-			writer.cat_size(lengths.at(i));
+			writer.cat_size(lengths.data[i]);
 		}
 		writer.cat(u8") (");
-		writer.cat_size(lengths.size());
+		writer.cat_size(hsx_indexes_get_total(lengths));
 		writer.cat(u8" in total)");
 	}
 
 	write_var_mode(writer, var_mode);
 }
 
-static auto write_var_metadata_on_table(StringWriter& w, std::u8string_view type_name, hsx::HspVarMetadata const& metadata) {
+static auto write_var_metadata_on_table(StringWriter& w, std::u8string_view type_name, HsxVarMetadata const& metadata) {
 	w.cat(u8"変数型: ");
-	write_array_type(w, type_name, metadata.mode(), metadata.lengths());
+	write_array_type(w, type_name, metadata.varmode, metadata.lengths);
 	w.cat_crlf();
 
 	w.cat(u8"アドレス: ");
-	w.cat_ptr(metadata.data_ptr());
+	w.cat_ptr(metadata.data_ptr);
 	w.cat(u8", ");
-	w.cat_ptr(metadata.master_ptr());
+	w.cat_ptr(metadata.master_ptr);
 	w.cat_crlf();
 
 	w.cat(u8"サイズ: ");
-	w.cat_size(metadata.data_size());
+	w.cat_size(metadata.data_size);
 	w.cat(u8" / ");
-	w.cat_size(metadata.block_size());
+	w.cat_size(metadata.block_size);
 	w.cat(u8" [byte]");
 	w.cat_crlf();
 }
@@ -476,7 +477,7 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	auto& w = writer();
 
 	auto type_name = path.type_name(o);
-	auto metadata = path.metadata(o);
+	auto metadata = path.metadata(o).value_or(hsx_var_metadata_none());
 
 	// 変数に関する情報
 	write_name(path);
@@ -489,7 +490,7 @@ void HspObjectWriterImpl::TableForm::on_static_var(HspObjectPath::StaticVar cons
 	w.cat_crlf();
 
 	// メモリダンプ
-	w.cat_memory_dump(metadata.block_ptr(), metadata.block_size());
+	w.cat_memory_dump(metadata.block_ptr, metadata.block_size);
 }
 
 void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) {
@@ -498,7 +499,7 @@ void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) 
 
 	if (auto metadata_opt = path.var_metadata(o)) {
 		auto metadata = *metadata_opt;
-		auto type_name = o.type_to_name(metadata.type());
+		auto type_name = o.type_to_name(metadata.vartype);
 		auto name = path.name(o);
 
 		write_name(path);
@@ -508,7 +509,7 @@ void HspObjectWriterImpl::TableForm::on_param(HspObjectPath::Param const& path) 
 		to_block_form().accept_children(path);
 		w.cat_crlf();
 
-		w.cat_memory_dump(metadata.block_ptr(), metadata.block_size());
+		w.cat_memory_dump(metadata.block_ptr, metadata.block_size);
 		w.cat_crlf();
 		return;
 	}
@@ -935,7 +936,7 @@ static void write_string_as_literal_tests(Tests& tests) {
 
 	auto write = [&](std::u8string_view str) {
 		auto w = StringWriter{};
-		write_string_as_literal(w, hsx::Slice<char>{ (char const*)str.data(), str.size() });
+		write_string_as_literal(w, HsxStrSpan{ (char const*)str.data(), str.size() });
 		return w.finish();
 	};
 
@@ -964,7 +965,7 @@ static void write_string_as_literal_tests(Tests& tests) {
 static void write_array_type_tests(Tests& tests) {
 	auto& suite = tests.suite(u8"write_array_type");
 
-	auto write = [&](std::u8string_view type_name, hsx::HspVarMode var_mode, hsx::HspDimIndex const& lengths) {
+	auto write = [&](std::u8string_view type_name, HsxVarMode var_mode, HsxIndexes lengths) {
 		auto w = StringWriter{};
 		write_array_type(w, type_name, var_mode, lengths);
 		return w.finish();
@@ -974,7 +975,7 @@ static void write_array_type_tests(Tests& tests) {
 		u8"1次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(u8"int", hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 1, { 3 } }),
+				write(u8"int", HSPVAR_MODE_MALLOC, HsxIndexes{ 1, { 3 } }),
 				u8"int(3)"
 			);
 		});
@@ -983,7 +984,7 @@ static void write_array_type_tests(Tests& tests) {
 		u8"2次元配列",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(u8"str", hsx::HspVarMode::Alloc, hsx::HspDimIndex{ 2, { 2, 3 } }),
+				write(u8"str", HSPVAR_MODE_MALLOC, HsxIndexes{ 2, { 2, 3 } }),
 				u8"str(2, 3) (6 in total)"
 			);
 		});
@@ -992,7 +993,7 @@ static void write_array_type_tests(Tests& tests) {
 		u8"クローン変数",
 		[&](TestCaseContext& t) {
 			return t.eq(
-				write(u8"int", hsx::HspVarMode::Clone, hsx::HspDimIndex{ 1, { 4 } }),
+				write(u8"int", HSPVAR_MODE_CLONE, HsxIndexes{ 1, { 4 } }),
 				u8"int(4) (dup)"
 			);
 		});

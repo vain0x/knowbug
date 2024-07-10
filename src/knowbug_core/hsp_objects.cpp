@@ -18,7 +18,7 @@ static auto const MAX_DEPTH = std::size_t{ 32 };
 // ビジュアルツリーの子要素数の最大値
 static constexpr auto MAX_VISUAL_CHILD_COUNT = HspObjectPath::Group::MAX_CHILD_COUNT;
 
-static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::HspParamData>;
+static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HsxParamData>;
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
 
@@ -26,14 +26,14 @@ static auto const MISSING_FILE_CONTENT = to_owned(u8"ファイルが見つかり
 
 static auto const MISSING_FILE_LINE = to_owned(u8"???");
 
-auto indexes_to_string(hsx::HspDimIndex const& indexes) -> std::u8string {
+auto indexes_to_string(HsxIndexes indexes) -> std::u8string {
 	auto ss = std::stringstream{};
 	ss << '(';
-	for (auto i = std::size_t{}; i < indexes.dim(); ++i) {
+	for (auto i = std::size_t{}; i < indexes.dim; ++i) {
 		if (i != 0) {
 			ss << ", ";
 		}
-		ss << indexes[i];
+		ss << indexes.data[i];
 	}
 	ss << ')';
 	return as_utf8(ss.str());
@@ -224,7 +224,7 @@ static auto path_to_pval(HspObjectPath const& path, std::size_t depth, HSPCTX co
 	}
 }
 
-static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::HspData> {
+static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HsxData> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -263,7 +263,7 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX co
 		}
 
 		// FIXME: 場当たり的
-		if (hsx::param_to_type(param_data_opt->param()) == MPTYPE_LOCALVAR) {
+		if (hsx::param_to_type(param_data_opt->param) == MPTYPE_LOCALVAR) {
 			auto pval_opt = hsx::param_data_to_pval(*param_data_opt);
 			if (!pval_opt) {
 				return std::nullopt;
@@ -284,7 +284,7 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX co
 	}
 }
 
-static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::Slice<char>> {
+static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HsxStrSpan> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -320,7 +320,7 @@ static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX con
 		}
 
 		// FIXME: 場当たり的
-		if (hsx::param_to_type(param_data_opt->param()) == MPTYPE_LOCALVAR) {
+		if (hsx::param_to_type(param_data_opt->param) == MPTYPE_LOCALVAR) {
 			auto pval_opt = hsx::param_data_to_pval(*param_data_opt);
 			if (!pval_opt) {
 				return std::nullopt;
@@ -332,7 +332,7 @@ static auto path_to_str(HspObjectPath const& path, std::size_t depth, HSPCTX con
 		return hsx::param_data_to_str(*param_data_opt);
 	}
 	case HspObjectKind::SystemVar: {
-		if (path.as_system_var().system_var_kind() != hsx::HspSystemVarKind::Refstr) {
+		if (path.as_system_var().system_var_kind() != HSX_SYSVAR_REFSTR) {
 			return std::nullopt;
 		}
 		return hsx::system_var_refstr(ctx);
@@ -408,29 +408,16 @@ static auto var_path_to_visual_child_at(HspObjectPath const& path, std::size_t c
 	return path_to_visual_child_at_default(path, child_index, objects);
 }
 
-static auto var_path_to_metadata(HspObjectPath const& path, HSPCTX const* ctx) -> std::optional<hsx::HspVarMetadata> {
+static auto var_path_to_metadata(HspObjectPath const& path, HSPCTX const* ctx) -> std::optional<HsxVarMetadata> {
 	auto pval_opt = path_to_pval(path, MIN_DEPTH, ctx);
 	if (!pval_opt) {
 		return std::nullopt;
 	}
 	auto pval = *pval_opt;
-
-	auto block_memory = hsx::pval_to_memory_block(pval, ctx);
-
-	auto metadata = hsx::HspVarMetadata{};
-	metadata.type_ = hsx::pval_to_type(pval);
-	metadata.mode_ = hsx::pval_to_varmode(pval);
-	metadata.lengths_ = hsx::pval_to_lengths(pval);
-	metadata.element_size_ = hsx::pval_to_element_count(pval);
-	metadata.data_size_ = pval->size; // FIXME: hsx を使う
-	metadata.block_size_ = block_memory.size();
-	metadata.data_ptr_ = pval->pt;
-	metadata.master_ptr_ = pval->master;
-	metadata.block_ptr_ = block_memory.data();
-	return metadata;
+	return hsx_pval_to_var_metadata(pval, ctx);
 }
 
-static auto label_path_to_value(HspObjectPath::Label const& path, HSPCTX const* ctx) -> std::optional<hsx::HspLabel> {
+static auto label_path_to_value(HspObjectPath::Label const& path, HSPCTX const* ctx) -> std::optional<HsxLabel> {
 	auto data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
 	if (!data_opt) {
 		assert(false && u8"label の親は data を生成できるはず");
@@ -440,11 +427,11 @@ static auto label_path_to_value(HspObjectPath::Label const& path, HSPCTX const* 
 	return hsx::data_to_label(*data_opt);
 }
 
-static auto str_path_to_value(HspObjectPath::Str const& path, HSPCTX const* ctx) -> std::optional<hsx::HspStr> {
+static auto str_path_to_value(HspObjectPath::Str const& path, HSPCTX const* ctx) -> std::optional<HsxStrSpan> {
 	return path_to_str(path.parent(), MIN_DEPTH, ctx);
 }
 
-static auto double_path_to_value(HspObjectPath::Double const& path, HSPCTX const* ctx) -> std::optional<hsx::HspDouble> {
+static auto double_path_to_value(HspObjectPath::Double const& path, HSPCTX const* ctx) -> std::optional<HsxDouble> {
 	auto data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
 	if (!data_opt) {
 		assert(false && u8"double の親は data を生成できるはず");
@@ -454,7 +441,7 @@ static auto double_path_to_value(HspObjectPath::Double const& path, HSPCTX const
 	return hsx::data_to_double(*data_opt);
 }
 
-static auto int_path_to_value(HspObjectPath::Int const& path, HSPCTX const* ctx) -> std::optional<hsx::HspInt> {
+static auto int_path_to_value(HspObjectPath::Int const& path, HSPCTX const* ctx) -> std::optional<HsxInt> {
 	auto data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
 	if (!data_opt) {
 		assert(false && u8"int の親は data を生成できるはず");
@@ -478,7 +465,7 @@ static auto flex_path_to_value(HspObjectPath::Flex const& path, std::size_t dept
 	return hsx::data_to_flex(*data_opt);
 }
 
-static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::HspParamStack> {
+static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HsxParamStack> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -502,7 +489,7 @@ static auto path_to_param_stack(HspObjectPath const& path, std::size_t depth, HS
 	}
 }
 
-static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<hsx::HspParamData> {
+static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HsxParamData> {
 	if (depth >= MAX_DEPTH) {
 		return std::nullopt;
 	}
@@ -518,8 +505,8 @@ static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size
 	return hsx::param_stack_to_param_data(*param_stack_opt, path.param_index(), ctx);
 }
 
-static auto param_stack_to_memory_view(hsx::HspParamStack const& param_stack) -> MemoryView {
-	return MemoryView{ param_stack.ptr(), param_stack.size() };
+static auto param_stack_to_memory_view(HsxParamStack const& param_stack) -> MemoryView {
+	return MemoryView{ param_stack.stack_ptr, param_stack.stack_size };
 }
 
 static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<MemoryView> {
@@ -563,7 +550,7 @@ static auto path_to_memory_view(HspObjectPath const& path, std::size_t depth, HS
 	case HspObjectKind::CallFrame:
 	{
 		auto param_stack_opt = path_to_param_stack(path, MIN_DEPTH, ctx);
-		if (!param_stack_opt || !param_stack_opt->safety()) {
+		if (!param_stack_opt || !param_stack_opt->safety) {
 			return std::nullopt;
 		}
 
@@ -618,7 +605,7 @@ public:
 // HspObjects
 // -----------------------------------------------
 
-HspObjects::HspObjects(HSP3DEBUG* debug, std::vector<std::u8string>&& var_names, std::vector<HspObjects::Module>&& modules, std::unordered_map<hsx::HspLabel, std::u8string>&& label_names, std::unordered_map<STRUCTPRM const*, std::u8string>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger)
+HspObjects::HspObjects(HSP3DEBUG* debug, std::vector<std::u8string>&& var_names, std::vector<HspObjects::Module>&& modules, std::unordered_map<HsxLabel, std::u8string>&& label_names, std::unordered_map<STRUCTPRM const*, std::u8string>&& param_names, std::unique_ptr<SourceFileRepository>&& source_file_repository, std::shared_ptr<WcDebugger> wc_debugger)
 	: debug_(debug)
 	, source_file_repository_(std::move(source_file_repository))
 	, root_path_(std::make_shared<HspObjectPath::Root>())
@@ -652,7 +639,7 @@ auto HspObjects::path_to_memory_view(HspObjectPath const& path) const->std::opti
 	return (::path_to_memory_view(path, MIN_DEPTH, context()));
 }
 
-auto HspObjects::type_to_name(hsx::HspType type) const->std::u8string_view {
+auto HspObjects::type_to_name(HsxVartype type) const->std::u8string_view {
 	auto type_id = (std::size_t)type;
 	if (!(1 <= type_id && type_id < types_.size())) {
 		return types_[0].name();
@@ -703,11 +690,11 @@ bool HspObjects::static_var_path_is_array(HspObjectPath::StaticVar const& path) 
 	return hsx::pval_is_standard_array(*pval_opt, context());
 }
 
-auto HspObjects::static_var_path_to_type(HspObjectPath::StaticVar const& path)->hsx::HspType {
+auto HspObjects::static_var_path_to_type(HspObjectPath::StaticVar const& path)->HsxVartype {
 	auto pval_opt = hsx::static_var_to_pval(path.static_var_id(), context());
 	if (!pval_opt) {
 		assert(false && u8"静的変数の pval はとれるべき");
-		return hsx::HspType::None;
+		return HSPVAR_FLAG_NONE;
 	}
 
 	return hsx::pval_to_type(*pval_opt);
@@ -729,8 +716,8 @@ auto HspObjects::static_var_path_to_visual_child_at(HspObjectPath::StaticVar con
 	return var_path_to_visual_child_at(path, child_index, context(), *this);
 }
 
-auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> hsx::HspVarMetadata {
-	return var_path_to_metadata(path, context()).value_or(hsx::HspVarMetadata::none());
+auto HspObjects::static_var_path_to_metadata(HspObjectPath::StaticVar const& path) -> std::optional<HsxVarMetadata> {
+	return var_path_to_metadata(path, context());
 }
 
 auto HspObjects::element_path_is_alive(HspObjectPath::Element const& path) const -> bool {
@@ -763,19 +750,19 @@ auto HspObjects::element_path_to_child_at(HspObjectPath::Element const& path, st
 
 	auto type = hsx::pval_to_type(*pval_opt);
 	switch (type) {
-	case hsx::HspType::Label:
+	case HSPVAR_FLAG_LABEL:
 		return path.new_label();
 
-	case hsx::HspType::Str:
+	case HSPVAR_FLAG_STR:
 		return path.new_str();
 
-	case hsx::HspType::Double:
+	case HSPVAR_FLAG_DOUBLE:
 		return path.new_double();
 
-	case hsx::HspType::Int:
+	case HSPVAR_FLAG_INT:
 		return path.new_int();
 
-	case hsx::HspType::Struct:
+	case HSPVAR_FLAG_STRUCT:
 		return path.new_flex();
 
 	default:
@@ -881,20 +868,20 @@ auto HspObjects::param_path_to_name(HspObjectPath::Param const& path) const -> s
 		return to_owned(u8"<unavailable>");
 	}
 
-	auto iter = param_names_.find(param_data_opt->param());
+	auto iter = param_names_.find(param_data_opt->param);
 	if (iter != param_names_.end()) {
 		return iter->second;
 	}
 
-	auto type = hsx::param_to_type(param_data_opt->param());
+	auto type = hsx::param_to_type(param_data_opt->param);
 	if (type == MPTYPE_MODULEVAR || type == MPTYPE_IMODULEVAR || type == MPTYPE_TMODULEVAR) {
 		return to_owned(u8"thismod");
 	}
 
-	return indexes_to_string(hsx::HspDimIndex{ 1, { param_data_opt->param_index() } });
+	return indexes_to_string(HsxIndexes{ 1, { param_data_opt->param_index } });
 }
 
-auto HspObjects::param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<hsx::HspVarMetadata> {
+auto HspObjects::param_path_to_var_metadata(HspObjectPath::Param const& path) const->std::optional<HsxVarMetadata> {
 	// FIXME: var/modvar 引数なら指定された要素に関するメモリダンプを表示したい (要素数 1、メモリダンプはその要素の範囲のみ)
 	return var_path_to_metadata(path, context());
 }
@@ -944,16 +931,16 @@ auto HspObjects::label_path_to_static_label_id(HspObjectPath::Label const& path)
 	return std::nullopt;
 }
 
-auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> hsx::HspStr {
-	return (::str_path_to_value(path, context())).value_or(hsx::Slice<char>{});
+auto HspObjects::str_path_to_value(HspObjectPath::Str const& path) const -> HsxStrSpan {
+	return (::str_path_to_value(path, context())).value_or(HsxStrSpan{ "", 0 });
 }
 
-auto HspObjects::double_path_to_value(HspObjectPath::Double const& path) const->hsx::HspDouble {
-	return (::double_path_to_value(path, context())).value_or(hsx::HspDouble{});
+auto HspObjects::double_path_to_value(HspObjectPath::Double const& path) const -> HsxDouble {
+	return (::double_path_to_value(path, context())).value_or(0.0);
 }
 
-auto HspObjects::int_path_to_value(HspObjectPath::Int const& path) const -> hsx::HspInt {
-	return (::int_path_to_value(path, context())).value_or(hsx::HspInt{});
+auto HspObjects::int_path_to_value(HspObjectPath::Int const& path) const -> HsxInt {
+	return (::int_path_to_value(path, context())).value_or(0);
 }
 
 auto HspObjects::flex_path_to_child_count(HspObjectPath::Flex const& path)->std::size_t {
@@ -978,7 +965,7 @@ auto HspObjects::flex_path_to_child_at(HspObjectPath::Flex const& path, std::siz
 	}
 
 	auto param_type = hsx::param_data_to_type(*param_data_opt);
-	auto param_index = param_data_opt->param_index();
+	auto param_index = param_data_opt->param_index;
 	return path.new_param(param_type, param_index);
 }
 
@@ -1023,21 +1010,21 @@ auto HspObjects::flex_path_to_module_name(HspObjectPath::Flex const& path) -> st
 
 auto HspObjects::system_var_path_to_child_count(HspObjectPath::SystemVar const& path) const -> std::size_t {
 	switch (path.system_var_kind()) {
-	case hsx::HspSystemVarKind::Cnt:
-	case hsx::HspSystemVarKind::Err:
-	case hsx::HspSystemVarKind::IParam:
-	case hsx::HspSystemVarKind::WParam:
-	case hsx::HspSystemVarKind::LParam:
-	case hsx::HspSystemVarKind::LoopLev:
-	case hsx::HspSystemVarKind::SubLev:
-	case hsx::HspSystemVarKind::Refstr:
-	case hsx::HspSystemVarKind::Refdval:
-	case hsx::HspSystemVarKind::Stat:
-	case hsx::HspSystemVarKind::StrSize:
-	case hsx::HspSystemVarKind::Thismod:
+	case HSX_SYSVAR_CNT:
+	case HSX_SYSVAR_ERR:
+	case HSX_SYSVAR_IPARAM:
+	case HSX_SYSVAR_WPARAM:
+	case HSX_SYSVAR_LPARAM:
+	case HSX_SYSVAR_LOOPLEV:
+	case HSX_SYSVAR_SUBLEV:
+	case HSX_SYSVAR_REFSTR:
+	case HSX_SYSVAR_REFDVAL:
+	case HSX_SYSVAR_STAT:
+	case HSX_SYSVAR_STRSIZE:
+	case HSX_SYSVAR_THISMOD:
 		return 1;
 	default:
-		assert(false && u8"Unknown HspSystemVarKind");
+		assert(false && u8"Unknown HsxSysvarKind");
 		throw std::exception{};
 	}
 }
@@ -1046,72 +1033,72 @@ auto HspObjects::system_var_path_to_child_at(HspObjectPath::SystemVar const& pat
 	assert(child_index < system_var_path_to_child_count(path));
 
 	switch (path.system_var_kind()) {
-	case hsx::HspSystemVarKind::Cnt:
-	case hsx::HspSystemVarKind::Err:
-	case hsx::HspSystemVarKind::IParam:
-	case hsx::HspSystemVarKind::WParam:
-	case hsx::HspSystemVarKind::LParam:
-	case hsx::HspSystemVarKind::LoopLev:
-	case hsx::HspSystemVarKind::SubLev:
-	case hsx::HspSystemVarKind::Stat:
-	case hsx::HspSystemVarKind::StrSize:
+	case HSX_SYSVAR_CNT:
+	case HSX_SYSVAR_ERR:
+	case HSX_SYSVAR_IPARAM:
+	case HSX_SYSVAR_WPARAM:
+	case HSX_SYSVAR_LPARAM:
+	case HSX_SYSVAR_LOOPLEV:
+	case HSX_SYSVAR_SUBLEV:
+	case HSX_SYSVAR_STAT:
+	case HSX_SYSVAR_STRSIZE:
 		return path.new_int();
 
-	case hsx::HspSystemVarKind::Refstr:
+	case HSX_SYSVAR_REFSTR:
 		return path.new_str();
 
-	case hsx::HspSystemVarKind::Refdval:
+	case HSX_SYSVAR_REFDVAL:
 		return path.new_double();
 
-	case hsx::HspSystemVarKind::Thismod:
+	case HSX_SYSVAR_THISMOD:
 		return path.new_flex();
 
 	default:
-		assert(false && u8"Unknown HspSystemVarKind");
+		assert(false && u8"Unknown HsxSysvarKind");
 		throw std::exception{};
 	}
 }
 
 auto HspObjects::system_var_path_to_name(HspObjectPath::SystemVar const& path) const -> std::u8string {
 	switch (path.system_var_kind()) {
-	case hsx::HspSystemVarKind::Cnt:
+	case HSX_SYSVAR_CNT:
 		return to_owned(u8"cnt");
 
-	case hsx::HspSystemVarKind::Err:
+	case HSX_SYSVAR_ERR:
 		return to_owned(u8"err");
 
-	case hsx::HspSystemVarKind::IParam:
+	case HSX_SYSVAR_IPARAM:
 		return to_owned(u8"iparam");
 
-	case hsx::HspSystemVarKind::WParam:
+	case HSX_SYSVAR_WPARAM:
 		return to_owned((u8"wparam"));
 
-	case hsx::HspSystemVarKind::LParam:
+	case HSX_SYSVAR_LPARAM:
 		return to_owned(u8"lparam");
 
-	case hsx::HspSystemVarKind::LoopLev:
+	case HSX_SYSVAR_LOOPLEV:
 		return to_owned(u8"looplev");
 
-	case hsx::HspSystemVarKind::SubLev:
+	case HSX_SYSVAR_SUBLEV:
 		return to_owned(u8"sublev");
 
-	case hsx::HspSystemVarKind::Refstr:
+	case HSX_SYSVAR_REFSTR:
 		return to_owned(u8"refstr");
 
-	case hsx::HspSystemVarKind::Refdval:
+	case HSX_SYSVAR_REFDVAL:
 		return to_owned(u8"refdval");
 
-	case hsx::HspSystemVarKind::Stat:
+	case HSX_SYSVAR_STAT:
 		return to_owned(u8"stat");
 
-	case hsx::HspSystemVarKind::StrSize:
+	case HSX_SYSVAR_STRSIZE:
 		return to_owned(u8"strsize");
 
-	case hsx::HspSystemVarKind::Thismod:
+	case HSX_SYSVAR_THISMOD:
 		return to_owned(u8"thismod");
 
 	default:
-		assert(false && u8"Invalid HspSystemVarKind");
+		assert(false && u8"Invalid HsxSysvarKind");
 		throw std::exception{};
 	}
 }
@@ -1160,7 +1147,7 @@ auto HspObjects::call_frame_path_to_child_at(HspObjectPath::CallFrame const& pat
 	}
 
 	auto param_type = hsx::param_data_to_type(*param_data_opt);
-	return std::make_optional(path.new_param(param_type, param_data_opt->param_index()));
+	return std::make_optional(path.new_param(param_type, param_data_opt->param_index));
 }
 
 auto HspObjects::call_frame_path_to_signature(HspObjectPath::CallFrame const& path) const->std::optional<std::vector<std::u8string_view>> {

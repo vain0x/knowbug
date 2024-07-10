@@ -1,9 +1,7 @@
-//! hsp_sdk_ext で使用する型を定義する。
+//! hsx (hsp_sdk_ext) で使用する型を定義する。
 
 #pragma once
 
-#include <cassert>
-#include <cstdint>
 #include "../hspsdk/hsp3debug.h"
 #include "../hspsdk/hsp3struct.h"
 #include "../hspsdk/hspvar_core.h"
@@ -12,74 +10,168 @@
 #include "../hspsdk/hspwnd.h"
 #endif
 
-namespace hsx {
-	class HspData;
-	class HspDimIndex;
-	class HspParamData;
-	class HspParamStack;
-	class HspVarMetadata;
+// code segment (CS) 領域のデータ
+typedef unsigned short HsxCodeUnit;
 
-	// code segment (CS) 領域のデータ単位。
-	using HspCodeUnit = unsigned short;
+// オブジェクトテンポラリ (ラベルのこと)
+// code segment (CS) 領域のオフセットという形で、コードの位置を表す
+typedef int HsxObjectTemp;
 
-	// オブジェクトテンポラリ (ラベルのこと)
-	// code segment (CS) 領域のオフセットという形で、コードの位置を表す。
-	using HspObjectTemp = std::int32_t;
+// HSP のラベル型の値
+//
+// code segment (CS) 領域内へのポインタ (有効) または nullptr (無効)
+typedef const HsxCodeUnit* HsxLabel;
 
-	// ラベル (ランタイムにおけるラベルの表現)。
-	// code segment 内へのポインタ (有効) または nullptr (無効)。
-	using HspLabel = HspCodeUnit const*;
+// HSP の str 型の値
+//
+// - (エンコーディングの注意)
+//    str 型はランタイムのエンコーディング (shift_jis/utf-8) の文字列だけでなく、
+//    ほかのエンコーディングの文字列や任意のバイナリを格納するのにも使われることがある
+// - (NULL終端の注意)
+//    HSPやC言語の文字列データは末尾にヌル文字 (特殊な1バイトの文字) があり、
+//    そこが文字列の終端を表すという慣習がある。しかし常にNULL終端が保障されているわけではない
+//    特に、std::strlen などのNULL終端を前提とする関数に、NULL終端でないデータを渡してはいけない
+// - (バッファサイズの注意)
+//    変数や refstr に由来する文字列データはそのバッファサイズを容易に取得できる
+//    一方、str 引数の文字列データはバッファサイズを取得できないが、NULL終端が保証されている
+typedef const char* HsxStrPtr;
 
-	using HspDouble = double;
+// HSP の str 型の値 (サイズつき)
+typedef struct HsxStrSpan {
+	// 文字列データの先頭へのポインタ
+	const char* data;
 
-	using HspInt = std::int32_t;
+	// データ領域のサイズ
+	//
+	// - 変数や配列要素の場合、メモリブロックのサイズ (GetBlockSizeのbufsize)
+	// - refstr の場合、メモリ領域のサイズ
+	// - str パラメータの場合、NULL終端までのサイズ
+	size_t size;
+} HsxStrSpan;
 
-	// 引数の種類
-	// MPTYPE_*
-	using HspParamType = int;
+// HSP の double 型の値
+typedef double HsxDouble;
 
-	// HSP の変数が持つデータの型
-	// FIXME: HspVarType に改名
-	enum class HspType {
-		None = HSPVAR_FLAG_NONE,
-		Label = HSPVAR_FLAG_LABEL,
-		Str = HSPVAR_FLAG_STR,
-		Double = HSPVAR_FLAG_DOUBLE,
-		Int = HSPVAR_FLAG_INT,
-		Struct = HSPVAR_FLAG_STRUCT,
-		Comstruct = HSPVAR_FLAG_COMSTRUCT,
-	};
+// HSP の int 型の値
+typedef int HsxInt;
 
-	// HSP の変数のモード
-	enum class HspVarMode {
-		None = HSPVAR_MODE_NONE,
-		Alloc = HSPVAR_MODE_MALLOC,
-		Clone = HSPVAR_MODE_CLONE,
-	};
+// 変数の型の番号
+//
+// - 定数 HSPVAR_FLAG_* の値が入る
+//-  HspVarProc::flag や PVal::flag などに格納されている
+// - HSP の vartype 関数の値
+typedef short HsxVartype;
 
-	// システム変数の種類。
-	// 順番は名前順、ただし類似したものは近くに集める。
-	enum class HspSystemVarKind {
-		Cnt = 1,
-		Err,
-		IParam,
-		WParam,
-		LParam,
-		LoopLev,
-		SubLev,
-		Refstr,
-		Refdval,
-		Stat,
-		StrSize,
-		Thismod,
-	};
+// 変数モード
+//
+// - 定数 HSPVAR_MODE_* の値が入る
+// - CLONE: dup などで作られたクローン変数の状態
+typedef short HsxVarMode;
 
-	// デバッグウィンドウへの通知の種類
-	enum class DebugNoticeKind {
-		// assert, stop やステップ実行の完了などにより、HSP スクリプトの実行が一時停止したとき
-		Stop = 0,
+// #deffunc や #func などのパラメーターの種類
+//
+// - 定数 MPTYPE_* の値が入る
+typedef int HsxMptype;
 
-		// logmes 命令が実行されたとき。ログの内容は ctx->stmp にある。
-		Logmes = 1,
-	};
-}
+// システム変数の番号
+//
+// - 順番は名前順、ただし類似したものは近くに集める
+typedef enum HsxSysvarKind {
+	HSX_SYSVAR_CNT = 1,
+	HSX_SYSVAR_ERR,
+	HSX_SYSVAR_IPARAM,
+	HSX_SYSVAR_WPARAM,
+	HSX_SYSVAR_LPARAM,
+	HSX_SYSVAR_LOOPLEV,
+	HSX_SYSVAR_SUBLEV,
+	HSX_SYSVAR_REFSTR,
+	HSX_SYSVAR_REFDVAL,
+	HSX_SYSVAR_STAT,
+	HSX_SYSVAR_STRSIZE,
+	HSX_SYSVAR_THISMOD,
+} HsxSysvarKind;
+
+// デバッグウィンドウへの通知の種類
+typedef enum HsxDebugNotice {
+	// assert, stop やステップ実行の完了などにより、HSP スクリプトの実行が一時停止したとき
+	HSX_DEBUG_NOTICE_STOP = 0,
+
+	// logmes 命令が実行されたとき。ログの内容は ctx->stmp にある。
+	HSX_DEBUG_NOTICE_LOGMES = 1,
+} HsxDebugNotice;
+
+// HSP の変数が持つデータへのポインタ
+typedef struct HsxData {
+	HsxVartype vartype;
+
+	// label, double, int, struct: 変数が持つバッファの一部へのポインタ
+	// str: 文字列自身へのポインタ
+	const PDAT* pdat;
+} HsxData;
+
+// HSP のパラメーターデータへのポインタ
+typedef struct HsxParamData {
+	const STRUCTPRM* param;
+	size_t param_index;
+	const void* param_ptr;
+
+	// データの読み取りが安全か
+	bool safety;
+} HsxParamData;
+
+// HSP のパラメータスタックへの参照
+//
+// パラメータスタックは、コマンドの実引数、またはインスタンスのメンバ変数の実データが格納される領域
+typedef struct HsxParamStack {
+	const STRUCTDAT* struct_dat;
+
+	const void* stack_ptr;
+	size_t stack_size;
+
+	// データの読み取りが安全か
+	bool safety;
+} HsxParamStack;
+
+enum HsxConstants {
+	// HSP の多次元配列の最大の次元数
+	HSX_MAX_DIM = 4,
+};
+
+// HSP の多次元配列 (最大4次元) への添字
+//
+// 配列変数への添字の値の集まりを表す
+// または配列変数の次元ごとの長さの集まりを表す
+//
+// 例:
+//      `a(i)` → `dim = 1, data = { i, 0, 0, 0 }`
+//      `a(i, j, k, h)` → `dim = 4, data = { i, j, k, h }`
+//      `dim a, w, h` → `dim = 2, data = { w, h, 0, 0 }`
+typedef struct HsxIndexes {
+	// 次元数 (1～4)
+	size_t dim;
+
+	// 次元ごとの添字の値、あるいは次元ごとの長さ
+	size_t data[HSX_MAX_DIM];
+} HsxIndexes;
+
+// HSP の変数の管理データを集めたもの
+typedef struct HsxVarMetadata {
+	HsxVartype vartype;
+	HsxVarMode varmode;
+
+	// (`PVal::len[1], ..., PVal::len[4]`)
+	HsxIndexes lengths;
+
+	// (`PVal::size`)
+	size_t data_size;
+
+	// (`PVal::pt`)
+	const void* data_ptr;
+
+	// (`PVal::master`)
+	const void* master_ptr;
+
+	// 変数データのメモリブロックへのポインタとサイズ (`HspVarProc::GetBlockSize`)
+	const void* block_ptr;
+	size_t block_size;
+} HsxVarMetadata;

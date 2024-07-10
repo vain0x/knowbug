@@ -219,7 +219,7 @@ auto HspObjectPath::as_static_var() const -> HspObjectPath::StaticVar const& {
 // 配列要素
 // -----------------------------------------------
 
-auto HspObjectPath::new_element(hsx::HspDimIndex const& indexes) const -> std::shared_ptr<HspObjectPath const> {
+auto HspObjectPath::new_element(HsxIndexes indexes) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::Element>(self(), indexes);
 }
 
@@ -235,7 +235,7 @@ auto HspObjectPath::as_element() const -> HspObjectPath::Element const& {
 // 引数
 // -----------------------------------------------
 
-auto HspObjectPath::new_param(hsx::HspParamType param_type, std::size_t param_index) const -> std::shared_ptr<HspObjectPath const> {
+auto HspObjectPath::new_param(HsxMptype param_type, std::size_t param_index) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::Param>(self(), param_type, param_index);
 }
 
@@ -353,19 +353,19 @@ auto HspObjectPath::as_unknown() const -> HspObjectPath::Unknown const& {
 // システム変数リスト
 // -----------------------------------------------
 
-static auto const s_system_var_list = std::array<hsx::HspSystemVarKind, 12>{ {
-	hsx::HspSystemVarKind::Cnt,
-	hsx::HspSystemVarKind::Err,
-	hsx::HspSystemVarKind::IParam,
-	hsx::HspSystemVarKind::WParam,
-	hsx::HspSystemVarKind::LParam,
-	hsx::HspSystemVarKind::LoopLev,
-	hsx::HspSystemVarKind::SubLev,
-	hsx::HspSystemVarKind::Refstr,
-	hsx::HspSystemVarKind::Refdval,
-	hsx::HspSystemVarKind::Stat,
-	hsx::HspSystemVarKind::StrSize,
-	hsx::HspSystemVarKind::Thismod,
+static auto const s_system_var_list = std::array<HsxSysvarKind, 12>{ {
+	HSX_SYSVAR_CNT,
+	HSX_SYSVAR_ERR,
+	HSX_SYSVAR_IPARAM,
+	HSX_SYSVAR_WPARAM,
+	HSX_SYSVAR_LPARAM,
+	HSX_SYSVAR_LOOPLEV,
+	HSX_SYSVAR_SUBLEV,
+	HSX_SYSVAR_REFSTR,
+	HSX_SYSVAR_REFDVAL,
+	HSX_SYSVAR_STAT,
+	HSX_SYSVAR_STRSIZE,
+	HSX_SYSVAR_THISMOD,
 }};
 
 auto HspObjectPath::new_system_var_list() const -> std::shared_ptr<HspObjectPath const> {
@@ -381,7 +381,7 @@ auto HspObjectPath::as_system_var_list() const -> HspObjectPath::SystemVarList c
 }
 
 auto HspObjectPath::SystemVarList::child_count(HspObjects& objects) const -> std::size_t {
-	assert(s_system_var_list.back() == hsx::HspSystemVarKind::Thismod);
+	assert(s_system_var_list.back() == HSX_SYSVAR_THISMOD);
 	return s_system_var_list.size();
 }
 
@@ -396,7 +396,7 @@ auto HspObjectPath::SystemVarList::child_at(std::size_t child_index, HspObjects&
 // システム変数
 // -----------------------------------------------
 
-auto HspObjectPath::new_system_var(hsx::HspSystemVarKind system_var_kind) const -> std::shared_ptr<HspObjectPath const> {
+auto HspObjectPath::new_system_var(HsxSysvarKind system_var_kind) const -> std::shared_ptr<HspObjectPath const> {
 	return std::make_shared<HspObjectPath::SystemVar>(self(), system_var_kind);
 }
 

@@ -220,11 +220,11 @@ protected:
 	auto new_static_var(std::size_t static_var_id) const->std::shared_ptr<HspObjectPath const>;
 
 public:
-	auto new_element(hsx::HspDimIndex const& indexes) const->std::shared_ptr<HspObjectPath const>;
+	auto new_element(HsxIndexes indexes) const->std::shared_ptr<HspObjectPath const>;
 
 protected:
 	// param_index: 親要素の何番目の引数か
-	auto new_param(hsx::HspParamType param_type, std::size_t param_index) const->std::shared_ptr<HspObjectPath const>;
+	auto new_param(HsxMptype param_type, std::size_t param_index) const->std::shared_ptr<HspObjectPath const>;
 
 public:
 	auto new_label() const->std::shared_ptr<HspObjectPath const>;
@@ -242,7 +242,7 @@ public:
 protected:
 	auto new_system_var_list() const->std::shared_ptr<HspObjectPath const>;
 
-	auto new_system_var(hsx::HspSystemVarKind system_var_kind) const->std::shared_ptr<HspObjectPath const>;
+	auto new_system_var(HsxSysvarKind system_var_kind) const->std::shared_ptr<HspObjectPath const>;
 
 public:
 	auto new_call_stack() const->std::shared_ptr<HspObjectPath const>;
