@@ -1,4 +1,3 @@
-; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 ; mod_unicode_cnv のテスト。UTF-8 ランタイム版。
 
 #include "hsp3utf.as"
