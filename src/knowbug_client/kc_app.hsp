@@ -1,5 +1,4 @@
 ; アプリケーションのコア部分
-; LICENSE: CC0-1.0 <https://creativecommons.org/publicdomain/zero/1.0/deed.ja>
 
 #packopt name "knowbug_client"
 #packopt hide 1
