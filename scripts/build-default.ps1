@@ -3,12 +3,11 @@
 # 使い方:
 #   ./scripts/build-default
 
-if (!$(which MSBuild.exe)) {
-    write-error 'MSBuild.exe にパスを通してください。'
-    exit 1
-}
+# MSBuild.exe へのパスを取得する
+. './scripts/_msbuild.ps1'
+$MSBuild = $(getMSBuild)
 
-MSBuild.exe './src/knowbug.sln' "-p:Configuration=DebugUtf8;Platform=x86"
+& $MSBuild './src/knowbug.sln' "-p:Configuration=DebugUtf8;Platform=x86"
 if (!$?) {
     write-error 'ビルドに失敗しました。'
     exit 1

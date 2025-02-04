@@ -4,13 +4,12 @@
 # 使い方:
 #   ./scripts/build-all
 
-if (!$(which MSBuild.exe)) {
-    write-error 'MSBuild.exe にパスを通してください。'
-    exit 1
-}
+# MSBuild.exe へのパスを取得する
+. './scripts/_msbuild.ps1'
+$MSBuild = $(getMSBuild)
 
 function build($config, $platform) {
-    MSBuild.exe './src/knowbug.sln' "-p:Configuration=$config;Platform=$platform"
+    & $MSBuild './src/knowbug.sln' "-p:Configuration=$config;Platform=$platform"
     if (!$?) {
         write-error "ビルドに失敗しました。($platform-$config)"
         exit 1

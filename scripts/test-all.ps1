@@ -1,16 +1,15 @@
 #!/bin/pwsh
 # すべてのテストを実行する。
 
-if (!$(which MSBuild.exe)) {
-    write-error 'MSBuild.exe にパスを通してください。'
-    exit 1
-}
+# MSBuild.exe へのパスを取得する
+. './scripts/_msbuild.ps1'
+$MSBuild = $(getMSBuild)
 
 $knowbugRoot = (get-item .).FullName
 
 function test($config, $platform) {
     # -t:build,run を指定するとビルド後に実行されるが、なぜか文字化けするので使わない。
-    MSBuild.exe './src/knowbug.sln' -t:build "-p:Configuration=$config;Platform=$platform"
+    & $MSBuild './src/knowbug.sln' -t:build "-p:Configuration=$config;Platform=$platform"
     if (!$?) {
         write-error 'ビルドに失敗しました。'
         exit 1

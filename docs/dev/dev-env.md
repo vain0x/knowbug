@@ -45,9 +45,6 @@ knowbug_tests プロジェクトを起動するとテストが実行され、一
 - 開発用に HSP3 をインストールしてください。
     - `./scripts/dev-install-hsp3` で自動的にインストールできるはずです。
     - bin/server と bin/client に配置されます。
-- `MSBuild.exe` へのパスを通してください。
-    - 環境変数 PATH に `MSBuild.exe` があるディレクトリへの絶対パスを追加してください。(環境変数の変更は Win+Break → システムの詳細設定 → 環境変数)
-    - `MSBuild.exe` は、Visual Studio 2022 なら `C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Current\Bin\` にあります。
 
 ## デバッグ版のインストール
 
