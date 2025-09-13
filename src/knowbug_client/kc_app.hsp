@@ -184,14 +184,14 @@
 	app_config_load
 	app_ui_init
 
-	infra_connect_server
+	infra_connect_server s_main_window_hwnd
 	if stat == false {
 		app_did_disconnect
 		return
 	}
 
 	logmes "send hello"
-	infra_send_hello s_main_window_hwnd
+	infra_send_hello
 	return
 
 #deffunc app_init_globals
