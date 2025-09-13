@@ -683,10 +683,10 @@
 
 	; https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvcolumna
 	dim lvcolumn, 11
-	lvcolumn(0) = LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM
-	lvcolumn(2) = column_width
-	lvcolumn(3) = varptr(os_text_var)
-	lvcolumn(5) = column_index ; ?
+	lvcolumn(0) = LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM ; mask
+	lvcolumn(2) = column_width ; cx
+	lvcolumn(3) = varptr(os_text_var) ; pszText
+	lvcolumn(5) = column_index ; iSubItem
 
 	sendmsg s_list_view_hwnd, LVM_INSERTCOLUMNW, column_index, varptr(lvcolumn)
 	assert stat >= 0
@@ -704,10 +704,10 @@
 
 	; https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvitema
 	dim lvitem, 15
-	lvitem(0) = LVIF_TEXT
-	lvitem(1) = row_index
-	lvitem(2) = 0
-	lvitem(5) = varptr(os_text)
+	lvitem(0) = LVIF_TEXT ; mask
+	lvitem(1) = row_index ; iItem
+	lvitem(2) = 0 ; iSubItem (列番号)
+	lvitem(5) = varptr(os_text) ; pszText
 	sendmsg s_list_view_hwnd, LVM_INSERTITEMW, , varptr(lvitem)
 	assert stat == row_index
 
@@ -715,10 +715,10 @@
 	unicode_cnv_from_utf8 text, strlen(text), os_text, os_text_len
 
 	dim lvitem, 15
-	lvitem(0) = LVIF_TEXT
-	lvitem(1) = row_index
-	lvitem(2) = 1
-	lvitem(5) = varptr(os_text)
+	lvitem(0) = LVIF_TEXT ; mask
+	lvitem(1) = row_index ; iItem
+	lvitem(2) = 1 ; iSubItem (列番号)
+	lvitem(5) = varptr(os_text) ; pszText
 	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 	return
@@ -747,20 +747,20 @@
 	unicode_cnv_from_utf8 name, strlen(name), os_text, os_text_len
 
 	dim lvitem, 15
-	lvitem(0) = LVIF_TEXT
-	lvitem(1) = row_index
-	lvitem(2) = 0
-	lvitem(5) = varptr(os_text)
+	lvitem(0) = LVIF_TEXT ; mask
+	lvitem(1) = row_index ;iItem
+	lvitem(2) = 0 ; iSubItem
+	lvitem(5) = varptr(os_text) ; pszText
 	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 
 	unicode_cnv_from_utf8 value, strlen(value), os_text, os_text_len
 
 	dim lvitem, 15
-	lvitem(0) = LVIF_TEXT
-	lvitem(1) = row_index
-	lvitem(2) = 1
-	lvitem(5) = varptr(os_text)
+	lvitem(0) = LVIF_TEXT ; mask
+	lvitem(1) = row_index ;iItem
+	lvitem(2) = 1 ; iSubItem
+	lvitem(5) = varptr(os_text) ; pszText
 	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 	return
@@ -805,12 +805,12 @@
 
 	; https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvhittestinfo
 	dim lvhittestinfo, 6
-	lvhittestinfo = point(0), point(1), LVHT_ONITEM
+	lvhittestinfo = point(0), point(1), LVHT_ONITEM ; pt.x, pt.y, flags
 	sendmsg s_list_view_hwnd, LVM_SUBITEMHITTEST, , varptr(lvhittestinfo)
 	assert stat >= 0
 
-	row_index = lvhittestinfo(3)
-	column_index = lvhittestinfo(4)
+	row_index = lvhittestinfo(3) ; iItem
+	column_index = lvhittestinfo(4) ; iSubItem
 	if row_index < 0 || column_index < 0 {
 		return
 	}
