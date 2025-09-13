@@ -93,7 +93,7 @@
 ; 文字列を標準出力に書き込む
 ;
 ; 事前に SetConsoleOutputCP をしておく必要がある。
-; mes命令でUTF-8文字列を出すとなぜか文字化けしてしまああう。(理由はよく分からない)
+; mes命令でUTF-8文字列を出すとなぜか文字化けしてしまう。(理由はよく分からない)
 #deffunc writeln str text, \
 	local h_stdout, local text_var
 
