@@ -1,10 +1,12 @@
-// From <https://github.com/r-lyeh/vector_view/blob/0f348ad/vector_view>
+// From <https://github.com/r-lyeh/vector_view/blob/0f348ad/vector_view>, modified
 // --------------
 
 // vector_view class, based on code by James exjam https://github.com/exjam/string_view
 // rlyeh, public domain
 
 #pragma once
+#include <stdexcept>
+#include <span>
 #include <vector>
 
 #if defined(_MSC_VER) && _MSC_VER < 1900
@@ -172,7 +174,8 @@ public:
    int compare(vector_view s) const noexcept
    {
       size_type rlen = std::min(size(), s.size());
-      return traits::compare(data(), s.data(), rlen);
+      //return traits::compare(data(), s.data(), rlen);
+      return std::span<charT>(data(), size()).compare(std::span<charT>(s.data(), s.size()));
    }
 
 private:
