@@ -157,11 +157,6 @@
       <TargetMachine>MachineX86</TargetMachine>
       <IgnoreSpecificDefaultLibraries>libcpmtd.lib(wlocale.obj)</IgnoreSpecificDefaultLibraries>
     </Link>
-    <PostBuildEvent>
-      <Command>copy D:\Tool\hsp\$(TargetFileName) D:\Tool\hsp\$(TargetFileName).bak
-copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
-</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -188,11 +183,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <ImportLibrary>$(OutDir)$(TargetFileName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcpmtd.lib(wlocale.obj)</IgnoreSpecificDefaultLibraries>
     </Link>
-    <PostBuildEvent>
-      <Command>copy D:\Tool\hsp\$(TargetFileName) D:\Tool\hsp\$(TargetFileName).bak
-copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
-</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release2|Win32'">
     <ClCompile>
@@ -223,11 +213,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
-    <PostBuildEvent>
-      <Command>copy D:\Tool\hsp\$(TargetFileName) D:\Tool\hsp\$(TargetFileName).bak
-copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
-</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release2|x64'">
     <ClCompile>
@@ -257,11 +242,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
-    <PostBuildEvent>
-      <Command>copy D:\Tool\hsp\$(TargetFileName) D:\Tool\hsp\$(TargetFileName).bak
-copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
-</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -289,11 +269,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>copy D:\Tool\hsp\$(TargetFileName) D:\Tool\hsp\$(TargetFileName).bak
-copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
-</Command>
-    </PostBuildEvent>
     <ResourceCompile>
       <Culture>0x0411</Culture>
     </ResourceCompile>
@@ -323,11 +298,6 @@ copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
       <ImportLibrary>$(OutDir)$(TargetFileName).lib</ImportLibrary>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>copy D:\Tool\hsp\$(TargetFileName) D:\Tool\hsp\$(TargetFileName).bak
-copy $(TargetPath) D:\Tool\hsp\$(TargetFileName)
-</Command>
-    </PostBuildEvent>
     <ResourceCompile>
       <Culture>0x0411</Culture>
     </ResourceCompile>
