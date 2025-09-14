@@ -44,11 +44,11 @@ template<typename Map, typename Key
 	, typename Fun>
 static auto map_find_or_insert(Map& m, Key const& key, Fun&& f) -> Value&
 {
-	auto lb = m.lower_bound(key);
-	if ( lb != m.end() && !(m.key_comp()(key, lb->first)) ) {
-		return lb->second;
+	auto iter = m.find(key);
+	if ( iter != m.end() ) {
+		return iter->second;
 	} else {
-		return m.emplace_hint(lb, key, std::forward<Fun>(f)())->second;
+		return m.emplace_hint(iter, key, std::forward<Fun>(f)())->second;
 	}
 }
 
