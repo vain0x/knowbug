@@ -1,6 +1,8 @@
 ﻿#ifndef IG_POINTER_CAST_H
 #define IG_POINTER_CAST_H
 
+#include <type_traits>
+
 /// ポインタ型同士のキャスト
 template<class T>
 auto ptr_cast(void* p) -> T
@@ -18,7 +20,7 @@ template<class T,
 	class U = std::remove_pointer_t<T>>
 auto cptr_cast(void const* p) -> U const*
 {
-	static_assert(std::is_pointer<T>::value, "");
+	static_assert(std::template is_pointer<T>::value, "");
 
 	return static_cast<U const*>(p);
 }
