@@ -351,7 +351,6 @@
     <ClInclude Include="hpiutil\vartype_traits.hpp" />
     <ClInclude Include="hpiutil\vector_view.hpp" />
     <ClInclude Include="module\handle_deleter.hpp" />
-    <ClInclude Include="module\pair_range.hpp" />
     <ClInclude Include="module\range_all.hpp" />
     <ClInclude Include="module\utility.h" />
     <ClInclude Include="DebugInfo.h" />

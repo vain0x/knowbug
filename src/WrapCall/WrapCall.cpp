@@ -99,7 +99,7 @@ auto tryGetCallInfoAt(size_t idx) -> ModcmdCallInfo::shared_ptr_type
 
 auto getCallInfoRange() -> stkCallInfoRange_t
 {
-	return make_pair_range(g_stkCallInfo);
+	return std::make_pair(g_stkCallInfo.cbegin(), g_stkCallInfo.cend());
 }
 
 } //namespace WrapCall

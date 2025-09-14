@@ -10,7 +10,6 @@
 #include <vector>
 #include <unordered_map>
 #include <functional>
-#include "pair_range.hpp"
 #include "range_all.hpp"
 
 using std::string;
