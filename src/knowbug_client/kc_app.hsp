@@ -63,6 +63,7 @@
 #define global WS_CHILD         0x40000000
 
 #define global WM_SIZE          0x0005
+#define global WM_SETREDRAW     0x000b
 #define global WM_COPYDATA      0x004a
 #define global WM_NOTIFY        0x004e
 #define global WM_CONTEXTMENU   0x007b
@@ -1214,6 +1215,9 @@
 	sendmsg s_log_edit_hwnd, EM_GETFIRSTVISIBLELINE
 	current_line_index = stat
 
+	; 更新処理の間、再描画しない (ちらつきを防ぐため)
+	sendmsg s_log_edit_hwnd, WM_SETREDRAW, false, 0
+
 	gsel s_main_window_id
 	objprm s_log_edit_id, s_log_text
 
@@ -1223,6 +1227,8 @@
 		app_log_edit_scroll_to_line current_line_index
 	}
 	app_log_edit_set_selection start_index, end_index
+
+	sendmsg s_log_edit_hwnd, WM_SETREDRAW, true, 0
 	return
 
 ; ------------------------------------------------
