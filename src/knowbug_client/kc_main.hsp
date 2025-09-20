@@ -208,7 +208,8 @@
 	local kind, local kind_len, \
 	local name, local name_len, \
 	local value, local value_len, \
-	local text, local text_len
+	local text, local text_len, \
+	local keep_alive, local keep_alive_len
 
 	assert count >= 1 && keys(0) == "method"
 	method = values(0)
@@ -331,7 +332,14 @@
 		if stat == false {
 			remove_count = 1
 		}
-		app_did_receive_list_update_ok kind, object_id, index, name, value, remove_count
+
+		assoc_get keys, values, value_lens, count, "keep_alive", keep_alive, keep_alive_len
+		if stat == false {
+			keep_alive = "false"
+			keep_alive_len = strlen(keep_alive)
+		}
+
+		app_did_receive_list_update_ok kind, object_id, index, name, value, remove_count, keep_alive == "true"
 		return
 	}
 

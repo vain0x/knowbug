@@ -766,7 +766,7 @@
 	assert stat
 	return
 
-#deffunc app_list_view_update var kind, int object_id, int index, var name, var value, int count
+#deffunc app_list_view_update var kind, int object_id, int index, var name, var value, int count, int keep_alive
 
 	gsel s_main_window_id
 
@@ -1448,11 +1448,23 @@
 	}
 	return
 
-#deffunc app_did_receive_list_update_ok var kind, int object_id, int index, var name, var value, int count
+#deffunc app_did_receive_list_update_ok var kind, int object_id, int index, var name, var value, int count, int keep_alive
 
-	logmes strf("app_did_receive_list_update_ok (%s, id=%d, index=%d, name=%s, value=%s, count=%d)", kind, object_id, index, name, value, count)
+	logmes strf("app_did_receive_list_update_ok (%s, id=%d, index=%d, name=%s, value=%s, count=%d, keep_alive=%d)", kind, object_id, index, name, value, count, keep_alive)
 
-	app_list_view_update kind, object_id, index, name, value, count
+	if keep_alive && s_list_view_is_updating == false {
+		s_list_view_is_updating = true
+
+		; 更新処理の間、再描画しない (ちらつきを防ぐため)
+		sendmsg s_list_view_hwnd, WM_SETREDRAW, false, 0
+	}
+
+	app_list_view_update kind, object_id, index, name, value, count, keep_alive
+
+	if keep_alive == false && s_list_view_is_updating {
+		s_list_view_is_updating = false
+		sendmsg s_list_view_hwnd, WM_SETREDRAW, true, 0
+	}
 	return
 
 #deffunc app_did_receive_list_details_ok int object_id, var text

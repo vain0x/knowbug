@@ -1179,6 +1179,13 @@ private:
 				std::u8string{ delta.value() }
 			);
 
+			if (i + 1 < diff.size()) {
+				message.insert_bool(
+					std::u8string{ u8"keep_alive" },
+					true
+				);
+			}
+
 			if (delta.kind() == HspObjectListDelta::Kind::Remove && delta.count() >= 2) {
 				message.insert_int(
 					std::u8string{ u8"count" },
