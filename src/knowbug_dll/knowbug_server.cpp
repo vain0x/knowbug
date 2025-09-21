@@ -1085,7 +1085,12 @@ private:
 		auto copydata = COPYDATASTRUCT{};
 		copydata.cbData = (DWORD)text.size();
 		copydata.lpData = text.data();
-		SendMessage(client_hwnd_, WM_COPYDATA, 0, (LPARAM)&copydata);
+
+		// この関数は start の処理後にだけ呼ばれる
+		assert(hidden_window_opt_.has_value());
+		auto server_hwnd = HWND{ hidden_window_opt_->get() };
+
+		SendMessage(client_hwnd_, WM_COPYDATA, (WPARAM)server_hwnd, (LPARAM)&copydata);
 	}
 
 	void send_message(std::u8string_view method) {
