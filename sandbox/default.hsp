@@ -1,6 +1,10 @@
 #include "hsp3utf.as"
 #addition "WrapCall.as"
 
+	s = "hello"
+	input s, 500, 40
+	stop
+
 #module
 
 #deffunc f2

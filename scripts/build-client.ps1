@@ -36,6 +36,7 @@ echo "$workDir/src/knowbug_client/kc_main.hsp" >$proxyConfigPath
 echo $clientHspRoot >>$proxyConfigPath
 
 # プロキシを配置する。
-copy-item -force "$workDir/src/knowbug_client/knowbug_client_proxy.exe" "$serverHspRoot/knowbug_client.exe"
+# copy-item -force "$workDir/src/knowbug_client/knowbug_client_proxy.exe" "$serverHspRoot/knowbug_client.exe"
+copy-item -force "$workDir/src/knowbug_client/knowbug_client.exe" "$serverHspRoot/knowbug_client.exe"
 
 echo 'knowbug_client_proxy の実行ファイルを作成しました。'

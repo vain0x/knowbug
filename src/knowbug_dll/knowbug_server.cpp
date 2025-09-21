@@ -852,6 +852,7 @@ public:
 			MessageBox(hidden_window_opt_->get(), TEXT("デバッグウィンドウの初期化に失敗しました。(クライアントプロセスを起動できません。)"), TEXT("knowbug"), MB_ICONERROR);
 			return;
 		}
+		step_controller_.update(StepControl::new_stop());
 	}
 
 	void will_exit() override {
@@ -981,6 +982,7 @@ public:
 		if (!pending_logmes_.empty()) {
 			send_output_event(std::exchange(pending_logmes_, u8""));
 		}
+		step_controller_.update(StepControl::new_run());
 	}
 
 	void client_did_terminate() {

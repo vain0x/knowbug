@@ -165,6 +165,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	// 起動処理:
 
 	if (auto app = std::shared_ptr{ g_app }) {
+
 		app->initialize();
 	}
 
