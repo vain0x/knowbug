@@ -6,6 +6,17 @@
 
 
 
+## 2025-09-22
+
+- [v2.2.2] リリース
+    - 改善
+        - ログ・リストの更新時のちらつきを抑えるようにしました ([#122](https://github.com/vain0x/knowbug/pull/122))
+    - 不具合修正
+        - 変数の一部が表示されないことがある問題を修正しました ([#117](https://github.com/vain0x/knowbug/issues/117))
+        - 「停止」ボタンを押しても一時停止されないことがある不具合を修正しました ([#113](https://github.com/vain0x/knowbug/issues/113))
+            - ただし「次へ」は同様の問題が残っています
+    - \[内部\]: サーバー・クライアント間の通知処理のコードに問題があったので修正しました。ただし、具体的に挙動にどう影響していたかは不明です ([#116](https://github.com/vain0x/knowbug/pull/116))
+
 ## 2024-06-15
 
 - [v2.2.1] リリース
@@ -110,6 +121,7 @@
 
 
 
-[未リリース]: https://github.com/vain0x/knowbug/compare/v2.2.0...HEAD
 [v2.2.0]: https://github.com/vain0x/knowbug/compare/v2.1.0...v2.2.0
 [v2.2.1]: https://github.com/vain0x/knowbug/compare/v2.2.0...v2.2.1
+[v2.2.2]: https://github.com/vain0x/knowbug/compare/v2.2.1...v2.2.2
+[未リリース]: https://github.com/vain0x/knowbug/compare/v2.2.2...HEAD
