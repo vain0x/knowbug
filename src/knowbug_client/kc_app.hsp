@@ -419,7 +419,7 @@
 	screen s_main_window_id, ginfo_dispx, ginfo_dispy, screen_hide
 	s_main_window_hwnd = hwnd
 
-	MoveWindow s_main_window_hwnd, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height, 1
+	MoveWindow s_main_window_hwnd, s_main_window_left, s_main_window_top, s_main_window_width, s_main_window_height, false
 
 	title s_main_window_title + " [接続待ち]"
 
@@ -534,9 +534,12 @@
 #deffunc app_main_window_show
 
 	; gsel s_main_window_id, gsel_show
+	gsel s_main_window_id
 	ShowWindow s_main_window_hwnd, 4 ; SW_SHOWNOACTIVATE
 
-	app_main_window_update_top_most
+	; if s_main_window_top_most {
+	; 	app_main_window_update_top_most
+	; }
 	return
 
 #deffunc app_main_window_toggle_top_most
