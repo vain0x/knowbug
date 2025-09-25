@@ -511,10 +511,10 @@
 #deffunc app_main_window_update_layout
 
 	MoveWindow s_list_view_hwnd, s_list_view_left, s_list_view_top, s_list_view_width, s_list_view_height, true
-	MoveWindow s_log_edit_hwnd, s_log_edit_left, s_log_edit_top, s_log_edit_width, s_log_edit_height, true
-	MoveWindow s_source_path_button_hwnd, s_source_path_button_left, s_source_path_button_top, s_source_path_button_width, s_source_path_button_height, true
-	MoveWindow s_source_path_edit_hwnd, s_source_path_edit_left, s_source_path_edit_top, s_source_path_edit_width, s_source_path_edit_height, true
-	MoveWindow s_source_code_edit_hwnd, s_source_code_edit_left, s_source_code_edit_top, s_source_code_edit_width, s_source_code_edit_height, true
+	; MoveWindow s_log_edit_hwnd, s_log_edit_left, s_log_edit_top, s_log_edit_width, s_log_edit_height, true
+	; MoveWindow s_source_path_button_hwnd, s_source_path_button_left, s_source_path_button_top, s_source_path_button_width, s_source_path_button_height, true
+	; MoveWindow s_source_path_edit_hwnd, s_source_path_edit_left, s_source_path_edit_top, s_source_path_edit_width, s_source_path_edit_height, true
+	; MoveWindow s_source_code_edit_hwnd, s_source_code_edit_left, s_source_code_edit_top, s_source_code_edit_width, s_source_code_edit_height, true
 
 	MoveWindow s_step_continue_button_hwnd, s_step_continue_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
 	MoveWindow s_step_pause_button_hwnd, s_step_pause_button_left, s_footer_top, s_step_button_width, s_step_button_height, true
@@ -957,33 +957,33 @@
 	style_ex = 0
 
 	pos s_source_path_edit_left, s_source_path_edit_top
-	winobj "EDIT", "", style_ex, style, s_source_path_edit_width, s_source_path_edit_height
-	s_source_path_edit_id = stat
-	s_source_path_edit_hwnd = objinfo_hwnd(s_source_path_edit_id)
+	; winobj "EDIT", "", style_ex, style, s_source_path_edit_width, s_source_path_edit_height
+	; s_source_path_edit_id = stat
+	; s_source_path_edit_hwnd = objinfo_hwnd(s_source_path_edit_id)
 
-	hspish_font_set_object_font s_source_path_edit_hwnd, s_default_font_family, s_default_font_size
+	; hspish_font_set_object_font s_source_path_edit_hwnd, s_default_font_family, s_default_font_size
 
-	; スクリプトパスボックス
-	pos s_source_path_button_left, s_source_path_button_top
-	objsize s_source_path_button_width,s_source_path_button_height
-	button gosub "開", *l_source_path_button_click
-	s_source_path_button_id = stat
-	s_source_path_button_hwnd = objinfo_hwnd(s_source_path_button_id)
+	; ; スクリプトパスボックス
+	; pos s_source_path_button_left, s_source_path_button_top
+	; objsize s_source_path_button_width,s_source_path_button_height
+	; button gosub "開", *l_source_path_button_click
+	; s_source_path_button_id = stat
+	; s_source_path_button_hwnd = objinfo_hwnd(s_source_path_button_id)
 
-	; スクリプトエディット
-	style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD
-	style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
-	style_ex = 0
+	; ; スクリプトエディット
+	; style = WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_VISIBLE | WS_CHILD
+	; style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
+	; style_ex = 0
 
-	pos s_source_code_edit_left, s_source_code_edit_top
-	winobj "EDIT", "", style_ex, style, s_source_code_edit_width, s_source_code_edit_height
-	s_source_code_edit_id = stat
-	s_source_code_edit_hwnd = objinfo_hwnd(stat)
+	; pos s_source_code_edit_left, s_source_code_edit_top
+	; winobj "EDIT", "", style_ex, style, s_source_code_edit_width, s_source_code_edit_height
+	; s_source_code_edit_id = stat
+	; s_source_code_edit_hwnd = objinfo_hwnd(stat)
 
-	hspish_font_set_object_font s_source_code_edit_hwnd, s_default_font_family, s_default_font_size
+	; hspish_font_set_object_font s_source_code_edit_hwnd, s_default_font_family, s_default_font_size
 
-	tabstops = (s_default_font_size + 1) / 4 * 4  ; タブ文字の幅を設定する。
-	sendmsg s_source_code_edit_hwnd, EM_SETTABSTOPS, 1, varptr(tabstops)
+	; tabstops = (s_default_font_size + 1) / 4 * 4  ; タブ文字の幅を設定する。
+	; sendmsg s_source_code_edit_hwnd, EM_SETTABSTOPS, 1, varptr(tabstops)
 	return
 
 #deffunc app_source_code_edit_update int source_file_id, int line_index, \
@@ -993,64 +993,64 @@
 	local text_updated, \
 	local start_index, local end_index, local current_line_index
 
-	text_updated = s_current_source_file_id != source_file_id
-	text_updated |= s_current_source_path_exists != app_source_path_exists(source_file_id)
-	text_updated |= s_current_source_code_exists != app_source_code_exists(source_file_id)
+	; text_updated = s_current_source_file_id != source_file_id
+	; text_updated |= s_current_source_path_exists != app_source_path_exists(source_file_id)
+	; text_updated |= s_current_source_code_exists != app_source_code_exists(source_file_id)
 
-	; テキストを更新する。
-	if text_updated {
-		app_source_path_get source_file_id, source_path
-		source_path_exists = stat
-		if source_path_exists == false {
-			source_path = ""
-		}
+	; ; テキストを更新する。
+	; if text_updated {
+	; 	app_source_path_get source_file_id, source_path
+	; 	source_path_exists = stat
+	; 	if source_path_exists == false {
+	; 		source_path = ""
+	; 	}
 
-		unicode_cnv_from_utf8 source_path, strlen(source_path), os_source_path, os_source_path_len
+	; 	unicode_cnv_from_utf8 source_path, strlen(source_path), os_source_path, os_source_path_len
 
-		SetWindowTextW s_source_path_edit_hwnd, varptr(os_source_path)
+	; 	SetWindowTextW s_source_path_edit_hwnd, varptr(os_source_path)
 
-		; 右端までスクロールするために、カーソルを末尾に移動させる。
-		sendmsg s_source_path_edit_hwnd, EM_SETSEL, 0x7fffffff, 0x7fffffff
+	; 	; 右端までスクロールするために、カーソルを末尾に移動させる。
+	; 	sendmsg s_source_path_edit_hwnd, EM_SETSEL, 0x7fffffff, 0x7fffffff
 
-		; ソースコードがあれば取得し、なければその旨のメッセージを表示する。
-		app_source_code_dup source_file_id, text
-		if stat == false {
-			text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
-		}
+	; 	; ソースコードがあれば取得し、なければその旨のメッセージを表示する。
+	; 	app_source_code_dup source_file_id, text
+	; 	if stat == false {
+	; 		text = "(スクリプトファイルが見つかりません)\n#" + line_index + "\n"
+	; 	}
 
-		unicode_cnv_from_utf8 text, strlen(text), os_text, os_text_len
+	; 	unicode_cnv_from_utf8 text, strlen(text), os_text, os_text_len
 
-		SetWindowTextW s_source_code_edit_hwnd, varptr(os_text)
+	; 	SetWindowTextW s_source_code_edit_hwnd, varptr(os_text)
 
-		s_current_source_file_id = source_file_id
-		s_current_source_code_exists = app_source_code_exists(source_file_id)
-		text_updated = true
-	}
+	; 	s_current_source_file_id = source_file_id
+	; 	s_current_source_code_exists = app_source_code_exists(source_file_id)
+	; 	text_updated = true
+	; }
 
-	; 行を更新する。
-	if text_updated || s_current_line_index != line_index {
-		; 指定行の範囲をバイトインデックスとして求める。
-		sendmsg s_source_code_edit_hwnd, EM_LINEINDEX, line_index, NULL
-		start_index = stat
+	; ; 行を更新する。
+	; if text_updated || s_current_line_index != line_index {
+	; 	; 指定行の範囲をバイトインデックスとして求める。
+	; 	sendmsg s_source_code_edit_hwnd, EM_LINEINDEX, line_index, NULL
+	; 	start_index = stat
 
-		sendmsg s_source_code_edit_hwnd, EM_LINEINDEX, line_index + 1, NULL
-		end_index = stat
+	; 	sendmsg s_source_code_edit_hwnd, EM_LINEINDEX, line_index + 1, NULL
+	; 	end_index = stat
 
-		if start_index < 0 || end_index < 0 {
-			; 行番号が不正？
-			start_index = 0
-			end_index = 0
-		}
+	; 	if start_index < 0 || end_index < 0 {
+	; 		; 行番号が不正？
+	; 		start_index = 0
+	; 		end_index = 0
+	; 	}
 
-		sendmsg s_source_code_edit_hwnd, EM_SETSEL, start_index, end_index
+	; 	sendmsg s_source_code_edit_hwnd, EM_SETSEL, start_index, end_index
 
-		; 指定行の少し上にスクロールする。
-		sendmsg s_source_code_edit_hwnd, EM_GETFIRSTVISIBLELINE
-		current_line_index = stat
-		sendmsg s_source_code_edit_hwnd, EM_LINESCROLL, 0, limit(line_index - 3, 0) - current_line_index
+	; 	; 指定行の少し上にスクロールする。
+	; 	sendmsg s_source_code_edit_hwnd, EM_GETFIRSTVISIBLELINE
+	; 	current_line_index = stat
+	; 	sendmsg s_source_code_edit_hwnd, EM_LINESCROLL, 0, limit(line_index - 3, 0) - current_line_index
 
-		s_current_line_index = line_index
-	}
+	; 	s_current_line_index = line_index
+	; }
 	return
 
 #deffunc app_source_path_button_click \
@@ -1086,17 +1086,18 @@
 	local tabstops
 
 	pos s_log_edit_left, s_log_edit_top
-	mesbox s_log_text, s_log_edit_width, s_log_edit_height, mesbox_readonly
-	s_log_edit_id = stat
-	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
+	; mesbox s_log_text, s_log_edit_width, s_log_edit_height, mesbox_readonly
+	; s_log_edit_id = stat
+	; s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
+	s_log_edit_hwnd = s_main_window_hwnd
 
-	tabstops = (13 + 1) / 4 * 4  ; タブ文字の幅を設定する。
-	sendmsg s_log_edit_hwnd, EM_SETTABSTOPS, 1, varptr(tabstops)
+	; tabstops = (13 + 1) / 4 * 4  ; タブ文字の幅を設定する。
+	; sendmsg s_log_edit_hwnd, EM_SETTABSTOPS, 1, varptr(tabstops)
 
-	app_config_get_str "log_auto_save_path", ""
-	if refstr != "" {
-		logmes "INFO: ログが自動的に保存されます。(file_name = " + refstr + ")"
-	}
+	; app_config_get_str "log_auto_save_path", ""
+	; if refstr != "" {
+	; 	logmes "INFO: ログが自動的に保存されます。(file_name = " + refstr + ")"
+	; }
 	return
 
 #deffunc app_log_edit_append str text, \
@@ -1169,12 +1170,12 @@
 
 #deffunc app_log_edit_get_selection var start_index, var end_index
 
-	sendmsg s_log_edit_hwnd, EM_GETSEL, varptr(start_index), varptr(end_index)
+	; sendmsg s_log_edit_hwnd, EM_GETSEL, varptr(start_index), varptr(end_index)
 	return
 
 #defcfunc app_log_edit_get_scrolled_line
 
-	sendmsg s_log_edit_hwnd, EM_GETFIRSTVISIBLELINE
+	; sendmsg s_log_edit_hwnd, EM_GETFIRSTVISIBLELINE
 	return stat
 
 #defcfunc app_log_edit_is_scrolled_to_bottom \
@@ -1182,7 +1183,7 @@
 
 	current_line_index = app_log_edit_get_scrolled_line()
 
-	sendmsg s_log_edit_hwnd, EM_GETLINECOUNT
+	; sendmsg s_log_edit_hwnd, EM_GETLINECOUNT
 	line_count = stat
 
 	; スクロールが一番下にありそうかどうか判定する。
@@ -1190,18 +1191,18 @@
 
 #deffunc app_log_edit_set_selection int start_index, int end_index
 
-	sendmsg s_log_edit_hwnd, EM_SETSEL, start_index, end_index
+	; sendmsg s_log_edit_hwnd, EM_SETSEL, start_index, end_index
 	return
 
 #deffunc app_log_edit_scroll_to_line int line_index, \
 	local current_line_index
 
-	sendmsg s_log_edit_hwnd, EM_LINESCROLL, 0, line_index - current_line_index
+	; sendmsg s_log_edit_hwnd, EM_LINESCROLL, 0, line_index - current_line_index
 	return
 
 #deffunc app_log_edit_scroll_to_bottom
 
-	sendmsg s_log_edit_hwnd, EM_LINESCROLL, 0, 0x7fffffff
+	; sendmsg s_log_edit_hwnd, EM_LINESCROLL, 0, 0x7fffffff
 	return
 
 #deffunc app_log_edit_update \
@@ -1216,7 +1217,7 @@
 	current_line_index = app_log_edit_get_scrolled_line()
 	app_log_edit_get_selection start_index, end_index
 
-	sendmsg s_log_edit_hwnd, EM_GETFIRSTVISIBLELINE
+	; sendmsg s_log_edit_hwnd, EM_GETFIRSTVISIBLELINE
 	current_line_index = stat
 
 	gsel s_main_window_id
@@ -1431,9 +1432,9 @@
 	app_source_path_set source_file_id, text
 
 	; ソースコードが読み込まれたら表示に反映する。
-	if s_current_source_file_id == source_file_id {
-		app_source_code_edit_update source_file_id, s_current_line_index
-	}
+	; if s_current_source_file_id == source_file_id {
+	; 	app_source_code_edit_update source_file_id, s_current_line_index
+	; }
 	return
 
 #deffunc app_did_receive_source_code int source_file_id, var text
