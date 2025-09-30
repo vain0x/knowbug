@@ -1101,7 +1101,7 @@ private:
 	void send_initialized_event() {
 		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"initialized_event" });
 
-		message.insert(std::u8string{ u8"version" }, std::u8string{ as_utf8(KNOWBUG_VERSION) });
+		message.insert(std::u8string{ u8"version" }, knowbug_version());
 
 		send_message(message);
 	}
