@@ -63,6 +63,7 @@
 #define global WS_CHILD         0x40000000
 
 #define global WM_SIZE          0x0005
+#define global WM_SETREDRAW     0x000b
 #define global WM_COPYDATA      0x004a
 #define global WM_NOTIFY        0x004e
 #define global WM_CONTEXTMENU   0x007b
@@ -184,14 +185,14 @@
 	app_config_load
 	app_ui_init
 
-	infra_connect_server
+	infra_connect_server s_main_window_hwnd
 	if stat == false {
 		app_did_disconnect
 		return
 	}
 
 	logmes "send hello"
-	infra_send_hello s_main_window_hwnd
+	infra_send_hello
 	return
 
 #deffunc app_init_globals
@@ -683,10 +684,10 @@
 
 	; https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvcolumna
 	dim lvcolumn, 11
-	lvcolumn(0) = LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM
-	lvcolumn(2) = column_width
-	lvcolumn(3) = varptr(os_text_var)
-	lvcolumn(5) = column_index ; ?
+	lvcolumn(0) = LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM ; mask
+	lvcolumn(2) = column_width ; cx
+	lvcolumn(3) = varptr(os_text_var) ; pszText
+	lvcolumn(5) = column_index ; iSubItem
 
 	sendmsg s_list_view_hwnd, LVM_INSERTCOLUMNW, column_index, varptr(lvcolumn)
 	assert stat >= 0
@@ -704,10 +705,10 @@
 
 	; https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvitema
 	dim lvitem, 15
-	lvitem(0) = LVIF_TEXT
-	lvitem(1) = row_index
-	lvitem(2) = 0
-	lvitem(5) = varptr(os_text)
+	lvitem(0) = LVIF_TEXT ; mask
+	lvitem(1) = row_index ; iItem
+	lvitem(2) = 0 ; iSubItem (列番号)
+	lvitem(5) = varptr(os_text) ; pszText
 	sendmsg s_list_view_hwnd, LVM_INSERTITEMW, , varptr(lvitem)
 	assert stat == row_index
 
@@ -715,10 +716,10 @@
 	unicode_cnv_from_utf8 text, strlen(text), os_text, os_text_len
 
 	dim lvitem, 15
-	lvitem(0) = LVIF_TEXT
-	lvitem(1) = row_index
-	lvitem(2) = 1
-	lvitem(5) = varptr(os_text)
+	lvitem(0) = LVIF_TEXT ; mask
+	lvitem(1) = row_index ; iItem
+	lvitem(2) = 1 ; iSubItem (列番号)
+	lvitem(5) = varptr(os_text) ; pszText
 	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 	return
@@ -747,25 +748,25 @@
 	unicode_cnv_from_utf8 name, strlen(name), os_text, os_text_len
 
 	dim lvitem, 15
-	lvitem(0) = LVIF_TEXT
-	lvitem(1) = row_index
-	lvitem(2) = 0
-	lvitem(5) = varptr(os_text)
+	lvitem(0) = LVIF_TEXT ; mask
+	lvitem(1) = row_index ;iItem
+	lvitem(2) = 0 ; iSubItem
+	lvitem(5) = varptr(os_text) ; pszText
 	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 
 	unicode_cnv_from_utf8 value, strlen(value), os_text, os_text_len
 
 	dim lvitem, 15
-	lvitem(0) = LVIF_TEXT
-	lvitem(1) = row_index
-	lvitem(2) = 1
-	lvitem(5) = varptr(os_text)
+	lvitem(0) = LVIF_TEXT ; mask
+	lvitem(1) = row_index ;iItem
+	lvitem(2) = 1 ; iSubItem
+	lvitem(5) = varptr(os_text) ; pszText
 	sendmsg s_list_view_hwnd, LVM_SETITEMW, , varptr(lvitem)
 	assert stat
 	return
 
-#deffunc app_list_view_update var kind, int object_id, int index, var name, var value, int count
+#deffunc app_list_view_update var kind, int object_id, int index, var name, var value, int count, int keep_alive
 
 	gsel s_main_window_id
 
@@ -805,12 +806,12 @@
 
 	; https://docs.microsoft.com/en-us/windows/win32/api/commctrl/ns-commctrl-lvhittestinfo
 	dim lvhittestinfo, 6
-	lvhittestinfo = point(0), point(1), LVHT_ONITEM
+	lvhittestinfo = point(0), point(1), LVHT_ONITEM ; pt.x, pt.y, flags
 	sendmsg s_list_view_hwnd, LVM_SUBITEMHITTEST, , varptr(lvhittestinfo)
 	assert stat >= 0
 
-	row_index = lvhittestinfo(3)
-	column_index = lvhittestinfo(4)
+	row_index = lvhittestinfo(3) ; iItem
+	column_index = lvhittestinfo(4) ; iSubItem
 	if row_index < 0 || column_index < 0 {
 		return
 	}
@@ -1214,6 +1215,9 @@
 	sendmsg s_log_edit_hwnd, EM_GETFIRSTVISIBLELINE
 	current_line_index = stat
 
+	; 更新処理の間、再描画しない (ちらつきを防ぐため)
+	sendmsg s_log_edit_hwnd, WM_SETREDRAW, false, 0
+
 	gsel s_main_window_id
 	objprm s_log_edit_id, s_log_text
 
@@ -1223,6 +1227,8 @@
 		app_log_edit_scroll_to_line current_line_index
 	}
 	app_log_edit_set_selection start_index, end_index
+
+	sendmsg s_log_edit_hwnd, WM_SETREDRAW, true, 0
 	return
 
 ; ------------------------------------------------
@@ -1442,11 +1448,23 @@
 	}
 	return
 
-#deffunc app_did_receive_list_update_ok var kind, int object_id, int index, var name, var value, int count
+#deffunc app_did_receive_list_update_ok var kind, int object_id, int index, var name, var value, int count, int keep_alive
 
-	logmes strf("app_did_receive_list_update_ok (%s, id=%d, index=%d, name=%s, value=%s, count=%d)", kind, object_id, index, name, value, count)
+	logmes strf("app_did_receive_list_update_ok (%s, id=%d, index=%d, name=%s, value=%s, count=%d, keep_alive=%d)", kind, object_id, index, name, value, count, keep_alive)
 
-	app_list_view_update kind, object_id, index, name, value, count
+	if keep_alive && s_list_view_is_updating == false {
+		s_list_view_is_updating = true
+
+		; 更新処理の間、再描画しない (ちらつきを防ぐため)
+		sendmsg s_list_view_hwnd, WM_SETREDRAW, false, 0
+	}
+
+	app_list_view_update kind, object_id, index, name, value, count, keep_alive
+
+	if keep_alive == false && s_list_view_is_updating {
+		s_list_view_is_updating = false
+		sendmsg s_list_view_hwnd, WM_SETREDRAW, true, 0
+	}
 	return
 
 #deffunc app_did_receive_list_details_ok int object_id, var text

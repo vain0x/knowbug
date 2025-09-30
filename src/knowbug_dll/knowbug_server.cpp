@@ -28,7 +28,7 @@ static constexpr auto MEMORY_BUFFER_SIZE = std::size_t{ 1024 * 1024 };
 // バージョン
 // -----------------------------------------------
 
-static constexpr auto KNOWBUG_VERSION = u8"v2.2.1";
+static constexpr auto KNOWBUG_VERSION = u8"v2.2.2";
 
 #ifdef _M_X64
 static constexpr auto KNOWBUG_PLATFORM_SUFFIX = u8" (x64)";
@@ -1085,7 +1085,12 @@ private:
 		auto copydata = COPYDATASTRUCT{};
 		copydata.cbData = (DWORD)text.size();
 		copydata.lpData = text.data();
-		SendMessage(client_hwnd_, WM_COPYDATA, 0, (LPARAM)&copydata);
+
+		// この関数は start の処理後にだけ呼ばれる
+		assert(hidden_window_opt_.has_value());
+		auto server_hwnd = HWND{ hidden_window_opt_->get() };
+
+		SendMessage(client_hwnd_, WM_COPYDATA, (WPARAM)server_hwnd, (LPARAM)&copydata);
 	}
 
 	void send_message(std::u8string_view method) {
@@ -1096,7 +1101,7 @@ private:
 	void send_initialized_event() {
 		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"initialized_event" });
 
-		message.insert(std::u8string{ u8"version" }, std::u8string{ as_utf8(KNOWBUG_VERSION) });
+		message.insert(std::u8string{ u8"version" }, knowbug_version());
 
 		send_message(message);
 	}
@@ -1178,6 +1183,13 @@ private:
 				std::u8string{ u8"value" },
 				std::u8string{ delta.value() }
 			);
+
+			if (i + 1 < diff.size()) {
+				message.insert_bool(
+					std::u8string{ u8"keep_alive" },
+					true
+				);
+			}
 
 			if (delta.kind() == HspObjectListDelta::Kind::Remove && delta.count() >= 2) {
 				message.insert_int(

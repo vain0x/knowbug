@@ -15,9 +15,6 @@ static auto const MIN_DEPTH = std::size_t{};
 // 再帰深度の最大値 (スタックオーバーフローを防ぐため)
 static auto const MAX_DEPTH = std::size_t{ 32 };
 
-// ビジュアルツリーの子要素数の最大値
-static constexpr auto MAX_VISUAL_CHILD_COUNT = HspObjectPath::Group::MAX_CHILD_COUNT;
-
 static auto param_path_to_param_data(HspObjectPath::Param const& path, std::size_t depth, HSPCTX const* ctx) -> std::optional<HsxParamData>;
 
 static auto const GLOBAL_MODULE_ID = std::size_t{ 0 };
@@ -148,7 +145,7 @@ static auto path_to_visual_child_count_default(HspObjectPath const& path, HspObj
 		return group_count;
 	}
 
-	return std::min(n, MAX_VISUAL_CHILD_COUNT);
+	return n;
 }
 
 static auto path_to_visual_child_at_default(HspObjectPath const& path, std::size_t child_index, HspObjects& objects) -> std::optional<std::shared_ptr<HspObjectPath const>> {
@@ -279,7 +276,6 @@ static auto path_to_data(HspObjectPath const& path, std::size_t depth, HSPCTX co
 		return hsx::system_var_to_data(path.as_system_var().system_var_kind(), ctx);
 	}
 	default:
-		assert(false && u8"data を取得できるべき");
 		return std::nullopt;
 	}
 }
@@ -420,7 +416,6 @@ static auto var_path_to_metadata(HspObjectPath const& path, HSPCTX const* ctx) -
 static auto label_path_to_value(HspObjectPath::Label const& path, HSPCTX const* ctx) -> std::optional<HsxLabel> {
 	auto data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
 	if (!data_opt) {
-		assert(false && u8"label の親は data を生成できるはず");
 		return std::nullopt;
 	}
 
@@ -434,7 +429,6 @@ static auto str_path_to_value(HspObjectPath::Str const& path, HSPCTX const* ctx)
 static auto double_path_to_value(HspObjectPath::Double const& path, HSPCTX const* ctx) -> std::optional<HsxDouble> {
 	auto data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
 	if (!data_opt) {
-		assert(false && u8"double の親は data を生成できるはず");
 		return std::nullopt;
 	}
 
@@ -444,7 +438,6 @@ static auto double_path_to_value(HspObjectPath::Double const& path, HSPCTX const
 static auto int_path_to_value(HspObjectPath::Int const& path, HSPCTX const* ctx) -> std::optional<HsxInt> {
 	auto data_opt = path_to_data(path.parent(), MIN_DEPTH, ctx);
 	if (!data_opt) {
-		assert(false && u8"int の親は data を生成できるはず");
 		return std::nullopt;
 	}
 

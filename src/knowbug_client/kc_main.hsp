@@ -9,8 +9,10 @@
 
 ; サーバーとの接続を確立する
 ; (サーバーのウィンドウハンドルをコマンドライン経由で受け取る。サーバーへのメッセージを送るときは、このハンドルに送る)
-#deffunc infra_connect_server \
+#deffunc infra_connect_server int client_hwnd, \
 	local cmdline, local args, local server_hwnd_arg
+
+	s_client_hwnd = client_hwnd
 
 	sdim s_input_buf, 0x8000
 
@@ -74,6 +76,8 @@
 #deffunc infra_send_message array keys, array values, array value_lens, int count, \
 	local message, local message_len, local copydata
 
+	assert s_client_hwnd != 0
+
 	if s_server_hwnd == 0 {
 		return
 	}
@@ -88,14 +92,16 @@
 	dim copydata, 4 * 3
 	copydata = 0, message_len, varptr(message)
 
-	sendmsg s_server_hwnd, WM_COPYDATA, 0, varptr(copydata)
+	sendmsg s_server_hwnd, WM_COPYDATA, s_client_hwnd, varptr(copydata)
 	return
 
-#deffunc infra_send_hello int client_hwnd, \
+#deffunc infra_send_hello \
 	local keys, local values, local value_lens, local count
 
+	assert s_client_hwnd != NULL
+
 	assoc_set_str keys, values, value_lens, count, "method", "initialize_notification"
-	assoc_set_str keys, values, value_lens, count, "client_hwnd", str(client_hwnd)
+	assoc_set_str keys, values, value_lens, count, "client_hwnd", str(s_client_hwnd)
 
 	infra_send_message keys, values, value_lens, count
 	return
@@ -208,7 +214,8 @@
 	local kind, local kind_len, \
 	local name, local name_len, \
 	local value, local value_len, \
-	local text, local text_len
+	local text, local text_len, \
+	local keep_alive, local keep_alive_len
 
 	assert count >= 1 && keys(0) == "method"
 	method = values(0)
@@ -331,7 +338,14 @@
 		if stat == false {
 			remove_count = 1
 		}
-		app_did_receive_list_update_ok kind, object_id, index, name, value, remove_count
+
+		assoc_get keys, values, value_lens, count, "keep_alive", keep_alive, keep_alive_len
+		if stat == false {
+			keep_alive = "false"
+			keep_alive_len = strlen(keep_alive)
+		}
+
+		app_did_receive_list_update_ok kind, object_id, index, name, value, remove_count, keep_alive == "true"
 		return
 	}
 
