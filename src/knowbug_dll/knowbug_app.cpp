@@ -12,18 +12,26 @@
 #include "../knowbug_core/step_controller.h"
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
+#include "./logger.h"
 #include "knowbug_server.h"
 
 class KnowbugAppImpl;
 
+// HSPCTX::msgfunc
+using HspMsgFunc = void(HSPCTX*);
+
 static auto g_fs = WindowsFileSystemApi{};
 static auto g_dll_instance = HINSTANCE{};
 static auto g_debug_opt = std::optional<HSP3DEBUG*>{};
+static auto g_msgfunc_orig = (HspMsgFunc*)nullptr;
+static auto g_conditional = false;
+static auto g_sublev_goal = -1;
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
 EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4);
 static void debugbye();
+static void knowbug_msgfunc(HSPCTX* ctx);
 
 // -----------------------------------------------
 // KnowbugApp
@@ -66,9 +74,15 @@ public:
 		, objects_(std::move(objects))
 		, server_(KnowbugServer::create(*g_debug_opt, this->objects(), g_dll_instance, *step_controller_))
 	{
+		server_->on_stepover = std::make_optional<std::function<void()>>([this] {
+			g_conditional = true;
+			debugf(u8"stepover %d", ctx->sublev);
+			g_sublev_goal = ctx->sublev;
+			hsx::debug_do_set_mode(HSPDEBUG_STEPIN, g_debug_opt.value());
+			});
 	}
 
-	auto objects() ->HspObjects& {
+	auto objects() -> HspObjects& {
 		return *objects_;
 	}
 
@@ -119,17 +133,17 @@ auto KnowbugApp::instance() -> std::shared_ptr<KnowbugApp> {
 }
 
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) {
-	switch ( fdwReason ) {
-		case DLL_PROCESS_ATTACH: {
-			g_dll_instance = hInstance;
+	switch (fdwReason) {
+	case DLL_PROCESS_ATTACH: {
+		g_dll_instance = hInstance;
 #if _DEBUG
-			if (GetKeyState(VK_SHIFT) & 0x8000) {
-				MessageBox(nullptr, TEXT("Ctrl+Alt+P でプロセス hsp3.exe にアタッチし、デバッグを開始してください。"), TEXT("knowbug"), MB_OK);
-			}
-#endif
-			break;
+		if (GetKeyState(VK_SHIFT) & 0x8000) {
+			MessageBox(nullptr, TEXT("Ctrl+Alt+P でプロセス hsp3.exe にアタッチし、デバッグを開始してください。"), TEXT("knowbug"), MB_OK);
 		}
-		case DLL_PROCESS_DETACH: debugbye(); break;
+#endif
+		break;
+	}
+	case DLL_PROCESS_DETACH: debugbye(); break;
 	}
 	return TRUE;
 }
@@ -162,6 +176,10 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 		std::move(objects)
 	);
 
+	// hspctx->msgfunc を差し替える
+	g_msgfunc_orig = ctx->msgfunc;
+	ctx->msgfunc = knowbug_msgfunc;
+
 	// 起動処理:
 
 	if (auto app = std::shared_ptr{ g_app }) {
@@ -192,4 +210,20 @@ void debugbye() {
 	}
 
 	g_app.reset();
+}
+
+// HSPCTX::msgfunc を差し替えるもの
+static void knowbug_msgfunc(HSPCTX* ctx)
+{
+	if (g_sublev_goal >= 0) {
+		if (ctx->sublev > g_sublev_goal) {
+			g_debug_opt.value()->dbg_set(HSPDEBUG_STEPIN);
+			//ctx->runmode = RUNMODE_RUN;
+			
+		} else {
+			debugf(u8"stepover finish %d", ctx->sublev);
+			g_sublev_goal = -1;
+		}
+	}
+	g_msgfunc_orig(ctx);
 }

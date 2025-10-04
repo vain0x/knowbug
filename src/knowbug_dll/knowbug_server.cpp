@@ -55,9 +55,9 @@ static auto knowbug_version() -> std::u8string {
 
 class HspObjectIdProvider {
 public:
-	virtual auto path_to_object_id(HspObjectPath const& path)->std::size_t = 0;
+	virtual auto path_to_object_id(HspObjectPath const& path) -> std::size_t = 0;
 
-	virtual auto object_id_to_path(std::size_t object_id)->std::optional<std::shared_ptr<HspObjectPath const>> = 0;
+	virtual auto object_id_to_path(std::size_t object_id) -> std::optional<std::shared_ptr<HspObjectPath const>> = 0;
 };
 
 class HspObjectListExpansion {
@@ -86,15 +86,15 @@ public:
 		return object_id_;
 	}
 
-	auto depth() const ->std::size_t {
+	auto depth() const -> std::size_t {
 		return depth_;
 	}
 
-	auto name() const ->std::u8string_view {
+	auto name() const -> std::u8string_view {
 		return name_;
 	}
 
-	auto value() const ->std::u8string_view {
+	auto value() const -> std::u8string_view {
 		return value_;
 	}
 
@@ -115,7 +115,7 @@ class HspObjectList {
 	std::vector<HspObjectListItem> items_;
 
 public:
-	auto items() const ->std::vector<HspObjectListItem> const& {
+	auto items() const -> std::vector<HspObjectListItem> const& {
 		return items_;
 	}
 
@@ -348,7 +348,7 @@ public:
 		return value_;
 	}
 
-	auto with_count(std::size_t count) ->HspObjectListDelta {
+	auto with_count(std::size_t count) -> HspObjectListDelta {
 		return HspObjectListDelta::new_remove(object_id(), index(), count);
 	}
 };
@@ -370,7 +370,7 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 		}
 
 		diff.push_back(HspObjectListDelta::new_remove(object_id, index, 1));
-	};
+		};
 
 	// FIXME: 高速化
 	for (auto si = std::size_t{}; si < source.size(); si++) {
@@ -889,7 +889,7 @@ public:
 	}
 
 	void handle_client_message(std::u8string_view text) {
-		if (auto message_opt = knowbug_protocol_parse(text)){
+		if (auto message_opt = knowbug_protocol_parse(text)) {
 			client_did_send_something(*message_opt);
 		}
 	}
@@ -1008,8 +1008,12 @@ public:
 	}
 
 	void client_did_step_over() {
-		step_controller_.update(StepControl::new_step_over());
-		touch_all_windows();
+		if (on_stepover) {
+			on_stepover->operator ()();
+		}
+
+		//step_controller_.update(StepControl::new_step_over());
+		//touch_all_windows();
 
 		send_continued_event();
 	}
@@ -1267,9 +1271,9 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 	case WM_COPYDATA: {
 		// データにクライアントからのメッセージが含まれている
 		assert(lp);
-		auto copydata = (COPYDATASTRUCT const *)lp;
+		auto copydata = (COPYDATASTRUCT const*)lp;
 		assert(copydata->cbData < (DWORD)INT32_MAX);
-		auto text = std::u8string_view{(char8_t const*)copydata->lpData, copydata->cbData};
+		auto text = std::u8string_view{ (char8_t const*)copydata->lpData, copydata->cbData };
 
 		if (auto server = s_server.lock()) {
 			server->handle_client_message(text);
