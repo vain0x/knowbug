@@ -62,8 +62,9 @@ knowbug のリリースの一覧は以下を参照してください。(pre-rele
 
 ## 開発者向けのドキュメント
 
-- [ARCHITECTURE.md](ARCHITECTURE.md)
-- [docs/dev](docs/dev)
+knowbug 自体を開発するためのドキュメントは以下にまとまっています。
+
+→ [docs/dev/README.md](docs/dev/README.md)
 
 ## 関連リンク
 
