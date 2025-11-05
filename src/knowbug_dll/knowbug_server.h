@@ -21,4 +21,6 @@ public:
 	virtual void logmes(HspStringView text) = 0;
 
 	virtual void debuggee_did_stop() = 0;
+
+	std::optional<std::function<void()>> on_stepover;
 };
