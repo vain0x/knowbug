@@ -24,7 +24,6 @@ static auto g_fs = WindowsFileSystemApi{};
 static auto g_dll_instance = HINSTANCE{};
 static auto g_debug_opt = std::optional<HSP3DEBUG*>{};
 static auto g_msgfunc_orig = (HspMsgFunc*)nullptr;
-static auto g_conditional = false;
 static auto g_sublev_goal = -1;
 
 // ランタイムとの通信
@@ -75,9 +74,20 @@ public:
 		, server_(KnowbugServer::create(*g_debug_opt, this->objects(), g_dll_instance, *step_controller_))
 	{
 		server_->on_stepover = std::make_optional<std::function<void()>>([this] {
-			g_conditional = true;
 			debugf(u8"stepover %d", ctx->sublev);
 			g_sublev_goal = ctx->sublev;
+			hsx::debug_do_set_mode(HSPDEBUG_STEPIN, g_debug_opt.value());
+			PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
+			});
+		server_->on_stepout = std::make_optional<std::function<void()>>([this] {
+			if (ctx->sublev == 0) {
+				g_sublev_goal = -1;
+				hsx::debug_do_set_mode(HSPDEBUG_RUN, g_debug_opt.value());
+				PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
+				return;
+			}
+			debugf(u8"stepout %d", ctx->sublev - 1);
+			g_sublev_goal = ctx->sublev - 1;
 			hsx::debug_do_set_mode(HSPDEBUG_STEPIN, g_debug_opt.value());
 			PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
 			});
@@ -102,13 +112,17 @@ public:
 	}
 
 	void did_hsp_pause() {
-		if (step_controller_->continue_step_running()) {
-			// HACK: すべてのウィンドウに無意味なメッセージを送信する。
-			//       HSP のウィンドウがこれを受信したとき、デバッグモードの変化が再検査されて、
-			//       ステップ実行モードが変化したことに気づいてくれる (実装依存)。
-			PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
-			return;
+		if (g_sublev_goal >= 0) {
+			debugf(u8"pause: conditional cleared");
+			g_sublev_goal = -1;
 		}
+		//if (step_controller_->continue_step_running()) {
+		//	// HACK: すべてのウィンドウに無意味なメッセージを送信する。
+		//	//       HSP のウィンドウがこれを受信したとき、デバッグモードの変化が再検査されて、
+		//	//       ステップ実行モードが変化したことに気づいてくれる (実装依存)。
+		//	PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
+		//	return;
+		//}
 
 		server().debuggee_did_stop();
 	}
@@ -220,9 +234,8 @@ static void knowbug_msgfunc(HSPCTX* ctx)
 		if (ctx->sublev > g_sublev_goal) {
 			g_debug_opt.value()->dbg_set(HSPDEBUG_STEPIN);
 			//ctx->runmode = RUNMODE_RUN;
-
 		} else {
-			debugf(u8"stepover finish %d", ctx->sublev);
+			debugf(u8"conditional stepping finish %d", ctx->sublev);
 			g_sublev_goal = -1;
 		}
 	}

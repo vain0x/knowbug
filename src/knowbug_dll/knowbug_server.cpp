@@ -1025,8 +1025,12 @@ public:
 	}
 
 	void client_did_step_out() {
-		step_controller_.update(StepControl::new_step_out());
-		touch_all_windows();
+		if (on_stepout) {
+			on_stepout->operator ()();
+		}
+
+		//step_controller_.update(StepControl::new_step_out());
+		//touch_all_windows();
 
 		send_continued_event();
 	}
