@@ -886,6 +886,8 @@ public:
 		requested_mode_ = std::nullopt;
 
 		send_stopped_event();
+		send_location_event();
+		send_list_updated_events();
 	}
 
 	void handle_client_message(std::u8string_view text) {
@@ -981,6 +983,10 @@ public:
 		if (!pending_logmes_.empty()) {
 			send_output_event(std::exchange(pending_logmes_, u8""));
 		}
+
+		// 初期状態を送る
+		send_location_event();
+		send_list_updated_events();
 	}
 
 	void client_did_terminate() {

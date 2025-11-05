@@ -1397,7 +1397,7 @@
 	gsel s_main_window_id
 	title s_main_window_title + " " + s_version
 
-	app_refresh
+	; app_refresh
 	return
 
 #deffunc app_did_receive_shutdown
@@ -1416,7 +1416,7 @@
 	logmes "app_did_receive_stopped"
 	s_debuggee_is_running = false
 
-	app_refresh
+	; app_refresh
 	return
 
 #deffunc app_did_receive_location int source_file_id, int line_index
