@@ -79,6 +79,7 @@ public:
 			debugf(u8"stepover %d", ctx->sublev);
 			g_sublev_goal = ctx->sublev;
 			hsx::debug_do_set_mode(HSPDEBUG_STEPIN, g_debug_opt.value());
+			PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
 			});
 	}
 
@@ -219,7 +220,7 @@ static void knowbug_msgfunc(HSPCTX* ctx)
 		if (ctx->sublev > g_sublev_goal) {
 			g_debug_opt.value()->dbg_set(HSPDEBUG_STEPIN);
 			//ctx->runmode = RUNMODE_RUN;
-			
+
 		} else {
 			debugf(u8"stepover finish %d", ctx->sublev);
 			g_sublev_goal = -1;
