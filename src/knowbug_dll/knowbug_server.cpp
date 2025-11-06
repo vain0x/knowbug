@@ -1008,16 +1008,12 @@ public:
 	}
 
 	void client_did_step_over() {
-		step_controller_.update(StepControl::new_step_over());
-		touch_all_windows();
-
+		knowbug_step_over(debug_);
 		send_continued_event();
 	}
 
 	void client_did_step_out() {
-		step_controller_.update(StepControl::new_step_out());
-		touch_all_windows();
-
+		knowbug_step_out(debug_);
 		send_continued_event();
 	}
 

@@ -22,3 +22,6 @@ public:
 
 	virtual void debuggee_did_stop() = 0;
 };
+
+extern void knowbug_step_out(HSP3DEBUG* debug);
+extern void knowbug_step_over(HSP3DEBUG* debug);

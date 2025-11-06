@@ -20,6 +20,17 @@ static auto g_fs = WindowsFileSystemApi{};
 static auto g_dll_instance = HINSTANCE{};
 static auto g_debug_opt = std::optional<HSP3DEBUG*>{};
 
+// HSPCTX::msgfunc の型
+using HspMsgFunc = void(*)(HSPCTX*);
+static auto s_msgfunc_orig = (HspMsgFunc)nullptr;
+
+// HSPCTX::msgfunc を差し替えるもの
+static void knowbug_msgfunc(HSPCTX* ctx);
+
+// 条件付きステップ実行の状態
+// (値が0以上なら条件付きステップ実行の処理中。ゴールの sublev に戻るまで続ける)
+static auto s_sublev_goal = -1;
+
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
 EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4);
@@ -87,12 +98,8 @@ public:
 	}
 
 	void did_hsp_pause() {
-		if (step_controller_->continue_step_running()) {
-			// HACK: すべてのウィンドウに無意味なメッセージを送信する。
-			//       HSP のウィンドウがこれを受信したとき、デバッグモードの変化が再検査されて、
-			//       ステップ実行モードが変化したことに気づいてくれる (実装依存)。
-			PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
-			return;
+		if (s_sublev_goal >= 0) {
+			s_sublev_goal = -1;
 		}
 
 		server().debuggee_did_stop();
@@ -104,11 +111,23 @@ public:
 		objects().log_do_append(to_utf8(text));
 		objects().log_do_append(u8"\r\n");
 	}
-
-	void step_run(StepControl const& step_control) override {
-		step_controller_->update(step_control);
-	}
 };
+
+// -----------------------------------------------
+
+void knowbug_step_over(HSP3DEBUG* debug) {
+	s_sublev_goal = ctx->sublev;
+	debug->dbg_set(HSPDEBUG_STEPIN);
+
+	PostMessage(HWND_BROADCAST, WM_NULL, 0, 0); // touch_all_windows
+}
+
+void knowbug_step_out(HSP3DEBUG* debug) {
+	s_sublev_goal = ctx->sublev - 1;
+	debug->dbg_set(HSPDEBUG_STEPIN);
+
+	PostMessage(HWND_BROADCAST, WM_NULL, 0, 0); // touch_all_windows
+}
 
 // -----------------------------------------------
 
@@ -162,6 +181,10 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 		std::move(objects)
 	);
 
+	// hspctx->msgfunc を差し替える
+	s_msgfunc_orig = ctx->msgfunc;
+	ctx->msgfunc = knowbug_msgfunc;
+
 	// 起動処理:
 
 	if (auto app = std::shared_ptr{ g_app }) {
@@ -192,4 +215,19 @@ void debugbye() {
 	}
 
 	g_app.reset();
+}
+
+// HSPCTX::msgfunc を差し替えるもの
+void knowbug_msgfunc(HSPCTX* ctx)
+{
+	// 条件付きステップ実行の継続処理
+	if (g_debug_opt.has_value() && s_sublev_goal >= 0) {
+		if (ctx->sublev > s_sublev_goal) {
+			g_debug_opt.value()->dbg_set(HSPDEBUG_STEPIN);
+		} else {
+			s_sublev_goal = -1;
+		}
+	}
+
+	s_msgfunc_orig(ctx);
 }
