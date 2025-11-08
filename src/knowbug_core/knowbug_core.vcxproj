@@ -367,7 +367,6 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="source_files.h" />
-    <ClInclude Include="step_controller.h" />
     <ClInclude Include="string_split.h" />
     <ClInclude Include="string_writer.h" />
     <ClInclude Include="test_suite.h" />
@@ -411,7 +410,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseUtf8|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="source_files.cpp" />
-    <ClCompile Include="step_controller.cpp" />
     <ClCompile Include="string_split.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

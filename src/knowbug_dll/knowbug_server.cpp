@@ -14,7 +14,6 @@
 #include "../knowbug_core/hsx.h"
 #include "../knowbug_core/knowbug_protocol.h"
 #include "../knowbug_core/platform.h"
-#include "../knowbug_core/step_controller.h"
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
 #include "knowbug_server.h"
@@ -797,8 +796,6 @@ class KnowbugServerImpl
 
 	HINSTANCE instance_;
 
-	KnowbugStepController& step_controller_;
-
 	bool started_;
 
 	std::optional<WindowHandle> hidden_window_opt_;
@@ -821,11 +818,10 @@ class KnowbugServerImpl
 	HspObjectListEntity object_list_entity_;
 
 public:
-	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugStepController& step_controller)
+	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)
 		: debug_(debug)
 		, objects_(objects)
 		, instance_(instance)
-		, step_controller_(step_controller)
 		, started_(false)
 		, hidden_window_opt_()
 		, client_process_opt_()
@@ -1238,8 +1234,8 @@ private:
 	}
 };
 
-auto KnowbugServer::create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugStepController& step_controller)->std::shared_ptr<KnowbugServer> {
-	auto server = std::make_shared<KnowbugServerImpl>(debug, objects, instance, step_controller);
+auto KnowbugServer::create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)->std::shared_ptr<KnowbugServer> {
+	auto server = std::make_shared<KnowbugServerImpl>(debug, objects, instance);
 	s_server = server;
 	return server;
 }

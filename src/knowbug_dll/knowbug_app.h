@@ -4,7 +4,6 @@
 
 class HspObjectPath;
 class HspObjects;
-class StepControl;
 
 class KnowbugApp {
 public:

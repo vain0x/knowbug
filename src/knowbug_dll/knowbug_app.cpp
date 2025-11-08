@@ -9,7 +9,6 @@
 #include "../knowbug_core/hsp_wrap_call.h"
 #include "../knowbug_core/platform.h"
 #include "../knowbug_core/source_files.h"
-#include "../knowbug_core/step_controller.h"
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
 #include "knowbug_server.h"
@@ -64,18 +63,15 @@ class KnowbugAppImpl
 {
 	friend class HspObjectTreeObserverImpl;
 
-	std::unique_ptr<KnowbugStepController> step_controller_;
 	std::unique_ptr<HspObjects> objects_;
 	std::shared_ptr<KnowbugServer> server_;
 
 public:
 	KnowbugAppImpl(
-		std::unique_ptr<KnowbugStepController> step_controller,
 		std::unique_ptr<HspObjects> objects
 	)
-		: step_controller_(std::move(step_controller))
-		, objects_(std::move(objects))
-		, server_(KnowbugServer::create(*g_debug_opt, this->objects(), g_dll_instance, *step_controller_))
+		: objects_(std::move(objects))
+		, server_(KnowbugServer::create(*g_debug_opt, this->objects(), g_dll_instance))
 	{
 	}
 
@@ -163,8 +159,6 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 	g_debug_opt = debug;
 
-	auto step_controller = std::make_unique<KnowbugStepController>(debug);
-
 	auto common_dir = get_hsp_dir();
 	common_dir += TEXT("/common/");
 
@@ -177,7 +171,6 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	auto objects = std::make_unique<HspObjects>(objects_builder.finish(debug, std::move(source_file_repository)));
 
 	g_app = std::make_shared<KnowbugAppImpl>(
-		std::move(step_controller),
 		std::move(objects)
 	);
 
