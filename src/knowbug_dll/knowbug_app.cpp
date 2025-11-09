@@ -114,15 +114,13 @@ public:
 void knowbug_step_over(HSP3DEBUG* debug) {
 	s_sublev_goal = ctx->sublev;
 	debug->dbg_set(HSPDEBUG_STEPIN);
-
-	PostMessage(HWND_BROADCAST, WM_NULL, 0, 0); // touch_all_windows
+	PostMessage(NULL, WM_NULL, 0, 0); // post_null
 }
 
 void knowbug_step_out(HSP3DEBUG* debug) {
 	s_sublev_goal = ctx->sublev - 1;
 	debug->dbg_set(HSPDEBUG_STEPIN);
-
-	PostMessage(HWND_BROADCAST, WM_NULL, 0, 0); // touch_all_windows
+	PostMessage(NULL, WM_NULL, 0, 0); // post_null
 }
 
 // -----------------------------------------------

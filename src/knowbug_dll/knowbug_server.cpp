@@ -985,7 +985,7 @@ public:
 
 	void client_did_step_continue() {
 		hsx::debug_do_set_mode(HSPDEBUG_RUN, debug_);
-		touch_all_windows();
+		post_null();
 
 		send_continued_event();
 	}
@@ -993,12 +993,12 @@ public:
 	void client_did_step_pause() {
 		requested_mode_ = (int)HSPDEBUG_STOP;
 		hsx::debug_do_set_mode(HSPDEBUG_STOP, debug_);
-		touch_all_windows();
+		post_null();
 	}
 
 	void client_did_step_in() {
 		hsx::debug_do_set_mode(HSPDEBUG_STEPIN, debug_);
-		touch_all_windows();
+		post_null();
 
 		send_continued_event();
 	}
@@ -1053,7 +1053,7 @@ public:
 	void handle_after_logmes() {
 		if (requested_mode_.has_value()) {
 			hsx::debug_do_set_mode(requested_mode_.value(), debug_);
-			touch_all_windows();
+			post_null();
 		}
 	}
 
@@ -1223,14 +1223,9 @@ private:
 		send_message(message);
 	}
 
-	void touch_all_windows() {
-		auto hwnd = (HWND)debug_->hspctx->wnd_parent;
-		if (!hwnd) {
-			hwnd = HWND_BROADCAST;
-		}
-
+	void post_null() {
 		// HACK: HSP のウィンドウに無意味なメッセージを送信することで、デバッグモードの変更に気づかせる。
-		PostMessage(hwnd, WM_NULL, WPARAM{}, LPARAM{});
+		PostMessage(NULL, WM_NULL, 0, 0);
 	}
 };
 
