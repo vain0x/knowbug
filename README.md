@@ -60,10 +60,21 @@ knowbug のリリースの一覧は以下を参照してください。(pre-rele
 
 - [Releases](https://github.com/vain0x/knowbug/releases)
 
+## ライセンス
+
+(この記述は `LICENSE` ファイルの説明です)
+
+knowbug は `CC0-1.0` にもとづいて権利放棄されています。
+簡単にいえば「保証はないが、自由に利用していい」ということです。
+詳しくは [CC0について](https://creativecommons.jp/sciencecommons/aboutcc0/) やライセンス本文を参照してください
+
+HSPからの再配布物には、HSPのライセンスが適用されます
+
 ## 開発者向けのドキュメント
 
-- [ARCHITECTURE.md](ARCHITECTURE.md)
-- [docs/dev](docs/dev)
+knowbug 自体を開発するためのドキュメントは以下にまとまっています。
+
+→ [docs/dev/README.md](docs/dev/README.md)
 
 ## 関連リンク
 

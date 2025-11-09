@@ -1,6 +1,7 @@
 ; Make hsp3 executables.
 
 ; USAGE: hsp3_make <src-name> <work-dir> <hsp-root>
+; (<work-dir> is no longer used.)
 
 #ifdef HSP3_MAKE_CLI
 
@@ -154,7 +155,6 @@
 	s_exit_code = EXIT_FAILURE
 
 	sdim s_src_name
-	sdim s_work_dir
 	sdim s_hsp_root
 	sdim s_error, 0x10000
 
@@ -176,26 +176,14 @@
 	}
 
 	s_src_name = cmdline_parser_pos_get(0)
-	s_work_dir = cmdline_parser_pos_get(1)
+	; s_work_dir = cmdline_parser_pos_get(1)
 	s_hsp_root = cmdline_parser_pos_get(2)
 	return
 
 #deffunc app_make
 
-	chdir s_work_dir
-
 	hsc_ini s_src_name
-	if stat {
-		hsc_getmes s_error
-		return false
-	}
-
 	hsc_objname s_obj_name
-	if stat {
-		hsc_getmes s_error
-		return false
-	}
-
 	hsc_compath s_hsp_root + "\\common\\"
 
 	; Compile to make object file.
@@ -205,17 +193,8 @@
 		return false
 	}
 
-	hsc3_getruntime s_runtime_name, s_obj_name
-	if s_runtime_name == "" {
-		s_runtime_name = "hsp3.exe"
-	}
-	if s_runtime_name == "hsp3.exe" {
-		s_runtime_dir = s_hsp_root + "\\"
-	} else {
-		s_runtime_dir = s_hsp_root + "\\runtime\\"
-	}
 
-	hsc3_make s_runtime_dir
+	hsc3_make s_hsp_root + "\\" + s_src_name + ".dpm"
 	if stat {
 		hsc_getmes s_error
 		return false

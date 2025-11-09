@@ -1,19 +1,45 @@
 # 開発環境
 
-## 環境
+ここでは開発環境の前提条件、ビルド手順、ビルド設定の説明などを記述しています
 
-OS: Windows 10
+- knowbug は **サーバー** (= dll, C++) と **クライアント** (= exe, HSP) の2つのプログラムから構成されています
+    - 詳しくは [architecture.md](architecture.md) を参照してください
+- ビルド手順は IDE (Visual Studio) を使う方法と、ビルドスクリプトを使う方法の2通りがあります
 
-以下をインストールしていると仮定します
+## 開発環境の前提条件
 
-- [Git for Windows](https://gitforwindows.org/)
-- [PowerShell](https://github.com/PowerShell/PowerShell/releases/latest) (>= 7)
+- OS: Windows 10/11
+
+以下をインストールしてください
+
 - [Visual Studio 2022 Community](https://visualstudio.microsoft.com/vs)
-    - C++ 開発用の機能をインストールしておく
+    - Visual Studio Installer で「C++ によるデスクトップ開発」を選択
+- [Git for Windows](https://gitforwindows.org/) (必要なら)
 
-## ソリューション
+## ビルド手順 (簡易)
 
-ソリューション (`src/knowbug.sln`) を Visual Studio で開いて「ビルド」(Ctrl+Shift+B)します。
+### サーバー側
+
+- Visual Studio でソリューション (`src/knowbug.sln`) を開く
+    - メニューバーの「ビルド」→「ソリューションをビルド」を行う
+    - ビルドに成功すれば、ビルド出力が `src/knowbug_dll/bin/Debug/Win32/hsp3debug.dll` (など) に生成されます
+    - dllをHSPのインストールディレクトリに置くと、デバッグウィンドウの表示時にロードされます
+
+### クライアント側
+
+ソースコードが UTF-8 エンコーディングなので、標準のスクリプトエディタではビルドできません
+
+簡単なのは [hsed3s](https://hsp.moe/hsed3s/alpha1/) を使うことです
+
+- `src/knowbug_client/kc_main.hsp` を開いて実行ファイルを作成します
+    - 作成に成功すれば、`knowbug_client.exe` が生成されます
+    - exeをHSPのインストールディレクトリに置くと、(knowbugのdllもインストールされていれば) デバッグウィンドウの表示時に自動で実行されます
+
+また、HSPのサンプルにある `sample/misc/mkexe.hsp` でも可能なはずです
+
+## ビルド設定
+
+### ソリューション
 
 - コンフィギュレーション
     - Debug/Release
@@ -26,6 +52,8 @@ OS: Windows 10
     - x86/x64
         - **x86**: 32 ビット版
         - **x64**: 64 ビット版 (`hsp3debug_64.dll`)
+- 出力
+    - `src/*/bin/*/*/hsp3debug*.dll`
 
 ## テスト
 
@@ -38,15 +66,30 @@ knowbug_tests プロジェクトを起動するとテストが実行され、一
 - スクリプトの実行中に Visual Studio の「プロセスにアタッチ」(Ctrl+Alt+P)で hsp3.exe を選ぶと knowbug 側のコードをトレース実行できて便利です。
 - knowbug の起動時にシフトキーを押しておくと、knowbug の開始時に停止するようになっていて、アタッチしやすくなります。
 
-## ビルドスクリプト
+## ビルドスクリプト (省略可)
 
-`./scripts` にあるビルドスクリプトを使う場合は、以下の通り、一定の設定が必要です。
+`scripts` にあるビルドスクリプトはビルド操作を自動化するためのものです
 
-- 開発用に HSP3 をインストールしてください。
-    - `./scripts/dev-install-hsp3` で自動的にインストールできるはずです。
-    - bin/server と bin/client に配置されます。
+以下を前提とします
 
-## デバッグ版のインストール
+- ターミナルの基本的な使いかたの習得
+- [PowerShell (pwsh)](https://github.com/PowerShell/PowerShell/releases/latest) (バージョン7以上) をインストールしてください
+
+以下の追加の構成が必要です
+
+- 開発用の HSP3 を配置する
+    - ~~`./scripts/dev-install-hsp3` で自動的にインストールできるはずです~~ (Windows Defender にブロックされるので自動で処理できません)
+    - knowbug リポジトリ直下に `bin` ディレクトリを作り、その中に HSP (zip アーカイブ版) を2つ配置
+        - 片方は `client`、他方は `server` という名前にする
+- 想定するディレクトリツリーは以下の通り
+    - `knowbug/`
+        - `bin/` ← 作成
+            - `client/` ← HSPのインストールディレクトリ
+                - hsp3.exe ほか
+            - `server/` ← HSPのインストールディレクトリ
+                - hsp3.exe ほか
+
+### シンボリックリンク
 
 ビルドで生成される DLL を指すシンボリックリンクをインストールしておくと便利です。
 
