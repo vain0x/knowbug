@@ -65,48 +65,19 @@ public:
 };
 
 class HspObjectListItem {
-	std::size_t object_id_;
-	std::size_t depth_;
-	std::u8string name_;
-	std::u8string value_;
-	std::size_t child_count_;
-
 public:
-	HspObjectListItem(std::size_t object_id, std::size_t depth, std::u8string name, std::u8string value, std::size_t child_count)
-		: object_id_(object_id)
-		, depth_(depth)
-		, name_(std::move(name))
-		, value_(std::move(value))
-		, child_count_(child_count)
-	{
-	}
+	std::size_t object_id;
+	std::size_t depth;
+	std::u8string name;
+	std::u8string value;
+	std::size_t child_count;
 
-	auto object_id() const -> std::size_t {
-		return object_id_;
-	}
-
-	auto depth() const ->std::size_t {
-		return depth_;
-	}
-
-	auto name() const ->std::u8string_view {
-		return name_;
-	}
-
-	auto value() const ->std::u8string_view {
-		return value_;
-	}
-
-	auto child_count() const -> std::size_t {
-		return child_count_;
-	}
-
-	auto equals(HspObjectListItem const& other) const -> bool {
-		return object_id() == other.object_id()
-			&& depth() == other.depth()
-			&& name() == other.name()
-			&& value() == other.value()
-			&& child_count() == other.child_count();
+	bool equals(HspObjectListItem const& other) const {
+		return object_id == other.object_id
+			&& depth == other.depth
+			&& name == other.name
+			&& value == other.value
+			&& child_count == other.child_count;
 	}
 };
 
@@ -128,7 +99,7 @@ public:
 
 	auto find_by_object_id(std::size_t object_id) const -> std::optional<HspObjectListItem const*> {
 		for (auto&& item : items()) {
-			if (item.object_id() == object_id) {
+			if (item.object_id == object_id) {
 				return &item;
 			}
 		}
@@ -261,94 +232,64 @@ public:
 		}
 	}
 
-private:
-	Kind kind_;
-	std::size_t object_id_;
-	std::size_t index_;
-	std::size_t count_;
-	std::size_t depth_;
-	std::u8string name_;
-	std::u8string value_;
+	Kind kind;
+	std::size_t object_id;
+	std::size_t index;
+	std::size_t count; // (Remove only)
+	std::size_t depth;
+	std::u8string name;
+	std::u8string value;
 
 public:
-	HspObjectListDelta(Kind kind, std::size_t object_id, std::size_t index, std::size_t depth, std::u8string name, std::u8string value)
-		: kind_(kind)
-		, object_id_(object_id)
-		, index_(index)
-		, count_(0)
-		, depth_(depth)
-		, name_(std::move(name))
-		, value_(std::move(value))
-	{
-	}
-
 	static auto new_insert(std::size_t index, HspObjectListItem const& item) -> HspObjectListDelta {
 		return HspObjectListDelta{
 			Kind::Insert,
-			item.object_id(),
+			item.object_id,
 			index,
-			item.depth(),
-			std::u8string{ item.name() },
-			std::u8string{ item.value() }
+			0,
+			item.depth,
+			std::u8string{ item.name },
+			std::u8string{ item.value }
 		};
 	}
 
 	static auto new_remove(std::size_t object_id, std::size_t index, std::size_t count) -> HspObjectListDelta {
 		assert(count >= 1);
-		auto delta = HspObjectListDelta{
+		return HspObjectListDelta{
 			Kind::Remove,
 			object_id,
 			index,
+			count,
 			std::size_t{},
 			std::u8string{},
 			std::u8string{}
 		};
-		delta.count_ = count;
-		return delta;
 	}
 
 	static auto new_update(std::size_t index, HspObjectListItem const& item) -> HspObjectListDelta {
 		return HspObjectListDelta{
 			Kind::Update,
-			item.object_id(),
+			item.object_id,
 			index,
-			item.depth(),
-			std::u8string{ item.name() },
-			std::u8string{ item.value() }
+			0,
+			item.depth,
+			std::u8string{ item.name },
+			std::u8string{ item.value }
 		};
 	}
 
-	auto kind() const -> Kind {
-		return kind_;
-	}
-
-	auto object_id() const -> std::size_t {
-		return object_id_;
-	}
-
-	auto index() const -> std::size_t {
-		return index_;
-	}
-
-	auto count() const -> std::size_t {
-		assert(kind() == Kind::Remove);
-		return count_;
-	}
-
-	auto name() const -> std::u8string {
+	auto indented_name() const -> std::u8string {
 		static constexpr auto SPACES = u8"                ";
 
-		auto name = std::u8string{ as_utf8(SPACES).substr(0, depth_ * 2) };
-		name += name_;
-		return name;
+		auto result = std::u8string{};
+		result.reserve(depth * 2 + name.length());
+		result += as_utf8(SPACES).substr(0, depth * 2);
+		result += name;
+		return result;
 	}
 
-	auto value() const -> std::u8string_view {
-		return value_;
-	}
-
-	auto with_count(std::size_t count) ->HspObjectListDelta {
-		return HspObjectListDelta::new_remove(object_id(), index(), count);
+	auto with_count(std::size_t count) const -> HspObjectListDelta {
+		return HspObjectListDelta::new_remove(object_id, index, count);
 	}
 };
 
@@ -362,8 +303,8 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 	auto push_remove = [&](std::size_t object_id, std::size_t index) {
 		if (!diff.empty()) {
 			auto& last = diff.back();
-			if (last.kind() == HspObjectListDelta::Kind::Remove && last.index() == index) {
-				last = last.with_count(last.count() + 1);
+			if (last.kind == HspObjectListDelta::Kind::Remove && last.index == index) {
+				last = last.with_count(last.count + 1);
 				return;
 			}
 		}
@@ -382,7 +323,7 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 				continue;
 			}
 
-			if (source[si].object_id() == target[ti].object_id()) {
+			if (source[si].object_id == target[ti].object_id) {
 				source_done[si] = true;
 				target_done[ti] = true;
 				break;
@@ -396,7 +337,7 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 
 		while (si < source.size() || ti < target.size()) {
 			if (ti == target.size() || (si < source.size() && !source_done[si])) {
-				push_remove(source[si].object_id(), ti);
+				push_remove(source[si].object_id, ti);
 				si++;
 				continue;
 			}
@@ -410,7 +351,7 @@ static auto diff_object_list(HspObjectList const& source, HspObjectList const& t
 			assert(si < source.size() && ti < target.size());
 			assert(source_done[si] && target_done[ti]);
 
-			if (source[si].object_id() == target[ti].object_id()) {
+			if (source[si].object_id == target[ti].object_id) {
 				auto const& s = source[si];
 				auto const& t = target[ti];
 				if (!s.equals(t)) {
@@ -513,7 +454,7 @@ public:
 		}
 
 		// 子要素のないノードは開閉しない。
-		if ((**item_opt).child_count() == 0) {
+		if ((**item_opt).child_count == 0) {
 			return;
 		}
 
@@ -533,9 +474,9 @@ public:
 
 private:
 	void apply_delta(HspObjectListDelta const& delta, HspObjectList& new_list) {
-		switch (delta.kind()) {
+		switch (delta.kind) {
 		case HspObjectListDelta::Kind::Remove: {
-			auto object_id = delta.object_id();
+			auto object_id = delta.object_id;
 			auto iter = id_to_paths_.find(object_id);
 			if (iter == id_to_paths_.end()) {
 				assert(false);
@@ -1153,27 +1094,27 @@ private:
 
 			message.insert(
 				std::u8string{ u8"kind" },
-				std::u8string{ HspObjectListDelta::kind_to_string(delta.kind()) }
+				std::u8string{ HspObjectListDelta::kind_to_string(delta.kind) }
 			);
 
 			message.insert_int(
 				std::u8string{ u8"object_id" },
-				(int)delta.object_id()
+				(int)delta.object_id
 			);
 
 			message.insert_int(
 				std::u8string{ u8"index" },
-				(int)delta.index()
+				(int)delta.index
 			);
 
 			message.insert(
 				std::u8string{ u8"name" },
-				delta.name()
+				delta.indented_name()
 			);
 
 			message.insert(
 				std::u8string{ u8"value" },
-				std::u8string{ delta.value() }
+				std::u8string{ delta.value }
 			);
 
 			if (i + 1 < diff.size()) {
@@ -1183,10 +1124,10 @@ private:
 				);
 			}
 
-			if (delta.kind() == HspObjectListDelta::Kind::Remove && delta.count() >= 2) {
+			if (delta.kind == HspObjectListDelta::Kind::Remove && delta.count >= 2) {
 				message.insert_int(
 					std::u8string{ u8"count" },
-					(int)delta.count()
+					(int)delta.count
 				);
 			}
 
