@@ -9,7 +9,7 @@ class HspObjects;
 
 class KnowbugServer {
 public:
-	static auto create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugStepController& step_controller)->std::shared_ptr<KnowbugServer>;
+	static auto create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)->std::shared_ptr<KnowbugServer>;
 
 	virtual ~KnowbugServer() {
 	}
@@ -22,3 +22,6 @@ public:
 
 	virtual void debuggee_did_stop() = 0;
 };
+
+extern void knowbug_step_out(HSP3DEBUG* debug);
+extern void knowbug_step_over(HSP3DEBUG* debug);

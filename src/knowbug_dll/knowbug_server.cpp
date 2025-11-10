@@ -14,7 +14,6 @@
 #include "../knowbug_core/hsx.h"
 #include "../knowbug_core/knowbug_protocol.h"
 #include "../knowbug_core/platform.h"
-#include "../knowbug_core/step_controller.h"
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
 #include "knowbug_server.h"
@@ -797,8 +796,6 @@ class KnowbugServerImpl
 
 	HINSTANCE instance_;
 
-	KnowbugStepController& step_controller_;
-
 	bool started_;
 
 	std::optional<WindowHandle> hidden_window_opt_;
@@ -821,11 +818,10 @@ class KnowbugServerImpl
 	HspObjectListEntity object_list_entity_;
 
 public:
-	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugStepController& step_controller)
+	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)
 		: debug_(debug)
 		, objects_(objects)
 		, instance_(instance)
-		, step_controller_(step_controller)
 		, started_(false)
 		, hidden_window_opt_()
 		, client_process_opt_()
@@ -989,7 +985,7 @@ public:
 
 	void client_did_step_continue() {
 		hsx::debug_do_set_mode(HSPDEBUG_RUN, debug_);
-		touch_all_windows();
+		post_null();
 
 		send_continued_event();
 	}
@@ -997,27 +993,23 @@ public:
 	void client_did_step_pause() {
 		requested_mode_ = (int)HSPDEBUG_STOP;
 		hsx::debug_do_set_mode(HSPDEBUG_STOP, debug_);
-		touch_all_windows();
+		post_null();
 	}
 
 	void client_did_step_in() {
 		hsx::debug_do_set_mode(HSPDEBUG_STEPIN, debug_);
-		touch_all_windows();
+		post_null();
 
 		send_continued_event();
 	}
 
 	void client_did_step_over() {
-		step_controller_.update(StepControl::new_step_over());
-		touch_all_windows();
-
+		knowbug_step_over(debug_);
 		send_continued_event();
 	}
 
 	void client_did_step_out() {
-		step_controller_.update(StepControl::new_step_out());
-		touch_all_windows();
-
+		knowbug_step_out(debug_);
 		send_continued_event();
 	}
 
@@ -1061,7 +1053,7 @@ public:
 	void handle_after_logmes() {
 		if (requested_mode_.has_value()) {
 			hsx::debug_do_set_mode(requested_mode_.value(), debug_);
-			touch_all_windows();
+			post_null();
 		}
 	}
 
@@ -1231,19 +1223,14 @@ private:
 		send_message(message);
 	}
 
-	void touch_all_windows() {
-		auto hwnd = (HWND)debug_->hspctx->wnd_parent;
-		if (!hwnd) {
-			hwnd = HWND_BROADCAST;
-		}
-
+	void post_null() {
 		// HACK: HSP のウィンドウに無意味なメッセージを送信することで、デバッグモードの変更に気づかせる。
-		PostMessage(hwnd, WM_NULL, WPARAM{}, LPARAM{});
+		PostMessage(NULL, WM_NULL, 0, 0);
 	}
 };
 
-auto KnowbugServer::create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugStepController& step_controller)->std::shared_ptr<KnowbugServer> {
-	auto server = std::make_shared<KnowbugServerImpl>(debug, objects, instance, step_controller);
+auto KnowbugServer::create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)->std::shared_ptr<KnowbugServer> {
+	auto server = std::make_shared<KnowbugServerImpl>(debug, objects, instance);
 	s_server = server;
 	return server;
 }

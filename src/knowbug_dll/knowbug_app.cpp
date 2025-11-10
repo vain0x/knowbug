@@ -9,7 +9,6 @@
 #include "../knowbug_core/hsp_wrap_call.h"
 #include "../knowbug_core/platform.h"
 #include "../knowbug_core/source_files.h"
-#include "../knowbug_core/step_controller.h"
 #include "../knowbug_core/string_writer.h"
 #include "knowbug_app.h"
 #include "knowbug_server.h"
@@ -19,6 +18,17 @@ class KnowbugAppImpl;
 static auto g_fs = WindowsFileSystemApi{};
 static auto g_dll_instance = HINSTANCE{};
 static auto g_debug_opt = std::optional<HSP3DEBUG*>{};
+
+// HSPCTX::msgfunc の型
+using HspMsgFunc = void(*)(HSPCTX*);
+static auto s_msgfunc_orig = (HspMsgFunc)nullptr;
+
+// HSPCTX::msgfunc を差し替えるもの
+static void knowbug_msgfunc(HSPCTX* ctx);
+
+// 条件付きステップ実行の状態
+// (値が0以上なら条件付きステップ実行の処理中。ゴールの sublev に戻るまで続ける)
+static auto s_sublev_goal = -1;
 
 // ランタイムとの通信
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
@@ -53,18 +63,15 @@ class KnowbugAppImpl
 {
 	friend class HspObjectTreeObserverImpl;
 
-	std::unique_ptr<KnowbugStepController> step_controller_;
 	std::unique_ptr<HspObjects> objects_;
 	std::shared_ptr<KnowbugServer> server_;
 
 public:
 	KnowbugAppImpl(
-		std::unique_ptr<KnowbugStepController> step_controller,
 		std::unique_ptr<HspObjects> objects
 	)
-		: step_controller_(std::move(step_controller))
-		, objects_(std::move(objects))
-		, server_(KnowbugServer::create(*g_debug_opt, this->objects(), g_dll_instance, *step_controller_))
+		: objects_(std::move(objects))
+		, server_(KnowbugServer::create(*g_debug_opt, this->objects(), g_dll_instance))
 	{
 	}
 
@@ -87,12 +94,8 @@ public:
 	}
 
 	void did_hsp_pause() {
-		if (step_controller_->continue_step_running()) {
-			// HACK: すべてのウィンドウに無意味なメッセージを送信する。
-			//       HSP のウィンドウがこれを受信したとき、デバッグモードの変化が再検査されて、
-			//       ステップ実行モードが変化したことに気づいてくれる (実装依存)。
-			PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
-			return;
+		if (s_sublev_goal >= 0) {
+			s_sublev_goal = -1;
 		}
 
 		server().debuggee_did_stop();
@@ -104,11 +107,21 @@ public:
 		objects().log_do_append(to_utf8(text));
 		objects().log_do_append(u8"\r\n");
 	}
-
-	void step_run(StepControl const& step_control) override {
-		step_controller_->update(step_control);
-	}
 };
+
+// -----------------------------------------------
+
+void knowbug_step_over(HSP3DEBUG* debug) {
+	s_sublev_goal = ctx->sublev;
+	debug->dbg_set(HSPDEBUG_STEPIN);
+	PostMessage(NULL, WM_NULL, 0, 0); // post_null
+}
+
+void knowbug_step_out(HSP3DEBUG* debug) {
+	s_sublev_goal = ctx->sublev - 1;
+	debug->dbg_set(HSPDEBUG_STEPIN);
+	PostMessage(NULL, WM_NULL, 0, 0); // post_null
+}
 
 // -----------------------------------------------
 
@@ -144,8 +157,6 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 	g_debug_opt = debug;
 
-	auto step_controller = std::make_unique<KnowbugStepController>(debug);
-
 	auto common_dir = get_hsp_dir();
 	common_dir += TEXT("/common/");
 
@@ -158,9 +169,12 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	auto objects = std::make_unique<HspObjects>(objects_builder.finish(debug, std::move(source_file_repository)));
 
 	g_app = std::make_shared<KnowbugAppImpl>(
-		std::move(step_controller),
 		std::move(objects)
 	);
+
+	// hspctx->msgfunc を差し替える
+	s_msgfunc_orig = ctx->msgfunc;
+	ctx->msgfunc = knowbug_msgfunc;
 
 	// 起動処理:
 
@@ -192,4 +206,19 @@ void debugbye() {
 	}
 
 	g_app.reset();
+}
+
+// HSPCTX::msgfunc を差し替えるもの
+void knowbug_msgfunc(HSPCTX* ctx)
+{
+	// 条件付きステップ実行の継続処理
+	if (g_debug_opt.has_value() && s_sublev_goal >= 0) {
+		if (ctx->sublev > s_sublev_goal) {
+			g_debug_opt.value()->dbg_set(HSPDEBUG_STEPIN);
+		} else {
+			s_sublev_goal = -1;
+		}
+	}
+
+	s_msgfunc_orig(ctx);
 }
