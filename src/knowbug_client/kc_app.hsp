@@ -211,10 +211,10 @@
 	; 詳細を表示している項目の番号
 	s_current_object_id = -1
 
-	; logmes の出力結果
+	; logmes の出力結果 (UTF-16)
 	s_log_text_len = 0
 	s_log_text_cap = 0x100
-	sdim s_log_text, s_log_text_cap
+	sdim s_log_text, s_log_text_cap * 2
 
 	; ソースファイル
 	sdim s_source_paths
@@ -1079,12 +1079,16 @@
 ; ------------------------------------------------
 
 #deffunc app_log_edit_create \
-	local tabstops
+	local style, local tabstops
 
 	pos s_log_edit_left, s_log_edit_top
-	mesbox s_log_text, s_log_edit_width, s_log_edit_height, mesbox_readonly
+	style = WS_BORDER | WS_VISIBLE | WS_CHILD | WS_VSCROLL | ES_AUTOVSCROLL
+	style |= ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_NOHIDESEL | ES_READONLY
+	winobj "EDIT", "", 0, style, s_log_edit_width, s_log_edit_height
 	s_log_edit_id = stat
 	s_log_edit_hwnd = objinfo_hwnd(s_log_edit_id)
+
+	hspish_font_set_object_font s_log_edit_hwnd, s_default_font_family, s_default_font_size
 
 	tabstops = (13 + 1) / 4 * 4  ; タブ文字の幅を設定する。
 	sendmsg s_log_edit_hwnd, EM_SETTABSTOPS, 1, varptr(tabstops)
@@ -1096,28 +1100,26 @@
 	return
 
 #deffunc app_log_edit_append str text, \
-	local text_len
+	local text_var, local text_len, local os_str, local os_len
 
-	text_len = strlen(text)
+	text_var = text
+	text_var += "\n"
+	text_len = strlen(text_var)
+	unicode_cnv_from_utf8 text_var, text_len, os_str, os_len
 
-	if s_log_text_len + text_len + 2 >= 0x7fff {
-		; FIXME: ログが長すぎると mesbox がクラッシュするので連結しない。
-		return
+	; ログの末尾に連結する
+	; バッファサイズが足りなければ 1.5 倍以上に伸ばし (memexpand)、
+	; バッファの末尾に追加分をコピーする (memcpy)
+
+	if s_log_text_len + os_len >= s_log_text_cap {
+		; +2: ヌル文字分を確保
+		s_log_text_cap += s_log_text_cap / 2 + os_len + 2
+		memexpand s_log_text, s_log_text_cap * 2
 	}
 
-	; NOTE: 文字列を書き込む領域を確保して (memexpand)、
-	;        文字列の末尾に追加する文字列を書く (poke)。+= より遥かに速く文字列連結ができる。
-
-	if s_log_text_len + text_len + 2 >= s_log_text_cap {
-		s_log_text_cap += s_log_text_cap / 2 + text_len + 2 + 1
-		memexpand s_log_text, s_log_text_cap
-	}
-
-	poke s_log_text, s_log_text_len, text
-	s_log_text_len += text_len
-
-	poke s_log_text, s_log_text_len, "\n"
-	s_log_text_len += 2
+	; +2: 末尾のヌル文字も含める
+	memcpy s_log_text, os_str, os_len * 2 + 2, s_log_text_len * 2
+	s_log_text_len += os_len
 
 	s_log_is_dirty = true
 	return
@@ -1131,7 +1133,7 @@
 	return
 
 #deffunc app_log_edit_save \
-	local file_name
+	local file_name, local log_utf8, local log_utf8_len
 
 	dialog "txt|log", dialog_save, "テキストファイル|ログファイル"
 	if stat == 0 {
@@ -1139,18 +1141,20 @@
 	}
 	file_name = refstr
 
-	notesel s_log_text
+
+	unicode_cnv_to_utf8 s_log_text, s_log_text_len, log_utf8, log_utf8_len
+	notesel log_utf8
 	notesave file_name
 	noteunsel
 	return
 
-#deffunc app_log_edit_on_exit
+#deffunc app_log_edit_on_exit onexit
 
 	app_log_edit_auto_save
 	return
 
-#deffunc app_log_edit_auto_save onexit \
-	local file_name
+#deffunc app_log_edit_auto_save \
+	local file_name, local log_utf8, local log_utf8_len
 
 	app_config_get_str "log_auto_save_path", ""
 	file_name = refstr
@@ -1158,7 +1162,8 @@
 		return
 	}
 
-	notesel s_log_text
+	unicode_cnv_to_utf8 s_log_text, s_log_text_len, log_utf8, log_utf8_len
+	notesel log_utf8
 	notesave file_name
 	noteunsel
 	return
@@ -1219,7 +1224,7 @@
 	sendmsg s_log_edit_hwnd, WM_SETREDRAW, false, 0
 
 	gsel s_main_window_id
-	objprm s_log_edit_id, s_log_text
+	SetWindowTextW s_log_edit_hwnd, varptr(s_log_text)
 
 	if at_bottom {
 		app_log_edit_scroll_to_bottom
