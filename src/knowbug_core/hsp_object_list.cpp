@@ -10,6 +10,7 @@
 #include "hsp_object_list.h"
 #include "string_writer.h"
 
+// オブジェクトリストの生成結果
 class HspObjectList {
 	std::vector<HspObjectListItem> items_;
 
@@ -106,6 +107,7 @@ public:
 	}
 
 private:
+	// パスをスコープとしてリスト項目を追加する (子要素の数を表示。中間ノードのことをスコープと呼んでいる)
 	void add_scope(HspObjectPath const& path) {
 		auto name = path.name(objects());
 		auto item_count = path.visual_child_count(objects());
@@ -121,6 +123,7 @@ private:
 		depth_--;
 	}
 
+	// パスを値としてリスト項目に追加する (オブジェクトの値を表示)
 	void add_value(HspObjectPath const& path, HspObjectPath const& value_path) {
 		auto name = path.name(objects());
 
