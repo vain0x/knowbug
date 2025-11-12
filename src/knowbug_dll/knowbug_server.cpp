@@ -2,10 +2,7 @@
 
 #include <array>
 #include <memory>
-#include <deque>
-#include <mutex>
 #include <optional>
-#include <unordered_set>
 #include <vector>
 #include "../knowbug_core/encoding.h"
 #include "../knowbug_core/hsp_object_list.h"
@@ -21,8 +18,6 @@
 #include "logger.h"
 
 class KnowbugServerImpl;
-
-static constexpr auto MEMORY_BUFFER_SIZE = std::size_t{ 1024 * 1024 };
 
 // -----------------------------------------------
 // バージョン
@@ -71,37 +66,11 @@ public:
 	}
 };
 
-class Win32UnmapViewOfFileFn {
-public:
-	using pointer = LPVOID;
-
-	void operator()(LPVOID p) {
-		UnmapViewOfFile(p);
-	}
-};
-
-using MemoryMappedFile = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
-
-using MemoryMappedFileView = std::unique_ptr<LPVOID, Win32UnmapViewOfFileFn>;
-
-using PipeHandle = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
-
 using ProcessHandle = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
 
 using ThreadHandle = std::unique_ptr<HANDLE, Win32CloseHandleFn>;
 
 using WindowHandle = std::unique_ptr<HWND, Win32DestroyWindowFn>;
-
-class PipePair {
-public:
-	PipeHandle read_;
-	PipeHandle write_;
-};
-
-static void fail_with(OsStringView reason) {
-	MessageBox(HWND{}, to_owned(reason).data(), TEXT("knowbug"), MB_ICONWARNING);
-	exit(EXIT_FAILURE);
-}
 
 // -----------------------------------------------
 // 隠しウィンドウ
@@ -225,42 +194,6 @@ static auto start_client_process(HWND server_hwnd) -> std::optional<KnowbugClien
 		std::move(process_handle),
 	};
 }
-
-// -----------------------------------------------
-// メッセージ
-// -----------------------------------------------
-
-class Msg {
-	int kind_;
-	int wparam_;
-	int lparam_;
-	std::u8string text_;
-
-public:
-	Msg(int kind, int wparam, int lparam, std::u8string text)
-		: kind_(kind)
-		, wparam_(wparam)
-		, lparam_(lparam)
-		, text_(std::move(text))
-	{
-	}
-
-	auto kind() const -> int {
-		return kind_;
-	}
-
-	auto wparam() const -> int {
-		return wparam_;
-	}
-
-	auto lparam() const -> int {
-		return lparam_;
-	}
-
-	auto text() const -> std::u8string_view {
-		return text_;
-	}
-};
 
 // -----------------------------------------------
 // サーバー

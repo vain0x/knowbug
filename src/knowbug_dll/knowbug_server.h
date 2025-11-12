@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <thread>
 #include "../hspsdk/hsp3debug.h"
 #include "../knowbug_core/platform.h"
 
