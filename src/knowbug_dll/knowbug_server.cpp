@@ -13,7 +13,7 @@
 #include "../knowbug_core/knowbug_protocol.h"
 #include "../knowbug_core/platform.h"
 #include "../knowbug_core/string_writer.h"
-#include "knowbug_app.h"
+#include "knowbug_dll.h"
 #include "knowbug_server.h"
 #include "logger.h"
 
