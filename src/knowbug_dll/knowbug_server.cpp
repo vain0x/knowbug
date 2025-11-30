@@ -143,317 +143,29 @@ static auto start_client_process(HWND server_hwnd) -> std::optional<KnowbugClien
 }
 
 // -----------------------------------------------
-// サーバー
+// Sender
 // -----------------------------------------------
 
-static auto s_server = std::weak_ptr<KnowbugServerImpl>{};
+KnowbugReceiver::~KnowbugReceiver() {}
+KnowbugSender::~KnowbugSender() {}
 
-class KnowbugServerImpl
-	: public KnowbugServer
-{
-	// NOTE: メンバーの順番はデストラクタの呼び出し順序 (下から上へ) に影響する。
+class KnowbugTransport {
+public:
+	virtual void send_message(const KnowbugMessage& msg) = 0;
+};
 
-	HSP3DEBUG* debug_;
-
-	HspObjects& objects_;
-
-	HINSTANCE instance_;
-
-	bool started_;
-
-	std::optional<WindowHandle> hidden_window_opt_;
-
-	std::optional<KnowbugClientProcess> client_process_opt_;
-	bool client_ready_;
-	HWND client_hwnd_;
-	std::u8string client_message_buf_;
-	std::u8string pending_logmes_;
-	int pending_runmode_;
-
-	// クライアントからの停止・ステップ要求で未解決のもの
-	//
-	// HACK: 停止が要求されてから実際にHSPランタイムが停止状態になるまでの間に
-	//       logmes 命令が実行された場合、runmode が上書きされることがある。
-	//       その対処として、logmes の実行後にこのサーバー自身にメッセージをポストし、
-	//       そのメッセージの解決時に要求されている runmode を再設定する)
-	std::optional<int> requested_mode_;
-
-	std::unique_ptr<HspObjectListEntity> object_list_entity_;
+class KnowbugSenderImpl : public KnowbugSender {
+	KnowbugTransport& server_;
 
 public:
-	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)
-		: debug_(debug)
-		, objects_(objects)
-		, instance_(instance)
-		, started_(false)
-		, hidden_window_opt_()
-		, client_process_opt_()
-		, client_ready_(false)
-		, client_hwnd_()
-		, client_message_buf_()
-		, pending_logmes_()
-		, pending_runmode_(HSPDEBUG_RUN)
-		, requested_mode_()
-		, object_list_entity_(HspObjectListEntity::create())
+	KnowbugSenderImpl(KnowbugTransport& server)
+		:server_{ server }
 	{
 	}
+	
+	~KnowbugSenderImpl() {}
 
-	void start() override {
-		if (std::exchange(started_, true)) {
-			assert(false && u8"double start");
-			return;
-		}
-
-		hidden_window_opt_ = create_hidden_window(instance_);
-
-		client_process_opt_ = start_client_process(hidden_window_opt_->get());
-		if (!client_process_opt_) {
-			MessageBox(hidden_window_opt_->get(), TEXT("デバッグウィンドウの初期化に失敗しました。(クライアントプロセスを起動できません。)"), TEXT("knowbug"), MB_ICONERROR);
-			return;
-		}
-	}
-
-	void will_exit() override {
-		send_terminated_event();
-	}
-
-	void logmes(HspStringView text) override {
-		auto utf8_text = to_utf8(text);
-
-		if (!client_ready_) {
-			if (!pending_logmes_.empty()) {
-				pending_logmes_ += u8"\r\n";
-			}
-			pending_logmes_ += utf8_text;
-			return;
-		}
-
-		send_output_event(utf8_text);
-
-		// (requested_mode_ の説明を参照)
-		if (requested_mode_.has_value() && hidden_window_opt_) {
-			PostMessage(hidden_window_opt_->get(), WM_APP, 0, 0);
-		}
-	}
-
-	void debuggee_did_stop() override {
-		if (!client_ready_) {
-			pending_runmode_ = HSPDEBUG_STOP;
-			return;
-		}
-
-		requested_mode_ = std::nullopt;
-
-		send_stopped_event();
-	}
-
-	void handle_client_message(std::u8string_view text) {
-		if (auto message_opt = knowbug_protocol_parse(text)){
-			client_did_send_something(*message_opt);
-		}
-	}
-
-	void client_did_send_something(KnowbugMessage const& message) {
-		auto method = message.method();
-		auto method_str = as_native(method);
-
-		if (method == u8"initialize_notification") {
-			auto client_hwnd = (HWND)(std::uintptr_t)message.get_int(u8"client_hwnd").value_or(0);
-			client_did_initialize(client_hwnd);
-			return;
-		}
-
-		if (method == u8"terminate_notification") {
-			client_did_terminate();
-			return;
-		}
-
-		if (method == u8"continue_notification") {
-			client_did_step_continue();
-			return;
-		}
-
-		if (method == u8"pause_notification") {
-			client_did_step_pause();
-			return;
-		}
-
-		if (method == u8"step_in_notification") {
-			client_did_step_in();
-			return;
-		}
-
-		if (method == u8"step_over_notification") {
-			client_did_step_over();
-			return;
-		}
-
-		if (method == u8"step_out_notification") {
-			client_did_step_out();
-			return;
-		}
-
-		if (method == u8"location_notification") {
-			client_did_location_update();
-			return;
-		}
-
-		if (method == u8"source_notification") {
-			auto source_file_id = message.get_int(u8"source_file_id").value_or(0);
-			client_did_source(source_file_id);
-			return;
-		}
-
-		if (method == u8"list_update_notification") {
-			client_did_list_update();
-			return;
-		}
-
-		if (method == u8"list_toggle_expand_notification") {
-			auto object_id = message.get_int(u8"object_id").value_or(0);
-			client_did_list_toggle_expand(object_id);
-			return;
-		}
-
-		if (method == u8"list_details_notification") {
-			auto object_id = message.get_int(u8"object_id").value_or(0);
-			client_did_list_details(object_id);
-			return;
-		}
-
-		if (method.empty()) {
-			return;
-		}
-
-		assert(false && u8"unknown method");
-	}
-
-	void client_did_initialize(HWND client_hwnd) {
-		client_ready_ = true;
-		client_hwnd_ = client_hwnd;
-		send_initialized_event();
-
-		// クライアントとの接続が確立する前にランタイムから受け取っていたイベントを伝える
-		if (pending_runmode_ != HSPDEBUG_RUN) {
-			send_stopped_event();
-		}
-		if (!pending_logmes_.empty()) {
-			send_output_event(std::exchange(pending_logmes_, u8""));
-		}
-	}
-
-	void client_did_terminate() {
-		PostQuitMessage(EXIT_SUCCESS);
-	}
-
-	void client_did_step_continue() {
-		hsx::debug_do_set_mode(HSPDEBUG_RUN, debug_);
-		post_null();
-
-		send_continued_event();
-	}
-
-	void client_did_step_pause() {
-		requested_mode_ = (int)HSPDEBUG_STOP;
-		hsx::debug_do_set_mode(HSPDEBUG_STOP, debug_);
-		post_null();
-	}
-
-	void client_did_step_in() {
-		hsx::debug_do_set_mode(HSPDEBUG_STEPIN, debug_);
-		post_null();
-
-		send_continued_event();
-	}
-
-	void client_did_step_over() {
-		knowbug_step_over(debug_);
-		send_continued_event();
-	}
-
-	void client_did_step_out() {
-		knowbug_step_out(debug_);
-		send_continued_event();
-	}
-
-	void client_did_location_update() {
-		send_location_event();
-	}
-
-	void client_did_source(int source_file_id) {
-		if (source_file_id < 0) {
-			assert(false && u8"bad source_file_id");
-			return;
-		}
-
-		send_source_event((std::size_t)source_file_id);
-	}
-
-	void client_did_list_update() {
-		send_list_updated_events();
-	}
-
-	void client_did_list_toggle_expand(int object_id) {
-		if (object_id < 0) {
-			assert(false && u8"bad object_id");
-			return;
-		}
-
-		object_list_entity_->toggle_expand((std::size_t)object_id);
-
-		send_list_updated_events();
-	}
-
-	void client_did_list_details(int object_id) {
-		if (object_id < 0) {
-			assert(false && u8"bad object_id");
-			return;
-		}
-
-		send_list_details_event((std::size_t)object_id);
-	}
-
-	void handle_after_logmes() {
-		if (requested_mode_.has_value()) {
-			hsx::debug_do_set_mode(requested_mode_.value(), debug_);
-			post_null();
-		}
-	}
-
-private:
-	auto objects() -> HspObjects& {
-		return objects_;
-	}
-
-	void send_message(KnowbugMessage const& message) {
-		// この関数はクライアントからの初期化通知が来た後にのみ呼ばれる
-		assert(client_ready_);
-
-		if (!client_hwnd_) return;
-
-		// クライアントが終了していたら送らない
-		if (!client_process_opt_) return;
-
-		debugf(u8"send_message '%s'", message.method().data());
-
-		auto text = knowbug_protocol_serialize(message);
-		auto copydata = COPYDATASTRUCT{};
-		copydata.cbData = (DWORD)text.size();
-		copydata.lpData = text.data();
-
-		// この関数は start の処理後にだけ呼ばれる
-		assert(hidden_window_opt_.has_value());
-		auto server_hwnd = HWND{ hidden_window_opt_->get() };
-
-		SendMessage(client_hwnd_, WM_COPYDATA, (WPARAM)server_hwnd, (LPARAM)&copydata);
-	}
-
-	void send_message(std::u8string_view method) {
-		auto message = KnowbugMessage::new_with_method(std::u8string{ method });
-		send_message(message);
-	}
-
-	void send_initialized_event() {
+	void send_initialized_event() override {
 		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"initialized_event" });
 
 		message.insert(std::u8string{ u8"version" }, knowbug_version());
@@ -461,24 +173,19 @@ private:
 		send_message(message);
 	}
 
-	void send_terminated_event() {
+	void send_terminated_event() override {
 		send_message(u8"terminated_event");
 	}
 
-	void send_continued_event() {
+	void send_continued_event() override {
 		send_message(u8"continued_event");
 	}
 
-	void send_stopped_event() {
+	void send_stopped_event() override {
 		send_message(u8"stopped_event");
 	}
 
-	void send_location_event() {
-		objects().script_do_update_location();
-
-		auto source_file_id = objects().script_to_current_file().value_or(0);
-		auto line_index = objects().script_to_current_line();
-
+	void send_location_event(size_t source_file_id, size_t line_index) override {
 		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"location_event" });
 
 		message.insert_int(std::u8string{ u8"source_file_id" }, (int)source_file_id);
@@ -487,28 +194,23 @@ private:
 		send_message(message);
 	}
 
-	void send_source_event(std::size_t source_file_id) {
-		auto full_path_opt = objects().source_file_to_full_path(source_file_id);
-		auto content_opt = objects().source_file_to_content(source_file_id);
-
+	void send_source_event(std::size_t source_file_id, std::optional<std::u8string_view> source_path_opt, std::optional<std::u8string_view> source_code_opt) override {
 		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"source_event" });
 
 		message.insert_int(std::u8string{ u8"source_file_id" }, (int)source_file_id);
 
-		if (full_path_opt) {
-			message.insert(std::u8string{ u8"source_path" }, std::u8string{ *full_path_opt });
+		if (source_path_opt) {
+			message.insert(std::u8string{ u8"source_path" }, std::u8string{ *source_path_opt });
 		}
 
-		if (content_opt) {
-			message.insert(std::u8string{ u8"source_code" }, std::u8string{ *content_opt });
+		if (source_code_opt) {
+			message.insert(std::u8string{ u8"source_code" }, std::u8string{ *source_code_opt });
 		}
 
 		send_message(message);
 	}
 
-	void send_list_updated_events() {
-		auto diff = object_list_entity_->update(objects());
-
+	void send_list_updated_events(std::vector<HspObjectListDelta> diff) override {
 		for (auto i = std::size_t{}; i < diff.size(); i++) {
 			auto const& delta = diff[i];
 
@@ -557,16 +259,7 @@ private:
 		}
 	}
 
-	void send_list_details_event(std::size_t object_id) {
-		auto text_opt = std::optional<std::u8string>{};
-
-		auto path_opt = object_list_entity_->object_id_to_path(object_id);
-		if (path_opt) {
-			auto string_writer = StringWriter{};
-			HspObjectWriter{ objects(), string_writer }.write_table_form(**path_opt);
-			text_opt = string_writer.finish();
-		}
-
+	void send_list_details_event(std::size_t object_id, std::optional<std::u8string> text_opt) override {
 		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"list_details_event" });
 
 		message.insert_int(std::u8string{ u8"object_id" }, (int)object_id);
@@ -578,7 +271,7 @@ private:
 		send_message(message);
 	}
 
-	void send_output_event(std::u8string output) {
+	void send_output_event(std::u8string output) override {
 		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"output_event" });
 
 		message.insert(std::u8string{ u8"output" }, std::move(output));
@@ -586,14 +279,494 @@ private:
 		send_message(message);
 	}
 
+private:
+	void send_message(const KnowbugMessage& msg) {
+		server_.send_message(msg);
+	}
+
+	void send_message(std::u8string_view method) {
+		auto message = KnowbugMessage::new_with_method(std::u8string{ method });
+		send_message(message);
+	}
+};
+
+// -----------------------------------------------
+// サーバー
+// -----------------------------------------------
+
+static auto s_server = std::weak_ptr<KnowbugServerImpl>{};
+
+class KnowbugServerImpl
+	: public KnowbugServer
+	, public KnowbugTransport
+{
+	// NOTE: メンバーの順番はデストラクタの呼び出し順序 (下から上へ) に影響する。
+
+	HSP3DEBUG* debug_;
+
+	HspObjects& objects_;
+
+	HINSTANCE instance_;
+
+	bool started_;
+
+	std::optional<WindowHandle> hidden_window_opt_;
+
+	std::optional<KnowbugClientProcess> client_process_opt_;
+	bool client_ready_;
+	HWND client_hwnd_;
+	std::u8string client_message_buf_;
+	//std::u8string pending_logmes_;
+	//int pending_runmode_;
+
+	// クライアントからの停止・ステップ要求で未解決のもの
+	//
+	// HACK: 停止が要求されてから実際にHSPランタイムが停止状態になるまでの間に
+	//       logmes 命令が実行された場合、runmode が上書きされることがある。
+	//       その対処として、logmes の実行後にこのサーバー自身にメッセージをポストし、
+	//       そのメッセージの解決時に要求されている runmode を再設定する)
+	//std::optional<int> requested_mode_;
+
+	//std::unique_ptr<HspObjectListEntity> object_list_entity_;
+	KnowbugReceiver& receiver_;
+	std::unique_ptr<KnowbugSenderImpl> sender_;
+
+public:
+	KnowbugServerImpl(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugReceiver& receiver)
+		: debug_(debug)
+		, objects_(objects)
+		, instance_(instance)
+		, started_(false)
+		, hidden_window_opt_()
+		, client_process_opt_()
+		, client_ready_(false)
+		, client_hwnd_()
+		, client_message_buf_()
+		//, pending_logmes_()
+		//, pending_runmode_(HSPDEBUG_RUN)
+		//, requested_mode_()
+		//, object_list_entity_(HspObjectListEntity::create())
+		, receiver_{ receiver }
+		, sender_{ std::make_unique<KnowbugSenderImpl>(*this) }
+	{
+	}
+
+	void start() override {
+		if (std::exchange(started_, true)) {
+			assert(false && u8"double start");
+			return;
+		}
+
+		hidden_window_opt_ = create_hidden_window(instance_);
+
+		client_process_opt_ = start_client_process(hidden_window_opt_->get());
+		if (!client_process_opt_) {
+			MessageBox(hidden_window_opt_->get(), TEXT("デバッグウィンドウの初期化に失敗しました。(クライアントプロセスを起動できません。)"), TEXT("knowbug"), MB_ICONERROR);
+			return;
+		}
+	}
+
+	void will_exit() override {
+		sender_->send_terminated_event();
+	}
+
+	//void logmes(HspStringView text) override {
+	//	auto utf8_text = to_utf8(text);
+
+	//	if (!client_ready_) {
+	//		if (!pending_logmes_.empty()) {
+	//			pending_logmes_ += u8"\r\n";
+	//		}
+	//		pending_logmes_ += utf8_text;
+	//		return;
+	//	}
+
+	//	sender_->send_output_event(utf8_text);
+
+	//	// (requested_mode_ の説明を参照)
+	//	if (requested_mode_.has_value() && hidden_window_opt_) {
+	//		PostMessage(hidden_window_opt_->get(), WM_APP, 0, 0);
+	//	}
+	//}
+
+	//void debuggee_did_stop() override {
+	//	if (!client_ready_) {
+	//		pending_runmode_ = HSPDEBUG_STOP;
+	//		return;
+	//	}
+
+	//	requested_mode_ = std::nullopt;
+
+	//	sender_->send_stopped_event();
+	//}
+
+	void handle_client_message(std::u8string_view text) {
+		if (auto message_opt = knowbug_protocol_parse(text)) {
+			client_did_send_something(std::move(*message_opt));
+		}
+	}
+
+	void client_did_send_something(KnowbugMessage message) {
+		auto method = message.method();
+		auto method_str = as_native(method);
+		auto incoming = IncomingCtx{ *this, get_sender(), message };
+
+		if (method == u8"initialize_notification") {
+			auto client_hwnd = (HWND)(std::uintptr_t)message.get_int(u8"client_hwnd").value_or(0);
+			client_ready_ = true;
+			client_hwnd_ = client_hwnd;
+			receiver_.client_did_initialize(incoming);
+			//client_did_initialize(client_hwnd);
+			return;
+		}
+
+		if (method == u8"terminate_notification") {
+			//client_did_terminate();
+			receiver_.client_did_terminate(incoming);
+			return;
+		}
+
+		if (method == u8"continue_notification") {
+			//client_did_step_continue();
+			receiver_.client_did_step_continue(incoming);
+			return;
+		}
+
+		if (method == u8"pause_notification") {
+			//client_did_step_pause();
+			receiver_.client_did_step_pause(incoming);
+			return;
+		}
+
+		if (method == u8"step_in_notification") {
+			////client_did_step_in();
+			receiver_.client_did_step_in(incoming);
+			return;
+		}
+
+		if (method == u8"step_over_notification") {
+			//client_did_step_over();
+			receiver_.client_did_step_over(incoming);
+			return;
+		}
+
+		if (method == u8"step_out_notification") {
+			//client_did_step_out();
+			receiver_.client_did_step_out(incoming);
+			return;
+		}
+
+		if (method == u8"location_notification") {
+			//client_did_location_update();
+			receiver_.client_did_location_update(incoming);
+			return;
+		}
+
+		if (method == u8"source_notification") {
+			auto source_file_id = message.get_int(u8"source_file_id").value_or(0);
+			//client_did_source(source_file_id);
+			receiver_.client_did_source(incoming, source_file_id);
+			return;
+		}
+
+		if (method == u8"list_update_notification") {
+			//client_did_list_update();
+			receiver_.client_did_list_update(incoming);
+			return;
+		}
+
+		if (method == u8"list_toggle_expand_notification") {
+			auto object_id = message.get_int(u8"object_id").value_or(0);
+			//client_did_list_toggle_expand(object_id);
+			receiver_.client_did_list_toggle_expand(incoming, object_id);
+			return;
+		}
+
+		if (method == u8"list_details_notification") {
+			auto object_id = message.get_int(u8"object_id").value_or(0);
+			//client_did_list_details(object_id);
+			receiver_.client_did_list_details(incoming, object_id);
+			return;
+		}
+
+		if (method.empty()) {
+			return;
+		}
+
+		assert(false && u8"unknown method");
+	}
+
+	//void client_did_initialize(HWND client_hwnd) {
+	//	client_ready_ = true;
+	//	client_hwnd_ = client_hwnd;
+	//	send_initialized_event();
+
+	//	// クライアントとの接続が確立する前にランタイムから受け取っていたイベントを伝える
+	//	if (pending_runmode_ != HSPDEBUG_RUN) {
+	//		send_stopped_event();
+	//	}
+	//	if (!pending_logmes_.empty()) {
+	//		send_output_event(std::exchange(pending_logmes_, u8""));
+	//	}
+	//}
+
+	//void client_did_terminate() {
+	//	PostQuitMessage(EXIT_SUCCESS);
+	//}
+
+	//void client_did_step_continue() {
+	//	hsx::debug_do_set_mode(HSPDEBUG_RUN, debug_);
+	//	post_null();
+
+	//	send_continued_event();
+	//}
+
+	//void client_did_step_pause() {
+	//	requested_mode_ = (int)HSPDEBUG_STOP;
+	//	hsx::debug_do_set_mode(HSPDEBUG_STOP, debug_);
+	//	post_null();
+	//}
+
+	//void client_did_step_in() {
+	//	hsx::debug_do_set_mode(HSPDEBUG_STEPIN, debug_);
+	//	post_null();
+
+	//	send_continued_event();
+	//}
+
+	//void client_did_step_over() {
+	//	knowbug_step_over(debug_);
+	//	send_continued_event();
+	//}
+
+	//void client_did_step_out() {
+	//	knowbug_step_out(debug_);
+	//	send_continued_event();
+	//}
+
+	//void client_did_location_update() {
+	//	send_location_event();
+	//}
+
+	//void client_did_source(int source_file_id) {
+	//	if (source_file_id < 0) {
+	//		assert(false && u8"bad source_file_id");
+	//		return;
+	//	}
+
+	//	send_source_event((std::size_t)source_file_id);
+	//}
+
+	//void client_did_list_update() {
+	//	send_list_updated_events();
+	//}
+
+	//void client_did_list_toggle_expand(int object_id) {
+	//	if (object_id < 0) {
+	//		assert(false && u8"bad object_id");
+	//		return;
+	//	}
+
+	//	object_list_entity_->toggle_expand((std::size_t)object_id);
+
+	//	send_list_updated_events();
+	//}
+
+	//void client_did_list_details(int object_id) {
+	//	if (object_id < 0) {
+	//		assert(false && u8"bad object_id");
+	//		return;
+	//	}
+
+	//	send_list_details_event((std::size_t)object_id);
+	//}
+
+	void handle_after_logmes() {
+		if (requested_mode_.has_value()) {
+			hsx::debug_do_set_mode(requested_mode_.value(), debug_);
+			post_null();
+		}
+	}
+
+private:
+	auto objects() -> HspObjects& {
+		return objects_;
+	}
+
+public:
+	auto get_sender() -> KnowbugSender& override {
+		return *sender_;
+	}
+
+	void send_message(KnowbugMessage const& message) override {
+		// この関数はクライアントからの初期化通知が来た後にのみ呼ばれる
+		assert(client_ready_);
+
+		if (!client_hwnd_) return;
+
+		// クライアントが終了していたら送らない
+		if (!client_process_opt_) return;
+
+		debugf(u8"send_message '%s'", message.method().data());
+
+		auto text = knowbug_protocol_serialize(message);
+		auto copydata = COPYDATASTRUCT{};
+		copydata.cbData = (DWORD)text.size();
+		copydata.lpData = text.data();
+
+		// この関数は start の処理後にだけ呼ばれる
+		assert(hidden_window_opt_.has_value());
+		auto server_hwnd = HWND{ hidden_window_opt_->get() };
+
+		SendMessage(client_hwnd_, WM_COPYDATA, (WPARAM)server_hwnd, (LPARAM)&copydata);
+	}
+
+	//void send_message(std::u8string_view method) {
+	//	auto message = KnowbugMessage::new_with_method(std::u8string{ method });
+	//	send_message(message);
+	//}
+
+	//void send_initialized_event() {
+	//	auto message = KnowbugMessage::new_with_method(std::u8string{ u8"initialized_event" });
+
+	//	message.insert(std::u8string{ u8"version" }, knowbug_version());
+
+	//	send_message(message);
+	//}
+
+	//void send_terminated_event() {
+	//	send_message(u8"terminated_event");
+	//}
+
+	//void send_continued_event() {
+	//	send_message(u8"continued_event");
+	//}
+
+	//void send_stopped_event() {
+	//	send_message(u8"stopped_event");
+	//}
+
+	//void send_location_event() {
+	//	objects().script_do_update_location();
+
+	//	auto source_file_id = objects().script_to_current_file().value_or(0);
+	//	auto line_index = objects().script_to_current_line();
+
+	//	auto message = KnowbugMessage::new_with_method(std::u8string{ u8"location_event" });
+
+	//	message.insert_int(std::u8string{ u8"source_file_id" }, (int)source_file_id);
+	//	message.insert_int(std::u8string{ u8"line_index" }, (int)line_index);
+
+	//	send_message(message);
+	//}
+
+	//void send_source_event(std::size_t source_file_id) {
+	//	auto full_path_opt = objects().source_file_to_full_path(source_file_id);
+	//	auto content_opt = objects().source_file_to_content(source_file_id);
+
+	//	auto message = KnowbugMessage::new_with_method(std::u8string{ u8"source_event" });
+
+	//	message.insert_int(std::u8string{ u8"source_file_id" }, (int)source_file_id);
+
+	//	if (full_path_opt) {
+	//		message.insert(std::u8string{ u8"source_path" }, std::u8string{ *full_path_opt });
+	//	}
+
+	//	if (content_opt) {
+	//		message.insert(std::u8string{ u8"source_code" }, std::u8string{ *content_opt });
+	//	}
+
+	//	send_message(message);
+	//}
+
+	//void send_list_updated_events() {
+	//	auto diff = object_list_entity_->update(objects());
+
+	//	for (auto i = std::size_t{}; i < diff.size(); i++) {
+	//		auto const& delta = diff[i];
+
+	//		auto message = KnowbugMessage::new_with_method(std::u8string{ u8"list_updated_event" });
+
+	//		message.insert(
+	//			std::u8string{ u8"kind" },
+	//			std::u8string{ delta.kind_name() }
+	//		);
+
+	//		message.insert_int(
+	//			std::u8string{ u8"object_id" },
+	//			(int)delta.object_id
+	//		);
+
+	//		message.insert_int(
+	//			std::u8string{ u8"index" },
+	//			(int)delta.index
+	//		);
+
+	//		message.insert(
+	//			std::u8string{ u8"name" },
+	//			delta.indented_name()
+	//		);
+
+	//		message.insert(
+	//			std::u8string{ u8"value" },
+	//			std::u8string{ delta.value }
+	//		);
+
+	//		if (i + 1 < diff.size()) {
+	//			message.insert_bool(
+	//				std::u8string{ u8"keep_alive" },
+	//				true
+	//			);
+	//		}
+
+	//		if (delta.kind == HspObjectListDeltaKind::Remove && delta.count >= 2) {
+	//			message.insert_int(
+	//				std::u8string{ u8"count" },
+	//				(int)delta.count
+	//			);
+	//		}
+
+	//		send_message(message);
+	//	}
+	//}
+
+	//void send_list_details_event(std::size_t object_id) {
+	//	auto text_opt = std::optional<std::u8string>{};
+
+	//	auto path_opt = object_list_entity_->object_id_to_path(object_id);
+	//	if (path_opt) {
+	//		auto string_writer = StringWriter{};
+	//		HspObjectWriter{ objects(), string_writer }.write_table_form(**path_opt);
+	//		text_opt = string_writer.finish();
+	//	}
+
+	//	auto message = KnowbugMessage::new_with_method(std::u8string{ u8"list_details_event" });
+
+	//	message.insert_int(std::u8string{ u8"object_id" }, (int)object_id);
+
+	//	if (text_opt) {
+	//		message.insert(std::u8string{ u8"text" }, std::move(*text_opt));
+	//	}
+
+	//	send_message(message);
+	//}
+
+	//void send_output_event(std::u8string output) {
+	//	auto message = KnowbugMessage::new_with_method(std::u8string{ u8"output_event" });
+
+	//	message.insert(std::u8string{ u8"output" }, std::move(output));
+
+	//	send_message(message);
+	//}
+
 	void post_null() {
 		// HACK: HSP のウィンドウに無意味なメッセージを送信することで、デバッグモードの変更に気づかせる。
 		PostMessage(NULL, WM_NULL, 0, 0);
 	}
 };
 
-auto KnowbugServer::create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance)->std::shared_ptr<KnowbugServer> {
-	auto server = std::make_shared<KnowbugServerImpl>(debug, objects, instance);
+auto KnowbugServer::create(HSP3DEBUG* debug, HspObjects& objects, HINSTANCE instance, KnowbugReceiver& receiver)->std::shared_ptr<KnowbugServer> {
+	auto server = std::make_shared<KnowbugServerImpl>(debug, objects, instance, receiver);
 	s_server = server;
 	return server;
 }
@@ -617,9 +790,9 @@ static auto WINAPI process_hidden_window(HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 	case WM_COPYDATA: {
 		// データにクライアントからのメッセージが含まれている
 		assert(lp);
-		auto copydata = (COPYDATASTRUCT const *)lp;
+		auto copydata = (COPYDATASTRUCT const*)lp;
 		assert(copydata->cbData < (DWORD)INT32_MAX);
-		auto text = std::u8string_view{(char8_t const*)copydata->lpData, copydata->cbData};
+		auto text = std::u8string_view{ (char8_t const*)copydata->lpData, copydata->cbData };
 
 		if (auto server = s_server.lock()) {
 			server->handle_client_message(text);
