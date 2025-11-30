@@ -20,31 +20,6 @@
 class KnowbugServerImpl;
 
 // -----------------------------------------------
-// バージョン
-// -----------------------------------------------
-
-static constexpr auto KNOWBUG_VERSION = u8"v2.2.2";
-
-#ifdef _M_X64
-static constexpr auto KNOWBUG_PLATFORM_SUFFIX = u8" (x64)";
-#else //defined(_M_X64)
-static constexpr auto KNOWBUG_PLATFORM_SUFFIX = u8"";
-#endif
-
-#ifdef HSP3_UTF8
-static constexpr auto KNOWBUG_ENCODING_SUFFIX = u8" (UTF-8)";
-#else
-static constexpr auto KNOWBUG_ENCODING_SUFFIX = u8"";
-#endif
-
-static auto knowbug_version() -> std::u8string {
-	auto suffix = std::u8string{ KNOWBUG_VERSION };
-	suffix += KNOWBUG_PLATFORM_SUFFIX;
-	suffix += KNOWBUG_ENCODING_SUFFIX;
-	return suffix;
-}
-
-// -----------------------------------------------
 // 隠しウィンドウ
 // -----------------------------------------------
 

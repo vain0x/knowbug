@@ -5,6 +5,8 @@
 class HspObjectPath;
 class HspObjects;
 
+extern auto knowbug_version() -> std::u8string;
+
 class KnowbugApp {
 public:
 	static auto instance() -> std::shared_ptr<KnowbugApp>;
