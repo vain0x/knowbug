@@ -61,8 +61,6 @@ static auto get_hsp_dir() -> OsString {
 class KnowbugAppImpl
 	: public KnowbugApp
 {
-	friend class HspObjectTreeObserverImpl;
-
 	std::unique_ptr<HspObjects> objects_;
 	std::shared_ptr<KnowbugServer> server_;
 
