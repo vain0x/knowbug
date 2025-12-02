@@ -10,14 +10,14 @@
 #include "../knowbug_core/platform.h"
 #include "../knowbug_core/source_files.h"
 #include "../knowbug_core/string_writer.h"
-#include "knowbug_app.h"
+#include "knowbug_dll.h"
 #include "knowbug_server.h"
 
 class KnowbugAppImpl;
 
-static auto g_fs = WindowsFileSystemApi{};
-static auto g_dll_instance = HINSTANCE{};
-static auto g_debug_opt = std::optional<HSP3DEBUG*>{};
+static auto s_fs = WindowsFileSystemApi{};
+static auto s_dll_instance = HINSTANCE{};
+static auto s_debug_opt = std::optional<HSP3DEBUG*>{};
 
 // HSPCTX::msgfunc の型
 using HspMsgFunc = void(*)(HSPCTX*);
@@ -34,6 +34,31 @@ static auto s_sublev_goal = -1;
 EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4);
 EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4);
 static void debugbye();
+
+// -----------------------------------------------
+// バージョン
+// -----------------------------------------------
+
+static constexpr auto KNOWBUG_VERSION = u8"v2.2.2";
+
+#ifdef _M_X64
+static constexpr auto KNOWBUG_PLATFORM_SUFFIX = u8" (x64)";
+#else //defined(_M_X64)
+static constexpr auto KNOWBUG_PLATFORM_SUFFIX = u8"";
+#endif
+
+#ifdef HSP3_UTF8
+static constexpr auto KNOWBUG_ENCODING_SUFFIX = u8" (UTF-8)";
+#else
+static constexpr auto KNOWBUG_ENCODING_SUFFIX = u8"";
+#endif
+
+auto knowbug_version() -> std::u8string {
+	auto suffix = std::u8string{ KNOWBUG_VERSION };
+	suffix += KNOWBUG_PLATFORM_SUFFIX;
+	suffix += KNOWBUG_ENCODING_SUFFIX;
+	return suffix;
+}
 
 // -----------------------------------------------
 // KnowbugApp
@@ -61,8 +86,6 @@ static auto get_hsp_dir() -> OsString {
 class KnowbugAppImpl
 	: public KnowbugApp
 {
-	friend class HspObjectTreeObserverImpl;
-
 	std::unique_ptr<HspObjects> objects_;
 	std::shared_ptr<KnowbugServer> server_;
 
@@ -71,7 +94,7 @@ public:
 		std::unique_ptr<HspObjects> objects
 	)
 		: objects_(std::move(objects))
-		, server_(KnowbugServer::create(*g_debug_opt, this->objects(), g_dll_instance))
+		, server_(KnowbugServer::create(*s_debug_opt, this->objects(), s_dll_instance))
 	{
 	}
 
@@ -125,16 +148,16 @@ void knowbug_step_out(HSP3DEBUG* debug) {
 
 // -----------------------------------------------
 
-static auto g_app = std::shared_ptr<KnowbugAppImpl>{};
+static auto s_app = std::shared_ptr<KnowbugAppImpl>{};
 
 auto KnowbugApp::instance() -> std::shared_ptr<KnowbugApp> {
-	return g_app;
+	return s_app;
 }
 
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD fdwReason, PVOID pvReserved) {
 	switch ( fdwReason ) {
 		case DLL_PROCESS_ATTACH: {
-			g_dll_instance = hInstance;
+			s_dll_instance = hInstance;
 #if _DEBUG
 			if (GetKeyState(VK_SHIFT) & 0x8000) {
 				MessageBox(nullptr, TEXT("Ctrl+Alt+P でプロセス hsp3.exe にアタッチし、デバッグを開始してください。"), TEXT("knowbug"), MB_OK);
@@ -155,20 +178,20 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 	ctx = p1->hspctx;
 	exinfo = ctx->exinfo2;
 
-	g_debug_opt = debug;
+	s_debug_opt = debug;
 
 	auto common_dir = get_hsp_dir();
 	common_dir += TEXT("/common/");
 
 	// :thinking_face:
-	auto resolver = SourceFileResolver{ g_fs };
+	auto resolver = SourceFileResolver{ s_fs };
 	auto objects_builder = HspObjectsBuilder{};
 	resolver.add_known_dir(std::move(common_dir));
 	objects_builder.read_debug_segment(resolver, ctx);
 	auto source_file_repository = std::make_unique<SourceFileRepository>(resolver.resolve());
 	auto objects = std::make_unique<HspObjects>(objects_builder.finish(debug, std::move(source_file_repository)));
 
-	g_app = std::make_shared<KnowbugAppImpl>(
+	s_app = std::make_shared<KnowbugAppImpl>(
 		std::move(objects)
 	);
 
@@ -178,7 +201,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 
 	// 起動処理:
 
-	if (auto app = std::shared_ptr{ g_app }) {
+	if (auto app = std::shared_ptr{ s_app }) {
 		app->initialize();
 	}
 
@@ -186,7 +209,7 @@ EXPORT BOOL WINAPI debugini(HSP3DEBUG* p1, int p2, int p3, int p4) {
 }
 
 EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4) {
-	if (auto app = std::shared_ptr{ g_app }) {
+	if (auto app = std::shared_ptr{ s_app }) {
 		switch (p2) {
 		case HSX_DEBUG_NOTICE_STOP:
 			app->did_hsp_pause();
@@ -201,20 +224,20 @@ EXPORT BOOL WINAPI debug_notice(HSP3DEBUG* p1, int p2, int p3, int p4) {
 }
 
 void debugbye() {
-	if (auto app = std::shared_ptr{ g_app }) {
+	if (auto app = std::shared_ptr{ s_app }) {
 		app->will_exit();
 	}
 
-	g_app.reset();
+	s_app.reset();
 }
 
 // HSPCTX::msgfunc を差し替えるもの
 void knowbug_msgfunc(HSPCTX* ctx)
 {
 	// 条件付きステップ実行の継続処理
-	if (g_debug_opt.has_value() && s_sublev_goal >= 0) {
+	if (s_debug_opt.has_value() && s_sublev_goal >= 0) {
 		if (ctx->sublev > s_sublev_goal) {
-			g_debug_opt.value()->dbg_set(HSPDEBUG_STEPIN);
+			s_debug_opt.value()->dbg_set(HSPDEBUG_STEPIN);
 		} else {
 			s_sublev_goal = -1;
 		}
