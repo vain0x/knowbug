@@ -4,7 +4,13 @@
 
 *なし*
 
+## 2025-12-03
 
+- [v2.3.0] リリース
+    - HSP3.7 正式版に対応しました
+    - 改善
+        - ログの文字数制限をなくしました ([#118](https://github.com/vain0x/knowbug/issues/118))
+        - 条件付きステップ実行の挙動を改善しました ([#126](https://github.com/vain0x/knowbug/pull/126))
 
 ## 2025-09-22
 
@@ -125,4 +131,5 @@
 [v2.2.0]: https://github.com/vain0x/knowbug/compare/v2.1.0...v2.2.0
 [v2.2.1]: https://github.com/vain0x/knowbug/compare/v2.2.0...v2.2.1
 [v2.2.2]: https://github.com/vain0x/knowbug/compare/v2.2.1...v2.2.2
-[未リリース]: https://github.com/vain0x/knowbug/compare/v2.2.2...HEAD
+[v2.2.2]: https://github.com/vain0x/knowbug/compare/v2.2.2...v2.3.0
+[未リリース]: https://github.com/vain0x/knowbug/compare/v2.3.0...HEAD
