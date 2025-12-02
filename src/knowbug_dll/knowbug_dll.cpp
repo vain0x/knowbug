@@ -39,7 +39,7 @@ static void debugbye();
 // バージョン
 // -----------------------------------------------
 
-static constexpr auto KNOWBUG_VERSION = u8"v2.2.2";
+static constexpr auto KNOWBUG_VERSION = u8"v2.3.0";
 
 #ifdef _M_X64
 static constexpr auto KNOWBUG_PLATFORM_SUFFIX = u8" (x64)";
